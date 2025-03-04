@@ -25,6 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
@@ -32,6 +33,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeAll;
@@ -95,7 +97,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWithValidPayload(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWithValidPayload(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -113,8 +115,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                                 .addTransferListener(transferListenerMock)
                                 .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchBucketException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -124,7 +126,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWithValidInValidPayload(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWithValidInValidPayload(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -142,9 +144,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                                 .addTransferListener(transferListenerMock)
                                 .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> fileUpload.completionFuture().join());
-        Thread.sleep(500);
-
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -155,7 +156,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ErrorsWhenCancelled(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ErrorsWhenCancelled(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -171,9 +172,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                             .addTransferListener(transferListener)
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().cancel(true);
-
-        Thread.sleep(500);
-
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -182,7 +181,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) throws InterruptedException {
+    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -202,7 +201,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                             .addTransferListener(transferListenerMock)
                             .build()).completionFuture().join();
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -215,7 +214,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidPayload() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidPayload() {
         S3AsyncClient s3Async = s3AsyncClient(true);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -235,9 +234,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                           .addTransferListener(transferListener)
                           .addTransferListener(transferListenerMock)
                           .build());
-
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(NoSuchKeyException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -245,7 +243,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidInValidPayload() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ErrorsWithValidInValidPayload() {
         S3AsyncClient s3Async = s3AsyncClient(true);
 
         TransferListener transferListenerMock = mock(TransferListener.class);
@@ -266,8 +264,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
                           .addTransferListener(transferListenerMock)
                           .build());
 
+        assertTransferListenerCompletion(transferListener);
         assertThatExceptionOfType(CompletionException.class).isThrownBy(() -> copy.completionFuture().join());
-        Thread.sleep(500);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(S3Exception.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -295,7 +293,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                       .addTransferListener(transferListenerMock)
                       .build()).completionFuture().cancel(true);
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.isTransferComplete()).isFalse();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -303,7 +301,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     @Test
-    void copyWithJavaBasedClient_listeners_reports_ProgressWhenSuccess_copy() throws InterruptedException {
+    void copyWithJavaBasedClient_listeners_reports_ProgressWhenSuccess_copy() {
         String destinationKey = "copiedObj";
         S3AsyncClient s3Async = s3AsyncClient(true);
 
@@ -339,7 +337,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
                       .addTransferListener(transferListenerMock)
                       .build());
 
-        Thread.sleep(500);
+        assertTransferListenerCompletion(transferListener);
         assertThat(transferListener.getExceptionCaught()).isNull();
         assertThat(transferListener.isTransferComplete()).isTrue();
         assertThat(transferListener.isTransferInitiated()).isTrue();
@@ -349,5 +347,15 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
         int numTimesBytesTransferred = 2;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    private static void assertTransferListenerCompletion(CaptureTransferListener transferListener) {
+        Duration waitDuration = Duration.ofSeconds(5);
+        assertTimeoutPreemptively(
+            waitDuration, () -> {
+                while (!transferListener.getCompletionFuture().isDone()) {
+                    Thread.sleep(50);
+                }
+            }, "TransferListener future not completed even after waiting for " + waitDuration);
     }
 }
