@@ -33,37 +33,37 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import software.amazon.awssdk.utils.Logger;
 
-public class MavenProjectTest {
-    private static final Logger log = Logger.loggerFor(MavenProjectTest.class);
+public class MavenTransferManagerTest {
+    private static final Logger log = Logger.loggerFor(MavenTransferManagerTest.class);
     private static String sdkVersion;
-    private static Path mavenBefore;
-    private static Path mavenAfter;
+    private static Path mavenTmBefore;
+    private static Path mavenTmAfter;
     private static Path target;
-    private static Path mavenActual;
-    private static Path mavenExpected;
+    private static Path mavenTmActual;
+    private static Path mavenTmExpected;
 
     @BeforeAll
     static void setUp() throws IOException {
         sdkVersion = getVersion();
-        mavenBefore = new File(MavenProjectTest.class.getResource("maven/before").getFile()).toPath();
-        mavenAfter = new File(MavenProjectTest.class.getResource("maven/after").getFile()).toPath();
-        target = new File(MavenProjectTest.class.getResource("/").getFile()).toPath().getParent();
+        mavenTmBefore = new File(MavenTransferManagerTest.class.getResource("maven-tm/before").getFile()).toPath();
+        mavenTmAfter = new File(MavenTransferManagerTest.class.getResource("maven-tm/after").getFile()).toPath();
+        target = new File(MavenTransferManagerTest.class.getResource("/").getFile()).toPath().getParent();
 
-        mavenActual = target.resolve("maven/actual");
-        mavenExpected = target.resolve("maven/expected");
+        mavenTmActual = target.resolve("maven-tm/actual");
+        mavenTmExpected = target.resolve("maven-tm/expected");
 
         deleteTempDirectories();
 
-        FileUtils.copyDirectory(mavenBefore.toFile(), mavenActual.toFile());
-        FileUtils.copyDirectory(mavenAfter.toFile(), mavenExpected.toFile());
+        FileUtils.copyDirectory(mavenTmBefore.toFile(), mavenTmActual.toFile());
+        FileUtils.copyDirectory(mavenTmAfter.toFile(), mavenTmExpected.toFile());
 
-        replaceVersion(mavenExpected.resolve("pom.xml"), sdkVersion);
-        replaceVersion(mavenActual.resolve("pom.xml"), sdkVersion);
+        replaceVersion(mavenTmExpected.resolve("pom.xml"), sdkVersion);
+        replaceVersion(mavenTmActual.resolve("pom.xml"), sdkVersion);
     }
 
     private static void deleteTempDirectories() throws IOException {
-        FileUtils.deleteDirectory(mavenActual.toFile());
-        FileUtils.deleteDirectory(mavenExpected.toFile());
+        FileUtils.deleteDirectory(mavenTmActual.toFile());
+        FileUtils.deleteDirectory(mavenTmExpected.toFile());
     }
 
     @Test
@@ -79,17 +79,17 @@ public class MavenProjectTest {
         String rewriteMavenPluginVersion = "5.46.0";
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
                "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
-               "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2");
+               "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2WithTransferManager");
 
-        run(mavenActual, rewriteArgs.toArray(new String[0]));
-        FileUtils.deleteDirectory(mavenActual.resolve("target").toFile());
-        assertTwoDirectoriesHaveSameStructure(mavenActual, mavenExpected);
+        run(mavenTmActual, rewriteArgs.toArray(new String[0]));
+        FileUtils.deleteDirectory(mavenTmActual.resolve("target").toFile());
+        assertTwoDirectoriesHaveSameStructure(mavenTmActual, mavenTmExpected);
     }
 
     private static void verifyCompilation() {
         List<String> packageArgs = new ArrayList<>();
         addAll(packageArgs, "mvn", "package");
-        run(mavenActual, packageArgs.toArray(new String[0]));
+        run(mavenTmActual, packageArgs.toArray(new String[0]));
     }
 
     boolean versionAvailable() {
