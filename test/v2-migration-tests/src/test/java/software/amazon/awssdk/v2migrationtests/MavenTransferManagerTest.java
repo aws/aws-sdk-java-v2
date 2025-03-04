@@ -79,7 +79,7 @@ public class MavenTransferManagerTest {
         String rewriteMavenPluginVersion = "5.46.0";
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
                "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
-               "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2WithTransferManager");
+               "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2Experimental");
 
         run(mavenTmActual, rewriteArgs.toArray(new String[0]));
         FileUtils.deleteDirectory(mavenTmActual.resolve("target").toFile());

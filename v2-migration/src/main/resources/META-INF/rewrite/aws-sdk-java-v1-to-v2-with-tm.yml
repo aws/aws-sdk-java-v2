@@ -14,9 +14,9 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2WithTransferManager
+name: software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2Experimental
 displayName: Migrate from the AWS SDK for Java v1 to the AWS SDK for Java v2 including S3 Transfer Manager.
-description: This recipe will apply changes required for migrating from the AWS SDK for Java v1 to the AWS SDK for Java v2, including S3 Transfer Manager.
+description: This recipe will apply changes required for migrating from the AWS SDK for Java v1 to the AWS SDK for Java v2, including S3 Transfer Manager. Transforms for Transfer Manager are incomplete and in-progress.
 tags:
   - aws
   - sdk
