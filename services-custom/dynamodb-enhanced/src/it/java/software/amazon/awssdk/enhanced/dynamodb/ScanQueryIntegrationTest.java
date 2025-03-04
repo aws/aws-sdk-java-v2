@@ -182,6 +182,56 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         assertThat(strongConsumedCapacity.capacityUnits(), is(greaterThanOrEqualTo(eventualConsumedCapacity.capacityUnits())));
     }
 
+    @Test
+    public void query_withStringProjectionExpression_checksProjectedAttributes() {
+        insertRecords();
+
+        String projectionExpression = "id, sort";
+        Iterator<Page<Record>> results =
+            mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
+                                                                                k -> k.partitionValue("id-value").sortValue(6)))
+                                                  .returnStringProjectionExpression(projectionExpression)
+                                                  .limit(3)
+                                                  .build())
+                       .iterator();
+
+        Page<Record> page1 = results.next();
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page2 = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page1.items().get(0).getId(), is(notNullValue()));
+        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
+
+        assertThat(page2.items().get(0).getId(), is(notNullValue()));
+        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
+    }
+
+    @Test
+    public void scan_withStringProjectionExpression_checksProjectedAttributes() {
+        insertRecords();
+
+        String projectionExpression = "id, sort";
+        Iterator<Page<Record>> results =
+            mappedTable.scan(ScanEnhancedRequest.builder()
+                                                .returnStringProjectionExpression(projectionExpression)
+                                                .limit(5)
+                                                .build())
+                       .iterator();
+
+        Page<Record> page1 = results.next();
+        assertThat(results.hasNext(), is(true));
+        Page<Record> page2 = results.next();
+        assertThat(results.hasNext(), is(false));
+
+        assertThat(page1.items().get(0).getId(), is(notNullValue()));
+        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
+
+        assertThat(page2.items().get(0).getId(), is(notNullValue()));
+        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
+    }
+
     private Map<String, AttributeValue> getKeyMap(int sort) {
         Map<String, AttributeValue> result = new HashMap<>();
         result.put("id", stringValue(RECORDS.get(sort).getId()));
