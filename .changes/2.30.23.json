@@ -1,0 +1,36 @@
+{
+    "version": "2.30.23",
+    "date": "2025-02-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon Cloudfront",
+            "contributor": "",
+            "description": "Allow users to specify resource URL pattern in `CloudFrontUtilities#getSignedUrlWithCustomPolicy`. See [#5577](https://github.com/aws/aws-sdk-java-v2/issues/5577)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "This documentation-only update corrects some typos."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Adds support for creating CloudWatchAlarmTemplates for AWS Elemental MediaTailor Playback Configuration resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "EMR on EKS StartJobRun Api will be supporting the configuration of log storage in AWS by using \"managedLogs\" under \"MonitoringConfiguration\"."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

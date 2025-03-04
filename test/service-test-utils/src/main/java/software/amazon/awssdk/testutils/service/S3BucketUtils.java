@@ -65,9 +65,12 @@ public final class S3BucketUtils {
      * @return an s3 bucket name
      */
     public static String temporaryBucketName(String prefix) {
+        String shortenedPrefix = shortenIfNeeded(prefix, 20);
         String shortenedUserName = shortenIfNeeded(USER_NAME.getStringValue().orElse("unknown"), 7);
+        String epoch = String.valueOf(System.currentTimeMillis());
+
         String bucketName =
-            lowerCase(prefix) + "-" + lowerCase(shortenedUserName) + "-" + RANDOM.nextInt(10000);
+            lowerCase(shortenedPrefix) + "-" + lowerCase(shortenedUserName) + "-" + epoch + "-" + RANDOM.nextInt(10000);
         if (bucketName.length() > 63) {
             logger.error(() -> "S3 buckets can only be 63 chars in length, try a shorter prefix");
             throw new RuntimeException("S3 buckets can only be 63 chars in length, try a shorter prefix");

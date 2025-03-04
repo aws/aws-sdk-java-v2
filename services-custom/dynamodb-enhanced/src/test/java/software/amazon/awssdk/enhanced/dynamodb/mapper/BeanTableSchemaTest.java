@@ -45,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractNestedImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
@@ -55,6 +56,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedNestedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
@@ -254,6 +257,67 @@ public class BeanTableSchemaTest {
         assertThat(itemMap, hasEntry("id", stringValue("id-value")));
         assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
         assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullImmutableAttributes() {
+        BeanTableSchema<FlattenedImmutableBean> beanTableSchema = BeanTableSchema.create(FlattenedImmutableBean.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().build();
+        FlattenedImmutableBean flattenedImmutableBean = new FlattenedImmutableBean();
+        flattenedImmutableBean.setId("id-value");
+        flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("attribute2", AttributeValue.fromNul(true)));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable2 =
+            AbstractNestedImmutable.builder().attribute2("nested-two").build();
+        AbstractNestedImmutable abstractNestedImmutable1 =
+            AbstractNestedImmutable.builder().attribute2("two").abstractNestedImmutableOne(abstractNestedImmutable2).build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable1);
+
+        Map<String, AttributeValue> nestedAttributesMap = new HashMap<>();
+        nestedAttributesMap.put("abstractNestedImmutableOne", AttributeValue.fromNul(true));
+        nestedAttributesMap.put("attribute2", stringValue("nested-two"));
+
+        AttributeValue expectedNestedAttribute =
+            AttributeValue.builder().m(Collections.unmodifiableMap(nestedAttributesMap)).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap, hasEntry("abstractNestedImmutableOne", expectedNestedAttribute));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable = AbstractNestedImmutable.builder().build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size(), is(4));
+        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
+        assertThat(itemMap, hasEntry("attribute2", AttributeValue.fromNul(true)));
+        assertThat(itemMap, hasEntry("abstractNestedImmutableOne", AttributeValue.fromNul(true)));
     }
 
     @Test
@@ -1159,5 +1223,20 @@ public class BeanTableSchemaTest {
         EmptyConverterProvidersValidBean reverse = beanTableSchema.mapToItem(itemMap);
         assertThat(reverse.getId(), is(equalTo("id-value-custom")));
         assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+    }
+
+    @Test
+    public void fluentSetterBean_correctlyMapsBeanAttributes() {
+        BeanTableSchema<FluentSetterBean> beanTableSchema =
+            BeanTableSchema.create(FluentSetterBean.class);
+
+        FluentSetterBean fluentSetterBean = new FluentSetterBean()
+            .setAttribute1(1)
+            .setAttribute2("testAttribute2")
+            .setAttribute3("testAttribute3");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(fluentSetterBean, false);
+
+        assertThat(beanTableSchema.mapToItem(itemMap), is(equalTo(fluentSetterBean)));
     }
 }

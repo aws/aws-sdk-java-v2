@@ -30,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.sync.FileContentStreamProvider;
@@ -43,16 +44,20 @@ import software.amazon.awssdk.utils.IoUtils;
 /**
  * Represents the body of an HTTP request. Must be provided for operations that have a streaming input.
  * Offers various convenience factory methods from common sources of data (File, String, byte[], etc).
+ *
+ * <p>
+ * This class is NOT intended to be overridden.
  */
 @SdkPublicApi
-public final class RequestBody {
+public class RequestBody {
 
     // TODO Handle stream management (progress listener, orig input stream tracking, etc
     private final ContentStreamProvider contentStreamProvider;
     private final Long contentLength;
     private final String contentType;
 
-    private RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
+    @SdkInternalApi
+    protected RequestBody(ContentStreamProvider contentStreamProvider, Long contentLength, String contentType) {
         this.contentStreamProvider = paramNotNull(contentStreamProvider, "contentStreamProvider");
         this.contentLength = contentLength != null ? isNotNegative(contentLength, "Content-length") : null;
         this.contentType = paramNotNull(contentType, "contentType");
@@ -61,7 +66,7 @@ public final class RequestBody {
     /**
      * @return RequestBody as an {@link InputStream}.
      */
-    public ContentStreamProvider contentStreamProvider() {
+    public final ContentStreamProvider contentStreamProvider() {
         return contentStreamProvider;
     }
 
@@ -70,7 +75,7 @@ public final class RequestBody {
      * @return Content length of {@link RequestBody}.
      */
     @Deprecated
-    public long contentLength() {
+    public final long contentLength() {
         validState(this.contentLength != null,
                    "Content length is invalid, please use optionalContentLength() for your case.");
         return contentLength;
@@ -79,14 +84,14 @@ public final class RequestBody {
     /**
      * @return Optional object of content length of {@link RequestBody}.
      */
-    public Optional<Long> optionalContentLength() {
+    public final Optional<Long> optionalContentLength() {
         return Optional.ofNullable(contentLength);
     }
 
     /**
      * @return Content type of {@link RequestBody}.
      */
-    public String contentType() {
+    public final String contentType() {
         return contentType;
     }
 
@@ -131,21 +136,14 @@ public final class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        // NOTE: does not have an effect if mark not supported
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        ContentStreamProvider provider;
-        if (nonCloseable.markSupported()) {
-            // stream supports mark + reset
-            provider = () -> {
+        return fromContentProvider(() -> {
+            if (nonCloseable.markSupported()) {
                 invokeSafely(nonCloseable::reset);
-                return nonCloseable;
-            };
-        } else {
-            // stream doesn't support mark + reset, make sure to buffer it
-            provider = new BufferingContentStreamProvider(() -> nonCloseable, contentLength);
-        }
-        return new RequestBody(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+            }
+            return nonCloseable;
+        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -219,9 +217,6 @@ public final class RequestBody {
     /**
      * Creates a {@link RequestBody} from the given {@link ContentStreamProvider}.
      * <p>
-     * Important: Be aware that this implementation requires buffering the contents for {@code ContentStreamProvider}, which can
-     * cause increased memory usage.
-     * <p>
      * If you are using this in conjunction with S3 and want to upload a stream with an unknown content length, you can refer
      * S3's documentation for
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
@@ -234,7 +229,7 @@ public final class RequestBody {
      * @return The created {@code RequestBody}.
      */
     public static RequestBody fromContentProvider(ContentStreamProvider provider, long contentLength, String mimeType) {
-        return new RequestBody(new BufferingContentStreamProvider(provider, contentLength), contentLength, mimeType);
+        return new RequestBody(provider, contentLength, mimeType);
     }
 
     /**

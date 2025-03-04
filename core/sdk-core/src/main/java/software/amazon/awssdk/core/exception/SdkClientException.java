@@ -47,6 +47,16 @@ public class SdkClientException extends SdkException {
         return SdkClientException.builder().message(message).cause(cause).build();
     }
 
+    @Override
+    public String getMessage() {
+        String message = rawMessage();
+        if (numAttempts() != null) {
+            SdkDiagnostics sdkDiagnostics = SdkDiagnostics.builder().numAttempts(numAttempts()).build();
+            message = message + " " + sdkDiagnostics;
+        }
+        return message;
+    }
+
     /**
      * Create a {@link Builder} initialized with the properties of this {@code SdkClientException}.
      *
@@ -77,6 +87,9 @@ public class SdkClientException extends SdkException {
 
         @Override
         SdkClientException build();
+
+        @Override
+        Builder numAttempts(Integer numAttempts);
     }
 
     protected static class BuilderImpl extends SdkException.BuilderImpl implements Builder {
@@ -103,6 +116,12 @@ public class SdkClientException extends SdkException {
         @Override
         public Builder writableStackTrace(Boolean writableStackTrace) {
             this.writableStackTrace = writableStackTrace;
+            return this;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
             return this;
         }
 

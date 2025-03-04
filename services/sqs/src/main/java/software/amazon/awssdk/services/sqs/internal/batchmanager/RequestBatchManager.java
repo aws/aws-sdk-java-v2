@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -58,8 +57,8 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.sendRequestFrequency = batchConfiguration.sendRequestFrequency();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
-        pendingBatchResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
-        pendingResponses = Collections.newSetFromMap(new ConcurrentHashMap<>());
+        pendingBatchResponses = ConcurrentHashMap.newKeySet();
+        pendingResponses = ConcurrentHashMap.newKeySet();
         this.requestsAndResponsesMaps = new BatchingMap<>(overrideConfiguration);
 
     }
@@ -67,6 +66,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     public CompletableFuture<ResponseT> batchRequest(RequestT request) {
         CompletableFuture<ResponseT> response = new CompletableFuture<>();
         pendingResponses.add(response);
+        response.whenComplete((r, t) -> pendingResponses.remove(response));
 
         try {
             String batchKey = getBatchKey(request);
@@ -120,16 +120,17 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         flushableRequests.forEach((contextId, batchExecutionContext) ->
                                       requestEntries.add(new IdentifiableMessage<>(contextId, batchExecutionContext.request())));
         if (!requestEntries.isEmpty()) {
-            CompletableFuture<BatchResponseT> pendingBatchingRequest = batchAndSend(requestEntries, batchKey)
-                .whenComplete((result, ex) -> handleAndCompleteResponses(result, ex, flushableRequests));
-
+            CompletableFuture<BatchResponseT> pendingBatchingRequest = batchAndSend(requestEntries, batchKey);
             pendingBatchResponses.add(pendingBatchingRequest);
+            pendingBatchingRequest.whenComplete((result, ex) -> {
+                handleAndCompleteResponses(result, ex, flushableRequests);
+                pendingBatchResponses.remove(pendingBatchingRequest);
+            });
         }
     }
 
     private void handleAndCompleteResponses(BatchResponseT batchResult, Throwable exception,
                                             Map<String, BatchingExecutionContext<RequestT, ResponseT>> requests) {
-        requests.forEach((contextId, batchExecutionContext) ->  pendingResponses.add(batchExecutionContext.response()));
         if (exception != null) {
             requests.forEach((contextId, batchExecutionContext) -> batchExecutionContext.response()
                                                                                         .completeExceptionally(exception));
