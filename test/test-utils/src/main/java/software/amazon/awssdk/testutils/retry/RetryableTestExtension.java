@@ -115,7 +115,8 @@ public class RetryableTestExtension implements TestTemplateInvocationContextProv
             if (throwables.size() == maxRetries) {
                 throw new AssertionError("All attempts failed. Last exception: ", throwable);
             } else {
-                throw new TestAbortedException(String.format("Attempt %s failed of the retryable exception, going to retry the test", totalAttempts), throwable);
+                throw new TestAbortedException(String.format(
+                    "Attempt %s failed of the retryable exception, going to retry the test", totalAttempts), throwable);
             }
         }
 
