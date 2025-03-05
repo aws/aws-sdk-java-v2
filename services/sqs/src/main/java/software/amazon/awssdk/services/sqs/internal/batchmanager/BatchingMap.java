@@ -51,7 +51,12 @@ public final class BatchingMap<RequestT, ResponseT> {
             if (batchContextMap.size() == maxBatchKeys) {
                 throw new IllegalStateException("Reached MaxBatchKeys of: " + maxBatchKeys);
             }
-            return new RequestBatchBuffer<>(scheduleFlush.get(), maxBatchSize, maxBatchBytesSize, maxBufferSize);
+            return RequestBatchBuffer.<RequestT, ResponseT>builder()
+                                     .scheduledFlush(scheduleFlush.get())
+                                     .maxBatchItems(maxBatchSize)
+                                     .maxBatchSizeInBytes(maxBatchBytesSize)
+                                     .maxBufferSize(maxBufferSize)
+                                     .build();
         }).put(request, response);
     }
 
@@ -68,17 +73,17 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey) {
-        return batchContextMap.get(batchKey).flushableRequests();
+        return batchContextMap.get(batchKey).extractBatchIfNeeded();
     }
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequestsOnByteLimitBeforeAdd(String batchKey,
                                                                                                             RequestT request) {
-        return batchContextMap.get(batchKey).flushableRequestsOnByteLimitBeforeAdd(request);
+        return batchContextMap.get(batchKey).getFlushableBatchIfSizeExceeded(request);
     }
 
     public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(String batchKey,
                                                                                                  int maxBatchItems) {
-        return batchContextMap.get(batchKey).flushableScheduledRequests(maxBatchItems);
+        return batchContextMap.get(batchKey).extractEntriesForScheduledFlush(maxBatchItems);
     }
 
     public void cancelScheduledFlush(String batchKey) {
@@ -86,10 +91,8 @@ public final class BatchingMap<RequestT, ResponseT> {
     }
 
     public void clear() {
-        for (Map.Entry<String, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
-            String key = entry.getKey();
-            entry.getValue().clear();
-            batchContextMap.remove(key);
+        for (RequestBatchBuffer<RequestT, ResponseT> buffer : batchContextMap.values()) {
+            buffer.clear();
         }
         batchContextMap.clear();
     }
