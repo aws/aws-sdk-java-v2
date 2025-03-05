@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT FleetWise",
-    "contributor": "",
-    "description": "This release adds floating point support for CAN/OBD signals and adds support for signed OBD signals."
-}

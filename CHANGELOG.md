@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.34__ __2025-03-05__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports modifying ServerHostname while updating locations SMB, NFS, and ObjectStorage.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - This release adds floating point support for CAN/OBD signals and adds support for signed OBD signals.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Transform the setter methods on the service model classes that take SdkBytes to take ByteBuffer to be compatible with v1 style setters
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This releases adds support for Custom Prompt Router ARN
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - New Service: Amazon GameLift Streams delivers low-latency game streaming from AWS global infrastructure to virtually any device with a browser at up to 1080p resolution and 60 fps.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added DeviceTypeWorkSpacesThinClient type to allow users to access their WorkSpaces through a WorkSpaces Thin Client.
+
 # __2.30.33__ __2025-03-04__
 ## __AWS IoT SiteWise__
   - ### Features
