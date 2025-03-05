@@ -117,6 +117,9 @@ public final class SdkTypeUtils {
     private static final Pattern V2_CLIENT_BUILDER_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+Builder");
 
+    private static final Pattern V2_TRANSFER_MANAGER_PATTERN = Pattern.compile(
+        "software\\.amazon\\.awssdk\\.transfer\\.s3\\.S3TransferManager");
+
     private static final Set<String> V1_SERVICES_PACKAGE_NAMES = new HashSet<>();
 
     private static final Set<String> PACKAGES_AND_CLASSES_TO_SKIP = new HashSet<>(
@@ -607,11 +610,17 @@ public final class SdkTypeUtils {
                && type.isAssignableFrom(V2_CLIENT_BUILDER_PATTERN);
     }
 
+    public static boolean isV2TransferManager(JavaType type) {
+        return type != null
+               && type.isAssignableFrom(V2_TRANSFER_MANAGER_PATTERN);
+    }
+
     public static boolean isEligibleToConvertToBuilder(JavaType.FullyQualified type) {
         if (type == null) {
             return false;
         }
-        return isV2ModelClass(type) || isV2ClientClass(type) || isV2CoreClassesWithBuilder(type.getFullyQualifiedName());
+        return isV2ModelClass(type) || isV2ClientClass(type) || isV2CoreClassesWithBuilder(type.getFullyQualifiedName())
+               || isV2TransferManager(type);
     }
 
     public static boolean isEligibleToConvertToStaticFactory(JavaType.FullyQualified type) {
@@ -643,7 +652,7 @@ public final class SdkTypeUtils {
     }
 
     public static JavaType.FullyQualified v2ClientFromClientBuilder(JavaType.FullyQualified type) {
-        if (!isV2ClientBuilder(type)) {
+        if (!(isV2ClientBuilder(type) || isV2TransferManager(type))) {
             throw new IllegalArgumentException(String.format("%s is not a client builder", type));
         }
 

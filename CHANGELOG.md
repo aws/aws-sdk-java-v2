@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.33__ __2025-03-04__
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise now supports MQTT-enabled, V3 gateways. Configure data destinations for real-time ingestion into AWS IoT SiteWise or buffered ingestion using Amazon S3 storage. You can also use path filters for precise data collection from specific MQTT topics.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Doc only update, listing 'valkey7' and 'valkey8' as engine options for parameter groups.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Note support for Database Insights for Amazon RDS.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adding managed integrations APIs for IoT Device Management to setup and control devices across different manufacturers and connectivity protocols. APIs include managedthing operations, credential and provisioning profile management, notification configuration, and OTA update.
+
 # __2.30.32__ __2025-03-03__
 ## __AWS SDK for Java v2__
   - ### Features
