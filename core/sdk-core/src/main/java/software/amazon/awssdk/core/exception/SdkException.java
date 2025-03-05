@@ -28,9 +28,31 @@ import software.amazon.awssdk.utils.builder.Buildable;
 public class SdkException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
+    private Integer attempts;
 
     protected SdkException(Builder builder) {
         super(messageFromBuilder(builder), builder.cause(), true, writableStackTraceFromBuilder(builder));
+        this.attempts = builder.numAttempts();
+    }
+
+    /**
+     * Returns the number of attempts made before this exception was thrown.
+     * This includes the initial attempt and any retries.
+     *
+     * @return The number of attempts made, or null if not set
+     */
+    public Integer numAttempts() {
+        return attempts;
+    }
+
+    /**
+     * Returns the raw message of this exception without any additional formatting.
+     * This is used internally to construct the complete exception message.
+     *
+     * @return The raw exception message
+     */
+    public String rawMessage() {
+        return super.getMessage();
     }
 
     /**
@@ -111,6 +133,23 @@ public class SdkException extends RuntimeException {
         String message();
 
         /**
+         *
+         * @param numAttempts The attempt count
+         * @return This method for object chaining
+         */
+        default Builder numAttempts(Integer numAttempts) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * The number of times a request was attempted before this exception was thrown
+         * @return the attempt count
+         */
+        default Integer numAttempts() {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
          * Specifies whether the stack trace in this exception can be written.
          *
          * @param writableStackTrace Whether the stack trace can be written.
@@ -133,9 +172,9 @@ public class SdkException extends RuntimeException {
     }
 
     protected static class BuilderImpl implements Builder {
-
         protected Throwable cause;
         protected String message;
+        protected Integer numAttempts;
         protected Boolean writableStackTrace;
 
         protected BuilderImpl() {
@@ -143,7 +182,8 @@ public class SdkException extends RuntimeException {
 
         protected BuilderImpl(SdkException ex) {
             this.cause = ex.getCause();
-            this.message = ex.getMessage();
+            this.message = ex.rawMessage();
+            this.numAttempts = ex.numAttempts();
         }
 
 
@@ -183,6 +223,25 @@ public class SdkException extends RuntimeException {
         @Override
         public String message() {
             return message;
+        }
+
+        public Integer getNumAttempts() {
+            return numAttempts;
+        }
+
+        public void setAttemptCount(Integer attemptCount) {
+            this.numAttempts = attemptCount;
+        }
+
+        @Override
+        public Builder numAttempts(Integer numAttempts) {
+            this.numAttempts = numAttempts;
+            return this;
+        }
+
+        @Override
+        public Integer numAttempts() {
+            return numAttempts;
         }
 
         @Override

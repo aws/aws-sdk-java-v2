@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.30.23-SNAPSHOT</version>
+        <version>2.30.32-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -216,7 +216,6 @@
         <module>wafv2</module>
         <module>appconfig</module>
         <module>iotsecuretunneling</module>
-        <module>elasticinference</module>
         <module>imagebuilder</module>
         <module>schemas</module>
         <module>accessanalyzer</module>

@@ -1,4 +1,280 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.31__ __2025-02-28__
+## __AWS Database Migration Service__
+  - ### Features
+    - Add skipped status to the Result Statistics of an Assessment Run
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - The AWS MediaConvert Probe API allows you to analyze media files and retrieve detailed metadata about their content, format, and structure.
+
+## __AWS Price List Service__
+  - ### Features
+    - Update GetProducts and DescribeServices API request input validations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release lets Amazon Bedrock Flows support newer models by increasing the maximum length of output in a prompt configuration. This release also increases the maximum number of prompt variables to 20 and the maximum number of node inputs to 20.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adding licenses to EKS Anywhere Subscription operations response.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Systems Manager doc-only updates for Feb. 2025.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Renamed and added new StandardConfiguration enums. Added support to update EncryptionConfiguration in UpdateBlueprint and UpdateDataAutomation APIs. Changed HttpStatus code for DeleteBlueprint and DeleteDataAutomationProject APIs to 200 from 204. Added APIs to support tagging.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Added a mandatory parameter DataAutomationProfileArn to support for cross region inference for InvokeDataAutomationAsync API. Renamed DataAutomationArn to DataAutomationProjectArn. Added APIs to support tagging.
+
+## __Amazon Simple Queue Service__
+- ### Bugfixes
+    - Fixed memory leak in SqsBatchManager: Resolved an issue where pendingResponses and pendingBatchResponses collections in RequestBatchManager retained references to completed futures, causing memory accumulation over time.
+
+# __2.30.30__ __2025-02-27__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed an issue in AwsServiceException#getMessage() where it returned an empty string instead of null when the message is null.
+    - Handle SecurityException for ProfileFileLocation access checks while accessing aws shared credentials file.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds support to invoke a process that cleans the specified file share's cache of file entries that are failing upload to Amazon S3.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Introduces Sessions (preview) to enable stateful conversations in GenAI applications.
+
+## __Amazon EMR__
+  - ### Features
+    - Definition update for EbsConfiguration.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker HubService is introducing support for creating Training Jobs in Curated Hub (Private Hub). Additionally, it is introducing two new APIs: UpdateHubContent and UpdateHubContentReference.
+
+## __QBusiness__
+  - ### Features
+    - This release supports deleting attachments from conversations.
+
+## __Redshift Serverless__
+  - ### Features
+    - Add track support for Redshift Serverless workgroup.
+
+# __2.30.29__ __2025-02-26__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch: Resource Aware Scheduling feature support
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - This release adds an optional listResponseScope request parameter in certain list API requests to limit the response to metadata only.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Chime__
+  - ### Features
+    - Removes the Amazon Chime SDK APIs from the "chime" namespace. Amazon Chime SDK APIs continue to be available in the AWS SDK via the dedicated Amazon Chime SDK namespaces: chime-sdk-identity, chime-sdk-mediapipelines, chime-sdk-meetings, chime-sdk-messaging, and chime-sdk-voice.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation update for VPC origin config.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This release adds API support for reading Service Level Objectives and Services from monitoring accounts, from SLO and Service-scoped operations, including ListServices and ListServiceLevelObjectives.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Add support in BeanTableSchema for beans that use fluent setters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet customers can now override the Block Device Mapping specified in the Launch Template when creating a new Fleet request, saving the effort of creating and associating new Launch Templates to customize the Block Device Mapping.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - AWS SageMaker InferenceComponents now support rolling update deployments for Inference Components.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - This release adds support for sharing AWS::ApplicationSignals::Service and AWS::ApplicationSignals::ServiceLevelObjective resources.
+
+# __2.30.28__ __2025-02-25__
+## __AWS CodeBuild__
+  - ### Features
+    - Adding "reportArns" field in output of BatchGetBuildBatches API. "reportArns" is an array that contains the ARNs of reports created by merging reports from builds associated with the batch build.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add an optional configuration to the ScheduleRun and CreateRemoteAccessSession API to set a device level http/s proxy.
+
+## __AWS IoT__
+  - ### Features
+    - AWS IoT - AWS IoT Device Defender adds support for a new Device Defender Audit Check that monitors device certificate age and custom threshold configurations for both the new device certificate age check and existing device certificate expiry check.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for time-based EBS-backed AMI copy operations. Time-based copy ensures that EBS-backed AMIs are copied within and across Regions in a specified timeframe.
+
+## __Tax Settings__
+  - ### Features
+    - PutTaxRegistration API changes for Egypt, Greece, Vietnam countries
+
+# __2.30.27__ __2025-02-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release improves support for newer models in Amazon Bedrock Flows.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Adding support for ReasoningContent fields in Pre-Processing, Post-Processing and Orchestration Trace outputs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds Reasoning Content support to Converse and ConverseStream APIs
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Documentation update, adding clarity and rephrasing.
+
+# __2.30.26__ __2025-02-21__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Allow users to configure the number of TCP keep alive probes in the AWS CRT HTTP client through `keepAliveProbes`.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Transfer-Encoding headers will no longer be signed during SigV4 authentication
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduce a new parameter which represents the user-agent header value used by the Bedrock Knowledge Base Web Connector.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for Certificate-Based Authentication on AppStream 2.0 multi-session fleets.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Add ability to provide a custom `MethodHandles.Lookup` object when using either `BeanTableSchema` or `ImmutableTableSchema`. By setting a custom `MethodHandles.Lookup` it allows these schemas to be used in applications where the item class and the SDK are loaded by different `ClassLoader`s.
+
+# __2.30.25__ __2025-02-20__
+## __AWS CodeBuild__
+  - ### Features
+    - Add webhook status and status message to AWS CodeBuild webhooks
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Updates entity to include Microsoft RDS SAL as a valid type of user subscription.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Reduce the minimum number of required attack sequence signals from 2 to 1
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - CloudWatch Database Insights now supports Amazon RDS.
+
+## __Amazon S3__
+  - ### Features
+    - Allow users to configure disableS3ExpressSessionAuth for S3CrtAsyncClient
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added new capability in the UpdateCluster operation to remove instance groups from your SageMaker HyperPod cluster.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Add support for toolbar configuration under user settings.
+
+# __2.30.24__ __2025-02-19__
+## __AWS CodePipeline__
+  - ### Features
+    - Add environment variables to codepipeline action declaration.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This release introduces Network Firewall's Automated Domain List feature. New APIs include UpdateFirewallAnalysisSettings, StartAnalysisReport, GetAnalysisReportResults, and ListAnalysisReports. These allow customers to enable analysis on firewalls to identify and report frequently accessed domain.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add retry attempt count to exception messages to improve debugging visibility.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only release for Amazon ECS that supports the CPU task limit increase.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Documentation updates for Amazon Lightsail.
+
+## __Amazon Location Service__
+  - ### Features
+    - Adds support for larger property maps for tracking and geofence positions changes. It increases the maximum number of items from 3 to 4, and the maximum value length from 40 to 150.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds r8g instance type support to SageMaker Realtime Endpoints
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release adds the ability for outbound email sent with SES to preserve emails to a Mail Manager archive.
+
+## __MailManager__
+  - ### Features
+    - This release adds additional metadata fields in Mail Manager archive searches to show email source and details about emails that were archived when being sent with SES.
+
+# __2.30.23__ __2025-02-18__
+## __AWS Batch__
+  - ### Features
+    - This documentation-only update corrects some typos.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds support for creating CloudWatchAlarmTemplates for AWS Elemental MediaTailor Playback Configuration resources.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Cloudfront__
+  - ### Bugfixes
+    - Allow users to specify resource URL pattern in `CloudFrontUtilities#getSignedUrlWithCustomPolicy`. See [#5577](https://github.com/aws/aws-sdk-java-v2/issues/5577)
+
+## __Amazon EMR Containers__
+  - ### Features
+    - EMR on EKS StartJobRun Api will be supporting the configuration of log storage in AWS by using "managedLogs" under "MonitoringConfiguration".
+
 # __2.30.22__ __2025-02-17__
 ## __AWS Amplify__
   - ### Features

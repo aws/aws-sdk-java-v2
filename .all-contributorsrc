@@ -1021,6 +1021,24 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "S-Saranya1",
+      "name": "Saranya Somepalli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196712423?v=4",
+      "profile": "https://github.com/S-Saranya1",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "RanVaknin",
+      "name": "Ran Vaknin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50976344?v=4",
+      "profile": "https://github.com/RanVaknin",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

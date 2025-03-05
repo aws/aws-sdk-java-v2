@@ -16,7 +16,9 @@
 package software.amazon.awssdk.v2migration.internal.utils;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -29,6 +31,7 @@ public final class NamingConversionUtils {
     private static final Map<String, String> PACKAGE_MAPPING = new HashMap<>();
     private static final Map<String, String> CLIENT_MAPPING = new HashMap<>();
     private static final Map<String, String> S3_POJO_MAPPING = new HashMap<>();
+    private static final Set<String> S3_MODEL_SUBMODULES = new HashSet<>();
 
     static {
         PACKAGE_MAPPING.put("appregistry", "servicecatalogappregistry");
@@ -134,7 +137,6 @@ public final class NamingConversionUtils {
     static {
         S3_POJO_MAPPING.put("GetBucketCrossOriginConfigurationRequest", "GetBucketCorsRequest");
         S3_POJO_MAPPING.put("DeleteBucketCrossOriginConfigurationRequest", "DeleteBucketCorsRequest");
-        S3_POJO_MAPPING.put("SetBucketCrossOriginConfigurationRequest", "PutBucketCorsRequest");
         S3_POJO_MAPPING.put("GetBucketVersioningConfigurationRequest", "GetBucketVersioningRequest");
         S3_POJO_MAPPING.put("DeleteBucketLifecycleConfigurationRequest", "DeleteBucketLifecycleRequest");
         S3_POJO_MAPPING.put("DeleteBucketReplicationConfigurationRequest", "DeleteBucketReplicationRequest");
@@ -144,15 +146,52 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("GetBucketReplicationConfigurationRequest", "GetBucketReplicationRequest");
         S3_POJO_MAPPING.put("GetBucketTaggingConfigurationRequest", "GetBucketTaggingRequest");
         S3_POJO_MAPPING.put("GetBucketWebsiteConfigurationRequest", "GetBucketWebsiteRequest");
-
         S3_POJO_MAPPING.put("GetObjectMetadataRequest", "HeadObjectRequest");
         S3_POJO_MAPPING.put("InitiateMultipartUploadRequest", "CreateMultipartUploadRequest");
         S3_POJO_MAPPING.put("InitiateMultipartUploadResponse", "CreateMultipartUploadResponse");
         S3_POJO_MAPPING.put("ListVersionsRequest", "ListObjectVersionsRequest");
+        S3_POJO_MAPPING.put("DeleteVersionRequest", "DeleteObjectRequest");
+        S3_POJO_MAPPING.put("CopyPartRequest", "UploadPartCopyRequest");
+        S3_POJO_MAPPING.put("CopyPartResponse", "UploadPartCopyResponse");
+
+        S3_POJO_MAPPING.put("SetBucketCrossOriginConfigurationRequest", "PutBucketCorsRequest");
+        S3_POJO_MAPPING.put("SetBucketPolicyRequest", "PutBucketPolicyRequest");
+        S3_POJO_MAPPING.put("SetBucketAccelerateConfigurationRequest", "PutBucketAccelerateConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketAnalyticsConfigurationRequest", "PutBucketAnalyticsConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketIntelligentTieringConfigurationRequest", "PutBucketIntelligentTieringConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketInventoryConfigurationRequest", "PutBucketInventoryConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketLifecycleConfigurationRequest", "PutBucketLifecycleConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketMetricsConfigurationRequest", "PutBucketMetricsConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketNotificationConfigurationRequest", "PutBucketNotificationConfigurationRequest");
+        S3_POJO_MAPPING.put("SetBucketOwnershipControlsRequest", "PutBucketOwnershipControlsRequest");
+        S3_POJO_MAPPING.put("SetBucketReplicationConfigurationRequest", "PutBucketReplicationRequest");
+        S3_POJO_MAPPING.put("SetBucketTaggingConfigurationRequest", "PutBucketTaggingRequest");
+        S3_POJO_MAPPING.put("SetBucketWebsiteConfigurationRequest", "PutBucketWebsiteRequest");
+
         S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
         S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
         S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
+        S3_POJO_MAPPING.put("BucketAccelerateConfiguration", "AccelerateConfiguration");
+        S3_POJO_MAPPING.put("BucketNotificationConfiguration", "NotificationConfiguration");
+        S3_POJO_MAPPING.put("BucketReplicationConfiguration", "ReplicationConfiguration");
+        S3_POJO_MAPPING.put("BucketTaggingConfiguration", "Tagging");
+        S3_POJO_MAPPING.put("BucketWebsiteConfiguration", "WebsiteConfiguration");
+        S3_POJO_MAPPING.put("LifecycleFilter", "LifecycleRuleFilter");
+        S3_POJO_MAPPING.put("LifecycleAndOperator", "LifecycleRuleAndOperator");
+        S3_POJO_MAPPING.put("ReplicationFilter", "ReplicationRuleFilter");
+        S3_POJO_MAPPING.put("ReplicationAndOperator", "ReplicationRuleAndOperator");
+        S3_POJO_MAPPING.put("PartETag", "CompletedPart");
+    }
+
+    static {
+        S3_MODEL_SUBMODULES.add("analytics");
+        S3_MODEL_SUBMODULES.add("intelligenttiering");
+        S3_MODEL_SUBMODULES.add("inventory");
+        S3_MODEL_SUBMODULES.add("lifecycle");
+        S3_MODEL_SUBMODULES.add("metrics");
+        S3_MODEL_SUBMODULES.add("ownership");
+        S3_MODEL_SUBMODULES.add("replication");
     }
 
     private NamingConversionUtils() {
@@ -163,10 +202,13 @@ public final class NamingConversionUtils {
         String v1ClassName = currentFqcn.substring(lastIndexOfDot + 1);
         String packagePrefix = currentFqcn.substring(0, lastIndexOfDot);
 
-        String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
+        if (isS3ModelClass(packagePrefix)) {
+            packagePrefix = removeS3ModelSubmoduleName(packagePrefix);
+        }
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
         v2PackagePrefix = checkPackageServiceNameForV2Suffix(v2PackagePrefix);
 
+        String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
         if (Stream.of("Abstract", "Amazon", "AWS").anyMatch(v1ClassName::startsWith)) {
             v2ClassName = getV2ClientOrExceptionEquivalent(v1ClassName);
         } else if (v1ClassName.endsWith("Result")) {
@@ -174,15 +216,24 @@ public final class NamingConversionUtils {
             v2ClassName = v1ClassName.substring(0, lastIndex) + "Response";
         }
 
-        if (isS3Package(v2PackagePrefix) && S3_POJO_MAPPING.containsKey(v2ClassName)) {
+        if (isS3ModelClass(v2PackagePrefix) && S3_POJO_MAPPING.containsKey(v2ClassName)) {
             v2ClassName = S3_POJO_MAPPING.get(v2ClassName);
         }
 
         return v2PackagePrefix + "." + v2ClassName;
     }
 
-    private static boolean isS3Package(String packagePrefix) {
-        return packagePrefix.contains("services.s3");
+    private static boolean isS3ModelClass(String packagePrefix) {
+        return packagePrefix.contains("services.s3.model");
+    }
+
+    private static String removeS3ModelSubmoduleName(String packagePrefix) {
+        for (String submoduleName : S3_MODEL_SUBMODULES) {
+            if (packagePrefix.endsWith(submoduleName)) {
+                return packagePrefix.substring(0, packagePrefix.length() - submoduleName.length() - 1);
+            }
+        }
+        return packagePrefix;
     }
 
     /**
