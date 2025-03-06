@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "You can now perform an exact match or rate limit aggregation against the web request's JA4 fingerprint."
+}
