@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.35__ __2025-03-06__
+## __AWS CloudTrail__
+  - ### Features
+    - Doc-only update for CloudTrail.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now perform an exact match or rate limit aggregation against the web request's JA4 fingerprint.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This releases adds support for Custom Prompt Router
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to merge fragmented recordings in the event of a participant disconnect.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added a new ModifyEndpointEncryptionMode API for managing endpoint encryption settings.
+
+## __Network Flow Monitor__
+  - ### Features
+    - This release contains 2 changes. 1: DeleteScope/GetScope/UpdateScope operations now return 404 instead of 500 when the resource does not exist. 2: Expected string format for clientToken fields of CreateMonitorInput/CreateScopeInput/UpdateMonitorInput have been updated to be an UUID based string.
+
+## __Redshift Data API Service__
+  - ### Features
+    - This release adds support for ListStatements API to filter statements by ClusterIdentifier, WorkgroupName, and Database.
+
 # __2.30.34__ __2025-03-05__
 ## __AWS DataSync__
   - ### Features

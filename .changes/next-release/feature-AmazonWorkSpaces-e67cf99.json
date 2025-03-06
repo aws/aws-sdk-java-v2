@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Added a new ModifyEndpointEncryptionMode API for managing endpoint encryption settings."
-}

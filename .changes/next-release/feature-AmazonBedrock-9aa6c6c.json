@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock",
-    "contributor": "",
-    "description": "This releases adds support for Custom Prompt Router"
-}
