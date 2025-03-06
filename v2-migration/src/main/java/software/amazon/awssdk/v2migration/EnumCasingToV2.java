@@ -78,7 +78,7 @@ public class EnumCasingToV2 extends Recipe {
 
             if (isV2EnumValue(fa)) {
                 String v2Casing = v2Casing(fa.getSimpleName());
-                if (isS3EventsEnum(fa)){
+                if (isS3EventsEnum(fa)) {
                     v2Casing = "S3_" + v2Casing;
                 }
                 ENUMS.add(v2Casing);
