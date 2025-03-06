@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Redshift Data API Service",
+    "contributor": "",
+    "description": "This release adds support for ListStatements API to filter statements by ClusterIdentifier, WorkgroupName, and Database."
+}
