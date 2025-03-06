@@ -118,7 +118,8 @@ public class EnumCasingToV2 extends Recipe {
             JavaType javaType = fa.getTarget().getType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(javaType);
             return fullyQualified != null && fullyQualified.getClassName().equals("Event")
-                && fullyQualified.getPackageName().contains("s3.model") && !fa.getSimpleName().startsWith("S3_");
+                && fullyQualified.getPackageName().equals("software.amazon.awssdk.services.s3.model")
+                && !fa.getSimpleName().startsWith("S3_");
         }
 
     }
