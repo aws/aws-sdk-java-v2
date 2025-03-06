@@ -85,6 +85,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static S3AsyncClientBuilder s3AsyncClientBuilder() {
         return S3AsyncClient.builder()
                             .region(DEFAULT_REGION)
+                            .multipartConfiguration(c -> c.apiCallBufferSizeInBytes(15L * 1024 * 1024)
+                                                          .minimumPartSizeInBytes(8L * 1024 * 1024))
                             .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                             .overrideConfiguration(o -> o.addExecutionInterceptor(
                                 new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC)));

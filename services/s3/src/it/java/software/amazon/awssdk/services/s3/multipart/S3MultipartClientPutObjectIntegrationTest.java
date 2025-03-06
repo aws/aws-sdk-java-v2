@@ -92,6 +92,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             .overrideConfiguration(o -> o.addExecutionInterceptor(new UserAgentVerifyingExecutionInterceptor("NettyNio", ClientType.ASYNC))
                                          .addExecutionInterceptor(CAPTURING_INTERCEPTOR))
             .multipartEnabled(true)
+            .multipartConfiguration(c -> c.apiCallBufferSizeInBytes(15L * 1024 * 1024)
+                                          .minimumPartSizeInBytes(8L * 1024 * 1024))
             .build();
     }
 
