@@ -43,6 +43,7 @@ public class EnumCasingToV2 extends Recipe {
         SPECIAL_CASES.put("StandardInfrequentAccess", "STANDARD_IA");
         SPECIAL_CASES.put("OneZoneInfrequentAccess", "ONEZONE_IA");
         SPECIAL_CASES.put("GlacierInstantRetrieval", "GLACIER_IR");
+        SPECIAL_CASES.put("textORcsv", "TEXT_OR_CSV");
     }
 
     @Override
@@ -66,7 +67,6 @@ public class EnumCasingToV2 extends Recipe {
         }
 
         String result = enumValue;
-        result = result.replaceAll("textORcsv", "TEXT_OR_CSV");
         result = String.join("_", splitOnWordBoundaries(result));
         return StringUtils.upperCase(result);
     }
@@ -78,7 +78,7 @@ public class EnumCasingToV2 extends Recipe {
 
             if (isV2EnumValue(fa)) {
                 String v2Casing = v2Casing(fa.getSimpleName());
-                if (isS3EventsEnum(fa) && !v2Casing.startsWith("S3_")){
+                if (isS3EventsEnum(fa)){
                     v2Casing = "S3_" + v2Casing;
                 }
                 ENUMS.add(v2Casing);
@@ -118,7 +118,7 @@ public class EnumCasingToV2 extends Recipe {
             JavaType javaType = fa.getTarget().getType();
             JavaType.FullyQualified fullyQualified = TypeUtils.asFullyQualified(javaType);
             return fullyQualified != null && fullyQualified.getClassName().equals("Event")
-                && fullyQualified.getPackageName().contains("s3.model");
+                && fullyQualified.getPackageName().contains("s3.model") && !fa.getSimpleName().startsWith("S3_");
         }
 
     }
