@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -30,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <V> The value type.
  */
 @SdkProtectedApi
-public final class DefaultSdkAutoConstructMap<K, V> implements SdkAutoConstructMap<K, V> {
+public final class DefaultSdkAutoConstructMap<K, V> implements SdkAutoConstructMap<K, V>, Serializable {
     private static final DefaultSdkAutoConstructMap INSTANCE = new DefaultSdkAutoConstructMap();
 
     private final Map<K, V> impl = Collections.emptyMap();
@@ -117,4 +118,9 @@ public final class DefaultSdkAutoConstructMap<K, V> implements SdkAutoConstructM
     public String toString() {
         return impl.toString();
     }
+
+    private Object readResolve() {
+        return getInstance();
+    }
+
 }
