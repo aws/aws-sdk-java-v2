@@ -56,6 +56,11 @@ class RuleUrlTest {
             , new TestIsIpCase("1.1.010.1", false)
             , new TestIsIpCase("1.1.1.010", false)
 
+            , new TestIsIpCase("001.1.1.1", false)
+            , new TestIsIpCase("1.001.1.1", false)
+            , new TestIsIpCase("1.1.001.1", false)
+            , new TestIsIpCase("1.1.1.001", false)
+
             , new TestIsIpCase("01.1.1.1", false)
             , new TestIsIpCase("1.01.1.1", false)
             , new TestIsIpCase("1.1.01.1", false)
@@ -78,6 +83,11 @@ class RuleUrlTest {
             , new TestIsIpCase("127.1mm.0.0.1", false)
             , new TestIsIpCase("127.0.1mm.0.1", false)
             , new TestIsIpCase("127.0.0.1mm.1", false)
+
+            // Less than 4 segments
+            , new TestIsIpCase("127.0.0", false)
+            , new TestIsIpCase("127.0", false)
+            , new TestIsIpCase("127", false)
 
             // name
             , new TestIsIpCase("amazon.com", false)
