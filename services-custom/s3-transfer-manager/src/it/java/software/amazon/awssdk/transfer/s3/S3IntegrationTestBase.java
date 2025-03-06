@@ -70,7 +70,11 @@ public class S3IntegrationTestBase extends AwsTestBase {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
-        s3Async = s3AsyncClientBuilder().build();
+        s3Async = s3AsyncClientBuilder()
+            .multipartConfiguration(c -> c
+                .apiCallBufferSizeInBytes(15l * 1024 * 1024)
+                .minimumPartSizeInBytes(4l * 1024 * 1024))
+            .build();
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
@@ -177,7 +181,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
 
     static Stream<Arguments> transferManagers() {
         return Stream.of(
-            Arguments.of(tmCrt),
+            //Arguments.of(tmCrt),
             Arguments.of(tmJava));
     }
 

@@ -183,6 +183,7 @@ public final class UploadWithKnownContentLengthHelper {
 
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
 
+        System.out.println("Split and subscribe started");
         mpuRequestContext.request().right()
             .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
                          .bufferSizeInBytes(maxMemoryUsageInBytes))

@@ -47,7 +47,7 @@ import software.amazon.awssdk.transfer.s3.util.ChecksumUtils;
 public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBase {
     private static final String TEST_BUCKET = temporaryBucketName(S3TransferManagerUploadIntegrationTest.class);
     private static final String TEST_KEY = "16mib_file.dat";
-    private static final int OBJ_SIZE = 16 * 1024 * 1024;
+    private static final int OBJ_SIZE = 32 * 1024 * 1024;
 
     private static RandomTempFile testFile;
 
