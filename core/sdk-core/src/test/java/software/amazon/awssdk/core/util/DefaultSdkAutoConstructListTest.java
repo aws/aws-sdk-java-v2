@@ -16,7 +16,13 @@
 package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.LinkedList;
 import org.junit.jupiter.api.Test;
 
@@ -41,5 +47,26 @@ public class DefaultSdkAutoConstructListTest {
     @Test
     public void toString_emptyList() {
         assertThat(INSTANCE.toString()).isEqualTo("[]");
+    }
+
+    @Test
+    public void serialization_sameSingletonInstance() throws Exception {
+        DefaultSdkAutoConstructList<?> originalInstance = DefaultSdkAutoConstructList.getInstance();
+
+        // Serialize the object
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
+        objectOut.writeObject(originalInstance);
+        objectOut.close();
+
+        // Deserialize the object
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream objectIn = new ObjectInputStream(byteIn);
+        DefaultSdkAutoConstructList<?> deserializedInstance = (DefaultSdkAutoConstructList<?>) objectIn.readObject();
+        objectIn.close();
+
+        // Assert that deserialization was successful
+        assertNotNull(deserializedInstance);
+        assertSame(originalInstance, deserializedInstance, "Deserialized instance should be the same singleton instance");
     }
 }
