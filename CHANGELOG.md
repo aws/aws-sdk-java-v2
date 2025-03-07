@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.36__ __2025-03-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduces support for Neptune Analytics as a vector data store and adds Context Enrichment Configurations, enabling use cases such as GraphRAG.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Support Multi Agent Collaboration within Inline Agents
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for Amazon CloudFront.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add serviceManaged field to DescribeAddresses API response.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Several small updates to resolve customer requests.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for assigning IP addresses to Application Load Balancers from VPC IP Address Manager pools.
+
 # __2.30.35__ __2025-03-06__
 ## __AWS CloudTrail__
   - ### Features
