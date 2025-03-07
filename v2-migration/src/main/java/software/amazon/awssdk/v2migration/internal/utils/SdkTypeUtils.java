@@ -538,6 +538,10 @@ public final class SdkTypeUtils {
     private SdkTypeUtils() {
     }
 
+    public static JavaType.FullyQualified fullyQualified(String clzz) {
+        return TypeUtils.asFullyQualified(JavaType.buildType(clzz));
+    }
+
     public static boolean isCustomSdk(String fullyQualifiedName) {
         String rootPackage = findRootPackage(fullyQualifiedName, "com.amazonaws.services.");
 
@@ -648,7 +652,7 @@ public final class SdkTypeUtils {
             fqcn = String.format("%s%s", type.getFullyQualifiedName(), "Builder");
         }
         
-        return TypeUtils.asFullyQualified(JavaType.buildType(fqcn));
+        return fullyQualified(fqcn);
     }
 
     public static JavaType.FullyQualified v2ClientFromClientBuilder(JavaType.FullyQualified type) {
@@ -657,6 +661,14 @@ public final class SdkTypeUtils {
         }
 
         String builder = type.getFullyQualifiedName().replace("Builder", "");
-        return TypeUtils.asFullyQualified(JavaType.buildType(builder));
+        return fullyQualified(builder);
+    }
+
+    public static boolean isInputStreamType(JavaType type) {
+        return TypeUtils.isAssignableTo("java.io.InputStream", type);
+    }
+
+    public static boolean isFileType(JavaType type) {
+        return TypeUtils.isAssignableTo("java.io.File", type);
     }
 }

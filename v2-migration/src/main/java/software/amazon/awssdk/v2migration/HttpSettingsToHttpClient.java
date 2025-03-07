@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -345,10 +347,8 @@ public class HttpSettingsToHttpClient extends Recipe {
             Class httpClientClassName = httpClientClassNamePair.left();
             Class httpClientBuilderClassName = httpClientClassNamePair.right();
 
-            JavaType.FullyQualified httpClientType =
-                TypeUtils.asFullyQualified(JavaType.buildType(httpClientClassName.getCanonicalName()));
-            JavaType.FullyQualified httpClientBuilderType =
-                TypeUtils.asFullyQualified(JavaType.buildType(httpClientBuilderClassName.getCanonicalName()));
+            JavaType.FullyQualified httpClientType = fullyQualified(httpClientClassName.getCanonicalName());
+            JavaType.FullyQualified httpClientBuilderType = fullyQualified(httpClientBuilderClassName.getCanonicalName());
 
             JavaType.Method httpClientBuilderMethodType = new JavaType.Method(
                 null,

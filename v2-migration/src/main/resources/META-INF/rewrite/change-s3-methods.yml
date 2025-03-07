@@ -217,3 +217,14 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest withPartETags(java.util.List)
       newMethodName: withMultipartUpload
+
+
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withBucketName(String)
+      newMethodName: withBucket
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withCannedAcl(com.amazonaws.services.s3.model.CannedAccessControlList)
+      newMethodName: withAcl
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withRequesterPays(boolean)
+      newMethodName: withRequestPayer

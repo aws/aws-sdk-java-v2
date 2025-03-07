@@ -17,11 +17,14 @@ package foo.bar;
 
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 
 public class TransferManagerS3 {
 
@@ -48,6 +51,18 @@ public class TransferManagerS3 {
 
     void upload(TransferManager tm, String bucket, String key) {
         tm.upload(bucket, key, file);
+
+        File file = new File("file1.txt");
+        PutObjectRequest requestWithFile = new PutObjectRequest(bucket, key, file);
+        tm.upload(requestWithFile);
+
+        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
+        PutObjectRequest requestWithInputStream = new PutObjectRequest(bucket, key, "location");
+        requestWithInputStream.setInputStream(inputStream);
+        tm.upload(requestWithInputStream);
+
+        PutObjectRequest requestWithoutPayload = new PutObjectRequest(bucket, key, "location");
+        tm.upload(requestWithoutPayload);
     }
 
     void copy(TransferManager tm, String sourceBucket, String sourceKey, String destinationBucket, String destinationKey) {

@@ -41,3 +41,4 @@ recipeList:
   - software.amazon.awssdk.v2migration.SdkBytesToByteBuffer
   - software.amazon.awssdk.v2migration.ByteBufferToSdkBytes
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2Complex
+  - software.amazon.awssdk.v2migration.S3PutObjectRequestToV2
