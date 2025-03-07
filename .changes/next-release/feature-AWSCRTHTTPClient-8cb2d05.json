@@ -1,0 +1,6 @@
+{
+    "category": "AWS CRT HTTP Client", 
+    "contributor": "thomasjinlo", 
+    "type": "feature", 
+    "description": "Map AWS_IO_SOCKET_TIMEOUT to ConnectException when acquiring a connection to improve error handling"
+}
