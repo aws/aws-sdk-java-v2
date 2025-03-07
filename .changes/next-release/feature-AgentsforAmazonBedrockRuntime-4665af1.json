@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Support Multi Agent Collaboration within Inline Agents"
-}
