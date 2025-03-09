@@ -46,7 +46,7 @@ import software.amazon.awssdk.services.kinesis.model.SubscribeToShardEventStream
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponse;
 import software.amazon.awssdk.services.kinesis.model.SubscribeToShardResponseHandler;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.stability.tests.utils.TestEventStreamingResponseHandler;
 import software.amazon.awssdk.testutils.Waiter;
