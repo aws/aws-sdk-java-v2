@@ -29,7 +29,13 @@ public enum ProfileSection {
      *  are part of a named collection of attributes.
      *  This `sso-session` section is referenced by the user when configuring a profile to derive an SSO token.
      */
-    SSO_SESSION("sso-session", "sso_session");
+    SSO_SESSION("sso-session", "sso_session"),
+
+    /**
+     * A `services` section declares a group of service-specific configurations that can be referenced by profiles.
+     * Service sub-sections use standardized names derived from the AWS service identifiers.
+     */
+    SERVICES("services", "services");
 
     private final String sectionTitle;
     private final String propertyKeyName;
