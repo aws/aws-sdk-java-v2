@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.37__ __2025-03-10__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Releasing minor partition endpoint updates.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds defaultFontSize and defaultLineHeight as options in the EbuTtDDestinationSettings within the caption descriptions for an output stream.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release adds new StandardsControlsUpdatable field to the StandardsSubscription resource
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Add support for computer use tools
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for computer use tools
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add support for contact transfers in external voice systems.
+
+## __PcaConnectorAd__
+  - ### Features
+    - PrivateCA Connector for Active Directory now supports dual stack endpoints. This release adds the IpAddressType option to the VpcInformation on a Connector which determines whether the endpoint supports IPv4 only or IPv4 and IPv6 traffic.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release updates the default value of pprof-disabled from false to true.
+
 # __2.30.36__ __2025-03-07__
 ## __AWS SDK for Java v2__
   - ### Features
