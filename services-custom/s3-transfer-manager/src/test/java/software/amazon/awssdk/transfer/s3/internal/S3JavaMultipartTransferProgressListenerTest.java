@@ -179,7 +179,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
         assertMockOnFailure(transferListenerMock);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "multipartEnabled = {0}")
     @ValueSource(booleans = {true, false})
     void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) {
         S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
@@ -209,7 +209,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
 
-        int numTimesBytesTransferred = multipartEnabled ? 2 : 1;
+        // when false, the generic S3 TM will read 16KiB chunks, so OBJ_SIZE / 16KiB = 16MiB / 16KiB = 1024
+        int numTimesBytesTransferred = multipartEnabled ? 2 : 1024;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
 
