@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ProfileFileServicesTest {
 
     @Test
-    public void shouldRecognizeServicesSection() {
+    public void servicesSection_shouldRecognizeServicesSection() {
         String profileContent =
             "[services dev]\n" +
             "s3 = \n" +
@@ -41,7 +41,7 @@ public class ProfileFileServicesTest {
     }
 
     @Test
-    public void canParseServicesSection() {
+    public void servicesSection_canParseServicesSectionProperties() {
         String profileContent =
             "[services dev]\n" +
             "s3 = \n" +
@@ -60,15 +60,13 @@ public class ProfileFileServicesTest {
         assertThat(servicesSection).isPresent();
 
         Profile services = servicesSection.get();
-        System.out.println(services.properties().get("s3"));
-        System.out.println(services.properties().get("s3.endpoint_url"));
         assertThat(services.properties())
             .containsEntry("s3.endpoint_url", "https://foo.bar:9000");
     }
 
 
     @Test
-    public void canParseMultipleServicesInSection() {
+    public void servicesSection_canParseMultipleServicesInSection() {
         String profileContent =
             "[services testing-s3-and-eb]\n" +
             "s3 = \n" +

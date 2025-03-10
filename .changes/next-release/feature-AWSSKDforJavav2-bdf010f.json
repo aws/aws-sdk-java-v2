@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SKD for Java v2",
+    "contributor": "",
+    "description": "Added functionality to be able to configure an endpoint override through the [services] section in the aws config file for specific services"
+}

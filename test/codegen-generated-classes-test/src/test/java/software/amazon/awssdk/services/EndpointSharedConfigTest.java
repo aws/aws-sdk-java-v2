@@ -280,7 +280,7 @@ public class EndpointSharedConfigTest {
     }
 
     @Test(expected = EndpointCapturingInterceptor.CaptureCompletedException.class)
-    public void invalidNestedBlockFormat() {
+    public void invalidNestedBlockFormat_shouldThrowCaptureCompletedException() {
         StringBuilder profileFileContent = new StringBuilder();
         profileFileContent.append("[default] \n")
                           .append("services = dev \n")
