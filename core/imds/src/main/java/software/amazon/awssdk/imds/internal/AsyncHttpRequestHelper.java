@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.Ec2MetadataClientException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -86,7 +87,10 @@ final class AsyncHttpRequestHelper {
 
         // non-retryable error
         if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
-            throw SdkClientException.builder().message(responseContent).build();
+            throw Ec2MetadataClientException.builder()
+                                    .statusCode(response.statusCode())
+                                    .message("IMDS service returned an error response: " + responseContent)
+                                    .build();
         }
 
         // retryable error

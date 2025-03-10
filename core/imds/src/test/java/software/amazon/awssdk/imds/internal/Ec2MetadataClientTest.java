@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.exception.Ec2MetadataClientException;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
@@ -108,6 +109,45 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
                                                        .httpClient(UrlConnectionHttpClient.create())
                                                        .build())
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void clientError_throwsEc2MetadataClientExceptionWithStatusCode() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                    .willReturn(aResponse()
+                                    .withBody("token")
+                                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
+
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE))
+                    .willReturn(aResponse()
+                                    .withStatus(400)
+                                    .withBody("Bad Request")));
+
+        failureAssertions(
+            AMI_ID_RESOURCE,
+            Ec2MetadataClientException.class,
+            exception -> {
+                assertThat(exception.statusCode()).isEqualTo(400);
+                assertThat(exception.getMessage()).contains("Bad Request");
+            }
+        );
+    }
+
+    @Test
+    void tokenRequest_clientError_throwsEc2MetadataClientExceptionWithStatusCode() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(403)
+                                    .withBody("Forbidden")));
+
+        failureAssertions(
+            AMI_ID_RESOURCE,
+            Ec2MetadataClientException.class,
+            exception -> {
+                assertThat(exception.statusCode()).isEqualTo(403);
+                assertThat(exception.getMessage()).contains("Could not retrieve token, 403 error occurred: Forbidden");
+            }
+        );
     }
 
 }
