@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "This release adds new StandardsControlsUpdatable field to the StandardsSubscription resource"
-}
