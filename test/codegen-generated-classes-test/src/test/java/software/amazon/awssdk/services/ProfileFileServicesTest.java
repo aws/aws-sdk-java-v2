@@ -29,7 +29,7 @@ public class ProfileFileServicesTest {
         String profileContent =
             "[services dev]\n" +
             "s3 = \n" +
-            "  endpoint_url = https://play.min.io:9000\n";
+            "  endpoint_url = https://foo.bar:9000\n";
 
         ProfileFile profileFile = ProfileFile.builder()
                                              .content(profileContent)
@@ -45,7 +45,7 @@ public class ProfileFileServicesTest {
         String profileContent =
             "[services dev]\n" +
             "s3 = \n" +
-            "  endpoint_url = https://play.min.io:9000\n" +
+            "  endpoint_url = https://foo.bar:9000\n" +
             "  foo = bar\n" +
             "\n" +
             "[profile test-profile]\n" +
@@ -63,7 +63,7 @@ public class ProfileFileServicesTest {
         System.out.println(services.properties().get("s3"));
         System.out.println(services.properties().get("s3.endpoint_url"));
         assertThat(services.properties())
-            .containsEntry("s3.endpoint_url", "https://play.min.io:9000");
+            .containsEntry("s3.endpoint_url", "https://foo.bar:9000");
     }
 
 
@@ -92,5 +92,4 @@ public class ProfileFileServicesTest {
             .containsEntry("s3.endpoint_url", "http://localhost:4567")
             .containsEntry("elastic_beanstalk.endpoint_url", "http://localhost:8000");
     }
-
 }
