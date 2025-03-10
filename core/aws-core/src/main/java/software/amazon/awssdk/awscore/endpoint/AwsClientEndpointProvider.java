@@ -129,6 +129,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                           () -> systemProperty(GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY),
                                           () -> environmentVariable(builder.serviceEndpointOverrideEnvironmentVariable),
                                           () -> environmentVariable(GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE),
+                                          () -> servicesProperty(builder),
                                           () -> profileProperty(builder,
                                                                 builder.serviceProfileProperty + "."
                                                                 + ProfileProperty.ENDPOINT_URL),
@@ -154,6 +155,20 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                          Optional.ofNullable(builder.profileFile.get())
                                  .flatMap(pf -> pf.profile(builder.profileName))
                                  .flatMap(p -> p.property(profileProperty)));
+    }
+
+    private Optional<URI> servicesProperty(Builder builder) {
+        Optional<ProfileFile> profileFile = Optional.ofNullable(builder.profileFile.get());
+        Optional<String> serviceName = profileFile
+            .flatMap(pf -> pf.profile(builder.profileName))
+            .flatMap(p -> p.property("services"));
+
+        Optional<URI> serviceEndpoint = serviceName
+            .flatMap(name -> profileFile.flatMap(pf -> pf.getSection("services", name)))
+            .flatMap(p -> Optional.ofNullable(p.properties().get(builder.serviceProfileProperty + "." + ProfileProperty.ENDPOINT_URL)))
+            .flatMap(uri -> createUri("services section property", Optional.of(uri)));
+
+        return serviceEndpoint;
     }
 
     private Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
