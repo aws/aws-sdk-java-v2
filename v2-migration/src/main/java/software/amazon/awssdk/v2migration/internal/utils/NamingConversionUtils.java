@@ -182,6 +182,9 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("ReplicationFilter", "ReplicationRuleFilter");
         S3_POJO_MAPPING.put("ReplicationAndOperator", "ReplicationRuleAndOperator");
         S3_POJO_MAPPING.put("PartETag", "CompletedPart");
+
+        //Special Enum mapping
+        S3_POJO_MAPPING.put("S3Event", "Event");
     }
 
     static {

@@ -1,4 +1,95 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.36__ __2025-03-07__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Introduces support for Neptune Analytics as a vector data store and adds Context Enrichment Configurations, enabling use cases such as GraphRAG.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Support Multi Agent Collaboration within Inline Agents
+
+## __Amazon CloudFront__
+  - ### Features
+    - Documentation updates for Amazon CloudFront.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add serviceManaged field to DescribeAddresses API response.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Several small updates to resolve customer requests.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for assigning IP addresses to Application Load Balancers from VPC IP Address Manager pools.
+
+# __2.30.35__ __2025-03-06__
+## __AWS CloudTrail__
+  - ### Features
+    - Doc-only update for CloudTrail.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - You can now perform an exact match or rate limit aggregation against the web request's JA4 fingerprint.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This releases adds support for Custom Prompt Router
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the ability to merge fragmented recordings in the event of a participant disconnect.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added a new ModifyEndpointEncryptionMode API for managing endpoint encryption settings.
+
+## __Network Flow Monitor__
+  - ### Features
+    - This release contains 2 changes. 1: DeleteScope/GetScope/UpdateScope operations now return 404 instead of 500 when the resource does not exist. 2: Expected string format for clientToken fields of CreateMonitorInput/CreateScopeInput/UpdateMonitorInput have been updated to be an UUID based string.
+
+## __Redshift Data API Service__
+  - ### Features
+    - This release adds support for ListStatements API to filter statements by ClusterIdentifier, WorkgroupName, and Database.
+
+# __2.30.34__ __2025-03-05__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports modifying ServerHostname while updating locations SMB, NFS, and ObjectStorage.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - This release adds floating point support for CAN/OBD signals and adds support for signed OBD signals.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Transform the setter methods on the service model classes that take SdkBytes to take ByteBuffer to be compatible with v1 style setters
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This releases adds support for Custom Prompt Router ARN
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - New Service: Amazon GameLift Streams delivers low-latency game streaming from AWS global infrastructure to virtually any device with a browser at up to 1080p resolution and 60 fps.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added DeviceTypeWorkSpacesThinClient type to allow users to access their WorkSpaces through a WorkSpaces Thin Client.
+
 # __2.30.33__ __2025-03-04__
 ## __AWS IoT SiteWise__
   - ### Features

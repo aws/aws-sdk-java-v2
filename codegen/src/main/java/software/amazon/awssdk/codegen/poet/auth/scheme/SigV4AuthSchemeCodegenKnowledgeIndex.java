@@ -134,7 +134,7 @@ public final class SigV4AuthSchemeCodegenKnowledgeIndex {
     }
 
     /**
-     * Returns a new list of singer properties with only those properties that use a constant value.
+     * Returns a new list of signer properties with only those properties that use a constant value.
      */
     private List<SignerPropertyValueProvider> filterSignerPropertiesWithConstantValues(
         List<SignerPropertyValueProvider> properties
