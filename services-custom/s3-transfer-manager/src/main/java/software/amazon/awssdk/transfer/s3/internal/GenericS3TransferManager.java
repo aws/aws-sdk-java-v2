@@ -20,7 +20,6 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
-import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.util.Optional;
@@ -94,7 +93,6 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 class GenericS3TransferManager implements S3TransferManager {
-    protected static final int DEFAULT_FILE_UPLOAD_CHUNK_SIZE = (int) (16 * MB);
     private static final Logger log = Logger.loggerFor(S3TransferManager.class);
     private static final PauseResumeHelper PAUSE_RESUME_HELPER = new PauseResumeHelper();
     private final S3AsyncClient s3AsyncClient;
@@ -180,7 +178,6 @@ class GenericS3TransferManager implements S3TransferManager {
         AsyncRequestBody requestBody =
             FileAsyncRequestBody.builder()
                                 .path(uploadFileRequest.source())
-                                .chunkSizeInBytes(DEFAULT_FILE_UPLOAD_CHUNK_SIZE)
                                 .build();
 
         CompletableFuture<CompletedFileUpload> returnFuture = new CompletableFuture<>();
