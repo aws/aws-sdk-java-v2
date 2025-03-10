@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Updated the SDK to handle error thrown from consumer subscribed to paginator publisher, which caused the request to hang for pagination operations"
+}
