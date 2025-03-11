@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds the GroupLongName field to the response of the DescribeAvailabilityZones API."
+}
