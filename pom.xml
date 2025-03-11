@@ -169,6 +169,7 @@
         <!-- Whenever we update maven-wrapper-plugin version, we need to run mvn wrapper:wrapper to update the Maven Wrapper files(mvnw, .maven and mvnw.cmd) -->
         <maven-wrapper-plugin.version>3.2.0</maven-wrapper-plugin.version>
         <ant.version>1.10.14</ant.version>
+        <maven-velocity-plugin.version>0.9</maven-velocity-plugin.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
