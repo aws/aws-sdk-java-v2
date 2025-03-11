@@ -16,13 +16,23 @@
 package foo.bar;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 
-public class SdkBytes {
+public class SdkBytesGetterSetter {
+
+    void byteBufferSetter() {
+        ByteBuffer buffer = ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8));
+        MessageAttributeValue messageAttributeValue = MessageAttributeValue.builder()
+            .binaryValue(SdkBytes.fromByteBuffer(buffer))
+            .build();
+    }
 
     void sdkBytesGetters() {
         MessageAttributeValue messageAttributeValue = MessageAttributeValue.builder()
             .build();
+
         ByteBuffer binaryValue = messageAttributeValue.binaryValue().asByteBuffer();
         String binaryString = new String(messageAttributeValue.binaryValue().asByteBuffer().array());
     }

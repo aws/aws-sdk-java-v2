@@ -14,9 +14,9 @@
 #
 ---
 type: specs.openrewrite.org/v1beta/recipe
-name: software.amazon.awssdk.v2migration.TransferManagerUpgrade
-displayName: Upgrade the S3 Transfer Manager from the AWS SDK for Java v1 to the AWS SDK for Java v2
-description: This recipe will apply changes required for migrating the S3 Transfer Manager from the AWS SDK for Java v1 to the AWS SDK for Java v2.
+name: software.amazon.awssdk.v2migration.AddTransferManagerDependency
+displayName: Add AWS SDK for Java v2 S3 Transfer Manager dependency if needed
+description: This recipe will add the Java v2 S3 Transfer Manager dependency if v1 Transfer Manager is used
 tags:
   - aws
   - sdk
@@ -24,6 +24,5 @@ recipeList:
   - org.openrewrite.java.dependencies.AddDependency:
       groupId: software.amazon.awssdk
       artifactId: s3-transfer-manager
-      version: 2.30.32
+      version: 2.30.37
       onlyIfUsing: com.amazonaws.services.s3.transfer.TransferManager
-  - software.amazon.awssdk.v2migration.ChangeTransferManagerTypes

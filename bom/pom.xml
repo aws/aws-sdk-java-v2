@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.30.33-SNAPSHOT</version>
+        <version>2.30.38-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>bom</artifactId>
@@ -2256,6 +2256,16 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>backupsearch</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>iotmanagedintegrations</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>gameliftstreams</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
         </dependencies>

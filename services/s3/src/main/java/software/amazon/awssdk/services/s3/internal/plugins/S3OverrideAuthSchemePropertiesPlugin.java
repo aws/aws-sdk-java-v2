@@ -99,7 +99,7 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
                 if (addConfiguredProperties(option, params)) {
                     AuthSchemeOption.Builder builder = option.toBuilder();
                     identityProperties.forEach((k, v) -> putIdentityProperty(builder, k, v));
-                    signerProperties.forEach((k, v) -> putSingerProperty(builder, k, v));
+                    signerProperties.forEach((k, v) -> putSignerProperty(builder, k, v));
                     result.add(builder.build());
                 } else {
                     result.add(option);
@@ -116,7 +116,7 @@ public final class S3OverrideAuthSchemePropertiesPlugin implements SdkPlugin {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> void putSingerProperty(AuthSchemeOption.Builder builder, SignerProperty<?> key, Object value) {
+    private <T> void putSignerProperty(AuthSchemeOption.Builder builder, SignerProperty<?> key, Object value) {
         // Safe because of Builder#putSignerProperty
         builder.putSignerProperty((SignerProperty<T>) key, (T) value);
     }
