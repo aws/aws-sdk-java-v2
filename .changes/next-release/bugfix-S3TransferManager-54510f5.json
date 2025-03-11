@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix an issue where `uploadFile` never completes for the Java based S3 TransferManager if the `apiCallBufferSizeInBytes` configured on the `MultipartConfiguration` is too small."
-}

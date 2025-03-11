@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.30.38__ __2025-03-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Add an enum option DISABLED for Output Locking Mode under Global Configuration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only update for Amazon ECS to address various tickets.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds the GroupLongName field to the response of the DescribeAvailabilityZones API.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - This release adds Amazon ECR to Amazon ECR pull through cache rules support.
+
+## __Inspector2__
+  - ### Features
+    - Adding componentArn to network reachability details
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix an issue where `uploadFile` never completes for the Java based S3 TransferManager if the `apiCallBufferSizeInBytes` configured on the `MultipartConfiguration` is too small.
+
 # __2.30.37__ __2025-03-10__
 ## __AWS Cost Explorer Service__
   - ### Features
