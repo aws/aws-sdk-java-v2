@@ -17,7 +17,13 @@ package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.LinkedList;
+import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class DefaultSdkAutoConstructListTest {
@@ -41,5 +47,33 @@ public class DefaultSdkAutoConstructListTest {
     @Test
     public void toString_emptyList() {
         assertThat(INSTANCE.toString()).isEqualTo("[]");
+    }
+
+    @Test
+    @DisplayName("DefaultSdkAutoConstruct is Serializable, and is same instance.")
+    public void serialization_sameSingletonInstance() throws Exception {
+        // Create instance of DefaultSdkAutoConstructList
+        List defaultSdkAutoConstructList = DefaultSdkAutoConstructList.getInstance();
+
+        // Serialize instance into byte array
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(baos);
+
+        objectOutputStream.writeObject(defaultSdkAutoConstructList);
+        objectOutputStream.flush();
+        objectOutputStream.close();
+
+        // Serialization result
+        byte[] bytes = baos.toByteArray();
+
+        // Deserialize bytes
+        ByteArrayInputStream fileInputStream = new ByteArrayInputStream(bytes);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+        // Deserialized result
+        DefaultSdkAutoConstructList resultList = (DefaultSdkAutoConstructList) objectInputStream.readObject();
+        objectInputStream.close();
+
+        // Compare using "==", to make sure it is the same reference.
+        assertThat(resultList == defaultSdkAutoConstructList).isTrue();
     }
 }

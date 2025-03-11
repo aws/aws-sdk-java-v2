@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.util;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * @param <T> The element type.
  */
 @SdkProtectedApi
-public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructList<T> {
+public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructList<T>, Serializable {
     private static final DefaultSdkAutoConstructList INSTANCE = new DefaultSdkAutoConstructList();
 
     private final List impl = Collections.emptyList();
@@ -171,6 +172,10 @@ public final class DefaultSdkAutoConstructList<T> implements SdkAutoConstructLis
     @Override
     public String toString() {
         return impl.toString();
+    }
+
+    private Object readResolve() {
+        return getInstance();
     }
 
 }
