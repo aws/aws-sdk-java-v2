@@ -19,16 +19,13 @@ package software.amazon.awssdk.core.exception;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Extension of {@link SdkClientException} thrown when EC2 Instance Metadata Service (IMDS)
- * returns a non-successful response (4XX codes).
- * This exception includes HTTP status codes from IMDS responses  to enable detailed error handling.
- * <p>Clients can use {@link #statusCode()} to access the specific HTTP status code
- * for granular error handling and logging.
+ * Extends {@link SdkClientException} for EC2 Instance Metadata Service (IMDS) non-successful
+ * responses (4XX codes). Includes HTTP status codes to enable detailed error handling.
+ * <p>The status code is accessible via {@link #statusCode()} for specific error handling.
  */
 
-
 @SdkPublicApi
-public class Ec2MetadataClientException extends SdkClientException{
+public class Ec2MetadataClientException extends SdkClientException {
 
     private final int statusCode;
 
