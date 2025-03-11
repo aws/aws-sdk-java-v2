@@ -115,11 +115,15 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
-         * Configures the number of unread bytes that can be buffered in the
-         * client before we stop reading from the underlying TCP socket and wait for the Subscriber
-         * to read more data.
+         * Configures the number of bytes that can be buffered in the client for sending and receiving data.
+         * <p>
+         * For requests, this is the number unsent bytes the client will buffer from the request content publisher until it has to
+         * wait for the socket to allow more data to be written to it.
+         * <p>
+         * When reading responses, this is the number of bytes the client will buffer before we stop reading from the
+         * underlying TCP socket and wait for the Subscriber to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered.
+         * @param readBufferSize The number of bytes that can be buffered for sending and receiving.
          * @return The builder of the method chaining.
          */
         AwsCrtAsyncHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
