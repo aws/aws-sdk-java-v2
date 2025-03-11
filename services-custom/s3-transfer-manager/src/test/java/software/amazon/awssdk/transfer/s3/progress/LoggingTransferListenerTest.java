@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +62,7 @@ class LoggingTransferListenerTest {
             String loggerName = LoggingTransferListener.class.getName();
             List<LogEvent> filteredEvents = events.stream()
                                                   .filter(e -> e.getLoggerName().equals(loggerName))
-                                                  .collect(java.util.stream.Collectors.toList());
+                                                  .collect(Collectors.toList());
             assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
             assertLogged(filteredEvents, Level.INFO, "|                    | 0.0%");
             assertLogged(filteredEvents, Level.INFO, "|=                   | 5.0%");
@@ -98,7 +99,7 @@ class LoggingTransferListenerTest {
             String loggerName = LoggingTransferListener.class.getName();
             List<LogEvent> filteredEvents = events.stream()
                                                   .filter(e -> e.getLoggerName().equals(loggerName))
-                                                  .collect(java.util.stream.Collectors.toList());
+                                                  .collect(Collectors.toList());
 
             assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
             assertLogged(filteredEvents, Level.INFO, "|     | 0.0%");
