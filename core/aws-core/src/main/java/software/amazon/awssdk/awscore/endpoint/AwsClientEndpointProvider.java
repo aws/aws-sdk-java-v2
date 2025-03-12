@@ -50,6 +50,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
  *     <li>The service-agnostic endpoint override system property (i.e. 'aws.endpointUrl')</li>
  *     <li>The service-specific endpoint override environment variable (e.g. 'AWS_ENDPOINT_URL_S3')</li>
  *     <li>The service-agnostic endpoint override environment variable (i.e. 'AWS_ENDPOINT_URL')</li>
+ *     <li>The service-specific endpoint override from services section (e.g. '[services dev] s3.endpoint_url')</li>
  *     <li>The service-specific endpoint override profile property (e.g. 's3.endpoint_url')</li>
  *     <li>The service-agnostic endpoint override profile property (i.e. 'endpoint_url')</li>
  *     <li>The {@link ServiceMetadata} for the service</li>
@@ -159,11 +160,11 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
 
     private Optional<URI> servicesProperty(Builder builder) {
         Optional<ProfileFile> profileFile = Optional.ofNullable(builder.profileFile.get());
-        Optional<String> serviceName = profileFile
+        Optional<String> servicesSectionName = profileFile
             .flatMap(pf -> pf.profile(builder.profileName))
             .flatMap(p -> p.property("services"));
 
-        Optional<URI> serviceEndpoint = serviceName
+        Optional<URI> serviceEndpoint = servicesSectionName
             .flatMap(name -> profileFile.flatMap(pf -> pf.getSection("services", name)))
             .flatMap(p -> Optional.ofNullable(p.properties().get(builder.serviceProfileProperty
                                                                  + "." + ProfileProperty.ENDPOINT_URL)))
