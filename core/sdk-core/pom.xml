@@ -266,7 +266,7 @@
             <plugin>
                 <groupId>com.nativelibs4java</groupId>
                 <artifactId>maven-velocity-plugin</artifactId>
-                <version>0.9</version>
+                <version>${maven-velocity-plugin.version}</version>
                 <executions>
                     <execution>
                         <phase>generate-sources</phase>
