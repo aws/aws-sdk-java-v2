@@ -536,17 +536,6 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>
-
-                        <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
-
-			<!-- TODO(post-sra-identity-auth): With move to SRA Identity & Auth, most clients won't need a
-                             dependency on auth module. But cannot remove it from services/pom.xml until all services
-                             have switched. Some service modules may still need it, because they have tests that use the
-                             old interfaces, but that should become a test scoped dependency in modules where needed.
-                             And the line below removed. -->
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
-
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>

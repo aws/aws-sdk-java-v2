@@ -67,14 +67,6 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <!-- Test Dependencies -->
-        <!-- TODO(post-sra-identity-auth): auth-crt dependency can be removed as part of
-        cleanup after all services are on SRA -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>auth-crt</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>route53</artifactId>
