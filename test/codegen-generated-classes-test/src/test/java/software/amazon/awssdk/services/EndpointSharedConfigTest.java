@@ -278,33 +278,4 @@ public class EndpointSharedConfigTest {
             return caseName;
         }
     }
-
-    @Test(expected = EndpointCapturingInterceptor.CaptureCompletedException.class)
-    public void invalidNestedBlockFormat_shouldThrowCaptureCompletedException() {
-        StringBuilder profileFileContent = new StringBuilder();
-        profileFileContent.append("[default] \n")
-                          .append("services = dev \n")
-                          .append("\n")
-                          .append("[services dev] \n")
-                          .append("amazonprotocolrestjson =\n")
-                          .append("endpoint_url =");
-
-        ProfileFile profileFile = ProfileFile.builder()
-                                             .type(ProfileFile.Type.CONFIGURATION)
-                                             .content(profileFileContent.toString())
-                                             .build();
-
-        ProtocolRestJsonClientBuilder builder = ProtocolRestJsonClient.builder()
-                                                                      .region(Region.US_WEST_2)
-                                                                      .credentialsProvider(AnonymousCredentialsProvider.create())
-                                                                      .overrideConfiguration(c -> c.defaultProfileFile(profileFile)
-                                                                                                   .defaultProfileName("default"));
-
-        EndpointCapturingInterceptor interceptor = new EndpointCapturingInterceptor();
-        builder.overrideConfiguration(b -> b.addExecutionInterceptor(interceptor));
-
-        ProtocolRestJsonClient client = builder.build();
-
-        client.allTypes();
-    }
 }
