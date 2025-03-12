@@ -24,7 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 
-public class S3_Streaming {
+public class S3Streaming {
 
     AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
@@ -45,10 +45,10 @@ public class S3_Streaming {
      * Mixed ordering to ensure the files are assigned correctly
      */
     void putObject_requestPojoWithFile(String bucket, String key) {
+        File file4 = new File("file4.txt");
+        File file3 = new File("file3.txt");
         File file1 = new File("file1.txt");
         File file2 = new File("file2.txt");
-        File file3 = new File("file3.txt");
-        File file4 = new File("file4.txt");
 
         PutObjectRequest request1 = new PutObjectRequest(bucket, key, file1);
 

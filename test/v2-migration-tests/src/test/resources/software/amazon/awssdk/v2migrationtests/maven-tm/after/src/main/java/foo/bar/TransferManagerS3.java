@@ -28,11 +28,8 @@ import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 
 public class TransferManagerS3 {
 
@@ -66,11 +63,6 @@ public class TransferManagerS3 {
         PutObjectRequest requestWithFile = PutObjectRequest.builder().bucket(bucket).key(key)
                 .build();
         tm.uploadFile(UploadFileRequest.builder().putObjectRequest(requestWithFile).source(file).build());
-
-        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
-        PutObjectRequest requestWithInputStream = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
-                .build();
-        tm.upload(UploadRequest.builder().putObjectRequest(requestWithInputStream).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, Executors.newSingleThreadExecutor())).build());
 
         PutObjectRequest requestWithoutPayload = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
                 .build();

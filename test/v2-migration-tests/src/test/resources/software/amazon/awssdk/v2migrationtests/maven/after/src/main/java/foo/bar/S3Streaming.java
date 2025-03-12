@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 
-public class S3_Streaming {
+public class S3Streaming {
 
     S3Client s3 = S3Client.create();
 
@@ -51,10 +51,10 @@ public class S3_Streaming {
      * Mixed ordering to ensure the files are assigned correctly
      */
     void putObject_requestPojoWithFile(String bucket, String key) {
+        File file4 = new File("file4.txt");
+        File file3 = new File("file3.txt");
         File file1 = new File("file1.txt");
         File file2 = new File("file2.txt");
-        File file3 = new File("file3.txt");
-        File file4 = new File("file4.txt");
 
         PutObjectRequest request1 = PutObjectRequest.builder().bucket(bucket).key(key)
             .build();
@@ -76,9 +76,9 @@ public class S3_Streaming {
 
         PutObjectRequest request1 = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
             .build();
-        s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "binary/octet-stream"));
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "binary/octet-stream"));
 
-        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
             .build(), RequestBody.fromContentProvider(() -> inputStream2, "binary/octet-stream"));
     }
 

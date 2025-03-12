@@ -23,6 +23,8 @@ import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isF
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isInputStreamType;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.List;
 import java.util.Queue;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -31,9 +33,12 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.java.tree.TypeUtils;
+import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -62,7 +67,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
     private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
 
-        Queue<Expression> filesQueue = new ArrayDeque<>();
+        private Queue<Expression> filesQueue = new ArrayDeque<>();
 
         @Override
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
@@ -207,15 +212,19 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
             String v2Method = String.format("UploadRequest.builder().putObjectRequest(#{any()})"
                                             + ".requestBody(AsyncRequestBody.fromInputStream(#{any()}, %dL, "
-                                            + "Executors.newSingleThreadExecutor())).build()",
+                                            + "\"executorService\")).build()",
                                             contentLength);
 
             addTmImport("UploadRequest");
             addAsyncRequestBodyImport();
-            addExecutorsImport();
+
+            String comment = "When using InputStream to upload with TransferManager, you must specify Content-Length and "
+                             + "ExecutorService.";
+
             return JavaTemplate.builder(v2Method).build()
-                               .apply(getCursor(), method.getCoordinates().replaceArguments(),
-                                      method.getArguments().get(0), inputStream);
+                                                     .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                                            method.getArguments().get(0), inputStream)
+                               .withComments(createComments(comment));
         }
 
         private J.MethodInvocation addFileToPutObject(J.MethodInvocation method, Expression file) {
@@ -230,15 +239,21 @@ public class S3PutObjectRequestToV2 extends Recipe {
             String v2Method;
 
             if (contentLength < 0) {
+                String comment = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
+                                 + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.";
                 // CHECKSTYLE:OFF: Regexp
                 v2Method = "#{any()}, RequestBody.fromContentProvider(() -> #{any()}, \"binary/octet-stream\")";
                 // CHECKSTYLE:ON: Regexp
+                return JavaTemplate.builder(v2Method).build()
+                                   .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                          method.getArguments().get(0), inputStream)
+                    .withComments(createComments(comment));
             } else {
                 v2Method = String.format("#{any()}, RequestBody.fromInputStream(#{any()}, %d)", contentLength);
+                return JavaTemplate.builder(v2Method).build()
+                                   .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                          method.getArguments().get(0), inputStream);
             }
-            return JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replaceArguments(),
-                                        method.getArguments().get(0), inputStream);
         }
 
         private long extractContentLengthIfSet(J.MethodInvocation method) {
@@ -262,6 +277,11 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
             return JavaTemplate.builder("RequestPayer.REQUESTER").build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments());
+        }
+
+        private List<Comment> createComments(String comment) {
+            return Collections.singletonList(
+                new TextComment(true, "AWS SDK for Java v2 migration: " + comment, "", Markers.EMPTY));
         }
 
         /** Field set during POJO instantiation, e.g.,
@@ -311,11 +331,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
         private void addTmImport(String pojoName) {
             String fqcn = V2_TM_MODEL_PKG + pojoName;
-            doAfterVisit(new AddImport<>(fqcn, null, false));
-        }
-
-        private void addExecutorsImport() {
-            String fqcn = "java.util.concurrent.Executors";
             doAfterVisit(new AddImport<>(fqcn, null, false));
         }
     }
