@@ -17,8 +17,13 @@ package software.amazon.awssdk.services;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,5 +94,34 @@ public class ProfileFileServicesTest {
         assertThat(services.properties())
             .containsEntry("s3.endpoint_url", "http://localhost:4567")
             .containsEntry("elastic_beanstalk.endpoint_url", "http://localhost:8000");
+    }
+
+    @org.junit.Test(expected = EndpointCapturingInterceptor.CaptureCompletedException.class)
+    public void invalidNestedBlockFormat_shouldThrowCaptureCompletedException() {
+        StringBuilder profileFileContent = new StringBuilder();
+        profileFileContent.append("[default] \n")
+                          .append("services = dev \n")
+                          .append("\n")
+                          .append("[services dev] \n")
+                          .append("amazonprotocolrestjson =\n")
+                          .append("endpoint_url =");
+
+        ProfileFile profileFile = ProfileFile.builder()
+                                             .type(ProfileFile.Type.CONFIGURATION)
+                                             .content(profileFileContent.toString())
+                                             .build();
+
+        ProtocolRestJsonClientBuilder builder = ProtocolRestJsonClient.builder()
+                                                                      .region(Region.US_WEST_2)
+                                                                      .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                                      .overrideConfiguration(c -> c.defaultProfileFile(profileFile)
+                                                                                                   .defaultProfileName("default"));
+
+        EndpointCapturingInterceptor interceptor = new EndpointCapturingInterceptor();
+        builder.overrideConfiguration(b -> b.addExecutionInterceptor(interceptor));
+
+        ProtocolRestJsonClient client = builder.build();
+
+        client.allTypes();
     }
 }
