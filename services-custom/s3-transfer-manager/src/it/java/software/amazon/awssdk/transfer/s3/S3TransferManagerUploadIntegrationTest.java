@@ -24,15 +24,19 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -91,6 +95,34 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(obj.response().metadata()).containsEntry("foobar", "FOO BAR");
         assertThat(fileUpload.progress().snapshot().sdkResponse()).isPresent();
         assertListenerForSuccessfulTransferComplete(transferListener);
+    }
+
+    // This is a test for an issue where the file upload hangs (no chunk
+    // uploads are initiated) if apiCallBufferSizeInBytes is less than the
+    // publisher chunk size.
+    // Note: Only applicable to the Java based TM because file uploads are
+    // done completely by CRT for the CRT based transfer manager, and does
+    // not hit the same code path.
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.MINUTES)
+    public void uploadFile_apiBufferSizeLessThanFileAsyncPublisherChunkSize_sentCorrectly() {
+        try (
+            S3AsyncClient s3Async = s3AsyncClientBuilder()
+                .multipartConfiguration(c -> c.apiCallBufferSizeInBytes(SizeConstant.KB))
+                .build();
+
+            S3TransferManager tm = S3TransferManager.builder()
+                                                    .s3Client(s3Async)
+                                                    .build();
+        ) {
+            FileUpload fileUpload =
+                tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(TEST_BUCKET)
+                                                            .key(TEST_KEY))
+                                    .source(testFile.toPath())
+                                    .build());
+
+            fileUpload.completionFuture().join();
+        }
     }
 
     private static void assertListenerForSuccessfulTransferComplete(CaptureTransferListener transferListener) {
