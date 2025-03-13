@@ -164,7 +164,11 @@ public class S3 {
     private void listObjects(S3Client s3, String bucket) {
         ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder().bucket(bucket)
             .build();
+        ListObjectsRequest listObjectsRequest2 = ListObjectsRequest.builder().bucket("bucketName").prefix("prefix").marker("marker").delimiter("delimiter").maxKeys(4)
+            .build();
+
         ListObjectsResponse objectListing = s3.listObjects(listObjectsRequest);
+        ListObjectsResponse objectListing2 = s3.listObjects(listObjectsRequest2);
         System.out.println(objectListing);
     }
 
