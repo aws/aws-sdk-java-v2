@@ -67,8 +67,8 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
             expressionNames = Expression.joinNames(expressionNames, this.request.filterExpression().expressionNames());
         }
 
-        String projectionExpressionAsString = this.request.stringProjectionExpression();
-        if (projectionExpressionAsString == null && this.request.attributesToProject() != null) {
+        String projectionExpressionAsString = null;
+        if (this.request.attributesToProject() != null) {
             ProjectionExpression attributesToProject = ProjectionExpression.create(this.request.nestedAttributesToProject());
             projectionExpressionAsString = attributesToProject.projectionExpressionAsString().orElse(null);
             expressionNames = Expression.joinNames(expressionNames, attributesToProject.expressionAttributeNames());

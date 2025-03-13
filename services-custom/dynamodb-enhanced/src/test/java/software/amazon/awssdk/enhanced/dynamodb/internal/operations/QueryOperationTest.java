@@ -434,21 +434,6 @@ public class QueryOperationTest {
                                                                       .items(attributeMap).build()));
     }
 
-    @Test
-    public void generateRequest_withStringProjectionExpression() {
-        String projectionExpression = "id, sort";
-        QueryOperation<FakeItem> queryToTest =
-            QueryOperation.create(QueryEnhancedRequest.builder()
-                                                      .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
-                                                      .returnStringProjectionExpression(projectionExpression)
-                                                      .build());
-        QueryRequest queryRequest = queryToTest.generateRequest(FakeItem.getTableSchema(),
-                                                                PRIMARY_CONTEXT,
-                                                                null);
-
-        assertThat(queryRequest.projectionExpression(), is(projectionExpression));
-    }
-
     private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage) {
         return QueryResponse.builder().items(queryItemMapsPage).build();
     }

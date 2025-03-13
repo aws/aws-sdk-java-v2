@@ -45,7 +45,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.InnerAttributeRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTestRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -740,27 +739,5 @@ public class BasicScanTest extends LocalDynamoDbSyncTestBase {
         assertThat(page.count(), is(3));
 
         assertThat(page.items().size(), is(0));
-    }
-
-    @Test
-    public void scanWithStringProjectionExpression() {
-        insertRecords();
-
-        String projectionExpression = "id, sort";
-        ScanEnhancedRequest request = ScanEnhancedRequest.builder()
-                                                         .returnStringProjectionExpression(projectionExpression)
-                                                         .build();
-
-        Iterator<Page<Record>> results = mappedTable.scan(request).iterator();
-
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page = results.next();
-        assertThat(results.hasNext(), is(false));
-
-        assertThat(page.items().size(), is(RECORDS.size()));
-
-        Record firstRecord = page.items().get(0);
-        assertThat(firstRecord.getId(), is("id-value"));
-        assertThat(firstRecord.getSort(), is(0));
     }
 }

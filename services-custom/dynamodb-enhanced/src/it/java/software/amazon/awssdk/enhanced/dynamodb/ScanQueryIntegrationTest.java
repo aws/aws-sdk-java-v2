@@ -18,7 +18,6 @@ package software.amazon.awssdk.enhanced.dynamodb;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
@@ -35,7 +34,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -180,56 +178,6 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         assertThat(strongConsumedCapacity, is(notNullValue()));
 
         assertThat(strongConsumedCapacity.capacityUnits(), is(greaterThanOrEqualTo(eventualConsumedCapacity.capacityUnits())));
-    }
-
-    @Test
-    public void query_withStringProjectionExpression_checksProjectedAttributes() {
-        insertRecords();
-
-        String projectionExpression = "id, sort";
-        Iterator<Page<Record>> results =
-            mappedTable.query(QueryEnhancedRequest.builder()
-                                                  .queryConditional(sortBetween(k -> k.partitionValue("id-value").sortValue(2),
-                                                                                k -> k.partitionValue("id-value").sortValue(6)))
-                                                  .returnStringProjectionExpression(projectionExpression)
-                                                  .limit(3)
-                                                  .build())
-                       .iterator();
-
-        Page<Record> page1 = results.next();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page2 = results.next();
-        assertThat(results.hasNext(), is(false));
-
-        assertThat(page1.items().get(0).getId(), is(notNullValue()));
-        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
-
-        assertThat(page2.items().get(0).getId(), is(notNullValue()));
-        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
-    }
-
-    @Test
-    public void scan_withStringProjectionExpression_checksProjectedAttributes() {
-        insertRecords();
-
-        String projectionExpression = "id, sort";
-        Iterator<Page<Record>> results =
-            mappedTable.scan(ScanEnhancedRequest.builder()
-                                                .returnStringProjectionExpression(projectionExpression)
-                                                .limit(5)
-                                                .build())
-                       .iterator();
-
-        Page<Record> page1 = results.next();
-        assertThat(results.hasNext(), is(true));
-        Page<Record> page2 = results.next();
-        assertThat(results.hasNext(), is(false));
-
-        assertThat(page1.items().get(0).getId(), is(notNullValue()));
-        assertThat(page1.items().get(0).getSort(), is(notNullValue()));
-
-        assertThat(page2.items().get(0).getId(), is(notNullValue()));
-        assertThat(page2.items().get(0).getSort(), is(notNullValue()));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

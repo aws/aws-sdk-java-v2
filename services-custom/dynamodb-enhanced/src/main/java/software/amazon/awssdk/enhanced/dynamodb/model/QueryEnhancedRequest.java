@@ -53,13 +53,12 @@ public final class QueryEnhancedRequest {
     private final QueryConditional queryConditional;
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Boolean scanIndexForward;
-    private final Select select;
+    private final String select;
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
     private final List<NestedAttributeName> attributesToProject;
     private final String returnConsumedCapacity;
-    private final String stringProjectionExpression;
 
     private QueryEnhancedRequest(Builder builder) {
         this.queryConditional = builder.queryConditional;
@@ -70,7 +69,6 @@ public final class QueryEnhancedRequest {
         this.consistentRead = builder.consistentRead;
         this.filterExpression = builder.filterExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
-        this.stringProjectionExpression = builder.stringProjectionExpression;
         this.attributesToProject = builder.attributesToProject != null
                                    ? Collections.unmodifiableList(builder.attributesToProject)
                                    : null;
@@ -124,7 +122,7 @@ public final class QueryEnhancedRequest {
      * Returns the value of select, or null if it doesn't exist.
      * @return
      */
-    public Select select() {
+    public String select() {
         return select;
     }
 
@@ -176,13 +174,6 @@ public final class QueryEnhancedRequest {
      */
     public List<NestedAttributeName> nestedAttributesToProject() {
         return attributesToProject;
-    }
-
-    /**
-     * Returns the String projection expression for the query operation.
-     */
-    public String stringProjectionExpression() {
-        return stringProjectionExpression;
     }
 
 
@@ -248,10 +239,6 @@ public final class QueryEnhancedRequest {
             ? !returnConsumedCapacity.equals(query.returnConsumedCapacity) : query.returnConsumedCapacity != null) {
             return false;
         }
-        if (stringProjectionExpression != null
-            ? !stringProjectionExpression.equals(query.stringProjectionExpression) : query.stringProjectionExpression != null) {
-            return false;
-        }
         return filterExpression != null ? filterExpression.equals(query.filterExpression) : query.filterExpression == null;
     }
 
@@ -266,7 +253,6 @@ public final class QueryEnhancedRequest {
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
-        result = 31 * result + (stringProjectionExpression != null ? stringProjectionExpression.hashCode() : 0);
         return result;
     }
 
@@ -280,13 +266,12 @@ public final class QueryEnhancedRequest {
         private QueryConditional queryConditional;
         private Map<String, AttributeValue> exclusiveStartKey;
         private Boolean scanIndexForward;
-        private Select select;
+        private String select;
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
         private List<NestedAttributeName> attributesToProject;
         private String returnConsumedCapacity;
-        private String stringProjectionExpression;
 
         private Builder() {
         }
@@ -322,6 +307,17 @@ public final class QueryEnhancedRequest {
          * @return a builder of this type
          */
         public Builder select(Select select) {
+            this.select = select.toString();
+            return this;
+        }
+
+        /**
+         * Determines the attributes to be returned in the result. See {@link Select} string values for examples and constraints.
+         * By default, all attributes are returned.
+         * @param select
+         * @return a builder of this type
+         */
+        public Builder select(String select) {
             this.select = select;
             return this;
         }
@@ -526,17 +522,6 @@ public final class QueryEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
-            return this;
-        }
-
-        /**
-         * Sets the projection expression for the query operation.
-         *
-         * @param stringProjectionExpression the projection expression as a string
-         * @return a builder of this type
-         */
-        public Builder returnStringProjectionExpression(String stringProjectionExpression) {
-            this.stringProjectionExpression = stringProjectionExpression;
             return this;
         }
 

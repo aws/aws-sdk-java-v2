@@ -54,7 +54,6 @@ public final class ScanEnhancedRequest {
     private final Integer segment;
     private final Integer totalSegments;
     private final String returnConsumedCapacity;
-    private String stringProjectionExpression;
 
     private ScanEnhancedRequest(Builder builder) {
         this.exclusiveStartKey = builder.exclusiveStartKey;
@@ -246,7 +245,6 @@ public final class ScanEnhancedRequest {
         result = 31 * result + (select != null ? select.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
-        result = 31 * result + (stringProjectionExpression != null ? stringProjectionExpression.hashCode() : 0);
         return result;
     }
 
@@ -264,7 +262,6 @@ public final class ScanEnhancedRequest {
         private Integer segment;
         private Integer totalSegments;
         private String returnConsumedCapacity;
-        private String stringProjectionExpression;
 
         private Builder() {
         }
@@ -520,16 +517,6 @@ public final class ScanEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
-            return this;
-        }
-
-        /**
-         *  Whether to return the stringProjectionExpression for this operation.
-         * @param stringProjectionExpression
-         * @return a builder of this type
-         */
-        public Builder returnStringProjectionExpression(String stringProjectionExpression) {
-            this.stringProjectionExpression = stringProjectionExpression;
             return this;
         }
 

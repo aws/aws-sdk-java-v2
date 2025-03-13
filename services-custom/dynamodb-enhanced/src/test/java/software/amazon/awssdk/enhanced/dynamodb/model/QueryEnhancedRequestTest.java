@@ -183,21 +183,4 @@ public class QueryEnhancedRequestTest {
         assertThat(copiedObject, is(builtObject));
     }
 
-    @Test
-    public void builder_withStringProjectionExpression() {
-        String projectionExpression = "id, sort";
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
-                                                           .returnStringProjectionExpression(projectionExpression)
-                                                           .build();
-
-        assertThat(request.stringProjectionExpression(), is(projectionExpression));
-    }
-
-    @Test
-    public void builder_withoutStringProjectionExpression() {
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder().build();
-
-        assertThat(request.stringProjectionExpression(), is(nullValue()));
-    }
-
 }
