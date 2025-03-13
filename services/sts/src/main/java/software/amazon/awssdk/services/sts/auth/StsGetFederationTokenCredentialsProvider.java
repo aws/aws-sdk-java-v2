@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.FederatedUser;
@@ -48,7 +49,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetFederationTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetFederationTokenCredentialsProvider.Builder, StsGetFederationTokenCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsGetFederationTokenCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_FEDERATION_TOKEN.value();
 
     private final GetFederationTokenRequest getFederationTokenRequest;
 
