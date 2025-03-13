@@ -131,6 +131,14 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                           () -> environmentVariable(builder.serviceEndpointOverrideEnvironmentVariable),
                                           () -> environmentVariable(GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE),
                                           () -> servicesProperty(builder),
+
+                                          /*
+                                          * This is a deviation from the cross-SDK standard.
+                                          * There should not have been support for service-specific
+                                          * endpoint override under the [profile] section.
+                                          * It is in this order to maintain backwards compatibility, and to reflect that
+                                          * service-specific endpoint overrides from the [services] section should be preferred.
+                                          */
                                           () -> profileProperty(builder,
                                                                 builder.serviceProfileProperty + "."
                                                                 + ProfileProperty.ENDPOINT_URL),
