@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Generate account endpoints for DynamoDB requests using ARN-sourced account ID when available"
+}
