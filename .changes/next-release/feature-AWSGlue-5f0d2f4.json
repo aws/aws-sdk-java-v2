@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "This release added AllowFullTableExternalDataAccess to glue catalog resource."
+}
