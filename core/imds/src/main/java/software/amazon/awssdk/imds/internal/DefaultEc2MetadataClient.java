@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.exception.Ec2MetadataClientException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
@@ -169,6 +170,18 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                 .build();
         }
 
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
+            String responseContent = responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
+                                                 .orElse("");
+            log.debug(() -> "Metadata request response body: " + responseContent);
+            throw Ec2MetadataClientException
+                .builder()
+                .statusCode(statusCode)
+                .message(String.format("The requested metadata at path '%s' returned Http code %s: %s",
+                                       path, statusCode, responseContent))
+                .build();
+        }
+
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                         .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
@@ -216,6 +229,17 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
                     .ifPresent(str -> log.debug(() -> "Metadata request response body: " + str));
             throw RetryableException.builder()
                                     .message("Could not retrieve token, " + statusCode + " error occurred").build();
+        }
+
+        if (HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
+            String responseContent = response.responseBody()
+                                             .map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
+                                             .orElse("");
+            log.debug(() -> "Token request response body: " + responseContent);
+            throw Ec2MetadataClientException.builder()
+                                    .statusCode(statusCode)
+                                    .message("Could not retrieve token, " + statusCode + " error occurred: " + responseContent)
+                                    .build();
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
