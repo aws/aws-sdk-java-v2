@@ -43,6 +43,12 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read."
         }
     ]
 }

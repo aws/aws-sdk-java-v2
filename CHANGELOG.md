@@ -18,6 +18,10 @@
     - Made DefaultSdkAutoConstructList and DefaultSdkAutoConstructMap serializable
     - Updated endpoint and partition metadata.
 
+## __Amazon S3__
+- ### Bugfixes
+    - Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read.
+
 ## __Amazon Cognito Identity__
   - ### Features
     - Updated API model build artifacts for identity pools
