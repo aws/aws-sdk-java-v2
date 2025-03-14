@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
@@ -67,7 +68,8 @@ public final class FileAsyncRequestBodySplitHelper {
         this.totalBufferSize = splitConfiguration.bufferSizeInBytes() == null ?
                                AsyncRequestBodySplitConfiguration.defaultConfiguration().bufferSizeInBytes() :
                                splitConfiguration.bufferSizeInBytes();
-        this.bufferPerAsyncRequestBody = asyncRequestBody.chunkSizeInBytes();
+        this.bufferPerAsyncRequestBody = Math.min(asyncRequestBody.chunkSizeInBytes(),
+                                                  NumericUtils.saturatedCast(totalBufferSize));
     }
 
     public SdkPublisher<AsyncRequestBody> split() {
@@ -131,6 +133,7 @@ public final class FileAsyncRequestBodySplitHelper {
                                                                         .path(path)
                                                                         .position(position)
                                                                         .numBytesToRead(numBytesToReadForThisChunk)
+                                                                        .chunkSizeInBytes(bufferPerAsyncRequestBody)
                                                                         .build();
         return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher);
     }
