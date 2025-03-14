@@ -91,7 +91,6 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static final String TEST_KEY = "testfile.dat";
     private static final int OBJ_SIZE = 1024 * 1024 * 30;
     private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
-    private static final byte[] CONTENT = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
     private static ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -164,7 +163,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     @Test
     void putObject_inputStreamAsyncRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromInputStream(
-            new ByteArrayInputStream(CONTENT),
+            new FileInputStream(testFile),
             Long.valueOf(OBJ_SIZE),
             executorService);
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
@@ -321,13 +320,6 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             byte[] checksumBytes = ByteBuffer.allocate(4).putInt((int) checksumValue).array();
             return getEncoder().encodeToString(checksumBytes);
         }
-    }
-
-    private static String calculateSHA1AsString() throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(CONTENT);
-        byte[] checksum = md.digest();
-        return getEncoder().encodeToString(checksum);
     }
 
     private static byte[] generateSecretKey() {

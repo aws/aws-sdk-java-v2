@@ -27,8 +27,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterAll;
@@ -42,11 +40,9 @@ import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class UploadWithUnknownContentLengthHelperTest {
@@ -54,9 +50,9 @@ public class UploadWithUnknownContentLengthHelperTest {
     private static final String KEY = "key";
     private static final String UPLOAD_ID = "1234";
 
-    // Should contain four parts: [8KB, 8KB, 8KB, 6KB]
-    private static final long MPU_CONTENT_SIZE = 30 * 1024 * 1024;
-    private static final long PART_SIZE = 8 * 1024 * 1024;
+    // Should contain 126 parts
+    private static final long MPU_CONTENT_SIZE = 1005 * 1024;
+    private static final long PART_SIZE = 8 * 1024;
 
     private UploadWithUnknownContentLengthHelper helper;
     private S3AsyncClient s3AsyncClient;
@@ -94,12 +90,12 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         ArgumentCaptor<UploadPartRequest> requestArgumentCaptor = ArgumentCaptor.forClass(UploadPartRequest.class);
         ArgumentCaptor<AsyncRequestBody> requestBodyArgumentCaptor = ArgumentCaptor.forClass(AsyncRequestBody.class);
-        verify(s3AsyncClient, times(4)).uploadPart(requestArgumentCaptor.capture(),
+        int numTotalParts = 126;
+        verify(s3AsyncClient, times(numTotalParts)).uploadPart(requestArgumentCaptor.capture(),
                                                    requestBodyArgumentCaptor.capture());
 
         List<UploadPartRequest> actualRequests = requestArgumentCaptor.getAllValues();
         List<AsyncRequestBody> actualRequestBodies = requestBodyArgumentCaptor.getAllValues();
-        int numTotalParts = 4;
         assertThat(actualRequestBodies).hasSize(numTotalParts);
         assertThat(actualRequests).hasSize(numTotalParts);
 
@@ -111,7 +107,7 @@ public class UploadWithUnknownContentLengthHelperTest {
             assertThat(request.key()).isEqualTo(KEY);
 
             if (i == actualRequests.size() - 1) {
-                assertThat(requestBody.contentLength()).hasValue(6291456L);
+                assertThat(requestBody.contentLength()).hasValue(5120L);
             } else{
                 assertThat(requestBody.contentLength()).hasValue(PART_SIZE);
             }
