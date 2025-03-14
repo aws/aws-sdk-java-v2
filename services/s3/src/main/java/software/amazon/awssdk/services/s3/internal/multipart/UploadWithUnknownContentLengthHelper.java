@@ -112,7 +112,7 @@ public final class UploadWithUnknownContentLengthHelper {
 
         private final AtomicBoolean failureActionInitiated = new AtomicBoolean(false);
 
-        private AtomicInteger partNumber = new AtomicInteger(1);
+        private AtomicInteger partNumber = new AtomicInteger(0);
         private AtomicLong contentLength = new AtomicLong(0);
 
         private final Queue<CompletedPart> completedParts = new ConcurrentLinkedQueue<>();
@@ -160,6 +160,7 @@ public final class UploadWithUnknownContentLengthHelper {
 
         @Override
         public void onNext(AsyncRequestBody asyncRequestBody) {
+            int currentPartNum = partNumber.incrementAndGet();
             log.trace(() -> "Received asyncRequestBody " + asyncRequestBody.contentLength());
             asyncRequestBodyInFlight.incrementAndGet();
 
@@ -187,8 +188,8 @@ public final class UploadWithUnknownContentLengthHelper {
                         uploadId = createMultipartUploadResponse.uploadId();
                         log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
 
-                        sendUploadPartRequest(uploadId, firstRequestBody);
-                        sendUploadPartRequest(uploadId, asyncRequestBody);
+                        sendUploadPartRequest(uploadId, firstRequestBody, 1);
+                        sendUploadPartRequest(uploadId, asyncRequestBody, 2);
 
                         // We need to complete the uploadIdFuture *after* the first two requests have been sent
                         uploadIdFuture.complete(uploadId);
@@ -197,12 +198,14 @@ public final class UploadWithUnknownContentLengthHelper {
                 CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
             } else {
                 uploadIdFuture.whenComplete((r, t) -> {
-                    sendUploadPartRequest(uploadId, asyncRequestBody);
+                    sendUploadPartRequest(uploadId, asyncRequestBody, currentPartNum);
                 });
             }
         }
 
-        private void sendUploadPartRequest(String uploadId, AsyncRequestBody asyncRequestBody) {
+        private void sendUploadPartRequest(String uploadId,
+                                           AsyncRequestBody asyncRequestBody,
+                                           int currentPartNum) {
             Optional<Long> contentLength = asyncRequestBody.contentLength();
             if (!contentLength.isPresent()) {
                 SdkClientException e = SdkClientException.create("Content length must be present on the AsyncRequestBody");
@@ -211,25 +214,25 @@ public final class UploadWithUnknownContentLengthHelper {
             this.contentLength.getAndAdd(contentLength.get());
 
             multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
-                                                                  uploadPart(asyncRequestBody), progressListener)
-                .whenComplete((r, t) -> {
-                    if (t != null) {
-                        if (failureActionInitiated.compareAndSet(false, true)) {
-                            multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
-                        }
-                    } else {
-                        completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
-                    }
-                });
+                                                                  uploadPart(asyncRequestBody, currentPartNum), progressListener)
+                                 .whenComplete((r, t) -> {
+                                     if (t != null) {
+                                         if (failureActionInitiated.compareAndSet(false, true)) {
+                                             multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                                         }
+                                     } else {
+                                         completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
+                                     }
+                                 });
             synchronized (this) {
                 subscription.request(1);
             };
         }
 
-        private Pair<UploadPartRequest, AsyncRequestBody> uploadPart(AsyncRequestBody asyncRequestBody) {
+        private Pair<UploadPartRequest, AsyncRequestBody> uploadPart(AsyncRequestBody asyncRequestBody, int partNum) {
             UploadPartRequest uploadRequest =
                 SdkPojoConversionUtils.toUploadPartRequest(putObjectRequest,
-                                                           partNumber.getAndIncrement(),
+                                                           partNum,
                                                            uploadId);
             return Pair.of(uploadRequest, asyncRequestBody);
         }
