@@ -213,17 +213,18 @@ public final class UploadWithUnknownContentLengthHelper {
             }
             this.contentLength.getAndAdd(contentLength.get());
 
-            multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
-                                                                  uploadPart(asyncRequestBody, currentPartNum), progressListener)
-                                 .whenComplete((r, t) -> {
-                                     if (t != null) {
-                                         if (failureActionInitiated.compareAndSet(false, true)) {
-                                             multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
-                                         }
-                                     } else {
-                                         completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
-                                     }
-                                 });
+            multipartUploadHelper
+                .sendIndividualUploadPartRequest(uploadId, completedParts::add, futures,
+                                                 uploadPart(asyncRequestBody, currentPartNum), progressListener)
+                .whenComplete((r, t) -> {
+                    if (t != null) {
+                        if (failureActionInitiated.compareAndSet(false, true)) {
+                            multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
+                        }
+                    } else {
+                        completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
+                    }
+                });
             synchronized (this) {
                 subscription.request(1);
             };
