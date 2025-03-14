@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2S3MethodMatcher;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -36,24 +40,18 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class S3NonStreamingRequestToV2Complex extends Recipe {
 
-    private static final String V2_S3_PKG = "software.amazon.awssdk.services.s3";
-
-    private static final MethodMatcher DISABLE_REQUESTER_PAYS = createMethodMatcher("disableRequesterPays(String)");
-    private static final MethodMatcher ENABLE_REQUESTER_PAYS = createMethodMatcher("enableRequesterPays(String)");
-    private static final MethodMatcher IS_REQUESTER_PAYS_ENABLED = createMethodMatcher("isRequesterPaysEnabled(String)");
-    private static final MethodMatcher GET_OBJECT_AS_STRING = createMethodMatcher("getObjectAsString(String, String)");
-    private static final MethodMatcher GET_URL = createMethodMatcher("getUrl(String, String)");
-    private static final MethodMatcher LIST_BUCKETS = createMethodMatcher("listBuckets()");
-    private static final MethodMatcher RESTORE_OBJECT = createMethodMatcher("restoreObject(String, String, int)");
+    private static final MethodMatcher DISABLE_REQUESTER_PAYS = v2S3MethodMatcher("disableRequesterPays(String)");
+    private static final MethodMatcher ENABLE_REQUESTER_PAYS = v2S3MethodMatcher("enableRequesterPays(String)");
+    private static final MethodMatcher IS_REQUESTER_PAYS_ENABLED = v2S3MethodMatcher("isRequesterPaysEnabled(String)");
+    private static final MethodMatcher GET_OBJECT_AS_STRING = v2S3MethodMatcher("getObjectAsString(String, String)");
+    private static final MethodMatcher GET_URL = v2S3MethodMatcher("getUrl(String, String)");
+    private static final MethodMatcher LIST_BUCKETS = v2S3MethodMatcher("listBuckets()");
+    private static final MethodMatcher RESTORE_OBJECT = v2S3MethodMatcher("restoreObject(String, String, int)");
     private static final MethodMatcher SET_OBJECT_REDIRECT_LOCATION =
-        createMethodMatcher("objectRedirectLocation(String, String, String)");
-    private static final MethodMatcher CHANGE_OBJECT_STORAGE_CLASS = createMethodMatcher(
-        String.format("changeObjectStorageClass(String, String, %s.model.StorageClass)", V2_S3_PKG));
-    private static final MethodMatcher CREATE_BUCKET = createMethodMatcher("createBucket(String, String)");
-
-    private static MethodMatcher createMethodMatcher(String methodSignature) {
-        return new MethodMatcher(V2_S3_PKG + ".S3Client " + methodSignature, true);
-    }
+        v2S3MethodMatcher("objectRedirectLocation(String, String, String)");
+    private static final MethodMatcher CHANGE_OBJECT_STORAGE_CLASS = v2S3MethodMatcher(
+        String.format("changeObjectStorageClass(String, String, %sStorageClass)", V2_S3_MODEL_PKG));
+    private static final MethodMatcher CREATE_BUCKET = v2S3MethodMatcher("createBucket(String, String)");
 
     @Override
     public String getDisplayName() {
@@ -124,8 +122,8 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         }
 
         private boolean isCompleteMpuRequestMultipartUploadSetter(J.MethodInvocation method) {
-            JavaType.FullyQualified completeMpuRequest = TypeUtils.asFullyQualified(JavaType.buildType(
-                "software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest.Builder"));
+            JavaType.FullyQualified completeMpuRequest =
+                fullyQualified("software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest.Builder");
             return "multipartUpload".equals(method.getSimpleName()) &&
                    TypeUtils.isAssignableTo(completeMpuRequest, method.getSelect().getType());
         }
@@ -254,7 +252,7 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         }
 
         private void addImport(String pojoName) {
-            String fqcn = "software.amazon.awssdk.services.s3.model." + pojoName;
+            String fqcn = V2_S3_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
         }
     }

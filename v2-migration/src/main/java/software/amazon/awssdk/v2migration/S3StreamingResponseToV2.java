@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,19 +41,18 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 
 @SdkInternalApi
 public class S3StreamingResponseToV2 extends Recipe {
-    private static final JavaType.FullyQualified S3_OBJECT_TYPE =
-        TypeUtils.asFullyQualified(JavaType.buildType("com.amazonaws.services.s3.model.S3Object"));
+    private static final JavaType.FullyQualified S3_OBJECT_TYPE = fullyQualified(V1_S3_MODEL_PKG + "S3Object");
     private static final JavaType.FullyQualified S3_GET_OBJECT_RESPONSE_TYPE =
-        TypeUtils.asFullyQualified(JavaType.buildType("software.amazon.awssdk.services.s3.model.GetObjectResponse"));
+        fullyQualified(V2_S3_MODEL_PKG + "GetObjectResponse");
 
     private static final JavaType.FullyQualified RESPONSE_INPUT_STREAM_TYPE =
-        TypeUtils.asFullyQualified(JavaType.buildType("software.amazon.awssdk.core.ResponseInputStream"));
+        fullyQualified("software.amazon.awssdk.core.ResponseInputStream");
 
     private static final MethodMatcher GET_OBJECT_CONTENT =
-        new MethodMatcher("com.amazonaws.services.s3.model.S3Object getObjectContent()");
+        new MethodMatcher(V1_S3_MODEL_PKG + "S3Object getObjectContent()");
 
     private static final MethodMatcher OBJECT_INPUT_STREAM_METHOD =
-        new MethodMatcher("com.amazonaws.services.s3.model.S3ObjectInputStream *(..)");
+        new MethodMatcher(V1_S3_MODEL_PKG + "S3ObjectInputStream *(..)");
 
     @Override
     public String getDisplayName() {

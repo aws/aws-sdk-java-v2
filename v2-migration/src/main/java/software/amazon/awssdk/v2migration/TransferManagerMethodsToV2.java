@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
+
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -28,27 +32,20 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class TransferManagerMethodsToV2 extends Recipe {
 
-    private static final String V2_TM_PKG = "software.amazon.awssdk.transfer.s3.";
-    private static final String V2_S3_MODEL_PKG = "software.amazon.awssdk.services.s3.model";
-
-    private static final MethodMatcher DOWNLOAD_BUCKET_KEY_FILE = createMethodMatcher("download(String, String, java.io.File)");
+    private static final MethodMatcher DOWNLOAD_BUCKET_KEY_FILE = v2TmMethodMatcher("download(String, String, java.io.File)");
     private static final MethodMatcher DOWNLOAD_BUCKET_KEY_FILE_TIMEOUT =
-        createMethodMatcher("download(String, String, java.io.File, long)");
+        v2TmMethodMatcher("download(String, String, java.io.File, long)");
     private static final MethodMatcher DOWNLOAD_REQUEST_FILE =
-        createMethodMatcher(String.format("download(%s.GetObjectRequest, java.io.File)", V2_S3_MODEL_PKG));
+        v2TmMethodMatcher(String.format("download(%sGetObjectRequest, java.io.File)", V2_S3_MODEL_PKG));
     private static final MethodMatcher DOWNLOAD_REQUEST_FILE_TIMEOUT =
-        createMethodMatcher(String.format("download(%s.GetObjectRequest, java.io.File, long)", V2_S3_MODEL_PKG));
+        v2TmMethodMatcher(String.format("download(%sGetObjectRequest, java.io.File, long)", V2_S3_MODEL_PKG));
 
-    private static final MethodMatcher UPLOAD_BUCKET_KEY_FILE = createMethodMatcher("upload(String, String, java.io.File)");
+    private static final MethodMatcher UPLOAD_BUCKET_KEY_FILE = v2TmMethodMatcher("upload(String, String, java.io.File)");
 
     private static final MethodMatcher COPY_REQUEST =
-        createMethodMatcher(String.format("copy(%s.CopyObjectRequest)", V2_S3_MODEL_PKG));
+        v2TmMethodMatcher(String.format("copy(%sCopyObjectRequest)", V2_S3_MODEL_PKG));
     private static final MethodMatcher COPY_BUCKET_KEY =
-        createMethodMatcher("copy(String, String, String, String");
-
-    private static MethodMatcher createMethodMatcher(String methodSignature) {
-        return new MethodMatcher(V2_TM_PKG + "S3TransferManager " + methodSignature, true);
-    }
+        v2TmMethodMatcher("copy(String, String, String, String");
 
     @Override
     public String getDisplayName() {
@@ -207,12 +204,12 @@ public class TransferManagerMethodsToV2 extends Recipe {
         }
 
         private void addTmImport(String pojoName) {
-            String fqcn = V2_TM_PKG + "model." + pojoName;
+            String fqcn = V2_TM_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
         }
 
         private void addS3Import(String pojoName) {
-            String fqcn = "software.amazon.awssdk.services.s3.model." + pojoName;
+            String fqcn = V2_S3_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
         }
 

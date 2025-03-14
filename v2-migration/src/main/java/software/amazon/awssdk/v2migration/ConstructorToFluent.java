@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
@@ -78,7 +80,7 @@ public class ConstructorToFluent extends Recipe {
         private final List<String> fluentNames;
 
         Visitor(String clzz, List<JavaType> parameterTypes, List<String> fluentNames) {
-            this.clzz = TypeUtils.asFullyQualified(JavaType.buildType(clzz));
+            this.clzz = fullyQualified(clzz);
             this.parameterTypes = parameterTypes;
             this.fluentNames = fluentNames;
         }

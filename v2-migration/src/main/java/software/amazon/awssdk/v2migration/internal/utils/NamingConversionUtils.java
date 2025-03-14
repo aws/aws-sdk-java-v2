@@ -168,8 +168,6 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("SetBucketTaggingConfigurationRequest", "PutBucketTaggingRequest");
         S3_POJO_MAPPING.put("SetBucketWebsiteConfigurationRequest", "PutBucketWebsiteRequest");
 
-        S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
-        S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
         S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
         S3_POJO_MAPPING.put("BucketAccelerateConfiguration", "AccelerateConfiguration");
@@ -185,6 +183,13 @@ public final class NamingConversionUtils {
 
         //Special Enum mapping
         S3_POJO_MAPPING.put("S3Event", "Event");
+
+        // TODO - maps 1 to many
+        // used as input to Request POJOs and returned as Response POJOs
+        S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
+        S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        // v2 also has BucketCannedACL
+        S3_POJO_MAPPING.put("CannedAccessControlList", "ObjectCannedACL");
     }
 
     static {
