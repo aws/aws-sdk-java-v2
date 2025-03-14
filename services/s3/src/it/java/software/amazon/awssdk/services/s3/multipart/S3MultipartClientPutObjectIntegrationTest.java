@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
+import static java.util.Base64.getEncoder;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static software.amazon.awssdk.services.s3.model.ServerSideEncryption.AES256;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
@@ -25,16 +27,22 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.zip.CRC32;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,22 +56,31 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
+import software.amazon.awssdk.testutils.FileUtils;
+import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 
@@ -72,9 +89,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
     private static final String TEST_BUCKET = temporaryBucketName(S3MultipartClientPutObjectIntegrationTest.class);
     private static final String TEST_KEY = "testfile.dat";
-    private static final int OBJ_SIZE = 19 * 1024 * 1024;
+    private static final int OBJ_SIZE = 1024 * 1024 * 30;
     private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
-    private static final byte[] CONTENT = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
     private static ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -83,8 +99,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     public static void setup() throws Exception {
         setUp();
         createBucket(TEST_BUCKET);
-        testFile = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
-        Files.write(testFile.toPath(), CONTENT);
+
+        testFile = new RandomTempFile(OBJ_SIZE);
         mpuS3Client = S3AsyncClient
             .builder()
             .region(DEFAULT_REGION)
@@ -109,6 +125,26 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     }
 
     @Test
+    public void upload_blockingInputStream_shouldSucceed() throws IOException {
+        String objectPath = UUID.randomUUID().toString();
+        String expectedMd5 = Md5Utils.md5AsBase64(testFile);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+
+        CompletableFuture<PutObjectResponse> put =
+            mpuS3Client.putObject(req -> req.bucket(TEST_BUCKET).key(objectPath)
+                                            .build(), body);
+        body.writeInputStream(new FileInputStream(testFile));
+        put.join();
+
+        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(objectPath),
+                                                                         ResponseTransformer.toInputStream());
+
+        String actualMd5 = BinaryUtils.toBase64(Md5Utils.computeMD5Hash(objContent));
+        assertEquals(expectedMd5, actualMd5);
+    }
+
+    @Test
     void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
@@ -127,7 +163,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     @Test
     void putObject_inputStreamAsyncRequestBody_objectSentCorrectly() throws Exception {
         AsyncRequestBody body = AsyncRequestBody.fromInputStream(
-            new ByteArrayInputStream(CONTENT),
+            new FileInputStream(testFile),
             Long.valueOf(OBJ_SIZE),
             executorService);
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
@@ -193,7 +229,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     @Test
     void putObject_withSSECAndChecksum_objectSentCorrectly() throws Exception {
         byte[] secretKey = generateSecretKey();
-        String b64Key = Base64.getEncoder().encodeToString(secretKey);
+        String b64Key = getEncoder().encodeToString(secretKey);
         String b64KeyMd5 = Md5Utils.md5AsBase64(secretKey);
 
         AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
@@ -282,15 +318,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
             IoUtils.drainInputStream(cis);
             long checksumValue = cis.getChecksum().getValue();
             byte[] checksumBytes = ByteBuffer.allocate(4).putInt((int) checksumValue).array();
-            return Base64.getEncoder().encodeToString(checksumBytes);
+            return getEncoder().encodeToString(checksumBytes);
         }
-    }
-
-    private static String calculateSHA1AsString() throws Exception {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(CONTENT);
-        byte[] checksum = md.digest();
-        return Base64.getEncoder().encodeToString(checksum);
     }
 
     private static byte[] generateSecretKey() {
