@@ -53,7 +53,7 @@ public final class QueryEnhancedRequest {
     private final QueryConditional queryConditional;
     private final Map<String, AttributeValue> exclusiveStartKey;
     private final Boolean scanIndexForward;
-    private final Select select;
+    private final String select;
     private final Integer limit;
     private final Boolean consistentRead;
     private final Expression filterExpression;
@@ -122,7 +122,7 @@ public final class QueryEnhancedRequest {
      * Returns the value of select, or null if it doesn't exist.
      * @return
      */
-    public Select select() {
+    public String select() {
         return select;
     }
 
@@ -266,7 +266,7 @@ public final class QueryEnhancedRequest {
         private QueryConditional queryConditional;
         private Map<String, AttributeValue> exclusiveStartKey;
         private Boolean scanIndexForward;
-        private Select select;
+        private String select;
         private Integer limit;
         private Boolean consistentRead;
         private Expression filterExpression;
@@ -307,6 +307,17 @@ public final class QueryEnhancedRequest {
          * @return a builder of this type
          */
         public Builder select(Select select) {
+            this.select = select.toString();
+            return this;
+        }
+
+        /**
+         * Determines the attributes to be returned in the result. See {@link Select} string values for examples and constraints.
+         * By default, all attributes are returned.
+         * @param select
+         * @return a builder of this type
+         */
+        public Builder select(String select) {
             this.select = select;
             return this;
         }
