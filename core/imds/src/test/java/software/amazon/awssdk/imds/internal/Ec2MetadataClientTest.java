@@ -109,4 +109,5 @@ class Ec2MetadataClientTest extends BaseEc2MetadataClientTest<Ec2MetadataClient,
                                                        .build())
             .isInstanceOf(IllegalArgumentException.class);
     }
+
 }
