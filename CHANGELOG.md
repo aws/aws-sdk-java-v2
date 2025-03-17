@@ -3,6 +3,8 @@
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
+  - ### Bugfixes
+    - Copy bytes written to OutputStream of BlockingOutputStreamAsyncRequestBody.
 
 ## __AWS WAFV2__
   - ### Features
