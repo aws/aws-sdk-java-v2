@@ -172,13 +172,12 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
             .flatMap(pf -> pf.profile(builder.profileName))
             .flatMap(p -> p.property("services"));
 
-        Optional<URI> serviceEndpoint = servicesSectionName
+        Optional<String> serviceEndpoint = servicesSectionName
             .flatMap(name -> profileFile.flatMap(pf -> pf.getSection("services", name)))
-            .flatMap(p -> Optional.ofNullable(p.properties().get(builder.serviceProfileProperty
-                                                                 + "." + ProfileProperty.ENDPOINT_URL)))
-            .flatMap(uri -> createUri("services section property", Optional.of(uri)));
+            .flatMap(p -> p.property(builder.serviceProfileProperty
+                                                                 + "." + ProfileProperty.ENDPOINT_URL));
 
-        return serviceEndpoint;
+        return createUri("services section property", serviceEndpoint);
     }
 
     private Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {

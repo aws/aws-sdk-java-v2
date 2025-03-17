@@ -77,9 +77,7 @@ public class EndpointSharedConfigTest {
             }
 
             if (testCase.serviceSectionProfileSetting != null) {
-                if (!profileFileContent.toString().contains("services = dev")) {
-                    profileFileContent.append("services = dev\n");
-                }
+                profileFileContent.append("services = dev\n\n");
                 profileFileContent.append("[services dev] \n")
                                   .append("amazonprotocolrestjson =\n")
                                   .append("  endpoint_url = ").append(testCase.serviceSectionProfileSetting).append("\n");
