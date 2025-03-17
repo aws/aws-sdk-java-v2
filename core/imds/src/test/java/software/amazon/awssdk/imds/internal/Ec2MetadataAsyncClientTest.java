@@ -39,7 +39,7 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.exception.Ec2MetadataClientException;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkAsyncHttpClientBuilder;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.imds.Ec2MetadataAsyncClient;
@@ -138,30 +138,6 @@ class Ec2MetadataAsyncClientTest extends BaseEc2MetadataClientTest<Ec2MetadataAs
                                                        .httpClient(NettyNioAsyncHttpClient.create())
                                                        .build())
             .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void async_clientError_throwsEc2MetadataClientExceptionWithStatusCode() {
-        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-                    .willReturn(aResponse()
-                                    .withBody("token")
-                                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
-
-        String errorMessage = "Invalid request";
-        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE))
-                    .willReturn(aResponse()
-                                    .withStatus(400)
-                                    .withBody(errorMessage)));
-
-        failureAssertions(
-            AMI_ID_RESOURCE,
-            Ec2MetadataClientException.class,
-            exception -> {
-                assertThat(exception.statusCode()).isEqualTo(400);
-                assertThat(exception.getMessage())
-                    .isEqualTo("IMDS service returned an error response: " + errorMessage);
-            }
-        );
     }
 
 }

@@ -23,7 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.exception.Ec2MetadataClientException;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -38,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 @SdkInternalApi
@@ -88,9 +89,12 @@ final class AsyncHttpRequestHelper {
         // non-retryable error
         if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
             throw Ec2MetadataClientException.builder()
-                                    .statusCode(response.statusCode())
-                                    .message("IMDS service returned an error response: " + responseContent)
-                                    .build();
+                                            .statusCode(response.statusCode())
+                                            .sdkHttpResponse(response)
+                                            .rawResponse(SdkBytes.fromUtf8String(responseContent))
+                                            .message(String.format("The requested metadata returned Http code %s",
+                                                                   response.statusCode()))
+                                            .build();
         }
 
         // retryable error
