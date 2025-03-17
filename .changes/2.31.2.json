@@ -37,6 +37,12 @@
             "category": "AWS SDK for Java v2",
             "contributor": "",
             "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Copy bytes written to OutputStream of BlockingOutputStreamAsyncRequestBody"
         }
     ]
 }
