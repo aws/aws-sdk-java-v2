@@ -29,6 +29,6 @@ public class S3Transforms {
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
         PutObjectRequest requestWithInputStream = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
                 .build();
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithInputStream).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, "executorService")).build());
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithInputStream).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, newExecutorServiceVariableToDefine)).build());
     }
 }

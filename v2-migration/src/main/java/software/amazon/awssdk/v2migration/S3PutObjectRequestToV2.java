@@ -212,7 +212,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
             String v2Method = String.format("UploadRequest.builder().putObjectRequest(#{any()})"
                                             + ".requestBody(AsyncRequestBody.fromInputStream(#{any()}, %dL, "
-                                            + "\"executorService\")).build()",
+                                            + "newExecutorServiceVariableToDefine)).build()",
                                             contentLength);
 
             addTmImport("UploadRequest");
