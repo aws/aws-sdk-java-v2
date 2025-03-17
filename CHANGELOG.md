@@ -1,4 +1,39 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.1__ __2025-03-14__
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Map AWS_IO_SOCKET_TIMEOUT to ConnectException when acquiring a connection to improve error handling
+        - Contributed by: [@thomasjinlo](https://github.com/thomasjinlo)
+
+## __AWS Glue__
+  - ### Features
+    - This release added AllowFullTableExternalDataAccess to glue catalog resource.
+
+## __AWS Lake Formation__
+  - ### Features
+    - This release added "condition" to LakeFormation OptIn APIs, also added WithPrivilegedAccess flag to RegisterResource and DescribeResource.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Made DefaultSdkAutoConstructList and DefaultSdkAutoConstructMap serializable
+    - Updated endpoint and partition metadata.
+
+## __Amazon S3__
+- ### Bugfixes
+    - Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read.
+
+## __Amazon Cognito Identity__
+  - ### Features
+    - Updated API model build artifacts for identity pools
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Minor description updates to API parameters
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@thomasjinlo](https://github.com/thomasjinlo)
 # __2.31.0__ __2025-03-13__
 ## __AWS Amplify__
   - ### Features
