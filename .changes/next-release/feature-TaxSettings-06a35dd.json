@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Tax Settings",
+    "contributor": "",
+    "description": "Adjust Vietnam PaymentVoucherNumber regex and minor API change."
+}
