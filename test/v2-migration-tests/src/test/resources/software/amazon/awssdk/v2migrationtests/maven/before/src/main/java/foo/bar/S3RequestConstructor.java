@@ -19,6 +19,9 @@ package foo.bar;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
+import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
+import com.amazonaws.services.s3.model.ownership.OwnershipControls;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -231,110 +234,109 @@ public class S3RequestConstructor {
                 new ListBucketsRequest());
 
         // Not supported
-        //        MultipartUploadListing multipartUploads = s3.listMultipartUploads(
+        // MultipartUploadListing multipartUploads = s3.listMultipartUploads(
         //                new ListMultipartUploadsRequest(bucketName));
         //
-        //        ObjectListing nextBatchObjects = s3.listNextBatchOfObjects(
+        // ObjectListing nextBatchObjects = s3.listNextBatchOfObjects(
         //                new ListNextBatchOfObjectsRequest(new ObjectListing()));
-        ////
-        //        VersionListing nextBatchVersions = s3.listNextBatchOfVersions(
+        //
+        // VersionListing nextBatchVersions = s3.listNextBatchOfVersions(
         //                new ListNextBatchOfVersionsRequest(new VersionListing()));
-        //
-        //        ObjectListing objectListing = s3.listObjects(
-        //                new ListObjectsRequest());
-        //
-        //        ObjectListing objectListing2 = s3.listObjects(
-        //                new ListObjectsRequest("1","2","3","4",4));
 
-        //        s3.putObject(
-        //                new PutObjectRequest(bucketName, objectKey, new File("/path/to/file.txt")));
-        //
-        //        s3.putObject(
-        //                new PutObjectRequest(bucketName, objectKey, "/path/to/file.txt"));
-        //
-        //        InputStream inputStream = new InputStream() {
-        //            @Override
-        //            public int read() throws IOException {
-        //                return 0;
-        //            }
-        //        };
-        //        ObjectMetadata o1 = new ObjectMetadata();
-        //        s3.putObject(
-        //                new PutObjectRequest(bucketName, objectKey, inputStream, o1));
+        ObjectListing objectListing = s3.listObjects(
+                new ListObjectsRequest());
 
-        //        s3.restoreObject(
-        //                new RestoreObjectRequest(bucketName, objectKey));
-        //        s3.restoreObject(
-        //                new RestoreObjectRequest(bucketName, objectKey, 2));
+        ObjectListing objectListing2 = s3.listObjects(
+                new ListObjectsRequest("1","2","3","4",4));
+        // Not supported
+        // s3.putObject(
+        //         new PutObjectRequest(bucketName, objectKey, new File("/path/to/file.txt")));
         //
-        //        s3.restoreObjectV2(
-        //                new RestoreObjectRequest(bucketName, objectKey, 3));
+        // s3.putObject(
+        //         new PutObjectRequest(bucketName, objectKey, "/path/to/file.txt"));
         //
-        //        s3.selectObjectContent(
-        //                new SelectObjectContentRequest());
-        ////
-        //        s3.setBucketAccelerateConfiguration(
-        //                new SetBucketAccelerateConfigurationRequest(bucketName,
-        //                        new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
-        //
-        //        s3.setBucketAcl(
-        //                new SetBucketAclRequest(bucketName, new AccessControlList()));
-        //
-        //        s3.setBucketAcl(
-        //                new SetBucketAclRequest(bucketName, CannedAccessControlList.Private));
-        ////
-        //        s3.setBucketAnalyticsConfiguration(
-        //                new SetBucketAnalyticsConfigurationRequest());
-        //        s3.setBucketAnalyticsConfiguration(
-        //                new SetBucketAnalyticsConfigurationRequest("name", new AnalyticsConfiguration()));
-        //
-        //
+        // InputStream inputStream = new InputStream() {
+        //     @Override
+        //     public int read() throws IOException {
+        //         return 0;
+        //     }
+        // };
+        // ObjectMetadata o1 = new ObjectMetadata();
+        // s3.putObject(
+        //         new PutObjectRequest(bucketName, objectKey, inputStream, o1));
 
-        //        s3.setBucketLifecycleConfiguration(
-        //                new SetBucketLifecycleConfigurationRequest(bucketName,
-        //                        new BucketLifecycleConfiguration()));
+        // s3.restoreObject(
+        //         new RestoreObjectRequest(bucketName, objectKey));
+        // s3.restoreObject(
+        //         new RestoreObjectRequest(bucketName, objectKey, 2));
         //
-        //        s3.setBucketLoggingConfiguration(
-        //                new SetBucketLoggingConfigurationRequest(bucketName,
-        //                        new BucketLoggingConfiguration()));
+        // s3.restoreObjectV2(
+        //         new RestoreObjectRequest(bucketName, objectKey, 3));
+
+        s3.selectObjectContent(
+                new SelectObjectContentRequest());
+
+        s3.setBucketAccelerateConfiguration(
+                new SetBucketAccelerateConfigurationRequest(bucketName,
+                        new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
+        // not supported
+        // s3.setBucketAcl(
+        //          new SetBucketAclRequest(bucketName, new AccessControlList()));
+        //
+        // s3.setBucketAcl(
+        //          new SetBucketAclRequest(bucketName, CannedAccessControlList.Private));
         ////
-        //        s3.setBucketMetricsConfiguration(
-        //                new SetBucketMetricsConfigurationRequest());
-        //        s3.setBucketMetricsConfiguration(
-        //                new SetBucketMetricsConfigurationRequest(bucketName,new MetricsConfiguration()));
+        s3.setBucketAnalyticsConfiguration(
+                new SetBucketAnalyticsConfigurationRequest());
+        s3.setBucketAnalyticsConfiguration(
+                new SetBucketAnalyticsConfigurationRequest("XXXX", new AnalyticsConfiguration()));
+
+
+        s3.setBucketLifecycleConfiguration(
+                new SetBucketLifecycleConfigurationRequest(bucketName,
+                        new BucketLifecycleConfiguration()));
         //
-        //        s3.setBucketNotificationConfiguration(
-        //                new SetBucketNotificationConfigurationRequest(bucketName,
-        //                        new BucketNotificationConfiguration()));
-        ////
-        //        s3.setBucketOwnershipControls(
-        //                new SetBucketOwnershipControlsRequest(bucketName,
-        //                        new OwnershipControls()));
-        //
-        //        s3.setBucketOwnershipControls(
-        //                new SetBucketOwnershipControlsRequest());
-        //
-        //        s3.setBucketPolicy(
-        //                new SetBucketPolicyRequest());
-        //        s3.setBucketPolicy(
-        //                new SetBucketPolicyRequest(bucketName, "{ "));
-        ////
-        //        s3.setBucketReplicationConfiguration(
-        //                new SetBucketReplicationConfigurationRequest());
-        //        s3.setBucketReplicationConfiguration(
-        //                new SetBucketReplicationConfigurationRequest(bucketName,new BucketReplicationConfiguration()));
-        ////
-        //        s3.setBucketTaggingConfiguration(
-        //                new SetBucketTaggingConfigurationRequest(bucketName,new BucketTaggingConfiguration()));
-        //
+        // s3.setBucketLoggingConfiguration(
+        //          new SetBucketLoggingConfigurationRequest(bucketName,
+        //                  new BucketLoggingConfiguration()));
+
+        s3.setBucketMetricsConfiguration(
+                new SetBucketMetricsConfigurationRequest());
+        s3.setBucketMetricsConfiguration(
+                new SetBucketMetricsConfigurationRequest(bucketName,new MetricsConfiguration()));
+
+        s3.setBucketNotificationConfiguration(
+                new SetBucketNotificationConfigurationRequest(bucketName,
+                        new BucketNotificationConfiguration()));
+
+        s3.setBucketOwnershipControls(
+                new SetBucketOwnershipControlsRequest(bucketName,
+                        new OwnershipControls()));
+
+        s3.setBucketOwnershipControls(
+                new SetBucketOwnershipControlsRequest());
+
+        s3.setBucketPolicy(
+                new SetBucketPolicyRequest());
+        s3.setBucketPolicy(
+                new SetBucketPolicyRequest(bucketName, "XX"));
+
+        s3.setBucketReplicationConfiguration(
+                new SetBucketReplicationConfigurationRequest());
+        s3.setBucketReplicationConfiguration(
+                new SetBucketReplicationConfigurationRequest(bucketName,new BucketReplicationConfiguration()));
+
+        s3.setBucketTaggingConfiguration(
+                new SetBucketTaggingConfigurationRequest(bucketName,new BucketTaggingConfiguration()));
+
         //        s3.setBucketVersioningConfiguration(
         //                new SetBucketVersioningConfigurationRequest(bucketName,new BucketVersioningConfiguration()));
         //        MultiFactorAuthentication mfa = new MultiFactorAuthentication("1","2");
         //        s3.setBucketVersioningConfiguration(
         //                new SetBucketVersioningConfigurationRequest(bucketName,new BucketVersioningConfiguration(),mfa));
-        //
-        //        s3.setBucketWebsiteConfiguration(
-        //                new SetBucketWebsiteConfigurationRequest(bucketName,new BucketWebsiteConfiguration("1")));
+
+        s3.setBucketWebsiteConfiguration(
+                new SetBucketWebsiteConfigurationRequest(bucketName,new BucketWebsiteConfiguration("1")));
         ////
         //        s3.setObjectAcl(
         //                new SetObjectAclRequest(bucketName, objectKey, new AccessControlList()));
@@ -345,15 +347,15 @@ public class S3RequestConstructor {
         //        s3.setObjectAcl(
         //                new SetObjectAclRequest(bucketName, objectKey, "3", CannedAccessControlList.Private));
 
-        //        s3.setObjectLegalHold(
-        //                new SetObjectLegalHoldRequest());
-        //
-        //        s3.setObjectLockConfiguration(
-        //                new SetObjectLockConfigurationRequest());
-        ////
-        //        s3.setObjectRetention(
-        //                new SetObjectRetentionRequest());
-        ////
+        s3.setObjectLegalHold(
+                new SetObjectLegalHoldRequest());
+
+        s3.setObjectLockConfiguration(
+                new SetObjectLockConfigurationRequest());
+
+        s3.setObjectRetention(
+                new SetObjectRetentionRequest());
+
         // s3.setObjectTagging(
         //     new SetObjectTaggingRequest(bucketName, objectKey,
         //                                 new ObjectTagging(new ArrayList<>())));
@@ -368,51 +370,13 @@ public class S3RequestConstructor {
         // s3.setRequestPaymentConfiguration(
         //     new SetRequestPaymentConfigurationRequest(bucketName,
         //                                               new RequestPaymentConfiguration(RequestPaymentConfiguration.Payer.Requester)));
-        //
-        //        s3.uploadPart(
-        //                new UploadPartRequest());
-        //
-        //        s3.writeGetObjectResponse(
-        //                new WriteGetObjectResponseRequest());
 
-        //s3.listParts(new ListPartsRequest(bucketName, objectKey, "3"));
+        s3.uploadPart(
+                new UploadPartRequest());
 
-        //        private void listObjectsV2(AmazonS3 s3, String bucket) {
-        //            ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request().withBucketName(bucket);
-        //            ListObjectsV2Result listObjectsV2Result = s3.listObjectsV2(listObjectsV2Request);
-        //            System.out.println(listObjectsV2Result);
-        //        }
-        //
-        //        private void listObjects(AmazonS3 s3, String bucket) {
-        //            ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucket);
-        //            ObjectListing listObjectsResult = s3.listObjects(listObjectsRequest);
-        //            System.out.println(listObjectsResult);
-        //        }
+        s3.writeGetObjectResponse(
+                new WriteGetObjectResponseRequest());
 
-        //        private void deleteObjectTagging(AmazonS3 s3, String bucket) {
-        //            s3.deleteObjectTagging(new DeleteObjectTaggingRequest(bucket, "key"));
-        //        }
-        //
-        //        private void listObjects(AmazonS3 s3) {
-        //            ObjectListing objectListing = s3.listObjects(
-        //                    new ListObjectsRequest());
-        //
-        //            ObjectListing objectListing2 = s3.listObjects(
-        //                    new ListObjectsRequest("bucketName","prefix","marker","delimiter",4));
-        //        }
-        //
-        //        private void listParts(AmazonS3 s3){
-        //            s3.listParts(new ListPartsRequest(bucketName, objectKey, "uploadId"));
-        //        }
-        //
-        //        private void deleteObjectTagging(AmazonS3 s3) {
-        //            DeleteObjectTaggingResult result = s3.deleteObjectTagging("bucketName", "key");
-        //        }
-        //
-        //        private void getObject(AmazonS3 s3) {
-        //            GetObjectRequest request1 = new GetObjectRequest("bucketName", "key");
-        //            GetObjectRequest request2 = new GetObjectRequest("bucketName", "key", "versionId");
-        //            s3.getObject(getObjectRequest);
-        //        }
+        s3.listParts(new ListPartsRequest(bucketName, objectKey, "3"));
     }
 }
