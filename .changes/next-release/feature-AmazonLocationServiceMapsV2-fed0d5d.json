@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service Maps V2",
+    "contributor": "",
+    "description": "Provide support for vector map styles in the GetStaticMap operation."
+}
