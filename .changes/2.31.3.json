@@ -1,0 +1,42 @@
+{
+    "version": "2.31.3",
+    "date": "2025-03-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Providing Tagging support for DomainName in AppSync"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release adds support for PySpark jobs. Customers can now analyze data by running jobs using approved PySpark analysis templates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds support for AVC passthrough, the ability to specify PTS offset without padding, and an A/V segment matching feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added functionality to be able to configure an endpoint override through the [services] section in the aws config file for specific services. \nhttps://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Amazon Route 53 now supports the iso-f regions for private DNS Amazon VPCs and cloudwatch healthchecks."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

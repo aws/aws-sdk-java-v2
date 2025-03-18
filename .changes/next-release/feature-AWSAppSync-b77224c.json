@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS AppSync",
-    "contributor": "",
-    "description": "Providing Tagging support for DomainName in AppSync"
-}
