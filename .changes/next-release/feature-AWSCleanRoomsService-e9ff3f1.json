@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Clean Rooms Service",
+    "contributor": "",
+    "description": "This release adds support for PySpark jobs. Customers can now analyze data by running jobs using approved PySpark analysis templates."
+}
