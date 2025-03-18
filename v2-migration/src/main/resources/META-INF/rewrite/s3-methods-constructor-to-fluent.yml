@@ -35,6 +35,26 @@ recipeList:
         - withBucket
         - withKey
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+        - withWebsiteRedirectLocation
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.io.File
+      fluentNames:
+        - withBucket
+        - withKey
+        - withFile
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.CreateBucketRequest
       parameterTypes:
         - java.lang.String

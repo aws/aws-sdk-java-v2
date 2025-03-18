@@ -24,16 +24,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
-public class MavenProjectTest extends MavenTestBase {
+/**
+ * The transformed code will not compile, only testing the transform itself
+ */
+public class MavenNoCompileTest extends MavenTestBase {
 
     @BeforeAll
     static void setUp() throws IOException {
-        mavenBefore = new File(MavenProjectTest.class.getResource("maven/before").getFile()).toPath();
-        mavenAfter = new File(MavenProjectTest.class.getResource("maven/after").getFile()).toPath();
-        target = new File(MavenProjectTest.class.getResource("/").getFile()).toPath().getParent();
+        mavenBefore = new File(MavenNoCompileTest.class.getResource("maven-nocompile/before").getFile()).toPath();
+        mavenAfter = new File(MavenNoCompileTest.class.getResource("maven-nocompile/after").getFile()).toPath();
+        target = new File(MavenNoCompileTest.class.getResource("/").getFile()).toPath().getParent();
 
-        mavenActual = target.resolve("maven/actual");
-        mavenExpected = target.resolve("maven/expected");
+        mavenActual = target.resolve("maven-nocompile/actual");
+        mavenExpected = target.resolve("maven-nocompile/expected");
 
         deleteTempDirectories();
 
@@ -47,8 +50,7 @@ public class MavenProjectTest extends MavenTestBase {
     @Test
     @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
-        boolean experimental = false;
+        boolean experimental = true;
         verifyTransformation(experimental);
-        verifyCompilation();
     }
 }
