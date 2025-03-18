@@ -62,6 +62,7 @@ class LoggingTransferListenerTest {
             String loggerName = LoggingTransferListener.class.getName();
             List<LogEvent> filteredEvents = events.stream()
                                                   .filter(e -> e.getLoggerName().equals(loggerName))
+                                                  .filter(e -> !e.getMessage().getFormattedMessage().contains("Retrying Request"))
                                                   .collect(Collectors.toList());
             assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
             assertLogged(filteredEvents, Level.INFO, "|                    | 0.0%");
@@ -99,6 +100,7 @@ class LoggingTransferListenerTest {
             String loggerName = LoggingTransferListener.class.getName();
             List<LogEvent> filteredEvents = events.stream()
                                                   .filter(e -> e.getLoggerName().equals(loggerName))
+                                                  .filter(e -> !e.getMessage().getFormattedMessage().contains("Retrying Request"))
                                                   .collect(Collectors.toList());
 
             assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
