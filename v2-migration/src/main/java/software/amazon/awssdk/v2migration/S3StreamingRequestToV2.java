@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1S3MethodMatcher;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,7 +36,6 @@ import org.openrewrite.java.tree.JContainer;
 import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
@@ -40,16 +43,12 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 @SdkInternalApi
 public class S3StreamingRequestToV2 extends Recipe {
     private static final MethodMatcher PUT_OBJECT_FILE =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
-                          + "putObject(java.lang.String, java.lang.String, java.io.File)", true);
+        v1S3MethodMatcher("putObject(java.lang.String, java.lang.String, java.io.File)");
     private static final MethodMatcher PUT_OBJECT_STRING =
-        new MethodMatcher("com.amazonaws.services.s3.AmazonS3 "
-                          + "putObject(java.lang.String, java.lang.String, java.lang.String)", true);
+        v1S3MethodMatcher("putObject(java.lang.String, java.lang.String, java.lang.String)");
 
-    private static final JavaType.FullyQualified V1_PUT_OBJECT_REQUEST =
-        TypeUtils.asFullyQualified(JavaType.buildType("com.amazonaws.services.s3.model.PutObjectRequest"));
-    private static final JavaType.FullyQualified REQUEST_BODY =
-        TypeUtils.asFullyQualified(JavaType.buildType("software.amazon.awssdk.core.sync.RequestBody"));
+    private static final JavaType.FullyQualified V1_PUT_OBJECT_REQUEST = fullyQualified(V1_S3_MODEL_PKG + "PutObjectRequest");
+    private static final JavaType.FullyQualified REQUEST_BODY = fullyQualified("software.amazon.awssdk.core.sync.RequestBody");
 
     @Override
     public String getDisplayName() {
