@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_CLIENT;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1S3MethodMatcher;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +40,6 @@ import org.openrewrite.java.tree.JContainer;
 import org.openrewrite.java.tree.JRightPadded;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.Space;
-import org.openrewrite.java.tree.TypeUtils;
 import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
@@ -43,43 +47,37 @@ import software.amazon.awssdk.v2migration.internal.utils.IdentifierUtils;
 @SdkInternalApi
 public class S3NonStreamingRequestToV2 extends Recipe {
 
-    private static final String V1_S3_PKG = "com.amazonaws.services.s3";
-
-    private static final MethodMatcher DELETE_VERSION =
-        createMethodMatcher("deleteVersion(String, String, String)");
-    private static final MethodMatcher COPY_OBJECT =
-        createMethodMatcher("copyObject(String, String, String, String)");
+    private static final MethodMatcher DELETE_VERSION = v1S3MethodMatcher("deleteVersion(String, String, String)");
+    private static final MethodMatcher COPY_OBJECT = v1S3MethodMatcher("copyObject(String, String, String, String)");
     private static final MethodMatcher LIST_VERSIONS =
-        createMethodMatcher("listVersions(String, String, String, String, String, Integer)");
-    private static final MethodMatcher SET_BUCKET_POLICY =
-        createMethodMatcher("setBucketPolicy(String, String)");
-    private static final MethodMatcher GET_OBJECT_ACL =
-        createMethodMatcher("getObjectAcl(String, String, String)");
-    private static final MethodMatcher SET_BUCKET_ACCELERATE_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketAccelerateConfiguration(String, %s.model.BucketAccelerateConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_CROSS_ORIGIN_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketCrossOriginConfiguration(String, %s.model.BucketCrossOriginConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_ANALYTICS_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketAnalyticsConfiguration(String, %s.model.analytics.AnalyticsConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_INTELLIGENT_TIERING_CONFIGURATION = createMethodMatcher(
+        v1S3MethodMatcher("listVersions(String, String, String, String, String, Integer)");
+    private static final MethodMatcher SET_BUCKET_POLICY = v1S3MethodMatcher("setBucketPolicy(String, String)");
+    private static final MethodMatcher GET_OBJECT_ACL = v1S3MethodMatcher("getObjectAcl(String, String, String)");
+    private static final MethodMatcher SET_BUCKET_ACCELERATE_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketAccelerateConfiguration(String, %sBucketAccelerateConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_CROSS_ORIGIN_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketCrossOriginConfiguration(String, %sBucketCrossOriginConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_ANALYTICS_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketAnalyticsConfiguration(String, %sanalytics.AnalyticsConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_INTELLIGENT_TIERING_CONFIGURATION = v1S3MethodMatcher(
         String.format("setBucketIntelligentTieringConfiguration("
-                      + "String, %s.model.intelligenttiering.IntelligentTieringConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_INVENTORY_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketInventoryConfiguration(String, %s.model.inventory.InventoryConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_LIFECYCLE_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketLifecycleConfiguration(String, %s.model.BucketLifecycleConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_METRICS_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketMetricsConfiguration(String, %s.model.metrics.MetricsConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_NOTIFICATION_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketNotificationConfiguration(String, %s.model.BucketNotificationConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_OWNERSHIP_CONTROLS = createMethodMatcher(
-        String.format("setBucketOwnershipControls(String, %s.model.ownership.OwnershipControls)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_REPLICATION_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketReplicationConfiguration(String, %s.model.BucketReplicationConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_TAGGING_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketTaggingConfiguration(String, %s.model.BucketTaggingConfiguration)", V1_S3_PKG));
-    private static final MethodMatcher SET_BUCKET_WEBSITE_CONFIGURATION = createMethodMatcher(
-        String.format("setBucketWebsiteConfiguration(String, %s.model.BucketWebsiteConfiguration)", V1_S3_PKG));
+                      + "String, %sintelligenttiering.IntelligentTieringConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_INVENTORY_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketInventoryConfiguration(String, %sinventory.InventoryConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_LIFECYCLE_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketLifecycleConfiguration(String, %sBucketLifecycleConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_METRICS_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketMetricsConfiguration(String, %smetrics.MetricsConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_NOTIFICATION_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketNotificationConfiguration(String, %sBucketNotificationConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_OWNERSHIP_CONTROLS = v1S3MethodMatcher(
+        String.format("setBucketOwnershipControls(String, %sownership.OwnershipControls)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_REPLICATION_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketReplicationConfiguration(String, %sBucketReplicationConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_TAGGING_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketTaggingConfiguration(String, %sBucketTaggingConfiguration)", V1_S3_MODEL_PKG));
+    private static final MethodMatcher SET_BUCKET_WEBSITE_CONFIGURATION = v1S3MethodMatcher(
+        String.format("setBucketWebsiteConfiguration(String, %sBucketWebsiteConfiguration)", V1_S3_MODEL_PKG));
 
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_ARG_METHODS = new HashMap<>();
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_KEY_ARGS_METHODS = new HashMap<>();
@@ -87,86 +85,82 @@ public class S3NonStreamingRequestToV2 extends Recipe {
     private static final Map<MethodMatcher, JavaType.FullyQualified> BUCKET_PREFIX_ARGS_METHODS = new HashMap<>();
 
     static {
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("createBucket"), fcqn("createBucket"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucket"), fcqn("deleteBucket"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("listObjects"), fcqn("listObjects"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("listObjectsV2"), fcqn("listObjectsV2"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("createBucket"), fqcn("createBucket"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucket"), fqcn("deleteBucket"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("listObjects"), fqcn("listObjects"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("listObjectsV2"), fqcn("listObjectsV2"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketCrossOriginConfiguration"),
-                               fcqn("getBucketCrossOriginConfiguration"));
+                               fqcn("getBucketCrossOriginConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketCrossOriginConfiguration"),
-                               fcqn("deleteBucketCrossOriginConfiguration"));
+                               fqcn("deleteBucketCrossOriginConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketVersioningConfiguration"),
-                               fcqn("getBucketVersioningConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketEncryption"), fcqn("deleteBucketEncryption"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketPolicy"), fcqn("deleteBucketPolicy"));
+                               fqcn("getBucketVersioningConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketEncryption"), fqcn("deleteBucketEncryption"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketPolicy"), fqcn("deleteBucketPolicy"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketAccelerateConfiguration"),
-                               fcqn("getBucketAccelerateConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketAcl"), fcqn("getBucketAcl"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketEncryption"), fcqn("getBucketEncryption"));
+                               fqcn("getBucketAccelerateConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketAcl"), fqcn("getBucketAcl"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketEncryption"), fqcn("getBucketEncryption"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketLifecycleConfiguration"),
-                               fcqn("getBucketLifecycleConfiguration"));
+                               fqcn("getBucketLifecycleConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketNotificationConfiguration"),
-                               fcqn("getBucketNotificationConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketPolicy"), fcqn("getBucketPolicy"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketLocation"), fcqn("getBucketLocation"));
+                               fqcn("getBucketNotificationConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketPolicy"), fqcn("getBucketPolicy"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketLocation"), fqcn("getBucketLocation"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketLifecycleConfiguration"),
-                               fcqn("deleteBucketLifecycleConfiguration"));
+                               fqcn("deleteBucketLifecycleConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketReplicationConfiguration"),
-                               fcqn("deleteBucketReplicationConfiguration"));
+                               fqcn("deleteBucketReplicationConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketTaggingConfiguration"),
-                               fcqn("deleteBucketTaggingConfiguration"));
+                               fqcn("deleteBucketTaggingConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("deleteBucketWebsiteConfiguration"),
-                               fcqn("deleteBucketWebsiteConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketLoggingConfiguration"), fcqn("getBucketLoggingConfiguration"));
+                               fqcn("deleteBucketWebsiteConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketLoggingConfiguration"), fqcn("getBucketLoggingConfiguration"));
         BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketReplicationConfiguration"),
-                               fcqn("getBucketReplicationConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketTaggingConfiguration"), fcqn("getBucketTaggingConfiguration"));
-        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketWebsiteConfiguration"), fcqn("getBucketWebsiteConfiguration"));
+                               fqcn("getBucketReplicationConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketTaggingConfiguration"), fqcn("getBucketTaggingConfiguration"));
+        BUCKET_ARG_METHODS.put(singleStringArgMethod("getBucketWebsiteConfiguration"), fqcn("getBucketWebsiteConfiguration"));
 
-        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("deleteObject"), fcqn("deleteObject"));
-        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObject"), fcqn("getObject"));
-        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObjectAcl"), fcqn("getObjectAcl"));
-        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObjectMetadata"), fcqn("getObjectMetadata"));
+        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("deleteObject"), fqcn("deleteObject"));
+        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObject"), fqcn("getObject"));
+        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObjectAcl"), fqcn("getObjectAcl"));
+        BUCKET_KEY_ARGS_METHODS.put(twoStringArgsMethod("getObjectMetadata"), fqcn("getObjectMetadata"));
 
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("deleteBucketAnalyticsConfiguration"),
-                                   fcqn("deleteBucketAnalyticsConfiguration"));
+                                   fqcn("deleteBucketAnalyticsConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("deleteBucketIntelligentTieringConfiguration"),
-                                   fcqn("deleteBucketIntelligentTieringConfiguration"));
+                                   fqcn("deleteBucketIntelligentTieringConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("deleteBucketInventoryConfiguration"),
-                                   fcqn("deleteBucketInventoryConfiguration"));
+                                   fqcn("deleteBucketInventoryConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("deleteBucketMetricsConfiguration"),
-                                   fcqn("deleteBucketMetricsConfiguration"));
+                                   fqcn("deleteBucketMetricsConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("getBucketAnalyticsConfiguration"),
-                                   fcqn("getBucketAnalyticsConfiguration"));
+                                   fqcn("getBucketAnalyticsConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("getBucketIntelligentTieringConfiguration"),
-                                   fcqn("getBucketIntelligentTieringConfiguration"));
+                                   fqcn("getBucketIntelligentTieringConfiguration"));
         BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("getBucketInventoryConfiguration"),
-                                   fcqn("getBucketInventoryConfiguration"));
-        BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("getBucketMetricsConfiguration"), fcqn("getBucketMetricsConfiguration"));
+                                   fqcn("getBucketInventoryConfiguration"));
+        BUCKET_ID_ARGS_METHODS.put(twoStringArgsMethod("getBucketMetricsConfiguration"), fqcn("getBucketMetricsConfiguration"));
 
-        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listObjects"), fcqn("listObjects"));
-        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listObjectsV2"), fcqn("listObjectsV2"));
-        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listVersions"), fcqn("listVersions"));
-    }
-
-    private static MethodMatcher createMethodMatcher(String methodSignature) {
-        return new MethodMatcher(V1_S3_PKG + ".AmazonS3 " + methodSignature, true);
+        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listObjects"), fqcn("listObjects"));
+        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listObjectsV2"), fqcn("listObjectsV2"));
+        BUCKET_PREFIX_ARGS_METHODS.put(twoStringArgsMethod("listVersions"), fqcn("listVersions"));
     }
 
     private static MethodMatcher singleStringArgMethod(String method) {
-        String signature = "com.amazonaws.services.s3.AmazonS3 " + method + "(java.lang.String)";
+        String signature = V1_S3_CLIENT + " " + method + "(java.lang.String)";
         return new MethodMatcher(signature,  true);
     }
 
     private static MethodMatcher twoStringArgsMethod(String method) {
-        String signature = "com.amazonaws.services.s3.AmazonS3 " + method + "(java.lang.String, java.lang.String)";
+        String signature = V1_S3_CLIENT + " " + method + "(java.lang.String, java.lang.String)";
         return new MethodMatcher(signature,  true);
     }
 
-    private static JavaType.FullyQualified fcqn(String method) {
+    private static JavaType.FullyQualified fqcn(String method) {
         String methodFirstLetterCaps = method.substring(0, 1).toUpperCase(Locale.ROOT) + method.substring(1);
-        String typeName = "com.amazonaws.services.s3.model." + methodFirstLetterCaps + "Request";
-        return TypeUtils.asFullyQualified(JavaType.buildType(typeName));
+        String typeName = V1_S3_MODEL_PKG + methodFirstLetterCaps + "Request";
+        return fullyQualified(typeName);
     }
 
     @Override
@@ -189,75 +183,75 @@ public class S3NonStreamingRequestToV2 extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
 
             if (DELETE_VERSION.matches(method)) {
-                method = transformMethod(method, fcqn("deleteObject"), "bucket", "key", "versionId");
+                method = transformMethod(method, fqcn("deleteObject"), "bucket", "key", "versionId");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (COPY_OBJECT.matches(method)) {
-                method = transformMethod(method, fcqn("copyObject"),
+                method = transformMethod(method, fqcn("copyObject"),
                                          "sourceBucket", "sourceKey", "destinationBucket", "destinationKey");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (LIST_VERSIONS.matches(method)) {
-                method = transformMethod(method, fcqn("listVersions"),
+                method = transformMethod(method, fqcn("listVersions"),
                                          "bucket", "prefix", "keyMarker", "versionIdMarker", "delimiter", "maxKeys");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_POLICY.matches(method)) {
-                method = transformMethod(method, fcqn("putBucketPolicy"), "bucket", "policy");
+                method = transformMethod(method, fqcn("putBucketPolicy"), "bucket", "policy");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (GET_OBJECT_ACL.matches(method)) {
-                method = transformMethod(method, fcqn("getObjectAcl"), "bucket", "key", "versionId");
+                method = transformMethod(method, fqcn("getObjectAcl"), "bucket", "key", "versionId");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_ACCELERATE_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketAccelerateConfiguration"), "bucket", "accelerateConfiguration");
+                method = transformMethod(method, fqcn("setBucketAccelerateConfiguration"), "bucket", "accelerateConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_CROSS_ORIGIN_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketCrossOriginConfiguration"), "bucket", "corsConfiguration");
+                method = transformMethod(method, fqcn("setBucketCrossOriginConfiguration"), "bucket", "corsConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_ANALYTICS_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketAnalyticsConfiguration"), "bucket", "analyticsConfiguration");
+                method = transformMethod(method, fqcn("setBucketAnalyticsConfiguration"), "bucket", "analyticsConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_INTELLIGENT_TIERING_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketIntelligentTieringConfiguration"),
+                method = transformMethod(method, fqcn("setBucketIntelligentTieringConfiguration"),
                                          "bucket", "intelligentTieringConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_INVENTORY_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketInventoryConfiguration"), "bucket", "inventoryConfiguration");
+                method = transformMethod(method, fqcn("setBucketInventoryConfiguration"), "bucket", "inventoryConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_LIFECYCLE_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketLifecycleConfiguration"), "bucket", "lifecycleConfiguration");
+                method = transformMethod(method, fqcn("setBucketLifecycleConfiguration"), "bucket", "lifecycleConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_METRICS_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketMetricsConfiguration"), "bucket", "metricsConfiguration");
+                method = transformMethod(method, fqcn("setBucketMetricsConfiguration"), "bucket", "metricsConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_NOTIFICATION_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketNotificationConfiguration"),
+                method = transformMethod(method, fqcn("setBucketNotificationConfiguration"),
                                          "bucket", "notificationConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_OWNERSHIP_CONTROLS.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketOwnershipControls"), "bucket", "ownershipControls");
+                method = transformMethod(method, fqcn("setBucketOwnershipControls"), "bucket", "ownershipControls");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_REPLICATION_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketReplicationConfiguration"), "bucket", "replicationConfiguration");
+                method = transformMethod(method, fqcn("setBucketReplicationConfiguration"), "bucket", "replicationConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_TAGGING_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketTaggingConfiguration"), "bucket", "taggingConfiguration");
+                method = transformMethod(method, fqcn("setBucketTaggingConfiguration"), "bucket", "taggingConfiguration");
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (SET_BUCKET_WEBSITE_CONFIGURATION.matches(method)) {
-                method = transformMethod(method, fcqn("setBucketWebsiteConfiguration"), "bucket", "configuration");
+                method = transformMethod(method, fqcn("setBucketWebsiteConfiguration"), "bucket", "configuration");
                 return super.visitMethodInvocation(method, executionContext);
             }
 

@@ -15,36 +15,19 @@
 
 package software.amazon.awssdk.v2migrationtests;
 
-import static java.util.Collections.addAll;
-import static software.amazon.awssdk.v2migrationtests.TestUtils.assertTwoDirectoriesHaveSameStructure;
-import static software.amazon.awssdk.v2migrationtests.TestUtils.getMigrationToolVersion;
-import static software.amazon.awssdk.v2migrationtests.TestUtils.getVersion;
 import static software.amazon.awssdk.v2migrationtests.TestUtils.replaceVersion;
-import static software.amazon.awssdk.v2migrationtests.TestUtils.run;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import software.amazon.awssdk.utils.Logger;
 
-public class MavenProjectTest {
-    private static final Logger log = Logger.loggerFor(MavenProjectTest.class);
-    private static String sdkVersion;
-    private static Path mavenBefore;
-    private static Path mavenAfter;
-    private static Path target;
-    private static Path mavenActual;
-    private static Path mavenExpected;
+public class MavenProjectTest extends MavenTestBase {
 
     @BeforeAll
     static void setUp() throws IOException {
-        sdkVersion = getVersion();
         mavenBefore = new File(MavenProjectTest.class.getResource("maven/before").getFile()).toPath();
         mavenAfter = new File(MavenProjectTest.class.getResource("maven/after").getFile()).toPath();
         target = new File(MavenProjectTest.class.getResource("/").getFile()).toPath().getParent();
@@ -61,38 +44,11 @@ public class MavenProjectTest {
         replaceVersion(mavenActual.resolve("pom.xml"), sdkVersion);
     }
 
-    private static void deleteTempDirectories() throws IOException {
-        FileUtils.deleteDirectory(mavenActual.toFile());
-        FileUtils.deleteDirectory(mavenExpected.toFile());
-    }
-
     @Test
     @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
-        verifyTransformation();
+        boolean experimental = false;
+        verifyTransformation(experimental);
         verifyCompilation();
-    }
-
-    private static void verifyTransformation() throws IOException {
-        List<String> rewriteArgs = new ArrayList<>();
-        // pin version since updates have broken tests
-        String rewriteMavenPluginVersion = "5.46.0";
-        addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
-               "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
-               "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2");
-
-        run(mavenActual, rewriteArgs.toArray(new String[0]));
-        FileUtils.deleteDirectory(mavenActual.resolve("target").toFile());
-        assertTwoDirectoriesHaveSameStructure(mavenActual, mavenExpected);
-    }
-
-    private static void verifyCompilation() {
-        List<String> packageArgs = new ArrayList<>();
-        addAll(packageArgs, "mvn", "package");
-        run(mavenActual, packageArgs.toArray(new String[0]));
-    }
-
-    boolean versionAvailable() {
-        return TestUtils.versionAvailable(sdkVersion);
     }
 }
