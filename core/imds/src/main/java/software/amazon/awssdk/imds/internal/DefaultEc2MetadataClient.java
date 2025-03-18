@@ -156,9 +156,11 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         String responseContent = responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                                              .orElse("");
 
-        log.debug(() -> String.format("%s request response body: %s",
-                                      isTokenRequest ? "Token" : "Metadata",
-                                      responseContent));
+        if (!responseContent.isEmpty()) {
+            log.debug(() -> String.format("%s request response body: %s",
+                                          isTokenRequest ? "Token" : "Metadata",
+                                          responseContent));
+        }
 
         String errorMessage = isTokenRequest
                               ? "Could not retrieve token, " + statusCode + " error occurred"

@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "EC2 Metadata Client",
     "contributor": "",
-    "description": "Added new Ec2MetadataClientException that preserves HTTP status codes from IMDS error responses (4XX), enabling specific error handling based on status codes. See #5786"
+    "description": "Added new Ec2MetadataClientException extending SdkClientException for IMDS unsuccessful responses that captures HTTP status codes, headers, and raw response content for improved error handling. See #5786"
 }

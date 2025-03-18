@@ -92,8 +92,6 @@ final class AsyncHttpRequestHelper {
                                             .statusCode(response.statusCode())
                                             .sdkHttpResponse(response)
                                             .rawResponse(SdkBytes.fromUtf8String(responseContent))
-                                            .message(String.format("The requested metadata returned Http code %s",
-                                                                   response.statusCode()))
                                             .build();
         }
 
