@@ -15,20 +15,57 @@
 
 package foo.bar;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 public class S3Transforms {
 
-    void upload(S3TransferManager tm, String bucket, String key) {
-        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
-        PutObjectRequest requestWithInputStream = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
+    void upload_streamWithLiteralLength(S3TransferManager tm, String bucket, String key) {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
                 .build();
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithInputStream).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, newExecutorServiceVariableToDefine)).build());
+        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
+        PutObjectRequest requestWithStreamAndLiteralLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(333L)
+                .build();
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndLiteralLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, 333, newExecutorServiceVariableToDefine)).build());
+    }
+
+    void upload_streamWithAssignedLength(S3TransferManager tm, String bucket, String key) {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+                .build();
+        long contentLen = 777;
+        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
+        PutObjectRequest requestWithStreamAndAssignedLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(contentLen)
+                .build();
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndAssignedLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, contentLen, newExecutorServiceVariableToDefine)).build());
+    }
+
+    void upload_streamWithoutLength(S3TransferManager tm, String bucket, String key) {
+        InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
+        PutObjectRequest requestWithStreamAndNoLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
+                .build();
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndNoLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, newExecutorServiceVariableToDefine)).build());
+    }
+
+    void objectmetadata_unsupportedSetters(Date dateVal) {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+                .build();
+
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - expirationTimeRuleId - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.expirationTimeRuleId("expirationTimeRuleId");
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - ongoingRestore - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.ongoingRestore(false);
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - requesterCharged - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.requesterCharged(false);
+
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - lastModified - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.lastModified(dateVal);
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - httpExpiresDate - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.httpExpiresDate(dateVal);
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - expirationTime - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.expirationTime(dateVal);
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - restoreExpirationTime - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.restoreExpirationTime(dateVal);
+
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - header - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.header("key", "val");
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - addUserMetadata - is not supported, please manually migrate the code by setting it on the v2 PutObjectRequest.*/metadata.addUserMetadata("a", "b");
     }
 }
