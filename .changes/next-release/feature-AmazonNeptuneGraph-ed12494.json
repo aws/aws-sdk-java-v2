@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune Graph",
+    "contributor": "",
+    "description": "Update IAM Role ARN Validation to Support Role Paths"
+}
