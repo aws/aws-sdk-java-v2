@@ -379,4 +379,9 @@ public class S3 {
             .build())
             .build());
     }
+
+    private void setBucketNameTest(S3Client s3, String bucket) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key("key").bucket(bucket)
+            .build();
+    }
 }

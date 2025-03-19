@@ -102,6 +102,10 @@ public class V1SetterToV2 extends Recipe {
                 methodName = NamingUtils.removeSet(methodName);
             }
 
+            if ("bucketName".equals(methodName)) {
+                methodName = "bucket";
+            }
+
             if (isClientBuilderClass(methodType)) {
                 methodName = CLIENT_CONFIG_NAMING_MAPPING.getOrDefault(methodName, methodName);
             }

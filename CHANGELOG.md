@@ -1,4 +1,55 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.3__ __2025-03-18__
+## __AWS AppSync__
+  - ### Features
+    - Providing Tagging support for DomainName in AppSync
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for PySpark jobs. Customers can now analyze data by running jobs using approved PySpark analysis templates.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for AVC passthrough, the ability to specify PTS offset without padding, and an A/V segment matching feature.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added functionality to be able to configure an endpoint override through the [services] section in the aws config file for specific services. 
+      https://docs.aws.amazon.com/sdkref/latest/guide/feature-ss-endpoints.html
+    - Updated endpoint and partition metadata.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the iso-f regions for private DNS Amazon VPCs and cloudwatch healthchecks.
+
+# __2.31.2__ __2025-03-17__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Copy bytes written to OutputStream of BlockingOutputStreamAsyncRequestBody
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now lets you inspect fragments of request URIs. You can specify the scope of the URI to inspect and narrow the set of URI fragments.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - This release adds support for adding, removing, and listing SLO time exclusion windows with the BatchUpdateExclusionWindows and ListServiceLevelObjectiveExclusionWindows APIs.
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - Provide support for vector map styles in the GetStaticMap operation.
+
+## __CloudWatch RUM__
+  - ### Features
+    - CloudWatch RUM now supports unminification of JS error stack traces.
+
+## __Tax Settings__
+  - ### Features
+    - Adjust Vietnam PaymentVoucherNumber regex and minor API change.
+
 # __2.31.1__ __2025-03-14__
 ## __AWS CRT HTTP Client__
   - ### Features
@@ -18,10 +69,6 @@
     - Made DefaultSdkAutoConstructList and DefaultSdkAutoConstructMap serializable
     - Updated endpoint and partition metadata.
 
-## __Amazon S3__
-- ### Bugfixes
-    - Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read.
-
 ## __Amazon Cognito Identity__
   - ### Features
     - Updated API model build artifacts for identity pools
@@ -29,6 +76,10 @@
 ## __Amazon Cognito Identity Provider__
   - ### Features
     - Minor description updates to API parameters
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Updated logic for S3MultiPartUpload. Part numbers are now assigned and incremented when parts are read.
 
 ## __Contributors__
 Special thanks to the following contributors to this release: 
