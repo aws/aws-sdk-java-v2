@@ -112,13 +112,13 @@ public class S3RequestConstructor {
         // MultiFactorAuthentication mfa = new MultiFactorAuthentication("SN","token");
         // s3.deleteVersion(new DeleteVersionRequest(bucketName, objectKey, "version-id-here", mfa));
 
-        AccelerateConfiguration accelerateConfig = s3.getBucketAccelerateConfiguration(
-            GetBucketAccelerateConfigurationRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder().bucket(bucketName)
+            .build());
 
-        AccessControlList acl = s3.getBucketAcl(
-            GetBucketAclRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketAcl(GetBucketAclRequest.builder().bucket(bucketName)
+            .build());
 
         GetBucketAnalyticsConfigurationResponse analyticsConfig = s3.getBucketAnalyticsConfiguration(
             GetBucketAnalyticsConfigurationRequest.builder()
@@ -128,9 +128,9 @@ public class S3RequestConstructor {
             GetBucketAnalyticsConfigurationRequest.builder().bucket("1").id("2")
                 .build());
 
-        CORSConfiguration corsConfig = s3.getBucketCors(
-            GetBucketCorsRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketCors(GetBucketCorsRequest.builder().bucket(bucketName)
+            .build());
 
         GetBucketEncryptionResponse encryptionResult = s3.getBucketEncryption(
             GetBucketEncryptionRequest.builder()
@@ -152,17 +152,17 @@ public class S3RequestConstructor {
             GetBucketInventoryConfigurationRequest.builder().bucket("1").id("2")
                 .build());
 
-        BucketLifecycleConfiguration lifecycleConfig = s3.getBucketLifecycleConfiguration(
-            GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName)
+            .build());
 
-        String bucketLocation = s3.getBucketLocation(
-            GetBucketLocationRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucketName)
+            .build());
 
-        BucketLoggingConfiguration loggingConfig = s3.getBucketLogging(
-            GetBucketLoggingRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketLogging(GetBucketLoggingRequest.builder().bucket(bucketName)
+            .build());
 
         GetBucketMetricsConfigurationResponse metricsConfig = s3.getBucketMetricsConfiguration(
             GetBucketMetricsConfigurationRequest.builder()
@@ -172,37 +172,37 @@ public class S3RequestConstructor {
             GetBucketMetricsConfigurationRequest.builder().bucket("1").id("2")
                 .build());
 
-        NotificationConfiguration notificationConfig = s3.getBucketNotificationConfiguration(
-            GetBucketNotificationConfigurationRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketNotificationConfiguration(GetBucketNotificationConfigurationRequest.builder().bucket(bucketName)
+            .build());
 
         GetBucketOwnershipControlsResponse ownershipControls = s3.getBucketOwnershipControls(
             GetBucketOwnershipControlsRequest.builder()
                 .build());
 
-        BucketPolicy bucketPolicy = s3.getBucketPolicy(
-            GetBucketPolicyRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketPolicy(GetBucketPolicyRequest.builder().bucket(bucketName)
+            .build());
 
         GetBucketPolicyStatusResponse policyStatus = s3.getBucketPolicyStatus(
             GetBucketPolicyStatusRequest.builder()
                 .build());
 
-        ReplicationConfiguration replicationConfig = s3.getBucketReplication(
-            GetBucketReplicationRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketReplication(GetBucketReplicationRequest.builder().bucket(bucketName)
+            .build());
 
-        Tagging taggingConfig = s3.getBucketTagging(
-            GetBucketTaggingRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketTagging(GetBucketTaggingRequest.builder().bucket(bucketName)
+            .build());
 
-        BucketVersioningConfiguration versioningConfig = s3.getBucketVersioning(
-            GetBucketVersioningRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketVersioning(GetBucketVersioningRequest.builder().bucket(bucketName)
+            .build());
 
-        WebsiteConfiguration websiteConfig = s3.getBucketWebsite(
-            GetBucketWebsiteRequest.builder().bucket(bucketName)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getBucketWebsite(GetBucketWebsiteRequest.builder().bucket(bucketName)
+            .build());
 
         ResponseInputStream<GetObjectResponse> s3Object1 = s3.getObject(
             GetObjectRequest.builder().bucket(bucketName).key(objectKey)
@@ -212,7 +212,7 @@ public class S3RequestConstructor {
             GetObjectRequest.builder().bucket(bucketName).key(objectKey).versionId("3")
                 .build());
 
-        // Not. supported
+        // Not supported
         // S3ObjectId s3ObjectId = new S3ObjectId(bucketName, objectKey);
         // S3Object s3Object3 = s3.getObject(
         //         new GetObjectRequest(s3ObjectId));
@@ -220,13 +220,13 @@ public class S3RequestConstructor {
         // S3Object s3Object4 = s3.getObject(
         //         new GetObjectRequest(bucketName, objectKey, true));
 
-        AccessControlList objectAcl = s3.getObjectAcl(
-            GetObjectAclRequest.builder().bucket(bucketName).key(objectKey)
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getObjectAcl(GetObjectAclRequest.builder().bucket(bucketName).key(objectKey)
+            .build());
 
-        AccessControlList objectAcl2 = s3.getObjectAcl(
-            GetObjectAclRequest.builder().bucket(bucketName).key(objectKey).versionId("3")
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.getObjectAcl(GetObjectAclRequest.builder().bucket(bucketName).key(objectKey).versionId("3")
+            .build());
 
         GetObjectLegalHoldResponse legalHoldResult = s3.getObjectLegalHold(
             GetObjectLegalHoldRequest.builder()
@@ -260,13 +260,12 @@ public class S3RequestConstructor {
             GetPublicAccessBlockRequest.builder()
                 .build());
 
-        Owner owner = s3.getS3AccountOwner(
-            GetS3AccountOwnerRequest.builder()
-                .build());
+        //NON EXIST REQUEST
+        //s3.getS3AccountOwner(new GetS3AccountOwnerRequest());
 
-        s3.headBucket(
-            HeadBucketRequest.builder().bucket(bucketName)
-                .build());
+        s3.headBucket(HeadBucketRequest.builder().bucket(bucketName)
+            .build());
+
         // Not supported
         // ObjectMetadata o1 = new ObjectMetadata();
         // InitiateMultipartUploadResult multipartUploadResult = s3.initiateMultipartUpload(
@@ -294,9 +293,9 @@ public class S3RequestConstructor {
         // ListBucketsPaginatedResult bucketsPaginated = s3.listBuckets(
         //         new ListBucketsPaginatedRequest());
 
-        List<Bucket> buckets = s3.listBuckets(
-            ListBucketsRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        s3.listBuckets(ListBucketsRequest.builder()
+            .build());
 
         // Not supported
         // MultipartUploadListing multipartUploads = s3.listMultipartUploads(
@@ -315,6 +314,7 @@ public class S3RequestConstructor {
         ListObjectsResponse objectListing2 = s3.listObjects(
             ListObjectsRequest.builder().bucket("1").prefix("2").marker("3").delimiter("4").maxKeys(4)
                 .build());
+
         // Not supported
         // s3.putObject(
         //         new PutObjectRequest(bucketName, objectKey, new File("/path/to/file.txt")));
@@ -340,13 +340,14 @@ public class S3RequestConstructor {
         // s3.restoreObjectV2(
         //         new RestoreObjectRequest(bucketName, objectKey, 3));
 
-        s3.selectObjectContent(
-            SelectObjectContentRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.selectObjectContent(new SelectObjectContentRequest());
 
-        s3.putBucketAccelerateConfiguration(
-            PutBucketAccelerateConfigurationRequest.builder().bucket(bucketName).accelerateConfiguration(new AccelerateConfiguration(BucketAccelerateStatus.ENABLED))
-                .build());
+        // AccelerateConfiguration Builder not supported
+        // s3.setBucketAccelerateConfiguration(
+        //     new SetBucketAccelerateConfigurationRequest(bucketName,
+        //                                                 new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
+
         // not supported
         // s3.setBucketAcl(
         //          new SetBucketAclRequest(bucketName, new AccessControlList()));
@@ -394,11 +395,10 @@ public class S3RequestConstructor {
             PutBucketOwnershipControlsRequest.builder()
                 .build());
 
-        s3.bucketPolicy(
-            PutBucketPolicyRequest.builder()
-                .build());
-        s3.bucketPolicy(
-            new PutBucketPolicyRequest(bucketName, "XX"));
+        //NON EXIST METHOD
+        //s3.setBucketPolicy(new SetBucketPolicyRequest());
+        //NON EXIST METHOD
+        //s3.setBucketPolicy(new SetBucketPolicyRequest(bucketName, "XX"));
 
         s3.putBucketReplication(
             PutBucketReplicationRequest.builder()
@@ -419,10 +419,10 @@ public class S3RequestConstructor {
         //        s3.setBucketVersioningConfiguration(
         //                new SetBucketVersioningConfigurationRequest(bucketName,new BucketVersioningConfiguration(),mfa));
 
-        s3.putBucketWebsite(
-            PutBucketWebsiteRequest.builder().bucket(bucketName).websiteConfiguration(new WebsiteConfiguration("1"))
-                .build());
-        ////
+        //INCOMPATIBLE RESPONSE
+        //s3.setBucketWebsiteConfiguration(new SetBucketWebsiteConfigurationRequest(bucketName,new BucketWebsiteConfiguration
+        // ("1")));
+
         //        s3.setObjectAcl(
         //                new SetObjectAclRequest(bucketName, objectKey, new AccessControlList()));
         //        s3.setObjectAcl(
@@ -432,17 +432,14 @@ public class S3RequestConstructor {
         //        s3.setObjectAcl(
         //                new SetObjectAclRequest(bucketName, objectKey, "3", CannedAccessControlList.Private));
 
-        s3.objectLegalHold(
-            SetObjectLegalHoldRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.setObjectLegalHold(new SetObjectLegalHoldRequest());
 
-        s3.objectLockConfiguration(
-            SetObjectLockConfigurationRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.setObjectLockConfiguration(new SetObjectLockConfigurationRequest());
 
-        s3.objectRetention(
-            SetObjectRetentionRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.setObjectRetention(new SetObjectRetentionRequest());
 
         // s3.setObjectTagging(
         //     new SetObjectTaggingRequest(bucketName, objectKey,
@@ -459,14 +456,13 @@ public class S3RequestConstructor {
         //     new SetRequestPaymentConfigurationRequest(bucketName,
         //                                               new RequestPaymentConfiguration(RequestPaymentConfiguration.Payer.Requester)));
 
-        s3.uploadPart(
-            UploadPartRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.uploadPart(new UploadPartRequest());
 
-        s3.writeGetObjectResponse(
-            WriteGetObjectResponseRequest.builder()
-                .build());
+        //INCOMPATIBLE RESPONSE
+        //s3.writeGetObjectResponse(new WriteGetObjectResponseRequest());
 
-        s3.listParts(new ListPartsRequest(bucketName, objectKey, "3"));
+        //INCOMPATIBLE RESPONSE
+        //s3.listParts(new ListPartsRequest(bucketName, objectKey, "3"));
     }
 }
