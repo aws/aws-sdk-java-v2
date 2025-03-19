@@ -35,6 +35,7 @@ import com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationReque
 import com.amazonaws.services.s3.model.DeleteBucketRequest;
 import com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.HeadBucketResult;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
@@ -234,5 +235,9 @@ public class S3 {
         s3.setBucketReplicationConfiguration(bucket, new BucketReplicationConfiguration());
         s3.setBucketTaggingConfiguration(bucket, new BucketTaggingConfiguration());
         s3.setBucketWebsiteConfiguration(bucket, new BucketWebsiteConfiguration());
+    }
+
+    private void setBucketNameTest(AmazonS3 s3, String bucket) {
+        GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, "key").withBucketName(bucket);
     }
 }

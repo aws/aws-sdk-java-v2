@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.4__ __2025-03-19__
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.4 (ruby3.4) support to AWS Lambda.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for NDI flow outputs in AWS Elemental MediaConnect. You can now send content from your MediaConnect transport streams directly to your NDI environment using the new NDI output type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Support custom prompt routers for evaluation jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Doc-only updates for EC2 for March 2025.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update IAM Role ARN Validation to Support Role Paths
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for g6, g6e, m6i, c6i instance types in SageMaker Processing Jobs.
+
 # __2.31.3__ __2025-03-18__
 ## __AWS AppSync__
   - ### Features
