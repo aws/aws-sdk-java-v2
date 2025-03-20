@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "EC2 Metadata Client",
     "contributor": "",
-    "description": "Added new Ec2MetadataClientException extending SdkClientException for IMDS unsuccessful responses that captures HTTP status codes, headers, and raw response content for improved error handling. See #5786"
+    "description": "Added new Ec2MetadataClientException extending SdkClientException for IMDS unsuccessful responses that captures HTTP status codes, headers, and raw response content for improved error handling. See [#5786](https://github.com/aws/aws-sdk-java-v2/issues/5786)"
 }

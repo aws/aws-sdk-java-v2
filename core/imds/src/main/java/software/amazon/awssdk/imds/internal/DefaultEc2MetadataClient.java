@@ -152,25 +152,15 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
     }
 
     private void handleUnsuccessfulResponse(int statusCode, Optional<AbortableInputStream> responseBody,
-                                            HttpExecuteResponse response, String path, boolean isTokenRequest) {
+                                            HttpExecuteResponse response, Supplier<String> errorMessageSupplier) {
         String responseContent = responseBody.map(BaseEc2MetadataClient::uncheckedInputStreamToUtf8)
                                              .orElse("");
-
-        if (!responseContent.isEmpty()) {
-            log.debug(() -> String.format("%s request response body: %s",
-                                          isTokenRequest ? "Token" : "Metadata",
-                                          responseContent));
-        }
-
-        String errorMessage = isTokenRequest
-                              ? "Could not retrieve token, " + statusCode + " error occurred"
-                              : String.format("The requested metadata at path '%s' returned Http code %s", path, statusCode);
 
         throw Ec2MetadataClientException.builder()
                                         .statusCode(statusCode)
                                         .sdkHttpResponse(response.httpResponse())
                                         .rawResponse(SdkBytes.fromUtf8String(responseContent))
-                                        .message(errorMessage)
+                                        .message(errorMessageSupplier.get())
                                         .build();
     }
 
@@ -195,7 +185,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            handleUnsuccessfulResponse(statusCode, responseBody, response, path, false);
+            handleUnsuccessfulResponse(statusCode, responseBody, response,
+                () -> String.format("The requested metadata at path '%s' returned Http code %s", path, statusCode)
+            );
         }
 
         AbortableInputStream abortableInputStream = responseBody.orElseThrow(
@@ -239,7 +231,9 @@ public final class DefaultEc2MetadataClient extends BaseEc2MetadataClient implem
         }
 
         if (!HttpStatusFamily.of(statusCode).isOneOf(HttpStatusFamily.SUCCESSFUL)) {
-            handleUnsuccessfulResponse(statusCode, response.responseBody(), response, null, true);
+            handleUnsuccessfulResponse(statusCode, response.responseBody(), response,
+                () -> String.format("Could not retrieve token, %d error occurred", statusCode)
+            );
         }
 
         String ttl = response.httpResponse()

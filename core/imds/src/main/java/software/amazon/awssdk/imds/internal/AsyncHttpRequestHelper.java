@@ -86,18 +86,21 @@ final class AsyncHttpRequestHelper {
             response.content().orElseThrow(() -> SdkClientException.create("Unexpected error: empty response content"));
         String responseContent = uncheckedInputStreamToUtf8(inputStream);
 
+        // retryable error
+        if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
+            throw RetryableException.create(responseContent);
+        }
+
         // non-retryable error
-        if (statusCode.isOneOf(HttpStatusFamily.CLIENT_ERROR)) {
+        if (!statusCode.isOneOf(HttpStatusFamily.SUCCESSFUL)) {
             throw Ec2MetadataClientException.builder()
                                             .statusCode(response.statusCode())
                                             .sdkHttpResponse(response)
                                             .rawResponse(SdkBytes.fromUtf8String(responseContent))
+                                            .message(String.format("Failed to send request to IMDS. "
+                                                                   + "Service returned %d error",
+                                                                   response.statusCode()))
                                             .build();
-        }
-
-        // retryable error
-        if (statusCode.isOneOf(HttpStatusFamily.SERVER_ERROR)) {
-            throw RetryableException.create(responseContent);
         }
         return responseContent;
     }
