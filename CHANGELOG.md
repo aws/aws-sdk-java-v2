@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.5__ __2025-03-20__
+## __AWS Amplify__
+  - ### Features
+    - Added appId field to Webhook responses
+
+## __AWS Control Catalog__
+  - ### Features
+    - Add ExemptAssumeRoot parameter to adapt for new AWS AssumeRoot capability.
+
+## __AWS Network Firewall__
+  - ### Features
+    - You can now use flow operations to either flush or capture traffic monitored in your firewall's flow table.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - With this release, Bedrock Evaluation will now support bring your own inference responses.
+
+## __MailManager__
+  - ### Features
+    - Amazon SES Mail Manager. Extended rule string and boolean expressions to support analysis in condition evaluation. Extended ingress point string expression to support analysis in condition evaluation
+
 # __2.31.4__ __2025-03-19__
 ## __AWS Lambda__
   - ### Features

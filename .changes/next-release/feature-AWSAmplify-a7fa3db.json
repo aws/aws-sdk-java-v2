@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify",
-    "contributor": "",
-    "description": "Added appId field to Webhook responses"
-}

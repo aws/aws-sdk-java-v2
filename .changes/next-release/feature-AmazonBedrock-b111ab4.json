@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock",
-    "contributor": "",
-    "description": "With this release, Bedrock Evaluation will now support bring your own inference responses."
-}
