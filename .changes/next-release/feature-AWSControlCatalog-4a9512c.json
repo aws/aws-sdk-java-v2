@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Catalog",
+    "contributor": "",
+    "description": "Add ExemptAssumeRoot parameter to adapt for new AWS AssumeRoot capability."
+}
