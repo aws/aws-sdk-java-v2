@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Firewall",
+    "contributor": "",
+    "description": "You can now use flow operations to either flush or capture traffic monitored in your firewall's flow table."
+}
