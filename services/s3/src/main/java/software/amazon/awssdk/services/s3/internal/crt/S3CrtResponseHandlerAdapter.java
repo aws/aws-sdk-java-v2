@@ -111,6 +111,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
+        log.debug(() -> "Received response header with status code " + statusCode);
         // Note, we cannot call responseHandler.onHeaders() here because the response status code and headers may not represent
         // whether the request has succeeded or not (e.g. if this is for a HeadObject call that CRT calls under the hood). We
         // need to rely on onResponseBody/onFinished being called to determine this.
@@ -150,6 +151,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onFinished(S3FinishedResponseContext context) {
         int crtCode = context.getErrorCode();
+        log.debug(() -> "Request finished with code: " + crtCode);
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
             handleError(context);
         } else {
@@ -192,6 +194,19 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             SdkClientException.create("Failed to send the request: " +
                                       CRT.awsErrorString(crtCode), cause);
         failResponseHandlerAndFuture(sdkClientException);
+        notifyResponsePublisherErrorIfNeeded(sdkClientException);
+    }
+
+    private void notifyResponsePublisherErrorIfNeeded(Throwable error) {
+        if (responseHandlingInitiated) {
+            responsePublisher.error(error).handle((ignore, throwable) -> {
+                if (throwable != null) {
+                    log.warn(() -> "Exception thrown in responsePublisher#error, ignoring", throwable);
+                    return null;
+                }
+                return null;
+            });
+        }
     }
 
     private void handleServiceError(int responseStatus, HttpHeader[] headers, byte[] errorPayload) {
@@ -204,6 +219,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                 SdkClientException.create("Request failed during the transfer due to an error returned from S3");
             s3Exception.addSuppressed(sdkClientException);
             failResponseHandlerAndFuture(s3Exception);
+            notifyResponsePublisherErrorIfNeeded(s3Exception);
         } else {
             initiateResponseHandling(errorResponse.build());
             onErrorResponseComplete(errorPayload);
