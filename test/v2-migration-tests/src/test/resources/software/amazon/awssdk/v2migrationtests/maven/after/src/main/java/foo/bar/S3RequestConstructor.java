@@ -14,15 +14,102 @@
  */
 
 package foo.bar;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
-import software.amazon.awssdk.services.s3.model.MetricsConfiguration;
-import software.amazon.awssdk.services.s3.model.OwnershipControls;
+
 import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
+import software.amazon.awssdk.services.s3.model.BucketLifecycleConfiguration;
+import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CompletedMultipartUpload;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketAnalyticsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketAnalyticsConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.DeleteBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketEncryptionResponse;
+import software.amazon.awssdk.services.s3.model.DeleteBucketIntelligentTieringConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketIntelligentTieringConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketInventoryConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.DeleteBucketLifecycleRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketMetricsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketOwnershipControlsRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketPolicyRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketWebsiteRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.DeletePublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketAccelerateConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketAclRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketAnalyticsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketAnalyticsConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketCorsRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketEncryptionRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketEncryptionResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketIntelligentTieringConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketIntelligentTieringConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketInventoryConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketLoggingRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketMetricsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketMetricsConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketOwnershipControlsRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketOwnershipControlsResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketPolicyStatusRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketPolicyStatusResponse;
+import software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectLegalHoldRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectLegalHoldResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRetentionRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRetentionResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockRequest;
+import software.amazon.awssdk.services.s3.model.GetPublicAccessBlockResponse;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListBucketAnalyticsConfigurationsRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketAnalyticsConfigurationsResponse;
+import software.amazon.awssdk.services.s3.model.ListBucketIntelligentTieringConfigurationsRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketIntelligentTieringConfigurationsResponse;
+import software.amazon.awssdk.services.s3.model.ListBucketInventoryConfigurationsRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketInventoryConfigurationsResponse;
+import software.amazon.awssdk.services.s3.model.ListBucketMetricsConfigurationsRequest;
+import software.amazon.awssdk.services.s3.model.ListBucketMetricsConfigurationsResponse;
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.MetricsConfiguration;
+import software.amazon.awssdk.services.s3.model.NotificationConfiguration;
+import software.amazon.awssdk.services.s3.model.OwnershipControls;
+import software.amazon.awssdk.services.s3.model.PutBucketAnalyticsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketMetricsConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketNotificationConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketOwnershipControlsRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketReplicationRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.ReplicationConfiguration;
+import software.amazon.awssdk.services.s3.model.Tagging;
+import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 
 public class S3RequestConstructor {
     S3Client s3 = S3Client.create();
@@ -99,18 +186,14 @@ public class S3RequestConstructor {
         s3.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectKey)
             .build());
 
-        //s3.deleteObjects(new DeleteObjectsRequest(bucketName));
+        s3.deleteObjects(DeleteObjectsRequest.builder().bucket(bucketName)
+            .build());
 
         s3.deleteObjectTagging(DeleteObjectTaggingRequest.builder().bucket(bucketName).key(objectKey)
             .build());
 
         s3.deletePublicAccessBlock(DeletePublicAccessBlockRequest.builder()
             .build());
-
-        // Not supported
-        // s3.deleteVersion(new DeleteVersionRequest(bucketName, objectKey, "version-id-here"));
-        // MultiFactorAuthentication mfa = new MultiFactorAuthentication("SN","token");
-        // s3.deleteVersion(new DeleteVersionRequest(bucketName, objectKey, "version-id-here", mfa));
 
         //INCOMPATIBLE RESPONSE
         s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder().bucket(bucketName)
@@ -212,14 +295,6 @@ public class S3RequestConstructor {
             GetObjectRequest.builder().bucket(bucketName).key(objectKey).versionId("3")
                 .build());
 
-        // Not supported
-        // S3ObjectId s3ObjectId = new S3ObjectId(bucketName, objectKey);
-        // S3Object s3Object3 = s3.getObject(
-        //         new GetObjectRequest(s3ObjectId));
-        //
-        // S3Object s3Object4 = s3.getObject(
-        //         new GetObjectRequest(bucketName, objectKey, true));
-
         //INCOMPATIBLE RESPONSE
         s3.getObjectAcl(GetObjectAclRequest.builder().bucket(bucketName).key(objectKey)
             .build());
@@ -260,19 +335,9 @@ public class S3RequestConstructor {
             GetPublicAccessBlockRequest.builder()
                 .build());
 
-        //NON EXIST REQUEST
-        //s3.getS3AccountOwner(new GetS3AccountOwnerRequest());
-
         s3.headBucket(HeadBucketRequest.builder().bucket(bucketName)
             .build());
 
-        // Not supported
-        // ObjectMetadata o1 = new ObjectMetadata();
-        // InitiateMultipartUploadResult multipartUploadResult = s3.initiateMultipartUpload(
-        //      new InitiateMultipartUploadRequest(bucketName, objectKey, o1));
-        //
-        // InitiateMultipartUploadResult multipartUploadResult2 = s3.initiateMultipartUpload(
-        //      new InitiateMultipartUploadRequest(bucketName, objectKey));
 
         ListBucketAnalyticsConfigurationsResponse analyticsConfigs = s3.listBucketAnalyticsConfigurations(
             ListBucketAnalyticsConfigurationsRequest.builder()
@@ -290,22 +355,9 @@ public class S3RequestConstructor {
             ListBucketMetricsConfigurationsRequest.builder()
                 .build());
 
-        // ListBucketsPaginatedResult bucketsPaginated = s3.listBuckets(
-        //         new ListBucketsPaginatedRequest());
-
         //INCOMPATIBLE RESPONSE
         s3.listBuckets(ListBucketsRequest.builder()
             .build());
-
-        // Not supported
-        // MultipartUploadListing multipartUploads = s3.listMultipartUploads(
-        //                new ListMultipartUploadsRequest(bucketName));
-        //
-        // ObjectListing nextBatchObjects = s3.listNextBatchOfObjects(
-        //                new ListNextBatchOfObjectsRequest(new ObjectListing()));
-        //
-        // VersionListing nextBatchVersions = s3.listNextBatchOfVersions(
-        //                new ListNextBatchOfVersionsRequest(new VersionListing()));
 
         ListObjectsResponse objectListing = s3.listObjects(
             ListObjectsRequest.builder()
@@ -315,51 +367,11 @@ public class S3RequestConstructor {
             ListObjectsRequest.builder().bucket("1").prefix("2").marker("3").delimiter("4").maxKeys(4)
                 .build());
 
-        // Not supported
-        // s3.putObject(
-        //         new PutObjectRequest(bucketName, objectKey, new File("/path/to/file.txt")));
-        //
-        // s3.putObject(
-        //         new PutObjectRequest(bucketName, objectKey, "/path/to/file.txt"));
-        //
-        // InputStream inputStream = new InputStream() {
-        //     @Override
-        //     public int read() throws IOException {
-        //         return 0;
-        //     }
-        // };
-        // ObjectMetadata o1 = new ObjectMetadata();
-        // s3.putObject(
-        //         new PutObjectRequest(bucketName, objectKey, inputStream, o1));
-
-        // s3.restoreObject(
-        //         new RestoreObjectRequest(bucketName, objectKey));
-        // s3.restoreObject(
-        //         new RestoreObjectRequest(bucketName, objectKey, 2));
-        //
-        // s3.restoreObjectV2(
-        //         new RestoreObjectRequest(bucketName, objectKey, 3));
-
-        //INCOMPATIBLE RESPONSE
-        //s3.selectObjectContent(new SelectObjectContentRequest());
-
-        // AccelerateConfiguration Builder not supported
-        // s3.setBucketAccelerateConfiguration(
-        //     new SetBucketAccelerateConfigurationRequest(bucketName,
-        //                                                 new BucketAccelerateConfiguration(BucketAccelerateStatus.Enabled)));
-
-        // not supported
-        // s3.setBucketAcl(
-        //          new SetBucketAclRequest(bucketName, new AccessControlList()));
-        //
-        // s3.setBucketAcl(
-        //          new SetBucketAclRequest(bucketName, CannedAccessControlList.Private));
-        ////
         s3.putBucketAnalyticsConfiguration(
             PutBucketAnalyticsConfigurationRequest.builder()
                 .build());
         s3.putBucketAnalyticsConfiguration(
-            PutBucketAnalyticsConfigurationRequest.builder().bucket("XXXX").analyticsConfiguration(AnalyticsConfiguration.builder()
+            PutBucketAnalyticsConfigurationRequest.builder().bucket("name").analyticsConfiguration(AnalyticsConfiguration.builder()
                 .build())
                 .build());
 
@@ -368,10 +380,6 @@ public class S3RequestConstructor {
             PutBucketLifecycleConfigurationRequest.builder().bucket(bucketName).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
                 .build())
                 .build());
-        //
-        // s3.setBucketLoggingConfiguration(
-        //          new SetBucketLoggingConfigurationRequest(bucketName,
-        //                  new BucketLoggingConfiguration()));
 
         s3.putBucketMetricsConfiguration(
             PutBucketMetricsConfigurationRequest.builder()
@@ -395,11 +403,6 @@ public class S3RequestConstructor {
             PutBucketOwnershipControlsRequest.builder()
                 .build());
 
-        //NON EXIST METHOD
-        //s3.setBucketPolicy(new SetBucketPolicyRequest());
-        //NON EXIST METHOD
-        //s3.setBucketPolicy(new SetBucketPolicyRequest(bucketName, "XX"));
-
         s3.putBucketReplication(
             PutBucketReplicationRequest.builder()
                 .build());
@@ -413,56 +416,5 @@ public class S3RequestConstructor {
                 .build())
                 .build());
 
-        //        s3.setBucketVersioningConfiguration(
-        //                new SetBucketVersioningConfigurationRequest(bucketName,new BucketVersioningConfiguration()));
-        //        MultiFactorAuthentication mfa = new MultiFactorAuthentication("1","2");
-        //        s3.setBucketVersioningConfiguration(
-        //                new SetBucketVersioningConfigurationRequest(bucketName,new BucketVersioningConfiguration(),mfa));
-
-        //INCOMPATIBLE RESPONSE
-        //s3.setBucketWebsiteConfiguration(new SetBucketWebsiteConfigurationRequest(bucketName,new BucketWebsiteConfiguration
-        // ("1")));
-
-        //        s3.setObjectAcl(
-        //                new SetObjectAclRequest(bucketName, objectKey, new AccessControlList()));
-        //        s3.setObjectAcl(
-        //                new SetObjectAclRequest(bucketName, objectKey, CannedAccessControlList.Private));
-        //        s3.setObjectAcl(
-        //                new SetObjectAclRequest(bucketName, objectKey, "3", new AccessControlList()));
-        //        s3.setObjectAcl(
-        //                new SetObjectAclRequest(bucketName, objectKey, "3", CannedAccessControlList.Private));
-
-        //INCOMPATIBLE RESPONSE
-        //s3.setObjectLegalHold(new SetObjectLegalHoldRequest());
-
-        //INCOMPATIBLE RESPONSE
-        //s3.setObjectLockConfiguration(new SetObjectLockConfigurationRequest());
-
-        //INCOMPATIBLE RESPONSE
-        //s3.setObjectRetention(new SetObjectRetentionRequest());
-
-        // s3.setObjectTagging(
-        //     new SetObjectTaggingRequest(bucketName, objectKey,
-        //                                 new ObjectTagging(new ArrayList<>())));
-        //
-        // s3.setObjectTagging(
-        //     new SetObjectTaggingRequest(bucketName, objectKey, "3",
-        //                                 new ObjectTagging(new ArrayList<>())));
-        //
-        // //        s3.setPublicAccessBlock(
-        // //                new SetPublicAccessBlockRequest());
-        // ////
-        // s3.setRequestPaymentConfiguration(
-        //     new SetRequestPaymentConfigurationRequest(bucketName,
-        //                                               new RequestPaymentConfiguration(RequestPaymentConfiguration.Payer.Requester)));
-
-        //INCOMPATIBLE RESPONSE
-        //s3.uploadPart(new UploadPartRequest());
-
-        //INCOMPATIBLE RESPONSE
-        //s3.writeGetObjectResponse(new WriteGetObjectResponseRequest());
-
-        //INCOMPATIBLE RESPONSE
-        //s3.listParts(new ListPartsRequest(bucketName, objectKey, "3"));
     }
 }

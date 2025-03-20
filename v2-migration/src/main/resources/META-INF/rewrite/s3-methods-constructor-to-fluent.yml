@@ -293,6 +293,12 @@ recipeList:
         - withKey
         - withVersionId
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteObjectsRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.GetObjectAclRequest
       parameterTypes:
         - java.lang.String
