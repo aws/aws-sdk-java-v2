@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.5__ __2025-03-20__
+## __AWS Amplify__
+  - ### Features
+    - Added appId field to Webhook responses
+
+## __AWS Control Catalog__
+  - ### Features
+    - Add ExemptAssumeRoot parameter to adapt for new AWS AssumeRoot capability.
+
+## __AWS Network Firewall__
+  - ### Features
+    - You can now use flow operations to either flush or capture traffic monitored in your firewall's flow table.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - With this release, Bedrock Evaluation will now support bring your own inference responses.
+
+## __MailManager__
+  - ### Features
+    - Amazon SES Mail Manager. Extended rule string and boolean expressions to support analysis in condition evaluation. Extended ingress point string expression to support analysis in condition evaluation
+
+# __2.31.4__ __2025-03-19__
+## __AWS Lambda__
+  - ### Features
+    - Add Ruby 3.4 (ruby3.4) support to AWS Lambda.
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for NDI flow outputs in AWS Elemental MediaConnect. You can now send content from your MediaConnect transport streams directly to your NDI environment using the new NDI output type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Support custom prompt routers for evaluation jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Doc-only updates for EC2 for March 2025.
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update IAM Role ARN Validation to Support Role Paths
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for g6, g6e, m6i, c6i instance types in SageMaker Processing Jobs.
+
 # __2.31.3__ __2025-03-18__
 ## __AWS AppSync__
   - ### Features
