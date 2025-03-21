@@ -18,11 +18,14 @@ package foo.bar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
@@ -45,6 +48,13 @@ public class S3Streaming {
     void putObject_bucketKeyFile(String bucket, String key, File file) {
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key)
             .build(), RequestBody.fromFile(file));
+    }
+
+    void putObject_bucketKeyStreamMetadata(String bucket, String key, InputStream stream) {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength(22L)
+            .build(), RequestBody.fromInputStream(stream, 22L));
     }
 
     /**
@@ -76,10 +86,12 @@ public class S3Streaming {
 
         PutObjectRequest request1 = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
             .build();
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "binary/octet-stream"));
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "application/octet-stream"));
 
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
-            .build(), RequestBody.fromContentProvider(() -> inputStream2, "binary/octet-stream"));
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(11L)
+            .build(), RequestBody.fromInputStream(inputStream2, 11L));
     }
 
     void putObject_requestPojoWithoutPayload(String bucket, String key) {
@@ -102,6 +114,41 @@ public class S3Streaming {
             .build();
 
         PutObjectRequest requestWithFalse =PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .build();
+    }
+
+    void putObjectRequest_setMetadata() {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+
+        PutObjectRequest request = PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .build();
+        request = request.toBuilder().contentLength(66L)
+            .contentEncoding("UTF-8")
+            .contentType("text/plain")
+            .build();
+    }
+
+    void putObjectRequest_withMetadata() {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+        long contentLen = 66;
+
+        Map<String, String> userMetadata = new HashMap<>();
+        userMetadata.put("key", "value");
+
+        PutObjectRequest request = PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location").contentLength(contentLen)
+            .contentEncoding("UTF-8")
+            .contentType("text/plain")
+            .contentLanguage("en-US")
+            .cacheControl("must-revalidate")
+            .contentDisposition("inline")
+            .contentMD5("md5Val")
+            .serverSideEncryption("sseEncryptionVal")
+            .serverSideEncryption("sseAlgorithmVal")
+            .sseCustomerKeyMD5("sseCustomerKeyMd5Val")
+            .bucketKeyEnabled(true)
+            .metadata(userMetadata)
             .build();
     }
 }
