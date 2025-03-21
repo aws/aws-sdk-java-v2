@@ -108,7 +108,10 @@ public class S3 {
 
     private void listObjects(AmazonS3 s3, String bucket) {
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucket);
+        ListObjectsRequest listObjectsRequest2 = new ListObjectsRequest("bucketName","prefix","marker","delimiter", 4);
+
         ObjectListing objectListing = s3.listObjects(listObjectsRequest);
+        ObjectListing objectListing2 = s3.listObjects(listObjectsRequest2);
         System.out.println(objectListing);
     }
 
