@@ -77,6 +77,9 @@ public final class S3TransformUtils {
     public static void addMetadataFields(StringBuilder sb, String metadataName,
                                          Map<String, Map<String, Expression>> metadataMap) {
         Map<String, Expression> map = metadataMap.get(metadataName);
+        if (map == null) {
+            return;
+        }
 
         Expression contentLen = map.get("contentLength");
         if (contentLen != null) {

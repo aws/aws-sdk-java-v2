@@ -33,6 +33,7 @@ import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isI
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.regex.Pattern;
@@ -43,6 +44,7 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.TypeUtils;
@@ -290,15 +292,13 @@ public class S3PutObjectRequestToV2 extends Recipe {
             String v2Method;
 
             if (contentLen == null) {
-                String comment = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
-                                 + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.";
                 // CHECKSTYLE:OFF: Regexp
                 v2Method = "#{any()}, RequestBody.fromContentProvider(() -> #{any()}, \"application/octet-stream\")";
                 // CHECKSTYLE:ON: Regexp
                 return JavaTemplate.builder(v2Method).build()
                                    .apply(getCursor(), method.getCoordinates().replaceArguments(),
                                           method.getArguments().get(0), inputStream)
-                    .withComments(createComments(comment));
+                    .withComments(inputStreamBufferingWarningComment());
             }
 
             StringBuilder sb = new StringBuilder("#{any()}, RequestBody.fromInputStream(#{any()}, #{any()}");
@@ -327,18 +327,23 @@ public class S3PutObjectRequestToV2 extends Recipe {
                                    method.getArguments().get(2)};
 
             if (contentLen == null) {
-                sb.append(".build(), RequestBody.fromInputStream(#{any()}, -1L)");
-            } else {
-                sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()}");
-
-                if (contentLen instanceof J.Literal) {
-                    sb.append("L");
-                }
-                sb.append(")");
-
-                params = Arrays.copyOf(params, 4);
-                params[3] = contentLen;
+                // CHECKSTYLE:OFF: Regexp
+                sb.append(".build(), RequestBody.fromContentProvider(() -> #{any()}, \"application/octet-stream\")");
+                // CHECKSTYLE:ON: Regexp
+                return JavaTemplate.builder(sb.toString()).build()
+                                   .apply(getCursor(), method.getCoordinates().replaceArguments(), params)
+                                   .withComments(inputStreamBufferingWarningComment());
             }
+
+            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()}");
+
+            if (contentLen instanceof J.Literal) {
+                sb.append("L");
+            }
+            sb.append(")");
+
+            params = Arrays.copyOf(params, 4);
+            params[3] = contentLen;
 
             return JavaTemplate.builder(sb.toString()).build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments(), params);
@@ -401,6 +406,9 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
         private Expression retrieveContentLengthForMetadataIfSet(String metadataName) {
             Map<String, Expression> map = metadataMap.get(metadataName);
+            if (map == null) {
+                return null;
+            }
             return map.get("contentLength");
         }
 
@@ -495,6 +503,12 @@ public class S3PutObjectRequestToV2 extends Recipe {
         private void addTmImport(String pojoName) {
             String fqcn = V2_TM_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
+        }
+
+        private List<Comment> inputStreamBufferingWarningComment() {
+            String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
+                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.";
+            return createComments(warning);
         }
     }
 }

@@ -52,10 +52,15 @@ public class S3Streaming {
     }
 
     void putObject_bucketKeyStreamMetadata(String bucket, String key, InputStream stream) {
-        HeadObjectResponse metadata = HeadObjectResponse.builder()
+        HeadObjectResponse metadataWithLength = HeadObjectResponse.builder()
             .build();
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength(22L)
             .build(), RequestBody.fromInputStream(stream, 22L));
+
+
+        HeadObjectResponse metadataWithoutLength = HeadObjectResponse.builder()
+            .build();
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(), RequestBody.fromContentProvider(() -> stream, "application/octet-stream"));
     }
 
     /**

@@ -46,9 +46,13 @@ public class S3Streaming {
     }
 
     void putObject_bucketKeyStreamMetadata(String bucket, String key, InputStream stream) {
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(22);
-        s3.putObject(bucket, key, stream, metadata);
+        ObjectMetadata metadataWithLength = new ObjectMetadata();
+        metadataWithLength.setContentLength(22);
+        s3.putObject(bucket, key, stream, metadataWithLength);
+
+
+        ObjectMetadata metadataWithoutLength = new ObjectMetadata();
+        s3.putObject(bucket, key, stream, metadataWithoutLength);
     }
 
     /**
