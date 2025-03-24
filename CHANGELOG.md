@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.7__ __2025-03-24__
+## __AWS IoT Wireless__
+  - ### Features
+    - Mark EutranCid under LteNmr optional.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - ClusterName/ClusterIdentifier, ComputeNodeGroupName/ComputeNodeGroupIdentifier, and QueueName/QueueIdentifier can now have 10 characters, and a minimum of 3 characters. The TagResource API action can now return ServiceQuotaExceededException.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Provides the correct value for supported model ID.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds the AvailableSecurityUpdatesComplianceStatus field to patch baseline operations, as well as the AvailableSecurityUpdateCount and InstancesWithAvailableSecurityUpdates to patch state operations. Applies to Windows Server managed nodes only.
+
 # __2.31.6__ __2025-03-21__
 ## __AWS Route53 Recovery Control Config__
   - ### Features
