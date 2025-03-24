@@ -217,6 +217,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
         Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferComplete(ArgumentMatchers.any());
 
+        // when false, the generic S3 TM will read 16KiB chunks, so OBJ_SIZE / 16KiB = 16MiB / 16KiB = 1024
         int numTimesBytesTransferred = multipartEnabled ? 2 : 1024;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
