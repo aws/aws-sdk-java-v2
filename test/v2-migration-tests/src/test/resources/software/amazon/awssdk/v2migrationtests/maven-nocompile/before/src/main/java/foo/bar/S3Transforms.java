@@ -58,7 +58,6 @@ public class S3Transforms {
         metadata.setRequesterCharged(false);
 
         metadata.setLastModified(dateVal);
-        metadata.setHttpExpiresDate(dateVal);
         metadata.setExpirationTime(dateVal);
         metadata.setRestoreExpirationTime(dateVal);
 

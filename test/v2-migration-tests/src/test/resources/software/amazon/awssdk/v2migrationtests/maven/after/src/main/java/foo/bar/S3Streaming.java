@@ -18,6 +18,7 @@ package foo.bar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -133,6 +134,7 @@ public class S3Streaming {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
             .build();
         long contentLen = 66;
+        Date expiry = new Date();
 
         Map<String, String> userMetadata = new HashMap<>();
         userMetadata.put("key", "value");
@@ -149,6 +151,7 @@ public class S3Streaming {
             .sseCustomerKeyMD5("sseCustomerKeyMd5Val")
             .bucketKeyEnabled(true)
             .metadata(userMetadata)
+            .expires(expiry.toInstant())
             .build();
     }
 }

@@ -421,7 +421,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
             if (!SUPPORTED_METADATA_TRANSFORMS.contains(methodName)) {
                 String comment = String.format("Transform for ObjectMetadata setter - %s - is not supported, please manually "
-                                               + "migrate the code by setting it on the v2 PutObjectRequest.", methodName);
+                                               + "migrate the code by setting it on the v2 request/response object.", methodName);
                 return method.withComments(createComments(comment));
             }
 

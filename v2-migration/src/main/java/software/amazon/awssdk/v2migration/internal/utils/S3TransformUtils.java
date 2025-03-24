@@ -53,7 +53,8 @@ public final class S3TransformUtils {
         "serverSideEncryption",
         "sseCustomerKeyMd5",
         "bucketKeyEnabled",
-        "userMetadata"
+        "userMetadata",
+        "httpExpiresDate"
     )));
 
 
@@ -128,6 +129,10 @@ public final class S3TransformUtils {
         Expression userMetadata = map.get("userMetadata");
         if (userMetadata != null) {
             sb.append(".metadata(").append(userMetadata).append(")\n");
+        }
+        Expression expiresDate = map.get("httpExpiresDate");
+        if (expiresDate != null) {
+            sb.append(".expires(").append(expiresDate).append(".toInstant())\n");
         }
     }
 

@@ -24,6 +24,7 @@ import com.amazonaws.services.s3.model.S3Object;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,6 +127,8 @@ public class S3Streaming {
         metadata.setServerSideEncryption("sseEncryptionVal");
         metadata.setSSECustomerKeyMd5("sseCustomerKeyMd5Val");
         metadata.setBucketKeyEnabled(true);
+        Date expiry = new Date();
+        metadata.setHttpExpiresDate(expiry);
 
         Map<String, String> userMetadata = new HashMap<>();
         userMetadata.put("key", "value");
