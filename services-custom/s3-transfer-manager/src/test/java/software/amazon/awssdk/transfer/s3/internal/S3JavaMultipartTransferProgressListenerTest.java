@@ -27,8 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
@@ -37,6 +39,7 @@ import java.time.Duration;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -79,6 +82,11 @@ public class S3JavaMultipartTransferProgressListenerTest {
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
     }
 
+    @BeforeEach
+    void resetWireMock() {
+        WireMock.reset();
+    }
+
     private static S3AsyncClient s3AsyncClient(boolean multipartEnabled) {
         return S3AsyncClient.builder()
                             .multipartEnabled(multipartEnabled)
@@ -90,7 +98,7 @@ public class S3JavaMultipartTransferProgressListenerTest {
     }
 
     private static void assertMockOnFailure(TransferListener transferListenerMock) {
-        Mockito.verify(transferListenerMock, times(1)).transferFailed(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferFailed(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(0)).transferComplete(ArgumentMatchers.any());
     }
@@ -207,9 +215,8 @@ public class S3JavaMultipartTransferProgressListenerTest {
         assertThat(transferListener.isTransferInitiated()).isTrue();
         Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
         Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
-        Mockito.verify(transferListenerMock, times(1)).transferComplete(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferComplete(ArgumentMatchers.any());
 
-        // when false, the generic S3 TM will read 16KiB chunks, so OBJ_SIZE / 16KiB = 16MiB / 16KiB = 1024
         int numTimesBytesTransferred = multipartEnabled ? 2 : 1024;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
     }
