@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Added support to override upgrade-blocking readiness checks via force flag when updating a cluster."
-}

@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.8__ __2025-03-25__
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - This release enhances the GetEntitlements API to support new filter CUSTOMER_AWS_ACCOUNT_ID in request and CustomerAWSAccountId field in response.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - This release enhances the BatchMeterUsage API to support new field CustomerAWSAccountId in request and response and making CustomerIdentifier optional. CustomerAWSAccountId or CustomerIdentifier must be provided in request but not both.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adding support for Amazon OpenSearch Managed clusters as a vector database in Knowledge Bases for Amazon Bedrock
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support to override upgrade-blocking readiness checks via force flag when updating a cluster.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Minor updates to improve developer experience.
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Removing replication region limitation for Amazon Keyspaces Multi-Region Replication APIs.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for customer-managed KMS keys in Amazon SageMaker Partner AI Apps
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Deprecate tags field in Get API responses
+
+## __EC2 Metadata Client__
+  - ### Features
+    - Added new Ec2MetadataClientException extending SdkClientException for IMDS unsuccessful responses that captures HTTP status codes, headers, and raw response content for improved error handling. See [#5786](https://github.com/aws/aws-sdk-java-v2/issues/5786)
+
 # __2.31.7__ __2025-03-24__
 ## __AWS IoT Wireless__
   - ### Features
