@@ -1,0 +1,66 @@
+{
+    "version": "2.31.8",
+    "date": "2025-03-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "This release enhances the GetEntitlements API to support new filter CUSTOMER_AWS_ACCOUNT_ID in request and CustomerAWSAccountId field in response."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "This release enhances the BatchMeterUsage API to support new field CustomerAWSAccountId in request and response and making CustomerIdentifier optional. CustomerAWSAccountId or CustomerIdentifier must be provided in request but not both."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Metadata Client",
+            "contributor": "",
+            "description": "Added new Ec2MetadataClientException extending SdkClientException for IMDS unsuccessful responses that captures HTTP status codes, headers, and raw response content for improved error handling. See [#5786](https://github.com/aws/aws-sdk-java-v2/issues/5786)"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Adding support for Amazon OpenSearch Managed clusters as a vector database in Knowledge Bases for Amazon Bedrock"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Added support to override upgrade-blocking readiness checks via force flag when updating a cluster."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Minor updates to improve developer experience."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Removing replication region limitation for Amazon Keyspaces Multi-Region Replication APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for customer-managed KMS keys in Amazon SageMaker Partner AI Apps"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Deprecate tags field in Get API responses"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

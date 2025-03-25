@@ -62,5 +62,10 @@
             <artifactId>s3</artifactId>
             <version>V2_VERSION</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudwatch</artifactId>
+            <version>V2_VERSION</version>
+        </dependency>
     </dependencies>
 </project>
