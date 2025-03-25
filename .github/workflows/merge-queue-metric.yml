@@ -1,0 +1,42 @@
+# This workflow tracks when PRs are added ('enqueued') to the master branch merge queue, and when they are removed for
+# reasons other than 'MERGE', which means that it probably has to be enqueued again. The most common reason for this is
+# test failures when running the checks in the merge queue.
+name: Tracking Merge Queue
+on:
+  pull_request:
+    types: [ "enqueued", "dequeued" ]
+    branches:
+      - "master"
+
+permissions:
+  id-token: write
+
+jobs:
+  emit-enqueue:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'aws/aws-sdk-java-v2' && github.event.action == 'enqueued' }}
+
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 120
+      - name: Record merge queue add
+        run: |
+          aws --region us-west-2 cloudwatch put-metric-data --namespace AwsJavaSdkV2/GitHub --metric-name MergeQueue-Add --unit Count --value 1 --dimensions Branch=master
+
+  emit-dequeue:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'aws/aws-sdk-java-v2' && github.event.action == 'dequeued' && github.event.reason != 'MERGE'}}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 120
+      - name: Record merge queue removal
+        run: |
+          aws --region us-west-2 cloudwatch put-metric-data --namespace AwsJavaSdkV2/GitHub --metric-name MergeQueue-Remove --unit Count --value 1 --dimensions Branch=master
