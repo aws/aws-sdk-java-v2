@@ -862,6 +862,7 @@
                                         <include>**/*IntegrationTests.java</include>
                                         <include>**/*IntegTest.java</include>
                                         <include>**/RunCucumberTest.java</include>
+                                        <include>**/ChecksumIntegrationTesting.java</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/SimpleMethodsIntegrationTest.java</exclude>
@@ -874,6 +875,51 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+
+        <profile>
+            <id>s3-checksums-tests</id>
+            <activation>
+                <property>
+                    <name>doRelease</name>
+                </property>
+            </activation>
+
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- Sets the VM argument line used when integration tests are run. -->
+                                    <argLine>${argLine}</argLine>
+                                    <includes>
+                                        <include>**/s3/checksum/ChecksumIntegrationTesting.java</include>
+                                    </includes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+
         </profile>
 
         <profile>

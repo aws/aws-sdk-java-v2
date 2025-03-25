@@ -39,6 +39,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -54,12 +55,16 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -90,10 +95,10 @@ import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointSta
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.CancellableOutputStream;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.crt.Log;
 
 public class ChecksumIntegrationTesting {
     private static final String BUCKET_NAME_PREFIX = "do-not-delete-checksums-";
@@ -126,7 +131,8 @@ public class ChecksumIntegrationTesting {
     private static S3Client s3;
     private static StsClient sts;
 
-    private static Path testFile;
+    private static Path testFileSmall;
+    private static Path testFileLarge;
 
     private Map<BucketType, List<String>> bucketCleanup = new HashMap<>();
 
@@ -158,7 +164,8 @@ public class ChecksumIntegrationTesting {
 
         apArn = createAccessPoint();
 
-        testFile = createRandomFile();
+        testFileSmall = createRandomFile16KB();
+        testFileLarge = createRandomFile200MB();
     }
 
     @AfterEach
@@ -201,6 +208,7 @@ public class ChecksumIntegrationTesting {
     @ParameterizedTest
     @MethodSource("testConfigs")
     void deleteObject(TestConfig config) throws Exception {
+        LOG.debug(() -> "Running deleteObject with config: " + config.toString());
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
@@ -208,7 +216,7 @@ public class ChecksumIntegrationTesting {
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomObject(config.getBucketType());
-        TestCallable callable = null;
+        TestCallable<Void> callable = null;
         try {
             DeleteObjectsRequest req = DeleteObjectsRequest.builder()
                                                            .bucket(bucket)
@@ -232,6 +240,7 @@ public class ChecksumIntegrationTesting {
     @ParameterizedTest
     @MethodSource("testConfigs")
     void restoreObject(TestConfig config) throws Exception {
+        LOG.debug(() -> "Running restoreObject with config: " + config.toString());
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
@@ -264,8 +273,16 @@ public class ChecksumIntegrationTesting {
     }
 
     @ParameterizedTest
+    @MethodSource("")
+    void getObject(TestConfig config) {
+        LOG.debug(() -> "Running putObject with config: " + config.toString());
+
+    }
+
+    @ParameterizedTest
     @MethodSource("uploadConfigs")
     void putObject(UploadConfig config) throws Exception {
+        LOG.debug(() -> "Running putObject with config: " + config.toString());
         assumeNotAccelerateWithPathStyle(config.getBaseConfig());
         assumeNotAccessPointWithPathStyle(config.getBaseConfig());
         assumeNotAccelerateWithArnType(config.getBaseConfig());
@@ -278,7 +295,9 @@ public class ChecksumIntegrationTesting {
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
         // Payload signing doesn't work correctly for async java based
-        Assumptions.assumeFalse(config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
+        Assumptions.assumeFalse(
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
+             || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI)
                                 && (config.getBaseConfig().isPayloadSigning()
                                     // MRAP requires body signing
                                     || config.getBaseConfig().getBucketType() == BucketType.MRAP),
@@ -286,7 +305,9 @@ public class ChecksumIntegrationTesting {
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
-        Assumptions.assumeFalse(config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
+        Assumptions.assumeFalse(
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
+             || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI)
                                 && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
                                 "Async Java based support unknown content length");
 
@@ -319,13 +340,13 @@ public class ChecksumIntegrationTesting {
             String actualCrc32;
 
             if (!config.getBaseConfig().getFlavor().isAsync()) {
-                TestRequestBody body = getRequestBody(config.getBodyType());
+                TestRequestBody body = getRequestBody(config.getBodyType(), config.getContentSize());
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
                 actualCrc32 = body.getChecksum();
             } else {
-                TestAsyncBody body = getAsyncRequestBody(config.getBodyType());
+                TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
@@ -436,7 +457,19 @@ public class ChecksumIntegrationTesting {
         S3AsyncClient s3Client = makeAsyncClient(config, overrideConfiguration);
         Callable<PutObjectResponse> callable = () -> {
             try {
-                CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, requestBody.getAsyncRequestBody());
+                AsyncRequestBody asyncRequestBody = requestBody.getAsyncRequestBody();
+                CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, asyncRequestBody);
+                if (requestBody.bodyType == BodyType.BLOCKING_INPUT_STREAM) {
+                    BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
+                    InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
+                    body.writeInputStream(inputStream);
+                }
+                if (requestBody.bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
+                    TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
+                    CancellableOutputStream outputStream =
+                        ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
+                    body.bodyWrite.accept(outputStream);
+                }
                 return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -482,6 +515,16 @@ public class ChecksumIntegrationTesting {
                     .accelerate(config.isAccelerateEnabled())
                     .overrideConfiguration(overrideConfiguration)
                     .build();
+            case ASYNC_JAVA_BASED_MULTI:
+                return S3AsyncClient.builder()
+                    .forcePathStyle(config.isForcePathStyle())
+                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                    .region(REGION)
+                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                    .accelerate(config.isAccelerateEnabled())
+                    .overrideConfiguration(overrideConfiguration)
+                    .multipartEnabled(true)
+                    .build();
             case ASYNC_CRT: {
                 if (overrideConfiguration != null) {
                     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
@@ -523,7 +566,7 @@ public class ChecksumIntegrationTesting {
         EOZ(false),
         ;
 
-        private boolean arnType;
+        private final boolean arnType;
 
         private BucketType(boolean arnType) {
             this.arnType = arnType;
@@ -537,11 +580,12 @@ public class ChecksumIntegrationTesting {
     enum S3ClientFlavor {
         JAVA_BASED(false),
         ASYNC_JAVA_BASED(true),
+        ASYNC_JAVA_BASED_MULTI(true),
 
         ASYNC_CRT(true)
         ;
 
-        private boolean async;
+        private final boolean async;
 
         private S3ClientFlavor(boolean async) {
             this.async = async;
@@ -555,6 +599,7 @@ public class ChecksumIntegrationTesting {
     static class UploadConfig {
         private TestConfig baseConfig;
         private BodyType bodyType;
+        private ContentSize contentSize;
 
         public TestConfig getBaseConfig() {
             return baseConfig;
@@ -572,12 +617,67 @@ public class ChecksumIntegrationTesting {
             this.bodyType = bodyType;
         }
 
+        public void setContentSize(ContentSize contentSize) {
+            this.contentSize = contentSize;
+        }
+
+        public ContentSize getContentSize() {
+            return this.contentSize;
+        }
+
         @Override
         public String toString() {
             return "UploadConfig{" +
                    "baseConfig=" + baseConfig +
                    ", bodyType=" + bodyType +
+                   ", contentSize=" + contentSize +
                    '}';
+        }
+
+    }
+
+    enum ResponseTransformerType {
+        FILE,
+        BYTES,
+        INPUT_STREAM,
+        OUTPUT_STREAM,
+        UNMANAGED,
+        PUBLISHER
+    }
+
+    static class DownloadConfig {
+        private TestConfig testConfig;
+        private ResponseTransformerType responseTransformerType;
+        private ContentSize contentSize;
+
+        public DownloadConfig(TestConfig testConfig, ResponseTransformerType responseTransformerType, ContentSize contentSize) {
+            this.testConfig = testConfig;
+            this.responseTransformerType = responseTransformerType;
+            this.contentSize = contentSize;
+        }
+
+        public TestConfig getTestConfig() {
+            return this.testConfig;
+        }
+
+        public void setTestConfig(TestConfig testConfig) {
+            this.testConfig = testConfig;
+        }
+
+        public ResponseTransformerType getResponseTransformerType() {
+            return responseTransformerType;
+        }
+
+        public void setResponseTransformerType(ResponseTransformerType responseTransformerType) {
+            this.responseTransformerType = responseTransformerType;
+        }
+
+        public ContentSize getContentSize() {
+            return contentSize;
+        }
+
+        public void setContentSize(ContentSize contentSize) {
+            this.contentSize = contentSize;
         }
     }
 
@@ -604,11 +704,13 @@ public class ChecksumIntegrationTesting {
         private final AsyncRequestBody asyncRequestBody;
         private final long actualContentLength;
         private final String checksum;
+        private final BodyType bodyType;
 
-        private TestAsyncBody(AsyncRequestBody asyncRequestBody, long actualContentLength, String checksum) {
+        private TestAsyncBody(AsyncRequestBody asyncRequestBody, long actualContentLength, String checksum, BodyType bodyType) {
             this.asyncRequestBody = asyncRequestBody;
             this.actualContentLength = actualContentLength;
             this.checksum = checksum;
+            this.bodyType = bodyType;
         }
 
         public AsyncRequestBody getAsyncRequestBody() {
@@ -622,7 +724,30 @@ public class ChecksumIntegrationTesting {
         public String getChecksum() {
             return checksum;
         }
+    }
 
+    private static class TestAsyncBodyForBlockingOutputStream extends TestAsyncBody {
+        private final Consumer<CancellableOutputStream> bodyWrite;
+        private TestAsyncBodyForBlockingOutputStream(AsyncRequestBody asyncRequestBody,
+                                                     Consumer<CancellableOutputStream> bodyWrite,
+                                                     long actualContentLength,
+                                                     String checksum,
+                                                     BodyType bodyType) {
+            super(asyncRequestBody, actualContentLength, checksum, bodyType);
+            this.bodyWrite = bodyWrite;
+        }
+    }
+
+    private static class TestAsyncBodyForBlockingInputStream extends TestAsyncBody {
+        private final InputStream inputStream;
+        private TestAsyncBodyForBlockingInputStream(AsyncRequestBody asyncRequestBody,
+                                                    InputStream inputStream,
+                                                    long actualContentLength,
+                                                    String checksum,
+                                                    BodyType bodyType) {
+            super(asyncRequestBody, actualContentLength, checksum, bodyType);
+            this.inputStream = inputStream;
+        }
     }
 
     static class TestConfig {
@@ -736,7 +861,47 @@ public class ChecksumIntegrationTesting {
 
         CONTENT_PROVIDER_WITH_LENGTH,
 
-        CONTENT_PROVIDER_NO_LENGTH
+        CONTENT_PROVIDER_NO_LENGTH,
+
+        BYTES,
+        BYTE_BUFFER,
+        REMAINING_BYTE_BUFFER,
+
+        BYTES_UNSAFE,
+        BYTE_BUFFER_UNSAFE,
+        REMAINING_BYTE_BUFFER_UNSAFE,
+
+        BUFFERS,
+        BUFFERS_REMAINING,
+        BUFFERS_UNSAFE,
+        BUFFERS_REMAINING_UNSAFE,
+
+        BLOCKING_INPUT_STREAM,
+        BLOCKING_OUTPUT_STREAM
+    }
+
+    enum ContentSize {
+        SMALL,
+        LARGE; // 200 MiB
+
+        static final byte[] smallContent = "Hello world".getBytes(StandardCharsets.UTF_8);
+        static final byte[] largeContent = largeContent();
+
+        byte[] content() {
+            switch (this) {
+                case SMALL: return smallContent;
+                case LARGE: return largeContent;
+                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+            }
+        }
+    }
+
+    private static byte[] largeContent() {
+        // 200 MiB
+        Random r = new Random();
+        byte[] b = new byte[200 * 1024 * 1024];
+        r.nextBytes(b);
+        return b;
     }
 
     private static List<UploadConfig> uploadConfigs() {
@@ -744,10 +909,26 @@ public class ChecksumIntegrationTesting {
 
         for (BodyType bodyType : BodyType.values()) {
             for (TestConfig baseConfig : testConfigs()) {
-                UploadConfig config = new UploadConfig();
-                config.setBaseConfig(baseConfig);
-                config.setBodyType(bodyType);
-                configs.add(config);
+                for (ContentSize size : ContentSize.values()) {
+                    UploadConfig config = new UploadConfig();
+                    config.setBaseConfig(baseConfig);
+                    config.setBodyType(bodyType);
+                    config.setContentSize(size);
+                    configs.add(config);
+                }
+            }
+        }
+        return configs;
+    }
+
+    private static List<DownloadConfig> downloadConfigs() {
+        List<DownloadConfig> configs = new ArrayList<>();
+        for (ResponseTransformerType responseTransformerType : ResponseTransformerType.values()) {
+            for (TestConfig baseConfig : testConfigs()) {
+                for (ContentSize contentSize : ContentSize.values()) {
+                    DownloadConfig config = new DownloadConfig(baseConfig, responseTransformerType, contentSize);
+                    configs.add(config);
+                }
             }
         }
         return configs;
@@ -770,28 +951,28 @@ public class ChecksumIntegrationTesting {
         return key;
     }
 
-    private TestRequestBody getRequestBody(BodyType bodyType) throws IOException {
+    private TestRequestBody getRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
-                String content = "Hello world";
-                long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
+                byte[] content = contentSize.content();
+                long contentLength = content.length;
                 return new TestRequestBody(RequestBody.fromString("Hello world"), contentLength, crc32(content));
             }
             case FILE:
-                return new TestRequestBody(RequestBody.fromFile(testFile), Files.size(testFile), crc32(testFile));
+                return new TestRequestBody(RequestBody.fromFile(testFileSmall), Files.size(testFileSmall), crc32(testFileSmall));
             case CONTENT_PROVIDER_NO_LENGTH: {
                 RequestBody wrapped =
-                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFile)),
+                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFileSmall)),
                                                     "application/octet-stream");
 
-                return new TestRequestBody(wrapped, Files.size(testFile), crc32(testFile));
+                return new TestRequestBody(wrapped, Files.size(testFileSmall), crc32(testFileSmall));
             }
             case CONTENT_PROVIDER_WITH_LENGTH: {
-                long contentLength = Files.size(testFile);
-                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFile)),
-                                                                          Files.size(testFile),
+                long contentLength = Files.size(testFileSmall);
+                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFileSmall)),
+                                                                          Files.size(testFileSmall),
                                                                           "application/octet-stream");
-                return new TestRequestBody(wrapped, contentLength, crc32(testFile));
+                return new TestRequestBody(wrapped, contentLength, crc32(testFileSmall));
             }
             case INPUTSTREAM_RESETABLE: {
                 byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
@@ -803,41 +984,192 @@ public class ChecksumIntegrationTesting {
                 RequestBody wrapped = RequestBody.fromInputStream(new NonResettableByteStream(content), content.length);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
+            case BYTES: {
+                byte[] content = contentSize.content();
+                RequestBody wrapped = RequestBody.fromBytes(content);
+                return new TestRequestBody(wrapped, content.length, crc32(content));
+            }
+            case BYTE_BUFFER: {
+                byte[] content = contentSize.content();
+                RequestBody wrapped = RequestBody.fromByteBuffer(ByteBuffer.wrap(content));
+                return new TestRequestBody(wrapped, content.length, crc32(content));
+            }
+            case REMAINING_BYTE_BUFFER: {
+                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                ByteBuffer buff = ByteBuffer.wrap(content);
+                int offset = 2;
+                buff.position(offset);
+                RequestBody asyncRequestBody = RequestBody.fromRemainingByteBuffer(buff);
+                byte[] crcArray = new byte[content.length - offset];
+                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                return new TestRequestBody(asyncRequestBody, content.length, crc32(crcArray));
+            }
+            case BUFFERS:
+            case BUFFERS_REMAINING:
+            case BUFFERS_UNSAFE:
+            case BUFFERS_REMAINING_UNSAFE:
+            case BYTES_UNSAFE:
+            case BYTE_BUFFER_UNSAFE:
+            case REMAINING_BYTE_BUFFER_UNSAFE:
+            case BLOCKING_INPUT_STREAM:
+            case BLOCKING_OUTPUT_STREAM:
+                Assumptions.abort("Test BodyType not supported for sync client: " + bodyType);
             default:
                 throw new RuntimeException("Unsupported body type: " + bodyType);
         }
     }
 
-    private TestAsyncBody getAsyncRequestBody(BodyType bodyType) throws IOException {
+    private TestAsyncBody getAsyncRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
-                String content = "Hello world";
-                long contentLength = content.getBytes(StandardCharsets.UTF_8).length;
-                return new TestAsyncBody(AsyncRequestBody.fromString(content), contentLength, crc32(content));
+                byte[] content = contentSize.content();
+                long contentLength = content.length;
+                return new TestAsyncBody(AsyncRequestBody.fromString(new String(content)), contentLength, crc32(content), bodyType);
             }
             case FILE: {
-                long contentLength = Files.size(testFile);
-                return new TestAsyncBody(AsyncRequestBody.fromFile(testFile), contentLength, crc32(testFile));
+                long contentLength = Files.size(testFileSmall);
+                return new TestAsyncBody(AsyncRequestBody.fromFile(testFileSmall), contentLength, crc32(testFileSmall), bodyType);
             }
             case INPUTSTREAM_RESETABLE: {
-                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case INPUTSTREAM_NOT_RESETABLE: {
-                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new NonResettableByteStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case CONTENT_PROVIDER_NO_LENGTH: {
-                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(content));
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromPublisher(publisher);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content));
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+            }
+
+            case BYTES: {
+                byte[] content = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytes(content);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+            }
+            case BYTE_BUFFER: {
+                byte[] content = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffer(ByteBuffer.wrap(content));
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+            }
+            case REMAINING_BYTE_BUFFER: {
+                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                ByteBuffer buff = ByteBuffer.wrap(content);
+                int offset = 2;
+                buff.position(offset);
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffer(buff);
+                byte[] crcArray = new byte[content.length - offset];
+                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
+            }
+            case BYTES_UNSAFE:{
+                byte[] content = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytesUnsafe(content);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+            }
+            case BYTE_BUFFER_UNSAFE: {
+                byte[] content = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBufferUnsafe(ByteBuffer.wrap(content));
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+            }
+            case REMAINING_BYTE_BUFFER_UNSAFE: {
+                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                ByteBuffer buff = ByteBuffer.wrap(content);
+                int offset = 2;
+                buff.position(offset);
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBufferUnsafe(buff);
+                byte[] crcArray = new byte[content.length - offset];
+                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
+            }
+            case BUFFERS: {
+                byte[] content1 = contentSize.content();
+                byte[] content2 = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffers(ByteBuffer.wrap(content1),
+                                                                                     ByteBuffer.wrap(content2));
+                byte[] crcArray = new byte[content2.length + content2.length];
+                System.arraycopy(content1, 0, crcArray, 0, content1.length);
+                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
+                return new TestAsyncBody(asyncRequestBody,
+                                         content1.length + content2.length,
+                                         crc32(crcArray),
+                                         bodyType);
+            }
+            case BUFFERS_REMAINING: {
+                byte[] content1 = contentSize.content();
+                byte[] content2 = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffers(ByteBuffer.wrap(content1),
+                                                                                     ByteBuffer.wrap(content2));
+                byte[] crcArray = new byte[content2.length + content2.length];
+                System.arraycopy(content1, 0, crcArray, 0, content1.length);
+                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
+                return new TestAsyncBody(asyncRequestBody,
+                                         content1.length + content2.length,
+                                         crc32(crcArray),
+                                         bodyType);
+            }
+            case BUFFERS_UNSAFE: {
+                byte[] content1 = contentSize.content();
+                byte[] content2 = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffersUnsafe(ByteBuffer.wrap(content1),
+                                                                                           ByteBuffer.wrap(content2));
+                byte[] crcArray = new byte[content2.length + content2.length];
+                System.arraycopy(content1, 0, crcArray, 0, content1.length);
+                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
+                return new TestAsyncBody(asyncRequestBody,
+                                         content1.length + content2.length,
+                                         crc32(crcArray),
+                                         bodyType);
+
+            }
+            case BUFFERS_REMAINING_UNSAFE: {
+                byte[] content1 = contentSize.content();
+                byte[] content2 = contentSize.content();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffersUnsafe(ByteBuffer.wrap(content1),
+                                                                                                    ByteBuffer.wrap(content2));
+                byte[] crcArray = new byte[content2.length + content2.length];
+                System.arraycopy(content1, 0, crcArray, 0, content1.length);
+                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
+                return new TestAsyncBody(asyncRequestBody,
+                                         content1.length + content2.length,
+                                         crc32(crcArray),
+                                         bodyType);
+            }
+            case BLOCKING_INPUT_STREAM: {
+                byte[] content = contentSize.content();
+                long streamToSendLength = content.length;
+                BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(streamToSendLength);
+                return new TestAsyncBodyForBlockingInputStream(body,
+                                                               new ByteArrayInputStream(content),
+                                                               content.length,
+                                                               crc32(content),
+                                                               bodyType);
+            }
+            case BLOCKING_OUTPUT_STREAM: {
+                byte[] content = contentSize.content();
+                long streamToSendLength = content.length;
+                BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(streamToSendLength);
+                Consumer<CancellableOutputStream> bodyWrite = outputStream -> {
+                    try {
+                        outputStream.write(content);
+                    } catch (IOException ioe) {
+                        throw new RuntimeException(ioe);
+                    }
+                };
+                return new TestAsyncBodyForBlockingOutputStream(body,
+                                                                bodyWrite,
+                                                                content.length,
+                                                                crc32(content),
+                                                                bodyType);
             }
             default:
                 throw new RuntimeException("Unsupported async body type: " + bodyType);
@@ -960,9 +1292,9 @@ public class ChecksumIntegrationTesting {
                                    .build());
         } catch (S3Exception e) {
             LOG.debug(() -> "Error attempting to create bucket: " + bucketName);
-            if (e.awsErrorDetails().errorCode().equals("BucketAlreadyOwnedByYou")) {
+            if ("BucketAlreadyOwnedByYou".equals(e.awsErrorDetails().errorCode())) {
                 LOG.debug(() -> String.format("%s bucket already exists, likely leaked by a previous run%n", bucketName));
-            } else if (e.awsErrorDetails().errorCode().equals("TooManyBuckets")) {
+            } else if ("TooManyBuckets".equals(e.awsErrorDetails().errorCode())) {
                 LOG.debug(() -> "Printing all buckets for debug:");
                 s3.listBuckets().buckets().forEach(l -> LOG.debug(l::toString));
                 if (retryCount < 2) {
@@ -979,12 +1311,24 @@ public class ChecksumIntegrationTesting {
         s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
-    private static Path createRandomFile() throws IOException {
+    private static Path createRandomFile16KB() throws IOException {
         Path tmp = Files.createTempFile(null, null);
         byte[] randomBytes = new byte[1024];
         new Random().nextBytes(randomBytes);
         try (OutputStream os = Files.newOutputStream(tmp)) {
             for (int i = 0; i < 16; ++i) {
+                os.write(randomBytes);
+            }
+        }
+        return tmp;
+    }
+
+    private static Path createRandomFile200MB() throws IOException {
+        Path tmp = Files.createTempFile(null, null);
+        byte[] randomBytes = new byte[1024 * 1024];
+        new Random().nextBytes(randomBytes);
+        try (OutputStream os = Files.newOutputStream(tmp)) {
+            for (int i = 0; i < 200; ++i) {
                 os.write(randomBytes);
             }
         }
