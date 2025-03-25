@@ -7,15 +7,12 @@ phases:
 
   build:
     commands:
-      - |
-      - mvn clean install -Dskip.unit.tests -P s3-checksums-tests -pl :s3-tests -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
-      - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
-      - echo $JAVA_VERSION
+      - mvn clean install -Dskip.unit.tests -P s3-checksums-tests -pl :s3-tests -am -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
       - echo $MAVEN_OPTIONS
     finally:
       - mkdir -p codebuild-test-reports
       - find ./ -name 'TEST-*.xml' -type f -exec cp {} codebuild-test-reports/ \;
 reports:
-  IntegTests:
+  ChecksumsTests:
     files:
       - 'codebuild-test-reports/**/*'
