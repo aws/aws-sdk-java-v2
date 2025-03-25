@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Keyspaces",
+    "contributor": "",
+    "description": "Removing replication region limitation for Amazon Keyspaces Multi-Region Replication APIs."
+}
