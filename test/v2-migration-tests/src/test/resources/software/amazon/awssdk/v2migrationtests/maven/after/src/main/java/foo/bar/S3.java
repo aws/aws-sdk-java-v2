@@ -15,9 +15,13 @@
 
 package foo.bar;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Uri;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
@@ -383,5 +387,19 @@ public class S3 {
     private void setBucketNameTest(S3Client s3, String bucket) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key("key").bucket(bucket)
             .build();
+    }
+
+    private void s3Uri(URI uri, String uriAsString) {
+        S3Uri s3Uri = S3Utilities.builder().build().parseUri(uri);
+
+        String versionId = s3Uri.firstMatchingRawQueryParameter("versionId").orElse(null);
+        String bucket = s3Uri.bucket().orElse(null);
+        String key = s3Uri.key().orElse(null);
+        String region = s3Uri.region().map(Region::id).orElse(null);
+        boolean isPathStyle = s3Uri.isPathStyle();
+
+        S3Uri s3UriFromString = /*AWS SDK for Java v2 migration: v2 S3Uri does not URL-encode a String URI. If you relied on this functionality in v1 you must update your code to manually encode the String.*/S3Utilities.builder().build().parseUri(URI.create(uriAsString));
+
+        S3Uri s3UriFromStringWithUrlEncodeFalse = S3Utilities.builder().build().parseUri(URI.create(uriAsString));
     }
 }
