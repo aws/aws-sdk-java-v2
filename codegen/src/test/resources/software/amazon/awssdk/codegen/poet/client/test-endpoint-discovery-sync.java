@@ -3,8 +3,10 @@ package software.amazon.awssdk.services.endpointdiscoverytest;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -32,6 +34,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
@@ -107,9 +110,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<DescribeEndpointsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                                DescribeEndpointsResponse::builder);
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            switch (errorCode) {
+                default:
+                    return Optional.empty();
+            }
+        };
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(describeEndpointsRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, describeEndpointsRequest
@@ -154,9 +163,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<TestDiscoveryIdentifiersRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, TestDiscoveryIdentifiersRequiredResponse::builder);
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            switch (errorCode) {
+                default:
+                    return Optional.empty();
+            }
+        };
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
         boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
         if (endpointOverridden) {
@@ -222,9 +237,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<TestDiscoveryOptionalResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, TestDiscoveryOptionalResponse::builder);
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            switch (errorCode) {
+                default:
+                    return Optional.empty();
+            }
+        };
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
         boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
         URI cachedEndpoint = null;
@@ -281,9 +302,15 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
         HttpResponseHandler<TestDiscoveryRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, TestDiscoveryRequiredResponse::builder);
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            switch (errorCode) {
+                default:
+                    return Optional.empty();
+            }
+        };
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
         boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
         if (endpointOverridden) {
@@ -347,8 +374,8 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {

@@ -25,7 +25,9 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import javax.lang.model.element.Modifier;
@@ -116,7 +118,6 @@ public class JsonProtocolSpec implements ProtocolSpec {
             methodSpec.addCode("$L", hasAwsQueryCompatible());
         }
 
-        registerModeledExceptions(model, poetExtensions).forEach(methodSpec::addCode);
         methodSpec.addCode(";");
 
         return methodSpec.build();
@@ -170,11 +171,39 @@ public class JsonProtocolSpec implements ProtocolSpec {
     public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
-        return Optional.of(
-            CodeBlock.builder()
-                     .add("\n\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata);",
-                          HttpResponseHandler.class, AwsServiceException.class, protocolFactory)
-                     .build());
+        CodeBlock.Builder builder = CodeBlock.builder();
+        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("switch (errorCode) {\n");
+        Set<String> processedExceptions = new HashSet<>();
+
+        opModel.getExceptions().forEach(exception -> {
+            String exceptionName = exception.getExceptionName();
+            if (!processedExceptions.add(exceptionName)) {
+                return;
+            }
+            ShapeModel exceptionShape = model.getShapes().get(exceptionName);
+            builder.add("case $S:\n", exceptionName);
+            builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                   .add(".errorCode($S)\n", exceptionName);
+            builder.add(populateHttpStatusCode(exceptionShape, model));
+            builder.add(".exceptionBuilderSupplier($T::builder)\n",
+                        poetExtensions.getModelClass(exceptionName))
+                   .add(".build());\n");
+        });
+
+        builder.add("default: return $T.empty();\n", Optional.class);
+        builder.add("}\n");
+        builder.add("};\n\n");
+
+        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
+                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
+
+        return Optional.of(builder.build());
     }
 
     @Override
@@ -411,23 +440,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
         ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
-
-        return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
-                                     .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
-                                     .addParameter(JsonOperationMetadata.class, "operationMetadata")
-                                     .returns(responseHandlerOfException)
-                                     .addModifiers(Modifier.PRIVATE)
-                                     .addStatement("return protocolFactory.createErrorResponseHandler(operationMetadata)")
-                                     .build());
-    }
-
-    @Override
-    public Optional<MethodSpec> createEventstreamErrorResponseHandler() {
-        ClassName httpResponseHandler = ClassName.get(HttpResponseHandler.class);
-        ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
-        TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
         ParameterizedTypeName mapperType = ParameterizedTypeName.get(ClassName.get(Function.class),
-            ClassName.get(String.class), ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+                                                                     ClassName.get(String.class),
+                                                                     ParameterizedTypeName.get(Optional.class,
+                                                                                               ExceptionMetadata.class));
 
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
                                      .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
