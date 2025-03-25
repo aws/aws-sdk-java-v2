@@ -109,9 +109,15 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
             HttpResponseHandler<SendRequestResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                              SendRequestResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<SendRequestResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SendRequestRequest, SendRequestResponse>()
@@ -203,11 +209,6 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
