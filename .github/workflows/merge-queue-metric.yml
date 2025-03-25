@@ -22,7 +22,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
-          role-duration-seconds: 120
+          role-duration-seconds: 900
       - name: Record merge queue add
         run: |
           aws --region us-west-2 cloudwatch put-metric-data --namespace AwsJavaSdkV2/GitHub --metric-name MergeQueue-Add --unit Count --value 1 --dimensions Branch=master
@@ -36,7 +36,7 @@ jobs:
         with:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
-          role-duration-seconds: 120
+          role-duration-seconds: 900
       - name: Record merge queue removal
         run: |
           aws --region us-west-2 cloudwatch put-metric-data --namespace AwsJavaSdkV2/GitHub --metric-name MergeQueue-Remove --unit Count --value 1 --dimensions Branch=master
