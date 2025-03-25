@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "This release adds support for customer-managed KMS keys in Amazon SageMaker Partner AI Apps"
+}
