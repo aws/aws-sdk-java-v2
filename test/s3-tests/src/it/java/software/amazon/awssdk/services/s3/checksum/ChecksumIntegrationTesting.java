@@ -110,6 +110,8 @@ public class ChecksumIntegrationTesting {
     private static final Region REGION = Region.US_WEST_2;
     private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
 
+    static final byte[] smallContent = "Hello world".getBytes(StandardCharsets.UTF_8);
+    static final byte[] largeContent = largeContent();
 
     public static final AwsCredentialsProviderChain CREDENTIALS_PROVIDER_CHAIN =
         AwsCredentialsProviderChain.of(ProfileCredentialsProvider.builder()
@@ -272,12 +274,12 @@ public class ChecksumIntegrationTesting {
         }
     }
 
-    @ParameterizedTest
-    @MethodSource("")
-    void getObject(TestConfig config) {
-        LOG.debug(() -> "Running putObject with config: " + config.toString());
-
-    }
+    // @ParameterizedTest
+    // @MethodSource("")
+    // void getObject(TestConfig config) {
+    //     LOG.debug(() -> "Running putObject with config: " + config.toString());
+    //
+    // }
 
     @ParameterizedTest
     @MethodSource("uploadConfigs")
@@ -884,8 +886,6 @@ public class ChecksumIntegrationTesting {
         SMALL,
         LARGE; // 200 MiB
 
-        static final byte[] smallContent = "Hello world".getBytes(StandardCharsets.UTF_8);
-        static final byte[] largeContent = largeContent();
 
         byte[] content() {
             switch (this) {

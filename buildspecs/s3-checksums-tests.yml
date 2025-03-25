@@ -1,13 +1,9 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      java: "$JAVA_RUNTIME"
-
   build:
     commands:
-      - mvn clean install -Dskip.unit.tests -P s3-checksums-tests -pl :s3-tests -am -Dfindbugs.skip -Dcheckstyle.skip -T1C $MAVEN_OPTIONS
+      - mvn clean install -P s3-checksums-tests -pl :s3-tests -am -T1C $MAVEN_OPTIONS
       - echo $MAVEN_OPTIONS
     finally:
       - mkdir -p codebuild-test-reports
