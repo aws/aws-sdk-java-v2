@@ -971,7 +971,9 @@ public class ChecksumIntegrationTesting {
             case STRING: {
                 byte[] content = contentSize.content();
                 long contentLength = content.length;
-                return new TestRequestBody(RequestBody.fromString("Hello world"), contentLength, crc32(content));
+                return new TestRequestBody(RequestBody.fromString(new String(content, StandardCharsets.UTF_8)),
+                                           contentLength,
+                                           crc32(content));
             }
             case FILE:
                 return new TestRequestBody(RequestBody.fromFile(testFileSmall), Files.size(testFileSmall), crc32(testFileSmall));
@@ -990,12 +992,12 @@ public class ChecksumIntegrationTesting {
                 return new TestRequestBody(wrapped, contentLength, crc32(testFileSmall));
             }
             case INPUTSTREAM_RESETABLE: {
-                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 RequestBody wrapped = RequestBody.fromInputStream(new ByteArrayInputStream(content), content.length);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case INPUTSTREAM_NOT_RESETABLE: {
-                byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 RequestBody wrapped = RequestBody.fromInputStream(new NonResettableByteStream(content), content.length);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
@@ -1010,13 +1012,13 @@ public class ChecksumIntegrationTesting {
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case REMAINING_BYTE_BUFFER: {
-                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
                 RequestBody asyncRequestBody = RequestBody.fromRemainingByteBuffer(buff);
                 byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                System.arraycopy(content, offset, crcArray, 0, crcArray.length);
                 return new TestRequestBody(asyncRequestBody, content.length, crc32(crcArray));
             }
             case BUFFERS:
@@ -1077,13 +1079,13 @@ public class ChecksumIntegrationTesting {
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case REMAINING_BYTE_BUFFER: {
-                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffer(buff);
                 byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                System.arraycopy(content, offset, crcArray, 0, crcArray.length);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
             }
             case BYTES_UNSAFE:{
@@ -1097,13 +1099,13 @@ public class ChecksumIntegrationTesting {
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case REMAINING_BYTE_BUFFER_UNSAFE: {
-                byte[] content = "Hello world, Hello world".getBytes(StandardCharsets.UTF_8);
+                byte[] content = contentSize.content();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBufferUnsafe(buff);
                 byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(crcArray, 2, crcArray, 0, crcArray.length);
+                System.arraycopy(content, 2, crcArray, 0, crcArray.length);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
             }
             case BUFFERS: {
