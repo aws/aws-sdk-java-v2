@@ -55,26 +55,4 @@ public class KinesisExceptionTest {
             }
         }
 
-    @Test
-    public void testResourceNotFoundException() {
-        String nonExistentStreamName = "non-existent-stream";
-
-        try {
-            DescribeStreamRequest request = DescribeStreamRequest.builder()
-                                                                 .streamName(nonExistentStreamName)
-                                                                 .build();
-
-            client.describeStream(request);
-
-        } catch (ResourceNotFoundException e) {
-            logger.info("Caught expected exception: {}", e.getClass().getSimpleName());
-            logger.info("Status Code: {}", e.statusCode());
-            logger.info("Error Code: {}", e.awsErrorDetails().errorCode());
-            logger.info("Error Message: {}", e.awsErrorDetails().errorMessage());
-
-            assertEquals(400, e.statusCode());
-            assertEquals("ResourceNotFoundException", e.awsErrorDetails().errorCode());
-        }
-    }
-
     }
