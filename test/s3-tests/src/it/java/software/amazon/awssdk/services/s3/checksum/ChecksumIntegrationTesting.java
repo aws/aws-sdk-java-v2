@@ -56,7 +56,6 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
@@ -65,7 +64,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -912,10 +910,26 @@ public class ChecksumIntegrationTesting {
         LARGE; // 200 MiB
 
 
-        byte[] content() {
+        byte[] byteContent() {
             switch (this) {
                 case SMALL: return smallContent;
                 case LARGE: return largeContent;
+                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+            }
+        }
+
+        String stringContent() {
+            switch (this) {
+                case SMALL: return "Hello World!";
+                case LARGE: return new String(largeContent(), StandardCharsets.UTF_8);
+                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+            }
+        }
+
+        Path fileContent() {
+            switch (this) {
+                case SMALL: return testFileSmall;
+                case LARGE: return testFileLarge;
                 default: throw new IllegalArgumentException("not supported ContentSize " + this);
             }
         }
@@ -980,50 +994,49 @@ public class ChecksumIntegrationTesting {
     private TestRequestBody getRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
-                byte[] content = contentSize.content();
-                long contentLength = content.length;
-                return new TestRequestBody(RequestBody.fromString(new String(content)),
-                                           contentLength,
+                String content = contentSize.stringContent();
+                return new TestRequestBody(RequestBody.fromString(content),
+                                           content.getBytes().length,
                                            crc32(content));
             }
             case FILE:
-                return new TestRequestBody(RequestBody.fromFile(testFileSmall), Files.size(testFileSmall), crc32(testFileSmall));
+                return new TestRequestBody(RequestBody.fromFile(contentSize.fileContent()), Files.size(contentSize.fileContent()), crc32(contentSize.fileContent()));
             case CONTENT_PROVIDER_NO_LENGTH: {
                 RequestBody wrapped =
-                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFileSmall)),
+                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentSize.fileContent())),
                                                     "application/octet-stream");
 
-                return new TestRequestBody(wrapped, Files.size(testFileSmall), crc32(testFileSmall));
+                return new TestRequestBody(wrapped, Files.size(contentSize.fileContent()), crc32(contentSize.fileContent()));
             }
             case CONTENT_PROVIDER_WITH_LENGTH: {
-                long contentLength = Files.size(testFileSmall);
-                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(testFileSmall)),
-                                                                          Files.size(testFileSmall),
+                long contentLength = Files.size(contentSize.fileContent());
+                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentSize.fileContent())),
+                                                                          Files.size(contentSize.fileContent()),
                                                                           "application/octet-stream");
-                return new TestRequestBody(wrapped, contentLength, crc32(testFileSmall));
+                return new TestRequestBody(wrapped, contentLength, crc32(contentSize.fileContent()));
             }
             case INPUTSTREAM_RESETABLE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromInputStream(new ByteArrayInputStream(content), content.length);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case INPUTSTREAM_NOT_RESETABLE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromInputStream(new NonResettableByteStream(content), content.length);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case BYTES: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromBytes(content);
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case BYTE_BUFFER: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromByteBuffer(ByteBuffer.wrap(content));
                 return new TestRequestBody(wrapped, content.length, crc32(content));
             }
             case REMAINING_BYTE_BUFFER: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
@@ -1049,47 +1062,47 @@ public class ChecksumIntegrationTesting {
     private TestAsyncBody getAsyncRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 long contentLength = content.length;
                 return new TestAsyncBody(AsyncRequestBody.fromString(new String(content)), contentLength, crc32(content), bodyType);
             }
             case FILE: {
-                long contentLength = Files.size(testFileSmall);
-                return new TestAsyncBody(AsyncRequestBody.fromFile(testFileSmall), contentLength, crc32(testFileSmall), bodyType);
+                long contentLength = Files.size(contentSize.fileContent());
+                return new TestAsyncBody(AsyncRequestBody.fromFile(contentSize.fileContent()), contentLength, crc32(contentSize.fileContent()), bodyType);
             }
             case INPUTSTREAM_RESETABLE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case INPUTSTREAM_NOT_RESETABLE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new NonResettableByteStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case CONTENT_PROVIDER_NO_LENGTH: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(content));
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromPublisher(publisher);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
 
             case BYTES: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytes(content);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case BYTE_BUFFER: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffer(ByteBuffer.wrap(content));
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case REMAINING_BYTE_BUFFER: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
@@ -1098,17 +1111,17 @@ public class ChecksumIntegrationTesting {
                 return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
             case BYTES_UNSAFE:{
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytesUnsafe(content);
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case BYTE_BUFFER_UNSAFE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBufferUnsafe(ByteBuffer.wrap(content));
                 return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
             }
             case REMAINING_BYTE_BUFFER_UNSAFE: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 ByteBuffer buff = ByteBuffer.wrap(content);
                 int offset = 2;
                 buff.position(offset);
@@ -1117,8 +1130,8 @@ public class ChecksumIntegrationTesting {
                 return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
             case BUFFERS: {
-                byte[] content1 = contentSize.content();
-                byte[] content2 = contentSize.content();
+                byte[] content1 = contentSize.byteContent();
+                byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffers(ByteBuffer.wrap(content1),
                                                                                      ByteBuffer.wrap(content2));
                 byte[] crcArray = new byte[content2.length + content2.length];
@@ -1130,8 +1143,8 @@ public class ChecksumIntegrationTesting {
                                          bodyType);
             }
             case BUFFERS_REMAINING: {
-                byte[] content1 = contentSize.content();
-                byte[] content2 = contentSize.content();
+                byte[] content1 = contentSize.byteContent();
+                byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffers(ByteBuffer.wrap(content1),
                                                                                      ByteBuffer.wrap(content2));
                 byte[] crcArray = new byte[content2.length + content2.length];
@@ -1143,8 +1156,8 @@ public class ChecksumIntegrationTesting {
                                          bodyType);
             }
             case BUFFERS_UNSAFE: {
-                byte[] content1 = contentSize.content();
-                byte[] content2 = contentSize.content();
+                byte[] content1 = contentSize.byteContent();
+                byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffersUnsafe(ByteBuffer.wrap(content1),
                                                                                            ByteBuffer.wrap(content2));
                 byte[] crcArray = new byte[content2.length + content2.length];
@@ -1156,8 +1169,8 @@ public class ChecksumIntegrationTesting {
                                          bodyType);
             }
             case BUFFERS_REMAINING_UNSAFE: {
-                byte[] content1 = contentSize.content();
-                byte[] content2 = contentSize.content();
+                byte[] content1 = contentSize.byteContent();
+                byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffersUnsafe(ByteBuffer.wrap(content1),
                                                                                                     ByteBuffer.wrap(content2));
                 byte[] crcArray = new byte[content2.length + content2.length];
@@ -1169,7 +1182,7 @@ public class ChecksumIntegrationTesting {
                                          bodyType);
             }
             case BLOCKING_INPUT_STREAM: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 long streamToSendLength = content.length;
                 BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(streamToSendLength);
                 return new TestAsyncBodyForBlockingInputStream(body,
@@ -1179,7 +1192,7 @@ public class ChecksumIntegrationTesting {
                                                                bodyType);
             }
             case BLOCKING_OUTPUT_STREAM: {
-                byte[] content = contentSize.content();
+                byte[] content = contentSize.byteContent();
                 long streamToSendLength = content.length;
                 BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(streamToSendLength);
                 Consumer<CancellableOutputStream> bodyWrite = outputStream -> {
