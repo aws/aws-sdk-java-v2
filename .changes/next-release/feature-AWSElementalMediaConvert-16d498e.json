@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "contributor": "",
-    "description": "This release adds a configurable Quality Level setting for the top rendition of Auto ABR jobs"
-}

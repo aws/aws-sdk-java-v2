@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.9__ __2025-03-26__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Add new shiftType field for ARC zonal shifts.
+
+## __AWS Direct Connect__
+  - ### Features
+    - With this release, AWS Direct Connect allows you to tag your Direct Connect gateways. Tags are metadata that you can create and use to manage your Direct Connect gateways. For more information about tagging, see AWS Tagging Strategies.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds a configurable Quality Level setting for the top rendition of Auto ABR jobs
+
+## __AWS MediaTailor__
+  - ### Features
+    - Add support for log filtering which allow customers to filter out selected event types from logs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds the ability to associate an AWS WAF v2 web ACL with an AWS Amplify App.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voice - Jihye (ko-KR). Jihye is available as a Neural voice only.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add note about the Availability Zone where RDS restores the DB cluster for the RestoreDBClusterToPointInTime operation.
+
 # __2.31.8__ __2025-03-25__
 ## __AWS Marketplace Entitlement Service__
   - ### Features
