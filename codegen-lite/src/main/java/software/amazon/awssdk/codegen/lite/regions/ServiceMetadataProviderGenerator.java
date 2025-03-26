@@ -22,12 +22,12 @@ import static javax.lang.model.element.Modifier.STATIC;
 
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +38,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
-import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ServiceMetadataProviderGenerator implements PoetClass {
 
@@ -47,8 +46,8 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
     private final String regionBasePackage;
 
     public ServiceMetadataProviderGenerator(Partitions partitions,
-                                           String basePackage,
-                                           String regionBasePackage) {
+                                            String basePackage,
+                                            String regionBasePackage) {
         this.partitions = partitions;
         this.basePackage = basePackage;
         this.regionBasePackage = regionBasePackage;
@@ -57,8 +56,8 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
     @Override
     public TypeSpec poetClass() {
         TypeName mapOfServiceMetadata = ParameterizedTypeName.get(ClassName.get(Map.class),
-                                                                 ClassName.get(String.class),
-                                                                 ClassName.get(regionBasePackage, "ServiceMetadata"));
+                                                                  ClassName.get(String.class),
+                                                                  ClassName.get(regionBasePackage, "ServiceMetadata"));
         return TypeSpec.classBuilder(className())
                        .addModifiers(PUBLIC)
                        .addSuperinterface(ClassName.get(regionBasePackage, "ServiceMetadataProvider"))
@@ -69,8 +68,10 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
                        .addModifiers(FINAL)
                        .addField(FieldSpec.builder(mapOfServiceMetadata, "SERVICE_METADATA")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer(regions(partitions))
+                                          .initializer("new $T<>()", HashMap.class)
                                           .build())
+                       .addMethod(createServiceMetadata(partitions))
+                       .addMethod(getServiceMetadata())
                        .addMethod(getter())
                        .build();
     }
@@ -80,22 +81,29 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
         return ClassName.get(regionBasePackage, "GeneratedServiceMetadataProvider");
     }
 
-    private CodeBlock regions(Partitions partitions) {
-        CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, ServiceMetadata>builder()", ImmutableMap.class);
+    private MethodSpec createServiceMetadata(Partitions partitions) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("createServiceMetadata")
+                                               .addModifiers(PRIVATE, STATIC)
+                                               .addParameter(String.class, "endpointPrefix")
+                                               .returns(ClassName.get(regionBasePackage, "ServiceMetadata"))
+                                               .beginControlFlow("switch ($L)", "endpointPrefix");
 
         Set<String> seenServices = new HashSet<>();
-
         partitions.getPartitions()
                   .forEach(p -> p.getServices()
                                  .keySet()
                                  .forEach(s -> {
                                      if (!seenServices.contains(s)) {
-                                         builder.add(".put($S, new $T())", s, serviceMetadataClass(s));
+                                         builder.addCode("$>case $S:\n", s);
+                                         builder.addStatement("$>$>return new $T()", serviceMetadataClass(s));
                                          seenServices.add(s);
                                      }
                                  }));
-
-        return builder.add(".build()").build();
+        return builder.addCode("$>default:\n")
+                      .addStatement("$>$>throw new $T(\"Unexpected value: \" + $L)", IllegalStateException.class,
+                                    "endpointPrefix")
+                      .endControlFlow()
+                      .build();
     }
 
     private ClassName serviceMetadataClass(String service) {
@@ -109,12 +117,26 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
                                                 .collect(Collectors.joining()) + "ServiceMetadata");
     }
 
+    private MethodSpec getServiceMetadata() {
+        return MethodSpec.methodBuilder("getServiceMetadata")
+                         .addModifiers(PRIVATE, STATIC)
+                         .addParameter(String.class, "endpointPrefix")
+                         .returns(ClassName.get(regionBasePackage, "ServiceMetadata"))
+                         .beginControlFlow("if (!$L.containsKey($L))", "SERVICE_METADATA", "endpointPrefix")
+                         .addStatement("$L.put($L, createServiceMetadata($L))", "SERVICE_METADATA", "endpointPrefix",
+                                       "endpointPrefix")
+                         .endControlFlow()
+                         .addStatement("return $L.get($L)", "SERVICE_METADATA", "endpointPrefix")
+                         .build();
+    }
+
     private MethodSpec getter() {
         return MethodSpec.methodBuilder("serviceMetadata")
+                         .addAnnotation(Override.class)
                          .addModifiers(PUBLIC)
                          .addParameter(String.class, "endpointPrefix")
                          .returns(ClassName.get(regionBasePackage, "ServiceMetadata"))
-                         .addStatement("return $L.get($L)", "SERVICE_METADATA", "endpointPrefix")
+                         .addStatement("return getServiceMetadata($L)", "endpointPrefix")
                          .build();
     }
 }
