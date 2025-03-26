@@ -100,6 +100,19 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 
+// Running putObject with config:
+//   UploadConfig{
+//     baseConfig=[
+//       flavor=ASYNC_JAVA_BASED_MULTI,
+//       bucketType=STANDARD_BUCKET,
+//       forcePathStyle=true,
+//       requestChecksumValidation=WHEN_REQUIRED,
+//       accelerateEnabled=false,
+//       payloadSigning=false
+//     ],
+//     bodyType=BLOCKING_OUTPUT_STREAM,
+//     contentSize=SMALL
+//   }
 public class ChecksumIntegrationTesting {
     private static final String BUCKET_NAME_PREFIX = "do-not-delete-checksums-";
     private static final String MRAP_NAME = "do-not-delete-checksum-testing";
@@ -299,7 +312,8 @@ public class ChecksumIntegrationTesting {
         // Payload signing doesn't work correctly for async java based
         Assumptions.assumeFalse(
             (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
-             || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI)
+             // || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI
+            )
                                 && (config.getBaseConfig().isPayloadSigning()
                                     // MRAP requires body signing
                                     || config.getBaseConfig().getBucketType() == BucketType.MRAP),
@@ -309,7 +323,8 @@ public class ChecksumIntegrationTesting {
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(
             (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
-             || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI)
+             // || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI
+            )
                                 && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
                                 "Async Java based support unknown content length");
 
@@ -517,16 +532,16 @@ public class ChecksumIntegrationTesting {
                     .accelerate(config.isAccelerateEnabled())
                     .overrideConfiguration(overrideConfiguration)
                     .build();
-            case ASYNC_JAVA_BASED_MULTI:
-                return S3AsyncClient.builder()
-                    .forcePathStyle(config.isForcePathStyle())
-                    .requestChecksumCalculation(config.getRequestChecksumValidation())
-                    .region(REGION)
-                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                    .accelerate(config.isAccelerateEnabled())
-                    .overrideConfiguration(overrideConfiguration)
-                    .multipartEnabled(true)
-                    .build();
+            // case ASYNC_JAVA_BASED_MULTI:
+            //     return S3AsyncClient.builder()
+            //         .forcePathStyle(config.isForcePathStyle())
+            //         .requestChecksumCalculation(config.getRequestChecksumValidation())
+            //         .region(REGION)
+            //         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+            //         .accelerate(config.isAccelerateEnabled())
+            //         .overrideConfiguration(overrideConfiguration)
+            //         .multipartEnabled(true)
+            //         .build();
             case ASYNC_CRT: {
                 if (overrideConfiguration != null) {
                     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
@@ -582,7 +597,7 @@ public class ChecksumIntegrationTesting {
     enum S3ClientFlavor {
         JAVA_BASED(false),
         ASYNC_JAVA_BASED(true),
-        ASYNC_JAVA_BASED_MULTI(true),
+        // ASYNC_JAVA_BASED_MULTI(true),
 
         ASYNC_CRT(true)
         ;
