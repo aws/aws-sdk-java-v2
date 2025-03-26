@@ -224,11 +224,12 @@ public class ChecksumIntegrationTesting {
     @ParameterizedTest
     @MethodSource("testConfigs")
     void deleteObject(TestConfig config) throws Exception {
-        LOG.debug(() -> "Running deleteObject with config: " + config.toString());
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
         assumeNotAccelerateWithEoz(config);
+
+        LOG.debug(() -> "Running deleteObject with config: " + config.toString());
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomObject(config.getBucketType());
@@ -256,13 +257,14 @@ public class ChecksumIntegrationTesting {
     @ParameterizedTest
     @MethodSource("testConfigs")
     void restoreObject(TestConfig config) throws Exception {
-        LOG.debug(() -> "Running restoreObject with config: " + config.toString());
         assumeNotAccessPointWithPathStyle(config);
         assumeNotAccelerateWithPathStyle(config);
         assumeNotAccelerateWithArnType(config);
 
         Assumptions.assumeFalse(config.getBucketType() == BucketType.EOZ,
                                 "Restore is not supported for S3 Express");
+
+        LOG.debug(() -> "Running restoreObject with config: " + config.toString());
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomArchivedObject(config.getBucketType());
@@ -298,11 +300,11 @@ public class ChecksumIntegrationTesting {
     @ParameterizedTest
     @MethodSource("uploadConfigs")
     void putObject(UploadConfig config) throws Exception {
-        LOG.debug(() -> "Running putObject with config: " + config.toString());
         assumeNotAccelerateWithPathStyle(config.getBaseConfig());
         assumeNotAccessPointWithPathStyle(config.getBaseConfig());
         assumeNotAccelerateWithArnType(config.getBaseConfig());
         assumeNotAccelerateWithEoz(config.getBaseConfig());
+
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
@@ -328,6 +330,8 @@ public class ChecksumIntegrationTesting {
             )
                                 && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
                                 "Async Java based support unknown content length");
+
+        LOG.debug(() -> "Running putObject with config: " + config.toString());
 
         BucketType bucketType = config.getBaseConfig().getBucketType();
 
@@ -549,9 +553,9 @@ public class ChecksumIntegrationTesting {
             //         .multipartEnabled(true)
             //         .build();
             case ASYNC_CRT: {
-                if (overrideConfiguration != null) {
-                    LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
-                }
+                // if (overrideConfiguration != null) {
+                //     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
+                // }
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -978,7 +982,7 @@ public class ChecksumIntegrationTesting {
             case STRING: {
                 byte[] content = contentSize.content();
                 long contentLength = content.length;
-                return new TestRequestBody(RequestBody.fromString(new String(content, StandardCharsets.UTF_8)),
+                return new TestRequestBody(RequestBody.fromString(new String(content)),
                                            contentLength,
                                            crc32(content));
             }
