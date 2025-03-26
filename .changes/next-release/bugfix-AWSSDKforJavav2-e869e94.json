@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Update non-streaming error unmarshalling to use the same mapping function that was previously implemented for streaming operations."
+}
