@@ -97,7 +97,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                                                                                             APostOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInputException":
+                case "InvalidInput":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:

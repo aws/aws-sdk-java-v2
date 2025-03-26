@@ -338,10 +338,10 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                 operationMetadata, GreetingWithErrorsResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "ComplexErrorException":
+                    case "ComplexError":
                         return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
                                                             .exceptionBuilderSupplier(ComplexErrorException::builder).build());
-                    case "InvalidGreetingException":
+                    case "InvalidGreeting":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
                                                             .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
                     default:
