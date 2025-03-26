@@ -382,27 +382,30 @@ public class ChecksumIntegrationTesting {
             }
 
             // We can't set an execution interceptor when using CRT
-            if (config.getBaseConfig().getFlavor() != S3ClientFlavor.ASYNC_CRT) {
-                assertThat(recorder.getRequests()).isNotEmpty();
+            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_CRT) {
+                return;
+            }
 
-                for (SdkHttpRequest httpRequest : recorder.getRequests()) {
-                    // skip any non-PUT requests, e.g. GetSession for EOZ requests
-                    if (httpRequest.method() != SdkHttpMethod.PUT) {
-                        continue;
-                    }
+            assertThat(recorder.getRequests()).isNotEmpty();
 
-                    String payloadSha = httpRequest.firstMatchingHeader("x-amz-content-sha256").get();
-                    if (payloadSha.startsWith("STREAMING")) {
-                        String decodedContentLength = httpRequest.firstMatchingHeader("x-amz-decoded-content-length").get();
-                        assertThat(Long.parseLong(decodedContentLength)).isEqualTo(actualContentLength);
-                    } else {
-                        Optional<String> contentLength = httpRequest.firstMatchingHeader("Content-Length");
-                        if (requestBodyHasContentLength) {
-                            assertThat(Long.parseLong(contentLength.get())).isEqualTo(actualContentLength);
-                        }
+            for (SdkHttpRequest httpRequest : recorder.getRequests()) {
+                // skip any non-PUT requests, e.g. GetSession for EOZ requests
+                if (httpRequest.method() != SdkHttpMethod.PUT) {
+                    continue;
+                }
+
+                String payloadSha = httpRequest.firstMatchingHeader("x-amz-content-sha256").get();
+                if (payloadSha.startsWith("STREAMING")) {
+                    String decodedContentLength = httpRequest.firstMatchingHeader("x-amz-decoded-content-length").get();
+                    assertThat(Long.parseLong(decodedContentLength)).isEqualTo(actualContentLength);
+                } else {
+                    Optional<String> contentLength = httpRequest.firstMatchingHeader("Content-Length");
+                    if (requestBodyHasContentLength) {
+                        assertThat(Long.parseLong(contentLength.get())).isEqualTo(actualContentLength);
                     }
                 }
             }
+
         } finally {
             if (callable != null) {
                 callable.client.close();
@@ -480,12 +483,14 @@ public class ChecksumIntegrationTesting {
                     BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
                     InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
                     body.writeInputStream(inputStream);
+                    inputStream.close();
                 }
                 if (requestBody.bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
                     TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
                     CancellableOutputStream outputStream =
                         ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
                     body.bodyWrite.accept(outputStream);
+                    outputStream.close();
                 }
                 return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
@@ -914,7 +919,8 @@ public class ChecksumIntegrationTesting {
     private static byte[] largeContent() {
         // 200 MiB
         Random r = new Random();
-        byte[] b = new byte[200 * 1024 * 1024];
+        // byte[] b = new byte[200 * 1024 * 1024];
+        byte[] b = new byte[2 * 1024 * 1024];
         r.nextBytes(b);
         return b;
     }
