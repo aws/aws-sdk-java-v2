@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS ARC - Zonal Shift",
+    "contributor": "",
+    "description": "Add new shiftType field for ARC zonal shifts."
+}
