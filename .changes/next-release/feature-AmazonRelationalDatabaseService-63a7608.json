@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Add note about the Availability Zone where RDS restores the DB cluster for the RestoreDBClusterToPointInTime operation."
+}
