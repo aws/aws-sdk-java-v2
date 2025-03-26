@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1023,9 +1024,8 @@ public class ChecksumIntegrationTesting {
                 int offset = 2;
                 buff.position(offset);
                 RequestBody asyncRequestBody = RequestBody.fromRemainingByteBuffer(buff);
-                byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(content, offset, crcArray, 0, crcArray.length);
-                return new TestRequestBody(asyncRequestBody, content.length, crc32(crcArray));
+                byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
+                return new TestRequestBody(asyncRequestBody, content.length - offset, crc32(crcArray));
             }
             case BUFFERS:
             case BUFFERS_REMAINING:
@@ -1090,9 +1090,8 @@ public class ChecksumIntegrationTesting {
                 int offset = 2;
                 buff.position(offset);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffer(buff);
-                byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(content, offset, crcArray, 0, crcArray.length);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
+                byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
+                return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
             case BYTES_UNSAFE:{
                 byte[] content = contentSize.content();
@@ -1110,9 +1109,8 @@ public class ChecksumIntegrationTesting {
                 int offset = 2;
                 buff.position(offset);
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBufferUnsafe(buff);
-                byte[] crcArray = new byte[content.length - offset];
-                System.arraycopy(content, 2, crcArray, 0, crcArray.length);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(crcArray), bodyType);
+                byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
+                return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
             case BUFFERS: {
                 byte[] content1 = contentSize.content();
@@ -1152,7 +1150,6 @@ public class ChecksumIntegrationTesting {
                                          content1.length + content2.length,
                                          crc32(crcArray),
                                          bodyType);
-
             }
             case BUFFERS_REMAINING_UNSAFE: {
                 byte[] content1 = contentSize.content();
