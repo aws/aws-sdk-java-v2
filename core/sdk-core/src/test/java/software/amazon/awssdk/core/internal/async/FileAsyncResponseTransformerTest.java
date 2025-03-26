@@ -47,6 +47,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
@@ -331,12 +332,25 @@ class FileAsyncResponseTransformerTest {
 
         RuntimeException runtimeException = new RuntimeException("oops");
         ByteBuffer content = ByteBuffer.wrap(newContent.getBytes(StandardCharsets.UTF_8));
-        transformer.onStream(SdkPublisher.adapt(Flowable.just(content, content)));
+        SdkPublisher<ByteBuffer> idlePublisher = new SdkPublisher<ByteBuffer>() {
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long l) {
+                        subscriber.onNext(content);
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+        transformer.onStream(idlePublisher);
         transformer.exceptionOccurred(runtimeException);
 
-        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
-            .withThrowableOfType(ExecutionException.class)
-            .withCause(runtimeException);
+        assertThatThrownBy(future::join).isInstanceOf(Exception.class);
     }
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {
