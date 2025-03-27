@@ -378,6 +378,11 @@ public class ChecksumIntegrationTesting {
 
             recordObjectToCleanup(bucketType, key);
 
+            // mpu not supported
+            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
+                return;
+            }
+
             // We only validate when configured to WHEN_SUPPORTED since checksums are optional for PutObject
             if (config.getBaseConfig().getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED
                 // CRT switches to MPU under the hood which doesn't support checksums
