@@ -381,7 +381,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
             Map<String, Expression> map = metadataMap.get(metadataName);
             if (map == null) {
                 // should never happen unless user passes in empty ObjectMetadata
-                // remove metadata setter
+                // remove entire line
                 return null;
             }
 
@@ -444,6 +444,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
             map.put(methodName, value);
             metadataMap.put(variableName, map);
 
+            // remove entire line
             return null;
         }
 
@@ -507,7 +508,9 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
         private List<Comment> inputStreamBufferingWarningComment() {
             String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
-                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.";
+                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"
+                             + " content length must be unknown, we recommend using the CRT-based S3 client - "
+                             + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html";
             return createComments(warning);
         }
     }

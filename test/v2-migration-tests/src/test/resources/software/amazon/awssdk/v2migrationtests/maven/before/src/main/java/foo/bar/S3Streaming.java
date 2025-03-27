@@ -140,4 +140,13 @@ public class S3Streaming {
 
         PutObjectRequest request = new PutObjectRequest("bucket", "key", "location").withMetadata(metadata);
     }
+
+    void putObjectRequester_emptyMetadata() {
+        ObjectMetadata emptyMetadata1 = new ObjectMetadata();
+        PutObjectRequest request1 = new PutObjectRequest("bucket", "key", "location").withMetadata(emptyMetadata1);
+
+        ObjectMetadata emptyMetadata2 = new ObjectMetadata();
+        PutObjectRequest request2 = new PutObjectRequest("bucket", "key", "location");
+        request2.setMetadata(emptyMetadata2);
+    }
 }
