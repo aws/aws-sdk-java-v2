@@ -908,7 +908,7 @@
                                 </goals>
                                 <configuration>
                                     <!-- Sets the VM argument line used when integration tests are run. -->
-                                    <argLine>${argLine}</argLine>
+                                    <argLine>-Xmx8g -Xms1024m -XX:+AllowRedefinitionToAddDeleteMethods</argLine>
                                     <includes>
                                         <include>**/s3/checksum/ChecksumIntegrationTesting.java</include>
                                     </includes>
