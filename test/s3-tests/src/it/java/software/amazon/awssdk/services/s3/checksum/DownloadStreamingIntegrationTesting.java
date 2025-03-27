@@ -279,7 +279,9 @@ public class DownloadStreamingIntegrationTesting {
             int startIndex = partSize * part;
             int endIndex = startIndex + partSize;
             byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
-            UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(part).uploadId(uploadId),
+            UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(part)
+                                                                      .uploadId(uploadId)
+                                                                      .bucket(bucket),
                                                             RequestBody.fromBytes(partContent));
             completedParts.add(CompletedPart.builder()
                                             .eTag(partResponse.eTag())
