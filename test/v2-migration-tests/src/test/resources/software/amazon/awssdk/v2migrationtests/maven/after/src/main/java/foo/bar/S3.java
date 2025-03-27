@@ -409,12 +409,24 @@ public class S3 {
     }
 
     private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
-        URL urlGet1 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build().presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key)).signatureDuration(Duration.between(Instant.now(), expiration.toInstant()))).url();
+        URL urlGet1 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+                .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
 
-        URL urlPut = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build().presignPutObject(p -> p.putObjectRequest(r -> r.bucket(bucket).key(key)).signatureDuration(Duration.between(Instant.now(), expiration.toInstant()))).url();
+        URL urlPut = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+                .presignPutObject(p -> p.putObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
 
-        URL urlGet2 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build().presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key)).signatureDuration(Duration.between(Instant.now(), expiration.toInstant()))).url();
+        URL urlGet2 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+                .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
 
-        URL urlDelete = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build().presignDeleteObject(p -> p.deleteObjectRequest(r -> r.bucket(bucket).key(key)).signatureDuration(Duration.between(Instant.now(), expiration.toInstant()))).url();
+        URL urlDelete = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+                .presignDeleteObject(p -> p.deleteObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
     }
 }

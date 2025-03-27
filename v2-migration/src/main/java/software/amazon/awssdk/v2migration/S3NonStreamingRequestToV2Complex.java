@@ -86,7 +86,7 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                 return transformCompleteMpuRequestCompletedPartsArg(method);
             }
             if (isGeneratePresignedUrl(method)) {
-                return transformGeneratePresignedUrl(method);
+                return maybeAutoFormat(method, transformGeneratePresignedUrl(method), executionContext);
             }
             if (DISABLE_REQUESTER_PAYS.matches(method, false)) {
                 return transformSetRequesterPays(method, false);
@@ -136,9 +136,10 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                 return method.withComments(assignedVariableHttpMethodNotSupportedComment());
             }
 
-            String v2Method = String.format("S3Presigner.builder().s3Client(#{any()}).build().presign%sObject"
-                                            + "(p -> p.%sObjectRequest(r -> r.bucket(#{any()}).key(#{any()}))"
-                                            + ".signatureDuration(Duration.between(Instant.now(), #{any()}.toInstant()))).url()",
+            String v2Method = String.format("S3Presigner.builder().s3Client(#{any()}).build()\n"
+                                            + ".presign%sObject(p -> p.%sObjectRequest(r -> r.bucket(#{any()}).key(#{any()}))\n"
+                                            + ".signatureDuration(Duration.between(Instant.now(), #{any()}.toInstant())))\n"
+                                            + ".url()",
                                             httpMethod, httpMethod.toLowerCase(Locale.ROOT));
 
             removeV1HttpMethodImport();

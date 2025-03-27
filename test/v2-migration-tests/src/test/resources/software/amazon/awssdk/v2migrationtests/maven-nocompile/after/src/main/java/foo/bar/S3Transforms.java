@@ -37,17 +37,17 @@ public class S3Transforms {
     }
 
     private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
-        URL urlHead = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with HEAD HTTP method is not supported in v2.*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.HEAD);
+        URL urlHead = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with HEAD HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.HEAD);
 
-        URL urlPatch = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with PATCH HTTP method is not supported in v2.*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PATCH);
+        URL urlPatch = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with PATCH HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PATCH);
 
-        URL urlPost = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with POST HTTP method is not supported in v2.*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.POST);
+        URL urlPost = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with POST HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.POST);
 
 
         HttpMethod httpMethod = HttpMethod.PUT;
-        URL urlWithHttpMethodVariable = /*AWS SDK for Java v2 migration: Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported. Update your code to pass in HttpMethod literal enum, or manually migrate your code.*/s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
+        URL urlWithHttpMethodVariable = /*AWS SDK for Java v2 migration: Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported. Update your code to pass in enum instead and run the migration tool again, or manually migrate your code - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
 
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key);
-        /*AWS SDK for Java v2 migration: Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code.*/s3.generatePresignedUrl(request);
+        /*AWS SDK for Java v2 migration: Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code.- https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(request);
     }
 }

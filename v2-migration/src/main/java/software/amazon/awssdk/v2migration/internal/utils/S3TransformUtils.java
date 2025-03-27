@@ -79,17 +79,23 @@ public final class S3TransformUtils {
 
     public static List<Comment> assignedVariableHttpMethodNotSupportedComment() {
         String comment = "Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported."
-                         + " Update your code to pass in HttpMethod literal enum, or manually migrate your code.";
+                         + " Update your code to pass in enum instead and run the migration tool again, or manually migrate "
+                         + "your code - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner"
+                         + "/S3Presigner.html";
         return createComments(comment);
     }
 
     public static List<Comment> requestPojoTransformNotSupportedComment() {
-        String comment = "Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code.";
+        String comment = "Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code."
+                         + "- https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner"
+                         + "/S3Presigner.html";
         return createComments(comment);
     }
 
     public static List<Comment> httpMethodNotSupportedComment(String httpMethod) {
-        String comment = String.format("S3 generatePresignedUrl() with %s HTTP method is not supported in v2.",
+        String comment = String.format("S3 generatePresignedUrl() with %s HTTP method is not supported in v2. Only GET, PUT, "
+                                       + "and DELETE are supported - https://sdk.amazonaws"
+                                       + ".com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html",
                                        httpMethod.toUpperCase(Locale.ROOT));
         return createComments(comment);
     }
