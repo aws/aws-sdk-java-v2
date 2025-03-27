@@ -16,9 +16,18 @@
 package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.assignedVariableHttpMethodNotSupportedComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.httpMethodNotSupportedComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isCompleteMpuRequestMultipartUploadSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGeneratePresignedUrl;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedHttpMethod;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.presignerSingleInstanceSuggestion;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.requestPojoTransformNotSupportedComment;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2S3MethodMatcher;
-import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
 
+import java.util.List;
+import java.util.Locale;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -26,9 +35,9 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.RemoveImport;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaType;
-import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
@@ -74,58 +83,99 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
 
             if (isCompleteMpuRequestMultipartUploadSetter(method)) {
-                method = transformCompleteMpuRequestCompletedPartsArg(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformCompleteMpuRequestCompletedPartsArg(method);
             }
-
+            if (isGeneratePresignedUrl(method)) {
+                return transformGeneratePresignedUrl(method);
+            }
             if (DISABLE_REQUESTER_PAYS.matches(method, false)) {
-                method = transformSetRequesterPays(method, false);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformSetRequesterPays(method, false);
             }
             if (ENABLE_REQUESTER_PAYS.matches(method, false)) {
-                method = transformSetRequesterPays(method, true);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformSetRequesterPays(method, true);
             }
             if (IS_REQUESTER_PAYS_ENABLED.matches(method, false)) {
-                method = transformIsRequesterPays(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformIsRequesterPays(method);
             }
             if (GET_OBJECT_AS_STRING.matches(method, false)) {
-                method = transformGetObjectAsString(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformGetObjectAsString(method);
             }
             if (GET_URL.matches(method, false)) {
-                method = transformGetUrl(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformGetUrl(method);
             }
             if (LIST_BUCKETS.matches(method, false)) {
-                method = transformListBuckets(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformListBuckets(method);
             }
             if (RESTORE_OBJECT.matches(method, false)) {
-                method = transformRestoreObject(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformRestoreObject(method);
             }
             if (SET_OBJECT_REDIRECT_LOCATION.matches(method, false)) {
-                method = transformSetObjectRedirectLocation(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformSetObjectRedirectLocation(method);
             }
             if (CHANGE_OBJECT_STORAGE_CLASS.matches(method, false)) {
-                method = transformChangeObjectStorageClass(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformChangeObjectStorageClass(method);
             }
             if (CREATE_BUCKET.matches(method, false)) {
-                method = transformCreateBucket(method);
-                return super.visitMethodInvocation(method, executionContext);
+                return transformCreateBucket(method);
             }
             return super.visitMethodInvocation(method, executionContext);
         }
 
-        private boolean isCompleteMpuRequestMultipartUploadSetter(J.MethodInvocation method) {
-            JavaType.FullyQualified completeMpuRequest =
-                fullyQualified("software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest.Builder");
-            return "multipartUpload".equals(method.getSimpleName()) &&
-                   TypeUtils.isAssignableTo(completeMpuRequest, method.getSelect().getType());
+        private J.MethodInvocation transformGeneratePresignedUrl(J.MethodInvocation method) {
+            List<Expression> args = method.getArguments();
+            if (args.size() == 1) {
+                return method.withComments(requestPojoTransformNotSupportedComment());
+            }
+
+            String httpMethod = determineHttpMethod(args);
+
+            if (isUnsupportedHttpMethod(httpMethod)) {
+                return method.withComments(httpMethodNotSupportedComment(httpMethod));
+            }
+            if (httpMethod == null) {
+                return method.withComments(assignedVariableHttpMethodNotSupportedComment());
+            }
+
+            String v2Method = String.format("S3Presigner.builder().s3Client(#{any()}).build().presign%sObject"
+                                            + "(p -> p.%sObjectRequest(r -> r.bucket(#{any()}).key(#{any()}))"
+                                            + ".signatureDuration(Duration.between(Instant.now(), #{any()}.toInstant()))).url()",
+                                            httpMethod, httpMethod.toLowerCase(Locale.ROOT));
+
+            removeV1HttpMethodImport();
+            addInstantImport();
+            addDurationImport();
+            addS3PresignerImport();
+
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      args.get(0), args.get(1), args.get(2))
+                               .withComments(presignerSingleInstanceSuggestion());
+        }
+
+        private String determineHttpMethod(List<Expression> args) {
+            if (args.size() == 3) {
+                return "Get";
+            }
+            Expression argVal = args.get(3);
+            String httpMethod = argVal.printTrimmed(getCursor());
+
+            switch (httpMethod) {
+                case "HttpMethod.GET":
+                    return "Get";
+                case "HttpMethod.PUT":
+                    return "Put";
+                case "HttpMethod.DELETE":
+                    return "Delete";
+                case "HttpMethod.HEAD":
+                    return "Head";
+                case "HttpMethod.POST":
+                    return "Post";
+                case "HttpMethod.PATCH":
+                    return "Patch";
+                default:
+                    // enum value assigned to variable
+                    return null;
+            }
         }
 
         private J.MethodInvocation transformCompleteMpuRequestCompletedPartsArg(J.MethodInvocation method) {
@@ -249,6 +299,25 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             addImport("RequestPaymentConfiguration");
             addImport("Payer");
             return method;
+        }
+
+        private void removeV1HttpMethodImport() {
+            doAfterVisit(new RemoveImport<>("com.amazonaws.HttpMethod", true));
+        }
+
+        private void addInstantImport() {
+            String fqcn = "java.time.Instant";
+            doAfterVisit(new AddImport<>(fqcn, null, false));
+        }
+
+        private void addDurationImport() {
+            String fqcn = "java.time.Duration";
+            doAfterVisit(new AddImport<>(fqcn, null, false));
+        }
+
+        private void addS3PresignerImport() {
+            String fqcn = V2_S3_PKG + "presigner.S3Presigner";
+            doAfterVisit(new AddImport<>(fqcn, null, false));
         }
 
         private void addImport(String pojoName) {

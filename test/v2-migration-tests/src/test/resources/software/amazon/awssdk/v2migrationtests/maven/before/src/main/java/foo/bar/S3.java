@@ -15,6 +15,7 @@
 
 package foo.bar;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
@@ -59,7 +60,9 @@ import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ownership.OwnershipControls;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class S3 {
@@ -258,5 +261,15 @@ public class S3 {
         AmazonS3URI s3UriFromString = new AmazonS3URI(uriAsString);
 
         AmazonS3URI s3UriFromStringWithUrlEncodeFalse = new AmazonS3URI(uriAsString, false);
+    }
+
+    private void generatePresignedUrl(AmazonS3 s3, String bucket, String key, Date expiration) {
+        URL urlGet1 = s3.generatePresignedUrl(bucket, key, expiration);
+
+        URL urlPut = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PUT);
+
+        URL urlGet2 = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.GET);
+
+        URL urlDelete = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.DELETE);
     }
 }
