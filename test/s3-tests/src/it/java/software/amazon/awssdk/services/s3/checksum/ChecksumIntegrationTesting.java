@@ -179,7 +179,7 @@ public class ChecksumIntegrationTesting {
         apArn = createAccessPoint();
 
         testFileSmall = createRandomFile16KB();
-        testFileLarge = createRandomFile200MB();
+        testFileLarge = createRandomFile80MB();
     }
 
     @AfterEach
@@ -919,10 +919,10 @@ public class ChecksumIntegrationTesting {
     }
 
     private static byte[] largeContent() {
-        // 200 MiB
+        // 80 MiB
         Random r = new Random();
         // byte[] b = new byte[200 * 1024 * 1024];
-        byte[] b = new byte[200 * 1024 * 1024];
+        byte[] b = new byte[80 * 1024 * 1024];
         r.nextBytes(b);
         return b;
     }
@@ -1342,12 +1342,12 @@ public class ChecksumIntegrationTesting {
         return tmp;
     }
 
-    private static Path createRandomFile200MB() throws IOException {
+    private static Path createRandomFile80MB() throws IOException {
         Path tmp = Files.createTempFile(null, null);
         byte[] randomBytes = new byte[1024 * 1024];
         new Random().nextBytes(randomBytes);
         try (OutputStream os = Files.newOutputStream(tmp)) {
-            for (int i = 0; i < 200; ++i) {
+            for (int i = 0; i < 80; ++i) {
                 os.write(randomBytes);
             }
         }
