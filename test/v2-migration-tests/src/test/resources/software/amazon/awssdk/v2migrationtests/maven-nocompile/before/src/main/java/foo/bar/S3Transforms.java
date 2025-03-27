@@ -17,6 +17,7 @@ package foo.bar;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import java.io.ByteArrayInputStream;
@@ -43,5 +44,8 @@ public class S3Transforms {
 
         HttpMethod httpMethod = HttpMethod.PUT;
         URL urlWithHttpMethodVariable = s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key);
+        s3.generatePresignedUrl(request);
     }
 }

@@ -22,6 +22,7 @@ import java.net.URL;
 import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GeneratePresignedUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
@@ -45,5 +46,8 @@ public class S3Transforms {
 
         HttpMethod httpMethod = HttpMethod.PUT;
         URL urlWithHttpMethodVariable = /*AWS SDK for Java v2 migration: Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported. Update your code to pass in HttpMethod literal enum, or manually migrate your code.*/s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key);
+        /*AWS SDK for Java v2 migration: Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code.*/s3.generatePresignedUrl(request);
     }
 }
