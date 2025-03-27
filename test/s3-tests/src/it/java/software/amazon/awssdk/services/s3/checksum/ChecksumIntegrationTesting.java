@@ -93,11 +93,15 @@ import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPoint
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CancellableOutputStream;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 // Running putObject with config:
 //   UploadConfig{
@@ -262,7 +266,7 @@ public class ChecksumIntegrationTesting {
         Assumptions.assumeFalse(config.getBucketType() == BucketType.EOZ,
                                 "Restore is not supported for S3 Express");
 
-        LOG.debug(() -> "Running restoreObject with config: " + config.toString());
+        LOG.debug(() -> "Running restoreObject with config: " + config);
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomArchivedObject(config.getBucketType());
@@ -305,9 +309,8 @@ public class ChecksumIntegrationTesting {
 
         // Payload signing doesn't work correctly for async java based
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
-             // || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI
-            )
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED ||
+            config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA)
                                 && (config.getBaseConfig().isPayloadSigning()
                                     // MRAP requires body signing
                                     || config.getBaseConfig().getBucketType() == BucketType.MRAP),
@@ -316,13 +319,12 @@ public class ChecksumIntegrationTesting {
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED
-             // || config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED_MULTI
-            )
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED ||
+                        config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA)
                                 && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
                                 "Async Java based support unknown content length");
 
-        LOG.debug(() -> "Running putObject with config: " + config.toString());
+        LOG.debug(() -> "Running putObject with config: " + config);
 
         BucketType bucketType = config.getBaseConfig().getBucketType();
 
@@ -357,6 +359,12 @@ public class ChecksumIntegrationTesting {
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
+                actualCrc32 = body.getChecksum();
+            } else if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
+                TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
+                callable = callTmUpload(request, body, config.getBaseConfig(), overrideConfiguration.build());
+                actualContentLength = body.getActualContentLength();
+                requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
                 actualCrc32 = body.getChecksum();
             } else {
                 TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
@@ -409,6 +417,7 @@ public class ChecksumIntegrationTesting {
         }
     }
 
+
     private TestCallable<Void> callDeleteObjects(DeleteObjectsRequest request, TestConfig config) {
         AwsClient toClose;
         Callable<Void> runnable = null;
@@ -456,7 +465,7 @@ public class ChecksumIntegrationTesting {
     }
 
     private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestRequestBody requestBody, TestConfig config,
-                                       ClientOverrideConfiguration overrideConfiguration) throws IOException {
+                                       ClientOverrideConfiguration overrideConfiguration) {
         S3Client s3Client = makeSyncClient(config, overrideConfiguration);
         Callable<PutObjectResponse> callable = () -> {
             try {
@@ -469,25 +478,13 @@ public class ChecksumIntegrationTesting {
     }
 
     private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
-                                       ClientOverrideConfiguration overrideConfiguration) throws IOException {
+                                       ClientOverrideConfiguration overrideConfiguration) {
         S3AsyncClient s3Client = makeAsyncClient(config, overrideConfiguration);
         Callable<PutObjectResponse> callable = () -> {
             try {
                 AsyncRequestBody asyncRequestBody = requestBody.getAsyncRequestBody();
                 CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, asyncRequestBody);
-                if (requestBody.bodyType == BodyType.BLOCKING_INPUT_STREAM) {
-                    BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
-                    InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
-                    body.writeInputStream(inputStream);
-                    inputStream.close();
-                }
-                if (requestBody.bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
-                    TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
-                    CancellableOutputStream outputStream =
-                        ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
-                    body.bodyWrite.accept(outputStream);
-                    outputStream.close();
-                }
+                performWriteIfNeeded(requestBody);
                 return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -496,11 +493,44 @@ public class ChecksumIntegrationTesting {
         return new TestCallable<>(s3Client, callable);
     }
 
+    private TestCallable<PutObjectResponse> callTmUpload(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
+                                                         ClientOverrideConfiguration overrideConfiguration) {
+        S3TransferManager transferManager = makeTm(config, overrideConfiguration);
+        Callable<PutObjectResponse> callable = () -> {
+            try {
+                Upload upload = transferManager.upload(
+                    r -> r.requestBody(requestBody.getAsyncRequestBody()).putObjectRequest(request));
+                performWriteIfNeeded(requestBody);
+                CompletedUpload completedUpload = CompletableFutureUtils.joinLikeSync(upload.completionFuture());
+                return completedUpload.response();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+        return new TestCallable<>(transferManager, callable);
+    }
+
+    void performWriteIfNeeded(TestAsyncBody requestBody) throws IOException {
+        if (requestBody.bodyType == BodyType.BLOCKING_INPUT_STREAM) {
+            BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
+            InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
+            body.writeInputStream(inputStream);
+            inputStream.close();
+        }
+        if (requestBody.bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
+            TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
+            CancellableOutputStream outputStream =
+                ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
+            body.bodyWrite.accept(outputStream);
+            outputStream.close();
+        }
+    }
+
     private static class TestCallable<ResponseT> {
-        private AwsClient client;
+        private SdkAutoCloseable client;
         private Callable<ResponseT> runnable;
 
-        TestCallable(AwsClient client, Callable<ResponseT> runnable) {
+        TestCallable(SdkAutoCloseable client, Callable<ResponseT> runnable) {
             this.client = client;
             this.runnable = runnable;
         }
@@ -533,6 +563,16 @@ public class ChecksumIntegrationTesting {
                     .accelerate(config.isAccelerateEnabled())
                     .overrideConfiguration(overrideConfiguration)
                     .build();
+            case TM_JAVA:
+                return S3AsyncClient.builder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(REGION)
+                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .overrideConfiguration(overrideConfiguration)
+                                    .multipartEnabled(true)
+                                    .build();
             case ASYNC_CRT: {
                 // if (overrideConfiguration != null) {
                 //     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
@@ -548,6 +588,11 @@ public class ChecksumIntegrationTesting {
             default:
                 throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
         }
+    }
+
+    private S3TransferManager makeTm(TestConfig config, ClientOverrideConfiguration overrideConfiguration) {
+        S3AsyncClient s3AsyncClient = makeAsyncClient(config, overrideConfiguration);
+        return S3TransferManager.builder().s3Client(s3AsyncClient).build();
     }
 
     private static String bucketForType(BucketType type) {
@@ -588,7 +633,7 @@ public class ChecksumIntegrationTesting {
     enum S3ClientFlavor {
         JAVA_BASED(false),
         ASYNC_JAVA_BASED(true),
-        // ASYNC_JAVA_BASED_MULTI(true),
+        TM_JAVA(true),
 
         ASYNC_CRT(true)
         ;
@@ -921,7 +966,6 @@ public class ChecksumIntegrationTesting {
     private static byte[] largeContent() {
         // 80 MiB
         Random r = new Random();
-        // byte[] b = new byte[200 * 1024 * 1024];
         byte[] b = new byte[80 * 1024 * 1024];
         r.nextBytes(b);
         return b;
