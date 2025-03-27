@@ -186,11 +186,6 @@ class FileAsyncResponseTransformerTest {
         assertThat(testPath).hasContent(existingString + content);
     }
 
-    @RepeatedTest(10000)
-    void foo() throws Exception {
-        exceptionOccurred_deleteFileBehavior(FileTransformerConfiguration.defaultCreateNew());
-    }
-
     @ParameterizedTest
     @MethodSource("configurations")
     void exceptionOccurred_deleteFileBehavior(FileTransformerConfiguration configuration) throws Exception {
