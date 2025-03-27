@@ -136,9 +136,9 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                 return method.withComments(assignedVariableHttpMethodNotSupportedComment());
             }
 
-            String v2Method = String.format("S3Presigner.builder().s3Client(#{any()}).build()\n"
-                                            + ".presign%sObject(p -> p.%sObjectRequest(r -> r.bucket(#{any()}).key(#{any()}))\n"
-                                            + ".signatureDuration(Duration.between(Instant.now(), #{any()}.toInstant())))\n"
+            String v2Method = String.format("S3Presigner.builder().s3Client(#{any()}).build()%n"
+                                            + ".presign%sObject(p -> p.%sObjectRequest(r -> r.bucket(#{any()}).key(#{any()}))%n"
+                                            + ".signatureDuration(Duration.between(Instant.now(), #{any()}.toInstant())))%n"
                                             + ".url()",
                                             httpMethod, httpMethod.toLowerCase(Locale.ROOT));
 
