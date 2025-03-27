@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.10__ __2025-03-27__
+## __AWS Batch__
+  - ### Features
+    - This release will enable two features: Firelens log driver, and Execute Command on Batch jobs on ECS. Both features will be passed through to ECS.
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Added standaloneAccountRateTypeSelections for GetPreferences and UpdatePreferences APIs. Added STALE enum value to status attribute in GetBillScenario and UpdateBillScenario APIs.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Adding support for the new parameter "ScanFilters" in the CloudFormation StartResourceScan API. When this parameter is included, the StartResourceScan API will initiate a scan limited to the resource types specified by the parameter.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Update IAM dual-stack endpoints for BJS, IAD and PDT partitions
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - This release adds AwsAdditionalDetails in the CreateTokenWithIAM API response.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - bedrock flow now support node action trace.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds new action type of Create Listing Changeset for the Metadata Enforcement Rule feature.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for BOTTLEROCKET FIPS AMIs to AMI types in US regions.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers add support for additional instance types.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - add: recovery mode for SageMaker Studio apps
+
 # __2.31.9__ __2025-03-26__
 ## __AWS ARC - Zonal Shift__
   - ### Features

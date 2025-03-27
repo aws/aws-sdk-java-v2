@@ -27,6 +27,7 @@ recipeList:
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3MethodsToV2
   - software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
+  - software.amazon.awssdk.v2migration.S3UriToV2
   - software.amazon.awssdk.v2migration.EnumGettersToV2
   - software.amazon.awssdk.v2migration.ChangeSdkType
   - software.amazon.awssdk.v2migration.ChangeSdkCoreTypes
