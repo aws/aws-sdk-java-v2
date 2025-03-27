@@ -922,7 +922,7 @@ public class ChecksumIntegrationTesting {
         // 200 MiB
         Random r = new Random();
         // byte[] b = new byte[200 * 1024 * 1024];
-        byte[] b = new byte[2 * 1024 * 1024];
+        byte[] b = new byte[200 * 1024 * 1024];
         r.nextBytes(b);
         return b;
     }
