@@ -17,6 +17,7 @@ package foo.bar;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -33,6 +34,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 
 public class Application {
 
@@ -99,5 +101,11 @@ public class Application {
         PutObjectResult result = s3.putObject(bucket, key, content);
 
         return result;
+    }
+
+    void dateToInstant(Date start, Date end) {
+        GetMetricStatisticsRequest getMetricStatisticsRequest = new GetMetricStatisticsRequest()
+            .withStartTime(start)
+            .withEndTime(end);
     }
 }

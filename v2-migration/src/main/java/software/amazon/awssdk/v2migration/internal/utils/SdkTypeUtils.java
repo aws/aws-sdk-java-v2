@@ -671,4 +671,12 @@ public final class SdkTypeUtils {
     public static boolean isFileType(JavaType type) {
         return TypeUtils.isAssignableTo("java.io.File", type);
     }
+
+    public static boolean isStringType(JavaType type) {
+        return TypeUtils.isAssignableTo("java.lang.String", type);
+    }
+
+    public static boolean isUriType(JavaType type) {
+        return TypeUtils.isAssignableTo("java.net.URI", type);
+    }
 }

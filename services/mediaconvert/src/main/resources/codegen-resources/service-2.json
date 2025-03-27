@@ -999,7 +999,7 @@
           "documentation": "The service couldn't complete your request because there is a conflict with the current state of the resource."
         }
       ],
-      "documentation": "The Probe operation analyzes the provided media file and returns comprehensive metadata about its container format, tracks, and any encountered errors."
+      "documentation": "Use Probe to obtain detailed information about your input media files. Probe returns a JSON that includes container, codec, frame rate, resolution, track count, audio layout, captions, and more. You can use this information to learn more about your media files, or to help make decisions while automating your transcoding workflow."
     },
     "PutPolicy": {
       "name": "PutPolicy",
@@ -2035,22 +2035,22 @@
         "BitRate": {
           "shape": "__integer",
           "locationName": "bitRate",
-          "documentation": "The bit rate of the audio track in bits per second."
+          "documentation": "The bit rate of the audio track, in bits per second."
         },
         "Channels": {
           "shape": "__integer",
           "locationName": "channels",
-          "documentation": "The number of audio channels."
+          "documentation": "The number of audio channels in the audio track."
         },
         "FrameRate": {
           "shape": "FrameRate",
           "locationName": "frameRate",
-          "documentation": "the calculated frame rate of the asset."
+          "documentation": "The frame rate of the video or audio track."
         },
         "LanguageCode": {
           "shape": "__string",
           "locationName": "languageCode",
-          "documentation": "the language code of the track"
+          "documentation": "The language code of the audio track, in three character ISO 639-3 format."
         },
         "SampleRate": {
           "shape": "__integer",
@@ -2058,7 +2058,7 @@
           "documentation": "The sample rate of the audio track."
         }
       },
-      "documentation": "Properties specific to audio tracks."
+      "documentation": "Details about the media file's audio track."
     },
     "AudioSelector": {
       "type": "structure",
@@ -2193,6 +2193,11 @@
           "shape": "__integerMin100000Max100000000",
           "locationName": "maxAbrBitrate",
           "documentation": "Specify the maximum average bitrate for MediaConvert to use in your automated ABR stack. If you don't specify a value, MediaConvert uses 8,000,000 (8 mb/s) by default. The average bitrate of your highest-quality rendition will be equal to or below this value, depending on the quality, complexity, and resolution of your content. Note that the instantaneous maximum bitrate may vary above the value that you specify."
+        },
+        "MaxQualityLevel": {
+          "shape": "__doubleMin1Max10",
+          "locationName": "maxQualityLevel",
+          "documentation": "Optional. Specify the QVBR quality level to use for all renditions in your automated ABR stack. To have MediaConvert automatically determine the quality level: Leave blank. To manually specify a quality level: Enter an integer from 1 to 10. MediaConvert will use a quality level up to the value that you specify, depending on your source. For more information about QVBR quality levels, see: https://docs.aws.amazon.com/mediaconvert/latest/ug/qvbr-guidelines.html"
         },
         "MaxRenditions": {
           "shape": "__integerMin3Max15",
@@ -3316,7 +3321,7 @@
         "SegmentLengthControl": {
           "shape": "CmafSegmentLengthControl",
           "locationName": "segmentLengthControl",
-          "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary."
+          "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz."
         },
         "StreamInfResolution": {
           "shape": "CmafStreamInfResolution",
@@ -3471,10 +3476,11 @@
     },
     "CmafSegmentLengthControl": {
       "type": "string",
-      "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary.",
+      "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz.",
       "enum": [
         "EXACT",
-        "GOP_MULTIPLE"
+        "GOP_MULTIPLE",
+        "MATCH"
       ]
     },
     "CmafStreamInfResolution": {
@@ -3812,7 +3818,7 @@
     },
     "ColorPrimaries": {
       "type": "string",
-      "documentation": "the color primaries.",
+      "documentation": "The color space color primaries of the video track.",
       "enum": [
         "ITU_709",
         "UNSPECIFIED",
@@ -3895,20 +3901,20 @@
         "Duration": {
           "shape": "__double",
           "locationName": "duration",
-          "documentation": "The duration of the media file in seconds."
+          "documentation": "The total duration of your media file, in seconds."
         },
         "Format": {
           "shape": "Format",
           "locationName": "format",
-          "documentation": "The format of the container"
+          "documentation": "The format of your media file. For example: MP4, QuickTime (MOV), Matroska (MKV), or WebM. Note that this will be blank if your media file has a format that the MediaConvert Probe operation does not recognize."
         },
         "Tracks": {
           "shape": "__listOfTrack",
           "locationName": "tracks",
-          "documentation": "List of Track objects."
+          "documentation": "Details about each track (video, audio, or data) in the media file."
         }
       },
-      "documentation": "Information about the container format of the media file."
+      "documentation": "The container of your media file. This information helps you understand the overall structure and details of your media, including format, duration, and track layout."
     },
     "ContainerSettings": {
       "type": "structure",
@@ -4386,7 +4392,7 @@
         "SegmentLengthControl": {
           "shape": "DashIsoSegmentLengthControl",
           "locationName": "segmentLengthControl",
-          "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary."
+          "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz."
         },
         "VideoCompositionOffsets": {
           "shape": "DashIsoVideoCompositionOffsets",
@@ -4505,10 +4511,11 @@
     },
     "DashIsoSegmentLengthControl": {
       "type": "string",
-      "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary.",
+      "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz.",
       "enum": [
         "EXACT",
-        "GOP_MULTIPLE"
+        "GOP_MULTIPLE",
+        "MATCH"
       ]
     },
     "DashIsoVideoCompositionOffsets": {
@@ -4542,10 +4549,10 @@
         "LanguageCode": {
           "shape": "__string",
           "locationName": "languageCode",
-          "documentation": "the language code of the track"
+          "documentation": "The language code of the data track, in three character ISO 639-3 format."
         }
       },
-      "documentation": "Properties specific to data tracks."
+      "documentation": "Details about the media file's data track."
     },
     "DecryptionMode": {
       "type": "string",
@@ -5983,15 +5990,15 @@
         "Denominator": {
           "shape": "__integer",
           "locationName": "denominator",
-          "documentation": "the denominator of the frame rate of the asset."
+          "documentation": "The denominator, or bottom number, in the fractional frame rate. For example, if your frame rate is 24000 / 1001 (23.976 frames per second), then the denominator would be 1001."
         },
         "Numerator": {
           "shape": "__integer",
           "locationName": "numerator",
-          "documentation": "the numerator of the frame rate of the asset."
+          "documentation": "The numerator, or top number, in the fractional frame rate. For example, if your frame rate is 24000 / 1001 (23.976 frames per second), then the numerator would be 24000."
         }
       },
-      "documentation": "the calculated frame rate of the asset."
+      "documentation": "The frame rate of the video or audio track."
     },
     "GetJobRequest": {
       "type": "structure",
@@ -7541,7 +7548,7 @@
         "SegmentLengthControl": {
           "shape": "HlsSegmentLengthControl",
           "locationName": "segmentLengthControl",
-          "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary."
+          "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz."
         },
         "SegmentsPerSubdirectory": {
           "shape": "__integerMin1Max2147483647",
@@ -7733,10 +7740,11 @@
     },
     "HlsSegmentLengthControl": {
       "type": "string",
-      "documentation": "Specify how you want MediaConvert to determine the segment length. Choose Exact to have the encoder use the exact length that you specify with the setting Segment length. This might result in extra I-frames. Choose Multiple of GOP to have the encoder round up the segment lengths to match the next GOP boundary.",
+      "documentation": "Specify how you want MediaConvert to determine segment lengths in this output group. To use the exact value that you specify under Segment length: Choose Exact. Note that this might result in additional I-frames in the output GOP. To create segment lengths that are a multiple of the GOP: Choose Multiple of GOP. MediaConvert will round up the segment lengths to match the next GOP boundary. To have MediaConvert automatically determine a segment duration that is a multiple of both the audio packets and the frame rates: Choose Match. When you do, also specify a target segment duration under Segment length. This is useful for some ad-insertion or segment replacement workflows. Note that Match has the following requirements: - Output containers: Include at least one video output and at least one audio output. Audio-only outputs are not supported. - Output frame rate: Follow source is not supported. - Multiple output frame rates: When you specify multiple outputs, we recommend they share a similar frame rate (as in X/3, X/2, X, or 2X). For example: 5, 15, 30 and 60. Or: 25 and 50. (Outputs must share an integer multiple.) - Output audio codec: Specify Advanced Audio Coding (AAC). - Output sample rate: Choose 48kHz.",
       "enum": [
         "EXACT",
-        "GOP_MULTIPLE"
+        "GOP_MULTIPLE",
+        "MATCH"
       ]
     },
     "HlsSettings": {
@@ -9506,6 +9514,11 @@
           "locationName": "audioPids",
           "documentation": "Specify the packet identifiers (PIDs) for any elementary audio streams you include in this output. Specify multiple PIDs as a JSON array. Default is the range 482-492."
         },
+        "AudioPtsOffsetDelta": {
+          "shape": "__integerMinNegative10000Max10000",
+          "locationName": "audioPtsOffsetDelta",
+          "documentation": "Manually specify the difference in PTS offset that will be applied to the audio track, in seconds or milliseconds, when you set PTS offset to Seconds or Milliseconds. Enter an integer from -10000 to 10000. Leave blank to keep the default value 0."
+        },
         "Bitrate": {
           "shape": "__integerMin0Max2147483647",
           "locationName": "bitrate",
@@ -9644,7 +9657,7 @@
         "PtsOffsetMode": {
           "shape": "TsPtsOffset",
           "locationName": "ptsOffsetMode",
-          "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds. Then specify the number of seconds with PTS offset."
+          "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds or Milliseconds. Then specify the number of seconds or milliseconds with PTS offset."
         },
         "RateMode": {
           "shape": "M2tsRateMode",
@@ -9757,6 +9770,11 @@
           "locationName": "audioPids",
           "documentation": "Packet Identifier (PID) of the elementary audio stream(s) in the transport stream. Multiple values are accepted, and can be entered in ranges and/or by comma separation."
         },
+        "AudioPtsOffsetDelta": {
+          "shape": "__integerMinNegative10000Max10000",
+          "locationName": "audioPtsOffsetDelta",
+          "documentation": "Manually specify the difference in PTS offset that will be applied to the audio track, in seconds or milliseconds, when you set PTS offset to Seconds or Milliseconds. Enter an integer from -10000 to 10000. Leave blank to keep the default value 0."
+        },
         "DataPTSControl": {
           "shape": "M3u8DataPtsControl",
           "locationName": "dataPTSControl",
@@ -9815,7 +9833,7 @@
         "PtsOffsetMode": {
           "shape": "TsPtsOffset",
           "locationName": "ptsOffsetMode",
-          "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds. Then specify the number of seconds with PTS offset."
+          "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds or Milliseconds. Then specify the number of seconds or milliseconds with PTS offset."
         },
         "Scte35Pid": {
           "shape": "__integerMin32Max8182",
@@ -9852,7 +9870,7 @@
     },
     "MatrixCoefficients": {
       "type": "string",
-      "documentation": "the matrix coefficients.",
+      "documentation": "The color space matrix coefficients of the video track.",
       "enum": [
         "RGB",
         "ITU_709",
@@ -9880,25 +9898,25 @@
         "ETag": {
           "shape": "__string",
           "locationName": "eTag",
-          "documentation": "The ETag of the file."
+          "documentation": "The entity tag (ETag) of the file."
         },
         "FileSize": {
           "shape": "__long",
           "locationName": "fileSize",
-          "documentation": "The size of the file in bytes."
+          "documentation": "The size of the media file, in bytes."
         },
         "LastModified": {
           "shape": "__timestampUnix",
           "locationName": "lastModified",
-          "documentation": "The last modification time of the file."
+          "documentation": "The last modification timestamp of the media file, in Unix time."
         },
         "MimeType": {
           "shape": "__string",
           "locationName": "mimeType",
-          "documentation": "The MIME type of the file."
+          "documentation": "The MIME type of the media file."
         }
       },
-      "documentation": "Metadata about the file."
+      "documentation": "Metadata and other file information."
     },
     "MinBottomRenditionSize": {
       "type": "structure",
@@ -11484,7 +11502,7 @@
         "FileUrl": {
           "shape": "__string",
           "locationName": "fileUrl",
-          "documentation": "The URI to your input file(s) that is stored in Amazon S3 or on an HTTP(S) server."
+          "documentation": "Specify the S3, HTTP, or HTTPS URL for your media file."
         }
       },
       "documentation": "The input file that needs to be analyzed."
@@ -11495,7 +11513,7 @@
         "InputFiles": {
           "shape": "__listOfProbeInputFile",
           "locationName": "inputFiles",
-          "documentation": "The list of input media files to be probed."
+          "documentation": "Specify a media file to probe."
         }
       }
     },
@@ -11505,7 +11523,7 @@
         "ProbeResults": {
           "shape": "__listOfProbeResult",
           "locationName": "probeResults",
-          "documentation": "List of probe results for the input media file(s)."
+          "documentation": "Probe results for your media file."
         }
       }
     },
@@ -11515,20 +11533,20 @@
         "Container": {
           "shape": "Container",
           "locationName": "container",
-          "documentation": "Information about the container format of the media file."
+          "documentation": "The container of your media file. This information helps you understand the overall structure and details of your media, including format, duration, and track layout."
         },
         "Metadata": {
           "shape": "Metadata",
           "locationName": "metadata",
-          "documentation": "Metadata about the file."
+          "documentation": "Metadata and other file information."
         },
         "TrackMappings": {
           "shape": "__listOfTrackMapping",
           "locationName": "trackMappings",
-          "documentation": "List of Track mapping objects."
+          "documentation": "An array containing track mapping information."
         }
       },
-      "documentation": "The metadata and analysis results for a media file."
+      "documentation": "Probe results for your media file."
     },
     "ProresChromaSampling": {
       "type": "string",
@@ -12239,7 +12257,7 @@
         "SystemIds": {
           "shape": "__listOf__stringPattern09aFAF809aFAF409aFAF409aFAF409aFAF12",
           "locationName": "systemIds",
-          "documentation": "Relates to SPEKE implementation. DRM system identifiers. DASH output groups support a max of two system ids. Other group types support one system id. See\n https://dashif.org/identifiers/content_protection/ for more details."
+          "documentation": "Relates to SPEKE implementation. DRM system identifiers. DASH output groups support a max of two system ids. HLS output groups support a max of 3 system ids. Other group types support one system id. See https://dashif.org/identifiers/content_protection/ for more details."
         },
         "Url": {
           "shape": "__stringPatternHttpsD",
@@ -12270,7 +12288,7 @@
         "HlsSignaledSystemIds": {
           "shape": "__listOf__stringMin36Max36Pattern09aFAF809aFAF409aFAF409aFAF409aFAF12",
           "locationName": "hlsSignaledSystemIds",
-          "documentation": "Specify the DRM system ID that you want signaled in the HLS manifest that MediaConvert creates as part of this CMAF package. The HLS manifest can currently signal only one system ID. For more information, see https://dashif.org/identifiers/content_protection/."
+          "documentation": "Specify up to 3 DRM system IDs that you want signaled in the HLS manifest that MediaConvert creates as part of this CMAF package. For more information, see https://dashif.org/identifiers/content_protection/."
         },
         "ResourceId": {
           "shape": "__stringPatternW",
@@ -12552,40 +12570,40 @@
         "AudioProperties": {
           "shape": "AudioProperties",
           "locationName": "audioProperties",
-          "documentation": "Properties specific to audio tracks."
+          "documentation": "Details about the media file's audio track."
         },
         "Codec": {
           "shape": "Codec",
           "locationName": "codec",
-          "documentation": "The codec used for the track."
+          "documentation": "The codec of the audio or video track, or caption format of the data track."
         },
         "DataProperties": {
           "shape": "DataProperties",
           "locationName": "dataProperties",
-          "documentation": "Properties specific to data tracks."
+          "documentation": "Details about the media file's data track."
         },
         "Duration": {
           "shape": "__double",
           "locationName": "duration",
-          "documentation": "The duration of the track in seconds."
+          "documentation": "The duration of the track, in seconds."
         },
         "Index": {
           "shape": "__integer",
           "locationName": "index",
-          "documentation": "The index of the track."
+          "documentation": "The unique index number of the track, starting at 1."
         },
         "TrackType": {
           "shape": "TrackType",
           "locationName": "trackType",
-          "documentation": "The type of the track (video, audio, or data)."
+          "documentation": "The type of track: video, audio, or data."
         },
         "VideoProperties": {
           "shape": "VideoProperties",
           "locationName": "videoProperties",
-          "documentation": "Properties specific to video tracks."
+          "documentation": "Details about the media file's video track."
         }
       },
-      "documentation": "The track information such as codec, duration, etc."
+      "documentation": "Details about each track (video, audio, or data) in the media file."
     },
     "TrackMapping": {
       "type": "structure",
@@ -12593,20 +12611,20 @@
         "AudioTrackIndexes": {
           "shape": "__listOf__integer",
           "locationName": "audioTrackIndexes",
-          "documentation": "The indexes of the audio tracks."
+          "documentation": "The index numbers of the audio tracks in your media file."
         },
         "DataTrackIndexes": {
           "shape": "__listOf__integer",
           "locationName": "dataTrackIndexes",
-          "documentation": "The indexes of the data tracks."
+          "documentation": "The index numbers of the data tracks in your media file."
         },
         "VideoTrackIndexes": {
           "shape": "__listOf__integer",
           "locationName": "videoTrackIndexes",
-          "documentation": "The indexes of the video tracks."
+          "documentation": "The index numbers of the video tracks in your media file."
         }
       },
-      "documentation": "Track mapping information."
+      "documentation": "An array containing track mapping information."
     },
     "TrackSourceSettings": {
       "type": "structure",
@@ -12629,7 +12647,7 @@
     },
     "TransferCharacteristics": {
       "type": "string",
-      "documentation": "the transfer characteristics.",
+      "documentation": "The color space transfer characteristics of the video track.",
       "enum": [
         "ITU_709",
         "UNSPECIFIED",
@@ -12654,10 +12672,11 @@
     },
     "TsPtsOffset": {
       "type": "string",
-      "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds. Then specify the number of seconds with PTS offset.",
+      "documentation": "Specify the initial presentation timestamp (PTS) offset for your transport stream output. To let MediaConvert automatically determine the initial PTS offset: Keep the default value, Auto. We recommend that you choose Auto for the widest player compatibility. The initial PTS will be at least two seconds and vary depending on your output's bitrate, HRD buffer size and HRD buffer initial fill percentage. To manually specify an initial PTS offset: Choose Seconds or Milliseconds. Then specify the number of seconds or milliseconds with PTS offset.",
       "enum": [
         "AUTO",
-        "SECONDS"
+        "SECONDS",
+        "MILLISECONDS"
       ]
     },
     "TtmlDestinationSettings": {
@@ -13491,40 +13510,40 @@
         "BitRate": {
           "shape": "__integer",
           "locationName": "bitRate",
-          "documentation": "The bit rate of the video track in bits per second."
+          "documentation": "The bit rate of the video track, in bits per second."
         },
         "ColorPrimaries": {
           "shape": "ColorPrimaries",
           "locationName": "colorPrimaries",
-          "documentation": "the color primaries."
+          "documentation": "The color space color primaries of the video track."
         },
         "FrameRate": {
           "shape": "FrameRate",
           "locationName": "frameRate",
-          "documentation": "the calculated frame rate of the asset."
+          "documentation": "The frame rate of the video or audio track."
         },
         "Height": {
           "shape": "__integer",
           "locationName": "height",
-          "documentation": "The height of the video track in pixels."
+          "documentation": "The height of the video track, in pixels."
         },
         "MatrixCoefficients": {
           "shape": "MatrixCoefficients",
           "locationName": "matrixCoefficients",
-          "documentation": "the matrix coefficients."
+          "documentation": "The color space matrix coefficients of the video track."
         },
         "TransferCharacteristics": {
           "shape": "TransferCharacteristics",
           "locationName": "transferCharacteristics",
-          "documentation": "the transfer characteristics."
+          "documentation": "The color space transfer characteristics of the video track."
         },
         "Width": {
           "shape": "__integer",
           "locationName": "width",
-          "documentation": "The width of the video track in pixels."
+          "documentation": "The width of the video track, in pixels."
         }
       },
-      "documentation": "Properties specific to video tracks."
+      "documentation": "Details about the media file's video track."
     },
     "VideoSelector": {
       "type": "structure",
@@ -14373,6 +14392,9 @@
     "__doubleMin0Max2147483647": {
       "type": "double"
     },
+    "__doubleMin1Max10": {
+      "type": "double"
+    },
     "__doubleMinNegative59Max0": {
       "type": "double"
     },
@@ -14843,6 +14865,11 @@
       "type": "integer",
       "min": 96,
       "max": 600
+    },
+    "__integerMinNegative10000Max10000": {
+      "type": "integer",
+      "min": -10000,
+      "max": 10000
     },
     "__integerMinNegative1000Max1000": {
       "type": "integer",
