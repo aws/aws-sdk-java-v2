@@ -189,7 +189,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
             ShapeModel exceptionShape = model.getShapes().get(exceptionName);
             String errorCode = exceptionShape.getErrorCode();
 
-            builder.add("case $S:\n", errorCode);
+            builder.add("case $S:\n", exceptionShape.getC2jName());
             builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
                    .add(".errorCode($S)\n", errorCode);
             builder.add(populateHttpStatusCode(exceptionShape, model));

@@ -128,7 +128,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                        DeleteRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -187,7 +187,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                     GetRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -246,7 +246,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                     PutRowResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -307,7 +307,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpWithSigv4AndSigv4AUnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -370,7 +370,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpWithSigv4SignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -433,7 +433,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpWithSigv4UnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -508,7 +508,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             .createResponseHandler(operationMetadata, OpWithSigv4UnSignedPayloadAndStreamingResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -580,7 +580,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpWithSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -643,7 +643,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpWithSigv4AUnSignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -707,7 +707,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             operationMetadata, OpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -771,7 +771,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
             .createResponseHandler(operationMetadata, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:

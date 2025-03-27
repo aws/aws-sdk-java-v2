@@ -142,7 +142,7 @@ final class DefaultJsonClient implements JsonClient {
                                                                                                             APostOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -207,7 +207,7 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, APostOperationWithOutputResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
@@ -388,7 +388,7 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, GetWithoutRequiredMembersResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
-                case "InvalidInput":
+                case "InvalidInputException":
                     return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                         .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:

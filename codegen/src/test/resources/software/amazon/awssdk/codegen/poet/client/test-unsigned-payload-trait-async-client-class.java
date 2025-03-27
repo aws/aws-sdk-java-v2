@@ -147,7 +147,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                                            DeleteRowResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -216,7 +216,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                                         GetRowResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -289,7 +289,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 .createResponseHandler(operationMetadata, OpWithSigv4AndSigv4AUnSignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -361,7 +361,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 operationMetadata, OpWithSigv4SignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -433,7 +433,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 operationMetadata, OpWithSigv4UnSignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -517,7 +517,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 .createResponseHandler(operationMetadata, OpWithSigv4UnSignedPayloadAndStreamingResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -596,7 +596,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 operationMetadata, OpWithSigv4ASignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -668,7 +668,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 operationMetadata, OpWithSigv4AUnSignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -742,7 +742,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 .createResponseHandler(operationMetadata, OpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -812,7 +812,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                                         PutRowResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
@@ -885,7 +885,7 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 .createResponseHandler(operationMetadata, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
-                    case "InvalidInput":
+                    case "InvalidInputException":
                         return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
                                                             .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
