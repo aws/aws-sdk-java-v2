@@ -288,13 +288,6 @@ public class ChecksumIntegrationTesting {
         }
     }
 
-    // @ParameterizedTest
-    // @MethodSource("")
-    // void getObject(TestConfig config) {
-    //     LOG.debug(() -> "Running putObject with config: " + config.toString());
-    //
-    // }
-
     @ParameterizedTest
     @MethodSource("uploadConfigs")
     void putObject(UploadConfig config) throws Exception {
@@ -540,16 +533,6 @@ public class ChecksumIntegrationTesting {
                     .accelerate(config.isAccelerateEnabled())
                     .overrideConfiguration(overrideConfiguration)
                     .build();
-            // case ASYNC_JAVA_BASED_MULTI:
-            //     return S3AsyncClient.builder()
-            //         .forcePathStyle(config.isForcePathStyle())
-            //         .requestChecksumCalculation(config.getRequestChecksumValidation())
-            //         .region(REGION)
-            //         .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-            //         .accelerate(config.isAccelerateEnabled())
-            //         .overrideConfiguration(overrideConfiguration)
-            //         .multipartEnabled(true)
-            //         .build();
             case ASYNC_CRT: {
                 // if (overrideConfiguration != null) {
                 //     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
@@ -996,7 +979,7 @@ public class ChecksumIntegrationTesting {
             case STRING: {
                 String content = contentSize.stringContent();
                 return new TestRequestBody(RequestBody.fromString(content),
-                                           content.getBytes().length,
+                                           content.getBytes(StandardCharsets.UTF_8).length,
                                            crc32(content));
             }
             case FILE:
@@ -1062,9 +1045,8 @@ public class ChecksumIntegrationTesting {
     private TestAsyncBody getAsyncRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
-                byte[] content = contentSize.byteContent();
-                long contentLength = content.length;
-                return new TestAsyncBody(AsyncRequestBody.fromString(new String(content)), contentLength, crc32(content), bodyType);
+                String content = contentSize.stringContent();
+                return new TestAsyncBody(AsyncRequestBody.fromString(content), content.getBytes(StandardCharsets.UTF_8).length, crc32(content), bodyType);
             }
             case FILE: {
                 long contentLength = Files.size(contentSize.fileContent());
