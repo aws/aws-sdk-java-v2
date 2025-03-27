@@ -13,8 +13,32 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3;
 
-public class StreamingIntegrationTesting {
+public enum BodyType {
+    INPUTSTREAM_RESETABLE,
+    INPUTSTREAM_NOT_RESETABLE,
 
+    STRING,
+
+    FILE,
+
+    CONTENT_PROVIDER_WITH_LENGTH,
+    CONTENT_PROVIDER_NO_LENGTH,
+
+    BYTES,
+    BYTE_BUFFER,
+    REMAINING_BYTE_BUFFER,
+
+    BYTES_UNSAFE,
+    BYTE_BUFFER_UNSAFE,
+    REMAINING_BYTE_BUFFER_UNSAFE,
+
+    BUFFERS,
+    BUFFERS_REMAINING,
+    BUFFERS_UNSAFE,
+    BUFFERS_REMAINING_UNSAFE,
+
+    BLOCKING_INPUT_STREAM,
+    BLOCKING_OUTPUT_STREAM
 }

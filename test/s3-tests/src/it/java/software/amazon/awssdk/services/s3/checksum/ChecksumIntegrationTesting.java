@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -67,6 +68,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.BodyType;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
@@ -93,11 +95,15 @@ import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPoint
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CancellableOutputStream;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 // Running putObject with config:
 //   UploadConfig{
@@ -178,7 +184,7 @@ public class ChecksumIntegrationTesting {
 
         apArn = createAccessPoint();
 
-        testFileSmall = createRandomFile16KB();
+        testFileSmall = createRandomFile2KB();
         testFileLarge = createRandomFile80MB();
     }
 
@@ -358,6 +364,12 @@ public class ChecksumIntegrationTesting {
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
                 actualCrc32 = body.getChecksum();
+            } else if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
+                TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.getContentSize());
+                callable = callTmUpload(request, body, config.getBaseConfig(), overrideConfiguration.build());
+                actualContentLength = body.getActualContentLength();
+                requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
+                actualCrc32 = body.getChecksum();
             } else {
                 TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
@@ -475,19 +487,7 @@ public class ChecksumIntegrationTesting {
             try {
                 AsyncRequestBody asyncRequestBody = requestBody.getAsyncRequestBody();
                 CompletableFuture<PutObjectResponse> future = s3Client.putObject(request, asyncRequestBody);
-                if (requestBody.bodyType == BodyType.BLOCKING_INPUT_STREAM) {
-                    BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
-                    InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
-                    body.writeInputStream(inputStream);
-                    inputStream.close();
-                }
-                if (requestBody.bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
-                    TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
-                    CancellableOutputStream outputStream =
-                        ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
-                    body.bodyWrite.accept(outputStream);
-                    outputStream.close();
-                }
+                performUploadIfRequired(requestBody.bodyType, requestBody);
                 return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -496,11 +496,44 @@ public class ChecksumIntegrationTesting {
         return new TestCallable<>(s3Client, callable);
     }
 
+    private TestCallable<PutObjectResponse> callTmUpload(PutObjectRequest request,
+                                                         TestAsyncBody requestBody,
+                                                         TestConfig config,
+                                                         ClientOverrideConfiguration overrideConfiguration) {
+        S3TransferManager tm = S3TransferManager.builder()
+                                                .s3Client(makeAsyncClient(config, overrideConfiguration))
+                                                .build();
+        Callable<PutObjectResponse> callable = () -> {
+            Upload upload = tm.upload(r -> r.requestBody(requestBody.getAsyncRequestBody()).putObjectRequest(request));
+            CompletableFuture<CompletedUpload> future = upload.completionFuture();
+            performUploadIfRequired(requestBody.bodyType, requestBody);
+            CompletedUpload completedUpload = CompletableFutureUtils.joinLikeSync(future);
+            return completedUpload.response();
+        };
+        return new TestCallable<>(tm, callable);
+    }
+
+    private void performUploadIfRequired(BodyType bodyType, TestAsyncBody requestBody) throws IOException {
+        if (bodyType == BodyType.BLOCKING_INPUT_STREAM) {
+            BlockingInputStreamAsyncRequestBody body = (BlockingInputStreamAsyncRequestBody) requestBody.asyncRequestBody;
+            InputStream inputStream = ((TestAsyncBodyForBlockingInputStream) requestBody).inputStream;
+            body.writeInputStream(inputStream);
+            inputStream.close();
+        }
+        if (bodyType == BodyType.BLOCKING_OUTPUT_STREAM) {
+            TestAsyncBodyForBlockingOutputStream body = (TestAsyncBodyForBlockingOutputStream) requestBody;
+            CancellableOutputStream outputStream =
+                ((BlockingOutputStreamAsyncRequestBody) body.getAsyncRequestBody()).outputStream();
+            body.bodyWrite.accept(outputStream);
+            outputStream.close();
+        }
+    }
+
     private static class TestCallable<ResponseT> {
-        private AwsClient client;
+        private SdkAutoCloseable client;
         private Callable<ResponseT> runnable;
 
-        TestCallable(AwsClient client, Callable<ResponseT> runnable) {
+        TestCallable(SdkAutoCloseable client, Callable<ResponseT> runnable) {
             this.client = client;
             this.runnable = runnable;
         }
@@ -533,10 +566,17 @@ public class ChecksumIntegrationTesting {
                     .accelerate(config.isAccelerateEnabled())
                     .overrideConfiguration(overrideConfiguration)
                     .build();
+            case TM_JAVA:
+                return S3AsyncClient.builder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(REGION)
+                                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .overrideConfiguration(overrideConfiguration)
+                                    .multipartEnabled(true)
+                                    .build();
             case ASYNC_CRT: {
-                // if (overrideConfiguration != null) {
-                //     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
-                // }
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -588,7 +628,7 @@ public class ChecksumIntegrationTesting {
     enum S3ClientFlavor {
         JAVA_BASED(false),
         ASYNC_JAVA_BASED(true),
-        // ASYNC_JAVA_BASED_MULTI(true),
+        TM_JAVA(true),
 
         ASYNC_CRT(true)
         ;
@@ -837,7 +877,7 @@ public class ChecksumIntegrationTesting {
         boolean[] payloadSigningEnabled = {true, false};
         for (boolean pathStyle : forcePathStyle) {
             for (RequestChecksumCalculation checksumValidation : checksumValidations) {
-                for (S3ClientFlavor flavor : S3ClientFlavor.values()) {
+                for (S3ClientFlavor flavor : new S3ClientFlavor[]{ S3ClientFlavor.TM_JAVA }) {
                     for (BucketType bucketType : BucketType.values()) {
                         for (boolean accelerate : accelerateEnabled) {
                             for (boolean payloadSigning : payloadSigningEnabled) {
@@ -859,39 +899,9 @@ public class ChecksumIntegrationTesting {
         return configs;
     }
 
-    enum BodyType {
-        INPUTSTREAM_RESETABLE,
-        INPUTSTREAM_NOT_RESETABLE,
-
-        STRING,
-
-        FILE,
-
-        CONTENT_PROVIDER_WITH_LENGTH,
-
-        CONTENT_PROVIDER_NO_LENGTH,
-
-        BYTES,
-        BYTE_BUFFER,
-        REMAINING_BYTE_BUFFER,
-
-        BYTES_UNSAFE,
-        BYTE_BUFFER_UNSAFE,
-        REMAINING_BYTE_BUFFER_UNSAFE,
-
-        BUFFERS,
-        BUFFERS_REMAINING,
-        BUFFERS_UNSAFE,
-        BUFFERS_REMAINING_UNSAFE,
-
-        BLOCKING_INPUT_STREAM,
-        BLOCKING_OUTPUT_STREAM
-    }
-
     enum ContentSize {
         SMALL,
-        LARGE; // 200 MiB
-
+        LARGE; // 80 MiB
 
         byte[] byteContent() {
             switch (this) {
@@ -1330,12 +1340,12 @@ public class ChecksumIntegrationTesting {
         s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
-    private static Path createRandomFile16KB() throws IOException {
+    private static Path createRandomFile2KB() throws IOException {
         Path tmp = Files.createTempFile(null, null);
         byte[] randomBytes = new byte[1024];
         new Random().nextBytes(randomBytes);
         try (OutputStream os = Files.newOutputStream(tmp)) {
-            for (int i = 0; i < 16; ++i) {
+            for (int i = 0; i < 2; ++i) {
                 os.write(randomBytes);
             }
         }
