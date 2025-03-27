@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Billing and Cost Management Pricing Calculator",
-    "contributor": "",
-    "description": "Added standaloneAccountRateTypeSelections for GetPreferences and UpdatePreferences APIs. Added STALE enum value to status attribute in GetBillScenario and UpdateBillScenario APIs."
-}

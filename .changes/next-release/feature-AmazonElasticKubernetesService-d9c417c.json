@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Added support for BOTTLEROCKET FIPS AMIs to AMI types in US regions."
-}
