@@ -44,6 +44,7 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
 
 /**
  * Tests for {@link FileAsyncResponseTransformer}.
@@ -184,6 +186,11 @@ class FileAsyncResponseTransformerTest {
         assertThat(testPath).hasContent(existingString + content);
     }
 
+    @RepeatedTest(10000)
+    void foo() throws Exception {
+        exceptionOccurred_deleteFileBehavior(FileTransformerConfiguration.defaultCreateNew());
+    }
+
     @ParameterizedTest
     @MethodSource("configurations")
     void exceptionOccurred_deleteFileBehavior(FileTransformerConfiguration configuration) throws Exception {
@@ -193,7 +200,7 @@ class FileAsyncResponseTransformerTest {
             Files.write(testPath, "foobar".getBytes(StandardCharsets.UTF_8));
         }
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, configuration);
-        stubException(RandomStringUtils.random(200), transformer);
+        stubException(transformer);
         if (configuration.failureBehavior() == LEAVE) {
             assertThat(testPath).exists();
         } else {
@@ -326,31 +333,17 @@ class FileAsyncResponseTransformerTest {
         assertThat(future.isCompletedExceptionally()).isFalse();
     }
 
-    private static void stubException(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {
+    private static void stubException(FileAsyncResponseTransformer<String> transformer) throws Exception {
         CompletableFuture<String> future = transformer.prepare();
         transformer.onResponse("foobar");
 
         RuntimeException runtimeException = new RuntimeException("oops");
-        ByteBuffer content = ByteBuffer.wrap(newContent.getBytes(StandardCharsets.UTF_8));
-        SdkPublisher<ByteBuffer> idlePublisher = new SdkPublisher<ByteBuffer>() {
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                subscriber.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long l) {
-                        subscriber.onNext(content);
-                    }
-
-                    @Override
-                    public void cancel() {
-                    }
-                });
-            }
-        };
-        transformer.onStream(idlePublisher);
+        transformer.onStream(s -> s.onSubscribe(new NoopSubscription(s)));
         transformer.exceptionOccurred(runtimeException);
 
-        assertThatThrownBy(future::join).isInstanceOf(Exception.class);
+        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
+                          .withThrowableOfType(ExecutionException.class)
+                          .withCause(runtimeException);
     }
 
     private static SdkPublisher<ByteBuffer> testPublisher(String content) {
