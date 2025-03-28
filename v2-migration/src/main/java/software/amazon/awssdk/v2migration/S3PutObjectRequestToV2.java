@@ -15,40 +15,55 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.SUPPORTED_METADATA_TRANSFORMS;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addMetadataFields;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.createComments;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getArgumentName;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getSelectName;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPayloadSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestMetadataSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestPayerSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2S3MethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isFileType;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isInputStreamType;
 
 import java.util.ArrayDeque;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.regex.Pattern;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddImport;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.TextComment;
 import org.openrewrite.java.tree.TypeUtils;
-import org.openrewrite.marker.Markers;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public class S3PutObjectRequestToV2 extends Recipe {
+
+    private static final MethodMatcher PUT_OBJECT_STREAM_METADATA =
+        v2S3MethodMatcher(String.format("putObject(String, String, java.io.InputStream, %sHeadObjectResponse)",
+                                        V2_S3_MODEL_PKG));
 
     private static final MethodMatcher PUT_OBJ_WITH_REQUEST =
         v2S3MethodMatcher(String.format("putObject(%sPutObjectRequest)", V2_S3_MODEL_PKG));
 
     private static final MethodMatcher UPLOAD_WITH_REQUEST =
         v2TmMethodMatcher(String.format("upload(%sPutObjectRequest)", V2_S3_MODEL_PKG));
+
+    private static final Pattern METADATA_V2 = Pattern.compile(V2_S3_MODEL_PKG + "HeadObjectResponse");
 
     @Override
     public String getDisplayName() {
@@ -65,62 +80,79 @@ public class S3PutObjectRequestToV2 extends Recipe {
         return new Visitor();
     }
 
-    private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
+    private static final class Visitor extends JavaVisitor<ExecutionContext> {
 
-        private Queue<Expression> filesQueue = new ArrayDeque<>();
+        // queues for when setter is on PutObjectRequest that is instantiated directly inside putObject(), no assigned variable
+        private final Queue<Expression> payloadQueue = new ArrayDeque<>();
+        private final Queue<String> metadataNameQueue = new ArrayDeque<>();
+
+        private final Map<String, Expression> requestToPayloadMap = new HashMap<>();
+        private final Map<String, String> requestToMetadataNamesMap = new HashMap<>();
+        private final Map<String, Map<String, Expression>> metadataMap = new HashMap<>();
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+        public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
+            if (isObjectMetadataSetter(method)) {
+                return saveMetadataValueAndRemoveStatement(method);
+            }
 
             if (isPutObjectRequestBuilderSetter(method)) {
+                if (isRequestMetadataSetter(method)) {
+                    method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                    return transformWithMetadata(method);
+                }
                 if (isPayloadSetter(method)) {
-                    return transformRequestBuilderPayloadSetter(method, executionContext);
+                    return transformRequestBuilderPayloadSetter(method);
                 }
                 if (isRequestPayerSetter(method)) {
-                    return transformRequesterPaysSetter(method);
+                    return transformWithRequesterPays(method);
                 }
             }
             if (isPutObjectRequestSetter(method)) {
+                if (isRequestMetadataSetter(method)) {
+                    return convertSetMetadataToBuilder(method);
+                }
                 if (isPayloadSetter(method)) {
-                    return transformRequestPayloadSetter(method, executionContext);
+                    return transformRequestPayloadSetter(method);
                 }
             }
 
+            if (PUT_OBJECT_STREAM_METADATA.matches(method)) {
+                method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                return transformPutObjectWithStreamAndMetadata(method);
+            }
             if (PUT_OBJ_WITH_REQUEST.matches(method)) {
-                method = super.visitMethodInvocation(method, executionContext);
-                method = transformPutObjectWithRequest(method, executionContext);
-                return method;
+                method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                return transformPutObjectWithRequest(method);
             }
             if (UPLOAD_WITH_REQUEST.matches(method)) {
-                method = super.visitMethodInvocation(method, executionContext);
-                method = transformUploadWithRequest(method, executionContext);
-                return method;
+                method = (J.MethodInvocation) super.visitMethodInvocation(method, ctx);
+                return transformUploadWithRequest(method);
             }
 
-            return super.visitMethodInvocation(method, executionContext);
+            return super.visitMethodInvocation(method, ctx);
         }
 
-        private J.MethodInvocation transformRequestBuilderPayloadSetter(J.MethodInvocation method,
-                                                                        ExecutionContext executionContext) {
+        private J.MethodInvocation transformRequestBuilderPayloadSetter(J.MethodInvocation method) {
             Expression payload = method.getArguments().get(0);
 
             String variableName = retrieveVariableNameIfRequestPojoIsAssigned();
             if (variableName != null) {
-                executionContext.putMessage(variableName, payload);
+                requestToPayloadMap.put(variableName, payload);
             } else {
-                filesQueue.add(payload);
+                payloadQueue.add(payload);
             }
 
             // Remove setter .file(file)
             return (J.MethodInvocation) method.getSelect();
         }
 
-        private J.MethodInvocation transformRequestPayloadSetter(J.MethodInvocation method, ExecutionContext executionContext) {
+        private J.MethodInvocation transformRequestPayloadSetter(J.MethodInvocation method) {
             J.Identifier requestPojo = (J.Identifier) method.getSelect();
             String variableName = requestPojo.getSimpleName();
 
             Expression payload = method.getArguments().get(0);
-            executionContext.putMessage(variableName, payload);
+            requestToPayloadMap.put(variableName, payload);
 
             // Remove entire statement e.g., request.setFile(file)
             return null;
@@ -141,8 +173,8 @@ public class S3PutObjectRequestToV2 extends Recipe {
             return null;
         }
 
-        private J.MethodInvocation transformPutObjectWithRequest(J.MethodInvocation method, ExecutionContext executionContext) {
-            Expression payload = retrieveRequestPayload(method, executionContext);
+        private J.MethodInvocation transformPutObjectWithRequest(J.MethodInvocation method) {
+            Expression payload = retrieveRequestPayload(method);
 
             if (payload == null) {
                 method = addEmptyRequestBodyToPutObject(method);
@@ -156,22 +188,22 @@ public class S3PutObjectRequestToV2 extends Recipe {
             return method;
         }
 
-        private Expression retrieveRequestPayload(J.MethodInvocation method, ExecutionContext executionContext) {
+        private Expression retrieveRequestPayload(J.MethodInvocation method) {
             Expression requestPojo = method.getArguments().get(0);
             Expression payload;
 
             if (requestPojo instanceof J.Identifier) {
                 J.Identifier pojo = (J.Identifier) requestPojo;
-                payload = executionContext.pollMessage(pojo.getSimpleName());
+                payload = requestToPayloadMap.get(pojo.getSimpleName());
             } else {
-                payload = filesQueue.poll();
+                payload = payloadQueue.poll();
             }
 
             return payload;
         }
 
-        private J.MethodInvocation transformUploadWithRequest(J.MethodInvocation method, ExecutionContext executionContext) {
-            Expression payload = retrieveRequestPayload(method, executionContext);
+        private J.MethodInvocation transformUploadWithRequest(J.MethodInvocation method) {
+            Expression payload = retrieveRequestPayload(method);
 
             if (payload == null) {
                 method = addEmptyAsyncRequestBodyToUpload(method);
@@ -208,22 +240,36 @@ public class S3PutObjectRequestToV2 extends Recipe {
         }
 
         private J.MethodInvocation addInputStreamToUpload(J.MethodInvocation method, Expression inputStream) {
-            long contentLength = extractContentLengthIfSet(method);
-
-            String v2Method = String.format("UploadRequest.builder().putObjectRequest(#{any()})"
-                                            + ".requestBody(AsyncRequestBody.fromInputStream(#{any()}, %dL, "
-                                            + "newExecutorServiceVariableToDefine)).build()",
-                                            contentLength);
-
             addTmImport("UploadRequest");
             addAsyncRequestBodyImport();
+
+            StringBuilder sb = new StringBuilder("UploadRequest.builder().putObjectRequest(#{any()})"
+                                                 + ".requestBody(AsyncRequestBody.fromInputStream(#{any()}, ");
+
+            String metadataName = getMetadataForRequest(method);
+            Expression contentLength;
+            if (metadataName == null) {
+                contentLength = null;
+            } else {
+                contentLength = retrieveContentLengthForMetadataIfSet(metadataName);
+            }
+
+            Expression[] params = {method.getArguments().get(0), inputStream};
+            if (contentLength == null) {
+                sb.append("-1L");
+            } else {
+                sb.append("#{any()}");
+                params = Arrays.copyOf(params, 3);
+                params[2] = contentLength;
+            }
+
+            sb.append(", newExecutorServiceVariableToDefine)).build()");
 
             String comment = "When using InputStream to upload with TransferManager, you must specify Content-Length and "
                              + "ExecutorService.";
 
-            return JavaTemplate.builder(v2Method).build()
-                                                     .apply(getCursor(), method.getCoordinates().replaceArguments(),
-                                                            method.getArguments().get(0), inputStream)
+            return JavaTemplate.builder(sb.toString()).build()
+                                                     .apply(getCursor(), method.getCoordinates().replaceArguments(), params)
                                .withComments(createComments(comment));
         }
 
@@ -235,35 +281,174 @@ public class S3PutObjectRequestToV2 extends Recipe {
         }
 
         private J.MethodInvocation addInputStreamToPutObject(J.MethodInvocation method, Expression inputStream) {
-            long contentLength = extractContentLengthIfSet(method);
+            String metadataName = getMetadataForRequest(method);
+            Expression contentLen;
+            if (metadataName == null) {
+                contentLen = null;
+            } else {
+                contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+            }
+
             String v2Method;
 
-            if (contentLength < 0) {
-                String comment = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
-                                 + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.";
+            if (contentLen == null) {
                 // CHECKSTYLE:OFF: Regexp
-                v2Method = "#{any()}, RequestBody.fromContentProvider(() -> #{any()}, \"binary/octet-stream\")";
+                v2Method = "#{any()}, RequestBody.fromContentProvider(() -> #{any()}, \"application/octet-stream\")";
                 // CHECKSTYLE:ON: Regexp
                 return JavaTemplate.builder(v2Method).build()
                                    .apply(getCursor(), method.getCoordinates().replaceArguments(),
                                           method.getArguments().get(0), inputStream)
-                    .withComments(createComments(comment));
-            } else {
-                v2Method = String.format("#{any()}, RequestBody.fromInputStream(#{any()}, %d)", contentLength);
-                return JavaTemplate.builder(v2Method).build()
-                                   .apply(getCursor(), method.getCoordinates().replaceArguments(),
-                                          method.getArguments().get(0), inputStream);
+                    .withComments(inputStreamBufferingWarningComment());
             }
+
+            StringBuilder sb = new StringBuilder("#{any()}, RequestBody.fromInputStream(#{any()}, #{any()}");
+            if (contentLen instanceof J.Literal) {
+                sb.append("L");
+            }
+            sb.append(")");
+
+            return JavaTemplate.builder(sb.toString()).build()
+                               .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                      method.getArguments().get(0), inputStream, contentLen);
         }
 
-        private long extractContentLengthIfSet(J.MethodInvocation method) {
-            // TODO - check ObjectMetadata and return if set
-            // Need to implement ObjectMetadata transform
+        private J.MethodInvocation transformPutObjectWithStreamAndMetadata(J.MethodInvocation method) {
+            addRequestBodyImport();
+            addS3Import("PutObjectRequest");
 
-            return -1;
+            Expression metadata = method.getArguments().get(3);
+            String metadataName = ((J.Identifier) metadata).getSimpleName();
+
+            StringBuilder sb = new StringBuilder("PutObjectRequest.builder().bucket(#{any()}).key(#{any()})");
+            addMetadataFields(sb, metadataName, metadataMap);
+            Expression contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+
+            Expression[] params = {method.getArguments().get(0), method.getArguments().get(1),
+                                   method.getArguments().get(2)};
+
+            if (contentLen == null) {
+                // CHECKSTYLE:OFF: Regexp
+                sb.append(".build(), RequestBody.fromContentProvider(() -> #{any()}, \"application/octet-stream\")");
+                // CHECKSTYLE:ON: Regexp
+                return JavaTemplate.builder(sb.toString()).build()
+                                   .apply(getCursor(), method.getCoordinates().replaceArguments(), params)
+                                   .withComments(inputStreamBufferingWarningComment());
+            }
+
+            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()}");
+
+            if (contentLen instanceof J.Literal) {
+                sb.append("L");
+            }
+            sb.append(")");
+
+            params = Arrays.copyOf(params, 4);
+            params[3] = contentLen;
+
+            return JavaTemplate.builder(sb.toString()).build()
+                               .apply(getCursor(), method.getCoordinates().replaceArguments(), params);
         }
 
-        private J.MethodInvocation transformRequesterPaysSetter(J.MethodInvocation method) {
+        private J.MethodInvocation transformWithMetadata(J.MethodInvocation method) {
+            String metadataName = getArgumentName(method);
+
+            String requestName = retrieveVariableNameIfRequestPojoIsAssigned();
+            if (requestName == null) {
+                metadataNameQueue.add(metadataName);
+            } else {
+                requestToMetadataNamesMap.put(requestName, metadataName);
+            }
+
+            Map<String, Expression> map = metadataMap.get(metadataName);
+            if (map == null) {
+                // should never happen unless user passes in empty ObjectMetadata
+                // remove metadata setter
+                return (J.MethodInvocation) method.getSelect();
+            }
+
+            StringBuilder sb = new StringBuilder("#{any()}");
+            addMetadataFields(sb, metadataName, metadataMap);
+
+            return JavaTemplate.builder(sb.toString()).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
+        }
+
+        private J convertSetMetadataToBuilder(J.MethodInvocation method) {
+            String requestName = getSelectName(method);
+            String metadataName = getArgumentName(method);
+
+            requestToMetadataNamesMap.put(requestName, metadataName);
+            Map<String, Expression> map = metadataMap.get(metadataName);
+            if (map == null) {
+                // should never happen unless user passes in empty ObjectMetadata
+                // remove entire line
+                return null;
+            }
+
+            StringBuilder sb = new StringBuilder("#{any()} = #{any()}.toBuilder()");
+            addMetadataFields(sb, metadataName, metadataMap);
+            sb.append(".build()");
+
+            // This class must be JavaVisitor instead of JavaIsoVisitor in order to return a Statement here
+            return JavaTemplate.builder(sb.toString()).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(), method.getSelect());
+        }
+
+        private String getMetadataForRequest(J.MethodInvocation method) {
+            Expression arg = method.getArguments().get(0);
+
+            if (arg instanceof J.Identifier) {
+                String requestName = ((J.Identifier) arg).getSimpleName();
+                return requestToMetadataNamesMap.get(requestName);
+            }
+            return metadataNameQueue.poll();
+        }
+
+        private Expression retrieveContentLengthForMetadataIfSet(String metadataName) {
+            Map<String, Expression> map = metadataMap.get(metadataName);
+            if (map == null) {
+                return null;
+            }
+            return map.get("contentLength");
+        }
+
+        private boolean isObjectMetadataSetter(J.MethodInvocation method) {
+            if (method.getSelect() == null || method.getSelect().getType() == null) {
+                return false;
+            }
+
+            return method.getSelect().getType().isAssignableFrom(METADATA_V2)
+                   && !method.getArguments().isEmpty();
+        }
+
+        private J.MethodInvocation saveMetadataValueAndRemoveStatement(J.MethodInvocation method) {
+            J.Identifier metadataPojo = (J.Identifier) method.getSelect();
+            String variableName = metadataPojo.getSimpleName();
+
+            String methodName = method.getSimpleName();
+
+            if (!SUPPORTED_METADATA_TRANSFORMS.contains(methodName)) {
+                String comment = String.format("Transform for ObjectMetadata setter - %s - is not supported, please manually "
+                                               + "migrate the code by setting it on the v2 request/response object.", methodName);
+                return method.withComments(createComments(comment));
+            }
+
+            Expression value = method.getArguments().get(0);
+
+            Map<String, Expression> map = metadataMap.get(variableName);
+
+            if (map == null) {
+                map = new HashMap<>();
+            }
+
+            map.put(methodName, value);
+            metadataMap.put(variableName, map);
+
+            // remove entire line
+            return null;
+        }
+
+        private J.MethodInvocation transformWithRequesterPays(J.MethodInvocation method) {
             Expression expression = method.getArguments().get(0);
             if (expression instanceof J.Literal) {
                 J.Literal literal = (J.Literal) expression;
@@ -277,11 +462,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
             return JavaTemplate.builder("RequestPayer.REQUESTER").build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments());
-        }
-
-        private List<Comment> createComments(String comment) {
-            return Collections.singletonList(
-                new TextComment(true, "AWS SDK for Java v2 migration: " + comment, "", Markers.EMPTY));
         }
 
         /** Field set during POJO instantiation, e.g.,
@@ -306,14 +486,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
             return TypeUtils.isOfClassType(method.getSelect().getType(), fqcn);
         }
 
-        private boolean isPayloadSetter(J.MethodInvocation method) {
-            return "file".equals(method.getSimpleName()) || "inputStream".equals(method.getSimpleName());
-        }
-
-        private boolean isRequestPayerSetter(J.MethodInvocation method) {
-            return "requestPayer".equals(method.getSimpleName());
-        }
-
         private void addRequestBodyImport() {
             String fqcn = "software.amazon.awssdk.core.sync.RequestBody";
             doAfterVisit(new AddImport<>(fqcn, null, false));
@@ -332,6 +504,14 @@ public class S3PutObjectRequestToV2 extends Recipe {
         private void addTmImport(String pojoName) {
             String fqcn = V2_TM_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
+        }
+
+        private List<Comment> inputStreamBufferingWarningComment() {
+            String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
+                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"
+                             + " content length must be unknown, we recommend using the CRT-based S3 client - "
+                             + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html";
+            return createComments(warning);
         }
     }
 }
