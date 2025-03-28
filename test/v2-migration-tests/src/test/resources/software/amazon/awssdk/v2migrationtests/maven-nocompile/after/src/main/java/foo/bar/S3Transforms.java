@@ -15,10 +15,14 @@
 
 package foo.bar;
 
+import com.amazonaws.HttpMethod;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GeneratePresignedUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -66,5 +70,19 @@ public class S3Transforms {
 
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - header - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.header("key", "val");
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - addUserMetadata - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.addUserMetadata("a", "b");
+    }
+
+    private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
+        URL urlHead = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with HEAD HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.HEAD);
+
+        URL urlPatch = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with PATCH HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PATCH);
+
+        URL urlPost = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with POST HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.POST);
+
+        HttpMethod httpMethod = HttpMethod.PUT;
+        URL urlWithHttpMethodVariable = /*AWS SDK for Java v2 migration: Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported. Please manually migrate your code - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key);
+        /*AWS SDK for Java v2 migration: Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(request);
     }
 }

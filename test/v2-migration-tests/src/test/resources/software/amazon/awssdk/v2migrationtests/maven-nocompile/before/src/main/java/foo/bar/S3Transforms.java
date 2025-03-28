@@ -15,11 +15,15 @@
 
 package foo.bar;
 
+import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Date;
 
 public class S3Transforms {
@@ -63,5 +67,19 @@ public class S3Transforms {
 
         metadata.setHeader("key", "val");
         metadata.addUserMetadata("a", "b");
+    }
+
+    private void generatePresignedUrl(AmazonS3 s3, String bucket, String key, Date expiration) {
+        URL urlHead = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.HEAD);
+
+        URL urlPatch = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PATCH);
+
+        URL urlPost = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.POST);
+
+        HttpMethod httpMethod = HttpMethod.PUT;
+        URL urlWithHttpMethodVariable = s3.generatePresignedUrl(bucket, key, expiration, httpMethod);
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucket, key);
+        s3.generatePresignedUrl(request);
     }
 }

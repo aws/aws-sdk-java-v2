@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Fixed an issue in the AWS CRT-based S3 client where a GetObject request with `AsyncResponseTransformer#toBlockingInputStream` may hang if request failed mid streaming"
+}
