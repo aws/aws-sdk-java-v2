@@ -119,11 +119,11 @@ public final class QueryEnhancedRequest {
     }
 
     /**
-     * Returns the value of select, or null if it doesn't exist.
+     * Returns the value of select as Enum, or null if it doesn't exist.
      * @return
      */
-    public String select() {
-        return select;
+    public Select select() {
+        return Select.fromValue(this.select);
     }
 
     /**
@@ -131,7 +131,7 @@ public final class QueryEnhancedRequest {
      * @return
      */
     public String selectAsString() {
-        return String.valueOf(select);
+        return select;
     }
 
     /**
@@ -307,7 +307,7 @@ public final class QueryEnhancedRequest {
          * @return a builder of this type
          */
         public Builder select(Select select) {
-            this.select = select.toString();
+            this.select = select == null ? null : select.toString();
             return this;
         }
 
