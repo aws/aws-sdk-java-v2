@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.11__ __2025-03-28__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue in the AWS CRT-based S3 client where a GetObject request with `AsyncResponseTransformer#toBlockingInputStream` may hang if request failed mid streaming
+
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for cacheNamespace in ProjectCache
+
+## __AWS Network Manager__
+  - ### Features
+    - Add support for NetworkManager Dualstack endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Add support for Marketplace Metering Service dual-stack endpoints.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Adds support for setting the IP address type to allow dual-stack or IPv4 address types to invoke your APIs or domain names.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Launching Multi-modality Content Filter for Amazon Bedrock Guardrails.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECS documentation only release that addresses tickets.
+
+## __Amazon QuickSight__
+  - ### Features
+    - RLS permission dataset with userAs: RLS_RULES flag, Q in QuickSight/Threshold Alerts/Schedules/Snapshots in QS embedding, toggle dataset refresh email alerts via API, transposed table with options: column width, type and index, toggle Q&A on dashboards, Oracle Service Name when creating data source.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - TransformAmiVersion for Batch Transform and SageMaker Search Service Aggregate Search API Extension
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Adds support for setting the IP address type to allow dual-stack or IPv4 address types to invoke your APIs or domain names.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - The service adds support for transferring AES-256 and other keys between the service and other service providers and HSMs. This feature uses ECDH to derive a one-time key transport key to enable these secure key exchanges.
+
 # __2.31.10__ __2025-03-27__
 ## __AWS Batch__
   - ### Features

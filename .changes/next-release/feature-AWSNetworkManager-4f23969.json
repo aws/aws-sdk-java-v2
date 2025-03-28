@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Manager",
-    "contributor": "",
-    "description": "Add support for NetworkManager Dualstack endpoints."
-}
