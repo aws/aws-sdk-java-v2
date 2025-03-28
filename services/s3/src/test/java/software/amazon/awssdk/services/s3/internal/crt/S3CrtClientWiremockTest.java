@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -46,7 +47,9 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
@@ -146,6 +149,77 @@ public class S3CrtClientWiremockTest {
                 assertThat(s3Exception.statusCode()).isEqualTo(404);
                 assertThat(s3Exception.extendedRequestId()).isEqualTo("foo");
                 assertThat(s3Exception.requestId()).isEqualTo("bar");
+            });
+    }
+
+    @Test
+    public void toBlockingInputStream_requestFailedMidwayDueToServerError_shouldThrowException() {
+        HttpHeaders httpHeaders = new HttpHeaders(new HttpHeader("content-length", "12345676"),
+                                                  new HttpHeader("etag", E_TAG));
+        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(200)
+                                                     .withHeaders(httpHeaders)));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willSetStateTo("first request")
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody("helloworld".getBytes(StandardCharsets.UTF_8))));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs("first request")
+                    .willSetStateTo("second request")
+                    .willReturn(aResponse()
+                                    .withStatus(404)
+                                    .withHeader(X_AMZ_ID_2_HEADER, "foo")
+                                    .withHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "bar")
+                                    .withBody("".getBytes(StandardCharsets.UTF_8))));
+        ResponseInputStream<GetObjectResponse> stream = s3AsyncClient.getObject(
+            r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBlockingInputStream())
+                                                                     .join();
+        byte[] buffer = new byte[1024 * 8];
+        assertThatThrownBy(() -> stream.read(buffer, 0, buffer.length))
+            .satisfies(throwable -> {
+                assertThat(throwable).isInstanceOf(S3Exception.class);
+                S3Exception s3Exception = (S3Exception) throwable;
+                assertThat(s3Exception.statusCode()).isEqualTo(404);
+                assertThat(s3Exception.extendedRequestId()).isEqualTo("foo");
+                assertThat(s3Exception.requestId()).isEqualTo("bar");
+            });
+    }
+
+    @Test
+    public void toBlockingInputStream_requestFailedMidwayDueToIoError_shouldThrowException() {
+        HttpHeaders httpHeaders = new HttpHeaders(new HttpHeader("content-length", "12345676"),
+                                                  new HttpHeader("etag", E_TAG));
+        stubFor(head(anyUrl()).willReturn(aResponse().withStatus(200)
+                                                     .withHeaders(httpHeaders)));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willSetStateTo("first request")
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withBody("helloworld".getBytes(StandardCharsets.UTF_8))));
+
+        stubFor(get(anyUrl())
+                    .inScenario("SucceedThenFail")
+                    .whenScenarioStateIs("first request")
+                    .willSetStateTo("second request")
+                    .willReturn(aResponse()
+                                    .withFault(Fault.RANDOM_DATA_THEN_CLOSE)));
+        ResponseInputStream<GetObjectResponse> stream = s3AsyncClient.getObject(
+                                                                         r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBlockingInputStream())
+                                                                     .join();
+        byte[] buffer = new byte[1024 * 8];
+        assertThatThrownBy(() -> stream.read(buffer, 0, buffer.length))
+            .satisfies(throwable -> {
+                assertThat(throwable).isInstanceOf(SdkClientException.class);
+                SdkClientException exception = (SdkClientException) throwable;
+                assertThat(exception.getMessage()).contains("Failed to send the request");
             });
     }
 
