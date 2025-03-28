@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Launching Multi-modality Content Filter for Amazon Bedrock Guardrails."
+}
