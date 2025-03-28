@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "contributor": "",
+    "description": "Add support for Marketplace Metering Service dual-stack endpoints."
+}
