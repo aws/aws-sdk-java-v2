@@ -15,7 +15,9 @@
 
 package foo.bar;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketAccelerateConfiguration;
@@ -57,7 +59,10 @@ import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConf
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ownership.OwnershipControls;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class S3 {
@@ -242,5 +247,29 @@ public class S3 {
 
     private void setBucketNameTest(AmazonS3 s3, String bucket) {
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, "key").withBucketName(bucket);
+    }
+
+    private void s3Uri(URI uri, String uriAsString) {
+        AmazonS3URI s3Uri = new AmazonS3URI(uri);
+
+        String versionId = s3Uri.getVersionId();
+        String bucket = s3Uri.getBucket();
+        String key = s3Uri.getKey();
+        String region = s3Uri.getRegion();
+        boolean isPathStyle = s3Uri.isPathStyle();
+
+        AmazonS3URI s3UriFromString = new AmazonS3URI(uriAsString);
+
+        AmazonS3URI s3UriFromStringWithUrlEncodeFalse = new AmazonS3URI(uriAsString, false);
+    }
+
+    private void generatePresignedUrl(AmazonS3 s3, String bucket, String key, Date expiration) {
+        URL urlGet1 = s3.generatePresignedUrl(bucket, key, expiration);
+
+        URL urlPut = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PUT);
+
+        URL urlGet2 = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.GET);
+
+        URL urlDelete = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.DELETE);
     }
 }
