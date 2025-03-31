@@ -291,7 +291,10 @@ public class DownloadStreamingIntegrationTesting {
                                             .build());
         }
 
-        s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts)));
+        s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
+                                             .bucket(bucket)
+                                             .checksumCRC32(crc32(content))
+                                             .uploadId(uploadId));
         s3.waiter().waitUntilObjectExists(r -> r.bucket(bucket).key(objectName),
                                           c -> c.waitTimeout(Duration.ofMinutes(5)));
     }
