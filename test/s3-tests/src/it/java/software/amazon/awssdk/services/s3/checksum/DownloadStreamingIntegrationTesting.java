@@ -293,6 +293,7 @@ public class DownloadStreamingIntegrationTesting {
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
                                              .bucket(bucket)
+                                             .key(objectName)
                                              .checksumCRC32(crc32(content))
                                              .uploadId(uploadId));
         s3.waiter().waitUntilObjectExists(r -> r.bucket(bucket).key(objectName),
