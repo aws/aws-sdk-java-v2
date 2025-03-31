@@ -80,11 +80,13 @@ public class AwsXmlProtocolFactory {
     private final Supplier<SdkPojo> defaultServiceExceptionSupplier;
     private final HttpResponseHandler<AwsServiceException> errorUnmarshaller;
     private final SdkClientConfiguration clientConfiguration;
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
     AwsXmlProtocolFactory(Builder<?> builder) {
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.clientConfiguration = builder.clientConfiguration;
+        this.exceptionMetadataMapper = builder.exceptionMetadataMapper;
 
         this.errorUnmarshaller = timeUnmarshalling(
             AwsXmlErrorProtocolUnmarshaller.builder()
@@ -147,8 +149,20 @@ public class AwsXmlProtocolFactory {
                                      .build();
     }
 
+    @Deprecated
     public HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return errorUnmarshaller;
+    }
+
+    public HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return timeUnmarshalling(
+            AwsXmlErrorProtocolUnmarshaller.builder()
+                                           .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                           .exceptionMetadataMapper(exceptionMetadataMapper)
+                                           .errorUnmarshaller(XML_PROTOCOL_UNMARSHALLER)
+                                           .errorRootExtractor(this::getErrorRoot)
+                                           .build());
     }
 
     private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
@@ -158,8 +172,9 @@ public class AwsXmlProtocolFactory {
     public <T extends AwsResponse> HttpResponseHandler<Response<T>> createCombinedResponseHandler(
         Supplier<SdkPojo> pojoSupplier, XmlOperationMetadata staxOperationMetadata) {
 
-        return new CombinedResponseHandler<>(createResponseHandler(pojoSupplier, staxOperationMetadata),
-                                             createErrorResponseHandler());
+        return new CombinedResponseHandler<>
+            (createResponseHandler(pojoSupplier, staxOperationMetadata),
+             createErrorResponseHandler(this.exceptionMetadataMapper));
     }
 
     /**
@@ -191,6 +206,7 @@ public class AwsXmlProtocolFactory {
         private final List<ExceptionMetadata> modeledExceptions = new ArrayList<>();
         private Supplier<SdkPojo> defaultServiceExceptionSupplier;
         private SdkClientConfiguration clientConfiguration;
+        private Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
         Builder() {
         }
@@ -203,6 +219,11 @@ public class AwsXmlProtocolFactory {
          */
         public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
+            return getSubclass();
+        }
+
+        public SubclassT exceptionMetadataMapper(Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            this.exceptionMetadataMapper = exceptionMetadataMapper;
             return getSubclass();
         }
 

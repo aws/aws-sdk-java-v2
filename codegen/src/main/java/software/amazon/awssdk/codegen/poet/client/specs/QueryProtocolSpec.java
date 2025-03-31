@@ -21,12 +21,16 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
@@ -36,6 +40,7 @@ import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -92,11 +97,41 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     @Override
     public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
-        return Optional.of(
-            CodeBlock.builder()
-                     .add("\n\n$T errorResponseHandler = protocolFactory.createErrorResponseHandler();",
-                          ParameterizedTypeName.get(HttpResponseHandler.class, AwsServiceException.class))
-                     .build());
+        CodeBlock.Builder builder = CodeBlock.builder();
+        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("switch (errorCode) {\n");
+        Set<String> processedExceptions = new HashSet<>();
+
+        opModel.getExceptions().forEach(exception -> {
+            String exceptionName = exception.getExceptionName();
+            if (!processedExceptions.add(exceptionName)) {
+                return;
+            }
+            ShapeModel exceptionShape = intermediateModel.getShapes().get(exceptionName);
+            String errorCode = exceptionShape.getErrorCode();
+            builder.add("case $S:\n", exceptionShape.getC2jName());
+            builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                   .add(".errorCode($S)\n", errorCode);
+            builder.add(populateHttpStatusCode(exceptionShape, intermediateModel));
+            builder.add(".exceptionBuilderSupplier($T::builder)\n",
+                        poetExtensions.getModelClassFromShape(exceptionShape))
+                   .add(".build());\n");
+        });
+
+        builder.add("default: return $T.empty();\n", Optional.class);
+        builder.add("}\n");
+        builder.add("};\n\n");
+
+        builder.add("$T<$T> errorResponseHandler = protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);",
+                    HttpResponseHandler.class,
+                    AwsServiceException.class);
+
+        return Optional.of(builder.build());
     }
 
     @Override
@@ -191,6 +226,18 @@ public class QueryProtocolSpec implements ProtocolSpec {
 
     @Override
     public Optional<MethodSpec> createErrorResponseHandler() {
-        return Optional.empty();
+        ParameterizedTypeName mapperType = ParameterizedTypeName.get(
+            ClassName.get(Function.class),
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
+
+        return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
+                                     .addModifiers(Modifier.PRIVATE)
+                                     .returns(ParameterizedTypeName.get(ClassName.get(HttpResponseHandler.class),
+                                                                        ClassName.get(AwsServiceException.class)))
+                                     .addParameter(mapperType, "exceptionMetadataMapper")
+                                     .addStatement("return protocolFactory.createErrorResponseHandler(exceptionMetadataMapper)")
+                                     .build());
     }
+
 }
