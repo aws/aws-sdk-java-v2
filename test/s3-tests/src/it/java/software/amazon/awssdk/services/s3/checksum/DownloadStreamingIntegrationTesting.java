@@ -281,6 +281,7 @@ public class DownloadStreamingIntegrationTesting {
             byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
             UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(part)
                                                                       .uploadId(uploadId)
+                                                                      .key(objectName)
                                                                       .bucket(bucket),
                                                             RequestBody.fromBytes(partContent));
             completedParts.add(CompletedPart.builder()
