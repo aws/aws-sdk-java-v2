@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "Add Prompt Caching support to Converse and ConverseStream APIs"
+}
