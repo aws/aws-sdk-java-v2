@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Release VPC Route Server, a new feature allowing dynamic routing in VPCs."
+}
