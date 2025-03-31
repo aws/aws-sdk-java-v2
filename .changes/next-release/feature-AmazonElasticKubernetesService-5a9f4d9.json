@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Add support for updating RemoteNetworkConfig for hybrid nodes on EKS UpdateClusterConfig API"
+}
