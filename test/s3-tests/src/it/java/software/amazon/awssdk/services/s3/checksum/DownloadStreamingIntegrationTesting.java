@@ -29,7 +29,9 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -53,13 +55,19 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CompletedPart;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
+import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.InputStreamUtils;
@@ -184,13 +192,14 @@ public class DownloadStreamingIntegrationTesting {
                 throw new RuntimeException("Unsupported java client flavor: " + config.getBaseConfig().getFlavor());
         }
 
-        String receivedContentCRC32 = S3ChecksumsTestUtils.crc32(content);
+        String receivedContentCRC32 = crc32(content);
         String expectedCRC32 = objectForConfig(config).crc32;
         assertThat(receivedContentCRC32).isEqualTo(expectedCRC32);
     }
 
     // 16 KiB
     static ObjectWithCRC uploadObjectSmall() throws IOException {
+        LOG.debug(() -> "test setup - uploading small test object");
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024];
@@ -213,6 +222,7 @@ public class DownloadStreamingIntegrationTesting {
 
     // 80 MiB
     static ObjectWithCRC uploadObjectLarge() throws IOException {
+        LOG.debug(() -> "test setup - uploading large test object");
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024 * 1024];
@@ -235,30 +245,52 @@ public class DownloadStreamingIntegrationTesting {
 
     // 80MiB, multipart default config
     static ObjectWithCRC uploadMultiPartObject() throws Exception {
-        S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
-                                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                                   .multipartEnabled(true)
-                                                   .region(REGION)
-                                                   .build();
+        LOG.debug(() -> "test setup - uploading large test object - multipart");
+
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] rand = new byte[1024 * 1024];
-        for (int i = 0; i < 80; i++) {
+        byte[] rand = new byte[8 * 1024 * 1024];
+        for (int i = 0; i < 10; i++) {
             new Random().nextBytes(rand);
             os.write(rand);
         }
         byte[] fullContent = os.toByteArray();
         for (BucketType bucketType : BucketType.values()) {
-            String bucket = bucketForType(bucketType);
-            PutObjectRequest req = PutObjectRequest.builder()
-                                                   .bucket(bucket)
-                                                   .key(name)
-                                                   .build();
-
-            s3AsyncClient.putObject(req, AsyncRequestBody.fromBytes(fullContent))
-                         .get(5, TimeUnit.MINUTES);
+            doMultipartUpload(bucketType, name, fullContent);
         }
-        return new ObjectWithCRC(name, S3ChecksumsTestUtils.crc32(fullContent));
+        return new ObjectWithCRC(name, crc32(fullContent));
+    }
+
+    static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
+        String bucket = bucketForType(bucketType);
+        CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
+                                                                               .bucket(bucket)
+                                                                               .key(objectName)
+                                                                               .build();
+
+        CreateMultipartUploadResponse res = s3.createMultipartUpload(createMulti);
+        String uploadId = res.uploadId();
+
+        List<CompletedPart> completedParts = new ArrayList<>();
+        int partNumber = 10;
+        int partSize = 8 * 1024 * 1024;
+        for (int i = 0; i < partNumber; i++) {
+            final int part = i;
+            int startIndex = partSize * part;
+            int endIndex = startIndex + partSize;
+            byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
+            UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(part).uploadId(uploadId),
+                                                            RequestBody.fromBytes(partContent));
+            completedParts.add(CompletedPart.builder()
+                                            .eTag(partResponse.eTag())
+                                            .partNumber(partNumber)
+                                            .checksumCRC32(crc32(partContent))
+                                            .build());
+        }
+
+        s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts)));
+        s3.waiter().waitUntilObjectExists(r -> r.bucket(bucket).key(objectName),
+                                          c -> c.waitTimeout(Duration.ofMinutes(5)));
     }
 
     private static List<DownloadConfig> downloadConfigs() {
