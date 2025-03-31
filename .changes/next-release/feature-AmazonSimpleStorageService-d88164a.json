@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "Amazon S3 adds support for S3 Access Points for directory buckets in AWS Dedicated Local Zones"
-}

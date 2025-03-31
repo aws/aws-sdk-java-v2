@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Use String instead of Select enum for ProjectionExpression to support future values"
-}
