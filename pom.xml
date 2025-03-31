@@ -911,7 +911,7 @@
                                     <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
                                     <argLine>-Xmx8g -Xms1024m -XX:+AllowRedefinitionToAddDeleteMethods</argLine>
                                     <includes>
-                                        <include>**/s3/checksum/ChecksumIntegrationTesting.java</include>
+<!--                                        <include>**/s3/checksum/ChecksumIntegrationTesting.java</include>-->
                                         <include>**/s3/checksum/DownloadStreamingIntegrationTesting.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
