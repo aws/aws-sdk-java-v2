@@ -286,7 +286,7 @@ public class DownloadStreamingIntegrationTesting {
                                                             RequestBody.fromBytes(partContent));
             completedParts.add(CompletedPart.builder()
                                             .eTag(partResponse.eTag())
-                                            .partNumber(partNumber + 1)
+                                            .partNumber(part)
                                             .checksumCRC32(crc32(partContent))
                                             .build());
         }
