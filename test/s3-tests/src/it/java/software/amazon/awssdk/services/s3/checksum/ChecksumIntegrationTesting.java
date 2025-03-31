@@ -16,6 +16,11 @@
 package software.amazon.awssdk.services.s3.checksum;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
+import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
+import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
+import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
+import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.crc32;
 
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -103,19 +108,6 @@ import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-// Running putObject with config:
-//   UploadConfig{
-//     baseConfig=[
-//       flavor=ASYNC_JAVA_BASED_MULTI,
-//       bucketType=STANDARD_BUCKET,
-//       forcePathStyle=true,
-//       requestChecksumValidation=WHEN_REQUIRED,
-//       accelerateEnabled=false,
-//       payloadSigning=false
-//     ],
-//     bodyType=BLOCKING_OUTPUT_STREAM,
-//     contentSize=SMALL
-//   }
 public class ChecksumIntegrationTesting {
     private static final String BUCKET_NAME_PREFIX = "do-not-delete-checksums-";
     private static final String MRAP_NAME = "do-not-delete-checksum-testing";
@@ -134,8 +126,6 @@ public class ChecksumIntegrationTesting {
                                                                  .profileName(TEST_CREDENTIALS_PROFILE_NAME)
                                                                  .build(),
                                        DefaultCredentialsProvider.create());
-
-    private static final SdkChecksum CRC32 = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC32);
 
     private static final ExecutorService ASYNC_REQUEST_BODY_EXECUTOR = Executors.newSingleThreadExecutor();
 
@@ -172,15 +162,15 @@ public class ChecksumIntegrationTesting {
                        .region(REGION)
                        .build();
 
-        accountId = getAccountId();
+        accountId = S3ChecksumsTestUtils.getAccountId(sts);
 
-        bucketName = createBucket();
+        bucketName = S3ChecksumsTestUtils.createBucket(s3, getBucketName(), LOG);
 
-        mrapArn = createMrap();
+        mrapArn = S3ChecksumsTestUtils.createMrap(s3Control, accountId, MRAP_NAME, bucketName, LOG);
 
-        eozBucket = createEozBucket();
+        eozBucket = S3ChecksumsTestUtils.createEozBucket(s3, getBucketName() + EOZ_SUFFIX, LOG);
 
-        apArn = createAccessPoint();
+        apArn = S3ChecksumsTestUtils.createAccessPoint(s3Control, accountId, AP_NAME, bucketName);
 
         testFileSmall = createRandomFile16KB();
         testFileLarge = createRandomFile80MB();
@@ -201,26 +191,6 @@ public class ChecksumIntegrationTesting {
         ASYNC_REQUEST_BODY_EXECUTOR.shutdownNow();
     }
 
-    private void assumeNotAccessPointWithPathStyle(TestConfig config) {
-        BucketType bucketType = config.getBucketType();
-        Assumptions.assumeFalse(config.isForcePathStyle() && bucketType.isArnType(),
-                                "Path style doesn't work with ARN type buckets");
-    }
-
-    private void assumeNotAccelerateWithPathStyle(TestConfig config) {
-        Assumptions.assumeFalse(config.isForcePathStyle() && config.isAccelerateEnabled(),
-                                "Path style doesn't work with Accelerate");
-    }
-
-    private void assumeNotAccelerateWithArnType(TestConfig config) {
-        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType().isArnType(),
-                                "Accelerate doesn't work with ARN buckets");
-    }
-
-    private void assumeNotAccelerateWithEoz(TestConfig config) {
-        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType() == BucketType.EOZ,
-                                "Accelerate is not supported with Express One Zone");
-    }
 
     // Request checksum required
     @ParameterizedTest
@@ -299,7 +269,6 @@ public class ChecksumIntegrationTesting {
         assumeNotAccessPointWithPathStyle(config.getBaseConfig());
         assumeNotAccelerateWithArnType(config.getBaseConfig());
         assumeNotAccelerateWithEoz(config.getBaseConfig());
-
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
@@ -561,13 +530,13 @@ public class ChecksumIntegrationTesting {
         switch (config.getFlavor()) {
             case ASYNC_JAVA_BASED:
                 return S3AsyncClient.builder()
-                    .forcePathStyle(config.isForcePathStyle())
-                    .requestChecksumCalculation(config.getRequestChecksumValidation())
-                    .region(REGION)
-                    .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                    .accelerate(config.isAccelerateEnabled())
-                    .overrideConfiguration(overrideConfiguration)
-                    .build();
+                                     .forcePathStyle(config.isForcePathStyle())
+                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                     .region(REGION)
+                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                     .accelerate(config.isAccelerateEnabled())
+                                     .overrideConfiguration(overrideConfiguration)
+                                     .build();
             case TM_JAVA:
                 return S3AsyncClient.builder()
                                     .forcePathStyle(config.isForcePathStyle())
@@ -579,9 +548,6 @@ public class ChecksumIntegrationTesting {
                                     .multipartEnabled(true)
                                     .build();
             case ASYNC_CRT: {
-                // if (overrideConfiguration != null) {
-                //     LOG.warn(() -> "Override configuration cannot be set for Async S3 CRT!");
-                // }
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -612,45 +578,6 @@ public class ChecksumIntegrationTesting {
                 return apArn;
             default:
                 throw new RuntimeException("Unknown bucket type: " + type);
-        }
-    }
-
-    enum BucketType {
-        STANDARD_BUCKET(false),
-        ACCESS_POINT(true),
-        // Multi-region access point
-        MRAP(true),
-        // Express one zone/S3 express
-        EOZ(false),
-        ;
-
-        private final boolean arnType;
-
-        private BucketType(boolean arnType) {
-            this.arnType = arnType;
-        }
-
-        public boolean isArnType() {
-            return arnType;
-        }
-    }
-
-    enum S3ClientFlavor {
-        JAVA_BASED(false),
-        ASYNC_JAVA_BASED(true),
-        TM_JAVA(true),
-
-        ASYNC_CRT(true)
-        ;
-
-        private final boolean async;
-
-        private S3ClientFlavor(boolean async) {
-            this.async = async;
-        }
-
-        public boolean isAsync() {
-            return async;
         }
     }
 
@@ -692,51 +619,6 @@ public class ChecksumIntegrationTesting {
                    '}';
         }
 
-    }
-
-    enum ResponseTransformerType {
-        FILE,
-        BYTES,
-        INPUT_STREAM,
-        OUTPUT_STREAM,
-        UNMANAGED,
-        PUBLISHER
-    }
-
-    static class DownloadConfig {
-        private TestConfig testConfig;
-        private ResponseTransformerType responseTransformerType;
-        private ContentSize contentSize;
-
-        public DownloadConfig(TestConfig testConfig, ResponseTransformerType responseTransformerType, ContentSize contentSize) {
-            this.testConfig = testConfig;
-            this.responseTransformerType = responseTransformerType;
-            this.contentSize = contentSize;
-        }
-
-        public TestConfig getTestConfig() {
-            return this.testConfig;
-        }
-
-        public void setTestConfig(TestConfig testConfig) {
-            this.testConfig = testConfig;
-        }
-
-        public ResponseTransformerType getResponseTransformerType() {
-            return responseTransformerType;
-        }
-
-        public void setResponseTransformerType(ResponseTransformerType responseTransformerType) {
-            this.responseTransformerType = responseTransformerType;
-        }
-
-        public ContentSize getContentSize() {
-            return contentSize;
-        }
-
-        public void setContentSize(ContentSize contentSize) {
-            this.contentSize = contentSize;
-        }
     }
 
     static class TestRequestBody extends RequestBody {
@@ -808,105 +690,8 @@ public class ChecksumIntegrationTesting {
         }
     }
 
-    static class TestConfig {
-        private S3ClientFlavor flavor;
-        private BucketType bucketType;
-        private boolean forcePathStyle;
-        private RequestChecksumCalculation requestChecksumValidation;
-        private boolean accelerateEnabled;
-        private boolean payloadSigning;
-
-        public S3ClientFlavor getFlavor() {
-            return flavor;
-        }
-
-        public void setFlavor(S3ClientFlavor flavor) {
-            this.flavor = flavor;
-        }
-
-        public BucketType getBucketType() {
-            return bucketType;
-        }
-
-        public void setBucketType(BucketType bucketType) {
-            this.bucketType = bucketType;
-        }
-
-        public boolean isForcePathStyle() {
-            return forcePathStyle;
-        }
-
-        public void setForcePathStyle(boolean forcePathStyle) {
-            this.forcePathStyle = forcePathStyle;
-        }
-
-        public RequestChecksumCalculation getRequestChecksumValidation() {
-            return requestChecksumValidation;
-        }
-
-        public void setRequestChecksumValidation(RequestChecksumCalculation requestChecksumValidation) {
-            this.requestChecksumValidation = requestChecksumValidation;
-        }
-
-        public boolean isAccelerateEnabled() {
-            return accelerateEnabled;
-        }
-
-        public void setAccelerateEnabled(boolean accelerateEnabled) {
-            this.accelerateEnabled = accelerateEnabled;
-        }
-
-        public boolean isPayloadSigning() {
-            return payloadSigning;
-        }
-
-        public void setPayloadSigning(boolean payloadSigning) {
-            this.payloadSigning = payloadSigning;
-        }
-
-        @Override
-        public String toString() {
-            return "[" +
-                   "flavor=" + flavor +
-                   ", bucketType=" + bucketType +
-                   ", forcePathStyle=" + forcePathStyle +
-                   ", requestChecksumValidation=" + requestChecksumValidation +
-                   ", accelerateEnabled=" + accelerateEnabled +
-                   ", payloadSigning=" + payloadSigning +
-                   ']';
-        }
-    }
-
     static List<TestConfig> testConfigs() {
-        List<TestConfig> configs = new ArrayList<>();
-
-        boolean[] forcePathStyle = {true, false};
-        RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
-                                                            RequestChecksumCalculation.WHEN_SUPPORTED};
-        boolean[] accelerateEnabled = {true, false};
-        boolean[] payloadSigningEnabled = {true, false};
-        for (boolean pathStyle : forcePathStyle) {
-            for (RequestChecksumCalculation checksumValidation : checksumValidations) {
-                for (S3ClientFlavor flavor : S3ClientFlavor.values()) {
-                    for (BucketType bucketType : BucketType.values()) {
-                        for (boolean accelerate : accelerateEnabled) {
-                            for (boolean payloadSigning : payloadSigningEnabled) {
-                                TestConfig testConfig = new TestConfig();
-                                testConfig.setFlavor(flavor);
-                                testConfig.setBucketType(bucketType);
-                                testConfig.setForcePathStyle(pathStyle);
-                                testConfig.setRequestChecksumValidation(checksumValidation);
-                                testConfig.setAccelerateEnabled(accelerate);
-                                testConfig.setPayloadSigning(payloadSigning);
-                                configs.add(testConfig);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return configs;
+        return TestConfig.testConfigs();
     }
 
     enum BodyType {
@@ -941,7 +726,6 @@ public class ChecksumIntegrationTesting {
     enum ContentSize {
         SMALL,
         LARGE; // 200 MiB
-
 
         byte[] byteContent() {
             switch (this) {
@@ -993,19 +777,6 @@ public class ChecksumIntegrationTesting {
         return configs;
     }
 
-    private static List<DownloadConfig> downloadConfigs() {
-        List<DownloadConfig> configs = new ArrayList<>();
-        for (ResponseTransformerType responseTransformerType : ResponseTransformerType.values()) {
-            for (TestConfig baseConfig : testConfigs()) {
-                for (ContentSize contentSize : ContentSize.values()) {
-                    DownloadConfig config = new DownloadConfig(baseConfig, responseTransformerType, contentSize);
-                    configs.add(config);
-                }
-            }
-        }
-        return configs;
-    }
-
     private String putRandomObject(BucketType bucketType) {
         String key = randomKey();
         String bucketName = bucketForType(bucketType);
@@ -1013,7 +784,6 @@ public class ChecksumIntegrationTesting {
         recordObjectToCleanup(bucketType, key);
         return key;
     }
-
 
     private String putRandomArchivedObject(BucketType bucketType) {
         String key = randomKey();
@@ -1248,135 +1018,12 @@ public class ChecksumIntegrationTesting {
         return BinaryUtils.toHex(UUID.randomUUID().toString().getBytes());
     }
 
-    private static String getAccountId() {
-        return sts.getCallerIdentity().account();
-    }
-
     private static String getBucketName() {
         return BUCKET_NAME_PREFIX + accountId;
     }
 
-    private static String createAccessPoint() {
-        try {
-            s3Control.getAccessPoint(r -> r.accountId(accountId).name(AP_NAME));
-        } catch (S3ControlException e) {
-            if (e.awsErrorDetails().sdkHttpResponse().statusCode() != 404) {
-                throw e;
-            }
-
-            s3Control.createAccessPoint(r -> r.bucket(bucketName).name(AP_NAME).accountId(accountId));
-        }
-
-        return waitForApToBeReady();
-    }
-
-    private static String createMrap() throws InterruptedException {
-        try {
-            s3Control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(MRAP_NAME));
-        } catch (S3ControlException e) {
-            if (e.awsErrorDetails().sdkHttpResponse().statusCode() != 404) {
-                throw e;
-            }
-
-            CreateMultiRegionAccessPointRequest createMrap =
-                CreateMultiRegionAccessPointRequest.builder()
-                                                   .accountId(accountId)
-                                                   .details(d -> d.name(MRAP_NAME)
-                                                                  .regions(software.amazon.awssdk.services.s3control.model.Region.builder()
-                                                                                                                                 .bucket(bucketName)
-                                                                                                                                 .build()))
-                                                   .build();
-
-            s3Control.createMultiRegionAccessPoint(createMrap);
-        }
-
-        return waitForMrapToBeReady();
-    }
-
-    private static String createBucket() {
-        String name = getBucketName();
-        LOG.debug(() -> "Creating bucket: " + name);
-        createBucket(name, 3);
-        s3.putBucketAccelerateConfiguration(r -> r.bucket(name)
-                                                  .accelerateConfiguration(c -> c.status(BucketAccelerateStatus.ENABLED)));
-        return name;
-    }
-
-    private static String createEozBucket() {
-        String eozBucketName = getBucketName() + EOZ_SUFFIX;
-        LOG.debug(() -> "Creating EOZ bucket: " + eozBucketName);
-        CreateBucketConfiguration cfg = CreateBucketConfiguration.builder()
-                                                                 .bucket(info -> info.dataRedundancy(DataRedundancy.SINGLE_AVAILABILITY_ZONE)
-                                                                                     .type(software.amazon.awssdk.services.s3.model.BucketType.DIRECTORY))
-                                                                 .location(LocationInfo.builder()
-                                                                                       .name("usw2-az3")
-                                                                                       .type(LocationType.AVAILABILITY_ZONE)
-                                                                                       .build())
-                                                                 .build();
-
-        try {
-            s3.createBucket(r -> r.bucket(eozBucketName).createBucketConfiguration(cfg));
-        } catch (S3Exception e) {
-            AwsErrorDetails awsErrorDetails = e.awsErrorDetails();
-            if (!"BucketAlreadyOwnedByYou".equals(awsErrorDetails.errorCode())) {
-                throw e;
-            }
-        }
-        return eozBucketName;
-    }
-
-    private static String waitForMrapToBeReady() throws InterruptedException {
-        GetMultiRegionAccessPointResponse getMrapResponse = null;
-
-        Instant waitStart = Instant.now();
-        boolean initial = true;
-        do {
-            if (!initial) {
-                Thread.sleep(Duration.ofSeconds(10).toMillis());
-                initial = true;
-            }
-            GetMultiRegionAccessPointResponse response = s3Control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(MRAP_NAME));
-            LOG.debug(() -> "Wait response: " + response);
-            getMrapResponse = response;
-        } while (MultiRegionAccessPointStatus.READY != getMrapResponse.accessPoint().status()
-                 && Duration.between(Instant.now(), waitStart).compareTo(Duration.ofMinutes(5)) < 0);
-
-        return "arn:aws:s3::" + accountId + ":accesspoint/" + getMrapResponse.accessPoint().alias();
-    }
-
     private static String waitForApToBeReady() {
         return s3Control.getAccessPoint(r -> r.accountId(accountId).name(AP_NAME)).accessPointArn();
-    }
-
-    private static void createBucket(String bucketName, int retryCount) {
-        try {
-            s3.createBucket(
-                CreateBucketRequest.builder()
-                                   .bucket(bucketName)
-                                   .createBucketConfiguration(
-                                       CreateBucketConfiguration.builder()
-                                                                .locationConstraint(BucketLocationConstraint.US_WEST_2)
-                                                                .build())
-                                   .build());
-        } catch (S3Exception e) {
-            LOG.debug(() -> "Error attempting to create bucket: " + bucketName);
-            if ("BucketAlreadyOwnedByYou".equals(e.awsErrorDetails().errorCode())) {
-                LOG.debug(() -> String.format("%s bucket already exists, likely leaked by a previous run%n", bucketName));
-            } else if ("TooManyBuckets".equals(e.awsErrorDetails().errorCode())) {
-                LOG.debug(() -> "Printing all buckets for debug:");
-                s3.listBuckets().buckets().forEach(l -> LOG.debug(l::toString));
-                if (retryCount < 2) {
-                    LOG.debug(() -> "Retrying...");
-                    createBucket(bucketName, retryCount + 1);
-                } else {
-                    throw e;
-                }
-            } else {
-                throw e;
-            }
-        }
-
-        s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
     private static Path createRandomFile16KB() throws IOException {
@@ -1417,34 +1064,6 @@ public class ChecksumIntegrationTesting {
         public synchronized void reset() {
             throw new UnsupportedOperationException();
         }
-    }
-
-    private static String crc32(String s) {
-        return crc32(s.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private static String crc32(byte[] bytes) {
-        CRC32.reset();
-        CRC32.update(bytes);
-        return BinaryUtils.toBase64(CRC32.getChecksumBytes());
-    }
-
-    private static String crc32(Path p) throws IOException {
-        CRC32.reset();
-
-        byte[] buff = new byte[4096];
-        int read;
-        try (InputStream is = Files.newInputStream(p)) {
-            while (true) {
-                read = is.read(buff);
-                if (read == -1) {
-                    break;
-                }
-                CRC32.update(buff, 0, read);
-            }
-        }
-
-        return BinaryUtils.toBase64(CRC32.getChecksumBytes());
     }
 
     private void recordObjectToCleanup(BucketType type, String key) {
