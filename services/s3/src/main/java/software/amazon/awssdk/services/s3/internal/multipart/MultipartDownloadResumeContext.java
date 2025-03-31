@@ -71,6 +71,7 @@ public class MultipartDownloadResumeContext {
     }
 
     public void addCompletedPart(int partNumber) {
+        System.out.println("Completed part: " + partNumber);
         completedParts.add(partNumber);
     }
 

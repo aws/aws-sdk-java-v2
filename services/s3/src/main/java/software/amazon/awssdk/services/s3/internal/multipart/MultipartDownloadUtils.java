@@ -39,6 +39,13 @@ public final class MultipartDownloadUtils {
      * @return The list of completed parts for a GetObjectRequest, or an empty list if none were found.
      */
     public static List<Integer> completedParts(GetObjectRequest request) {
+        Optional<MultipartDownloadResumeContext> mprc = multipartDownloadResumeContext(request);
+        if (mprc.isPresent()) {
+            System.out.println("MPRC: " + mprc.get());
+            System.out.println("MPRC total parts: " + mprc.get().totalParts());
+        } else {
+            System.out.println("No MPRC total parts");
+        }
         return multipartDownloadResumeContext(request)
             .map(MultipartDownloadResumeContext::completedParts)
             .orElseGet(Collections::emptyList);

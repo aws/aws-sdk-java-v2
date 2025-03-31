@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
-import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 
@@ -127,49 +126,45 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                            .build());
     }
 
-   @Override
-    public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
-        System.out.println("Using the CRT downloadFile!");
-        Validate.paramNotNull(downloadRequest, "downloadFileRequest");
-
-       TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-
-       // TODO: This could be a single method that takes two builders probably
-       GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
-            attachSdkAttribute(
-                downloadRequest.getObjectRequest(),
-                b -> b
-                    .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
-                    .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
-            ),
-            b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
-        );
-
-        DownloadFileRequest downloadFileRequestWithAttributes =
-            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
-
-        // This doesn't seem to be useful because the setting of contentLength occurs AFTER the progress event
-        //        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-       //            progressUpdater.wrapResponseTransformer(new CrtNoBodyResponseTransformer<>());
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer = new CrtNoBodyResponseTransformer<>();
-        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        progressUpdater.transferInitiated();
-        progressUpdater.registerCompletion(returnFuture);
-
-        assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
-
-        CompletableFuture<GetObjectResponse> future = s3AsyncClient.getObject(downloadFileRequestWithAttributes.getObjectRequest(),
-                                                                              responseTransformer);
-
-        // Forward download cancellation to future
-        CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-
-        CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
-                                                          res -> CompletedFileDownload.builder()
-                                                                                      .response(res)
-                                                                                      .build());
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
-    }
+    // @Override
+    // public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
+    //     System.out.println("Using the CRT downloadFile!");
+    //     Validate.paramNotNull(downloadRequest, "downloadFileRequest");
+    //
+    //    TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+    //
+    //    // TODO: This could be a single method that takes two builders probably
+    //    GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
+    //         attachSdkAttribute(
+    //             downloadRequest.getObjectRequest(),
+    //             b -> b
+    //                 .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
+    //         ),
+    //         b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
+    //     );
+    //
+    //     DownloadFileRequest downloadFileRequestWithAttributes =
+    //         downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+    //
+    //
+    //     CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+    //     progressUpdater.transferInitiated();
+    //     progressUpdater.registerCompletion(returnFuture);
+    //
+    //     assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+    //
+    //     CompletableFuture<GetObjectResponse> future = s3AsyncClient.getObject(downloadFileRequestWithAttributes.getObjectRequest(),
+    //                                                                           downloadFileRequestWithAttributes.destination());
+    //
+    //     // Forward download cancellation to future
+    //     CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+    //
+    //     CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+    //                                                       res -> CompletedFileDownload.builder()
+    //                                                                                   .response(res)
+    //                                                                                   .build());
+    //     return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
+    // }
 
     private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {
         return new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
@@ -222,80 +217,4 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                .overrideConfiguration(modifiedRequestOverrideConfig)
                                .build();
     }
-
-    // TODO: Move this out
-    private static class CrtNoBodyResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
-
-        private static final Logger log = Logger.loggerFor(CrtNoBodyResponseTransformer.class);
-
-        private volatile CompletableFuture<Void> cf;
-        private volatile ResponseT response;
-
-        @Override
-        public CompletableFuture<ResponseT> prepare() {
-            cf = new CompletableFuture<>();
-            return cf.thenApply(ignored -> response);
-        }
-
-        @Override
-        public void onResponse(ResponseT response) {
-            this.response = response;
-        }
-
-        @Override
-        public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            publisher.subscribe(new OnCompleteSubscriber(cf, this::exceptionOccurred));
-        }
-
-        @Override
-        public void exceptionOccurred(Throwable throwable) {
-            if (cf != null) {
-                cf.completeExceptionally(throwable);
-            } else {
-                log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
-                               + "The future cannot be completed exceptionally because it is null");
-
-            }
-        }
-
-        static class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
-
-            private Subscription subscription;
-            private final CompletableFuture<Void> future;
-            private final Consumer<Throwable> onErrorMethod;
-
-            private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
-                this.future = future;
-                this.onErrorMethod = onErrorMethod;
-            }
-
-            @Override
-            public void onSubscribe(Subscription s) {
-                if (this.subscription != null) {
-                    s.cancel();
-                    return;
-                }
-                this.subscription = s;
-                // Request the first chunk to start producing content
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(ByteBuffer byteBuffer) {
-                System.out.println("We should probably not be here!!!");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                onErrorMethod.accept(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("Yay, we completed!");
-                future.complete(null);
-            }
-        }
-    }
-
 }
