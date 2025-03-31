@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -43,6 +44,7 @@ public final class AwsXmlErrorUnmarshaller {
 
     private final List<ExceptionMetadata> exceptions;
     private final Supplier<SdkPojo> defaultExceptionSupplier;
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
     private final XmlErrorUnmarshaller errorUnmarshaller;
 
@@ -50,6 +52,16 @@ public final class AwsXmlErrorUnmarshaller {
         this.exceptions = builder.exceptions;
         this.errorUnmarshaller = builder.errorUnmarshaller;
         this.defaultExceptionSupplier = builder.defaultExceptionSupplier;
+        this.exceptionMetadataMapper = builder.exceptionMetadataMapper != null
+                                       ? builder.exceptionMetadataMapper
+                                       : this::defaultMapToExceptionMetadata;
+    }
+
+    private Optional<ExceptionMetadata> defaultMapToExceptionMetadata(String errorCode) {
+        return Optional.ofNullable(exceptions)
+                       .flatMap(exs -> exs.stream()
+                                          .filter(e -> e.errorCode().equals(errorCode))
+                                          .findFirst());
     }
 
     /**
@@ -122,12 +134,11 @@ public final class AwsXmlErrorUnmarshaller {
     private AwsServiceException.Builder unmarshallFromErrorCode(SdkHttpFullResponse response,
                                                                 XmlElement errorRoot,
                                                                 String errorCode) {
-        SdkPojo sdkPojo = exceptions.stream()
-                                    .filter(e -> e.errorCode().equals(errorCode))
-                                    .map(ExceptionMetadata::exceptionBuilderSupplier)
-                                    .findAny()
-                                    .orElse(defaultExceptionSupplier)
-                                    .get();
+        SdkPojo sdkPojo = exceptionMetadataMapper.apply(errorCode)
+                                                 .map(ExceptionMetadata::exceptionBuilderSupplier)
+                                                 .orElse(defaultExceptionSupplier)
+                                                 .get();
+
 
         AwsServiceException.Builder builder =
             ((AwsServiceException) errorUnmarshaller.unmarshall(sdkPojo, errorRoot, response)).toBuilder();
@@ -204,6 +215,7 @@ public final class AwsXmlErrorUnmarshaller {
         private List<ExceptionMetadata> exceptions;
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private XmlErrorUnmarshaller errorUnmarshaller;
+        private Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
         private Builder() {
         }
@@ -216,6 +228,11 @@ public final class AwsXmlErrorUnmarshaller {
          */
         public Builder exceptions(List<ExceptionMetadata> exceptions) {
             this.exceptions = exceptions;
+            return this;
+        }
+
+        public Builder exceptionMetadataMapper(Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            this.exceptionMetadataMapper = exceptionMetadataMapper;
             return this;
         }
 

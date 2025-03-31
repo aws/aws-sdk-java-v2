@@ -4,9 +4,11 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
@@ -50,6 +52,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -683,7 +686,15 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
                 PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
@@ -843,7 +854,15 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 StreamingOutputOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
@@ -953,6 +972,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
+    }
+
+    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);
     }
 
     @Override

@@ -4,9 +4,11 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarsha
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
@@ -52,6 +55,7 @@ import software.amazon.awssdk.services.query.model.BearerAuthOperationRequest;
 import software.amazon.awssdk.services.query.model.BearerAuthOperationResponse;
 import software.amazon.awssdk.services.query.model.GetOperationWithChecksumRequest;
 import software.amazon.awssdk.services.query.model.GetOperationWithChecksumResponse;
+import software.amazon.awssdk.services.query.model.InvalidInputException;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.query.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.query.model.OperationWithContextParamRequest;
@@ -163,7 +167,18 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(APostOperationResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    case "InvalidInputException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
             String hostPrefix = "foo-";
             String resolvedHostExpression = "foo-";
 
@@ -225,7 +240,18 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
                 .createResponseHandler(APostOperationWithOutputResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    case "InvalidInputException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
@@ -281,7 +307,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(BearerAuthOperationResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
@@ -337,7 +371,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory
                 .createResponseHandler(GetOperationWithChecksumResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
@@ -402,7 +444,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
@@ -462,7 +512,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithContextParamResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithContextParamResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithContextParamResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithContextParamRequest, OperationWithContextParamResponse>()
@@ -519,7 +577,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithCustomMemberResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithCustomMemberResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithCustomMemberResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithCustomMemberRequest, OperationWithCustomMemberResponse>()
@@ -577,7 +643,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithCustomizedOperationContextParamResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithCustomizedOperationContextParamResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithCustomizedOperationContextParamResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithCustomizedOperationContextParamRequest, OperationWithCustomizedOperationContextParamResponse>()
@@ -636,7 +710,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithMapOperationContextParamResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithMapOperationContextParamResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithMapOperationContextParamResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithMapOperationContextParamRequest, OperationWithMapOperationContextParamResponse>()
@@ -692,7 +774,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
@@ -750,7 +840,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithOperationContextParamResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithOperationContextParamResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithOperationContextParamResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithOperationContextParamRequest, OperationWithOperationContextParamResponse>()
@@ -807,7 +905,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithRequestCompressionResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
@@ -869,7 +975,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<OperationWithStaticContextParamsResponse> responseHandler = protocolFactory
                 .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithStaticContextParamsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
@@ -948,7 +1062,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory
                 .createResponseHandler(PutOperationWithChecksumResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
@@ -1035,7 +1157,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(StreamingInputOperationResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
@@ -1105,7 +1235,15 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
                 .createResponseHandler(StreamingOutputOperationResponse::builder);
 
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
@@ -1205,6 +1343,11 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
+    }
+
+    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);
     }
 
     @Override
