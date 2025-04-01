@@ -272,21 +272,21 @@ public class DownloadStreamingIntegrationTesting {
         String uploadId = res.uploadId();
 
         List<CompletedPart> completedParts = new ArrayList<>();
-        int partNumber = 10;
+        int partAmount = 10;
         int partSize = 8 * 1024 * 1024;
-        for (int i = 0; i < partNumber; i++) {
-            final int part = i;
-            int startIndex = partSize * part;
+        for (int i = 0; i < partAmount; i++) {
+            final int partNumber = i + 1;
+            int startIndex = partSize * i;
             int endIndex = startIndex + partSize;
             byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
-            UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(part + 1)
+            UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(partNumber)
                                                                       .uploadId(uploadId)
                                                                       .key(objectName)
                                                                       .bucket(bucket),
                                                             RequestBody.fromBytes(partContent));
             completedParts.add(CompletedPart.builder()
                                             .eTag(partResponse.eTag())
-                                            .partNumber(part + 1)
+                                            .partNumber(partNumber)
                                             .checksumCRC32(crc32(partContent))
                                             .build());
         }
