@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Added tagging support for SageMaker notebook instance lifecycle configurations"
-}
