@@ -370,6 +370,7 @@ public class DownloadStreamingIntegrationTesting {
                 throw new UnsupportedOperationException("unsupported response transformer type: " + config.getResponseTransformerType());
 
         }
+        s3Client.close();
         return content;
     }
 
@@ -422,7 +423,7 @@ public class DownloadStreamingIntegrationTesting {
             default:
                 throw new UnsupportedOperationException("unsupported response transformer type: " + config.getResponseTransformerType());
         }
-
+        s3AsyncClient.close();
         return content;
     }
 
