@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
@@ -126,45 +127,53 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                            .build());
     }
 
-    // @Override
-    // public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
-    //     System.out.println("Using the CRT downloadFile!");
-    //     Validate.paramNotNull(downloadRequest, "downloadFileRequest");
-    //
-    //    TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-    //
-    //    // TODO: This could be a single method that takes two builders probably
-    //    GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
-    //         attachSdkAttribute(
-    //             downloadRequest.getObjectRequest(),
-    //             b -> b
-    //                 .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
-    //         ),
-    //         b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
-    //     );
-    //
-    //     DownloadFileRequest downloadFileRequestWithAttributes =
-    //         downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
-    //
-    //
-    //     CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-    //     progressUpdater.transferInitiated();
-    //     progressUpdater.registerCompletion(returnFuture);
-    //
-    //     assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
-    //
-    //     CompletableFuture<GetObjectResponse> future = s3AsyncClient.getObject(downloadFileRequestWithAttributes.getObjectRequest(),
-    //                                                                           downloadFileRequestWithAttributes.destination());
-    //
-    //     // Forward download cancellation to future
-    //     CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-    //
-    //     CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
-    //                                                       res -> CompletedFileDownload.builder()
-    //                                                                                   .response(res)
-    //                                                                                   .build());
-    //     return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
-    // }
+    @Override
+    public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
+        System.out.println("Using the CRT downloadFile!");
+        Validate.paramNotNull(downloadRequest, "downloadFileRequest");
+
+       TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+
+
+        // TODO: This could be a single method that takes two builders probably
+       GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
+            attachSdkAttribute(
+                downloadRequest.getObjectRequest(),
+                b -> b
+                    .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
+            ),
+            b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable)
+                .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
+        );
+
+        DownloadFileRequest downloadFileRequestWithAttributes =
+            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletion(returnFuture);
+
+        assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+
+        CompletableFuture<GetObjectResponse> future = s3AsyncClient.getObject(downloadFileRequestWithAttributes.getObjectRequest(),
+                                                                              downloadFileRequestWithAttributes.destination());
+
+        // Forward download cancellation to future
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+
+        CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                          res -> CompletedFileDownload.builder()
+                                                                                      .response(res)
+                                                                                      .build());
+        return new CrtFileDownload(
+            returnFuture,
+            progressUpdater.progress(),
+            () -> downloadFileRequestWithAttributes,
+            observable,
+            null);
+    }
 
     private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {
         return new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
