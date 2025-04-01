@@ -108,7 +108,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
                     return transformWithRequesterPays(method);
                 }
                 if (isUnsupportedPutObjectRequestSetter(method)) {
-                    method = maybeAutoFormat(method, addCommentForUnsupportedPutObjectRequestSetter(method), ctx);
+                    method = addCommentForUnsupportedPutObjectRequestSetter(method);
                     return super.visitMethodInvocation(method, ctx);
                 }
             }

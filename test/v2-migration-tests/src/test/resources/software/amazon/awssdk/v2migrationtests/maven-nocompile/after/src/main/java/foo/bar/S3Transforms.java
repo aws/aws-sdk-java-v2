@@ -66,12 +66,12 @@ public class S3Transforms {
             .build();
 
         PutObjectRequest request = /*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter accessControlList is not supported, please manually migrate your code to use the v2 setters: acl, grantReadACP, grantWriteACP - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#acl(java.lang.String)*/
-            /*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseCustomerKey is not supported, please manually migrate your code to use the v2 setters: sseCustomerKey, sseCustomerKeyMD5 - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#sseCustomerKey(java.lang.String)*/
-                /*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseAwsKeyManagementParam is not supported, please manually migrate your code to use the v2 setters: ssekmsKeyId, serverSideEncryption, sseCustomerAlgorithm - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#ssekmsKeyId(java.lang.String)*/
-                    PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
-                        .sseCustomerKey(sseCustomerKey)
-                    .sseAwsKeyManagementParams(sseParams)
-                .accessControlList(accessControlList)
+/*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseCustomerKey is not supported, please manually migrate your code to use the v2 setters: sseCustomerKey, sseCustomerKeyMD5 - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#sseCustomerKey(java.lang.String)*/
+/*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseAwsKeyManagementParam is not supported, please manually migrate your code to use the v2 setters: ssekmsKeyId, serverSideEncryption, sseCustomerAlgorithm - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#ssekmsKeyId(java.lang.String)*/
+PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .sseCustomerKey(sseCustomerKey)
+            .sseAwsKeyManagementParams(sseParams)
+            .accessControlList(accessControlList)
             .build();
     }
 
