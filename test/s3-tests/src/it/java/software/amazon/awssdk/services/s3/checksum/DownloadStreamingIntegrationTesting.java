@@ -67,7 +67,6 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
-import software.amazon.awssdk.services.s3.waiters.S3Waiter;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.InputStreamUtils;
@@ -193,8 +192,10 @@ public class DownloadStreamingIntegrationTesting {
         }
 
         String receivedContentCRC32 = crc32(content);
-        String expectedCRC32 = objectForConfig(config).crc32;
-        assertThat(receivedContentCRC32).isEqualTo(expectedCRC32);
+        String expectedCRC32 = objectForConfig(config).crc32();
+        assertThat(receivedContentCRC32)
+            .withFailMessage("Mismatch crc for config " + config)
+            .isEqualTo(expectedCRC32);
     }
 
     // 16 KiB
@@ -374,6 +375,7 @@ public class DownloadStreamingIntegrationTesting {
             case FILE: {
                 String filename = randomFileName();
                 Path filePath = Paths.get(tempDirPath.toString(), filename);
+                pathsToDelete.add(filePath);
                 s3AsyncClient.getObject(request, AsyncResponseTransformer.toFile(filePath))
                              .get(5, TimeUnit.MINUTES);
                 content = Files.readAllBytes(filePath);
