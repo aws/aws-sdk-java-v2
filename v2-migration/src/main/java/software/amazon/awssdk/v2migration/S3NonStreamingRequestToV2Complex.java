@@ -57,7 +57,7 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
     private static final MethodMatcher LIST_BUCKETS = v2S3MethodMatcher("listBuckets()");
     private static final MethodMatcher RESTORE_OBJECT = v2S3MethodMatcher("restoreObject(String, String, int)");
     private static final MethodMatcher SET_OBJECT_REDIRECT_LOCATION =
-        v2S3MethodMatcher("objectRedirectLocation(String, String, String)");
+        v2S3MethodMatcher("setObjectRedirectLocation(String, String, String)");
     private static final MethodMatcher CHANGE_OBJECT_STORAGE_CLASS = v2S3MethodMatcher(
         String.format("changeObjectStorageClass(String, String, %sStorageClass)", V2_S3_MODEL_PKG));
     private static final MethodMatcher CREATE_BUCKET = v2S3MethodMatcher("createBucket(String, String)");

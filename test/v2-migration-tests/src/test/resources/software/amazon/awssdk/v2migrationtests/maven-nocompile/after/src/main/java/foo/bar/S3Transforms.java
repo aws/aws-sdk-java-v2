@@ -64,9 +64,9 @@ public class S3Transforms {
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - ongoingRestore - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.ongoingRestore(false);
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - requesterCharged - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.requesterCharged(false);
 
-        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - lastModified - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.lastModified(dateVal);
-        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - expirationTime - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.expirationTime(dateVal);
-        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - restoreExpirationTime - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.restoreExpirationTime(dateVal);
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - lastModified - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.lastModified(dateVal.toInstant());
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - expirationTime - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.expirationTime(dateVal.toInstant());
+        /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - restoreExpirationTime - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.restoreExpirationTime(dateVal.toInstant());
 
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - header - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.header("key", "val");
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - addUserMetadata - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.addUserMetadata("a", "b");
