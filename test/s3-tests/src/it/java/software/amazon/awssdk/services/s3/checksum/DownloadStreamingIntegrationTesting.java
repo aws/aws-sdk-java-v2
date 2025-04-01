@@ -263,6 +263,8 @@ public class DownloadStreamingIntegrationTesting {
 
     static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
         String bucket = bucketForType(bucketType);
+        LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket)
+        );
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
                                                                                .bucket(bucket)
                                                                                .key(objectName)
@@ -279,6 +281,7 @@ public class DownloadStreamingIntegrationTesting {
             int startIndex = partSize * i;
             int endIndex = startIndex + partSize;
             byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
+            LOG.debug(() -> "Uploading part: " + partNumber);
             UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(partNumber)
                                                                       .uploadId(uploadId)
                                                                       .key(objectName)
@@ -290,6 +293,8 @@ public class DownloadStreamingIntegrationTesting {
                                             .checksumCRC32(crc32(partContent))
                                             .build());
         }
+
+        LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
                                              .bucket(bucket)
