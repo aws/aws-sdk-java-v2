@@ -18,8 +18,10 @@ package foo.bar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -30,6 +32,8 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 
 public class S3Streaming {
 
@@ -108,10 +112,16 @@ public class S3Streaming {
 
 
     void putObjectSetters() {
+        List<Tag> tags = new ArrayList<>();
+        Tagging objectTagging = Tagging.builder().tagSet(tags)
+            .build();
+
         PutObjectRequest putObjectRequest =
             PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
                 .bucket("bucketName")
+                .websiteRedirectLocation("redirectLocation")
                 .acl(ObjectCannedACL.AWS_EXEC_READ)
+                .tagging(objectTagging)
             .build();
     }
 
@@ -160,7 +170,7 @@ public class S3Streaming {
             .build();
     }
 
-    void putObjectRequester_emptyMetadata() {
+    void putObjectRequest_emptyMetadata() {
         HeadObjectResponse emptyMetadata1 = HeadObjectResponse.builder()
             .build();
         PutObjectRequest request1 =PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")

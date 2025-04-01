@@ -19,13 +19,17 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class S3Streaming {
@@ -95,10 +99,15 @@ public class S3Streaming {
 
 
     void putObjectSetters() {
+        List<Tag> tags = new ArrayList<>();
+        ObjectTagging objectTagging = new ObjectTagging(tags);
+
         PutObjectRequest putObjectRequest =
             new PutObjectRequest("bucket", "key", "location")
-            .withBucketName("bucketName")
-                .withCannedAcl(CannedAccessControlList.AwsExecRead);
+                .withBucketName("bucketName")
+                .withRedirectLocation("redirectLocation")
+                .withCannedAcl(CannedAccessControlList.AwsExecRead)
+                .withTagging(objectTagging);
     }
 
     void putObjectRequesterPaysSetter() {
@@ -141,7 +150,7 @@ public class S3Streaming {
         PutObjectRequest request = new PutObjectRequest("bucket", "key", "location").withMetadata(metadata);
     }
 
-    void putObjectRequester_emptyMetadata() {
+    void putObjectRequest_emptyMetadata() {
         ObjectMetadata emptyMetadata1 = new ObjectMetadata();
         PutObjectRequest request1 = new PutObjectRequest("bucket", "key", "location").withMetadata(emptyMetadata1);
 

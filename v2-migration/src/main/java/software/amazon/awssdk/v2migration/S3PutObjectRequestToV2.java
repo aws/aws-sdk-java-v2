@@ -18,16 +18,19 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.SUPPORTED_METADATA_TRANSFORMS;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addCommentForUnsupportedPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addMetadataFields;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.createComments;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getArgumentName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getSelectName;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.inputStreamBufferingWarningComment;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPayloadSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestBuilderSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestPayerSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2S3MethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isFileType;
@@ -36,7 +39,6 @@ import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isI
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import org.openrewrite.ExecutionContext;
@@ -46,7 +48,6 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -105,6 +106,10 @@ public class S3PutObjectRequestToV2 extends Recipe {
                 }
                 if (isRequestPayerSetter(method)) {
                     return transformWithRequesterPays(method);
+                }
+                if (isUnsupportedPutObjectRequestSetter(method)) {
+                    method = maybeAutoFormat(method, addCommentForUnsupportedPutObjectRequestSetter(method), ctx);
+                    return super.visitMethodInvocation(method, ctx);
                 }
             }
             if (isPutObjectRequestSetter(method)) {
@@ -472,14 +477,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
         private void addTmImport(String pojoName) {
             String fqcn = V2_TM_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
-        }
-
-        private List<Comment> inputStreamBufferingWarningComment() {
-            String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
-                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"
-                             + " content length must be unknown, we recommend using the CRT-based S3 client - "
-                             + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html";
-            return createComments(warning);
         }
     }
 }

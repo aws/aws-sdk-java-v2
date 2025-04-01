@@ -148,7 +148,10 @@ public final class SdkTypeUtils {
                       "com.amazonaws.services.kinesis.metrics",
                       "com.amazonaws.services.kinesis.multilang",
                       // Kinesis Producer Library (KCL) : amazon-kinesis-producer
-                      "com.amazonaws.services.kinesis.producer"
+                      "com.amazonaws.services.kinesis.producer",
+                      // S3 POJOs with no v2 equivalent
+                      "com.amazonaws.services.s3.model.SSEAwsKeyManagementParams",
+                      "com.amazonaws.services.s3.model.SSECustomerKey"
         ));
 
     static {
