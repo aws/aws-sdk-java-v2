@@ -65,6 +65,8 @@ public class S3Streaming {
         HeadObjectResponse metadataWithoutLength = HeadObjectResponse.builder()
             .build();
         /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If content length must be unknown, we recommend using the CRT-based S3 client - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(), RequestBody.fromContentProvider(() -> stream, "application/octet-stream"));
+
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If content length must be unknown, we recommend using the CRT-based S3 client - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html*/s3.putObject(PutObjectRequest.builder().bucket("bucket").key("key").build(), RequestBody.fromContentProvider(() -> stream, "application/octet-stream"));
     }
 
     /**

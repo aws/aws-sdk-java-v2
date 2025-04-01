@@ -57,6 +57,8 @@ public class S3Streaming {
 
         ObjectMetadata metadataWithoutLength = new ObjectMetadata();
         s3.putObject(bucket, key, stream, metadataWithoutLength);
+
+        s3.putObject("bucket", "key", stream, new ObjectMetadata());
     }
 
     /**

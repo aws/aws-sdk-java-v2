@@ -321,11 +321,18 @@ public class S3PutObjectRequestToV2 extends Recipe {
             addS3Import("PutObjectRequest");
 
             Expression metadata = method.getArguments().get(3);
-            String metadataName = ((J.Identifier) metadata).getSimpleName();
+            String metadataName = null;
+            if (metadata instanceof J.Identifier) {
+                metadataName = ((J.Identifier) metadata).getSimpleName();
+            }
 
             StringBuilder sb = new StringBuilder("PutObjectRequest.builder().bucket(#{any()}).key(#{any()})");
-            addMetadataFields(sb, metadataName, metadataMap);
-            Expression contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+
+            Expression contentLen = null;
+            if (metadataName != null) {
+                addMetadataFields(sb, metadataName, metadataMap);
+                contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+            }
 
             Expression[] params = {method.getArguments().get(0), method.getArguments().get(1),
                                    method.getArguments().get(2)};
