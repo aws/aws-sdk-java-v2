@@ -50,16 +50,17 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -134,8 +135,8 @@ public class DownloadStreamingIntegrationTesting {
         tempDirPath = createTempDir("DownloadStreamingIntegrationTesting");
 
         smallObject = uploadObjectSmall(); // 16 KiB
-        largeObject = uploadObjectLarge(); // 200MiB
-        largeObjectMulti = uploadMultiPartObject(); // 200 MiB, default multipart config
+        largeObject = uploadObjectLarge(); // 80 MiB
+        largeObjectMulti = uploadMultiPartObject(); // 80 MiB, default multipart config
     }
 
     @AfterAll
@@ -167,39 +168,49 @@ public class DownloadStreamingIntegrationTesting {
     @ParameterizedTest
     @MethodSource("downloadConfigs")
     void downloadObject(DownloadConfig config) throws Exception {
-        assumeNotAccelerateWithPathStyle(config.getBaseConfig());
-        assumeNotAccessPointWithPathStyle(config.getBaseConfig());
-        assumeNotAccelerateWithArnType(config.getBaseConfig());
-        assumeNotAccelerateWithEoz(config.getBaseConfig());
+        assumeNotAccelerateWithPathStyle(config.baseConfig());
+        assumeNotAccessPointWithPathStyle(config.baseConfig());
+        assumeNotAccelerateWithArnType(config.baseConfig());
+        assumeNotAccelerateWithEoz(config.baseConfig());
 
         LOG.debug(() -> "Running downloadObject with config: " + config);
 
-        String key = config.getContentSize() == ContentSize.SMALL ? smallObject.key() : largeObject.key();
-        GetObjectRequest request = GetObjectRequest.builder()
-                                                   .bucket(bucketForType(config.getBaseConfig().getBucketType()))
-                                                   .key(key)
-                                                   .build();
+        String key = config.contentSize().s3Object().key();
+        GetObjectRequest.Builder b = GetObjectRequest.builder()
+                                                     .bucket(bucketForType(config.baseConfig().getBucketType()))
+                                                     .key(key);
+        if (config.checksumModeEnabled()) {
+            b.checksumMode(ChecksumMode.ENABLED);
+        }
 
-        byte[] content;
-        switch (config.getBaseConfig().getFlavor()) {
+        GetObjectRequest request = b.build();
+
+        CallResponse response;
+        switch (config.baseConfig().getFlavor()) {
             case JAVA_BASED: {
-                content = callSyncGetObject(config, request);
+                response = callSyncGetObject(config, request);
                 break;
             }
             case ASYNC_JAVA_BASED:
             case TM_JAVA:
             case ASYNC_CRT: {
-                content = callAsyncGetObject(request, config);
+                response = callAsyncGetObject(request, config);
                 break;
             }
             default:
-                throw new RuntimeException("Unsupported java client flavor: " + config.getBaseConfig().getFlavor());
+                throw new RuntimeException("Unsupported java client flavor: " + config.baseConfig().getFlavor());
         }
 
-        String receivedContentCRC32 = crc32(content);
-        String expectedCRC32 = config.getContentSize().s3Object().crc32();
+        String receivedContentCRC32 = crc32(response.content());
+        if (config.checksumModeEnabled()) {
+            String s3Crc32 = response.crc32();
+            assertThat(receivedContentCRC32)
+                .withFailMessage("Mismatch with s3 crc32 for config " + config)
+                .isEqualTo(s3Crc32);
+        }
+        String expectedCRC32 = config.contentSize().s3Object().crc32();
         assertThat(receivedContentCRC32)
-            .withFailMessage("Mismatch crc for config " + config)
+            .withFailMessage("Mismatch with calculated crc32 for config " + config)
             .isEqualTo(expectedCRC32);
     }
 
@@ -214,16 +225,19 @@ public class DownloadStreamingIntegrationTesting {
             os.write(rand);
         }
         byte[] fullContent = os.toByteArray();
+        String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
             String bucket = bucketForType(bucketType);
             PutObjectRequest req = PutObjectRequest.builder()
                                                    .bucket(bucket)
                                                    .key(name)
+                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                   .checksumCRC32(crc32)
                                                    .build();
 
             s3.putObject(req, RequestBody.fromBytes(fullContent));
         }
-        return new ObjectWithCRC(name, crc32(fullContent));
+        return new ObjectWithCRC(name, crc32);
     }
 
     // 80 MiB
@@ -237,16 +251,19 @@ public class DownloadStreamingIntegrationTesting {
             os.write(rand);
         }
         byte[] fullContent = os.toByteArray();
+        String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
             String bucket = bucketForType(bucketType);
             PutObjectRequest req = PutObjectRequest.builder()
                                                    .bucket(bucket)
+                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                   .checksumCRC32(crc32)
                                                    .key(name)
                                                    .build();
 
             s3.putObject(req, RequestBody.fromBytes(fullContent));
         }
-        return new ObjectWithCRC(name, crc32(fullContent));
+        return new ObjectWithCRC(name, crc32);
     }
 
     // 80MiB, multipart default config
@@ -261,17 +278,20 @@ public class DownloadStreamingIntegrationTesting {
             os.write(rand);
         }
         byte[] fullContent = os.toByteArray();
+        String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
-            doMultipartUpload(bucketType, name, fullContent);
+            doMultipartUpload(bucketType, name, fullContent, crc32);
         }
-        return new ObjectWithCRC(name, crc32(fullContent));
+        return new ObjectWithCRC(name, crc32);
     }
 
-    static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
+    static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content, String fullContentCRC32) {
         String bucket = bucketForType(bucketType);
         LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket)
         );
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
+                                                                               .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                                               .checksumType(ChecksumType.FULL_OBJECT)
                                                                                .bucket(bucket)
                                                                                .key(objectName)
                                                                                .build();
@@ -303,6 +323,7 @@ public class DownloadStreamingIntegrationTesting {
         LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
+                                             .checksumCRC32(fullContentCRC32)
                                              .bucket(bucket)
                                              .key(objectName)
                                              .uploadId(uploadId));
@@ -315,23 +336,30 @@ public class DownloadStreamingIntegrationTesting {
         for (ResponseTransformerType responseTransformerType : ResponseTransformerType.values()) {
             for (TestConfig baseConfig : testConfigs()) {
                 for (ContentSize contentSize : ContentSize.values()) {
-                    DownloadConfig config = new DownloadConfig(baseConfig, responseTransformerType, contentSize);
-                    configs.add(config);
+                    DownloadConfig checksumEnabled =
+                        new DownloadConfig(baseConfig, responseTransformerType, contentSize, true);
+                    DownloadConfig checksumDisabled =
+                        new DownloadConfig(baseConfig, responseTransformerType, contentSize, false);
+                    configs.add(checksumEnabled);
+                    configs.add(checksumDisabled);
                 }
             }
         }
         return configs;
     }
 
-    byte[] callSyncGetObject(DownloadConfig config, GetObjectRequest request) throws IOException {
-        S3Client s3Client = makeSyncClient(config.getBaseConfig());
+    CallResponse callSyncGetObject(DownloadConfig config, GetObjectRequest request) throws IOException {
+        S3Client s3Client = makeSyncClient(config.baseConfig());
+
         byte[] content;
-        switch (config.getResponseTransformerType()) {
+        String s3Crc32 = null;
+        switch (config.responseTransformerType()) {
             case FILE: {
                 String filename = request.key();
                 Path filePath = Paths.get(tempDirPath.toString(), filename);
                 pathsToDelete.add(filePath);
-                s3Client.getObject(request, ResponseTransformer.toFile(filePath));
+                GetObjectResponse res = s3Client.getObject(request, ResponseTransformer.toFile(filePath));
+                s3Crc32 = res.checksumCRC32();
                 content = Files.readAllBytes(filePath);
                 break;
             }
@@ -339,26 +367,30 @@ public class DownloadStreamingIntegrationTesting {
             case BYTES: {
                 ResponseBytes<GetObjectResponse> res = s3Client.getObject(request, ResponseTransformer.toBytes());
                 content = res.asByteArray();
+                s3Crc32 = res.response().checksumCRC32();
                 break;
             }
 
             case INPUT_STREAM: {
                 ResponseInputStream<GetObjectResponse> res = s3Client.getObject(request, ResponseTransformer.toInputStream());
                 content = InputStreamUtils.drainInputStream(res);
+                s3Crc32 = res.response().checksumCRC32();
                 break;
             }
 
             case OUTPUT_STREAM: {
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
-                s3Client.getObject(request, ResponseTransformer.toOutputStream(os));
+                GetObjectResponse res = s3Client.getObject(request, ResponseTransformer.toOutputStream(os));
                 content = os.toByteArray();
+                s3Crc32 = res.checksumCRC32();
                 break;
             }
 
             case UNMANAGED: {
                 UnmanagedResponseTransformer tr = new UnmanagedResponseTransformer();
-                s3Client.getObject(request, tr);
+                s3Client.getObject(request, ResponseTransformer.unmanaged(tr));
                 content = tr.content;
+                s3Crc32 = tr.response().checksumCRC32();
                 break;
             }
 
@@ -366,25 +398,29 @@ public class DownloadStreamingIntegrationTesting {
                 Assumptions.abort("Skipping 'publisher' transformer type for sync client: " + config);
                 content = null;
                 break;
+
             default:
-                throw new UnsupportedOperationException("unsupported response transformer type: " + config.getResponseTransformerType());
+                throw new UnsupportedOperationException("unsupported response transformer type: " + config.responseTransformerType());
 
         }
         s3Client.close();
-        return content;
+        return new CallResponse(content, s3Crc32);
     }
 
-    byte[] callAsyncGetObject(GetObjectRequest request, DownloadConfig config) throws Exception {
-        S3AsyncClient s3AsyncClient = makeAsyncClient(config.getBaseConfig());
+    CallResponse callAsyncGetObject(GetObjectRequest request, DownloadConfig config) throws Exception {
+        S3AsyncClient s3AsyncClient = makeAsyncClient(config.baseConfig());
+
         byte[] content;
-        switch (config.getResponseTransformerType()) {
+        String s3crc32 = null;
+        switch (config.responseTransformerType()) {
             case FILE: {
                 String filename = randomFileName();
                 Path filePath = Paths.get(tempDirPath.toString(), filename);
                 pathsToDelete.add(filePath);
-                s3AsyncClient.getObject(request, AsyncResponseTransformer.toFile(filePath))
-                             .get(5, TimeUnit.MINUTES);
+                GetObjectResponse res = s3AsyncClient.getObject(request, AsyncResponseTransformer.toFile(filePath))
+                                                     .get(5, TimeUnit.MINUTES);
                 content = Files.readAllBytes(filePath);
+                s3crc32 = res.checksumCRC32();
                 break;
             }
 
@@ -392,6 +428,7 @@ public class DownloadStreamingIntegrationTesting {
                 ResponseBytes<GetObjectResponse> res = s3AsyncClient.getObject(request, AsyncResponseTransformer.toBytes())
                                                                     .get(5, TimeUnit.MINUTES);
                 content = res.asByteArray();
+                s3crc32 = res.response().checksumCRC32();
                 break;
             }
 
@@ -400,6 +437,7 @@ public class DownloadStreamingIntegrationTesting {
                                                                                      AsyncResponseTransformer.toBlockingInputStream())
                                                                           .get(5, TimeUnit.MINUTES);
                 content = InputStreamUtils.drainInputStream(res);
+                s3crc32 = res.response().checksumCRC32();
                 break;
             }
 
@@ -411,20 +449,39 @@ public class DownloadStreamingIntegrationTesting {
                 CompletableFuture<Void> fut = res.subscribe(consumer);
                 fut.get(5, TimeUnit.MINUTES);
                 content = consumer.getFullContent();
+                s3crc32 = res.response().checksumCRC32();
                 break;
             }
 
             case OUTPUT_STREAM:
             case UNMANAGED:
                 Assumptions.abort(String.format("Skipping '%s' transformer type for async client: %s",
-                                                config.getResponseTransformerType(), config));
+                                                config.responseTransformerType(), config));
                 content = null;
                 break;
             default:
-                throw new UnsupportedOperationException("unsupported response transformer type: " + config.getResponseTransformerType());
+                throw new UnsupportedOperationException("unsupported response transformer type: " + config.responseTransformerType());
         }
         s3AsyncClient.close();
-        return content;
+        return new CallResponse(content, s3crc32);
+    }
+
+    private static class CallResponse {
+        byte[] content;
+        String crc32;
+
+        public CallResponse(byte[] content, String crc32) {
+            this.content = content;
+            this.crc32 = crc32;
+        }
+
+        public byte[] content() {
+            return content;
+        }
+
+        public String crc32() {
+            return crc32;
+        }
     }
 
     private static String getBucketName() {
@@ -448,36 +505,30 @@ public class DownloadStreamingIntegrationTesting {
         private TestConfig baseConfig;
         private ResponseTransformerType responseTransformerType;
         private ContentSize contentSize;
+        private boolean checksumModeEnabled;
 
         public DownloadConfig(TestConfig baseConfig, ResponseTransformerType responseTransformerType,
-                              ContentSize contentSize) {
+                              ContentSize contentSize, boolean checksumModeEnabled) {
             this.baseConfig = baseConfig;
             this.responseTransformerType = responseTransformerType;
             this.contentSize = contentSize;
+            this.checksumModeEnabled = checksumModeEnabled;
         }
 
-        public TestConfig getBaseConfig() {
+        public TestConfig baseConfig() {
             return this.baseConfig;
         }
 
-        public void setBaseConfig(TestConfig baseConfig) {
-            this.baseConfig = baseConfig;
-        }
-
-        public ResponseTransformerType getResponseTransformerType() {
+        public ResponseTransformerType responseTransformerType() {
             return responseTransformerType;
         }
 
-        public void setResponseTransformerType(ResponseTransformerType responseTransformerType) {
-            this.responseTransformerType = responseTransformerType;
-        }
-
-        public ContentSize getContentSize() {
+        public ContentSize contentSize() {
             return contentSize;
         }
 
-        public void setContentSize(ContentSize contentSize) {
-            this.contentSize = contentSize;
+        private boolean checksumModeEnabled() {
+            return this.checksumModeEnabled;
         }
 
         @Override
@@ -569,9 +620,12 @@ public class DownloadStreamingIntegrationTesting {
 
         ObjectWithCRC s3Object() {
             switch (this) {
-                case SMALL: return smallObject;
-                case LARGE: return largeObject;
-                case LARGE_MULTI: return largeObjectMulti;
+                case SMALL:
+                    return smallObject;
+                case LARGE:
+                    return largeObject;
+                case LARGE_MULTI:
+                    return largeObjectMulti;
                 default:
                     throw new IllegalArgumentException("Unknown ContentSize " + this);
             }
@@ -598,11 +652,16 @@ public class DownloadStreamingIntegrationTesting {
 
     private static class UnmanagedResponseTransformer implements ResponseTransformer<GetObjectResponse, byte[]> {
         byte[] content;
+        GetObjectResponse response;
 
         @Override
         public byte[] transform(GetObjectResponse response, AbortableInputStream inputStream) throws Exception {
             this.content = InputStreamUtils.drainInputStream(inputStream); // stream will be closed
             return content;
+        }
+
+        public GetObjectResponse response() {
+            return this.response;
         }
     }
 
