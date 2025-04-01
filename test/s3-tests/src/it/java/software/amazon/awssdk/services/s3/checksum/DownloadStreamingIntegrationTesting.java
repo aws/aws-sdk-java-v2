@@ -48,6 +48,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -228,13 +229,14 @@ public class DownloadStreamingIntegrationTesting {
         String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
             String bucket = bucketForType(bucketType);
-            PutObjectRequest req = PutObjectRequest.builder()
-                                                   .bucket(bucket)
-                                                   .key(name)
-                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                                   .checksumCRC32(crc32)
-                                                   .build();
-
+            PutObjectRequest req = PutObjectRequest
+                .builder()
+                .overrideConfiguration(c -> c.putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false))
+                .bucket(bucket)
+                .key(name)
+                .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                .checksumCRC32(crc32)
+                .build();
             s3.putObject(req, RequestBody.fromBytes(fullContent));
         }
         return new ObjectWithCRC(name, crc32);
@@ -254,12 +256,14 @@ public class DownloadStreamingIntegrationTesting {
         String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
             String bucket = bucketForType(bucketType);
-            PutObjectRequest req = PutObjectRequest.builder()
-                                                   .bucket(bucket)
-                                                   .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                                   .checksumCRC32(crc32)
-                                                   .key(name)
-                                                   .build();
+            PutObjectRequest req = PutObjectRequest
+                .builder()
+                .overrideConfiguration(c -> c.putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false))
+                .bucket(bucket)
+                .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                .checksumCRC32(crc32)
+                .key(name)
+                .build();
 
             s3.putObject(req, RequestBody.fromBytes(fullContent));
         }
