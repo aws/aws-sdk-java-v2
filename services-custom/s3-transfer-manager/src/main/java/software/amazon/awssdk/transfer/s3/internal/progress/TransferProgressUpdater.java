@@ -153,6 +153,7 @@ public class TransferProgressUpdater {
                 if (!progress.snapshot().totalBytes().isPresent() && s3MetaRequestProgress.getContentLength() != 0) {
                     progress.updateAndGet(b -> b.totalBytes(s3MetaRequestProgress.getContentLength()));
                 }
+                System.out.println("crt metarequest, bytes transfered: " + s3MetaRequestProgress.getBytesTransferred());
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
             }
 

@@ -22,7 +22,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
-import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
@@ -31,7 +30,6 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConf
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -119,7 +117,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     @Override
     public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
-            new CrtNoBodyResponseTransformer<>();
+            new CrtResponseFileResponseTransformer<>();
 
             AwsRequestOverrideConfiguration overrideConfig =
                 getObjectRequest.overrideConfiguration()
@@ -452,80 +450,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                 if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {
                     throw new UnsupportedOperationException("Request-level apiCallAttemptTimeout override is not supported");
                 }
-            }
-        }
-    }
-
-    private static final class CrtNoBodyResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT, ResponseT> {
-
-        private static final Logger log = Logger.loggerFor(CrtNoBodyResponseTransformer.class);
-
-        private volatile CompletableFuture<Void> cf;
-        private volatile ResponseT response;
-
-        @Override
-        public CompletableFuture<ResponseT> prepare() {
-            cf = new CompletableFuture<>();
-            return cf.thenApply(ignored -> response);
-        }
-
-        @Override
-        public void onResponse(ResponseT response) {
-            this.response = response;
-        }
-
-        @Override
-        public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            publisher.subscribe(new OnCompleteSubscriber(cf, this::exceptionOccurred));
-        }
-
-        @Override
-        public void exceptionOccurred(Throwable throwable) {
-            if (cf != null) {
-                cf.completeExceptionally(throwable);
-            } else {
-                log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
-                               + "The future cannot be completed exceptionally because it is null");
-
-            }
-        }
-
-        private static final class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
-
-            private Subscription subscription;
-            private final CompletableFuture<Void> future;
-            private final Consumer<Throwable> onErrorMethod;
-
-            private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
-                this.future = future;
-                this.onErrorMethod = onErrorMethod;
-            }
-
-            @Override
-            public void onSubscribe(Subscription s) {
-                if (this.subscription != null) {
-                    s.cancel();
-                    return;
-                }
-                this.subscription = s;
-                // Request the first chunk to start producing content
-                s.request(1);
-            }
-
-            @Override
-            public void onNext(ByteBuffer byteBuffer) {
-                System.out.println("We should probably not be here!!!");
-            }
-
-            @Override
-            public void onError(Throwable throwable) {
-                onErrorMethod.accept(throwable);
-            }
-
-            @Override
-            public void onComplete() {
-                System.out.println("Yay, we completed!");
-                future.complete(null);
             }
         }
     }

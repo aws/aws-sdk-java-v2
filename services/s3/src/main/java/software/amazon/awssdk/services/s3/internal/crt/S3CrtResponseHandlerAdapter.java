@@ -61,6 +61,9 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final Duration s3MetaRequestTimeout;
 
+    // TODO: update constructors
+    public boolean handleResponseOnHeaders = false;
+
     private volatile boolean responseHandlingInitiated;
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
@@ -112,17 +115,22 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
         log.debug(() -> "Received response header with status code " + statusCode);
+        System.out.println("Received response header with status code " + statusCode);
         // Note, we cannot call responseHandler.onHeaders() here because the response status code and headers may not represent
         // whether the request has succeeded or not (e.g. if this is for a HeadObject call that CRT calls under the hood). We
         // need to rely on onResponseBody/onFinished being called to determine this.
         populateSdkHttpResponse(initialHeadersResponse, statusCode, headers);
+
+        if (handleResponseOnHeaders) {
+            System.out.println("handleResponseOnHeaders is TRUE, handling the resposne now....");
+            initiateResponseHandling(initialHeadersResponse.build());
+        }
     }
 
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
         // See reasoning in onResponseHeaders for why we call this here and not there.
         initiateResponseHandling(initialHeadersResponse.build());
-
         if (bodyBytesIn == null) {
             failResponseHandlerAndFuture(new IllegalStateException("ByteBuffer delivered is null"));
             return 0;

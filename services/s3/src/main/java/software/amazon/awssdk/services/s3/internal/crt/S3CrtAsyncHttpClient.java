@@ -158,6 +158,10 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                        responseChecksumValidation);
 
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
+        if (responseFilePath != null) {
+            // TODO: This should be on constructor
+            responseHandler.handleResponseOnHeaders = true;
+        }
 
         URI endpoint = getEndpoint(uri);
 
