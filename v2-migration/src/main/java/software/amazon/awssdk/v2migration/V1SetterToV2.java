@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.hasArguments;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isS3PutObjectOrObjectMetadata;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isEligibleToConvertToBuilder;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2CoreClassBuilder;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV2ModelBuilder;
@@ -73,6 +75,10 @@ public class V1SetterToV2 extends Recipe {
                                                         ExecutionContext executionContext) {
             J.MethodInvocation method = super.visitMethodInvocation(previousMethodInvocation, executionContext);
 
+            if (!hasArguments(method)) {
+                return method;
+            }
+
             JavaType selectType = null;
 
             Expression select = method.getSelect();
@@ -98,7 +104,8 @@ public class V1SetterToV2 extends Recipe {
 
             if (NamingUtils.isWither(methodName)) {
                 methodName = NamingUtils.removeWith(methodName);
-            } else if (NamingUtils.isSetter(methodName)) {
+            } else if (NamingUtils.isSetter(methodName) && isS3PutObjectOrObjectMetadata(method)) {
+                // We will change remaining setters to `request = request.toBuilder().setter(val).build()` in SettersToBuilderV2
                 methodName = NamingUtils.removeSet(methodName);
             }
 

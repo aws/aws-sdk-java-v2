@@ -46,4 +46,5 @@ recipeList:
   - software.amazon.awssdk.v2migration.DateToInstant
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2Complex
   - software.amazon.awssdk.v2migration.S3PutObjectRequestToV2
+  - software.amazon.awssdk.v2migration.SettersToBuilderV2
   - software.amazon.awssdk.v2migration.TransferManagerMethodsToV2

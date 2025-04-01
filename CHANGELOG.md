@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.13__ __2025-04-01__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for updating the analytics engine of a collaboration.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added tagging support for SageMaker notebook instance lifecycle configurations
+
 # __2.31.12__ __2025-03-31__
 ## __AWS Marketplace Entitlement Service__
   - ### Features
