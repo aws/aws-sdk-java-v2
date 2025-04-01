@@ -139,7 +139,7 @@ public final class S3TransformUtils {
         }
         Expression expiresDate = map.get("httpExpiresDate");
         if (expiresDate != null) {
-            sb.append(".expires(").append(expiresDate).append(".toInstant())\n");
+            sb.append(".expires(").append(expiresDate).append(")\n");
         }
     }
 
@@ -156,6 +156,42 @@ public final class S3TransformUtils {
     public static List<Comment> createComments(String comment) {
         return Collections.singletonList(
             new TextComment(true, "AWS SDK for Java v2 migration: " + comment, "", Markers.EMPTY));
+    }
+
+    public static boolean isObjectMetadataSetter(J.MethodInvocation method) {
+        return isSetterForClassType(method, V2_S3_MODEL_PKG + "HeadObjectResponse");
+    }
+
+    /** Field set during POJO instantiation, e.g.,
+     * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation").withFile(file);
+     */
+    public static boolean isPutObjectRequestBuilderSetter(J.MethodInvocation method) {
+        return isSetterForClassType(method, "software.amazon.awssdk.services.s3.model.PutObjectRequest$Builder");
+    }
+
+    /** Field set after POJO instantiation, e.g.,
+     * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation");
+     * request.setFile(file);
+     */
+    public static boolean isPutObjectRequestSetter(J.MethodInvocation method) {
+        return isSetterForClassType(method, "software.amazon.awssdk.services.s3.model.PutObjectRequest");
+    }
+
+    public static boolean isS3PutObjectOrObjectMetadata(J.MethodInvocation method) {
+        return isObjectMetadataSetter(method)
+            || isPutObjectRequestSetter(method)
+            || isPutObjectRequestBuilderSetter(method);
+    }
+
+    public static boolean isSetterForClassType(J.MethodInvocation method, String fqcn) {
+        if (method.getSelect() == null || method.getSelect().getType() == null) {
+            return false;
+        }
+        return hasArguments(method) && TypeUtils.isOfClassType(method.getSelect().getType(), fqcn);
+    }
+
+    public static boolean hasArguments(J.MethodInvocation method) {
+        return !method.getArguments().isEmpty();
     }
 
     public static boolean isPayloadSetter(J.MethodInvocation method) {

@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.12__ __2025-03-31__
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Add support for Marketplace Entitlement Service dual-stack endpoints.
+
+## __AWS Outposts__
+  - ### Features
+    - Enabling Asset Level Capacity Management feature, which allows customers to create a Capacity Task for a single Asset on their active Outpost.
+
+## __AWS S3 Control__
+  - ### Features
+    - Amazon S3 adds support for S3 Access Points for directory buckets in AWS Dedicated Local Zones
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add WebAppEndpointPolicy support for WebApps
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - With this release you can use a new field to specify the search term match type. Search term match types currently support fuzzy and contains matching.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add Prompt Caching support to Converse and ConverseStream APIs
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Use String instead of Select enum for ProjectionExpression to support future values
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release VPC Route Server, a new feature allowing dynamic routing in VPCs.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for updating RemoteNetworkConfig for hybrid nodes on EKS UpdateClusterConfig API
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Add dual-stack support to global endpoints.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 adds support for S3 Access Points for directory buckets in AWS Dedicated Local Zones
+
 # __2.31.11__ __2025-03-28__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
