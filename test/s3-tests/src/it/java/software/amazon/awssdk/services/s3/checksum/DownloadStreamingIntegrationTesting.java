@@ -140,7 +140,12 @@ public class DownloadStreamingIntegrationTesting {
 
     @AfterAll
     static void cleanup() {
-
+        for (BucketType bucketType : BucketType.values()) {
+            String bucket = bucketForType(bucketType);
+            s3.deleteObject(req -> req.bucket(bucket).key(smallObject.key()));
+            s3.deleteObject(req -> req.bucket(bucket).key(largeObject.key()));
+            s3.deleteObject(req -> req.bucket(bucket).key(largeObjectMulti.key()));
+        }
     }
 
     @BeforeEach
@@ -192,7 +197,7 @@ public class DownloadStreamingIntegrationTesting {
         }
 
         String receivedContentCRC32 = crc32(content);
-        String expectedCRC32 = objectForConfig(config).crc32();
+        String expectedCRC32 = config.getContentSize().s3Object().crc32();
         assertThat(receivedContentCRC32)
             .withFailMessage("Mismatch crc for config " + config)
             .isEqualTo(expectedCRC32);
@@ -438,18 +443,6 @@ public class DownloadStreamingIntegrationTesting {
         return String.format("%s-%S", System.currentTimeMillis(), UUID.randomUUID());
     }
 
-    static ObjectWithCRC objectForConfig(DownloadConfig config) {
-        if (config.getContentSize() == ContentSize.SMALL) {
-            return smallObject;
-        }
-
-        if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
-            return largeObjectMulti;
-        }
-        return largeObject;
-
-    }
-
     static class DownloadConfig {
         private TestConfig baseConfig;
         private ResponseTransformerType responseTransformerType;
@@ -570,7 +563,18 @@ public class DownloadStreamingIntegrationTesting {
 
     enum ContentSize {
         SMALL,
-        LARGE
+        LARGE,
+        LARGE_MULTI;
+
+        ObjectWithCRC s3Object() {
+            switch (this) {
+                case SMALL: return smallObject;
+                case LARGE: return largeObject;
+                case LARGE_MULTI: return largeObjectMulti;
+                default:
+                    throw new IllegalArgumentException("Unknown ContentSize " + this);
+            }
+        }
     }
 
     private static class ObjectWithCRC {
@@ -586,16 +590,8 @@ public class DownloadStreamingIntegrationTesting {
             return key;
         }
 
-        public void key(String key) {
-            this.key = key;
-        }
-
         public String crc32() {
             return crc32;
-        }
-
-        public void crc32(String crc32) {
-            this.crc32 = crc32;
         }
     }
 
