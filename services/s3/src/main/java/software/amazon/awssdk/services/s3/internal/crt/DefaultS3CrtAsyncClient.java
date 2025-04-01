@@ -61,6 +61,7 @@ import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -88,6 +89,7 @@ import software.amazon.awssdk.utils.Validate;
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
     public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
+    public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION = new ExecutionAttribute<>("responseFileOption");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -410,6 +412,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
                        .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
                             executionAttributes.getAttribute(RESPONSE_FILE_PATH))
+                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
+                            executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
                        .build();
 
             // We rely on CRT to perform checksum validation, disable SDK flexible checksum implementation

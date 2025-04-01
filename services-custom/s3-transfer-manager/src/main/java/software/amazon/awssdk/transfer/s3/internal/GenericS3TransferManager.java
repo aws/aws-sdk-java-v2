@@ -419,7 +419,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public final FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
+    public FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
 
         // check if the multipart-download was already completed and handle it gracefully.
@@ -467,7 +467,7 @@ class GenericS3TransferManager implements S3TransferManager {
                                        resumableFileDownload);
     }
 
-    private FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
+    FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
         CompletedFileDownload completedFileDownload = CompletedFileDownload.builder().response(ctx.response()).build();
         DefaultTransferProgressSnapshot completedProgressSnapshot =
             DefaultTransferProgressSnapshot.builder()
@@ -481,8 +481,8 @@ class GenericS3TransferManager implements S3TransferManager {
                                        resumableFileDownload);
     }
 
-    private DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
-                                                             DownloadFileRequest originalDownloadRequest) {
+    DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
+                                                     DownloadFileRequest originalDownloadRequest) {
         try {
             return newDownloadFuture.getNow(originalDownloadRequest);
         } catch (CompletionException e) {

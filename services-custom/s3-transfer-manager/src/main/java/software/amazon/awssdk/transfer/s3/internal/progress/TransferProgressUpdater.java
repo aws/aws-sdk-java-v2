@@ -141,7 +141,6 @@ public class TransferProgressUpdater {
     }
 
     public PublisherListener<S3MetaRequestProgress> crtProgressListener() {
-
         return new PublisherListener<S3MetaRequestProgress>() {
             @Override
             public void publisherSubscribe(Subscriber<? super S3MetaRequestProgress> subscriber) {
@@ -153,7 +152,6 @@ public class TransferProgressUpdater {
                 if (!progress.snapshot().totalBytes().isPresent() && s3MetaRequestProgress.getContentLength() != 0) {
                     progress.updateAndGet(b -> b.totalBytes(s3MetaRequestProgress.getContentLength()));
                 }
-                System.out.println("crt metarequest, bytes transfered: " + s3MetaRequestProgress.getBytesTransferred());
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
             }
 

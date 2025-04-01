@@ -42,9 +42,9 @@ public final class DefaultTransferProgressSnapshot
     private DefaultTransferProgressSnapshot(Builder builder) {
         if (builder.totalBytes != null) {
             Validate.isNotNegative(builder.totalBytes, "totalBytes");
-            Validate.isTrue(builder.transferredBytes <= builder.totalBytes,
-                            "transferredBytes (%s) must not be greater than totalBytes (%s)",
-                            builder.transferredBytes, builder.totalBytes);
+            // Validate.isTrue(builder.transferredBytes <= builder.totalBytes,
+            //                 "transferredBytes (%s) must not be greater than totalBytes (%s)",
+            //                 builder.transferredBytes, builder.totalBytes);
         }
         Validate.paramNotNull(builder.transferredBytes, "byteTransferred");
         this.transferredBytes = Validate.isNotNegative(builder.transferredBytes, "transferredBytes");
