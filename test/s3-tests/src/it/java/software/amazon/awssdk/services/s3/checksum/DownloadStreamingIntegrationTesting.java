@@ -290,8 +290,8 @@ public class DownloadStreamingIntegrationTesting {
             completedParts.add(CompletedPart.builder()
                                             .eTag(partResponse.eTag())
                                             .partNumber(partNumber)
-                                            .checksumCRC32(crc32(partContent))
                                             .build());
+            LOG.debug(() -> String.format("done part %s - etag: %s: ", partNumber, partResponse.eTag()));
         }
 
         LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
@@ -299,7 +299,6 @@ public class DownloadStreamingIntegrationTesting {
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
                                              .bucket(bucket)
                                              .key(objectName)
-                                             .checksumCRC32(crc32(content))
                                              .uploadId(uploadId));
         s3.waiter().waitUntilObjectExists(r -> r.bucket(bucket).key(objectName),
                                           c -> c.waitTimeout(Duration.ofMinutes(5)));
