@@ -56,6 +56,7 @@ public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
         }
         s3CrtAsyncClient.close();
         s3ApacheClient.close();
+        CrtResource.waitForNoResources();
     }
 
     @Override

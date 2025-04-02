@@ -74,6 +74,7 @@ public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
         }
         s3Client.close();
         s3ApacheClient.close();
+        CrtResource.waitForNoResources();
         futureThreadPool.shutdown();
         try {
             futureThreadPool.awaitTermination(5, TimeUnit.SECONDS);
