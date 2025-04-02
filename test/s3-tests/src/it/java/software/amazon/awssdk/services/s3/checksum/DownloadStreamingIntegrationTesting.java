@@ -205,6 +205,7 @@ public class DownloadStreamingIntegrationTesting {
         String receivedContentCRC32 = crc32(response.content());
         if (config.checksumModeEnabled()) {
             String s3Crc32 = response.crc32();
+            assertThat(s3Crc32).isNotEmpty();
             assertThat(receivedContentCRC32)
                 .withFailMessage("Mismatch with s3 crc32 for config " + config)
                 .isEqualTo(s3Crc32);
@@ -655,6 +656,7 @@ public class DownloadStreamingIntegrationTesting {
 
         @Override
         public byte[] transform(GetObjectResponse response, AbortableInputStream inputStream) throws Exception {
+            this.response = response;
             this.content = InputStreamUtils.drainInputStream(inputStream); // stream will be closed
             return content;
         }
