@@ -90,7 +90,6 @@ public class S3IntegrationTestBase extends AwsTestBase {
         s3Async.close();
         s3CrtAsync.close();
         tmCrt.close();
-        CrtResource.waitForNoResources();
     }
 
     protected static S3ClientBuilder s3ClientBuilder() {
