@@ -24,6 +24,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
@@ -162,6 +163,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             // TODO: This should be on constructor
             responseHandler.handleResponseOnHeaders = true;
         }
+        S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
+        System.out.println("S3CrtAsyncHttpClient.execute(): " + operationName + "\tResponseFilePath: " + responseFilePath + "\tResponseFileOption: " + responseFileOption);
 
         URI endpoint = getEndpoint(uri);
 
@@ -178,6 +181,10 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             .withRequestFilePath(requestFilePath)
             .withSigningConfig(signingConfig)
             .withResponseFilePath(responseFilePath);
+
+        if (responseFileOption != null) {
+            requestOptions = requestOptions.withResponseFileOption(responseFileOption);
+        }
 
         try {
             S3MetaRequestWrapper requestWrapper = new S3MetaRequestWrapper(crtS3Client.makeMetaRequest(requestOptions));
