@@ -24,11 +24,13 @@ import com.squareup.javapoet.TypeVariableName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
+import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.utils.StringUtils;
 
 public interface ProtocolSpec {
@@ -69,6 +72,23 @@ public interface ProtocolSpec {
 
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
+    }
+
+    default List<CodeBlock> registerModeledExceptions(IntermediateModel model, PoetExtension poetExtensions) {
+        return model.getShapes().values().stream()
+                    .filter(s -> s.getShapeType() == ShapeType.Exception)
+                    .map(e -> CodeBlock.builder()
+                                       .add(".registerModeledException($T.builder()"
+                                            + ".errorCode($S)"
+                                            + ".exceptionBuilderSupplier($T::builder)"
+                                            + "$L" // populateHttpStatusCode
+                                            + ".build())",
+                                            ExceptionMetadata.class,
+                                            e.getErrorCode(),
+                                            poetExtensions.getModelClass(e.getShapeName()),
+                                            populateHttpStatusCode(e, model))
+                                       .build())
+                    .collect(Collectors.toList());
     }
 
     default String populateHttpStatusCode(ShapeModel shapeModel, IntermediateModel model) {

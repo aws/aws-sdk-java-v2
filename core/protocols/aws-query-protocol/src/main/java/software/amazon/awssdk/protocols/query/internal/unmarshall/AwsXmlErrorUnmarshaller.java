@@ -58,10 +58,8 @@ public final class AwsXmlErrorUnmarshaller {
     }
 
     private Optional<ExceptionMetadata> defaultMapToExceptionMetadata(String errorCode) {
-        return Optional.ofNullable(exceptions)
-                       .flatMap(exs -> exs.stream()
-                                          .filter(e -> e.errorCode().equals(errorCode))
-                                          .findFirst());
+        return exceptions.stream().filter(e -> e.errorCode().equals(errorCode))
+                                          .findAny();
     }
 
     /**
