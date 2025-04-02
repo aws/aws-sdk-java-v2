@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lex Model Building V2",
+    "contributor": "",
+    "description": "Release feature of errorlogging for lex bot, customer can config this feature in bot version to generate log for error exception which helps debug"
+}
