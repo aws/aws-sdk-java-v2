@@ -26,20 +26,14 @@ import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionA
 import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
-import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
-import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
@@ -83,6 +77,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                          boolean isDefaultS3AsyncClient) {
         super(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
         this.s3AsyncClient = s3AsyncClient;
+    }
+
+    private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {
+        return new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
+                                   .withNumPartsCompleted(resumableFileUpload.transferredParts().orElse(0L))
+                                   .withTotalNumParts(resumableFileUpload.totalParts().orElse(0L))
+                                   .withPartSize(resumableFileUpload.partSizeInBytes().getAsLong())
+                                   .withUploadId(resumableFileUpload.multipartUploadId().orElse(null)));
     }
 
     @Override
@@ -222,14 +224,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
     public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
-       TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-       GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
-           downloadRequest.getObjectRequest(),
-           b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
-           b -> b
-               .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
-               .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
-       );
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
+            downloadRequest.getObjectRequest(),
+            b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
+            b -> b
+                .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
+                .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
+        );
 
         DownloadFileRequest downloadFileRequestWithAttributes =
             downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
@@ -272,14 +274,6 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         } catch (Throwable throwable) {
             returnFuture.completeExceptionally(throwable);
         }
-    }
-
-    private static ResumeToken crtResumeToken(ResumableFileUpload resumableFileUpload) {
-        return new ResumeToken(new ResumeToken.PutResumeTokenBuilder()
-                                   .withNumPartsCompleted(resumableFileUpload.transferredParts().orElse(0L))
-                                   .withTotalNumParts(resumableFileUpload.totalParts().orElse(0L))
-                                   .withPartSize(resumableFileUpload.partSizeInBytes().getAsLong())
-                                   .withUploadId(resumableFileUpload.multipartUploadId().orElse(null)));
     }
 
     private PutObjectRequest attachCrtSdkAttribute(PutObjectRequest putObjectRequest,
