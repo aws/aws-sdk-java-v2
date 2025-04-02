@@ -92,7 +92,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(bytesTransferred).isEqualTo(path.toFile().length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
 
-        assertThat(bytesTransferred).isLessThanOrEqualTo(sourceFile.length());
+        assertThat(bytesTransferred).isLessThan(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");

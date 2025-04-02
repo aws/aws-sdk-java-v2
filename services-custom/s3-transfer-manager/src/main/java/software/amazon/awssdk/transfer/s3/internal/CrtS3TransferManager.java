@@ -171,21 +171,23 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
                 requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
                                                                   originalDownloadRequest);
-
-
-
-
             DownloadFileRequest newDownloadFileRequest = requestPair.left();
 
-            TransferProgressUpdater progressUpdater = new TransferProgressUpdater(newDownloadFileRequest, null);
 
+            Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
+            boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
+
+            boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
+                                                    resumableFileDownload.fileLastModified(),
+                                                    resumableFileDownload.downloadFileRequest().destination());
             S3MetaRequestOptions.ResponseFileOption responseFileOption;
-            if (resumableFileDownload.bytesTransferred() > 0) {
-                responseFileOption = S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND;
-            } else {
+            if (fileModified || s3ObjectModified || resumableFileDownload.bytesTransferred() == 0) {
                 responseFileOption = S3MetaRequestOptions.ResponseFileOption.CREATE_OR_REPLACE;
+            } else {
+                responseFileOption = S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND;
             }
 
+            TransferProgressUpdater progressUpdater = new TransferProgressUpdater(newDownloadFileRequest, null);
             GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
                 newDownloadFileRequest.getObjectRequest(),
                 b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
