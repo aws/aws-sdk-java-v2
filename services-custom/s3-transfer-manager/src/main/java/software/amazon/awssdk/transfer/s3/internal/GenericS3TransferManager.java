@@ -490,10 +490,10 @@ class GenericS3TransferManager implements S3TransferManager {
         }
     }
 
-    private static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
-                                        CompletableFuture<TransferProgress> progressFuture,
-                                        CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
-                                        Throwable throwable) {
+    static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
+                                CompletableFuture<TransferProgress> progressFuture,
+                                CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
+                                Throwable throwable) {
         Throwable exceptionCause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
         Throwable propagatedException = exceptionCause instanceof SdkException || exceptionCause instanceof Error

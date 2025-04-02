@@ -23,9 +23,11 @@ import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncC
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils.multipartDownloadResumeContext;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
+import static software.amazon.awssdk.transfer.s3.internal.utils.FileUtils.fileNotModified;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toDownloadFileRequestAndTransformer;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -167,39 +169,33 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
         headFuture.thenAccept(headObjectResponse -> {
             Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
-
-            requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
+                requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
                                                                   originalDownloadRequest);
 
+
+
+
             DownloadFileRequest newDownloadFileRequest = requestPair.left();
+
             TransferProgressUpdater progressUpdater = new TransferProgressUpdater(newDownloadFileRequest, null);
 
-            GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
-                attachSdkAttribute(
-                    newDownloadFileRequest.getObjectRequest(),
-                    b -> b
-                        .putExecutionAttribute(RESPONSE_FILE_PATH, newDownloadFileRequest.destination())
-                        .putExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND)
-                ),
-                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
-            );
+            S3MetaRequestOptions.ResponseFileOption responseFileOption;
+            if (resumableFileDownload.bytesTransferred() > 0) {
+                responseFileOption = S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND;
+            } else {
+                responseFileOption = S3MetaRequestOptions.ResponseFileOption.CREATE_OR_REPLACE;
+            }
 
+            GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
+                newDownloadFileRequest.getObjectRequest(),
+                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
+                b -> b
+                    .putExecutionAttribute(RESPONSE_FILE_PATH, newDownloadFileRequest.destination())
+                    .putExecutionAttribute(RESPONSE_FILE_OPTION, responseFileOption)
+            );
 
             DownloadFileRequest downloadFileRequestWithAttributes =
                 newDownloadFileRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
-
-            if (resumableFileDownload.bytesTransferred() == 0) {
-                System.out.println("Looks like our file thinks it is empty, so we are going to be basic.");
-
-                GetObjectRequest newGetObjectRequest = attachSdkAttribute(
-                    getObjectRequestWithAttributes.toBuilder().range(null).build(),
-                b -> b
-                    .putExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_REPLACE));
-
-                downloadFileRequestWithAttributes = downloadFileRequestWithAttributes.toBuilder()
-                    .getObjectRequest(newGetObjectRequest)
-                    .build();
-            }
 
             newDownloadFileRequestFuture.complete(downloadFileRequestWithAttributes);
             log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
@@ -208,9 +204,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
-            // TODO: Handle this
-            System.out.println("OH NO, resume blew up: " + throwable);
-            // handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
+            handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
             return null;
         });
 
@@ -227,16 +221,13 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
-        // TODO: This could be a single method that takes two builders probably
-       GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
-            attachSdkAttribute(
-                downloadRequest.getObjectRequest(),
-                b -> b
-                    .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
-
-            ),
-            b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener())
-        );
+       GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
+           downloadRequest.getObjectRequest(),
+           b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
+           b -> b
+               .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
+               .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
+       );
 
         DownloadFileRequest downloadFileRequestWithAttributes =
             downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
@@ -311,15 +302,18 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                .build();
     }
 
-    private GetObjectRequest attachSdkHttpExecutionAttribute(GetObjectRequest getObjectRequest,
-                                                   Consumer<SdkHttpExecutionAttributes.Builder> builderMutation) {
+    private GetObjectRequest attachExecutionAndHttpAttributes(
+        GetObjectRequest getObjectRequest,
+        Consumer<SdkHttpExecutionAttributes.Builder> httpExecutionAttributeMutation,
+        Consumer<AwsRequestOverrideConfiguration.Builder> executionAttributeMutation) {
         SdkHttpExecutionAttributes modifiedAttributes =
             getObjectRequest.overrideConfiguration().map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
-                            .map(b -> b.toBuilder().applyMutation(builderMutation).build())
-                            .orElseGet(() -> SdkHttpExecutionAttributes.builder().applyMutation(builderMutation).build());
+                            .map(b -> b.toBuilder().applyMutation(httpExecutionAttributeMutation).build())
+                            .orElseGet(() -> SdkHttpExecutionAttributes.builder().applyMutation(httpExecutionAttributeMutation).build());
 
         Consumer<AwsRequestOverrideConfiguration.Builder> attachSdkHttpAttributes =
-            b -> b.putExecutionAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, modifiedAttributes);
+            b -> b.putExecutionAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, modifiedAttributes)
+                  .applyMutation(executionAttributeMutation);
 
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             getObjectRequest.overrideConfiguration()
