@@ -63,8 +63,8 @@ import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * An implementation of {@link SdkAsyncHttpClient} that uses an CRT S3 HTTP client {@link S3Client} to communicate with S3.
- * Note that it does not work with other services
+ * An implementation of {@link SdkAsyncHttpClient} that uses an CRT S3 HTTP client {@link S3Client} to communicate with S3. Note
+ * that it does not work with other services
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
@@ -87,6 +87,87 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         s3NativeClientConfiguration = builder.clientConfiguration;
         s3ClientOptions = createS3ClientOption();
         this.crtS3Client = crtS3Client;
+    }
+
+    private static URI getEndpoint(URI uri) {
+        return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null));
+    }
+
+    private static S3MetaRequestOptions.MetaRequestType requestType(String operationName) {
+        if (operationName != null) {
+            switch (operationName) {
+                case "GetObject":
+                    return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
+                case "PutObject":
+                    return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
+                default:
+                    return S3MetaRequestOptions.MetaRequestType.DEFAULT;
+            }
+        }
+        return S3MetaRequestOptions.MetaRequestType.DEFAULT;
+    }
+
+    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
+        SdkHttpRequest sdkRequest = asyncRequest.request();
+
+        Path requestFilePath = asyncRequest.httpExecutionAttributes().getAttribute(OBJECT_FILE_PATH);
+
+        String method = sdkRequest.method().name();
+        String encodedPath = sdkRequest.encodedPath();
+        if (encodedPath == null || encodedPath.isEmpty()) {
+            encodedPath = "/";
+        }
+
+        String encodedQueryString = sdkRequest.encodedQueryParameters()
+                                              .map(value -> "?" + value)
+                                              .orElse("");
+
+        HttpHeader[] crtHeaderArray = createHttpHeaderList(asyncRequest).toArray(new HttpHeader[0]);
+
+
+        S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
+            requestFilePath == null ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher()) : null;
+
+        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private static List<HttpHeader> createHttpHeaderList(AsyncExecuteRequest asyncRequest) {
+        SdkHttpRequest sdkRequest = asyncRequest.request();
+        List<HttpHeader> crtHeaderList = new ArrayList<>();
+
+        // Set Host Header if needed
+        if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
+            String hostHeader = getHostHeaderValue(asyncRequest.request());
+            crtHeaderList.add(new HttpHeader(Header.HOST, hostHeader));
+        }
+
+        // Set Content-Length if needed
+        Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
+            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
+        }
+
+        // Add the rest of the Headers
+        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val))
+                                                      .forEach(crtHeaderList::add));
+
+        return crtHeaderList;
+    }
+
+    private static String getHostHeaderValue(SdkHttpRequest request) {
+        return SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+               ? request.host()
+               : request.host() + ":" + request.port();
+    }
+
+    private static HttpProxyEnvironmentVariableSetting disabledHttpProxyEnvironmentVariableSetting() {
+        HttpProxyEnvironmentVariableSetting proxyEnvSetting = new HttpProxyEnvironmentVariableSetting();
+        proxyEnvSetting.setEnvironmentVariableType(HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED);
+        return proxyEnvSetting;
     }
 
     @SdkTestInternalApi
@@ -137,11 +218,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         HttpRequest httpRequest = toCrtRequest(asyncRequest);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
-        S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(executeFuture,
-                                            asyncRequest.responseHandler(),
-                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                                            s3MetaRequestFuture);
+
 
         String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
@@ -159,12 +236,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                        responseChecksumValidation);
 
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
-        if (responseFilePath != null) {
-            // TODO: This should be on constructor
-            responseHandler.handleResponseOnHeaders = true;
-        }
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
-        System.out.println("S3CrtAsyncHttpClient.execute(): " + operationName + "\tResponseFilePath: " + responseFilePath + "\tResponseFileOption: " + responseFileOption);
+
+        S3CrtResponseHandlerAdapter responseHandler =
+            new S3CrtResponseHandlerAdapter(
+                executeFuture,
+                asyncRequest.responseHandler(),
+                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                s3MetaRequestFuture,
+                responseFilePath != null);
 
         URI endpoint = getEndpoint(uri);
 
@@ -220,61 +300,15 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return defaultS3SigningConfig;
     }
 
-    private static URI getEndpoint(URI uri) {
-        return invokeSafely(() -> new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), null, null, null));
-    }
-
     @Override
     public String clientName() {
         return "s3crt";
-    }
-
-    private static S3MetaRequestOptions.MetaRequestType requestType(String operationName) {
-        if (operationName != null) {
-            switch (operationName) {
-                case "GetObject":
-                    return S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
-                case "PutObject":
-                    return S3MetaRequestOptions.MetaRequestType.PUT_OBJECT;
-                default:
-                    return S3MetaRequestOptions.MetaRequestType.DEFAULT;
-            }
-        }
-        return S3MetaRequestOptions.MetaRequestType.DEFAULT;
-    }
-
-    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-
-        Path requestFilePath = asyncRequest.httpExecutionAttributes().getAttribute(OBJECT_FILE_PATH);
-
-        String method = sdkRequest.method().name();
-        String encodedPath = sdkRequest.encodedPath();
-        if (encodedPath == null || encodedPath.isEmpty()) {
-            encodedPath = "/";
-        }
-
-        String encodedQueryString = sdkRequest.encodedQueryParameters()
-                                              .map(value -> "?" + value)
-                                              .orElse("");
-
-        HttpHeader[] crtHeaderArray = createHttpHeaderList(asyncRequest).toArray(new HttpHeader[0]);
-
-
-        S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
-            requestFilePath == null ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher()) : null;
-
-        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
     }
 
     @Override
     public void close() {
         s3NativeClientConfiguration.close();
         crtS3Client.close();
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     public static final class Builder implements SdkAsyncHttpClient.Builder<S3CrtAsyncHttpClient.Builder> {
@@ -295,40 +329,5 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             // Intentionally ignore serviceDefaults
             return build();
         }
-    }
-
-    private static List<HttpHeader> createHttpHeaderList(AsyncExecuteRequest asyncRequest) {
-        SdkHttpRequest sdkRequest = asyncRequest.request();
-        List<HttpHeader> crtHeaderList = new ArrayList<>();
-
-        // Set Host Header if needed
-        if (!sdkRequest.firstMatchingHeader(Header.HOST).isPresent()) {
-            String hostHeader = getHostHeaderValue(asyncRequest.request());
-            crtHeaderList.add(new HttpHeader(Header.HOST, hostHeader));
-        }
-
-        // Set Content-Length if needed
-        Optional<Long> contentLength = asyncRequest.requestContentPublisher().contentLength();
-        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
-            crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
-        }
-
-        // Add the rest of the Headers
-        sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val))
-                                                      .forEach(crtHeaderList::add));
-
-        return crtHeaderList;
-    }
-
-    private static String getHostHeaderValue(SdkHttpRequest request) {
-        return SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
-               ? request.host()
-               : request.host() + ":" + request.port();
-    }
-
-    private static HttpProxyEnvironmentVariableSetting disabledHttpProxyEnvironmentVariableSetting() {
-        HttpProxyEnvironmentVariableSetting proxyEnvSetting = new HttpProxyEnvironmentVariableSetting();
-        proxyEnvSetting.setEnvironmentVariableType(HttpProxyEnvironmentVariableSetting.HttpProxyEnvironmentVariableType.DISABLED);
-        return proxyEnvSetting;
     }
 }

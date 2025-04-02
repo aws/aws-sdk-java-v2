@@ -218,8 +218,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
     }
 
     @Override
+    // amazonq-ignore-next-line
     public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
-        System.out.println("Using the CRT downloadFile!");
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);

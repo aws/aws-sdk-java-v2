@@ -70,7 +70,8 @@ public class S3CrtResponseHandlerAdapterTest {
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
                                                                  null,
-                                                                 CompletableFuture.completedFuture(s3MetaRequest));
+                                                                 CompletableFuture.completedFuture(s3MetaRequest),
+                                                                 false);
     }
 
     @Test
@@ -104,7 +105,8 @@ public class S3CrtResponseHandlerAdapterTest {
                                                                                              sdkResponseHandler,
                                                                                              null,
                                                                                              new CompletableFuture<>(),
-                                                                                             Duration.ofMillis(10));
+                                                                                             Duration.ofMillis(10),
+                                                                                             false);
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
         responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);

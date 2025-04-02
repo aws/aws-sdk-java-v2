@@ -40,7 +40,6 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
     @Override
     public void onResponse(ResponseT response) {
-        System.out.println("CrtResponseFileResponseTransformer Got response: " + response);
         this.response = response;
     }
 
@@ -62,9 +61,9 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
     private static final class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
 
-        private Subscription subscription;
         private final CompletableFuture<Void> future;
         private final Consumer<Throwable> onErrorMethod;
+        private Subscription subscription;
 
         private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
             this.future = future;
@@ -84,7 +83,6 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            System.out.println("We should probably not be here!!!");
         }
 
         @Override
@@ -94,7 +92,6 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
         @Override
         public void onComplete() {
-            System.out.println("Yay, we completed!");
             future.complete(null);
         }
     }
