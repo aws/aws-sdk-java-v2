@@ -65,6 +65,7 @@ import software.amazon.awssdk.services.xml.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.xml.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumRequest;
 import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumResponse;
+import software.amazon.awssdk.services.xml.model.InvalidInputException;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredRequest;
 import software.amazon.awssdk.services.xml.model.OperationWithChecksumRequiredResponse;
 import software.amazon.awssdk.services.xml.model.OperationWithNoneAuthTypeRequest;
@@ -158,6 +159,19 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<Response<APostOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(APostOperationResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
             String hostPrefix = "foo-";
             String resolvedHostExpression = "foo-";
 
@@ -221,6 +235,19 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .createCombinedResponseHandler(APostOperationWithOutputResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
 
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
+
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
                              .withOperationName("APostOperationWithOutput").withRequestConfiguration(clientConfiguration)
@@ -277,6 +304,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
 
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
+
             CompletableFuture<BearerAuthOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
                              .withOperationName("BearerAuthOperation").withRequestConfiguration(clientConfiguration)
@@ -331,7 +368,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<EventStreamOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 EventStreamOperationResponse::builder, XmlOperationMetadata.builder().hasStreamingSuccessResponse(true)
                                                                            .build());
-            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
             HttpResponseHandler<? extends EventStream> eventResponseHandler = protocolFactory.createResponseHandler(
                 EventStreamTaggedUnionPojoSupplier.builder()
                                                   .putSdkPojoSupplier("EventPayloadEvent", EventStream::eventPayloadEventBuilder)
@@ -339,6 +375,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                   .putSdkPojoSupplier("SecondEventPayloadEvent", EventStream::secondEventPayloadEventBuilder)
                                                   .defaultSdkPojoSupplier(() -> new SdkPojoBuilder(EventStream.UNKNOWN)).build(), XmlOperationMetadata
                     .builder().hasStreamingSuccessResponse(false).build());
+
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
             CompletableFuture<Void> eventStreamTransformFuture = new CompletableFuture<>();
             EventStreamAsyncResponseTransformer<EventStreamOperationResponse, EventStream> asyncResponseTransformer = EventStreamAsyncResponseTransformer
                 .<EventStreamOperationResponse, EventStream> builder().eventStreamResponseHandler(asyncResponseHandler)
@@ -414,6 +460,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .createCombinedResponseHandler(GetOperationWithChecksumResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
 
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
+
             CompletableFuture<GetOperationWithChecksumResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
                              .withOperationName("GetOperationWithChecksum")
@@ -478,6 +534,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .createCombinedResponseHandler(OperationWithChecksumRequiredResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
 
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
+
             CompletableFuture<OperationWithChecksumRequiredResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
                              .withOperationName("OperationWithChecksumRequired")
@@ -537,6 +603,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
 
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
+
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
                              .withOperationName("OperationWithNoneAuthType").withRequestConfiguration(clientConfiguration)
@@ -593,6 +669,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<Response<OperationWithRequestCompressionResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(OperationWithRequestCompressionResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<OperationWithRequestCompressionResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
@@ -771,6 +857,16 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             HttpResponseHandler<Response<StreamingInputOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
                                                new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
+
+            HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
+                .createErrorResponseHandler(exceptionMetadataMapper);
 
             CompletableFuture<StreamingInputOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
