@@ -28,15 +28,11 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES;
 
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -45,7 +41,6 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -82,14 +77,14 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
     public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
-    public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION = new ExecutionAttribute<>("responseFileOption");
+    public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
+        new ExecutionAttribute<>("responseFileOption");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -121,12 +116,13 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             new CrtResponseFileResponseTransformer<>();
 
-            AwsRequestOverrideConfiguration overrideConfig =
-                getObjectRequest.overrideConfiguration()
-                                .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
-                                .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
-                                                                                .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
-                                .build();
+        AwsRequestOverrideConfiguration overrideConfig =
+            getObjectRequest.overrideConfiguration()
+                            .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .putExecutionAttribute(RESPONSE_FILE_PATH,
+                                                                                                   destinationPath))
+                            .build();
 
         return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
     }
@@ -257,7 +253,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(
-                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }

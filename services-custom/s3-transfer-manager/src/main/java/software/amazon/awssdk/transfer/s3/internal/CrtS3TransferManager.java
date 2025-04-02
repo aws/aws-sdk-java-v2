@@ -199,7 +199,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             );
 
             DownloadFileRequest downloadFileRequestWithAttributes =
-                newDownloadFileRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+                newDownloadFileRequest.copy(
+                    downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
 
             newDownloadFileRequestFuture.complete(downloadFileRequestWithAttributes);
             log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
@@ -303,9 +304,11 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         Consumer<SdkHttpExecutionAttributes.Builder> httpExecutionAttributeMutation,
         Consumer<AwsRequestOverrideConfiguration.Builder> executionAttributeMutation) {
         SdkHttpExecutionAttributes modifiedAttributes =
-            getObjectRequest.overrideConfiguration().map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
-                            .map(b -> b.toBuilder().applyMutation(httpExecutionAttributeMutation).build())
-                            .orElseGet(() -> SdkHttpExecutionAttributes.builder().applyMutation(httpExecutionAttributeMutation).build());
+            getObjectRequest
+                .overrideConfiguration()
+                .map(o -> o.executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES))
+                .map(b -> b.toBuilder().applyMutation(httpExecutionAttributeMutation).build())
+                .orElseGet(() -> SdkHttpExecutionAttributes.builder().applyMutation(httpExecutionAttributeMutation).build());
 
         Consumer<AwsRequestOverrideConfiguration.Builder> attachSdkHttpAttributes =
             b -> b.putExecutionAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES, modifiedAttributes)
