@@ -690,3 +690,9 @@ recipeList:
         - java.lang.String
       fluentNames:
         - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.Bucket
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withName

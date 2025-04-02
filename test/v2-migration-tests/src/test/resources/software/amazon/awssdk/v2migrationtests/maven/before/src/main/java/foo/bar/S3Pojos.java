@@ -15,6 +15,7 @@
 
 package foo.bar;
 
+import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketAccelerateConfiguration;
 import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.CSVInput;
@@ -54,5 +55,6 @@ public class S3Pojos {
         RoutingRuleCondition routingRuleCondition = new RoutingRuleCondition();
         S3ObjectSummary s3ObjectSummary = new S3ObjectSummary();
         BucketVersioningConfiguration bucketVersioningConfiguration = new BucketVersioningConfiguration();
+        Bucket bucketPojo = new Bucket("name");
     }
 }

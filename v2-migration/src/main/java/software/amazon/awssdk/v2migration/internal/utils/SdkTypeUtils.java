@@ -207,6 +207,7 @@ public final class SdkTypeUtils {
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MaterialsDescriptionProvider");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "UploadObjectRequest");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SimpleMaterialProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ExtraMaterialsDescription");
     }
 
     static {

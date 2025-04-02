@@ -17,6 +17,7 @@ package foo.bar;
 
 import java.util.Arrays;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
+import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.CSVInput;
 import software.amazon.awssdk.services.s3.model.CSVOutput;
 import software.amazon.awssdk.services.s3.model.Condition;
@@ -69,6 +70,8 @@ public class S3Pojos {
         S3Object s3ObjectSummary = S3Object.builder()
             .build();
         GetBucketVersioningResponse bucketVersioningConfiguration = GetBucketVersioningResponse.builder()
+            .build();
+        Bucket bucketPojo = Bucket.builder().name("name")
             .build();
     }
 }
