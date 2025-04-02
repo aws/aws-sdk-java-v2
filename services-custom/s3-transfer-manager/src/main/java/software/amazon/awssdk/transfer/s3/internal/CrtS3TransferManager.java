@@ -232,7 +232,6 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             attachSdkAttribute(
                 downloadRequest.getObjectRequest(),
                 b -> b
-                    .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
                     .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
 
             ),

@@ -21,7 +21,6 @@ import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBu
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,7 +84,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         waitUntilFirstByteBufferDelivered(download);
 
         ResumableFileDownload resumableFileDownload = download.pause();
-        System.out.println("completed parts: " + resumableFileDownload.completedParts());
         long bytesTransferred = resumableFileDownload.bytesTransferred();
         log.debug(() -> "Paused: " + resumableFileDownload);
         assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
@@ -174,12 +172,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
         resumedFileDownload.completionFuture().join();
         assertThat(resumedFileDownload.progress().snapshot().totalBytes()).hasValue(expectedBytesTransferred);
-        try {
-            System.out.println("Source size: " + Files.size(sourceFile.toPath()) + " downloaded: " + Files.size(path));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
     }
 
