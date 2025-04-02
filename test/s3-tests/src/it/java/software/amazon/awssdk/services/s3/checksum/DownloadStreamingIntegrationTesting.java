@@ -535,6 +535,7 @@ public class DownloadStreamingIntegrationTesting {
                            .add("baseConfig", baseConfig)
                            .add("responseTransformerType", responseTransformerType)
                            .add("contentSize", contentSize)
+                           .add("checksumModeEnabled", checksumModeEnabled)
                            .build();
         }
     }
