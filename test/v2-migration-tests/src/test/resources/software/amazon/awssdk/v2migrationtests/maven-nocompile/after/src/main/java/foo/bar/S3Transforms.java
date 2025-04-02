@@ -16,12 +16,15 @@
 package foo.bar;
 
 import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
+import com.amazonaws.services.s3.model.SSECustomerKey;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
 import software.amazon.awssdk.services.s3.model.GeneratePresignedUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -32,33 +35,49 @@ public class S3Transforms {
 
     void upload_streamWithLiteralLength(S3TransferManager tm, String bucket, String key) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
-                .build();
+            .build();
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
         PutObjectRequest requestWithStreamAndLiteralLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(333L)
-                .build();
+            .build();
         /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndLiteralLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, 333, newExecutorServiceVariableToDefine)).build());
     }
 
     void upload_streamWithAssignedLength(S3TransferManager tm, String bucket, String key) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
-                .build();
+            .build();
         long contentLen = 777;
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
         PutObjectRequest requestWithStreamAndAssignedLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(contentLen)
-                .build();
+            .build();
         /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndAssignedLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, contentLen, newExecutorServiceVariableToDefine)).build());
     }
 
     void upload_streamWithoutLength(S3TransferManager tm, String bucket, String key) {
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
         PutObjectRequest requestWithStreamAndNoLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
-                .build();
+            .build();
         /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndNoLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, -1L, newExecutorServiceVariableToDefine)).build());
+    }
+
+    void putObjectRequest_unsupportedSetters() {
+        SSECustomerKey sseCustomerKey = new SSECustomerKey("val");
+        SSEAwsKeyManagementParams sseParams = new SSEAwsKeyManagementParams();
+        AccessControlPolicy accessControlList = AccessControlPolicy.builder()
+            .build();
+
+        PutObjectRequest request = /*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter accessControlList is not supported, please manually migrate your code to use the v2 setters: acl, grantReadACP, grantWriteACP - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#acl(java.lang.String)*/
+/*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseCustomerKey is not supported, please manually migrate your code to use the v2 setters: sseCustomerKey, sseCustomerKeyMD5 - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#sseCustomerKey(java.lang.String)*/
+/*AWS SDK for Java v2 migration: Transform for PutObjectRequest setter sseAwsKeyManagementParam is not supported, please manually migrate your code to use the v2 setters: ssekmsKeyId, serverSideEncryption, sseCustomerAlgorithm - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model/PutObjectRequest.Builder.html#ssekmsKeyId(java.lang.String)*/
+PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .sseCustomerKey(sseCustomerKey)
+            .sseAwsKeyManagementParams(sseParams)
+            .accessControlList(accessControlList)
+            .build();
     }
 
     void objectmetadata_unsupportedSetters(Date dateVal) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
-                .build();
+            .build();
 
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - expirationTimeRuleId - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.expirationTimeRuleId("expirationTimeRuleId");
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - ongoingRestore - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.ongoingRestore(false);
