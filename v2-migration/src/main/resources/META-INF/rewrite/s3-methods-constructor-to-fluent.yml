@@ -696,3 +696,9 @@ recipeList:
         - java.lang.String
       fluentNames:
         - withName
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ObjectTagging
+      parameterTypes:
+        - java.util.List<com.amazonaws.services.s3.model.Tag>
+      fluentNames:
+        - withTagSet

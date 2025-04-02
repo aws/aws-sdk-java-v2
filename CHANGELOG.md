@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.14__ __2025-04-02__
+## __AWS CodeBuild__
+  - ### Features
+    - This release adds support for environment type WINDOWS_SERVER_2022_CONTAINER in ProjectEnvironment
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added support for SMPTE 2110 inputs when running a channel in a MediaLive Anywhere cluster. This feature enables ingestion of SMPTE 2110-compliant video, audio, and ancillary streams by reading SDP files that AWS Elemental MediaLive can retrieve from a network source.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Application Signals now supports creating Service Level Objectives on service dependencies. Users can now create or update SLOs on discovered service dependencies to monitor their standard application metrics.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECS documentation only update to address various tickets.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Fix for customer issues related to AWS account ID and size limitation for token.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Release feature of errorlogging for lex bot, customer can config this feature in bot version to generate log for error exception which helps debug
+
 # __2.31.13__ __2025-04-01__
 ## __AWS Clean Rooms Service__
   - ### Features
