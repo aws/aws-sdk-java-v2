@@ -67,6 +67,7 @@ import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyStatusRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyStatusResponse;
 import software.amazon.awssdk.services.s3.model.GetBucketReplicationRequest;
+import software.amazon.awssdk.services.s3.model.GetBucketRequestPaymentRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketWebsiteRequest;
@@ -97,6 +98,7 @@ import software.amazon.awssdk.services.s3.model.ListBucketMetricsConfigurationsR
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
+import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.MetricsConfiguration;
 import software.amazon.awssdk.services.s3.model.NotificationConfiguration;
 import software.amazon.awssdk.services.s3.model.OwnershipControls;
@@ -108,6 +110,7 @@ import software.amazon.awssdk.services.s3.model.PutBucketOwnershipControlsReques
 import software.amazon.awssdk.services.s3.model.PutBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
 import software.amazon.awssdk.services.s3.model.ReplicationConfiguration;
+import software.amazon.awssdk.services.s3.model.RestoreObjectRequest;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 
@@ -416,5 +419,17 @@ public class S3RequestConstructor {
                 .build())
                 .build());
 
+        DeleteObjectRequest deleteVersionRequest = DeleteObjectRequest.builder().bucket(bucketName).key(objectKey).versionId("id")
+            .build();
+
+        ListPartsRequest listPartsRequest = ListPartsRequest.builder().bucket(bucketName).key(objectKey).uploadId("id")
+            .build();
+
+        RestoreObjectRequest restoreObjectRequest = RestoreObjectRequest.builder().bucket(bucketName).key(objectKey)
+            .build();
+
+        GetBucketRequestPaymentRequest getRequestPaymentConfigurationRequest =
+            GetBucketRequestPaymentRequest.builder().bucket(bucketName)
+                .build();
     }
 }

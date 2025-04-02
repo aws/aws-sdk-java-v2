@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.model.DeleteBucketRequest;
 import com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.GetS3AccountOwnerRequest;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.HeadBucketResult;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
@@ -47,6 +48,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
@@ -271,5 +273,14 @@ public class S3 {
         URL urlGet2 = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.GET);
 
         URL urlDelete = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.DELETE);
+    }
+
+    private void getS3AccountOwner(AmazonS3 s3) {
+        Owner owner = s3.getS3AccountOwner();
+
+        Owner owner2 = s3.getS3AccountOwner(new GetS3AccountOwnerRequest());
+
+        GetS3AccountOwnerRequest getS3AccountOwnerRequest = new GetS3AccountOwnerRequest();
+        Owner owner3 = s3.getS3AccountOwner(getS3AccountOwnerRequest);
     }
 }

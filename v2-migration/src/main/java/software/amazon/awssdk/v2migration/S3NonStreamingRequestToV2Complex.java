@@ -18,9 +18,11 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.assignedVariableHttpMethodNotSupportedComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.hasArguments;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.httpMethodNotSupportedComment;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isCompleteMpuRequestMultipartUploadSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGeneratePresignedUrl;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGetS3AccountOwner;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedHttpMethod;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.presignerSingleInstanceSuggestion;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.requestPojoTransformNotSupportedComment;
@@ -87,6 +89,9 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             }
             if (isGeneratePresignedUrl(method)) {
                 return maybeAutoFormat(method, transformGeneratePresignedUrl(method), executionContext);
+            }
+            if (isGetS3AccountOwner(method)) {
+                return transformGetS3AccountOwner(method);
             }
             if (DISABLE_REQUESTER_PAYS.matches(method, false)) {
                 return transformSetRequesterPays(method, false);
@@ -186,6 +191,19 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             return JavaTemplate.builder(v2Method).build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments(),
                                       method.getArguments().get(0));
+        }
+
+        private J.MethodInvocation transformGetS3AccountOwner(J.MethodInvocation method) {
+            if (hasArguments(method)) {
+                String v2Method = "#{any()}.listBuckets(#{any()}).owner()";
+                return JavaTemplate.builder(v2Method).build()
+                                   .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                          method.getArguments().get(0));
+            }
+
+            String v2Method = "#{any()}.listBuckets().owner()";
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
         }
 
         private J.MethodInvocation transformCreateBucket(J.MethodInvocation method) {
