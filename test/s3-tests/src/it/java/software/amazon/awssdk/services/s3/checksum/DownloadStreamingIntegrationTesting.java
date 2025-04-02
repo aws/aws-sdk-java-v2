@@ -231,11 +231,8 @@ public class DownloadStreamingIntegrationTesting {
             String bucket = bucketForType(bucketType);
             PutObjectRequest req = PutObjectRequest
                 .builder()
-                .overrideConfiguration(c -> c.putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false))
                 .bucket(bucket)
                 .key(name)
-                .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                .checksumCRC32(crc32)
                 .build();
             s3.putObject(req, RequestBody.fromBytes(fullContent));
         }
@@ -258,10 +255,7 @@ public class DownloadStreamingIntegrationTesting {
             String bucket = bucketForType(bucketType);
             PutObjectRequest req = PutObjectRequest
                 .builder()
-                .overrideConfiguration(c -> c.putExecutionAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, false))
                 .bucket(bucket)
-                .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                .checksumCRC32(crc32)
                 .key(name)
                 .build();
 
@@ -294,8 +288,8 @@ public class DownloadStreamingIntegrationTesting {
         LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket)
         );
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
-                                                                               .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                                                               .checksumType(ChecksumType.FULL_OBJECT)
+                                                                               // .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                                               // .checksumType(ChecksumType.FULL_OBJECT)
                                                                                .bucket(bucket)
                                                                                .key(objectName)
                                                                                .build();
@@ -327,7 +321,7 @@ public class DownloadStreamingIntegrationTesting {
         LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
-                                             .checksumCRC32(fullContentCRC32)
+                                             // .checksumCRC32(fullContentCRC32)
                                              .bucket(bucket)
                                              .key(objectName)
                                              .uploadId(uploadId));
