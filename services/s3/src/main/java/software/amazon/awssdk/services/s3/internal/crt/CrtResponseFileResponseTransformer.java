@@ -25,6 +25,13 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * When the CRT Response File option is used in a request, the body is streamed directly to the file.
+ * This transformer is effectively a no-op transformer that waits for the stream to complete and then
+ * completes the future with the response.
+ *
+ * @param <ResponseT> Pojo response type.
+ */
 @SdkInternalApi
 public final class CrtResponseFileResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT,
     ResponseT> {
