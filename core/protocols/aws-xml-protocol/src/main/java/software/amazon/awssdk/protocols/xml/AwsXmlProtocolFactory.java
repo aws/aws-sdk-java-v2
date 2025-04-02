@@ -174,7 +174,9 @@ public class AwsXmlProtocolFactory {
 
         return new CombinedResponseHandler<>
             (createResponseHandler(pojoSupplier, staxOperationMetadata),
-             createErrorResponseHandler(this.exceptionMetadataMapper));
+             this.exceptionMetadataMapper != null
+             ? createErrorResponseHandler(this.exceptionMetadataMapper)
+             : createErrorResponseHandler());
     }
 
     /**

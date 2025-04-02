@@ -91,6 +91,7 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         this.exceptionMetadataMapper = builder.exceptionMetadataMapper;
         this.awsXmlErrorUnmarshaller = AwsXmlErrorUnmarshaller.builder()
                                                               .defaultExceptionSupplier(builder.defaultExceptionSupplier)
+                                                              .exceptions(builder.exceptions)
                                                               .exceptionMetadataMapper(this.exceptionMetadataMapper)
                                                               .errorUnmarshaller(builder.errorUnmarshaller)
                                                               .build();
