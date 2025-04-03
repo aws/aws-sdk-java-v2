@@ -82,6 +82,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.IntelligentTieringConfiguration;
 import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
@@ -89,6 +90,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.MetricsConfiguration;
 import software.amazon.awssdk.services.s3.model.NotificationConfiguration;
+import software.amazon.awssdk.services.s3.model.Owner;
 import software.amazon.awssdk.services.s3.model.OwnershipControls;
 import software.amazon.awssdk.services.s3.model.Payer;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
@@ -409,24 +411,39 @@ public class S3 {
     }
 
     private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
-        URL urlGet1 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+        URL urlGet1 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
                 .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
                     .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
                 .url();
 
-        URL urlPut = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+        URL urlPut = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
                 .presignPutObject(p -> p.putObjectRequest(r -> r.bucket(bucket).key(key))
                     .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
                 .url();
 
-        URL urlGet2 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+        URL urlGet2 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
                 .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
                     .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
                 .url();
 
-        URL urlDelete = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/S3Presigner.builder().s3Client(s3).build()
+        URL urlDelete = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
                 .presignDeleteObject(p -> p.deleteObjectRequest(r -> r.bucket(bucket).key(key))
                     .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
                 .url();
+    }
+
+    private void getS3AccountOwner(S3Client s3) {
+        Owner owner = s3.listBuckets().owner();
+
+        Owner owner2 = s3.listBuckets(ListBucketsRequest.builder()
+            .build()).owner();
+
+        ListBucketsRequest getS3AccountOwnerRequest = ListBucketsRequest.builder()
+            .build();
+        Owner owner3 = s3.listBuckets(getS3AccountOwnerRequest).owner();
     }
 }

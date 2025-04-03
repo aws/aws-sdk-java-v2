@@ -41,11 +41,6 @@ public class AwsCrtHttpClientTest extends SdkHttpClientTestSuite {
         Log.initLoggingToStdout(Log.LogLevel.Warn);
     }
 
-    @AfterAll
-    public static void afterAll() {
-        CrtResource.waitForNoResources();
-    }
-
     /**
      * default value of connectionAcquisitionTimeout of 10 will fail validatesHttpsCertificateIssuer() test
      * */

@@ -197,12 +197,6 @@ recipeList:
       methodPattern: com.amazonaws.services.s3.model.BucketCrossOriginConfiguration withRules(com.amazonaws.services.s3.model.CORSRule...)
       newMethodName: withCorsRules
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.services.s3.model.ListObjectsRequest withBucketName(String)
-      newMethodName: withBucket
-  - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.services.s3.model.ListObjectsV2Request withBucketName(String)
-      newMethodName: withBucket
-  - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.CopyPartRequest withSourceBucketName(String)
       newMethodName: withSourceBucket
   - org.openrewrite.java.ChangeMethodName:
@@ -212,16 +206,12 @@ recipeList:
       methodPattern: com.amazonaws.services.s3.model.analytics.AnalyticsS3BucketDestination withBucketArn(String)
       newMethodName: withBucket
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest withBucketName(String)
-      newMethodName: withBucket
-  - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest withPartETags(java.util.List)
       newMethodName: withMultipartUpload
 
-
   - org.openrewrite.java.ChangeMethodName:
-      methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withBucketName(String)
-      newMethodName: withBucket
+      methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withRedirectLocation(String)
+      newMethodName: withWebsiteRedirectLocation
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.PutObjectRequest withCannedAcl(com.amazonaws.services.s3.model.CannedAccessControlList)
       newMethodName: withAcl

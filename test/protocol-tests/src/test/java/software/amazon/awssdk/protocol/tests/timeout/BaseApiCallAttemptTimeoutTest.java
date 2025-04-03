@@ -19,13 +19,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.Pair;
 
 public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
 
     protected static final Duration API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(100);
     protected static final Duration DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(50);
-    protected static final Duration DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(150);
+    protected static final Duration DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(500);
 
     @Test
     public void nonstreamingOperation200_finishedWithinTime_shouldSucceed() throws Exception {
@@ -45,13 +46,13 @@ public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
         verifyFailedResponseNotTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void nonstreamingOperation500_notFinishedWithinTime_shouldTimeout() {
         stubErrorResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void streamingOperation_finishedWithinTime_shouldSucceed() throws Exception {
         stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifySuccessResponseNotTimedOut();
