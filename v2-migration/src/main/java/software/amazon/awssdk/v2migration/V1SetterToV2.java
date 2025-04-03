@@ -102,15 +102,15 @@ public class V1SetterToV2 extends Recipe {
                 return method;
             }
 
+            if (methodName.contains("BucketName")) {
+                methodName = methodName.replace("BucketName", "Bucket");
+            }
+
             if (NamingUtils.isWither(methodName)) {
                 methodName = NamingUtils.removeWith(methodName);
             } else if (NamingUtils.isSetter(methodName) && isS3PutObjectOrObjectMetadata(method)) {
                 // We will change remaining setters to `request = request.toBuilder().setter(val).build()` in SettersToBuilderV2
                 methodName = NamingUtils.removeSet(methodName);
-            }
-
-            if ("bucketName".equals(methodName)) {
-                methodName = "bucket";
             }
 
             if (isClientBuilderClass(methodType)) {

@@ -146,6 +146,7 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("GetBucketReplicationConfigurationRequest", "GetBucketReplicationRequest");
         S3_POJO_MAPPING.put("GetBucketTaggingConfigurationRequest", "GetBucketTaggingRequest");
         S3_POJO_MAPPING.put("GetBucketWebsiteConfigurationRequest", "GetBucketWebsiteRequest");
+        S3_POJO_MAPPING.put("GetRequestPaymentConfigurationRequest", "GetBucketRequestPaymentRequest");
         S3_POJO_MAPPING.put("GetObjectMetadataRequest", "HeadObjectRequest");
         S3_POJO_MAPPING.put("InitiateMultipartUploadRequest", "CreateMultipartUploadRequest");
         S3_POJO_MAPPING.put("InitiateMultipartUploadResponse", "CreateMultipartUploadResponse");
@@ -155,18 +156,10 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("CopyPartResponse", "UploadPartCopyResponse");
 
         S3_POJO_MAPPING.put("SetBucketCrossOriginConfigurationRequest", "PutBucketCorsRequest");
-        S3_POJO_MAPPING.put("SetBucketPolicyRequest", "PutBucketPolicyRequest");
-        S3_POJO_MAPPING.put("SetBucketAccelerateConfigurationRequest", "PutBucketAccelerateConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketAnalyticsConfigurationRequest", "PutBucketAnalyticsConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketIntelligentTieringConfigurationRequest", "PutBucketIntelligentTieringConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketInventoryConfigurationRequest", "PutBucketInventoryConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketLifecycleConfigurationRequest", "PutBucketLifecycleConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketMetricsConfigurationRequest", "PutBucketMetricsConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketNotificationConfigurationRequest", "PutBucketNotificationConfigurationRequest");
-        S3_POJO_MAPPING.put("SetBucketOwnershipControlsRequest", "PutBucketOwnershipControlsRequest");
         S3_POJO_MAPPING.put("SetBucketReplicationConfigurationRequest", "PutBucketReplicationRequest");
         S3_POJO_MAPPING.put("SetBucketTaggingConfigurationRequest", "PutBucketTaggingRequest");
         S3_POJO_MAPPING.put("SetBucketWebsiteConfigurationRequest", "PutBucketWebsiteRequest");
+        S3_POJO_MAPPING.put("SetRequestPaymentConfigurationRequest", "PutBucketRequestPaymentRequest");
 
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
         S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
@@ -180,6 +173,19 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("ReplicationFilter", "ReplicationRuleFilter");
         S3_POJO_MAPPING.put("ReplicationAndOperator", "ReplicationRuleAndOperator");
         S3_POJO_MAPPING.put("PartETag", "CompletedPart");
+        S3_POJO_MAPPING.put("ObjectTagging", "Tagging");
+        S3_POJO_MAPPING.put("AccessControlList", "AccessControlPolicy");
+        S3_POJO_MAPPING.put("BucketPolicy", "GetBucketPolicyResponse");
+        S3_POJO_MAPPING.put("CanonicalGrantee", "Grantee");
+        S3_POJO_MAPPING.put("EmailAddressGrantee", "Grantee");
+        S3_POJO_MAPPING.put("GetS3AccountOwnerRequest", "ListBucketsRequest");
+        S3_POJO_MAPPING.put("MultipartUploadListing", "ListMultipartUploadsResponse");
+        S3_POJO_MAPPING.put("PartListing", "ListPartsResponse");
+        S3_POJO_MAPPING.put("PartSummary", "Part");
+        S3_POJO_MAPPING.put("RedirectRule", "RedirectAllRequestsTo");
+        S3_POJO_MAPPING.put("ReplicationDestinationConfig", "Destination");
+        S3_POJO_MAPPING.put("RoutingRuleCondition", "Condition");
+        S3_POJO_MAPPING.put("S3ObjectSummary", "S3Object");
 
         //Special Enum mapping
         S3_POJO_MAPPING.put("S3Event", "Event");
@@ -188,6 +194,7 @@ public final class NamingConversionUtils {
         // used as input to Request POJOs and returned as Response POJOs
         S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
         S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        S3_POJO_MAPPING.put("BucketVersioningConfiguration", "GetBucketVersioningResponse");
         // v2 also has BucketCannedACL
         S3_POJO_MAPPING.put("CannedAccessControlList", "ObjectCannedACL");
     }
@@ -216,7 +223,7 @@ public final class NamingConversionUtils {
         String v2PackagePrefix = packagePrefix.replace(V1_PACKAGE_PREFIX, V2_PACKAGE_PREFIX);
         v2PackagePrefix = checkPackageServiceNameForV2Suffix(v2PackagePrefix);
 
-        String v2ClassName = CodegenNamingUtils.pascalCase(v1ClassName);
+        String v2ClassName = pascalCaseIfApplicable(v1ClassName);
         if (Stream.of("Abstract", "Amazon", "AWS").anyMatch(v1ClassName::startsWith)) {
             v2ClassName = getV2ClientOrExceptionEquivalent(v1ClassName);
         } else if (v1ClassName.endsWith("Result")) {
@@ -224,8 +231,13 @@ public final class NamingConversionUtils {
             v2ClassName = v1ClassName.substring(0, lastIndex) + "Response";
         }
 
-        if (isS3ModelClass(v2PackagePrefix) && S3_POJO_MAPPING.containsKey(v2ClassName)) {
-            v2ClassName = S3_POJO_MAPPING.get(v2ClassName);
+        if (isS3ModelClass(v2PackagePrefix)) {
+            if (S3_POJO_MAPPING.containsKey(v2ClassName)) {
+                v2ClassName = S3_POJO_MAPPING.get(v2ClassName);
+            }
+            if (v2ClassName.startsWith("Set")) {
+                v2ClassName = v2ClassName.replace("Set", "Put");
+            }
         }
 
         return v2PackagePrefix + "." + v2ClassName;
@@ -286,7 +298,7 @@ public final class NamingConversionUtils {
             }
         }
 
-        String v2Style = CodegenNamingUtils.pascalCase(className);
+        String v2Style = pascalCaseIfApplicable(className);
 
         if (className.endsWith("Exception")) {
             return v2Style;
@@ -297,5 +309,13 @@ public final class NamingConversionUtils {
         }
 
         return v2Style;
+    }
+
+    private static String pascalCaseIfApplicable(String className) {
+        if (className.startsWith("CSV") || className.startsWith("JSON")) {
+            return className;
+        }
+
+        return CodegenNamingUtils.pascalCase(className);
     }
 }

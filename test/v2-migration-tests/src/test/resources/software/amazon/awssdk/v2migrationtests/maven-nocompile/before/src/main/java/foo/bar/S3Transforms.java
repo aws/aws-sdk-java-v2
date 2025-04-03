@@ -17,9 +17,12 @@ package foo.bar;
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
+import com.amazonaws.services.s3.model.SSECustomerKey;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -52,6 +55,17 @@ public class S3Transforms {
         PutObjectRequest requestWithStreamAndNoLength = new PutObjectRequest(bucket, key, "location");
         requestWithStreamAndNoLength.setInputStream(inputStream);
         tm.upload(requestWithStreamAndNoLength);
+    }
+
+    void putObjectRequest_unsupportedSetters() {
+        SSECustomerKey sseCustomerKey = new SSECustomerKey("val");
+        SSEAwsKeyManagementParams sseParams = new SSEAwsKeyManagementParams();
+        AccessControlList accessControlList = new AccessControlList();
+
+        PutObjectRequest request = new PutObjectRequest("bucket", "key", "location")
+            .withSSECustomerKey(sseCustomerKey)
+            .withSSEAwsKeyManagementParams(sseParams)
+            .withAccessControlList(accessControlList);
     }
 
     void objectmetadata_unsupportedSetters(Date dateVal) {

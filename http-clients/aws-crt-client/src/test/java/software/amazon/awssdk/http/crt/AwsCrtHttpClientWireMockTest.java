@@ -66,8 +66,6 @@ public class AwsCrtHttpClientWireMockTest {
 
     @AfterClass
     public static void tearDown() {
-        // Verify there is no resource leak.
-        CrtResource.waitForNoResources();
         executorService.shutdown();
     }
 

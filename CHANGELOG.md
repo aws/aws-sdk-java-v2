@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.15__ __2025-04-03__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Added optional "customMetadataField" for Amazon Aurora knowledge bases, allowing single-column metadata. Also added optional "textIndexName" for MongoDB Atlas knowledge bases, enabling hybrid search support.
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Added FOC date as an attribute of PhoneNumberOrder, added AccessDeniedException as a possible return type of ValidateE911Address
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Improve descriptions for various API commands and data types.
+
+## __Amazon Route 53__
+  - ### Features
+    - Added us-gov-east-1 and us-gov-west-1 as valid Latency Based Routing regions for change-resource-record-sets.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for i3en, m7i, r7i instance types for SageMaker Hyperpod
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release enables customers to provide attachments in the SESv2 SendEmail and SendBulkEmail APIs.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This Feature Adds Support for the "zh-HK" Locale for Batch Operations
+
+## __MailManager__
+  - ### Features
+    - Add support for Dual_Stack and PrivateLink types of IngressPoint. For configuration requests, SES Mail Manager will now accept both IPv4/IPv6 dual-stack endpoints and AWS PrivateLink VPC endpoints for email receiving.
+
 # __2.31.14__ __2025-04-02__
 ## __AWS CodeBuild__
   - ### Features
