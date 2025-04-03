@@ -3,7 +3,7 @@ version: 0.2
 phases:
   build:
     commands:
-      - mvn clean install -P s3-checksums-tests -pl :s3-tests -am -T1C $MAVEN_OPTIONS
+      - mvn clean install -P s3-regression-tests -pl :s3-tests -am -T1C $MAVEN_OPTIONS
       - echo $MAVEN_OPTIONS
     finally:
       - mkdir -p codebuild-test-reports

@@ -13,19 +13,26 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3.regression;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Random;
+import java.util.UUID;
 import org.junit.jupiter.api.Assumptions;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
@@ -41,6 +48,7 @@ import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPoint
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
 import software.amazon.awssdk.services.s3control.model.S3ControlException;
 import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -149,7 +157,8 @@ public final class S3ChecksumsTestUtils {
                 Thread.sleep(Duration.ofSeconds(10).toMillis());
                 initial = true;
             }
-            GetMultiRegionAccessPointResponse response = s3Control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(mrapName));
+            GetMultiRegionAccessPointResponse response =
+                s3Control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(mrapName));
             log.debug(() -> "Wait response: " + response);
             getMrapResponse = response;
         } while (MultiRegionAccessPointStatus.READY != getMrapResponse.accessPoint().status()
@@ -226,6 +235,141 @@ public final class S3ChecksumsTestUtils {
         }
 
         return BinaryUtils.toBase64(CRC32.getChecksumBytes());
+    }
+
+    public static S3Client makeSyncClient(TestConfig config, Region region, AwsCredentialsProvider provider) {
+        switch (config.getFlavor()) {
+            case JAVA_BASED:
+                return S3Client.builder()
+                               .forcePathStyle(config.isForcePathStyle())
+                               .requestChecksumCalculation(config.getRequestChecksumValidation())
+                               .region(region)
+                               .credentialsProvider(provider)
+                               .accelerate(config.isAccelerateEnabled())
+                               .build();
+            default:
+                throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
+        }
+    }
+
+    public static S3AsyncClient makeAsyncClient(TestConfig config, Region region, AwsCredentialsProvider provider) {
+        switch (config.getFlavor()) {
+            case ASYNC_JAVA_BASED:
+                return S3AsyncClient.builder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .build();
+            case TM_JAVA:
+                return S3AsyncClient.builder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .multipartEnabled(true)
+                                    .build();
+            case ASYNC_CRT: {
+                return S3AsyncClient.crtBuilder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .build();
+            }
+            default:
+                throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
+        }
+    }
+
+    public static S3Client makeSyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
+                                   Region region, AwsCredentialsProvider provider) {
+        switch (config.getFlavor()) {
+            case JAVA_BASED:
+                return S3Client.builder()
+                               .overrideConfiguration(overrideConfiguration)
+                               .forcePathStyle(config.isForcePathStyle())
+                               .requestChecksumCalculation(config.getRequestChecksumValidation())
+                               .region(region)
+                               .credentialsProvider(provider)
+                               .accelerate(config.isAccelerateEnabled())
+                               .build();
+            default:
+                throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
+        }
+    }
+
+    public static S3AsyncClient makeAsyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
+                                         Region region, AwsCredentialsProvider provider) {
+        switch (config.getFlavor()) {
+            case ASYNC_JAVA_BASED:
+                return S3AsyncClient.builder()
+                                    .overrideConfiguration(overrideConfiguration)
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .build();
+            case TM_JAVA:
+                return S3AsyncClient.builder()
+                                    .overrideConfiguration(overrideConfiguration)
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .multipartEnabled(true)
+                                    .build();
+            case ASYNC_CRT: {
+                return S3AsyncClient.crtBuilder()
+                                    .forcePathStyle(config.isForcePathStyle())
+                                    .requestChecksumCalculation(config.getRequestChecksumValidation())
+                                    .region(region)
+                                    .credentialsProvider(provider)
+                                    .accelerate(config.isAccelerateEnabled())
+                                    .build();
+            }
+            default:
+                throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
+        }
+    }
+
+    public static S3TransferManager makeTm(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
+                                            Region region, AwsCredentialsProvider provider) {
+        S3AsyncClient s3AsyncClient = makeAsyncClient(config, overrideConfiguration, region, provider);
+        return S3TransferManager.builder().s3Client(s3AsyncClient).build();
+    }
+
+    public static Path createRandomFile16KB() throws IOException {
+        Path tmp = Files.createTempFile(null, null);
+        byte[] randomBytes = new byte[1024];
+        new Random().nextBytes(randomBytes);
+        try (OutputStream os = Files.newOutputStream(tmp)) {
+            for (int i = 0; i < 16; ++i) {
+                os.write(randomBytes);
+            }
+        }
+        return tmp;
+    }
+
+    public static Path createRandomFile80MB() throws IOException {
+        Path tmp = Files.createTempFile(null, null);
+        byte[] randomBytes = new byte[1024 * 1024];
+        new Random().nextBytes(randomBytes);
+        try (OutputStream os = Files.newOutputStream(tmp)) {
+            for (int i = 0; i < 80; ++i) {
+                os.write(randomBytes);
+            }
+        }
+        return tmp;
+    }
+
+    public static String randomKey() {
+        return BinaryUtils.toHex(UUID.randomUUID().toString().getBytes());
     }
 
 }

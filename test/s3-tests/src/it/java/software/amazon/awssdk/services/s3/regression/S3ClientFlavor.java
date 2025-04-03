@@ -13,24 +13,22 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3.regression;
 
-public enum BucketType {
-    STANDARD_BUCKET(false),
-    ACCESS_POINT(true),
-    // Multi-region access point
-    MRAP(true),
-    // Express one zone/S3 express
-    EOZ(false),
+public enum S3ClientFlavor {
+    JAVA_BASED(false),
+    ASYNC_JAVA_BASED(true),
+    TM_JAVA(true),
+    ASYNC_CRT(true)
     ;
 
-    private final boolean arnType;
+    private final boolean async;
 
-    BucketType(boolean arnType) {
-        this.arnType = arnType;
+    private S3ClientFlavor(boolean async) {
+        this.async = async;
     }
 
-    public boolean isArnType() {
-        return arnType;
+    public boolean isAsync() {
+        return async;
     }
 }

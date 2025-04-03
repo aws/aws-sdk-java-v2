@@ -13,22 +13,25 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3.regression;
 
-public enum S3ClientFlavor {
-    JAVA_BASED(false),
-    ASYNC_JAVA_BASED(true),
-    TM_JAVA(true),
-    ASYNC_CRT(true)
-    ;
+import java.util.concurrent.Callable;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
-    private final boolean async;
+public class TestCallable<ResponseT> {
+    private SdkAutoCloseable client;
+    private Callable<ResponseT> runnable;
 
-    private S3ClientFlavor(boolean async) {
-        this.async = async;
+    TestCallable(SdkAutoCloseable client, Callable<ResponseT> runnable) {
+        this.client = client;
+        this.runnable = runnable;
     }
 
-    public boolean isAsync() {
-        return async;
+    public SdkAutoCloseable client() {
+        return client;
+    }
+
+    public Callable<ResponseT> runnable() {
+        return runnable;
     }
 }

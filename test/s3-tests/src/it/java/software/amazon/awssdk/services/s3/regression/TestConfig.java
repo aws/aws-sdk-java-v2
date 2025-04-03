@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3.regression;
 
 import java.util.ArrayList;
 import java.util.List;

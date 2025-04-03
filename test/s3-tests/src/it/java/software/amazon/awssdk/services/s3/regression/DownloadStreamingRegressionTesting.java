@@ -13,15 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.checksum;
+package software.amazon.awssdk.services.s3.regression;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.checksum.ChecksumIntegrationTesting.testConfigs;
-import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
-import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
-import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
-import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
-import static software.amazon.awssdk.services.s3.checksum.S3ChecksumsTestUtils.crc32;
+import static software.amazon.awssdk.services.s3.regression.DataplaneOperationRegressionTesting.testConfigs;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
+import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,9 +45,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -55,7 +52,6 @@ import software.amazon.awssdk.core.async.ResponsePublisher;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
@@ -66,43 +62,17 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
-import software.amazon.awssdk.services.s3control.S3ControlClient;
-import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.InputStreamUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 
-public class DownloadStreamingIntegrationTesting {
-    private static final Logger LOG = Logger.loggerFor(DownloadStreamingIntegrationTesting.class);
-
-    private static final String BUCKET_NAME_PREFIX = "do-not-delete-dl-streaming-";
-    private static final String MRAP_NAME = "do-not-delete-dl-streaming-testing";
-    private static final String AP_NAME = "do-not-delete-dl-streaming-testing-ap";
-    private static final String EOZ_SUFFIX = "--usw2-az3--x-s3";
-
-    private static final Region REGION = Region.US_WEST_2;
-    private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
-
-    public static final AwsCredentialsProviderChain CREDENTIALS_PROVIDER_CHAIN =
-        AwsCredentialsProviderChain.of(ProfileCredentialsProvider.builder()
-                                                                 .profileName(TEST_CREDENTIALS_PROFILE_NAME)
-                                                                 .build(),
-                                       DefaultCredentialsProvider.create());
+public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
+    private static final Logger LOG = Logger.loggerFor(DownloadStreamingRegressionTesting.class);
 
     static ObjectWithCRC smallObject;
     static ObjectWithCRC largeObject;
     static ObjectWithCRC largeObjectMulti;
-
-    private static String accountId;
-    private static String bucketName;
-    private static String mrapArn;
-    private static String eozBucket;
-    private static String apArn;
-
-    private static S3ControlClient s3Control;
-    private static S3Client s3;
-    private static StsClient sts;
 
     private static Path tempDirPath;
 
@@ -110,29 +80,7 @@ public class DownloadStreamingIntegrationTesting {
 
     @BeforeAll
     static void init() throws Exception {
-
-        s3 = S3Client.builder()
-                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                     .region(REGION)
-                     .build();
-
-        s3Control = S3ControlClient.builder()
-                                   .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                   .region(REGION)
-                                   .build();
-
-        sts = StsClient.builder().credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                       .region(REGION)
-                       .build();
-
-        accountId = S3ChecksumsTestUtils.getAccountId(sts);
-        bucketName = S3ChecksumsTestUtils.createBucket(s3, getBucketName(), LOG);
-        mrapArn = S3ChecksumsTestUtils.createMrap(s3Control, accountId, MRAP_NAME, bucketName, LOG);
-        eozBucket = S3ChecksumsTestUtils.createEozBucket(s3, getBucketName() + EOZ_SUFFIX, LOG);
-        apArn = S3ChecksumsTestUtils.createAccessPoint(s3Control, accountId, AP_NAME, bucketName);
-
         tempDirPath = createTempDir("DownloadStreamingIntegrationTesting");
-
         smallObject = uploadObjectSmall(); // 16 KiB
         largeObject = uploadObjectLarge(); // 80 MiB
         largeObjectMulti = uploadMultiPartObject(); // 80 MiB, default multipart config
@@ -149,12 +97,12 @@ public class DownloadStreamingIntegrationTesting {
     }
 
     @BeforeEach
-    void setup() {
+    void setupMethod() {
         pathsToDelete = new ArrayList<>();
     }
 
     @AfterEach
-    void methodCleanup() {
+    void testCleanup() {
         pathsToDelete.forEach(p -> {
             try {
                 Files.delete(p);
@@ -479,10 +427,6 @@ public class DownloadStreamingIntegrationTesting {
         }
     }
 
-    private static String getBucketName() {
-        return BUCKET_NAME_PREFIX + accountId;
-    }
-
     enum ResponseTransformerType {
         FILE,
         BYTES,
@@ -591,21 +535,6 @@ public class DownloadStreamingIntegrationTesting {
             }
             default:
                 throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
-        }
-    }
-
-    private static String bucketForType(BucketType type) {
-        switch (type) {
-            case STANDARD_BUCKET:
-                return bucketName;
-            case MRAP:
-                return mrapArn;
-            case EOZ:
-                return eozBucket;
-            case ACCESS_POINT:
-                return apArn;
-            default:
-                throw new RuntimeException("Unknown bucket type: " + type);
         }
     }
 

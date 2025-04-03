@@ -862,7 +862,6 @@
                                         <include>**/*IntegrationTests.java</include>
                                         <include>**/*IntegTest.java</include>
                                         <include>**/RunCucumberTest.java</include>
-                                        <include>**/ChecksumIntegrationTesting.java</include>
                                     </includes>
                                     <excludes>
                                         <exclude>**/SimpleMethodsIntegrationTest.java</exclude>
@@ -878,7 +877,7 @@
         </profile>
 
         <profile>
-            <id>s3-checksums-tests</id>
+            <id>s3-regression-tests</id>
             <activation>
                 <property>
                     <name>doRelease</name>
@@ -911,8 +910,7 @@
                                     <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
                                     <argLine>-Xmx12g -Xms4g -XX:+AllowRedefinitionToAddDeleteMethods</argLine>
                                     <includes>
-<!--                                        <include>**/s3/checksum/ChecksumIntegrationTesting.java</include>-->
-                                        <include>**/s3/checksum/DownloadStreamingIntegrationTesting.java</include>
+                                        <include>**/*RegressionTesting.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
                                 </configuration>
