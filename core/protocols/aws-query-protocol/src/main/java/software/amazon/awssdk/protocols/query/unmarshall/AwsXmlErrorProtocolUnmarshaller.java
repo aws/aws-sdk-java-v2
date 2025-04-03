@@ -84,15 +84,12 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
 
     private final AwsXmlErrorUnmarshaller awsXmlErrorUnmarshaller;
     private final Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
-    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
     private AwsXmlErrorProtocolUnmarshaller(Builder builder) {
         this.errorRootExtractor = builder.errorRootExtractor;
-        this.exceptionMetadataMapper = builder.exceptionMetadataMapper;
         this.awsXmlErrorUnmarshaller = AwsXmlErrorUnmarshaller.builder()
                                                               .defaultExceptionSupplier(builder.defaultExceptionSupplier)
                                                               .exceptions(builder.exceptions)
-                                                              .exceptionMetadataMapper(this.exceptionMetadataMapper)
                                                               .errorUnmarshaller(builder.errorUnmarshaller)
                                                               .build();
     }
@@ -164,7 +161,6 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
         private Supplier<SdkPojo> defaultExceptionSupplier;
         private Function<XmlElement, Optional<XmlElement>> errorRootExtractor;
         private XmlErrorUnmarshaller errorUnmarshaller;
-        private Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper;
 
         private Builder() {
         }
@@ -175,14 +171,8 @@ public final class AwsXmlErrorProtocolUnmarshaller implements HttpResponseHandle
          *
          * @return This builder for method chaining.
          */
-        @Deprecated
         public Builder exceptions(List<ExceptionMetadata> exceptions) {
             this.exceptions = exceptions;
-            return this;
-        }
-
-        public Builder exceptionMetadataMapper(Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
-            this.exceptionMetadataMapper = exceptionMetadataMapper;
             return this;
         }
 

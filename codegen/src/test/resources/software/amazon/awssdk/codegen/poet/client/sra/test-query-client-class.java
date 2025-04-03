@@ -2,9 +2,7 @@ package software.amazon.awssdk.services.query;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -146,18 +144,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
             .overrideConfiguration().orElse(null));
@@ -208,18 +195,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<APostOperationWithOutputResponse> responseHandler = protocolFactory
             .createResponseHandler(APostOperationWithOutputResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
@@ -265,15 +241,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<BearerAuthOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(BearerAuthOperationResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
@@ -319,15 +287,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<GetOperationWithChecksumResponse> responseHandler = protocolFactory
             .createResponseHandler(GetOperationWithChecksumResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
@@ -382,15 +342,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithChecksumRequiredResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithChecksumRequiredResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -442,15 +394,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithContextParamResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithContextParamResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithContextParamRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithContextParamRequest
@@ -498,15 +442,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithCustomMemberResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithCustomMemberResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithCustomMemberRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithCustomMemberRequest
@@ -554,15 +490,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithCustomizedOperationContextParamResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithCustomizedOperationContextParamResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(
             operationWithCustomizedOperationContextParamRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -611,15 +539,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithMapOperationContextParamResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithMapOperationContextParamResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithMapOperationContextParamRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -666,15 +586,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithNoneAuthTypeResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithNoneAuthTypeResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
@@ -722,15 +634,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithOperationContextParamResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithOperationContextParamResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithOperationContextParamRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -777,15 +681,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithRequestCompressionResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithRequestCompressionResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -837,15 +733,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<OperationWithStaticContextParamsResponse> responseHandler = protocolFactory
             .createResponseHandler(OperationWithStaticContextParamsResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithStaticContextParamsRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -918,15 +806,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory
             .createResponseHandler(PutOperationWithChecksumResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
@@ -1000,15 +880,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<StreamingInputOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(StreamingInputOperationResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
@@ -1069,15 +941,7 @@ final class DefaultQueryClient implements QueryClient {
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory
             .createResponseHandler(StreamingOutputOperationResponse::builder);
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
@@ -1133,11 +997,6 @@ final class DefaultQueryClient implements QueryClient {
         return publishers;
     }
 
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
-        return protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);
-    }
-
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
         ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
         RetryMode retryMode = builder.retryMode();
@@ -1176,8 +1035,12 @@ final class DefaultQueryClient implements QueryClient {
     }
 
     private AwsQueryProtocolFactory init() {
-        return AwsQueryProtocolFactory.builder().clientConfiguration(clientConfiguration)
-                                      .defaultServiceExceptionSupplier(QueryException::builder).build();
+        return AwsQueryProtocolFactory
+            .builder()
+            .registerModeledException(
+                ExceptionMetadata.builder().errorCode("InvalidInput")
+                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(QueryException::builder).build();
     }
 
     @Override

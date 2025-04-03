@@ -22,12 +22,9 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.WildcardTypeName;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
@@ -46,7 +43,6 @@ import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -95,7 +91,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         return CodeBlock.builder()
                         .addStatement("\n\n$T responseHandler = protocolFactory.createCombinedResponseHandler($T::builder, "
                                       + "new $T().withHasStreamingSuccessResponse($L))",
-                          handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
+                                      handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
                         .build();
     }
 
@@ -112,46 +108,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
     @Override
     public Optional<CodeBlock> errorResponseHandler(OperationModel opModel) {
-        if (opModel.hasStreamingOutput()) {
-            return streamingErrorResponseHandler(opModel);
-        }
-
-        CodeBlock.Builder builder = CodeBlock.builder();
-        ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
-            ClassName.get(Function.class),
-            ClassName.get(String.class),
-            ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
-
-        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
-        builder.add("switch (errorCode) {\n");
-        Set<String> processedExceptions = new HashSet<>();
-
-        opModel.getExceptions().forEach(exception -> {
-            String exceptionName = exception.getExceptionName();
-            if (!processedExceptions.add(exceptionName)) {
-                return;
-            }
-            ShapeModel exceptionShape = model.getShapes().get(exceptionName);
-            String errorCode = exceptionShape.getErrorCode();
-
-            builder.add("case $S:\n", errorCode);
-            builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
-                   .add(".errorCode($S)\n", errorCode);
-            builder.add(populateHttpStatusCode(exceptionShape, model));
-            builder.add(".exceptionBuilderSupplier($T::builder)\n",
-                        poetExtensions.getModelClassFromShape(exceptionShape))
-                   .add(".build());\n");
-        });
-
-        builder.add("default: return $T.empty();\n", Optional.class);
-        builder.add("}\n");
-        builder.add("};\n\n");
-
-        builder.add("$T<$T> errorResponseHandler = protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);",
-                    HttpResponseHandler.class,
-                    AwsServiceException.class);
-
-        return Optional.of(builder.build());
+        return opModel.hasStreamingOutput() ? streamingErrorResponseHandler(opModel) : Optional.empty();
     }
 
     private Optional<CodeBlock> streamingErrorResponseHandler(OperationModel opModel) {
@@ -331,9 +288,9 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                              streamResponseOpMd);
 
         // Response handler responsible for errors for the API call itself, as well as errors sent over the event stream
-        // builder.addStatement("$T errorResponseHandler = protocolFactory"
-        //                      + ".createErrorResponseHandler()", ParameterizedTypeName.get(HttpResponseHandler.class,
-        //                                                                                   AwsServiceException.class));
+        builder.addStatement("$T errorResponseHandler = protocolFactory"
+                             + ".createErrorResponseHandler()", ParameterizedTypeName.get(HttpResponseHandler.class,
+                                                                                          AwsServiceException.class));
 
 
         ShapeModel eventStreamShape = EventStreamUtils.getEventStreamInResponse(opModel.getOutputShape());
