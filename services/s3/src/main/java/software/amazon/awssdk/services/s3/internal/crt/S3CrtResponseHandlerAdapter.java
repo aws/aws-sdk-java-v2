@@ -61,16 +61,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final Duration s3MetaRequestTimeout;
 
-    private final boolean handleResponseOnHeaders;
-
     private volatile boolean responseHandlingInitiated;
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        PublisherListener<S3MetaRequestProgress> progressListener,
-                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
-                                       boolean handleResponseOnHeaders) {
-        this(executeFuture, responseHandler, progressListener, metaRequestFuture, META_REQUEST_TIMEOUT, handleResponseOnHeaders);
+                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
+        this(executeFuture, responseHandler, progressListener, metaRequestFuture, META_REQUEST_TIMEOUT);
     }
 
     @SdkTestInternalApi
@@ -78,11 +75,9 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        PublisherListener<S3MetaRequestProgress> progressListener,
                                        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
-                                       Duration s3MetaRequestTimeout,
-                                       boolean handleResponseOnHeaders) {
+                                       Duration s3MetaRequestTimeout) {
         this.resultFuture = executeFuture;
         this.metaRequestFuture = metaRequestFuture;
-        this.handleResponseOnHeaders = handleResponseOnHeaders;
 
         resultFuture.whenComplete((r, t) -> {
             S3MetaRequestWrapper s3MetaRequest = s3MetaRequest();
@@ -121,18 +116,13 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         // whether the request has succeeded or not (e.g. if this is for a HeadObject call that CRT calls under the hood). We
         // need to rely on onResponseBody/onFinished being called to determine this.
         populateSdkHttpResponse(initialHeadersResponse, statusCode, headers);
-
-        // in cases where request file path is set, onResponseBody will not be called until the request completes.
-        // For those cases, we need to handle the initial response here.
-        if (handleResponseOnHeaders) {
-            initiateResponseHandling(initialHeadersResponse.build());
-        }
     }
 
     @Override
     public int onResponseBody(ByteBuffer bodyBytesIn, long objectRangeStart, long objectRangeEnd) {
         // See reasoning in onResponseHeaders for why we call this here and not there.
         initiateResponseHandling(initialHeadersResponse.build());
+
         if (bodyBytesIn == null) {
             failResponseHandlerAndFuture(new IllegalStateException("ByteBuffer delivered is null"));
             return 0;

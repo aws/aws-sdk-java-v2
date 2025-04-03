@@ -24,11 +24,14 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +59,7 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -63,6 +67,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -148,10 +153,9 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
-    public void NonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
+    public void nonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "CreateBucket").build();
-
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getOperationName()).isEqualTo("CreateBucket");
@@ -550,6 +554,23 @@ public class S3CrtAsyncHttpClientTest {
                     .isEqualTo(environmentVariableType);
             }
         }
+    }
+
+    @Test
+    public void responseFilePathAndOption_shouldPassToCrt() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder()
+            .putHttpExecutionAttribute(OPERATION_NAME,"GetObject")
+            .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
+            .putHttpExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND)
+            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getResponseFilePath()).isEqualTo(path);
+        assertThat(actual.getResponseFileOption()).isEqualTo(S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND);
+        S3MetaRequestResponseHandler handler = actual.getResponseHandler();
+        System.out.println(handler);
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

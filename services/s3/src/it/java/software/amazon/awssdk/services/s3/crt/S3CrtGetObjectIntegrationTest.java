@@ -69,11 +69,21 @@ public class S3CrtGetObjectIntegrationTest extends S3IntegrationTestBase {
     }
 
     @Test
-    void getObject_toFiles() throws IOException {
+    void getObject_toFile_fileTransformer() throws IOException {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
 
         GetObjectResponse response =
             crtClient.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toFile(path)).join();
+
+        assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
+    }
+
+    @Test
+    void getObject_responseFilePath() throws IOException {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        GetObjectResponse response =
+            crtClient.getObject(b -> b.bucket(BUCKET).key(KEY), path).join();
 
         assertThat(Md5Utils.md5AsBase64(path.toFile())).isEqualTo(Md5Utils.md5AsBase64(file));
     }

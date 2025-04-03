@@ -63,11 +63,13 @@ public final class DefaultFileDownload implements FileDownload {
     }
 
     private ResumableFileDownload doPause() {
+        System.out.println("doPause");
         completionFuture.cancel(true);
 
         Instant s3objectLastModified = null;
         Long totalSizeInBytes = null;
         TransferProgressSnapshot snapshot = progress.snapshot();
+        System.out.println("Got snapshot");
 
         if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
             GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
@@ -82,6 +84,7 @@ public final class DefaultFileDownload implements FileDownload {
         DownloadFileRequest request = requestSupplier.get();
         File destination = request.destination().toFile();
         long length = destination.length();
+        System.out.println("Got length: " + length);
         Instant fileLastModified = Instant.ofEpochMilli(destination.lastModified());
         List<Integer> completedParts = MultipartDownloadUtils.completedParts(request.getObjectRequest());
         return ResumableFileDownload.builder()
