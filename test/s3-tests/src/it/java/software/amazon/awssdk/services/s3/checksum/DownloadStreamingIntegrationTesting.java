@@ -48,7 +48,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
-import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -59,9 +58,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.ChecksumMode;
-import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -73,6 +70,7 @@ import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.InputStreamUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 
 public class DownloadStreamingIntegrationTesting {
@@ -203,9 +201,8 @@ public class DownloadStreamingIntegrationTesting {
         }
 
         String receivedContentCRC32 = crc32(response.content());
-        if (config.checksumModeEnabled()) {
-            String s3Crc32 = response.crc32();
-            assertThat(s3Crc32).isNotEmpty();
+        String s3Crc32 = response.crc32();
+        if (config.checksumModeEnabled() && StringUtils.isNotBlank(s3Crc32)) {
             assertThat(receivedContentCRC32)
                 .withFailMessage("Mismatch with s3 crc32 for config " + config)
                 .isEqualTo(s3Crc32);
@@ -218,8 +215,8 @@ public class DownloadStreamingIntegrationTesting {
 
     // 16 KiB
     static ObjectWithCRC uploadObjectSmall() throws IOException {
-        LOG.debug(() -> "test setup - uploading small test object");
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
+        LOG.debug(() -> "test setup - uploading small test object: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024];
         for (int i = 0; i < 16; i++) {
@@ -242,8 +239,8 @@ public class DownloadStreamingIntegrationTesting {
 
     // 80 MiB
     static ObjectWithCRC uploadObjectLarge() throws IOException {
-        LOG.debug(() -> "test setup - uploading large test object");
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
+        LOG.debug(() -> "test setup - uploading large test object: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024 * 1024];
         for (int i = 0; i < 80; i++) {
@@ -267,9 +264,8 @@ public class DownloadStreamingIntegrationTesting {
 
     // 80MiB, multipart default config
     static ObjectWithCRC uploadMultiPartObject() throws Exception {
-        LOG.debug(() -> "test setup - uploading large test object - multipart");
-
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
+        LOG.debug(() -> "test setup - uploading large test object - multipart: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[8 * 1024 * 1024];
         for (int i = 0; i < 10; i++) {

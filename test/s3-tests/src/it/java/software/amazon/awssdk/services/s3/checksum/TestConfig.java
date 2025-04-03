@@ -25,7 +25,6 @@ public class TestConfig {
     private boolean forcePathStyle;
     private RequestChecksumCalculation requestChecksumValidation;
     private boolean accelerateEnabled;
-    private boolean payloadSigning;
 
     public S3ClientFlavor getFlavor() {
         return flavor;
@@ -67,14 +66,6 @@ public class TestConfig {
         this.accelerateEnabled = accelerateEnabled;
     }
 
-    public boolean isPayloadSigning() {
-        return payloadSigning;
-    }
-
-    public void setPayloadSigning(boolean payloadSigning) {
-        this.payloadSigning = payloadSigning;
-    }
-
     @Override
     public String toString() {
         return "[" +
@@ -83,7 +74,6 @@ public class TestConfig {
                ", forcePathStyle=" + forcePathStyle +
                ", requestChecksumValidation=" + requestChecksumValidation +
                ", accelerateEnabled=" + accelerateEnabled +
-               ", payloadSigning=" + payloadSigning +
                ']';
     }
 
@@ -94,22 +84,18 @@ public class TestConfig {
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
                                                             RequestChecksumCalculation.WHEN_SUPPORTED};
         boolean[] accelerateEnabled = {true, false};
-        boolean[] payloadSigningEnabled = {true, false};
         for (boolean pathStyle : forcePathStyle) {
             for (RequestChecksumCalculation checksumValidation : checksumValidations) {
                 for (S3ClientFlavor flavor : S3ClientFlavor.values()) {
                     for (BucketType bucketType : BucketType.values()) {
                         for (boolean accelerate : accelerateEnabled) {
-                            for (boolean payloadSigning : payloadSigningEnabled) {
-                                TestConfig testConfig = new TestConfig();
-                                testConfig.setFlavor(flavor);
-                                testConfig.setBucketType(bucketType);
-                                testConfig.setForcePathStyle(pathStyle);
-                                testConfig.setRequestChecksumValidation(checksumValidation);
-                                testConfig.setAccelerateEnabled(accelerate);
-                                testConfig.setPayloadSigning(payloadSigning);
-                                configs.add(testConfig);
-                            }
+                            TestConfig testConfig = new TestConfig();
+                            testConfig.setFlavor(flavor);
+                            testConfig.setBucketType(bucketType);
+                            testConfig.setForcePathStyle(pathStyle);
+                            testConfig.setRequestChecksumValidation(checksumValidation);
+                            testConfig.setAccelerateEnabled(accelerate);
+                            configs.add(testConfig);
                         }
                     }
                 }

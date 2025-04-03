@@ -263,7 +263,7 @@ public class ChecksumIntegrationTesting {
         Assumptions.assumeFalse(
             (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED ||
             config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA)
-                                && (config.getBaseConfig().isPayloadSigning()
+                                && (config.payloadSigning()
                                     // MRAP requires body signing
                                     || config.getBaseConfig().getBucketType() == BucketType.MRAP),
                                 "Async payload signing doesn't work with Java based clients");
@@ -295,7 +295,7 @@ public class ChecksumIntegrationTesting {
             ClientOverrideConfiguration.builder()
                                        .addExecutionInterceptor(recorder);
 
-        if (config.getBaseConfig().isPayloadSigning()) {
+        if (config.payloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());
         }
 
@@ -568,6 +568,15 @@ public class ChecksumIntegrationTesting {
         private TestConfig baseConfig;
         private BodyType bodyType;
         private ContentSize contentSize;
+        private boolean payloadSigning;
+
+        public void setPayloadSigning(boolean payloadSigning) {
+            this.payloadSigning = payloadSigning;
+        }
+
+        public boolean payloadSigning() {
+            return payloadSigning;
+        }
 
         public TestConfig getBaseConfig() {
             return baseConfig;
@@ -746,14 +755,18 @@ public class ChecksumIntegrationTesting {
     private static List<UploadConfig> uploadConfigs() {
         List<UploadConfig> configs = new ArrayList<>();
 
+        boolean[] payloadSigningEnabled = {true, false};
         for (BodyType bodyType : BodyType.values()) {
             for (TestConfig baseConfig : testConfigs()) {
                 for (ContentSize size : ContentSize.values()) {
-                    UploadConfig config = new UploadConfig();
-                    config.setBaseConfig(baseConfig);
-                    config.setBodyType(bodyType);
-                    config.setContentSize(size);
-                    configs.add(config);
+                    for(boolean payloadSigning : payloadSigningEnabled) {
+                        UploadConfig config = new UploadConfig();
+                        config.setPayloadSigning(payloadSigning);
+                        config.setBaseConfig(baseConfig);
+                        config.setBodyType(bodyType);
+                        config.setContentSize(size);
+                        configs.add(config);
+                    }
                 }
             }
         }
