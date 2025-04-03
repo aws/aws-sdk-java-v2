@@ -25,9 +25,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import javax.lang.model.element.Modifier;
@@ -41,6 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
@@ -179,28 +178,24 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
         builder.add("switch (errorCode) {\n");
-        Set<String> processedExceptions = new HashSet<>();
+        model.getShapes().values().stream()
+             .filter(shape -> shape.getShapeType() == ShapeType.Exception)
+             .forEach(exceptionShape -> {
+                 String exceptionName = exceptionShape.getShapeName();
+                 String errorCode = exceptionShape.getErrorCode();
 
-        opModel.getExceptions().forEach(exception -> {
-            String exceptionName = exception.getExceptionName();
-            if (!processedExceptions.add(exceptionName)) {
-                return;
-            }
-            ShapeModel exceptionShape = model.getShapes().get(exceptionName);
-            String errorCode = exceptionShape.getErrorCode();
-
-            builder.add("case $S:\n", errorCode);
-            builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
-                   .add(".errorCode($S)\n", errorCode);
-            builder.add(populateHttpStatusCode(exceptionShape, model));
-            builder.add(".exceptionBuilderSupplier($T::builder)\n",
-                        poetExtensions.getModelClassFromShape(exceptionShape))
-                   .add(".build());\n");
-        });
+                 builder.add("case $S:\n", errorCode);
+                 builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                        .add(".errorCode($S)\n", errorCode);
+                 builder.add(populateHttpStatusCode(exceptionShape, model));
+                 builder.add(".exceptionBuilderSupplier($T::builder)\n",
+                             poetExtensions.getModelClassFromShape(exceptionShape))
+                        .add(".build());\n");
+             });
 
         builder.add("default: return $T.empty();\n", Optional.class);
         builder.add("}\n");
-        builder.add("};\n\n");
+        builder.add("};\n");
 
         builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
                     HttpResponseHandler.class, AwsServiceException.class, protocolFactory);

@@ -21,7 +21,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsResponse;
@@ -59,13 +58,13 @@ public class AwsQueryProtocolFactory {
         this.modeledExceptions = unmodifiableList(builder.modeledExceptions);
         this.defaultServiceExceptionSupplier = builder.defaultServiceExceptionSupplier;
         this.errorUnmarshaller = timeUnmarshalling(AwsXmlErrorProtocolUnmarshaller
-            .builder()
-            .defaultExceptionSupplier(defaultServiceExceptionSupplier)
-            .exceptions(modeledExceptions)
-            // We don't set result wrapper since that's handled by the errorRootExtractor
-            .errorUnmarshaller(QueryProtocolUnmarshaller.builder().build())
-            .errorRootExtractor(this::getErrorRoot)
-            .build());
+                                                       .builder()
+                                                       .defaultExceptionSupplier(defaultServiceExceptionSupplier)
+                                                       .exceptions(modeledExceptions)
+                                                       // We don't set result wrapper since that's handled by the errorRootExtractor
+                                                       .errorUnmarshaller(QueryProtocolUnmarshaller.builder().build())
+                                                       .errorRootExtractor(this::getErrorRoot)
+                                                       .build());
     }
 
     /**
@@ -110,21 +109,8 @@ public class AwsQueryProtocolFactory {
      * @return A {@link HttpResponseHandler} that will unmarshall the service exceptional response into
      * a modeled exception or the service base exception.
      */
-    @Deprecated
     public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler() {
         return errorUnmarshaller;
-    }
-
-    public final HttpResponseHandler<AwsServiceException> createErrorResponseHandler(Function<String,
-        Optional<ExceptionMetadata>> exceptionMetadataMapper) {
-        return timeUnmarshalling(AwsXmlErrorProtocolUnmarshaller
-                                     .builder()
-                                     .defaultExceptionSupplier(defaultServiceExceptionSupplier)
-                                     .exceptionMetadataMapper(exceptionMetadataMapper)
-                                     // We don't set result wrapper since that's handled by the errorRootExtractor
-                                     .errorUnmarshaller(QueryProtocolUnmarshaller.builder().build())
-                                     .errorRootExtractor(this::getErrorRoot)
-                                     .build());
     }
 
     private <T> MetricCollectingHttpResponseHandler<T> timeUnmarshalling(HttpResponseHandler<T> delegate) {
@@ -187,7 +173,6 @@ public class AwsQueryProtocolFactory {
          * @param errorMetadata metadata for unmarshalling the exceptions
          * @return This builder for method chaining.
          */
-        @Deprecated
         public final SubclassT registerModeledException(ExceptionMetadata errorMetadata) {
             modeledExceptions.add(errorMetadata);
             return getSubclass();

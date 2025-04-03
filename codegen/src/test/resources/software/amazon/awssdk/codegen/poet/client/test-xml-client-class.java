@@ -2,9 +2,7 @@ package software.amazon.awssdk.services.xml;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
@@ -131,19 +129,6 @@ final class DefaultXmlClient implements XmlClient {
 
         HttpResponseHandler<Response<APostOperationResponse>> responseHandler = protocolFactory.createCombinedResponseHandler(
             APostOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
             .overrideConfiguration().orElse(null));
@@ -193,19 +178,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<APostOperationWithOutputResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(APostOperationWithOutputResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                case "InvalidInput":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
@@ -251,16 +223,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
@@ -306,16 +268,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<GetOperationWithChecksumResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(GetOperationWithChecksumResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
@@ -369,16 +321,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<OperationWithChecksumRequiredResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(OperationWithChecksumRequiredResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -429,16 +371,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<OperationWithNoneAuthTypeResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
@@ -485,16 +417,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<OperationWithRequestCompressionResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(OperationWithRequestCompressionResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -571,15 +493,7 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
             PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
@@ -653,16 +567,6 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<Response<StreamingInputOperationResponse>> responseHandler = protocolFactory
             .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
                                            new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
-
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
@@ -722,15 +626,7 @@ final class DefaultXmlClient implements XmlClient {
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
             StreamingOutputOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
-
-        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory
-            .createErrorResponseHandler(exceptionMetadataMapper);
+        HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
@@ -784,11 +680,6 @@ final class DefaultXmlClient implements XmlClient {
         return publishers;
     }
 
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
-        return protocolFactory.createErrorResponseHandler(exceptionMetadataMapper);
-    }
-
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
         ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
         RetryMode retryMode = builder.retryMode();
@@ -827,8 +718,12 @@ final class DefaultXmlClient implements XmlClient {
     }
 
     private AwsXmlProtocolFactory init() {
-        return AwsXmlProtocolFactory.builder().clientConfiguration(clientConfiguration)
-                                    .defaultServiceExceptionSupplier(XmlException::builder).build();
+        return AwsXmlProtocolFactory
+            .builder()
+            .registerModeledException(
+                ExceptionMetadata.builder().errorCode("InvalidInput")
+                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(XmlException::builder).build();
     }
 
     @Override

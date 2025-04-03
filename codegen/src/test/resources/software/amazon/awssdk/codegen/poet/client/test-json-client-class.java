@@ -154,7 +154,6 @@ final class DefaultJsonClient implements JsonClient {
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
@@ -219,7 +218,6 @@ final class DefaultJsonClient implements JsonClient {
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
@@ -271,11 +269,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, BearerAuthOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
@@ -326,11 +326,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, GetOperationWithChecksumResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
@@ -401,7 +403,6 @@ final class DefaultJsonClient implements JsonClient {
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getWithoutRequiredMembersRequest,
@@ -453,11 +454,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, OperationWithChecksumRequiredResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
@@ -514,11 +517,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, OperationWithRequestCompressionResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
@@ -575,11 +580,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithResultKeyRequest,
@@ -631,11 +638,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(paginatedOperationWithoutResultKeyRequest,
@@ -713,11 +722,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, PutOperationWithChecksumResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
@@ -796,11 +807,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, StreamingInputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
@@ -880,11 +893,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, StreamingInputOutputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOutputOperationRequest,
@@ -952,11 +967,13 @@ final class DefaultJsonClient implements JsonClient {
             operationMetadata, StreamingOutputOperationResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
                 default:
                     return Optional.empty();
             }
         };
-
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,

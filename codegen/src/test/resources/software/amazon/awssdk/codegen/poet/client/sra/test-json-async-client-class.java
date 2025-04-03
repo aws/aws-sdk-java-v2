@@ -212,7 +212,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             String hostPrefix = "{StringMember}-foo.";
@@ -288,7 +287,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -349,11 +347,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, BearerAuthOperationResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -442,11 +442,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
@@ -534,11 +536,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .createResponseHandler(operationMetadata, EventStreamOperationWithOnlyInputResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
@@ -635,11 +639,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             CompletableFuture<Void> future = new CompletableFuture<>();
@@ -721,11 +727,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, GetOperationWithChecksumResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -805,7 +813,6 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -867,11 +874,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, OperationWithChecksumRequiredResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -937,11 +946,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, OperationWithRequestCompressionResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1008,11 +1019,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, PaginatedOperationWithResultKeyResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1074,11 +1087,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .createResponseHandler(operationMetadata, PaginatedOperationWithoutResultKeyResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1162,11 +1177,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, PutOperationWithChecksumResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1259,11 +1276,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, StreamingInputOperationResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1343,11 +1362,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, StreamingInputOutputOperationResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -1435,11 +1456,13 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 operationMetadata, StreamingOutputOperationResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
                     default:
                         return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
