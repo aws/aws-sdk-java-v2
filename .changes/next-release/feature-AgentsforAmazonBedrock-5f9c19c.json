@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agents for Amazon Bedrock",
+    "contributor": "",
+    "description": "Added optional \"customMetadataField\" for Amazon Aurora knowledge bases, allowing single-column metadata. Also added optional \"textIndexName\" for MongoDB Atlas knowledge bases, enabling hybrid search support."
+}
