@@ -244,6 +244,11 @@ public final class S3TransformUtils {
                && TypeUtils.isAssignableTo(V2_S3_CLIENT, method.getSelect().getType());
     }
 
+    public static boolean isGetS3AccountOwner(J.MethodInvocation method) {
+        return "getS3AccountOwner".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_CLIENT, method.getSelect().getType());
+    }
+
     public static boolean isUnsupportedHttpMethod(String httpMethod) {
         return Arrays.asList("Head", "Post", "Patch").contains(httpMethod);
     }

@@ -44,6 +44,7 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectTaggingRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeletePublicAccessBlockRequest;
+import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.amazonaws.services.s3.model.GetBucketAccelerateConfigurationRequest;
 import com.amazonaws.services.s3.model.GetBucketAclRequest;
 import com.amazonaws.services.s3.model.GetBucketAnalyticsConfigurationRequest;
@@ -83,6 +84,7 @@ import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.GetPublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.GetPublicAccessBlockResult;
+import com.amazonaws.services.s3.model.GetRequestPaymentConfigurationRequest;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.ListBucketAnalyticsConfigurationsRequest;
 import com.amazonaws.services.s3.model.ListBucketAnalyticsConfigurationsResult;
@@ -94,8 +96,10 @@ import com.amazonaws.services.s3.model.ListBucketMetricsConfigurationsRequest;
 import com.amazonaws.services.s3.model.ListBucketMetricsConfigurationsResult;
 import com.amazonaws.services.s3.model.ListBucketsRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.RestoreObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.SetBucketAnalyticsConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
@@ -332,5 +336,13 @@ public class S3RequestConstructor {
         s3.setBucketTaggingConfiguration(
             new SetBucketTaggingConfigurationRequest(bucketName,new BucketTaggingConfiguration()));
 
+        DeleteVersionRequest deleteVersionRequest = new DeleteVersionRequest(bucketName, objectKey, "id");
+
+        ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, objectKey, "id");
+
+        RestoreObjectRequest restoreObjectRequest = new RestoreObjectRequest(bucketName, objectKey);
+
+        GetRequestPaymentConfigurationRequest getRequestPaymentConfigurationRequest =
+            new GetRequestPaymentConfigurationRequest(bucketName);
     }
 }
