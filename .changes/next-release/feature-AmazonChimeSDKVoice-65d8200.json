@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Voice",
-    "contributor": "",
-    "description": "Added FOC date as an attribute of PhoneNumberOrder, added AccessDeniedException as a possible return type of ValidateE911Address"
-}
