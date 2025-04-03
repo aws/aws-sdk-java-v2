@@ -15,12 +15,10 @@
 
 package software.amazon.awssdk.services.s3.regression;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeSyncClient;
 
