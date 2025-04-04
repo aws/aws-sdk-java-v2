@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.16__ __2025-04-04__
+## __AWS Directory Service Data__
+  - ### Features
+    - Doc only update - fixed broken links.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updated max size of Prefixes parameter of Scope data type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Doc-only updates for Amazon EC2
+
+## __Amazon EventBridge__
+  - ### Features
+    - Amazon EventBridge adds support for customer-managed keys on Archives and validations for two fields: eventSourceArn and kmsKeyIdentifier.
+
 # __2.31.15__ __2025-04-03__
 ## __AWS SDK for Java v2__
   - ### Features
