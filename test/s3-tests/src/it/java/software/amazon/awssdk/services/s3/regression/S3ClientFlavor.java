@@ -16,10 +16,10 @@
 package software.amazon.awssdk.services.s3.regression;
 
 public enum S3ClientFlavor {
-    JAVA_BASED(false),
-    ASYNC_JAVA_BASED(true),
-    TM_JAVA(true),
-    ASYNC_CRT(true)
+    STANDARD_SYNC(false),
+    STANDARD_ASYNC(true),
+    MULTIPART_ENABLED(true),
+    CRT_BASED(true)
     ;
 
     private final boolean async;

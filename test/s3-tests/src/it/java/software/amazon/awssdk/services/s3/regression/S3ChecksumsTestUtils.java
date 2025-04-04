@@ -239,7 +239,7 @@ public final class S3ChecksumsTestUtils {
 
     public static S3Client makeSyncClient(TestConfig config, Region region, AwsCredentialsProvider provider) {
         switch (config.getFlavor()) {
-            case JAVA_BASED:
+            case STANDARD_SYNC:
                 return S3Client.builder()
                                .forcePathStyle(config.isForcePathStyle())
                                .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -254,7 +254,7 @@ public final class S3ChecksumsTestUtils {
 
     public static S3AsyncClient makeAsyncClient(TestConfig config, Region region, AwsCredentialsProvider provider) {
         switch (config.getFlavor()) {
-            case ASYNC_JAVA_BASED:
+            case STANDARD_ASYNC:
                 return S3AsyncClient.builder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -262,7 +262,7 @@ public final class S3ChecksumsTestUtils {
                                     .credentialsProvider(provider)
                                     .accelerate(config.isAccelerateEnabled())
                                     .build();
-            case TM_JAVA:
+            case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -271,7 +271,7 @@ public final class S3ChecksumsTestUtils {
                                     .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
-            case ASYNC_CRT: {
+            case CRT_BASED: {
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -288,7 +288,7 @@ public final class S3ChecksumsTestUtils {
     public static S3Client makeSyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
                                    Region region, AwsCredentialsProvider provider) {
         switch (config.getFlavor()) {
-            case JAVA_BASED:
+            case STANDARD_SYNC:
                 return S3Client.builder()
                                .overrideConfiguration(overrideConfiguration)
                                .forcePathStyle(config.isForcePathStyle())
@@ -305,7 +305,7 @@ public final class S3ChecksumsTestUtils {
     public static S3AsyncClient makeAsyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
                                          Region region, AwsCredentialsProvider provider) {
         switch (config.getFlavor()) {
-            case ASYNC_JAVA_BASED:
+            case STANDARD_ASYNC:
                 return S3AsyncClient.builder()
                                     .overrideConfiguration(overrideConfiguration)
                                     .forcePathStyle(config.isForcePathStyle())
@@ -314,7 +314,7 @@ public final class S3ChecksumsTestUtils {
                                     .credentialsProvider(provider)
                                     .accelerate(config.isAccelerateEnabled())
                                     .build();
-            case TM_JAVA:
+            case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
                                     .overrideConfiguration(overrideConfiguration)
                                     .forcePathStyle(config.isForcePathStyle())
@@ -324,7 +324,7 @@ public final class S3ChecksumsTestUtils {
                                     .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
-            case ASYNC_CRT: {
+            case CRT_BASED: {
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())

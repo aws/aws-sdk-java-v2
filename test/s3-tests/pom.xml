@@ -167,6 +167,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

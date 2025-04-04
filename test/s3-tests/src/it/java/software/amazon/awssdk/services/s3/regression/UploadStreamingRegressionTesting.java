@@ -49,6 +49,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
@@ -62,6 +63,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -79,16 +82,31 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     static final byte[] smallContent = "Hello world".getBytes(StandardCharsets.UTF_8);
     static final byte[] largeContent = largeContent();
+    static final String smallContentCrc32 = crc32(smallContent);
+    static final String largeContentCrc32 = crc32(largeContent);
+
+    static String smallContentCRC32ForBuffersAPI;
+    static String largeContentCRC32ForBuffersAPI;
 
     private static Path testFileSmall;
     private static Path testFileLarge;
 
     @BeforeAll
-    static void setupClass() throws InterruptedException, IOException {
-        // Log.initLoggingToStdout(Log.LogLevel.Trace);
-
+    static void setupClass() throws IOException {
         testFileSmall = S3ChecksumsTestUtils.createRandomFile16KB();
         testFileLarge = S3ChecksumsTestUtils.createRandomFile80MB();
+
+        // used in RequestBody.*buffers(...) API
+        // we calculate crc32 once to try to accelerate test execution
+        byte[] crcArraySmallContentForBuffersApi = new byte[smallContent.length + smallContent.length];
+        System.arraycopy(smallContent, 0, crcArraySmallContentForBuffersApi, 0, smallContent.length);
+        System.arraycopy(smallContent, 0, crcArraySmallContentForBuffersApi, smallContent.length, smallContent.length);
+        smallContentCRC32ForBuffersAPI = crc32(crcArraySmallContentForBuffersApi);
+
+        byte[] crcArrayLargeContentForBuffersApi = new byte[largeContent.length + largeContent.length];
+        System.arraycopy(largeContent, 0, crcArrayLargeContentForBuffersApi, 0, largeContent.length);
+        System.arraycopy(largeContent, 0, crcArrayLargeContentForBuffersApi, largeContent.length, largeContent.length);
+        largeContentCRC32ForBuffersAPI = crc32(largeContentCRC32ForBuffersAPI);
     }
 
     @AfterAll
@@ -111,9 +129,10 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
         // Payload signing doesn't work correctly for async java based
+        // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED ||
-             config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA)
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.STANDARD_ASYNC ||
+             config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED)
             && (config.payloadSigning()
                 // MRAP requires body signing
                 || config.getBaseConfig().getBucketType() == BucketType.MRAP),
@@ -122,8 +141,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_JAVA_BASED ||
-             config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA)
+            (config.getBaseConfig().getFlavor() == S3ClientFlavor.STANDARD_ASYNC ||
+             config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED)
             && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
             "Async Java based support unknown content length");
 
@@ -163,7 +182,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
                 actualCrc32 = body.getChecksum();
-            } else if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
+            } else if (config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED) {
                 TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
                 callable = callTmUpload(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
@@ -182,19 +201,19 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             recordObjectToCleanup(bucketType, key);
 
             // mpu not supported
-            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.TM_JAVA) {
+            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED) {
                 return;
             }
 
             // We only validate when configured to WHEN_SUPPORTED since checksums are optional for PutObject
             if (config.getBaseConfig().getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED
                 // CRT switches to MPU under the hood which doesn't support checksums
-                && config.getBaseConfig().getFlavor() != S3ClientFlavor.ASYNC_CRT) {
+                && config.getBaseConfig().getFlavor() != S3ClientFlavor.CRT_BASED) {
                 assertThat(response.checksumCRC32()).isEqualTo(actualCrc32);
             }
 
             // We can't set an execution interceptor when using CRT
-            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.ASYNC_CRT) {
+            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.CRT_BASED) {
                 return;
             }
 
@@ -210,6 +229,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 if (payloadSha.startsWith("STREAMING")) {
                     String decodedContentLength = httpRequest.firstMatchingHeader("x-amz-decoded-content-length").get();
                     assertThat(Long.parseLong(decodedContentLength)).isEqualTo(actualContentLength);
+                    verifyChecksumResponsePayload(config, key, actualCrc32);
                 } else {
                     Optional<String> contentLength = httpRequest.firstMatchingHeader("Content-Length");
                     if (requestBodyHasContentLength) {
@@ -225,7 +245,17 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestRequestBody requestBody, TestConfig config,
+    private void verifyChecksumResponsePayload(UploadConfig config, String key, String expectedCRC32) {
+        String bucket = bucketForType(config.getBaseConfig().getBucketType());
+        ResponseInputStream<GetObjectResponse> response = s3.getObject(req -> req.checksumMode(ChecksumMode.ENABLED)
+                                                                                 .key(key)
+                                                                                 .bucket(bucket));
+        assertThat(response.response().checksumCRC32()).isEqualTo(expectedCRC32);
+
+    }
+
+    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestRequestBody requestBody,
+                                                          TestConfig config,
                                                           ClientOverrideConfiguration overrideConfiguration) {
         S3Client s3Client = makeSyncClient(config, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
@@ -281,7 +311,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                                            crc32(content));
             }
             case FILE:
-                return new TestRequestBody(RequestBody.fromFile(contentSize.fileContent()), Files.size(contentSize.fileContent()), crc32(contentSize.fileContent()));
+                return new TestRequestBody(RequestBody.fromFile(contentSize.fileContent()),
+                                           Files.size(contentSize.fileContent()), crc32(contentSize.fileContent()));
             case CONTENT_PROVIDER_NO_LENGTH: {
                 RequestBody wrapped =
                     RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentSize.fileContent())),
@@ -291,30 +322,31 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             }
             case CONTENT_PROVIDER_WITH_LENGTH: {
                 long contentLength = Files.size(contentSize.fileContent());
-                RequestBody wrapped = RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentSize.fileContent())),
-                                                                      Files.size(contentSize.fileContent()),
-                                                                      "application/octet-stream");
+                RequestBody wrapped =
+                    RequestBody.fromContentProvider(() -> FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentSize.fileContent())),
+                                                    Files.size(contentSize.fileContent()),
+                                                    "application/octet-stream");
                 return new TestRequestBody(wrapped, contentLength, crc32(contentSize.fileContent()));
             }
             case INPUTSTREAM_RESETABLE: {
                 byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromInputStream(new ByteArrayInputStream(content), content.length);
-                return new TestRequestBody(wrapped, content.length, crc32(content));
+                return new TestRequestBody(wrapped, content.length, contentSize.precalculatedCrc32());
             }
             case INPUTSTREAM_NOT_RESETABLE: {
                 byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromInputStream(new NonResettableByteStream(content), content.length);
-                return new TestRequestBody(wrapped, content.length, crc32(content));
+                return new TestRequestBody(wrapped, content.length, contentSize.precalculatedCrc32());
             }
             case BYTES: {
                 byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromBytes(content);
-                return new TestRequestBody(wrapped, content.length, crc32(content));
+                return new TestRequestBody(wrapped, content.length, contentSize.precalculatedCrc32());
             }
             case BYTE_BUFFER: {
                 byte[] content = contentSize.byteContent();
                 RequestBody wrapped = RequestBody.fromByteBuffer(ByteBuffer.wrap(content));
-                return new TestRequestBody(wrapped, content.length, crc32(content));
+                return new TestRequestBody(wrapped, content.length, contentSize.precalculatedCrc32());
             }
             case REMAINING_BYTE_BUFFER: {
                 byte[] content = contentSize.byteContent();
@@ -334,6 +366,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             case REMAINING_BYTE_BUFFER_UNSAFE:
             case BLOCKING_INPUT_STREAM:
             case BLOCKING_OUTPUT_STREAM:
+            case INPUTSTREAM_NO_LENGTH:
                 Assumptions.abort("Test BodyType not supported for sync client: " + bodyType);
             default:
                 throw new RuntimeException("Unsupported body type: " + bodyType);
@@ -344,42 +377,50 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         switch (bodyType) {
             case STRING: {
                 String content = contentSize.stringContent();
-                return new TestAsyncBody(AsyncRequestBody.fromString(content), content.getBytes(StandardCharsets.UTF_8).length, crc32(content), bodyType);
+                return new TestAsyncBody(AsyncRequestBody.fromString(content), content.getBytes(StandardCharsets.UTF_8).length,
+                                         crc32(content), bodyType);
             }
             case FILE: {
                 long contentLength = Files.size(contentSize.fileContent());
-                return new TestAsyncBody(AsyncRequestBody.fromFile(contentSize.fileContent()), contentLength, crc32(contentSize.fileContent()), bodyType);
+                return new TestAsyncBody(AsyncRequestBody.fromFile(contentSize.fileContent()), contentLength,
+                                         crc32(contentSize.fileContent()), bodyType);
             }
             case INPUTSTREAM_RESETABLE: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new ByteArrayInputStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case INPUTSTREAM_NOT_RESETABLE: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(new NonResettableByteStream(content),
                                                                                      (long) content.length,
                                                                                      ASYNC_REQUEST_BODY_EXECUTOR);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
+            }
+            case INPUTSTREAM_NO_LENGTH: {
+                byte[] content = contentSize.byteContent();
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody
+                    .fromInputStream(conf -> conf.inputStream(new ByteArrayInputStream(content))
+                                                 .executor(ASYNC_REQUEST_BODY_EXECUTOR));
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case CONTENT_PROVIDER_NO_LENGTH: {
                 byte[] content = contentSize.byteContent();
                 Flowable<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(content));
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromPublisher(publisher);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
-
             case BYTES: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytes(content);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case BYTE_BUFFER: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffer(ByteBuffer.wrap(content));
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case REMAINING_BYTE_BUFFER: {
                 byte[] content = contentSize.byteContent();
@@ -390,15 +431,15 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
                 return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
-            case BYTES_UNSAFE:{
+            case BYTES_UNSAFE: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytesUnsafe(content);
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case BYTE_BUFFER_UNSAFE: {
                 byte[] content = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBufferUnsafe(ByteBuffer.wrap(content));
-                return new TestAsyncBody(asyncRequestBody, content.length, crc32(content), bodyType);
+                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
             }
             case REMAINING_BYTE_BUFFER_UNSAFE: {
                 byte[] content = contentSize.byteContent();
@@ -414,12 +455,9 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffers(ByteBuffer.wrap(content1),
                                                                                      ByteBuffer.wrap(content2));
-                byte[] crcArray = new byte[content2.length + content2.length];
-                System.arraycopy(content1, 0, crcArray, 0, content1.length);
-                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
                 return new TestAsyncBody(asyncRequestBody,
                                          content1.length + content2.length,
-                                         crc32(crcArray),
+                                         contentSize.precalculatedCrc32forBuffersAPI(),
                                          bodyType);
             }
             case BUFFERS_REMAINING: {
@@ -432,7 +470,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
                 return new TestAsyncBody(asyncRequestBody,
                                          content1.length + content2.length,
-                                         crc32(crcArray),
+                                         contentSize.precalculatedCrc32forBuffersAPI(),
                                          bodyType);
             }
             case BUFFERS_UNSAFE: {
@@ -445,7 +483,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
                 return new TestAsyncBody(asyncRequestBody,
                                          content1.length + content2.length,
-                                         crc32(crcArray),
+                                         contentSize.precalculatedCrc32forBuffersAPI(),
                                          bodyType);
             }
             case BUFFERS_REMAINING_UNSAFE: {
@@ -458,7 +496,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
                 return new TestAsyncBody(asyncRequestBody,
                                          content1.length + content2.length,
-                                         crc32(crcArray),
+                                         contentSize.precalculatedCrc32forBuffersAPI(),
                                          bodyType);
             }
             case BLOCKING_INPUT_STREAM: {
@@ -468,7 +506,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 return new TestAsyncBodyForBlockingInputStream(body,
                                                                new ByteArrayInputStream(content),
                                                                content.length,
-                                                               crc32(content),
+                                                               contentSize.precalculatedCrc32(),
                                                                bodyType);
             }
             case BLOCKING_OUTPUT_STREAM: {
@@ -485,7 +523,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 return new TestAsyncBodyForBlockingOutputStream(body,
                                                                 bodyWrite,
                                                                 content.length,
-                                                                crc32(content),
+                                                                contentSize.precalculatedCrc32(),
                                                                 bodyType);
             }
             default:
@@ -516,7 +554,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         for (BodyType bodyType : BodyType.values()) {
             for (TestConfig baseConfig : testConfigs()) {
                 for (ContentSize size : ContentSize.values()) {
-                    for(boolean payloadSigning : payloadSigningEnabled) {
+                    for (boolean payloadSigning : payloadSigningEnabled) {
                         UploadConfig config = new UploadConfig();
                         config.setPayloadSigning(payloadSigning);
                         config.setBaseConfig(baseConfig);
@@ -582,6 +620,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     enum BodyType {
         INPUTSTREAM_RESETABLE,
         INPUTSTREAM_NOT_RESETABLE,
+        INPUTSTREAM_NO_LENGTH,
 
         STRING,
 
@@ -614,27 +653,59 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
         byte[] byteContent() {
             switch (this) {
-                case SMALL: return smallContent;
-                case LARGE: return largeContent;
-                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+                case SMALL:
+                    return smallContent;
+                case LARGE:
+                    return largeContent;
+                default:
+                    throw new IllegalArgumentException("not supported ContentSize " + this);
             }
         }
 
         String stringContent() {
             switch (this) {
-                case SMALL: return "Hello World!";
-                case LARGE: return new String(largeContent(), StandardCharsets.UTF_8);
-                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+                case SMALL:
+                    return "Hello World!";
+                case LARGE:
+                    return new String(largeContent(), StandardCharsets.UTF_8);
+                default:
+                    throw new IllegalArgumentException("not supported ContentSize " + this);
             }
         }
 
         Path fileContent() {
             switch (this) {
-                case SMALL: return testFileSmall;
-                case LARGE: return testFileLarge;
-                default: throw new IllegalArgumentException("not supported ContentSize " + this);
+                case SMALL:
+                    return testFileSmall;
+                case LARGE:
+                    return testFileLarge;
+                default:
+                    throw new IllegalArgumentException("not supported ContentSize " + this);
             }
         }
+
+        String precalculatedCrc32() {
+            switch (this) {
+                case SMALL:
+                    return smallContentCrc32;
+                case LARGE:
+                    return largeContentCrc32;
+                default:
+                    throw new IllegalArgumentException("not supported ContentSize " + this);
+            }
+        }
+
+        String precalculatedCrc32forBuffersAPI() {
+            switch (this) {
+                case SMALL:
+                    return smallContentCRC32ForBuffersAPI;
+                case LARGE:
+                    return largeContentCRC32ForBuffersAPI;
+                default:
+                    throw new IllegalArgumentException("not supported ContentSize " + this);
+            }
+        }
+
     }
 
     private static byte[] largeContent() {
@@ -692,6 +763,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     private static class TestAsyncBodyForBlockingOutputStream extends TestAsyncBody {
         private final Consumer<CancellableOutputStream> bodyWrite;
+
         private TestAsyncBodyForBlockingOutputStream(AsyncRequestBody asyncRequestBody,
                                                      Consumer<CancellableOutputStream> bodyWrite,
                                                      long actualContentLength,
@@ -704,6 +776,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     private static class TestAsyncBodyForBlockingInputStream extends TestAsyncBody {
         private final InputStream inputStream;
+
         private TestAsyncBodyForBlockingInputStream(AsyncRequestBody asyncRequestBody,
                                                     InputStream inputStream,
                                                     long actualContentLength,
@@ -716,6 +789,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     private static class RequestRecorder implements ExecutionInterceptor {
         private final List<SdkHttpRequest> requests = new ArrayList<>();
+
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             requests.add(context.httpRequest());

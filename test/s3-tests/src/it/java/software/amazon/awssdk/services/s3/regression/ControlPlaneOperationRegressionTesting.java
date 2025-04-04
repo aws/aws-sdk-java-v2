@@ -42,8 +42,8 @@ import software.amazon.awssdk.services.s3.model.Tier;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
-public class DataplaneOperationRegressionTesting extends BaseS3RegressionTest {
-    private static final Logger LOG = Logger.loggerFor(DataplaneOperationRegressionTesting.class);
+public class ControlPlaneOperationRegressionTesting extends BaseS3RegressionTest {
+    private static final Logger LOG = Logger.loggerFor(ControlPlaneOperationRegressionTesting.class);
 
     // Request checksum required
     @ParameterizedTest

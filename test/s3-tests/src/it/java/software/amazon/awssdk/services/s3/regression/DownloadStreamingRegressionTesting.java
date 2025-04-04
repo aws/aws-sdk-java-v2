@@ -16,7 +16,7 @@
 package software.amazon.awssdk.services.s3.regression;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.regression.DataplaneOperationRegressionTesting.testConfigs;
+import static software.amazon.awssdk.services.s3.regression.ControlPlaneOperationRegressionTesting.testConfigs;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
@@ -134,13 +134,13 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
         CallResponse response;
         switch (config.baseConfig().getFlavor()) {
-            case JAVA_BASED: {
+            case STANDARD_SYNC: {
                 response = callSyncGetObject(config, request);
                 break;
             }
-            case ASYNC_JAVA_BASED:
-            case TM_JAVA:
-            case ASYNC_CRT: {
+            case STANDARD_ASYNC:
+            case MULTIPART_ENABLED:
+            case CRT_BASED: {
                 response = callAsyncGetObject(request, config);
                 break;
             }
@@ -223,18 +223,16 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
         byte[] fullContent = os.toByteArray();
         String crc32 = crc32(fullContent);
         for (BucketType bucketType : BucketType.values()) {
-            doMultipartUpload(bucketType, name, fullContent, crc32);
+            doMultipartUpload(bucketType, name, fullContent);
         }
         return new ObjectWithCRC(name, crc32);
     }
 
-    static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content, String fullContentCRC32) {
+    static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
         String bucket = bucketForType(bucketType);
         LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket)
         );
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
-                                                                               // .checksumAlgorithm(ChecksumAlgorithm.CRC32)
-                                                                               // .checksumType(ChecksumType.FULL_OBJECT)
                                                                                .bucket(bucket)
                                                                                .key(objectName)
                                                                                .build();
@@ -492,7 +490,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     private S3Client makeSyncClient(TestConfig config) {
         switch (config.getFlavor()) {
-            case JAVA_BASED:
+            case STANDARD_SYNC:
                 return S3Client.builder()
                                .forcePathStyle(config.isForcePathStyle())
                                .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -507,7 +505,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     private S3AsyncClient makeAsyncClient(TestConfig config) {
         switch (config.getFlavor()) {
-            case ASYNC_JAVA_BASED:
+            case STANDARD_ASYNC:
                 return S3AsyncClient.builder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -515,7 +513,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                     .accelerate(config.isAccelerateEnabled())
                                     .build();
-            case TM_JAVA:
+            case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
@@ -524,7 +522,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                     .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
-            case ASYNC_CRT: {
+            case CRT_BASED: {
                 return S3AsyncClient.crtBuilder()
                                     .forcePathStyle(config.isForcePathStyle())
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
