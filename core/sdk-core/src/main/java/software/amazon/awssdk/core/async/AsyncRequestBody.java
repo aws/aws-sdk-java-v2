@@ -393,8 +393,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
      *
      *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
-     *     InputStream streamToSend = new ByteArrayInputStream();
-     *     long streamToSendLength = dataToSend.length();
+     *     InputStream streamToSend = new ByteArrayInputStream(dataToSend);
+     *     long streamToSendLength = dataToSend.length;
      *
      *     // Start the operation
      *     BlockingInputStreamAsyncRequestBody body =
