@@ -106,7 +106,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         byte[] crcArrayLargeContentForBuffersApi = new byte[largeContent.length + largeContent.length];
         System.arraycopy(largeContent, 0, crcArrayLargeContentForBuffersApi, 0, largeContent.length);
         System.arraycopy(largeContent, 0, crcArrayLargeContentForBuffersApi, largeContent.length, largeContent.length);
-        largeContentCRC32ForBuffersAPI = crc32(largeContentCRC32ForBuffersAPI);
+        largeContentCRC32ForBuffersAPI = crc32(crcArrayLargeContentForBuffersApi);
     }
 
     @AfterAll
