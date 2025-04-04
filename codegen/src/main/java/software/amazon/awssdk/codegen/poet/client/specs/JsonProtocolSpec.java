@@ -438,10 +438,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
         ClassName sdkBaseException = ClassName.get(AwsServiceException.class);
         TypeName responseHandlerOfException = ParameterizedTypeName.get(httpResponseHandler, sdkBaseException);
         ParameterizedTypeName mapperType = ParameterizedTypeName.get(ClassName.get(Function.class),
-                                                                     ClassName.get(String.class),
-                                                                     ParameterizedTypeName.get(Optional.class,
-                                                                                               ExceptionMetadata.class));
-
+            ClassName.get(String.class), ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
         return Optional.of(MethodSpec.methodBuilder("createErrorResponseHandler")
                                      .addParameter(BaseAwsJsonProtocolFactory.class, "protocolFactory")
                                      .addParameter(JsonOperationMetadata.class, "operationMetadata")
