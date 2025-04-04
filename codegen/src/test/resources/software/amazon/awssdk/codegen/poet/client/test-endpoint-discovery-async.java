@@ -124,9 +124,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<DescribeEndpointsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, DescribeEndpointsResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<DescribeEndpointsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<DescribeEndpointsRequest, DescribeEndpointsResponse>()
@@ -182,9 +188,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryIdentifiersRequiredResponse> responseHandler = protocolFactory
                 .createResponseHandler(operationMetadata, TestDiscoveryIdentifiersRequiredResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
             boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)
                                                             .isEndpointOverridden();
@@ -268,9 +280,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryOptionalResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, TestDiscoveryOptionalResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
             boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)
                                                             .isEndpointOverridden();
@@ -345,9 +363,15 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, TestDiscoveryRequiredResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
             boolean endpointOverridden = clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER)
                                                             .isEndpointOverridden();
@@ -462,11 +486,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

@@ -104,9 +104,15 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
             HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                               OneOperationResponse::builder);
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
 
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<OneOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
@@ -194,11 +200,6 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
