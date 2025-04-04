@@ -230,8 +230,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
         String bucket = bucketForType(bucketType);
-        LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket)
-        );
+        LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket));
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
                                                                                .bucket(bucket)
                                                                                .key(objectName)
@@ -264,7 +263,6 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
         LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
-                                             // .checksumCRC32(fullContentCRC32)
                                              .bucket(bucket)
                                              .key(objectName)
                                              .uploadId(uploadId));
