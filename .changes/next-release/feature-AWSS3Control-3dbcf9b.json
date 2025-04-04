@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Updated max size of Prefixes parameter of Scope data type."
-}
