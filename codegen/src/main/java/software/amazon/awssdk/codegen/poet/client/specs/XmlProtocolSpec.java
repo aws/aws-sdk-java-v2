@@ -91,7 +91,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
         return CodeBlock.builder()
                         .addStatement("\n\n$T responseHandler = protocolFactory.createCombinedResponseHandler($T::builder, "
                                       + "new $T().withHasStreamingSuccessResponse($L))",
-                        handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
+                         handlerType, responseType, XmlOperationMetadata.class, opModel.hasStreamingOutput())
                         .build();
     }
 
