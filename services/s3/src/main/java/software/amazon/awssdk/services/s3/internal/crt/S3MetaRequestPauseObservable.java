@@ -45,5 +45,11 @@ public class S3MetaRequestPauseObservable {
     public ResumeToken pause() {
         return pause.apply(request);
     }
+
+    public void cancel() {
+        if (request != null) {
+            request.cancel();
+        }
+    }
 }
 

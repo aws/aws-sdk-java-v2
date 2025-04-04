@@ -50,6 +50,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseHandler {
     private static final Logger log = Logger.loggerFor(S3CrtResponseHandlerAdapter.class);
     private static final Duration META_REQUEST_TIMEOUT = Duration.ofSeconds(10);
+    public static final int CRT_SUCCESSFUL_CANCEL = 14374;
     private final CompletableFuture<Void> resultFuture;
     private final SdkAsyncHttpResponseHandler responseHandler;
 
@@ -152,6 +153,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     public void onFinished(S3FinishedResponseContext context) {
         int crtCode = context.getErrorCode();
         log.debug(() -> "Request finished with code: " + crtCode);
+        initiateResponseHandling(initialHeadersResponse.build());
+
         if (crtCode != CRT.AWS_CRT_SUCCESS) {
             handleError(context);
         } else {
@@ -182,9 +185,27 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
         if (isServiceError(responseStatus) && errorPayload != null) {
             handleServiceError(responseStatus, headers, errorPayload);
+        } else if (crtCode == CRT_SUCCESSFUL_CANCEL) {
+            handleSuccessfulCancel(context, crtCode);
         } else {
             handleIoError(context, crtCode);
         }
+    }
+
+    private void handleSuccessfulCancel(S3FinishedResponseContext context, int crtCode) {
+        if (!responseHandlingInitiated) {
+            responseHandlingInitiated = true;
+            responseHandler.onHeaders(initialHeadersResponse.build());
+        }
+
+        Throwable cause = context.getCause();
+
+        // TODO: Potentially subclass this exception
+        SdkClientException sdkClientException =
+            SdkClientException.create("Failed to send the request: " +
+                                      CRT.awsErrorString(crtCode), cause);
+        failResponseHandlerAndFuture(sdkClientException);
+        notifyResponsePublisherErrorIfNeeded(sdkClientException);
     }
 
     private void handleIoError(S3FinishedResponseContext context, int crtCode) {

@@ -19,8 +19,10 @@ import java.io.File;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -34,20 +36,22 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-public final class DefaultFileDownload implements FileDownload {
+public final class CrtFileDownload implements FileDownload {
     private final CompletableFuture<CompletedFileDownload> completionFuture;
     private final Lazy<ResumableFileDownload> resumableFileDownload;
     private final TransferProgress progress;
     private final Supplier<DownloadFileRequest> requestSupplier;
     private final ResumableFileDownload resumedDownload;
+    private final S3MetaRequestPauseObservable observable;
 
-    public DefaultFileDownload(CompletableFuture<CompletedFileDownload> completedFileDownloadFuture,
-                               TransferProgress progress,
-                               Supplier<DownloadFileRequest> requestSupplier,
-                               ResumableFileDownload resumedDownload) {
+    public CrtFileDownload(CompletableFuture<CompletedFileDownload> completedFileDownloadFuture,
+                           TransferProgress progress,
+                           Supplier<DownloadFileRequest> requestSupplier,
+                           ResumableFileDownload resumedDownload, S3MetaRequestPauseObservable observable) {
         this.completionFuture = Validate.paramNotNull(completedFileDownloadFuture, "completedFileDownloadFuture");
         this.progress = Validate.paramNotNull(progress, "progress");
         this.requestSupplier = Validate.paramNotNull(requestSupplier, "requestSupplier");
+        this.observable = observable;
         this.resumableFileDownload = new Lazy<>(this::doPause);
         this.resumedDownload = resumedDownload;
     }
@@ -63,7 +67,13 @@ public final class DefaultFileDownload implements FileDownload {
     }
 
     private ResumableFileDownload doPause() {
-        completionFuture.cancel(true);
+        observable.cancel();
+
+        try {
+            completionFuture.join();
+        } catch (CompletionException e) {
+            // TODO: Ensure that this was actually a "Request successfully cancelled"
+        }
 
         Instant s3objectLastModified = null;
         Long totalSizeInBytes = null;
@@ -101,10 +111,11 @@ public final class DefaultFileDownload implements FileDownload {
 
     @Override
     public String toString() {
-        return ToString.builder("DefaultFileDownload")
+        return ToString.builder("CrtFileDownload")
                        .add("completionFuture", completionFuture)
                        .add("progress", progress)
                        .add("request", requestSupplier.get())
                        .build();
     }
+
 }

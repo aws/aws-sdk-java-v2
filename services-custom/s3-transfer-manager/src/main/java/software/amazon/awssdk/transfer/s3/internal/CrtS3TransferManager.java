@@ -47,6 +47,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
@@ -168,6 +169,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
         // Ensure cancellations are forwarded to the head future
         CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
 
         headFuture.thenAccept(headObjectResponse -> {
             Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
@@ -190,9 +192,12 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             }
 
             TransferProgressUpdater progressUpdater = new TransferProgressUpdater(newDownloadFileRequest, null);
+
             GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
                 newDownloadFileRequest.getObjectRequest(),
-                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
+                b -> b
+                    .put(METAREQUEST_PAUSE_OBSERVABLE, observable)
+                    .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
                 b -> b
                     .putExecutionAttribute(RESPONSE_FILE_PATH, newDownloadFileRequest.destination())
                     .putExecutionAttribute(RESPONSE_FILE_OPTION, responseFileOption)
@@ -213,22 +218,27 @@ class CrtS3TransferManager extends GenericS3TransferManager {
             return null;
         });
 
-        return new DefaultFileDownload(returnFuture,
-                                       new ResumeTransferProgress(progressFuture),
-                                       () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
-                                       resumableFileDownload);
-
+        return new CrtFileDownload(
+            returnFuture,
+            new ResumeTransferProgress(progressFuture),
+            () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
+            resumableFileDownload,
+            observable
+        );
     }
 
     @Override
-    // amazonq-ignore-next-line
     public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+
         GetObjectRequest getObjectRequestWithAttributes = attachExecutionAndHttpAttributes(
             downloadRequest.getObjectRequest(),
-            b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
+            b -> b
+                .put(METAREQUEST_PAUSE_OBSERVABLE, observable)
+                .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener()),
             b -> b
                 .putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext())
                 .putExecutionAttribute(RESPONSE_FILE_PATH, downloadRequest.destination())
@@ -241,11 +251,12 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
         doDownloadFile(downloadFileRequestWithAttributes, progressUpdater, returnFuture);
 
-        return new DefaultFileDownload(
+        return new CrtFileDownload(
             returnFuture,
             progressUpdater.progress(),
             () -> downloadFileRequestWithAttributes,
-            null);
+            null,
+            observable);
     }
 
     private void doDownloadFile(

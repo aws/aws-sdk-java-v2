@@ -93,7 +93,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
 
         assertThat(bytesTransferred).isLessThan(sourceFile.length());
-        assertThat(download.completionFuture()).isCancelled();
+        assertThat(download.completionFuture()).isDone();
 
         log.debug(() -> "Resuming download ");
         verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
@@ -191,6 +191,14 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
         @Override
         public void bytesTransferred(Context.BytesTransferred context) {
+            Optional<SdkResponse> sdkResponse = context.progressSnapshot().sdkResponse();
+            if (sdkResponse.isPresent() && sdkResponse.get() instanceof GetObjectResponse) {
+                getObjectResponse = (GetObjectResponse) sdkResponse.get();
+            }
+        }
+
+        @Override
+        public void transferFailed(Context.TransferFailed context) {
             Optional<SdkResponse> sdkResponse = context.progressSnapshot().sdkResponse();
             if (sdkResponse.isPresent() && sdkResponse.get() instanceof GetObjectResponse) {
                 getObjectResponse = (GetObjectResponse) sdkResponse.get();
