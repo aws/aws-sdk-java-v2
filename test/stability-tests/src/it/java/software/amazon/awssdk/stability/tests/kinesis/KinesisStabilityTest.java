@@ -38,6 +38,7 @@ import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.awssdk.services.kinesis.model.ConsumerStatus;
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest;
 import software.amazon.awssdk.services.kinesis.model.Record;
+import software.amazon.awssdk.services.kinesis.model.ResourceInUseException;
 import software.amazon.awssdk.services.kinesis.model.Shard;
 import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 import software.amazon.awssdk.services.kinesis.model.StreamStatus;
@@ -202,6 +203,21 @@ public class KinesisStabilityTest extends AwsTestBase {
                                     .join())
               .until(b -> b.streamDescription().streamStatus().equals(StreamStatus.ACTIVE))
               .orFailAfter(Duration.ofMinutes(5));
+
+        // Additional verification to ensure stream is fully operational
+        Waiter.run(() -> {
+                  try {
+                      asyncClient.listShards(r -> r.streamName(streamName)).join();
+                      return true;
+                  } catch (Exception e) {
+                      if (e.getCause() instanceof ResourceInUseException) {
+                          return false;
+                      }
+                      throw e;
+                  }
+              })
+              .until(Boolean::booleanValue)
+              .orFailAfter(Duration.ofMinutes(1));
     }
 
     private void waitForConsumersToBeActive() {
