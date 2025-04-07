@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.17__ __2025-04-07__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now offers an enhanced debugging experience.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports SDI inputs to MediaLive Anywhere Channels in workflows that use AWS SDKs.
+
+## __AWS Glue__
+  - ### Features
+    - Add input validations for multiple Glue APIs
+
+## __AWS Transfer Family__
+  - ### Features
+    - This launch enables customers to manage contents of their remote directories, by deleting old files or moving files to archive folders in remote servers once they have been retrieved. Customers will be able to automate the process using event-driven architecture.
+
+## __Amazon Bedrock__
+  - ### Features
+    - New options for how to handle harmful content detected by Amazon Bedrock Guardrails.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - New options for how to handle harmful content detected by Amazon Bedrock Guardrails.
+
+## __Amazon Personalize__
+  - ### Features
+    - Add support for eventsConfig for CreateSolution, UpdateSolution, DescribeSolution, DescribeSolutionVersion. Add support for GetSolutionMetrics to return weighted NDCG metrics when eventsConfig is enabled for the solution.
+
 # __2.31.16__ __2025-04-04__
 ## __AWS Directory Service Data__
   - ### Features
