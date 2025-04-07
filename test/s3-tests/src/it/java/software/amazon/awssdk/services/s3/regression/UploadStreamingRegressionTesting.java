@@ -23,6 +23,8 @@ import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeSyncClient;
+import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.MULTIPART_ENABLED;
+import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STANDARD_ASYNC;
 import static software.amazon.awssdk.services.s3.regression.TestConfig.testConfigs;
 
 import io.reactivex.Flowable;
@@ -124,15 +126,15 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
+        S3ClientFlavor flavor = config.getBaseConfig().getFlavor();
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH
-                                && config.getBaseConfig().getFlavor().isAsync(),
+                                && flavor.isAsync(),
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
         // Payload signing doesn't work correctly for async java based
         // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.STANDARD_ASYNC ||
-             config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED)
+            (flavor == STANDARD_ASYNC || flavor == MULTIPART_ENABLED)
             && (config.payloadSigning()
                 // MRAP requires body signing
                 || config.getBaseConfig().getBucketType() == BucketType.MRAP),
@@ -141,8 +143,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(
-            (config.getBaseConfig().getFlavor() == S3ClientFlavor.STANDARD_ASYNC ||
-             config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED)
+            flavor == STANDARD_ASYNC
             && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
             "Async Java based support unknown content length");
 
@@ -176,13 +177,13 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             boolean requestBodyHasContentLength = false;
             String actualCrc32;
 
-            if (!config.getBaseConfig().getFlavor().isAsync()) {
+            if (!flavor.isAsync()) {
                 TestRequestBody body = getRequestBody(config.getBodyType(), config.getContentSize());
                 callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
                 requestBodyHasContentLength = body.optionalContentLength().isPresent();
                 actualCrc32 = body.getChecksum();
-            } else if (config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED) {
+            } else if (flavor == MULTIPART_ENABLED) {
                 TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
                 callable = callTmUpload(request, body, config.getBaseConfig(), overrideConfiguration.build());
                 actualContentLength = body.getActualContentLength();
@@ -201,19 +202,19 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             recordObjectToCleanup(bucketType, key);
 
             // mpu not supported
-            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.MULTIPART_ENABLED) {
+            if (flavor == MULTIPART_ENABLED) {
                 return;
             }
 
             // We only validate when configured to WHEN_SUPPORTED since checksums are optional for PutObject
             if (config.getBaseConfig().getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED
                 // CRT switches to MPU under the hood which doesn't support checksums
-                && config.getBaseConfig().getFlavor() != S3ClientFlavor.CRT_BASED) {
+                && flavor != S3ClientFlavor.CRT_BASED) {
                 assertThat(response.checksumCRC32()).isEqualTo(actualCrc32);
             }
 
             // We can't set an execution interceptor when using CRT
-            if (config.getBaseConfig().getFlavor() == S3ClientFlavor.CRT_BASED) {
+            if (flavor == S3ClientFlavor.CRT_BASED) {
                 return;
             }
 
