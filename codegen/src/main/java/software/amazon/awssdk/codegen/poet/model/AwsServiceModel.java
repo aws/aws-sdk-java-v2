@@ -60,6 +60,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.TypeProvider.TypeNameOptions;
+import software.amazon.awssdk.core.SdkEventType;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.StringUtils;
@@ -169,12 +170,11 @@ public class AwsServiceModel implements ClassSpec {
                          .addType(helper.eventTypeEnumSpec());
 
 
-        ClassName eventTypeEnum = helper.eventTypeEnumClassName();
         builder.addMethod(MethodSpec.methodBuilder("sdkEventType")
                 .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
-                .returns(eventTypeEnum)
+                .returns(SdkEventType.class)
                 .addJavadoc("The type of this event. Corresponds to the {@code :event-type} header on the Message.")
-                .addStatement("return $T.UNKNOWN_TO_SDK_VERSION", eventTypeEnum)
+                .addStatement("throw new $T($S)", UnsupportedOperationException.class, "Unknown event type")
                 .build());
 
         if (!outputOperations.isEmpty()) {

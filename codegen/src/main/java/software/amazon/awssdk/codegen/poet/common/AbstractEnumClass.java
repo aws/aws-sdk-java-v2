@@ -56,12 +56,14 @@ public abstract class AbstractEnumClass implements ClassSpec {
                 .addMethod(knownValuesSpec())
                 .addMethod(createConstructor());
 
+        addSuperInterface(enumBuilder);
         addDeprecated(enumBuilder);
         addJavadoc(enumBuilder);
         addEnumConstants(enumBuilder);
 
         enumBuilder.addEnumConstant(UNKNOWN_TO_SDK_VERSION, TypeSpec.anonymousClassBuilder("null").build());
 
+        addAdditionalMethods(enumBuilder);
         return enumBuilder.build();
     }
 
@@ -74,6 +76,14 @@ public abstract class AbstractEnumClass implements ClassSpec {
     protected abstract void addJavadoc(Builder enumBuilder);
 
     protected abstract void addEnumConstants(Builder enumBuilder);
+
+    protected void addSuperInterface(Builder enumBuilder) {
+        // no-op
+    }
+
+    protected void addAdditionalMethods(Builder enumBuilder) {
+        // no-op
+    }
     
     private FieldSpec valueMapField() {
         ParameterizedTypeName mapType = ParameterizedTypeName.get(ClassName.get(Map.class),

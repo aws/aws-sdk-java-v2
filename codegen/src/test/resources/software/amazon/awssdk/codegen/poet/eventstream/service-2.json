@@ -171,5 +171,25 @@
        "type": "string"
     }
   },
-  "documentation": "A service that is implemented using the query protocol"
+  "StreamA": {
+    "type": "structure",
+    "members": {
+      "payloadA": "Payload"
+    },
+    "eventstream": true
+  },
+  "StreamB": {
+    "type": "structure",
+    "members": {
+      "payloadB": "Payload"
+    },
+    "eventstream": true
+  },
+  "Payload": {
+    "members": {
+      "data": "blob"
+    },
+    "event": true
+  },
+  "documentation": "A service with event stream operations that is implemented using the rest-json protocol"
 }

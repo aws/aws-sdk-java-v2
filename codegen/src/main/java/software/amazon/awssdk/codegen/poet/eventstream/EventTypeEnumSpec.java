@@ -16,13 +16,17 @@
 package software.amazon.awssdk.codegen.poet.eventstream;
 
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
+import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.common.AbstractEnumClass;
+import software.amazon.awssdk.core.SdkEventType;
 
 public class EventTypeEnumSpec extends AbstractEnumClass {
+    private static final Object VALUE = "value";
     private final String enumPackageName;
     private final IntermediateModel intermediateModel;
 
@@ -30,6 +34,11 @@ public class EventTypeEnumSpec extends AbstractEnumClass {
         super(eventStream);
         this.enumPackageName = enumPackageName;
         this.intermediateModel = intermediateModel;
+    }
+
+    @Override
+    protected void addSuperInterface(TypeSpec.Builder enumBuilder) {
+        enumBuilder.addSuperinterface(ClassName.get(SdkEventType.class));
     }
 
     @Override
@@ -52,6 +61,20 @@ public class EventTypeEnumSpec extends AbstractEnumClass {
                     String name = namingStrategy.getEnumValueName(value);
                     enumBuilder.addEnumConstant(name, TypeSpec.anonymousClassBuilder("$S", value).build());
                 });
+    }
+
+    @Override
+    protected void addAdditionalMethods(TypeSpec.Builder enumBuilder) {
+        enumBuilder.addMethod(idMethod());
+    }
+
+    private MethodSpec idMethod() {
+        return MethodSpec.methodBuilder("id")
+            .addAnnotation(Override.class)
+            .returns(String.class)
+            .addModifiers(Modifier.PUBLIC)
+                  .addStatement("return $T.valueOf($N)", String.class, VALUE)
+                  .build();
     }
 
     @Override
