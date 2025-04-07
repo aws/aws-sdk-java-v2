@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Runtime",
+    "contributor": "",
+    "description": "New options for how to handle harmful content detected by Amazon Bedrock Guardrails."
+}
