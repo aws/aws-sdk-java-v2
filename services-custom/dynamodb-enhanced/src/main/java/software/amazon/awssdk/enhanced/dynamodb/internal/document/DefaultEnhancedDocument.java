@@ -92,13 +92,21 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                                                               ChainConverterProvider chainConverterProvider) {
 
         if (type.rawClass().isAssignableFrom(List.class)) {
+            List<EnhancedType<?>> params = type.rawClassParameters();
+            if (params.isEmpty()) {
+                throw new IllegalStateException("Type parameter is missing for " + type);
+            }
             return (AttributeConverter<T>) ListAttributeConverter
-                .create(converterForClass(type.rawClassParameters().get(0), chainConverterProvider));
+                .create(converterForClass(params.get(0), chainConverterProvider));
         }
         if (type.rawClass().isAssignableFrom(Map.class)) {
+            List<EnhancedType<?>> params = type.rawClassParameters();
+            if (params.isEmpty() || params.size() < 2) {
+                throw new IllegalStateException("Type parameters are missing for " + type);
+            }
             return (AttributeConverter<T>) MapAttributeConverter.mapConverter(
-                StringConverterProvider.defaultProvider().converterFor(type.rawClassParameters().get(0)),
-                converterForClass(type.rawClassParameters().get(1), chainConverterProvider));
+                StringConverterProvider.defaultProvider().converterFor(params.get(0)),
+                converterForClass(params.get(1), chainConverterProvider));
         }
         return Optional.ofNullable(chainConverterProvider.converterFor(type))
                        .orElseThrow(() -> new IllegalStateException(
