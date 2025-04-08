@@ -35,6 +35,8 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.services.protocolrestjson.model.InputEvent;
+import software.amazon.awssdk.services.protocolrestjson.model.InputEventStream;
+import software.amazon.awssdk.services.protocolrestjson.model.InputEventStreamStringPayload;
 import software.amazon.awssdk.services.protocolrestjson.model.InputEventStringPayload;
 import software.amazon.awssdk.services.protocolrestjson.transform.InputEventMarshaller;
 import software.amazon.awssdk.services.protocolrestjson.transform.InputEventStringPayloadMarshaller;
@@ -98,10 +100,11 @@ public class EventTransformTest {
     public void testMarshalling_BlobPayload(String payload) {
         InputEventMarshaller marshaller = new InputEventMarshaller(protocolFactory);
 
-        InputEvent e = InputEvent.builder()
-                .headerMember(HEADER_MEMBER)
-                .explicitPayloadMember(SdkBytes.fromUtf8String(payload))
-                .build();
+        InputEvent e = InputEventStream
+            .inputEventBuilder()
+            .headerMember(HEADER_MEMBER)
+            .explicitPayloadMember(SdkBytes.fromUtf8String(payload))
+            .build();
 
         SdkHttpFullRequest marshalled = marshaller.marshall(e);
 
@@ -115,10 +118,10 @@ public class EventTransformTest {
     public void testMarshalling_StringPayload(String payload) {
         InputEventStringPayloadMarshaller marshaller = new InputEventStringPayloadMarshaller(protocolFactory);
 
-        InputEventStringPayload e = InputEventStringPayload.builder()
-                                                           .headerMember(HEADER_MEMBER)
-                                                           .explicitPayloadStringMember(payload)
-                                                           .build();
+        InputEventStringPayload e = InputEventStreamStringPayload
+            .inputEventBuilder()
+            .headerMember(HEADER_MEMBER)
+            .explicitPayloadStringMember(payload).build();
 
         SdkHttpFullRequest marshalled = marshaller.marshall(e);
 
