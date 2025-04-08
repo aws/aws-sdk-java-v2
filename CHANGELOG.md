@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.18__ __2025-04-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release supports Pagination traits on Cost Anomaly Detection APIs.
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - This release adds the option to update the strategy of state templates already associated to a vehicle, without the need to remove and re-add them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Documentation updates for AWS Security Hub.
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Added new ActiveDirectoryStatus value, ListCacheReports paginator, and support for longer pagination tokens.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces our latest bedrock runtime API, InvokeModelWithBidirectionalStream. The API supports both input and output streams and is supported by only HTTP2.0.
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release adds resource type "MemoryDbReservedInstances" and resource type "DynamoDbReservedCapacity" to the GetRecommendation, ListRecommendations, and ListRecommendationSummaries APIs to support new MemoryDB and DynamoDB RI recommendations.
+
+## __Tax Settings__
+  - ### Features
+    - Uzbekistan Launch on TaxSettings Page
+
 # __2.31.17__ __2025-04-07__
 ## __AWS CodeBuild__
   - ### Features
