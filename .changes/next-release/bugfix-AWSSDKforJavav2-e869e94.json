@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Update non-streaming error unmarshalling to use the same mapping function that was previously implemented for streaming operations, which allows to deprecate createErrorResponseHandler(JsonOperationMetadata) method."
+    "description": "Enhance non-streaming error unmarshalling to properly unmarshall exceptions to their expected types."
 }

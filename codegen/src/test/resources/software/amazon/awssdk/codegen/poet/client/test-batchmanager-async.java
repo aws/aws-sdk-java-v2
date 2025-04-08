@@ -57,7 +57,7 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     private static final Logger log = LoggerFactory.getLogger(DefaultBatchManagerTestAsyncClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final AsyncClientHandler clientHandler;
 
@@ -98,34 +98,36 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     public CompletableFuture<SendRequestResponse> sendRequest(SendRequestRequest sendRequestRequest) {
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(sendRequestRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, sendRequestRequest
-            .overrideConfiguration().orElse(null));
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "BatchManagerTest");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "SendRequest");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
             HttpResponseHandler<SendRequestResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                             SendRequestResponse::builder);
+                    SendRequestResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
                 switch (errorCode) {
-                    default:
-                        return Optional.empty();
+                default:
+                    return Optional.empty();
                 }
             };
-
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata, exceptionMetadataMapper);
+                    operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<SendRequestResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<SendRequestRequest, SendRequestResponse>()
-                             .withOperationName("SendRequest").withProtocolMetadata(protocolMetadata)
-                             .withMarshaller(new SendRequestRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withInput(sendRequestRequest));
+                    .execute(new ClientExecutionParams<SendRequestRequest, SendRequestResponse>()
+                            .withOperationName("SendRequest").withProtocolMetadata(protocolMetadata)
+                            .withMarshaller(new SendRequestRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(sendRequestRequest));
             CompletableFuture<SendRequestResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -154,12 +156,12 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
         return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(BatchManagerTestException::builder).protocol(AwsJsonProtocol.REST_JSON)
-                      .protocolVersion("1.1");
+                .defaultServiceExceptionSupplier(BatchManagerTestException::builder).protocol(AwsJsonProtocol.REST_JSON)
+                .protocolVersion("1.1");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -203,7 +205,7 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
             return configuration.build();
         }
         BatchManagerTestServiceClientConfigurationBuilder serviceConfigBuilder = new BatchManagerTestServiceClientConfigurationBuilder(
-            configuration);
+                configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -212,7 +214,7 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 

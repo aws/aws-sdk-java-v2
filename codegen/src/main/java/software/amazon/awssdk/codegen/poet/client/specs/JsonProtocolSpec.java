@@ -177,6 +177,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
             ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
 
         builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
+        builder.add("if (errorCode == null) {\n");
+        builder.add("return $T.empty();\n", Optional.class);
+        builder.add("}\n");
         builder.add("switch (errorCode) {\n");
         model.getShapes().values().stream()
              .filter(shape -> shape.getShapeType() == ShapeType.Exception)
