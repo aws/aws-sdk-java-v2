@@ -209,15 +209,22 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private void addEventSupport(TypeSpec.Builder specBuilder) {
-        EventStreamUtils.getBaseEventStreamShapes(intermediateModel, shapeModel)
-                .forEach(eventStream -> addEventSupport(specBuilder, eventStream));
+        List<ShapeModel> eventStreamShapes = EventStreamUtils.getBaseEventStreamShapes(intermediateModel, shapeModel);
+        eventStreamShapes.forEach(eventStream -> addEventSupport(specBuilder, eventStream));
 
-        specBuilder.addMethod(MethodSpec.methodBuilder("sdkEventType")
-                                        .addAnnotation(Override.class)
-                                        .addModifiers(PUBLIC)
-                                        .returns(SdkEventType.class)
-                                        .addStatement("throw new $T($S)", UnsupportedOperationException.class, "Unknown Event")
-                                        .build());
+        boolean legacyEvents = eventStreamShapes
+            .stream()
+            .anyMatch(this::useLegacyEventGenerationScheme);
+
+        if (!legacyEvents) {
+            specBuilder.addMethod(
+                MethodSpec.methodBuilder("sdkEventType")
+                          .addAnnotation(Override.class)
+                          .addModifiers(PUBLIC)
+                          .returns(SdkEventType.class)
+                          .addStatement("throw new $T($S)", UnsupportedOperationException.class, "Unknown Event")
+                          .build());
+        }
     }
 
     private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {

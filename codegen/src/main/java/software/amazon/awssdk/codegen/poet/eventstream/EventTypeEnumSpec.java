@@ -65,16 +65,14 @@ public class EventTypeEnumSpec extends AbstractEnumClass {
 
     @Override
     protected void addAdditionalMethods(TypeSpec.Builder enumBuilder) {
-        enumBuilder.addMethod(idMethod());
-    }
-
-    private MethodSpec idMethod() {
-        return MethodSpec.methodBuilder("id")
-            .addAnnotation(Override.class)
-            .returns(String.class)
-            .addModifiers(Modifier.PUBLIC)
-                  .addStatement("return $T.valueOf($N)", String.class, VALUE)
-                  .build();
+        enumBuilder.addMethod(
+            MethodSpec.methodBuilder("id")
+                      .addAnnotation(Override.class)
+                      .returns(String.class)
+                      .addModifiers(Modifier.PUBLIC)
+                      .addStatement("return $T.valueOf($N)", String.class, VALUE)
+                      .build()
+        );
     }
 
     @Override
