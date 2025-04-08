@@ -160,6 +160,8 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("SetBucketTaggingConfigurationRequest", "PutBucketTaggingRequest");
         S3_POJO_MAPPING.put("SetBucketWebsiteConfigurationRequest", "PutBucketWebsiteRequest");
         S3_POJO_MAPPING.put("SetRequestPaymentConfigurationRequest", "PutBucketRequestPaymentRequest");
+        S3_POJO_MAPPING.put("SetBucketLoggingConfigurationRequest", "PutBucketLoggingRequest");
+        S3_POJO_MAPPING.put("SetBucketVersioningConfigurationRequest", "PutBucketVersioningRequest");
 
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
         S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
@@ -194,7 +196,7 @@ public final class NamingConversionUtils {
         // used as input to Request POJOs and returned as Response POJOs
         S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
         S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
-        S3_POJO_MAPPING.put("BucketVersioningConfiguration", "GetBucketVersioningResponse");
+        S3_POJO_MAPPING.put("BucketVersioningConfiguration", "VersioningConfiguration");
         // v2 also has BucketCannedACL
         S3_POJO_MAPPING.put("CannedAccessControlList", "ObjectCannedACL");
     }

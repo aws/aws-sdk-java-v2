@@ -18,6 +18,7 @@ package foo.bar;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -36,9 +37,11 @@ public class S3Streaming {
 
     AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
-    void getObject(String bucket, String key) throws Exception {
+    void getObject(String bucket, String key, File file) throws Exception {
         S3Object s3Object = s3.getObject(bucket, key);
         s3Object.getObjectContent().close();
+
+        s3.getObject(new GetObjectRequest(bucket, key), file);
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {

@@ -22,17 +22,20 @@ import software.amazon.awssdk.services.s3.model.CSVInput;
 import software.amazon.awssdk.services.s3.model.CSVOutput;
 import software.amazon.awssdk.services.s3.model.Condition;
 import software.amazon.awssdk.services.s3.model.Destination;
-import software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse;
 import software.amazon.awssdk.services.s3.model.Grantee;
 import software.amazon.awssdk.services.s3.model.JSONInput;
 import software.amazon.awssdk.services.s3.model.JSONOutput;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.MetadataEntry;
+import software.amazon.awssdk.services.s3.model.Owner;
 import software.amazon.awssdk.services.s3.model.Part;
+import software.amazon.awssdk.services.s3.model.PartitionDateSource;
+import software.amazon.awssdk.services.s3.model.PartitionedPrefix;
 import software.amazon.awssdk.services.s3.model.RedirectAllRequestsTo;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 
 public class S3Pojos {
 
@@ -69,9 +72,15 @@ public class S3Pojos {
             .build();
         S3Object s3ObjectSummary = S3Object.builder()
             .build();
-        GetBucketVersioningResponse bucketVersioningConfiguration = GetBucketVersioningResponse.builder()
+        VersioningConfiguration bucketVersioningConfiguration = VersioningConfiguration.builder()
+            .build();
+        VersioningConfiguration bucketVersioningConfiguration2 = VersioningConfiguration.builder().status("status")
             .build();
         Bucket bucketPojo = Bucket.builder().name("name")
+            .build();
+        Owner owner = Owner.builder().id(id).displayName("displayName")
+            .build();
+        PartitionedPrefix partitionedPrefix = PartitionedPrefix.builder().partitionDateSource(PartitionDateSource.DELIVERY_TIME)
             .build();
     }
 }
