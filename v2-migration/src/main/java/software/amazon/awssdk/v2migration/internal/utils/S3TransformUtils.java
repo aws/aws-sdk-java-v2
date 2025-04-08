@@ -334,7 +334,7 @@ public final class S3TransformUtils {
         return appendCommentToMethod(method, comment);
     }
 
-    public static J.MethodInvocation S3MethodNotSupportedComment(J.MethodInvocation method) {
+    public static J.MethodInvocation s3MethodNotSupportedComment(J.MethodInvocation method) {
         String comment = "Transform for " + method.getSimpleName() + " method is not supported";
         return appendCommentToMethod(method, comment, false);
     }
@@ -357,7 +357,7 @@ public final class S3TransformUtils {
 
     public static J.MethodInvocation addCommentForUnsupportedS3Method(J.MethodInvocation method) {
         //TODO: direct user to dev guide for them to manually migrate
-        return S3MethodNotSupportedComment(method);
+        return s3MethodNotSupportedComment(method);
     }
 
     public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment) {
