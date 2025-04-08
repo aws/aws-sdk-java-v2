@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "contributor": "",
-    "description": "Added new ActiveDirectoryStatus value, ListCacheReports paginator, and support for longer pagination tokens."
-}
