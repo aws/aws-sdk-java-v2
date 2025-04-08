@@ -23,14 +23,22 @@ import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Fa
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class VersionedRecordExtensionTest {
@@ -47,10 +55,10 @@ public class VersionedRecordExtensionTest {
 
         ReadModification result =
             versionedRecordExtension.afterRead(DefaultDynamoDbExtensionContext
-                                               .builder()
-                                               .items(fakeItemMap)
-                                               .tableMetadata(FakeItem.getTableMetadata())
-                                               .operationContext(PRIMARY_CONTEXT).build());
+                                                   .builder()
+                                                   .items(fakeItemMap)
+                                                   .tableMetadata(FakeItem.getTableMetadata())
+                                                   .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result, is(ReadModification.builder().build()));
     }
@@ -110,6 +118,65 @@ public class VersionedRecordExtensionTest {
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+    }
+
+    @Test
+    public void customStartingValueAndIncrement_worksAsExpected() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                    .startAt(5)
+                                                    .incrementBy(2)
+                                                    .build();
+
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        Map<String, AttributeValue> inputMap =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+
+        Map<String, AttributeValue> expectedInitialVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+
+        expectedInitialVersion.put("version", AttributeValue.builder().n("7").build());
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(inputMap)
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(expectedInitialVersion));
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("attribute_not_exists(#AMZN_MAPPED_version)")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .build()));
+    }
+
+    @Test
+    public void beforeWrite_initialVersionDueToExplicitZero_expressionAndTransformedItemIsCorrect() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        Map<String, AttributeValue> inputMap =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        inputMap.put("version", AttributeValue.builder().n("0").build());
+
+        Map<String, AttributeValue> fakeItemWithInitialVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
+
+        WriteModification result =
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(inputMap)
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("attribute_not_exists(#AMZN_MAPPED_version)")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .build()));
     }
 
     @Test
@@ -178,5 +245,52 @@ public class VersionedRecordExtensionTest {
                                            .operationContext(PRIMARY_CONTEXT)
                                            .tableMetadata(FakeItem.getTableMetadata())
                                            .build());
+    }
+
+    @DynamoDbBean
+    public static class CustomVersionedItem {
+        private String id;
+        private Integer version;
+
+        public CustomVersionedItem() {
+        }
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbVersionAttribute(startAt = 3, incrementBy = 2)
+        public Integer getVersion() { return version; }
+        public void setVersion(Integer version) { this.version = version; }
+    }
+
+
+    @Test
+    public void customStartingValueAndIncrementWithAnnotation_worksAsExpected() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder().build();
+
+        CustomVersionedItem item = new CustomVersionedItem();
+        item.setId(UUID.randomUUID().toString());
+
+        TableSchema<CustomVersionedItem> schema = TableSchema.fromBean(CustomVersionedItem.class);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(schema.itemToMap(item, true));
+
+        Map<String, AttributeValue> expectedInitialVersion = new HashMap<>(schema.itemToMap(item, true));
+        expectedInitialVersion.put("version", AttributeValue.builder().n("5").build());
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(schema.tableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(expectedInitialVersion));
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("attribute_not_exists(#AMZN_MAPPED_version)")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .build()));
     }
 }
