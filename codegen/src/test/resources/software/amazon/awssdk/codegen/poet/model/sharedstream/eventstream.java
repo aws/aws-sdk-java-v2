@@ -29,6 +29,11 @@ public interface EventStream extends SdkPojo {
         }
 
         @Override
+        public SdkEventType sdkEventType() {
+            return EventType.UNKNOWN_TO_SDK_VERSION;
+        }
+
+        @Override
         public void accept(StreamBirthsResponseHandler.Visitor visitor) {
             visitor.visitDefault(this);
         }
@@ -49,9 +54,7 @@ public interface EventStream extends SdkPojo {
     /**
      * The type of this event. Corresponds to the {@code :event-type} header on the Message.
      */
-    default SdkEventType sdkEventType() {
-        throw new UnsupportedOperationException("Unknown event type");
-    }
+    SdkEventType sdkEventType();
 
     /**
      * Calls the appropriate visit method depending on the subtype of {@link EventStream}.

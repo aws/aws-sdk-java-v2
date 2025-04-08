@@ -171,11 +171,11 @@ public class EventStreamUtils {
      * Returns true if the given event shape is a sub-member of any operation request.
      */
     public static boolean isRequestEvent(IntermediateModel model, ShapeModel eventShape) {
-        return getBaseEventStreamShape(model, eventShape)
-            .map(stream -> model.getOperations().values()
-                                .stream()
-                                .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), stream)))
-            .orElse(false);
+        return getBaseEventStreamShapes(model, eventShape)
+            .stream()
+            .anyMatch(streamShape -> model.getOperations().values()
+                                          .stream()
+                                          .anyMatch(o -> doesShapeContainsEventStream(o.getInputShape(), streamShape)));
     }
 
     private static boolean operationContainsEventStream(OperationModel opModel, ShapeModel eventStreamShape) {

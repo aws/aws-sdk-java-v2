@@ -25,9 +25,7 @@ public interface InputEventStream {
     /**
      * The type of this event. Corresponds to the {@code :event-type} header on the Message.
      */
-    default SdkEventType sdkEventType() {
-        throw new UnsupportedOperationException("Unknown event type");
-    }
+    SdkEventType sdkEventType();
 
     /**
      * The known possible types of events for {@code InputEventStream}.

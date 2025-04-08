@@ -13,6 +13,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.SdkEventType;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -178,6 +179,11 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
     @Override
     public void accept(StreamDeathsResponseHandler.Visitor visitor) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SdkEventType sdkEventType() {
+        throw new UnsupportedOperationException("Unknown Event");
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, Person> {

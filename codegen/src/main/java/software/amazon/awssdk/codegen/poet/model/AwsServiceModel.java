@@ -72,6 +72,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 public class AwsServiceModel implements ClassSpec {
 
+    public static final String UNKNOWN_TO_SDK_VERSION = "UNKNOWN_TO_SDK_VERSION";
     private final IntermediateModel intermediateModel;
     private final ShapeModel shapeModel;
     private final PoetExtension poetExtensions;
@@ -171,10 +172,9 @@ public class AwsServiceModel implements ClassSpec {
 
 
         builder.addMethod(MethodSpec.methodBuilder("sdkEventType")
-                .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                 .returns(SdkEventType.class)
                 .addJavadoc("The type of this event. Corresponds to the {@code :event-type} header on the Message.")
-                .addStatement("throw new $T($S)", UnsupportedOperationException.class, "Unknown event type")
                 .build());
 
         if (!outputOperations.isEmpty()) {
@@ -211,6 +211,13 @@ public class AwsServiceModel implements ClassSpec {
     private void addEventSupport(TypeSpec.Builder specBuilder) {
         EventStreamUtils.getBaseEventStreamShapes(intermediateModel, shapeModel)
                 .forEach(eventStream -> addEventSupport(specBuilder, eventStream));
+
+        specBuilder.addMethod(MethodSpec.methodBuilder("sdkEventType")
+                                        .addAnnotation(Override.class)
+                                        .addModifiers(PUBLIC)
+                                        .returns(SdkEventType.class)
+                                        .addStatement("throw new $T($S)", UnsupportedOperationException.class, "Unknown Event")
+                                        .build());
     }
 
     private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {
@@ -284,14 +291,19 @@ public class AwsServiceModel implements ClassSpec {
 
     private CodeBlock buildUnknownEventStreamInitializer(Collection<OperationModel> outputOperations,
                                                          ClassName eventStreamModelClass) {
+        ClassName eventTypeEnum = eventStreamModelClass.nestedClass("EventType");
         CodeBlock.Builder builder = CodeBlock.builder()
                                              .add("new $T() {\n"
                                                   + "        @Override\n"
                                                   + "        public $T<$T<?>> sdkFields() {\n"
                                                   + "            return $T.emptyList();\n"
+                                                  + "        }\n"
+                                                  + "        @Override\n"
+                                                  + "        public SdkEventType sdkEventType() {\n"
+                                                  + "            return $T.$L;\n"
                                                   + "        }\n",
                                                   eventStreamModelClass, List.class, SdkField.class,
-                                                  Collections.class
+                                                  Collections.class, eventTypeEnum, UNKNOWN_TO_SDK_VERSION
                                              );
 
         for (OperationModel opModel : outputOperations) {

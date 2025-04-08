@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.core.SdkEventType;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -188,6 +189,11 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
 
     private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
         return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    @Override
+    public SdkEventType sdkEventType() {
+        throw new UnsupportedOperationException("Unknown Event");
     }
 
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, InputEventTwo> {

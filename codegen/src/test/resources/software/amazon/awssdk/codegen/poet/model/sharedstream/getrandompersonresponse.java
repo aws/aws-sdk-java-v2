@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.core.SdkEventType;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -156,6 +157,11 @@ public class GetRandomPersonResponse extends SharedEventStreamResponse implement
 
     private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
         return (obj, val) -> s.accept((Builder) obj, val);
+    }
+
+    @Override
+    public SdkEventType sdkEventType() {
+        throw new UnsupportedOperationException("Unknown Event");
     }
 
     public interface Builder extends SharedEventStreamResponse.Builder, SdkPojo,
