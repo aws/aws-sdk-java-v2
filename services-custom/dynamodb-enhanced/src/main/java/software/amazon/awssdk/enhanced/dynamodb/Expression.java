@@ -311,8 +311,17 @@ public final class Expression {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Expression{" +
+               "expression='" + expression + '\'' +
+               ", expressionValues=" + expressionValues +
+               ", expressionNames=" + expressionNames +
+               '}';
+    }
+
     /**
-     * A builder for {@link Expression}
+     * A builder for {@link Expression}v
      */
     @NotThreadSafe
     public static final class Builder {
