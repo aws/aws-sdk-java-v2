@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT FleetWise",
+    "contributor": "",
+    "description": "This release adds the option to update the strategy of state templates already associated to a vehicle, without the need to remove and re-add them."
+}
