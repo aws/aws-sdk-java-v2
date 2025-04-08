@@ -18,14 +18,12 @@ package software.amazon.awssdk.core;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
- * TODO
+ * Interface for all generated EventStream EventType enums.
  */
 @SdkProtectedApi
 public interface SdkEventType {
     /**
-     * TODO
-     *
-     * @return The id of the event type.
+     * @return The id for the event type.
      */
-     String id();
+    String id();
 }
