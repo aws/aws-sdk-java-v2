@@ -199,12 +199,12 @@ public class S3RequestConstructor {
             .build());
 
         //INCOMPATIBLE RESPONSE
-        s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder().bucket(bucketName)
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for getBucketAccelerateConfiguration method is not supported*/s3.getBucketAccelerateConfiguration(GetBucketAccelerateConfigurationRequest.builder().bucket(bucketName)
+        .build());
 
         //INCOMPATIBLE RESPONSE
-        s3.getBucketAcl(GetBucketAclRequest.builder().bucket(bucketName)
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for getBucketAcl method is not supported*/s3.getBucketAcl(GetBucketAclRequest.builder().bucket(bucketName)
+        .build());
 
         GetBucketAnalyticsConfigurationResponse analyticsConfig = s3.getBucketAnalyticsConfiguration(
             GetBucketAnalyticsConfigurationRequest.builder()
@@ -239,8 +239,8 @@ public class S3RequestConstructor {
                 .build());
 
         //INCOMPATIBLE RESPONSE
-        s3.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName)
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for getBucketLifecycleConfiguration method is not supported*/s3.getBucketLifecycleConfiguration(GetBucketLifecycleConfigurationRequest.builder().bucket(bucketName)
+        .build());
 
         //INCOMPATIBLE RESPONSE
         s3.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucketName)

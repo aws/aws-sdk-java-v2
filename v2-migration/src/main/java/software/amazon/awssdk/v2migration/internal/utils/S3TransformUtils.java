@@ -68,6 +68,20 @@ public final class S3TransformUtils {
             "accessControlList"
         )));
 
+    public static final Set<String> UNSUPPORTED_S3_METHOD_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(
+        Arrays.asList(
+            "setObjectAcl",
+            "setBucketAcl",
+            "getBucketAcl",
+            "getBucketAccelerateConfiguration",
+            "getBucketLifecycleConfiguration",
+            "listNextBatchOfObjects",
+            "listNextBatchOfVersions",
+            "selectObjectContent",
+            "setRegion",
+            "setS3ClientOptions"
+        )));
+
 
     private S3TransformUtils() {
 
@@ -183,6 +197,10 @@ public final class S3TransformUtils {
 
     public static boolean isUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
         return UNSUPPORTED_PUT_OBJ_REQUEST_TRANSFORMS.contains(method.getSimpleName());
+    }
+
+    public static boolean isUnsupportedS3Method(J.MethodInvocation method) {
+        return UNSUPPORTED_S3_METHOD_TRANSFORMS.contains(method.getSimpleName());
     }
 
     public static boolean isObjectMetadataSetter(J.MethodInvocation method) {
@@ -316,6 +334,13 @@ public final class S3TransformUtils {
         return appendCommentToMethod(method, comment);
     }
 
+    public static J.MethodInvocation S3MethodNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for " + method.getSimpleName() + " method is not supported";
+        return appendCommentToMethod(method, comment, false);
+    }
+
+
+
     public static J.MethodInvocation addCommentForUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
         String methodName = method.getSimpleName();
         switch (methodName) {
@@ -330,13 +355,27 @@ public final class S3TransformUtils {
         }
     }
 
+    public static J.MethodInvocation addCommentForUnsupportedS3Method(J.MethodInvocation method) {
+        //TODO: direct user to dev guide for them to manually migrate
+        return S3MethodNotSupportedComment(method);
+    }
+
     public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment) {
+        return appendCommentToMethod(method, comment, true);
+    }
+
+    public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment, boolean newLine) {
         if (method.getComments().isEmpty()) {
-            return method.withComments(createCommentsWithNewline(comment));
+            return newLine ? method.withComments(createCommentsWithNewline(comment))
+                           : method.withComments(createComments(comment));
         }
 
         List<Comment> existingComments = method.getComments();
-        existingComments.add(createCommentWithNewline(comment));
+        if (newLine) {
+            existingComments.add(createCommentWithNewline(comment));
+        } else {
+            existingComments.add(createComment(comment));
+        }
         return method.withComments(existingComments);
     }
 }
