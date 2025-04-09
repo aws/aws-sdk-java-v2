@@ -214,28 +214,30 @@ public class AwsServiceModel implements ClassSpec {
     }
 
     private void addEventSupport(TypeSpec.Builder specBuilder, ShapeModel eventStream) {
-        ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
-        Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
-                                                                                             eventStream);
-
-        Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, eventStream);
-
-        boolean onOutput = !outputOperations.isEmpty();
-        boolean onInput = hasInputStreamOperations(opModels, eventStream);
-
-        if (!onOutput && !onInput) {
-            throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
-                    + "request or response event shape");
-        }
-
         EventStreamSpecHelper helper = new EventStreamSpecHelper(eventStream, intermediateModel);
-
-        specBuilder.addSuperinterface(eventStreamClassName);
 
         boolean usesLegacyScheme = useLegacyEventGenerationScheme(eventStream);
         Optional<MemberModel> legacyEvent = findLegacyGenerationEventWithShape(eventStream);
 
+        // Add eventstream info on the top level pojo only in legacy cases, otherwise
+        // eventstream methods/interface are applied only to the eventstream specific pojos.
         if (usesLegacyScheme && legacyEvent.isPresent()) {
+            ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
+            Collection<OperationModel> opModels = EventStreamUtils.findOperationsWithEventStream(intermediateModel,
+                                                                                                 eventStream);
+
+            Collection<OperationModel> outputOperations = findOutputEventStreamOperations(opModels, eventStream);
+
+            boolean onOutput = !outputOperations.isEmpty();
+            boolean onInput = hasInputStreamOperations(opModels, eventStream);
+
+            if (!onOutput && !onInput) {
+                throw new IllegalArgumentException(shapeModel.getC2jName() + " event shape is not a member in any "
+                                                   + "request or response event shape");
+            }
+
+            specBuilder.addSuperinterface(eventStreamClassName);
+
             NamingStrategy namingStrategy = intermediateModel.getNamingStrategy();
             ClassName eventTypeEnum = helper.eventTypeEnumClassName();
             specBuilder.addMethod(MethodSpec.methodBuilder("sdkEventType")
@@ -246,25 +248,18 @@ public class AwsServiceModel implements ClassSpec {
                                      eventTypeEnum,
                                      namingStrategy.getEnumValueName(legacyEvent.get().getName()))
                        .build());
-        }
 
-        if (onOutput) {
-            ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
-            for (OperationModel opModel : outputOperations) {
-                ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
+            if (onOutput) {
+                ClassName modelClass = poetExtensions.getModelClass(shapeModel.getShapeName());
+                for (OperationModel opModel : outputOperations) {
+                    ClassName responseHandlerClass = poetExtensions.eventStreamResponseHandlerType(opModel);
 
-                MethodSpec.Builder acceptMethodSpec = acceptMethodSpec(modelClass, responseHandlerClass)
+                    // TODO: Cleanup if this works.
+                    MethodSpec.Builder acceptMethodSpec = acceptMethodSpec(modelClass, responseHandlerClass)
                         .addAnnotation(Override.class);
-
-                if (usesLegacyScheme) {
                     acceptMethodSpec.addStatement("visitor.visit(this)");
-                } else {
-                    // The class that represents the event type will be
-                    // responsible for implementing this
-                    acceptMethodSpec.addStatement("throw new $T()", UnsupportedOperationException.class);
+                    specBuilder.addMethod(acceptMethodSpec.build());
                 }
-
-                specBuilder.addMethod(acceptMethodSpec.build());
             }
         }
     }

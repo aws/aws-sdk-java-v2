@@ -61,8 +61,11 @@ public final class EventModelSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
+        ClassName eventStreamClassName = poetExtensions.getModelClassFromShape(eventStream);
+
         return TypeSpec.classBuilder(className())
                 .superclass(baseShapeModelSpec.className())
+                .addSuperinterface(eventStreamClassName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                 .addAnnotation(SdkInternalApi.class)
                 .addAnnotation(PoetUtils.generatedAnnotation())
