@@ -16,6 +16,7 @@
 package foo.bar;
 
 import com.amazonaws.HttpMethod;
+import com.amazonaws.services.s3.model.MultiFactorAuthentication;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
 import java.io.ByteArrayInputStream;
@@ -25,6 +26,7 @@ import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GeneratePresignedUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -32,6 +34,12 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
 public class S3Transforms {
+
+    void s3Pojos() {
+        DeleteObjectRequest deleteVersionRequest =
+            DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(new MultiFactorAuthentication("serialNum", "token"))
+                .build();
+    }
 
     void upload_streamWithLiteralLength(S3TransferManager tm, String bucket, String key) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()

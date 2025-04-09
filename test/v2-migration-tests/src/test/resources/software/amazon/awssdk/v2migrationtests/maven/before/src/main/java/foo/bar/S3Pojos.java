@@ -17,6 +17,7 @@ package foo.bar;
 
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketAccelerateConfiguration;
+import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.CSVInput;
 import com.amazonaws.services.s3.model.CSVOutput;
@@ -26,6 +27,9 @@ import com.amazonaws.services.s3.model.JSONInput;
 import com.amazonaws.services.s3.model.JSONOutput;
 import com.amazonaws.services.s3.model.MetadataEntry;
 import com.amazonaws.services.s3.model.MultipartUploadListing;
+import com.amazonaws.services.s3.model.Owner;
+import com.amazonaws.services.s3.model.PartitionDateSource;
+import com.amazonaws.services.s3.model.PartitionedPrefix;
 import com.amazonaws.services.s3.model.PartListing;
 import com.amazonaws.services.s3.model.PartSummary;
 import com.amazonaws.services.s3.model.RedirectRule;
@@ -55,6 +59,9 @@ public class S3Pojos {
         RoutingRuleCondition routingRuleCondition = new RoutingRuleCondition();
         S3ObjectSummary s3ObjectSummary = new S3ObjectSummary();
         BucketVersioningConfiguration bucketVersioningConfiguration = new BucketVersioningConfiguration();
+        BucketVersioningConfiguration bucketVersioningConfiguration2 = new BucketVersioningConfiguration("status");
         Bucket bucketPojo = new Bucket("name");
+        Owner owner = new Owner(id, "displayName");
+        PartitionedPrefix partitionedPrefix = new PartitionedPrefix(PartitionDateSource.DELIVERY_TIME);
     }
 }

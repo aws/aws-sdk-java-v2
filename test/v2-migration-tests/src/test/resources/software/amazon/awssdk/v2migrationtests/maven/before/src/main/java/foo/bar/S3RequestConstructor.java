@@ -22,6 +22,7 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.BucketReplicationConfiguration;
 import com.amazonaws.services.s3.model.BucketTaggingConfiguration;
+import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.CopyPartRequest;
@@ -100,14 +101,18 @@ import com.amazonaws.services.s3.model.ListPartsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.RestoreObjectRequest;
+import com.amazonaws.services.s3.model.RestoreObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.SetBucketAnalyticsConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketMetricsConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketOwnershipControlsRequest;
+import com.amazonaws.services.s3.model.SetBucketPolicyRequest;
 import com.amazonaws.services.s3.model.SetBucketReplicationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest;
+import com.amazonaws.services.s3.model.SetBucketVersioningConfigurationRequest;
+import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
 import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ownership.OwnershipControls;
@@ -248,6 +253,10 @@ public class S3RequestConstructor {
         S3Object s3Object2 = s3.getObject(
             new GetObjectRequest(bucketName, objectKey, "3"));
 
+        GetObjectRequest getObjectRequestRequesterPaysTrue = new GetObjectRequest(bucketName, objectKey, true);
+
+        GetObjectRequest getObjectRequestRequesterPaysFalse = new GetObjectRequest(bucketName, objectKey, false);
+
         //INCOMPATIBLE RESPONSE
         s3.getObjectAcl(new GetObjectAclRequest(bucketName, objectKey));
 
@@ -341,8 +350,19 @@ public class S3RequestConstructor {
         ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, objectKey, "id");
 
         RestoreObjectRequest restoreObjectRequest = new RestoreObjectRequest(bucketName, objectKey);
+        RestoreObjectRequest restoreObjectRequest2 = new RestoreObjectRequest(bucketName, objectKey, 77);
+        RestoreObjectResult restoreObjectResult = s3.restoreObjectV2(restoreObjectRequest);
 
         GetRequestPaymentConfigurationRequest getRequestPaymentConfigurationRequest =
             new GetRequestPaymentConfigurationRequest(bucketName);
+
+        SetBucketPolicyRequest setBucketPolicyRequest = new SetBucketPolicyRequest(bucketName, "policyText");
+
+        List<Tag> tags = new ArrayList<>();
+        GetObjectTaggingResult getObjectTaggingResult = new GetObjectTaggingResult(tags);
+
+        SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
+            new SetBucketVersioningConfigurationRequest(bucketName, new BucketVersioningConfiguration());
+        s3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
     }
 }

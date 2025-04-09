@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.BucketReplicationConfiguration;
 import com.amazonaws.services.s3.model.BucketTaggingConfiguration;
+import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
 import com.amazonaws.services.s3.model.CORSRule;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -54,6 +55,7 @@ import com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest;
+import com.amazonaws.services.s3.model.SetBucketVersioningConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
@@ -230,6 +232,7 @@ public class S3 {
         AbortMultipartUploadRequest abortMultipartUploadRequest = new AbortMultipartUploadRequest(bucket, "key", "versionId");
         SetBucketLifecycleConfigurationRequest lifecycleRequest = new SetBucketLifecycleConfigurationRequest(bucket, new BucketLifecycleConfiguration());
         SetBucketNotificationConfigurationRequest notificationRequest = new SetBucketNotificationConfigurationRequest(bucket, new BucketNotificationConfiguration());
+        SetBucketNotificationConfigurationRequest notificationRequest2 = new SetBucketNotificationConfigurationRequest(new BucketNotificationConfiguration(), bucket);
         SetBucketTaggingConfigurationRequest tagRequest = new SetBucketTaggingConfigurationRequest(bucket, new BucketTaggingConfiguration());
         SetBucketWebsiteConfigurationRequest websiteRequest = new SetBucketWebsiteConfigurationRequest(bucket, new BucketWebsiteConfiguration());
     }
@@ -245,6 +248,7 @@ public class S3 {
         s3.setBucketReplicationConfiguration(bucket, new BucketReplicationConfiguration());
         s3.setBucketTaggingConfiguration(bucket, new BucketTaggingConfiguration());
         s3.setBucketWebsiteConfiguration(bucket, new BucketWebsiteConfiguration());
+        s3.setBucketVersioningConfiguration(new SetBucketVersioningConfigurationRequest(bucket, new BucketVersioningConfiguration()));
     }
 
     private void setBucketNameTest(AmazonS3 s3, String bucket) {
@@ -282,5 +286,9 @@ public class S3 {
 
         GetS3AccountOwnerRequest getS3AccountOwnerRequest = new GetS3AccountOwnerRequest();
         Owner owner3 = s3.getS3AccountOwner(getS3AccountOwnerRequest);
+    }
+
+    private void getRegionName(AmazonS3 s3) {
+        String region = s3.getRegionName();
     }
 }
