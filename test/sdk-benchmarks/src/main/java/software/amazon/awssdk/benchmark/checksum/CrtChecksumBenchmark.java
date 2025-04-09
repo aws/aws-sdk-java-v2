@@ -56,7 +56,7 @@ public class CrtChecksumBenchmark {
 
         private int numBytes;
 
-        private Size(int bytes) {
+        Size(int bytes) {
 
             this.numBytes = bytes;
         }
@@ -72,14 +72,23 @@ public class CrtChecksumBenchmark {
 
         private byte[] chunkData;
 
-        @Param({"SZ_512_KB", "SZ_1_MB", "SZ_2_MB", "SZ_4_MB", "SZ_8_MB", "SZ_16_MB", "SZ_32_MB", "SZ_64_MB", "SZ_128_MB", "SZ_256_MB"})
+        @Param({"SZ_512_KB",
+                "SZ_1_MB",
+                "SZ_2_MB",
+                "SZ_4_MB",
+                "SZ_8_MB",
+                "SZ_16_MB",
+                "SZ_32_MB",
+                "SZ_64_MB",
+                "SZ_128_MB",
+                "SZ_256_MB"})
         private Size chunkSize;
 
         @Param({"CRC64", "CRC32C"})
         private Algorithm algorithm;
 
         @Setup
-        public void setup () {
+        public void setup() {
             crc = getSdkChecksum(algorithm);
             chunkData = new byte[chunkSize.getNumBytes()];
         }
