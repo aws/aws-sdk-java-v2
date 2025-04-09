@@ -89,7 +89,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return VERSION_ATTRIBUTE;
         }
 
-        public static StaticAttributeTag versionAttribute(int startAt, int incrementBy) {
+        public static StaticAttributeTag versionAttribute(Integer startAt, Integer incrementBy) {
             return new VersionAttribute(startAt, incrementBy);
         }
     }
@@ -98,15 +98,15 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         private static final String START_AT_METADATA_KEY = "VersionedRecordExtension:StartAt";
         private static final String INCREMENT_BY_METADATA_KEY = "VersionedRecordExtension:IncrementBy";
 
-        private final int startAt;
-        private final int incrementBy;
+        private final Integer startAt;
+        private final Integer incrementBy;
 
         private VersionAttribute() {
-            this.startAt = 0;
-            this.incrementBy = 1;
+            this.startAt = null;
+            this.incrementBy = null;
         }
 
-        private VersionAttribute(int startAt, int incrementBy) {
+        private VersionAttribute(Integer startAt, Integer incrementBy) {
             this.startAt = startAt;
             this.incrementBy = incrementBy;
         }
@@ -118,6 +118,14 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                 throw new IllegalArgumentException(String.format(
                     "Attribute '%s' of type %s is not a suitable type to be used as a version attribute. Only type 'N' " +
                     "is supported.", attributeName, attributeValueType.name()));
+            }
+
+            if (startAt != null && startAt < 0) {
+                throw new IllegalArgumentException("StartAt cannot be negative.");
+            }
+
+            if (incrementBy != null && incrementBy < 1) {
+                throw new IllegalArgumentException("IncrementBy must be greater than 0.");
             }
 
             return metadata -> metadata
@@ -136,7 +144,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         if (!versionAttributeKey.isPresent()) {
             return WriteModification.builder().build();
         }
-
 
         Pair<AttributeValue, Expression> updates = getRecordUpdates(versionAttributeKey.get(), context);
 
@@ -169,20 +176,13 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     }
 
     private boolean isInitialVersion(AttributeValue existingVersionValue, DynamoDbExtensionContext.BeforeWrite context) {
-        if (isNullAttributeValue(existingVersionValue)) {
-            return true;
-        }
-
-
         Optional<Integer> versionStartAtFromAnnotation = context.tableMetadata()
                                                                 .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY,
                                                                                       Integer.class);
 
         return isNullAttributeValue(existingVersionValue)
-               || (versionStartAtFromAnnotation.isPresent() &&
-                   getExistingVersion(existingVersionValue) == versionStartAtFromAnnotation.get())
-               || (!versionStartAtFromAnnotation.isPresent() &&
-                   getExistingVersion(existingVersionValue) == this.startAt);
+               || (versionStartAtFromAnnotation.isPresent() && getExistingVersion(existingVersionValue) == versionStartAtFromAnnotation.get())
+               || getExistingVersion(existingVersionValue) == this.startAt;
     }
 
     private Pair<AttributeValue, Expression> createInitialRecord(String versionAttributeKey,
@@ -262,6 +262,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
          * @return the builder instance
          */
         public Builder startAt(int startAt) {
+            if (startAt < 0) {
+                throw new IllegalArgumentException("StartAt cannot be negative.");
+            }
             this.startAt = startAt;
             return this;
         }
@@ -274,6 +277,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
          * @return the builder instance
          */
         public Builder incrementBy(int incrementBy) {
+            if (incrementBy < 1) {
+                throw new IllegalArgumentException("IncrementBy must be greater than 0.");
+            }
             this.incrementBy = incrementBy;
             return this;
         }
