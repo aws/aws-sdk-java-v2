@@ -22,7 +22,9 @@ import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.httpMethodNotSupportedComment;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isCompleteMpuRequestMultipartUploadSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGeneratePresignedUrl;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGetObjectRequestPayerSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isGetS3AccountOwner;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRestoreObjectRequestDaysSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedHttpMethod;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.presignerSingleInstanceSuggestion;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.requestPojoTransformNotSupportedComment;
@@ -55,6 +57,8 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
     private static final MethodMatcher ENABLE_REQUESTER_PAYS = v2S3MethodMatcher("enableRequesterPays(String)");
     private static final MethodMatcher IS_REQUESTER_PAYS_ENABLED = v2S3MethodMatcher("isRequesterPaysEnabled(String)");
     private static final MethodMatcher GET_OBJECT_AS_STRING = v2S3MethodMatcher("getObjectAsString(String, String)");
+    private static final MethodMatcher GET_OBJECT_WITH_FILE =
+        v2S3MethodMatcher(String.format("getObject(%sGetObjectRequest, java.io.File)", V2_S3_MODEL_PKG));
     private static final MethodMatcher GET_URL = v2S3MethodMatcher("getUrl(String, String)");
     private static final MethodMatcher LIST_BUCKETS = v2S3MethodMatcher("listBuckets()");
     private static final MethodMatcher RESTORE_OBJECT = v2S3MethodMatcher("restoreObject(String, String, int)");
@@ -63,6 +67,7 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
     private static final MethodMatcher CHANGE_OBJECT_STORAGE_CLASS = v2S3MethodMatcher(
         String.format("changeObjectStorageClass(String, String, %sStorageClass)", V2_S3_MODEL_PKG));
     private static final MethodMatcher CREATE_BUCKET = v2S3MethodMatcher("createBucket(String, String)");
+    private static final MethodMatcher GET_REGION_NAME = v2S3MethodMatcher("getRegionName()");
 
     @Override
     public String getDisplayName() {
@@ -87,6 +92,12 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             if (isCompleteMpuRequestMultipartUploadSetter(method)) {
                 return transformCompleteMpuRequestCompletedPartsArg(method);
             }
+            if (isRestoreObjectRequestDaysSetter(method)) {
+                return transformRestoreObjectRequestDaysArg(method);
+            }
+            if (isGetObjectRequestPayerSetter(method)) {
+                return transformGetObjectRequestRequestPayerArg(method);
+            }
             if (isGeneratePresignedUrl(method)) {
                 return maybeAutoFormat(method, transformGeneratePresignedUrl(method), executionContext);
             }
@@ -105,6 +116,9 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             if (GET_OBJECT_AS_STRING.matches(method, false)) {
                 return transformGetObjectAsString(method);
             }
+            if (GET_OBJECT_WITH_FILE.matches(method, false)) {
+                return transformGetObjectWithFile(method);
+            }
             if (GET_URL.matches(method, false)) {
                 return transformGetUrl(method);
             }
@@ -122,6 +136,9 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             }
             if (CREATE_BUCKET.matches(method, false)) {
                 return transformCreateBucket(method);
+            }
+            if (GET_REGION_NAME.matches(method, false)) {
+                return transformGetRegionName(method);
             }
             return super.visitMethodInvocation(method, executionContext);
         }
@@ -193,6 +210,31 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
                                       method.getArguments().get(0));
         }
 
+        private J.MethodInvocation transformRestoreObjectRequestDaysArg(J.MethodInvocation method) {
+            addImport("RestoreRequest");
+            String v2Method = "#{any()}.restoreRequest(RestoreRequest.builder().days(#{any()}).build())";
+
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0));
+        }
+
+        private J.MethodInvocation transformGetObjectRequestRequestPayerArg(J.MethodInvocation method) {
+            Expression expression = method.getArguments().get(0);
+            if (expression instanceof J.Literal) {
+                J.Literal literal = (J.Literal) expression;
+                if (Boolean.TRUE.equals(literal.getValue())) {
+                    addImport("RequestPayer");
+                } else {
+                    // Removes method - there is no enum value for false
+                    return (J.MethodInvocation) method.getSelect();
+                }
+            }
+
+            return JavaTemplate.builder("RequestPayer.REQUESTER").build()
+                               .apply(getCursor(), method.getCoordinates().replaceArguments());
+        }
+
         private J.MethodInvocation transformGetS3AccountOwner(J.MethodInvocation method) {
             if (hasArguments(method)) {
                 String v2Method = "#{any()}.listBuckets(#{any()}).owner()";
@@ -207,60 +249,52 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         }
 
         private J.MethodInvocation transformCreateBucket(J.MethodInvocation method) {
+            addImport("CreateBucketRequest");
+            addImport("CreateBucketConfiguration");
             String v2Method = "#{any()}.createBucket(CreateBucketRequest.builder().bucket(#{any()})"
                               + ".createBucketConfiguration(CreateBucketConfiguration.builder().locationConstraint(#{any()})"
                               + ".build()).build())";
 
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1));
-
-            addImport("CreateBucketRequest");
-            addImport("CreateBucketConfiguration");
-            return method;
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1));
         }
 
         private J.MethodInvocation transformChangeObjectStorageClass(J.MethodInvocation method) {
+            addImport("CopyObjectRequest");
             String v2Method = "#{any()}.copyObject(CopyObjectRequest.builder().sourceBucket(#{any()}).sourceKey(#{any()})"
                               + ".destinationBucket(#{any()}).destinationKey(#{any()})"
                               + ".storageClass(#{any()}).build())";
 
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1),
-                                        method.getArguments().get(0), method.getArguments().get(1),
-                                        method.getArguments().get(2));
-
-            addImport("CopyObjectRequest");
-            return method;
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1),
+                                      method.getArguments().get(0), method.getArguments().get(1),
+                                      method.getArguments().get(2));
         }
 
         private J.MethodInvocation transformSetObjectRedirectLocation(J.MethodInvocation method) {
+            addImport("CopyObjectRequest");
             String v2Method = "#{any()}.copyObject(CopyObjectRequest.builder().sourceBucket(#{any()}).sourceKey(#{any()})"
                               + ".destinationBucket(#{any()}).destinationKey(#{any()})"
                               + ".websiteRedirectLocation(#{any()}).build())";
 
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1),
-                                        method.getArguments().get(0), method.getArguments().get(1),
-                                        method.getArguments().get(2));
-
-            addImport("CopyObjectRequest");
-            return method;
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1),
+                                      method.getArguments().get(0), method.getArguments().get(1),
+                                      method.getArguments().get(2));
         }
 
         private J.MethodInvocation transformRestoreObject(J.MethodInvocation method) {
+            addImport("RestoreObjectRequest");
+            addImport("RestoreRequest");
             String v2Method = "#{any()}.restoreObject(RestoreObjectRequest.builder().bucket(#{any()}).key(#{any()})"
                               + ".restoreRequest(RestoreRequest.builder().days(#{any()}).build()).build())";
 
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1), method.getArguments().get(2));
-
-            addImport("RestoreObjectRequest");
-            addImport("RestoreRequest");
-            return method;
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1), method.getArguments().get(2));
         }
 
         private J.MethodInvocation transformListBuckets(J.MethodInvocation method) {
@@ -272,52 +306,57 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
         }
 
         private J.MethodInvocation transformGetObjectAsString(J.MethodInvocation method) {
+            addImport("GetObjectRequest");
             String v2Method = "#{any()}.getObjectAsBytes(GetObjectRequest.builder().bucket(#{any()}).key(#{any()})"
                               + ".build()).asUtf8String()";
 
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1));
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1));
+        }
 
-            addImport("GetObjectRequest");
-            return method;
+        private J.MethodInvocation transformGetObjectWithFile(J.MethodInvocation method) {
+            String v2MethodArgs = "#{any()}, #{any()}.toPath()";
+            return JavaTemplate.builder(v2MethodArgs).build()
+                               .apply(getCursor(), method.getCoordinates().replaceArguments(),
+                                      method.getArguments().get(0), method.getArguments().get(1));
         }
 
         private J.MethodInvocation transformGetUrl(J.MethodInvocation method) {
-            String v2Method = "#{any()}.utilities().getUrl(GetUrlRequest.builder().bucket(#{any()}).key(#{any()}).build())";
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1));
-
             addImport("GetUrlRequest");
-            return method;
+            String v2Method = "#{any()}.utilities().getUrl(GetUrlRequest.builder().bucket(#{any()}).key(#{any()}).build())";
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0), method.getArguments().get(1));
         }
 
         private J.MethodInvocation transformIsRequesterPays(J.MethodInvocation method) {
+            addImport("GetBucketRequestPaymentRequest");
             String v2Method = "#{any()}.getBucketRequestPayment(GetBucketRequestPaymentRequest.builder().bucket(#{any()})"
                               + ".build()).payer().toString().equals(\"Requester\")";
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0));
-
-            addImport("GetBucketRequestPaymentRequest");
-            return method;
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0));
         }
 
         private J.MethodInvocation transformSetRequesterPays(J.MethodInvocation method, boolean enable) {
+            addImport("PutBucketRequestPaymentRequest");
+            addImport("RequestPaymentConfiguration");
+            addImport("Payer");
             String payer = enable ? "REQUESTER" : "BUCKET_OWNER";
             String v2Method = String.format("#{any()}.putBucketRequestPayment(PutBucketRequestPaymentRequest.builder()"
                                             + ".bucket(#{any()}).requestPaymentConfiguration("
                                             + "RequestPaymentConfiguration.builder().payer(Payer.%s).build())"
                                             + ".build())", payer);
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0));
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0));
+        }
 
-            addImport("PutBucketRequestPaymentRequest");
-            addImport("RequestPaymentConfiguration");
-            addImport("Payer");
-            return method;
+        private J.MethodInvocation transformGetRegionName(J.MethodInvocation method) {
+            String v2Method = "#{any()}.serviceClientConfiguration().region().id()";
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
         }
 
         private void removeV1HttpMethodImport() {

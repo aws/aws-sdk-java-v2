@@ -18,7 +18,9 @@ package foo.bar;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AccessControlList;
+import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.amazonaws.services.s3.model.MultiFactorAuthentication;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
@@ -30,6 +32,11 @@ import java.net.URL;
 import java.util.Date;
 
 public class S3Transforms {
+
+    void s3Pojos() {
+        DeleteVersionRequest deleteVersionRequest =
+            new DeleteVersionRequest("bucket", "key", "id", new MultiFactorAuthentication("serialNum", "token"));
+    }
 
     void upload_streamWithLiteralLength(TransferManager tm, String bucket, String key) {
         ObjectMetadata metadata = new ObjectMetadata();

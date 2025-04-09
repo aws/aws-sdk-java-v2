@@ -39,10 +39,13 @@ public class S3Streaming {
 
     S3Client s3 = S3Client.create();
 
-    void getObject(String bucket, String key) throws Exception {
+    void getObject(String bucket, String key, File file) throws Exception {
         ResponseInputStream<GetObjectResponse> s3Object = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
             .build());
         s3Object.close();
+
+        s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
+            .build(), file.toPath());
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
