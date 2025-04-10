@@ -107,12 +107,19 @@ import software.amazon.awssdk.services.s3.model.PutBucketLifecycleConfigurationR
 import software.amazon.awssdk.services.s3.model.PutBucketMetricsConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketNotificationConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketOwnershipControlsRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.ReplicationConfiguration;
+import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.RestoreObjectRequest;
+import software.amazon.awssdk.services.s3.model.RestoreObjectResponse;
+import software.amazon.awssdk.services.s3.model.RestoreRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 
 public class S3RequestConstructor {
     S3Client s3 = S3Client.create();
@@ -298,6 +305,12 @@ public class S3RequestConstructor {
             GetObjectRequest.builder().bucket(bucketName).key(objectKey).versionId("3")
                 .build());
 
+        GetObjectRequest getObjectRequestRequesterPaysTrue = GetObjectRequest.builder().bucket(bucketName).key(objectKey).requestPayer(RequestPayer.REQUESTER)
+            .build();
+
+        GetObjectRequest getObjectRequestRequesterPaysFalse = GetObjectRequest.builder().bucket(bucketName).key(objectKey)
+            .build();
+
         //INCOMPATIBLE RESPONSE
         s3.getObjectAcl(GetObjectAclRequest.builder().bucket(bucketName).key(objectKey)
             .build());
@@ -427,9 +440,25 @@ public class S3RequestConstructor {
 
         RestoreObjectRequest restoreObjectRequest = RestoreObjectRequest.builder().bucket(bucketName).key(objectKey)
             .build();
+        RestoreObjectRequest restoreObjectRequest2 = RestoreObjectRequest.builder().bucket(bucketName).key(objectKey).restoreRequest(RestoreRequest.builder().days(77).build())
+            .build();
+        RestoreObjectResponse restoreObjectResult = s3.restoreObject(restoreObjectRequest);
 
         GetBucketRequestPaymentRequest getRequestPaymentConfigurationRequest =
             GetBucketRequestPaymentRequest.builder().bucket(bucketName)
                 .build();
+
+        PutBucketPolicyRequest setBucketPolicyRequest = PutBucketPolicyRequest.builder().bucket(bucketName).policy("policyText")
+            .build();
+
+        List<Tag> tags = new ArrayList<>();
+        GetObjectTaggingResponse getObjectTaggingResult = GetObjectTaggingResponse.builder().tagSet(tags)
+            .build();
+
+        PutBucketVersioningRequest setBucketVersioningConfigurationRequest =
+            PutBucketVersioningRequest.builder().bucket(bucketName).versioningConfiguration(VersioningConfiguration.builder()
+                .build())
+                .build();
+        s3.putBucketVersioning(setBucketVersioningConfigurationRequest);
     }
 }

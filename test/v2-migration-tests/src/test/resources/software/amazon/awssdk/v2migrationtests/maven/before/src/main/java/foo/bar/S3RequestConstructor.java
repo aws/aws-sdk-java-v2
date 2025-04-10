@@ -18,13 +18,11 @@ package foo.bar;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
 import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.BucketReplicationConfiguration;
 import com.amazonaws.services.s3.model.BucketTaggingConfiguration;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.CopyPartRequest;
@@ -44,8 +42,8 @@ import com.amazonaws.services.s3.model.DeleteBucketRequest;
 import com.amazonaws.services.s3.model.DeleteBucketTaggingConfigurationRequest;
 import com.amazonaws.services.s3.model.DeleteBucketWebsiteConfigurationRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectTaggingRequest;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeletePublicAccessBlockRequest;
 import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.amazonaws.services.s3.model.GetBucketAccelerateConfigurationRequest;
@@ -100,23 +98,27 @@ import com.amazonaws.services.s3.model.ListBucketMetricsConfigurationsResult;
 import com.amazonaws.services.s3.model.ListBucketsRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ListPartsRequest;
-import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.ownership.OwnershipControls;
 import com.amazonaws.services.s3.model.RestoreObjectRequest;
+import com.amazonaws.services.s3.model.RestoreObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.SetBucketAnalyticsConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketMetricsConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketOwnershipControlsRequest;
+import com.amazonaws.services.s3.model.SetBucketPolicyRequest;
 import com.amazonaws.services.s3.model.SetBucketReplicationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest;
-import com.amazonaws.services.s3.model.SetObjectAclRequest;
-
+import com.amazonaws.services.s3.model.SetBucketVersioningConfigurationRequest;
+import com.amazonaws.services.s3.model.Tag;
+import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
+import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
+import com.amazonaws.services.s3.model.ownership.OwnershipControls;
 import java.util.ArrayList;
 import java.util.List;
+
 public class S3RequestConstructor {
     AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
     String bucketName = "bucketName";
@@ -251,6 +253,10 @@ public class S3RequestConstructor {
         S3Object s3Object2 = s3.getObject(
             new GetObjectRequest(bucketName, objectKey, "3"));
 
+        GetObjectRequest getObjectRequestRequesterPaysTrue = new GetObjectRequest(bucketName, objectKey, true);
+
+        GetObjectRequest getObjectRequestRequesterPaysFalse = new GetObjectRequest(bucketName, objectKey, false);
+
         //INCOMPATIBLE RESPONSE
         s3.getObjectAcl(new GetObjectAclRequest(bucketName, objectKey));
 
@@ -344,8 +350,19 @@ public class S3RequestConstructor {
         ListPartsRequest listPartsRequest = new ListPartsRequest(bucketName, objectKey, "id");
 
         RestoreObjectRequest restoreObjectRequest = new RestoreObjectRequest(bucketName, objectKey);
+        RestoreObjectRequest restoreObjectRequest2 = new RestoreObjectRequest(bucketName, objectKey, 77);
+        RestoreObjectResult restoreObjectResult = s3.restoreObjectV2(restoreObjectRequest);
 
         GetRequestPaymentConfigurationRequest getRequestPaymentConfigurationRequest =
             new GetRequestPaymentConfigurationRequest(bucketName);
+
+        SetBucketPolicyRequest setBucketPolicyRequest = new SetBucketPolicyRequest(bucketName, "policyText");
+
+        List<Tag> tags = new ArrayList<>();
+        GetObjectTaggingResult getObjectTaggingResult = new GetObjectTaggingResult(tags);
+
+        SetBucketVersioningConfigurationRequest setBucketVersioningConfigurationRequest =
+            new SetBucketVersioningConfigurationRequest(bucketName, new BucketVersioningConfiguration());
+        s3.setBucketVersioningConfiguration(setBucketVersioningConfigurationRequest);
     }
 }

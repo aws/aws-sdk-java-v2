@@ -257,6 +257,17 @@ public final class S3TransformUtils {
                                            method.getSelect().getType());
     }
 
+    public static boolean isGetObjectRequestPayerSetter(J.MethodInvocation method) {
+        return "requestPayer".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_MODEL_PKG + "GetObjectRequest.Builder", method.getSelect().getType());
+    }
+
+    public static boolean isRestoreObjectRequestDaysSetter(J.MethodInvocation method) {
+        return "days".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_MODEL_PKG + "RestoreObjectRequest.Builder",
+                                           method.getSelect().getType());
+    }
+
     public static boolean isGeneratePresignedUrl(J.MethodInvocation method) {
         return "generatePresignedUrl".equals(method.getSimpleName())
                && TypeUtils.isAssignableTo(V2_S3_CLIENT, method.getSelect().getType());

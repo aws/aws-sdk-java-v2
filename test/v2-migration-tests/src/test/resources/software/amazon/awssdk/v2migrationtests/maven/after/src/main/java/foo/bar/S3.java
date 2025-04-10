@@ -106,6 +106,7 @@ import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketRequestPaymentRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketWebsiteRequest;
 import software.amazon.awssdk.services.s3.model.ReplicationConfiguration;
 import software.amazon.awssdk.services.s3.model.RequestPaymentConfiguration;
@@ -115,6 +116,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 import software.amazon.awssdk.services.s3.model.WebsiteConfiguration;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
@@ -350,6 +352,9 @@ public class S3 {
         PutBucketNotificationConfigurationRequest notificationRequest = PutBucketNotificationConfigurationRequest.builder().bucket(bucket).notificationConfiguration(NotificationConfiguration.builder()
             .build())
             .build();
+        PutBucketNotificationConfigurationRequest notificationRequest2 = PutBucketNotificationConfigurationRequest.builder().notificationConfiguration(NotificationConfiguration.builder()
+            .build()).bucket(bucket)
+            .build();
         PutBucketTaggingRequest tagRequest = PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
             .build())
             .build();
@@ -387,6 +392,9 @@ public class S3 {
             .build())
             .build());
         s3.putBucketWebsite(PutBucketWebsiteRequest.builder().bucket(bucket).websiteConfiguration(WebsiteConfiguration.builder()
+            .build())
+            .build());
+        s3.putBucketVersioning(PutBucketVersioningRequest.builder().bucket(bucket).versioningConfiguration(VersioningConfiguration.builder()
             .build())
             .build());
     }
@@ -445,5 +453,9 @@ public class S3 {
         ListBucketsRequest getS3AccountOwnerRequest = ListBucketsRequest.builder()
             .build();
         Owner owner3 = s3.listBuckets(getS3AccountOwnerRequest).owner();
+    }
+
+    private void getRegionName(S3Client s3) {
+        String region = s3.serviceClientConfiguration().region().id();
     }
 }
