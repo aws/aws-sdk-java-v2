@@ -181,7 +181,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                                                                       Integer.class);
 
         return isNullAttributeValue(existingVersionValue)
-               || (versionStartAtFromAnnotation.isPresent() && getExistingVersion(existingVersionValue) == versionStartAtFromAnnotation.get())
+               || (versionStartAtFromAnnotation.isPresent()
+                   && getExistingVersion(existingVersionValue) == versionStartAtFromAnnotation.get())
                || getExistingVersion(existingVersionValue) == this.startAt;
     }
 
@@ -238,8 +239,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
     private AttributeValue incrementVersion(int version, DynamoDbExtensionContext.BeforeWrite context) {
         Optional<Integer> versionIncrementByFromAnnotation = context.tableMetadata()
-                                                                    .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
-                                                                                          Integer.class);
+                                                            .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
+                                                                                  Integer.class);
         if (versionIncrementByFromAnnotation.isPresent()) {
             return AttributeValue.fromN(Integer.toString(version + versionIncrementByFromAnnotation.get()));
         }
