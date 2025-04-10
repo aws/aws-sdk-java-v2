@@ -76,6 +76,20 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.github.siom79.japicmp</groupId>
+                <artifactId>japicmp-maven-plugin</artifactId>
+                <version>${japicmp-maven-plugin.version}</version>
+                <configuration>
+                    <parameter>
+                        <excludes>
+                            <!-- japicmp flagging these incorrectly as a breaking change -->
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute#incrementBy()</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute#startAt()</exclude>
+                        </excludes>
+                    </parameter>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
