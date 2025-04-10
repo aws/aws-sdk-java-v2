@@ -15,14 +15,12 @@
 
 package software.amazon.awssdk.codegen.customization.processors;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 
@@ -42,8 +40,8 @@ public class UseLegacyEventGenerationSchemeProcessor implements CodegenCustomiza
 
     @Override
     public void postprocess(IntermediateModel intermediateModel) {
-        Map<String, List<String>> useLegacyEventGenerationScheme = intermediateModel.getCustomizationConfig()
-                .getUseLegacyEventGenerationScheme();
+        Map<String, CustomizationConfig.LegacyEventGenerationMode> useLegacyEventGenerationScheme =
+            intermediateModel.getCustomizationConfig().getUseLegacyEventGenerationScheme();
 
         useLegacyEventGenerationScheme.forEach((eventStream, members) -> {
             ShapeModel shapeModel = getShapeByC2jName(intermediateModel, eventStream);
@@ -51,31 +49,9 @@ public class UseLegacyEventGenerationSchemeProcessor implements CodegenCustomiza
             if (shapeModel == null || !shapeModel.isEventStream()) {
                 log.warn(String.format("Encountered %s for unrecognized eventstream %s",
                         CUSTOMIZATION_NAME, eventStream));
-                return;
             }
 
-            Map<String, Integer> shapeToEventCount = new HashMap<>();
-
-            members.forEach(m -> {
-                MemberModel event = shapeModel.getMemberByC2jName(m);
-
-                if (event != null) {
-                    String shapeName = event.getC2jShape();
-                    int count = shapeToEventCount.getOrDefault(shapeName, 0);
-                    shapeToEventCount.put(shapeName, ++count);
-                } else {
-                    String msg = String.format("Encountered %s customization for unrecognized eventstream member %s#%s",
-                            CUSTOMIZATION_NAME, eventStream, m);
-                    log.warn(msg);
-                }
-            });
-
-            shapeToEventCount.forEach((shape, count) -> {
-                if (count > 1) {
-                    throw new IllegalArgumentException(CUSTOMIZATION_NAME + " customization declared for "
-                            + eventStream + ", but more than it targets more than one member with the shape " + shape);
-                }
-            });
+            // TODO: Do we need any additional validation here?
         });
     }
 

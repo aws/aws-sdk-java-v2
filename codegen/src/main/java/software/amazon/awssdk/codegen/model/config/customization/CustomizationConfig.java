@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.model.config.customization;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +35,12 @@ import software.amazon.awssdk.utils.AttributeMap;
  * then be later queried in the misc. codegen steps.
  */
 public class CustomizationConfig {
+
+    public enum LegacyEventGenerationMode {
+        DISABLED,
+        NO_ES_EVENT_IMPL, // old legacy
+        TOP_LEVEL_ES_INTERFACE // new legacy
+    }
 
     /**
      * List of 'convenience' overloads to generate for model classes. Convenience overloads expose a
@@ -208,7 +215,8 @@ public class CustomizationConfig {
      * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
      * for any other purpose.
      */
-    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
+    @JsonDeserialize(using = UseLegacyEventSchemeDeserializer.class)
+    private Map<String, LegacyEventGenerationMode> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
@@ -646,11 +654,11 @@ public class CustomizationConfig {
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 
-    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
+    public Map<String, LegacyEventGenerationMode> getUseLegacyEventGenerationScheme() {
         return useLegacyEventGenerationScheme;
     }
 
-    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
+    public void setUseLegacyEventGenerationScheme(Map<String, LegacyEventGenerationMode> useLegacyEventGenerationScheme) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 

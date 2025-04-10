@@ -122,7 +122,7 @@ class EventStreamVisitorInterfaceSpec implements ClassSpec {
             .param("event", "Event being visited")
             .build();
         return methodBuilder.addModifiers(Modifier.DEFAULT)
-                            .addStatement("visitDefault(event)")
+                            .addStatement("visitDefault(($T)event)", eventStreamBaseClass)
                             .addJavadoc(javadocs, eventSubType, eventStreamBaseClass);
     }
 

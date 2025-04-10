@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -100,7 +101,8 @@ class ModelClassGeneratorTasks extends BaseGeneratorTasks {
 
                     return eventStream.getMembers().stream()
                             .filter(e -> e.getShape().isEvent())
-                            .filter(e -> !eventStreamSpecHelper.useLegacyGenerationScheme(e))
+                            .filter(e -> eventStreamSpecHelper.legacyEventGenerationMode()
+                                         != CustomizationConfig.LegacyEventGenerationMode.NO_ES_EVENT_IMPL)
                             .map(e -> createEventGenerationTask(e, eventStream));
                 })
                 .collect(Collectors.toList());

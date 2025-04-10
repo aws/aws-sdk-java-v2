@@ -19,10 +19,11 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeSpec;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -44,7 +45,7 @@ public final class EventStreamSpecHelper {
     }
 
     public String visitMethodName(MemberModel event) {
-        if (useLegacyGenerationScheme(event)) {
+        if (legacyEventGenerationMode() == CustomizationConfig.LegacyEventGenerationMode.NO_ES_EVENT_IMPL) {
             return "visit";
         }
         return "visit" + CodegenNamingUtils.pascalCase(event.getName());
@@ -55,21 +56,16 @@ public final class EventStreamSpecHelper {
                 + eventStream.getShapeName().toLowerCase(Locale.ENGLISH);
     }
 
-    public boolean useLegacyGenerationScheme(MemberModel event) {
-        Map<String, List<String>> useLegacyEventGenerationScheme = intermediateModel.getCustomizationConfig()
-                .getUseLegacyEventGenerationScheme();
+    public CustomizationConfig.LegacyEventGenerationMode legacyEventGenerationMode() {
+        Map<String, CustomizationConfig.LegacyEventGenerationMode> useLegacyEventGenerationScheme =
+            intermediateModel.getCustomizationConfig().getUseLegacyEventGenerationScheme();
 
-        List<String> targetEvents = useLegacyEventGenerationScheme.get(eventStream.getC2jName());
-
-        if (targetEvents == null) {
-            return false;
-        }
-
-        return targetEvents.stream().anyMatch(e -> e.equals(event.getC2jName()));
+        return Optional.ofNullable(useLegacyEventGenerationScheme.get(eventStream.getC2jName()))
+                       .orElse(CustomizationConfig.LegacyEventGenerationMode.DISABLED);
     }
 
     public ClassName eventClassName(MemberModel eventModel) {
-        if (useLegacyGenerationScheme(eventModel)) {
+        if (legacyEventGenerationMode() == CustomizationConfig.LegacyEventGenerationMode.NO_ES_EVENT_IMPL) {
             return poetExtensions.getModelClass(eventModel.getShape().getShapeName());
         }
         String simpleName = "Default" + intermediateModel.getNamingStrategy().getShapeClassName(eventModel.getName());
@@ -98,7 +94,7 @@ public final class EventStreamSpecHelper {
     }
 
     public String eventConsumerName(MemberModel eventModel) {
-        if (useLegacyGenerationScheme(eventModel)) {
+        if (legacyEventGenerationMode() == CustomizationConfig.LegacyEventGenerationMode.NO_ES_EVENT_IMPL) {
             return "on" + eventModel.getShape().getShapeName();
         }
         return "on" + eventModel.getName();
