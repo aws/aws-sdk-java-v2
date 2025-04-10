@@ -64,8 +64,4 @@
     <!-- Ignore usage of S3MetaRequest in CrtS3ClientUploadBenchmark. !-->
     <suppress checks="Regexp"
               files="software.amazon.awssdk.s3benchmarks.CrtS3ClientUploadBenchmark.java"/>
-
-    <!-- Using forked recipe from OpenRewrite, using same header as OpenRewrite !-->
-    <suppress checks="Header"
-              files="software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType.java"/>
 </suppressions>
