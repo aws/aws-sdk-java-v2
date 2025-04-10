@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSMainframeModernization",
-    "contributor": "",
-    "description": "Introduce three new APIs: CreateDataSetExportTask, GetDataSetExportTask and ListDataSetExportHistory. Add support for batch restart for Blu Age applications."
-}
