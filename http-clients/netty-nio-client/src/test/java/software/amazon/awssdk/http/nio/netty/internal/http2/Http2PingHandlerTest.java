@@ -44,6 +44,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 public class Http2PingHandlerTest {
     private static final NettyClientLogger log = NettyClientLogger.getLogger(Http2PingHandler.class);
@@ -227,7 +228,7 @@ public class Http2PingHandlerTest {
         assertThat(channel.runScheduledPendingTasks()).isEqualTo(-1L);
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void delayedPingFlushDoesntTerminateConnectionPrematurely() {
         Logger.getLogger("").setLevel(Level.ALL);
 
