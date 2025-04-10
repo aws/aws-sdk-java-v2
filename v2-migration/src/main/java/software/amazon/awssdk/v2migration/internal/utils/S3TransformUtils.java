@@ -334,6 +334,18 @@ public final class S3TransformUtils {
         return appendCommentToMethod(method, comment);
     }
 
+    public static J.MethodInvocation setRegionNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for setRegion() method is not supported, please manually "
+                         + "migrate your code by config the region in the s3 client builder";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation setS3ClientOptionsNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for setS3ClientOptions() method is not supported, Please manually migrate setS3ClientOptions "
+                         + "by configuring the equivalent settings in S3Configuration.builder() when building your S3Client.";
+        return appendCommentToMethod(method, comment);
+    }
+
     public static J.MethodInvocation s3MethodNotSupportedComment(J.MethodInvocation method) {
         String comment = "Transform for " + method.getSimpleName() + " method is not supported";
         return appendCommentToMethod(method, comment, false);
@@ -356,8 +368,15 @@ public final class S3TransformUtils {
     }
 
     public static J.MethodInvocation addCommentForUnsupportedS3Method(J.MethodInvocation method) {
-        //TODO: direct user to dev guide for them to manually migrate
-        return s3MethodNotSupportedComment(method);
+        String methodName = method.getSimpleName();
+        switch (methodName) {
+            case "setRegion":
+                return setRegionNotSupportedComment(method);
+            case "setS3ClientOptions":
+                return setS3ClientOptionsNotSupportedComment(method);
+            default:
+                return s3MethodNotSupportedComment(method);
+        }
     }
 
     public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment) {
