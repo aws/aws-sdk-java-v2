@@ -179,8 +179,10 @@ public final class SdkTypeUtils {
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "GroupGrantee");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "Region");
 
-        // No S3-specific exceptions in v2
-        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "AmazonS3Exception");
+        // S3 Enum that maps to two separate enums in v2 : BucketCannedACL and ObjectCannedACL
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CannedAccessControlList");
+
+        // No specific exceptions in v2
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "IllegalBucketNameException");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MultiObjectDeleteException");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MultiObjectDeleteSlowdownException");

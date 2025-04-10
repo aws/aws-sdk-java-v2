@@ -253,7 +253,7 @@ public class S3 {
         s3.getBucketPolicy(GetBucketPolicyRequest.builder().bucket(bucket)
             .build());
         s3.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucket)
-            .build());
+            .build()).locationConstraint().toString();
         s3.deleteBucketLifecycle(DeleteBucketLifecycleRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketReplication(DeleteBucketReplicationRequest.builder().bucket(bucket)

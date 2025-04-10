@@ -22,6 +22,7 @@ tags:
   - sdk
 recipeList:
   - software.amazon.awssdk.v2migration.UpgradeSdkDependencies
+  - software.amazon.awssdk.v2migration.S3TypesToV2
   - software.amazon.awssdk.v2migration.S3StreamingResponseToV2
   - software.amazon.awssdk.v2migration.S3StreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2

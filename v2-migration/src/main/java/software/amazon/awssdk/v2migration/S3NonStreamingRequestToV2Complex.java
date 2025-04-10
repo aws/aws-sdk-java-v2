@@ -60,7 +60,8 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
     private static final MethodMatcher GET_OBJECT_WITH_FILE =
         v2S3MethodMatcher(String.format("getObject(%sGetObjectRequest, java.io.File)", V2_S3_MODEL_PKG));
     private static final MethodMatcher GET_URL = v2S3MethodMatcher("getUrl(String, String)");
-    private static final MethodMatcher LIST_BUCKETS = v2S3MethodMatcher("listBuckets()");
+    private static final MethodMatcher LIST_BUCKETS = v2S3MethodMatcher("listBuckets(..)");
+    private static final MethodMatcher GET_BUCKET_LOCATION = v2S3MethodMatcher("getBucketLocation(..)");
     private static final MethodMatcher RESTORE_OBJECT = v2S3MethodMatcher("restoreObject(String, String, int)");
     private static final MethodMatcher SET_OBJECT_REDIRECT_LOCATION =
         v2S3MethodMatcher("setObjectRedirectLocation(String, String, String)");
@@ -103,6 +104,9 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             }
             if (isGetS3AccountOwner(method)) {
                 return transformGetS3AccountOwner(method);
+            }
+            if (GET_BUCKET_LOCATION.matches(method, false)) {
+                return transformGetBucketLocation(method);
             }
             if (DISABLE_REQUESTER_PAYS.matches(method, false)) {
                 return transformSetRequesterPays(method, false);
@@ -246,6 +250,13 @@ public class S3NonStreamingRequestToV2Complex extends Recipe {
             String v2Method = "#{any()}.listBuckets().owner()";
             return JavaTemplate.builder(v2Method).build()
                                .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
+        }
+
+        private J.MethodInvocation transformGetBucketLocation(J.MethodInvocation method) {
+            String v2Method = "#{any()}.getBucketLocation(#{any()}).locationConstraint().toString()";
+            return JavaTemplate.builder(v2Method).build()
+                               .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                      method.getArguments().get(0));
         }
 
         private J.MethodInvocation transformCreateBucket(J.MethodInvocation method) {
