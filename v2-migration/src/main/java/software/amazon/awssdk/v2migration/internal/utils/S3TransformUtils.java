@@ -68,6 +68,21 @@ public final class S3TransformUtils {
             "accessControlList"
         )));
 
+    public static final Set<String> UNSUPPORTED_S3_METHOD_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(
+        Arrays.asList(
+            "setObjectAcl",
+            "setBucketAcl",
+            "getBucketAcl",
+            "getBucketAccelerateConfiguration",
+            "getBucketLifecycleConfiguration",
+            "initiateMultipartUpload",
+            "listNextBatchOfObjects",
+            "listNextBatchOfVersions",
+            "selectObjectContent",
+            "setRegion",
+            "setS3ClientOptions"
+        )));
+
 
     private S3TransformUtils() {
 
@@ -183,6 +198,10 @@ public final class S3TransformUtils {
 
     public static boolean isUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
         return UNSUPPORTED_PUT_OBJ_REQUEST_TRANSFORMS.contains(method.getSimpleName());
+    }
+
+    public static boolean isUnsupportedS3Method(J.MethodInvocation method) {
+        return UNSUPPORTED_S3_METHOD_TRANSFORMS.contains(method.getSimpleName());
     }
 
     public static boolean isObjectMetadataSetter(J.MethodInvocation method) {
@@ -327,6 +346,31 @@ public final class S3TransformUtils {
         return appendCommentToMethod(method, comment);
     }
 
+    public static J.MethodInvocation setRegionNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for setRegion() method is not supported, please manually "
+                         + "migrate your code by config the region in the s3 client builder";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation setS3ClientOptionsNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for setS3ClientOptions() method is not supported, Please manually migrate setS3ClientOptions "
+                         + "by configuring the equivalent settings in S3Configuration.builder() when building your S3Client.";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation s3MethodNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for " + method.getSimpleName() + " method is not supported";
+        return appendCommentToMethod(method, comment, false);
+    }
+
+    public static J.MethodInvocation initiateMultipartUploadComment(J.MethodInvocation method) {
+        String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported, please manually "
+                         + "migrate your code by replace ObjectMetadata with individual setter methods or metadata map in the "
+                         + "request builder.";
+        return appendCommentToMethod(method, comment);
+    }
+
+
     public static J.MethodInvocation addCommentForUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
         String methodName = method.getSimpleName();
         switch (methodName) {
@@ -341,13 +385,36 @@ public final class S3TransformUtils {
         }
     }
 
+    public static J.MethodInvocation addCommentForUnsupportedS3Method(J.MethodInvocation method) {
+        String methodName = method.getSimpleName();
+        switch (methodName) {
+            case "setRegion":
+                return setRegionNotSupportedComment(method);
+            case "setS3ClientOptions":
+                return setS3ClientOptionsNotSupportedComment(method);
+            case "initiateMultipartUpload":
+                return initiateMultipartUploadComment(method);
+            default:
+                return s3MethodNotSupportedComment(method);
+        }
+    }
+
     public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment) {
+        return appendCommentToMethod(method, comment, true);
+    }
+
+    public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment, boolean newLine) {
         if (method.getComments().isEmpty()) {
-            return method.withComments(createCommentsWithNewline(comment));
+            return newLine ? method.withComments(createCommentsWithNewline(comment))
+                           : method.withComments(createComments(comment));
         }
 
         List<Comment> existingComments = method.getComments();
-        existingComments.add(createCommentWithNewline(comment));
+        if (newLine) {
+            existingComments.add(createCommentWithNewline(comment));
+        } else {
+            existingComments.add(createComment(comment));
+        }
         return method.withComments(existingComments);
     }
 }

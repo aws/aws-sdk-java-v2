@@ -17,6 +17,8 @@ package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_CLIENT;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addCommentForUnsupportedS3Method;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedS3Method;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1S3MethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.fullyQualified;
 
@@ -278,6 +280,11 @@ public class S3NonStreamingRequestToV2 extends Recipe {
                     method = transformMethod(method, entry.getValue(), "bucket", "prefix");
                     return super.visitMethodInvocation(method, executionContext);
                 }
+            }
+
+            if (isUnsupportedS3Method(method)) {
+                method = addCommentForUnsupportedS3Method(method);
+                return super.visitMethodInvocation(method, executionContext);
             }
 
             return super.visitMethodInvocation(method, executionContext);
