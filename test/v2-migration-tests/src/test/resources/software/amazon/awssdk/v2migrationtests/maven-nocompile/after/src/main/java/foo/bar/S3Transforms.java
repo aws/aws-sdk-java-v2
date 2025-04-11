@@ -16,7 +16,6 @@
 package foo.bar;
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.model.MultiFactorAuthentication;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
 import java.io.ByteArrayInputStream;
@@ -36,8 +35,10 @@ import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 public class S3Transforms {
 
     void s3Pojos() {
+        MultiFactorAuthentication mfa = /*AWS SDK for Java v2 migration: v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on the request POJO.*/new MultiFactorAuthentication("serialNum", "token");
+
         DeleteObjectRequest deleteVersionRequest =
-            DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(new MultiFactorAuthentication("serialNum", "token"))
+            DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(mfa)
                 .build();
     }
 
