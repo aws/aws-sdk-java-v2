@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Contact Lens",
+    "contributor": "",
+    "description": "Making sentiment optional for ListRealtimeContactAnalysisSegments Response depending on conversational analytics configuration"
+}
