@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Raise hard limit of authorized principals per SubscriptionTarget from 10 to 20."
-}

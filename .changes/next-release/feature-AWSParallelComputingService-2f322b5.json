@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Parallel Computing Service",
-    "contributor": "",
-    "description": "Changed the minimum length of clusterIdentifier, computeNodeGroupIdentifier, and queueIdentifier to 3."
-}
