@@ -147,7 +147,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         Pair<AttributeValue, Expression> updates = getRecordUpdates(versionAttributeKey.get(), context);
 
-        // Unpack values from Pair
         AttributeValue newVersionValue = updates.left();
         Expression condition = updates.right();
 
@@ -168,7 +167,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         AttributeValue existingVersionValue = itemToTransform.getOrDefault(versionAttributeKey, DEFAULT_VALUE);
 
         if (isInitialVersion(existingVersionValue, context)) {
-            // First version of the record ensure it does not exist
             return createInitialRecord(versionAttributeKey, context);
         }
         // Existing record, increment version
@@ -230,7 +228,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
     private int getExistingVersion(AttributeValue existingVersionValue) {
         if (existingVersionValue.n() == null) {
-            // In this case a non-null version attribute is present, but it's not an N
             throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
         }
 

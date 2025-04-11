@@ -294,9 +294,32 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        // Should be treated as existing version
         assertThat(result.additionalConditionalExpression().expression(),
                    is("#AMZN_MAPPED_version = :old_version_value"));
+    }
+
+    @Test
+    public void beforeWrite_versionEqualsAnnotationStartAt_isTreatedAsInitialVersion() {
+        FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
+        item.setId(UUID.randomUUID().toString());
+        item.setVersion(3);
+
+        TableSchema<FakeVersionedThroughAnnotationItem> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(schema.itemToMap(item, true));
+
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder().build();
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(schema.tableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("attribute_not_exists(#AMZN_MAPPED_version)"));
     }
 
 
