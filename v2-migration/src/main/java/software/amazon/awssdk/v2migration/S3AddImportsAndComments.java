@@ -41,6 +41,9 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher SET_BUCKET_ACL = v1S3MethodMatcher("setBucketAcl(..)");
     private static final MethodMatcher SET_OBJECT_ACL = v1S3MethodMatcher("setObjectAcl(..)");
+    private static final MethodMatcher SET_REGION = v1S3MethodMatcher("setRegion(..)");
+    private static final MethodMatcher SET_S3CLIENT_OPTIONS = v1S3MethodMatcher("setS3ClientOptions(..)");
+    private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
@@ -50,11 +53,8 @@ public class S3AddImportsAndComments extends Recipe {
     /*
     TODO
     Methods:
-    selectObjectContent(..)
-    setS3ClientOptions(S3ClientOptions clientOptions)
     createBucket(String bucketName, Region region)
 
-    setRegion(Region region)
     setEndpoint(String endpoint)
     getCachedResponseMetadata(AmazonWebServiceRequest request)
      */
@@ -86,18 +86,32 @@ public class S3AddImportsAndComments extends Recipe {
                 removeV1S3ModelImport("CannedAccessControlList");
                 maybeAddV2CannedAclImport(method.getArguments(), isSetObjectAcl, isSetBucketAcl);
 
-                // TODO - AccessControlList and CannedAccessControlList v2 differences
-                String comment = "";
+                String comment = "Transform for AccessControlList and CannedAccessControlList not Supported.";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_OBJECTS.matches(method)) {
-                // TODO
-                String comment = "";
+                String comment = "Transform for listNextBatchOfObjects method not Supported.";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_VERSIONS.matches(method)) {
-                // TODO
-                String comment = "";
+                String comment = "Transform for listNextBatchOfVersions method not Supported.";
+                return method.withComments(createComments(comment));
+            }
+            if (SET_REGION.matches(method)) {
+                String comment = "Transform for setRegion method not Supported. Please manually "
+                                 + "migrate your code by configuring the region in the s3 client builder";
+                return method.withComments(createComments(comment));
+            }
+            if (SET_S3CLIENT_OPTIONS.matches(method)) {
+                String comment = "Transform for setS3ClientOptions method not Supported. Please manually "
+                                 + "migrate setS3ClientOptions by configuring the equivalent settings in "
+                                 + "S3Configuration.builder() when building your S3Client.";
+                return method.withComments(createComments(comment));
+            }
+            if (SELECT_OBJECT_CONTENT.matches(method)) {
+                String comment = "Note: selectObjectContent is only supported in AWS SDK v2 with S3AsyncClient. "
+                                 + "Please manually migrate to event-based response handling using "
+                                 + "SelectObjectContentEventStream";
                 return method.withComments(createComments(comment));
             }
 
@@ -122,14 +136,15 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (type.isAssignableFrom(GET_OBJECT_REQUEST) && newClass.getArguments().size() == 1) {
                 removeV1S3ModelImport("S3ObjectId");
-                // TODO - S3ObjectId not supported
-                String comment = "";
+                String comment = "v2 does not have S3ObjectId class. Please manually migrate the code by setting the configs "
+                                 + "directly into the request builder pattern.";
                 return newClass.withComments(createComments(comment));
             }
 
             if (type.isAssignableFrom(INITIATE_MPU) && newClass.getArguments().size() == 3) {
-                // TODO - ObjectMetadata transform for InitiateMultipartUpload not supported
-                String comment = "";
+                String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported. Please "
+                                 + "manually migrate your code by replace ObjectMetadata with individual setter methods "
+                                 + "or metadata map in the request builder.";
                 return newClass.withComments(createComments(comment));
             }
 
