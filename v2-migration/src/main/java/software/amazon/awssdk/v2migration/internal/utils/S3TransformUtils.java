@@ -75,6 +75,7 @@ public final class S3TransformUtils {
             "getBucketAcl",
             "getBucketAccelerateConfiguration",
             "getBucketLifecycleConfiguration",
+            "initiateMultipartUpload",
             "listNextBatchOfObjects",
             "listNextBatchOfVersions",
             "selectObjectContent",
@@ -362,6 +363,12 @@ public final class S3TransformUtils {
         return appendCommentToMethod(method, comment, false);
     }
 
+    public static J.MethodInvocation initiateMultipartUploadComment(J.MethodInvocation method) {
+        String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported, please manually "
+                         + "migrate your code by replace ObjectMetadata with individual setter methods or metadata map in the "
+                         + "request builder.";
+        return appendCommentToMethod(method, comment);
+    }
 
 
     public static J.MethodInvocation addCommentForUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
@@ -385,6 +392,8 @@ public final class S3TransformUtils {
                 return setRegionNotSupportedComment(method);
             case "setS3ClientOptions":
                 return setS3ClientOptionsNotSupportedComment(method);
+            case "initiateMultipartUpload":
+                return initiateMultipartUploadComment(method);
             default:
                 return s3MethodNotSupportedComment(method);
         }
