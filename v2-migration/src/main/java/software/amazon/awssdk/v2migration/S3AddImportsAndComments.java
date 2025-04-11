@@ -90,7 +90,11 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_OBJECTS.matches(method)) {
-                String comment = "Transform for listNextBatchOfObjects method not Supported.";
+                String comment = "Transform for listNextBatchOfObjects method not Supported. "
+                                 + "listNextBatchOfObjects() only exists in SDK v1, for SDK v2 use either "
+                                 + "listObjectsV2Paginator().stream() for automatic pagination"
+                                 + " Or manually handle pagination with listObjectsV2() and nextToken in the response for more "
+                                 + "control";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_VERSIONS.matches(method)) {
