@@ -44,7 +44,7 @@ public class S3AddImportsAndComments extends Recipe {
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
-    private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
+    private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
 
     /*
