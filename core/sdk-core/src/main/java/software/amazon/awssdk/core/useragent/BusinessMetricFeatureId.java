@@ -22,8 +22,8 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * An enum class representing a short form of identity providers to record in the UA string.
  *
- * Unimplemented metrics: I,J,K,M,O,S,U-c,e-[latest]
- * Unsupported metrics (these will never be added): A,H
+ * Unimplemented metrics: I,J,K,M,O,S,U-c
+ * Unsupported metrics (these will never be added): A,H,x,y,1,2
  */
 @SdkProtectedApi
 public enum BusinessMetricFeatureId {
@@ -41,6 +41,27 @@ public enum BusinessMetricFeatureId {
     ACCOUNT_ID_MODE_REQUIRED("R"),
     RESOLVED_ACCOUNT_ID("T"),
     DDB_MAPPER("d"),
+    CREDENTIALS_CODE("e"), //StaticCredentialsProvider
+    CREDENTIALS_JVM_SYSTEM_PROPERTIES("f"), //SystemPropertyCredentialsProvider
+    CREDENTIALS_ENV_VARS("g"), //EnvironmentVariableCredentialsProvider
+    CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN("h"), //WebIdentityTokenFileCredentialsProvider
+    CREDENTIALS_STS_ASSUME_ROLE("i"), //StsAssumeRoleCredentialsProvider
+    CREDENTIALS_STS_ASSUME_ROLE_SAML("j"), //StsAssumeRoleWithSamlCredentialsProvider
+    CREDENTIALS_STS_ASSUME_ROLE_WEB_ID("k"), //StsAssumeRoleWithWebIdentityCredentialsProvider
+    CREDENTIALS_STS_FEDERATION_TOKEN("l"), //StsGetFederationTokenCredentialsProvider
+    CREDENTIALS_STS_SESSION_TOKEN("m"), //StsGetSessionTokenCredentialsProvider
+    CREDENTIALS_PROFILE("n"), // ProfileCredentialsProvider and static credentials/session credentials
+    CREDENTIALS_PROFILE_SOURCE_PROFILE("o"), //ProfileCredentialsProvider + other providers
+    CREDENTIALS_PROFILE_NAMED_PROVIDER("p"), //ProfileCredentialsProvider + InstanceProfile or ContainerCredentialsProvider
+    CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN("q"), //ProfileCredentialsProvider + StsAssumeRoleWithWebIdentityCredentialsProvider
+    CREDENTIALS_PROFILE_SSO("r"), //ProfileCredentialsProvider + SsoCredentialsProvider
+    CREDENTIALS_SSO("s"), //SsoCredentialsProvider
+    CREDENTIALS_PROFILE_SSO_LEGACY("t"), //ProfileCredentialsProvider + SsoCredentialsProvider
+    CREDENTIALS_SSO_LEGACY("u"), //Not used, "CREDENTIALS_SSO" will always be applied. For legacy, look for "t,s"
+    CREDENTIALS_PROFILE_PROCESS("v"), //ProfileCredentialsProvider + ProcessCredentialsProvider
+    CREDENTIALS_PROCESS("w"), //ProcessCredentialsProvider
+    CREDENTIALS_HTTP("z"), //ContainerCredentialsProvider
+    CREDENTIALS_IMDS("0"), //InstanceProfileCredentialsProvider
     UNKNOWN("Unknown");
 
     private static final Map<String, BusinessMetricFeatureId> VALUE_MAP =
