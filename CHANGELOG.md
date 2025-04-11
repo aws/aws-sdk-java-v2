@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.20__ __2025-04-10__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive / Features : Add support for CMAF Ingest CaptionLanguageMappings, TimedMetadataId3 settings, and Link InputResolution.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Introduce three new APIs: CreateDataSetExportTask, GetDataSetExportTask and ListDataSetExportHistory. Add support for batch restart for Blu Age applications.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - AWS ElastiCache SDK now supports using MemcachedUpgradeConfig parameter with ModifyCacheCluster API to enable updating Memcached cache node types. Please refer to updated AWS ElastiCache public documentation for detailed information on API usage and implementation.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add support to analysis and sheet level highlighting in QuickSight.
+
+## __Application Auto Scaling__
+  - ### Features
+    - Application Auto Scaling now supports horizontal scaling for Elasticache Memcached self-designed clusters using target tracking scaling policies and scheduled scaling.
+
+## __QBusiness__
+  - ### Features
+    - Adds functionality to enable/disable a new Q Business Hallucination Reduction feature. If enabled, Q Business will detect and attempt to remove Hallucinations from certain Chat requests.
+
+# __2.31.19__ __2025-04-09__
+## __AWS Control Catalog__
+  - ### Features
+    - The GetControl API now surfaces a control's Severity, CreateTime, and Identifier for a control's Implementation. The ListControls API now surfaces a control's Behavior, Severity, CreateTime, and Identifier for a control's Implementation.
+
+## __AWS Glue__
+  - ### Features
+    - The TableOptimizer APIs in AWS Glue now return the DpuHours field in each TableOptimizerRun, providing clients visibility to the DPU-hours used for billing in managed Apache Iceberg table compaction optimization.
+
+## __AWS Ground Station__
+  - ### Features
+    - Support tagging Agents and adjust input field validations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - This launch includes 2 enhancements to SFTP connectors user-experience: 1) Customers can self-serve concurrent connections setting for their connectors, and 2) Customers can discover the public host key of remote servers using their SFTP connectors.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Documentation update for secondary indexes and Create_Table.
+
 # __2.31.18__ __2025-04-08__
 ## __AWS Cost Explorer Service__
   - ### Features
