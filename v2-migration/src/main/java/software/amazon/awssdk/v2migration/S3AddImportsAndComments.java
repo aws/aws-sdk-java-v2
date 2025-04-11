@@ -83,7 +83,6 @@ public class S3AddImportsAndComments extends Recipe {
             boolean isSetBucketAcl = SET_BUCKET_ACL.matches(method);
 
             if (isSetObjectAcl || isSetBucketAcl) {
-                removeV1S3ModelImport("AccessControlList");
                 removeV1S3ModelImport("CannedAccessControlList");
                 maybeAddV2CannedAclImport(method.getArguments(), isSetObjectAcl, isSetBucketAcl);
 
