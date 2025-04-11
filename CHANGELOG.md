@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.21__ __2025-04-11__
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Add support for Marketplace Entitlement Service dual-stack endpoints for CN and GOV regions
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Changed the minimum length of clusterIdentifier, computeNodeGroupIdentifier, and queueIdentifier to 3.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update `aws-crt` to `0.38.1`.
+    - Updated endpoint and partition metadata.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Add support for Marketplace Metering Service dual-stack endpoints for CN regions
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Making sentiment optional for ListRealtimeContactAnalysisSegments Response depending on conversational analytics configuration
+
+## __Amazon DataZone__
+  - ### Features
+    - Raise hard limit of authorized principals per SubscriptionTarget from 10 to 20.
+
+## __Amazon Detective__
+  - ### Features
+    - Add support for Detective DualStack endpoints
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc only update for API descriptions.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Adds deletion protection support to policy stores. Deletion protection is disabled by default, can be enabled via the CreatePolicyStore or UpdatePolicyStore APIs, and is visible in GetPolicyStore.
+
 # __2.31.20__ __2025-04-10__
 ## __AWS Elemental MediaLive__
   - ### Features
