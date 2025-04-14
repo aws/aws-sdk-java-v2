@@ -37,7 +37,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class S3AddImportsAndComments extends Recipe {
 
-    private static final MethodMatcher CREATE_BUCKET = v1S3MethodMatcher("createBucket(String, com.amazonaws.services.s3.model.Region)");
+    private static final MethodMatcher CREATE_BUCKET = v1S3MethodMatcher("createBucket(String, "
+                                                                         + "com.amazonaws.services.s3.model.Region)");
     private static final MethodMatcher LIST_NEXT_BATCH_OBJECTS = v1S3MethodMatcher("listNextBatchOfObjects(..)");
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
