@@ -68,7 +68,7 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
 
                 if (eventMemberShape == null || !eventMemberShape.isEvent()) {
                     throw new IllegalStateException(
-                        String.format("Error: %s must be an Event shape when processing "
+                        String.format("Error: [%s] must be an Event shape when processing "
                                       + "customization config duplicateAndRenameSharedEvents.%s",
                                       eventEntry.getKey(), eventStreamName));
                 }
@@ -76,7 +76,7 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
                 String newShapeName = eventEntry.getValue();
                 if (serviceModel.getShapes().containsKey(newShapeName)) {
                     throw new IllegalStateException(
-                        String.format("Error: %s is already in the model when processing "
+                        String.format("Error: [%s] is already in the model when processing "
                                       + "customization config duplicateAndRenameSharedEvents.%s",
                                       newShapeName, eventStreamName));
                 }
@@ -96,7 +96,7 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
         }
         if (!shape.isEventstream()) {
             throw new IllegalStateException(
-                String.format("Error: %s must be an EventStream when processing "
+                String.format("Error: [%s] must be an EventStream when processing "
                               + "customization config duplicateAndRenameSharedEvents.%s", name, name));
         }
     }
@@ -115,7 +115,7 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
                         if (seenEvents.containsKey(memberShape.getShapeName())
                             && !seenEvents.get(memberShape.getShapeName()).equals(shapeModel.getShapeName())) {
                             throw new IllegalStateException(
-                                String.format("Event %s is shared between multiple EventStreams. Apply the "
+                                String.format("Event shape `%s` is shared between multiple EventStreams. Apply the "
                                               + "duplicateAndRenameSharedEvents customization to resolve the issue.",
                                               memberShape.getShapeName()));
                         }

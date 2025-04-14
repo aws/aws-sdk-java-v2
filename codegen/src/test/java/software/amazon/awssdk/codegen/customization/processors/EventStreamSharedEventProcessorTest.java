@@ -20,24 +20,33 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
-import org.junit.jupiter.api.Test;
+import java.util.Map;
+import org.junit.Before;
+import org.junit.Test;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 public class EventStreamSharedEventProcessorTest {
     private static final String RESOURCE_ROOT = "/software/amazon/awssdk/codegen/customization/processors"
                                                 + "/eventstreamsharedeventprocessor/";
 
-    @Test
-    public void duplicatesAndRenamesSharedEvent() {
+    private ServiceModel serviceModel;
+
+    @Before
+    public void setUp() {
         File serviceModelFile =
             new File(EventStreamSharedEventProcessorTest.class.getResource(RESOURCE_ROOT + "service-2.json").getFile());
-        ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
-        File customizationConfigFile =
+        serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
+    }
+
+    @Test
+    public void duplicatesAndRenamesSharedEvent() {
+       File customizationConfigFile =
             new File(EventStreamSharedEventProcessorTest.class.getResource(RESOURCE_ROOT + "customization.config").getFile());
         CustomizationConfig config = ModelLoaderUtils.loadModel(CustomizationConfig.class, customizationConfigFile);
 
@@ -55,10 +64,6 @@ public class EventStreamSharedEventProcessorTest {
 
     @Test
     public void modelWithSharedEvents_raises() {
-        File serviceModelFile =
-            new File(EventStreamSharedEventProcessorTest.class.getResource(RESOURCE_ROOT + "service-2.json").getFile());
-        ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
-
         CustomizationConfig emptyConfig = CustomizationConfig.create();
 
         assertThatThrownBy(() -> new IntermediateModelBuilder(
@@ -67,6 +72,52 @@ public class EventStreamSharedEventProcessorTest {
                      .customizationConfig(emptyConfig)
                      .build()).build())
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Event Payload is shared between multiple EventStreams");
+            .hasMessageContaining("Event shape `Payload` is shared between multiple EventStreams");
+    }
+
+    @Test
+    public void invalidCustomization_missingShape() {
+        Map<String, Map<String, String>> duplicateAndRenameSharedEvents = ImmutableMap.of("MissingShape", null);
+
+        EventStreamSharedEventProcessor processor =
+            new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
+        assertThatThrownBy(() -> processor.preprocess(serviceModel))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Cannot find eventstream shape [MissingShape]");
+    }
+
+    @Test
+    public void invalidCustomization_notEventStream() {
+        Map<String, Map<String, String>> duplicateAndRenameSharedEvents = ImmutableMap.of("Payload", null);
+
+        EventStreamSharedEventProcessor processor =
+            new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
+        assertThatThrownBy(() -> processor.preprocess(serviceModel))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Error: [Payload] must be an EventStream");
+    }
+
+    @Test
+    public void invalidCustomization_invalidMember() {
+        Map<String, Map<String, String>> duplicateAndRenameSharedEvents = ImmutableMap.of(
+            "StreamB", ImmutableMap.of("InvalidMember", "Payload"));
+
+        EventStreamSharedEventProcessor processor =
+            new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
+        assertThatThrownBy(() -> processor.preprocess(serviceModel))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Cannot find event member [InvalidMember] in the eventstream [StreamB]");
+    }
+
+    @Test
+    public void invalidCustomization_shapeAlreadyExists() {
+        Map<String, Map<String, String>> duplicateAndRenameSharedEvents = ImmutableMap.of(
+            "StreamB", ImmutableMap.of("Payload", "Payload"));
+
+        EventStreamSharedEventProcessor processor =
+            new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
+        assertThatThrownBy(() -> processor.preprocess(serviceModel))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Error: [Payload] is already in the model");
     }
 }
