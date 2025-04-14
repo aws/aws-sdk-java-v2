@@ -80,7 +80,9 @@ public class S3AddImportsAndComments extends Recipe {
                 removeV1S3ModelImport("CannedAccessControlList");
                 maybeAddV2CannedAclImport(method.getArguments(), isSetObjectAcl, isSetBucketAcl);
 
-                String comment = "Transform for AccessControlList and CannedAccessControlList not Supported.";
+                String comment = "Transform for AccessControlList and CannedAccessControlList not Supported. "
+                                 + "In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and "
+                                 + "ObjectCannedACL for objects.";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_OBJECTS.matches(method)) {
@@ -92,7 +94,10 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_VERSIONS.matches(method)) {
-                String comment = "Transform for listNextBatchOfVersions method not Supported.";
+                String comment = "Transform for listNextBatchOfVersions method not Supported."
+                                + "listNextBatchOfVersions() only exists in SDK v1, for SDK v2 use either "
+                                + "listObjectVersionsPaginator().stream for automatic pagination"
+                                + " Or manually handle pagination with listObjectVersions() and VersionIdMarker/KeyMarker. ";
                 return method.withComments(createComments(comment));
             }
             if (SET_REGION.matches(method)) {
