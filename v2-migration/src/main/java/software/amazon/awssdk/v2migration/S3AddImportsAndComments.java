@@ -37,9 +37,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class S3AddImportsAndComments extends Recipe {
 
+    private static final MethodMatcher CREATE_BUCKET = v1S3MethodMatcher("createBucket(String, com.amazonaws.services.s3.model.Region)");
     private static final MethodMatcher LIST_NEXT_BATCH_OBJECTS = v1S3MethodMatcher("listNextBatchOfObjects(..)");
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
+    private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
     private static final MethodMatcher SET_BUCKET_ACL = v1S3MethodMatcher("setBucketAcl(..)");
+    private static final MethodMatcher SET_ENDPOINT = v1S3MethodMatcher("setEndpoint(..)");
     private static final MethodMatcher SET_OBJECT_ACL = v1S3MethodMatcher("setObjectAcl(..)");
     private static final MethodMatcher SET_REGION = v1S3MethodMatcher("setRegion(..)");
     private static final MethodMatcher SET_S3CLIENT_OPTIONS = v1S3MethodMatcher("setS3ClientOptions(..)");
@@ -49,16 +52,6 @@ public class S3AddImportsAndComments extends Recipe {
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
     private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
-
-    /*
-    TODO
-    Methods:
-    createBucket(String bucketName, Region region)
-
-    setEndpoint(String endpoint)
-    getCachedResponseMetadata(AmazonWebServiceRequest request)
-     */
-
 
     @Override
     public String getDisplayName() {
@@ -119,7 +112,28 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
 
-            // TODO
+            if (CREATE_BUCKET.matches(method)) {
+                String comment = "Transform for createBucket(String bucketName, Region region) method not supported. Please "
+                                 + "manually migrate your code by using the following pattern:"
+                                 + "createBucket(builder -> builder.bucket(bucketName)"
+                                 + ".createBucketConfiguration(cfg -> cfg.locationConstraint(region)))";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_ENDPOINT.matches(method)) {
+                String comment = "Transform for setEndpoint method not Supported. setEndpoint() method is removed in SDK v2. "
+                                 + "Please manually migrate your code by using endpointOverride(URI.create(endpoint)) in "
+                                 + "S3ClientBuilder";
+                return method.withComments(createComments(comment));
+            }
+
+            if (GET_METADATA.matches(method)) {
+                String comment = "Transform for getCachedResponseMetadata method not "
+                                 + "Supported. getCachedResponseMetadata() is removed in SDK v2. Please manually migrate your "
+                                 + "code by accessing metadata directly from specific response objects instead of cached "
+                                 + "metadata";
+                return method.withComments(createComments(comment));
+            }
 
             return method;
         }
@@ -151,8 +165,6 @@ public class S3AddImportsAndComments extends Recipe {
                                  + "or metadata map in the request builder.";
                 return newClass.withComments(createComments(comment));
             }
-
-            // TODO
 
             return newClass;
         }
