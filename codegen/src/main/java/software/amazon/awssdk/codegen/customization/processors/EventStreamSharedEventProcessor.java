@@ -111,7 +111,7 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
             if (shapeModel.isEventStream()) {
                 shapeModel.getMembers().forEach(m -> {
                     ShapeModel memberShape = intermediateModel.getShapes().get(m.getC2jShape());
-                    if (memberShape.isEvent()) {
+                    if (memberShape != null && memberShape.isEvent()) {
                         if (seenEvents.containsKey(memberShape.getShapeName())
                             && !seenEvents.get(memberShape.getShapeName()).equals(shapeModel.getShapeName())) {
                             throw new IllegalStateException(
