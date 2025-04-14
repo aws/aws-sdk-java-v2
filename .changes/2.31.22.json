@@ -1,0 +1,30 @@
+{
+    "version": "2.31.22",
+    "date": "2025-04-14",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Restored the 2.13.x changelog file."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "This is to add new metrics to our GetIdMappingJob API and also update uniqueId naming for batchDeleteUniqueIds API to be more accurate"
+        },
+        {
+            "type": "feature",
+            "category": "Tax Settings",
+            "contributor": "",
+            "description": "Indonesia SOR Tax Registration Launch"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
