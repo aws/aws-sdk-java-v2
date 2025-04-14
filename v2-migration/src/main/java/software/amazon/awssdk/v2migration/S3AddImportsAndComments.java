@@ -170,7 +170,7 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (type.isAssignableFrom(INITIATE_MPU) && newClass.getArguments().size() == 3) {
                 String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported. Please "
-                                 + "manually migrate your code by replace ObjectMetadata with individual setter methods "
+                                 + "manually migrate your code by replacing ObjectMetadata with individual setter methods "
                                  + "or metadata map in the request builder.";
                 return newClass.withComments(createComments(comment));
             }
