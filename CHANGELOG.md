@@ -1,4 +1,20 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.22__ __2025-04-14__
+## __AWS EntityResolution__
+  - ### Features
+    - This is to add new metrics to our GetIdMappingJob API and also update uniqueId naming for batchDeleteUniqueIds API to be more accurate
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Restored the 2.13.x changelog file.
+
+## __Tax Settings__
+  - ### Features
+    - Indonesia SOR Tax Registration Launch
+
 # __2.31.21__ __2025-04-11__
 ## __AWS Marketplace Entitlement Service__
   - ### Features
