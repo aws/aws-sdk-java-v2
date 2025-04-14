@@ -38,7 +38,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public class S3AddImportsAndComments extends Recipe {
 
     private static final MethodMatcher CREATE_BUCKET = v1S3MethodMatcher("createBucket(String, "
-                                                                         + "com.amazonaws.services.s3.model.Region)");
+                                                                         + V1_S3_MODEL_PKG + "Region");
     private static final MethodMatcher LIST_NEXT_BATCH_OBJECTS = v1S3MethodMatcher("listNextBatchOfObjects(..)");
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
@@ -80,33 +80,36 @@ public class S3AddImportsAndComments extends Recipe {
                 removeV1S3ModelImport("CannedAccessControlList");
                 maybeAddV2CannedAclImport(method.getArguments(), isSetObjectAcl, isSetBucketAcl);
 
-                String comment = "Transform for AccessControlList and CannedAccessControlList not Supported. "
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for AccessControlList and CannedAccessControlList not supported. "
                                  + "In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and "
                                  + "ObjectCannedACL for objects.";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_OBJECTS.matches(method)) {
-                String comment = "Transform for listNextBatchOfObjects method not Supported. "
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for listNextBatchOfObjects method not supported. "
                                  + "listNextBatchOfObjects() only exists in SDK v1, for SDK v2 use either "
                                  + "listObjectsV2Paginator().stream() for automatic pagination"
-                                 + " Or manually handle pagination with listObjectsV2() and nextToken in the response for more "
+                                 + " or manually handle pagination with listObjectsV2() and nextToken in the response for more "
                                  + "control";
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_VERSIONS.matches(method)) {
-                String comment = "Transform for listNextBatchOfVersions method not Supported."
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for listNextBatchOfVersions method not supported."
                                 + "listNextBatchOfVersions() only exists in SDK v1, for SDK v2 use either "
                                 + "listObjectVersionsPaginator().stream for automatic pagination"
-                                + " Or manually handle pagination with listObjectVersions() and VersionIdMarker/KeyMarker. ";
+                                + " or manually handle pagination with listObjectVersions() and VersionIdMarker/KeyMarker. ";
                 return method.withComments(createComments(comment));
             }
             if (SET_REGION.matches(method)) {
-                String comment = "Transform for setRegion method not Supported. Please manually "
+                String comment = "Transform for setRegion method not supported. Please manually "
                                  + "migrate your code by configuring the region in the s3 client builder";
                 return method.withComments(createComments(comment));
             }
             if (SET_S3CLIENT_OPTIONS.matches(method)) {
-                String comment = "Transform for setS3ClientOptions method not Supported. Please manually "
+                String comment = "Transform for setS3ClientOptions method not supported. Please manually "
                                  + "migrate setS3ClientOptions by configuring the equivalent settings in "
                                  + "S3Configuration.builder() when building your S3Client.";
                 return method.withComments(createComments(comment));
@@ -120,14 +123,14 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (CREATE_BUCKET.matches(method)) {
                 String comment = "Transform for createBucket(String bucketName, Region region) method not supported. Please "
-                                 + "manually migrate your code by using the following pattern:"
+                                 + "manually migrate your code by using the following pattern: "
                                  + "createBucket(builder -> builder.bucket(bucketName)"
                                  + ".createBucketConfiguration(cfg -> cfg.locationConstraint(region)))";
                 return method.withComments(createComments(comment));
             }
 
             if (SET_ENDPOINT.matches(method)) {
-                String comment = "Transform for setEndpoint method not Supported. setEndpoint() method is removed in SDK v2. "
+                String comment = "Transform for setEndpoint method not supported. setEndpoint() method is removed in SDK v2. "
                                  + "Please manually migrate your code by using endpointOverride(URI.create(endpoint)) in "
                                  + "S3ClientBuilder";
                 return method.withComments(createComments(comment));
@@ -135,7 +138,7 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (GET_METADATA.matches(method)) {
                 String comment = "Transform for getCachedResponseMetadata method not "
-                                 + "Supported. getCachedResponseMetadata() is removed in SDK v2. Please manually migrate your "
+                                 + "supported. getCachedResponseMetadata() is removed in SDK v2. Please manually migrate your "
                                  + "code by accessing metadata directly from specific response objects instead of cached "
                                  + "metadata";
                 return method.withComments(createComments(comment));
