@@ -211,6 +211,12 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to duplicate and rename an event that is shared
+     * by multiple EventStreams.
+     */
+    private Map<String, Map<String, String>> duplicateAndRenameSharedEvents = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -652,6 +658,14 @@ public class CustomizationConfig {
 
     public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+    }
+
+    public Map<String, Map<String, String>> getDuplicateAndRenameSharedEvents() {
+        return duplicateAndRenameSharedEvents;
+    }
+
+    public void  setDuplicateAndRenameSharedEvents(Map<String, Map<String, String>> duplicateAndRenameSharedEvents) {
+        this.duplicateAndRenameSharedEvents = duplicateAndRenameSharedEvents;
     }
 
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
