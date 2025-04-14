@@ -37,7 +37,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * licensed under the Apache License 2.0, available at the time of the fork (4/11/2025) here:
  * https://github.com/openrewrite/rewrite/blob/main/LICENSE
  * <p>
- * All original source licensed under the Apache License 2.0 by playframework. All modifications are licensed under the Apache
+ * All original source licensed under the Apache License 2.0. All modifications are licensed under the Apache
  * License 2.0 by Amazon Web Services.
  */
 @SdkInternalApi
