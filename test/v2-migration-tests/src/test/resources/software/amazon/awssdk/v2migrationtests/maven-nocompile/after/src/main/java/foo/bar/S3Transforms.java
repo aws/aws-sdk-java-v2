@@ -16,7 +16,6 @@
 package foo.bar;
 
 import com.amazonaws.HttpMethod;
-import com.amazonaws.services.s3.model.MultiFactorAuthentication;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
 import java.io.ByteArrayInputStream;
@@ -26,22 +25,38 @@ import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
+import software.amazon.awssdk.services.s3.model.BucketCannedACL;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GeneratePresignedUrlRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
 public class S3Transforms {
 
+    S3Client s3;
+    String bucket;
+    String key;
+
     void s3Pojos() {
+        MultiFactorAuthentication mfa = /*AWS SDK for Java v2 migration: v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on the request POJO.*/new MultiFactorAuthentication("serialNum", "token");
+
         DeleteObjectRequest deleteVersionRequest =
-            DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(new MultiFactorAuthentication("serialNum", "token"))
+            DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(mfa)
                 .build();
     }
 
-    void upload_streamWithLiteralLength(S3TransferManager tm, String bucket, String key) {
+    void setBucketAcl() {
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setBucketAcl(bucket, ObjectCannedACL.AUTHENTICATED_READ);
+    }
+
+    void setObjectAcl() {
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setObjectAcl(bucket, key, ObjectCannedACL.PUBLIC_READ);
+    }
+
+    void upload_streamWithLiteralLength(S3TransferManager tm) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
             .build();
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
@@ -50,7 +65,7 @@ public class S3Transforms {
         /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndLiteralLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, 333, newExecutorServiceVariableToDefine)).build());
     }
 
-    void upload_streamWithAssignedLength(S3TransferManager tm, String bucket, String key) {
+    void upload_streamWithAssignedLength(S3TransferManager tm) {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
             .build();
         long contentLen = 777;
@@ -60,7 +75,7 @@ public class S3Transforms {
         /*AWS SDK for Java v2 migration: When using InputStream to upload with TransferManager, you must specify Content-Length and ExecutorService.*/tm.upload(UploadRequest.builder().putObjectRequest(requestWithStreamAndAssignedLength).requestBody(AsyncRequestBody.fromInputStream(inputStream, contentLen, newExecutorServiceVariableToDefine)).build());
     }
 
-    void upload_streamWithoutLength(S3TransferManager tm, String bucket, String key) {
+    void upload_streamWithoutLength(S3TransferManager tm) {
         InputStream inputStream = new ByteArrayInputStream(("HelloWorld").getBytes());
         PutObjectRequest requestWithStreamAndNoLength = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
             .build();
@@ -99,7 +114,7 @@ PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("
         /*AWS SDK for Java v2 migration: Transform for ObjectMetadata setter - addUserMetadata - is not supported, please manually migrate the code by setting it on the v2 request/response object.*/metadata.addUserMetadata("a", "b");
     }
 
-    private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
+    private void generatePresignedUrl(Date expiration) {
         URL urlHead = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with HEAD HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.HEAD);
 
         URL urlPatch = /*AWS SDK for Java v2 migration: S3 generatePresignedUrl() with PATCH HTTP method is not supported in v2. Only GET, PUT, and DELETE are supported - https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html*/s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PATCH);
