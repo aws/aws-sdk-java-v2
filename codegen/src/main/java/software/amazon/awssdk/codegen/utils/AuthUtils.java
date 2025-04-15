@@ -68,7 +68,7 @@ public final class AuthUtils {
     }
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {
-        return model.getMetadata().getAuthType() == AuthType.BEARER;
+        return model.getMetadata().getAuth().contains(AuthType.BEARER);
     }
 
     private static boolean isServiceSigv4a(IntermediateModel model) {
