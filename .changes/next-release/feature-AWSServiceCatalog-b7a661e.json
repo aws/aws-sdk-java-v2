@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog",
+    "contributor": "",
+    "description": "Updated default value for the access-level-filter in SearchProvisionedProducts API to Account. For access to userLevel or roleLevel, the user must provide access-level-filter parameter."
+}
