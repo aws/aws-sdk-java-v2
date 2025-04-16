@@ -43,9 +43,11 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
     private static final MethodMatcher SET_BUCKET_ACL = v1S3MethodMatcher("setBucketAcl(..)");
+    private static final MethodMatcher SET_BUCKET_LOGGING = v1S3MethodMatcher("setBucketLoggingConfiguration(..)");
     private static final MethodMatcher SET_ENDPOINT = v1S3MethodMatcher("setEndpoint(..)");
     private static final MethodMatcher SET_OBJECT_ACL = v1S3MethodMatcher("setObjectAcl(..)");
     private static final MethodMatcher SET_REGION = v1S3MethodMatcher("setRegion(..)");
+    private static final MethodMatcher SET_PAYMENT_CONFIGURATION = v1S3MethodMatcher("setRequestPaymentConfiguration(..)");
     private static final MethodMatcher SET_S3CLIENT_OPTIONS = v1S3MethodMatcher("setS3ClientOptions(..)");
     private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
 
@@ -53,6 +55,8 @@ public class S3AddImportsAndComments extends Recipe {
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
     private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
+    private static final Pattern SET_BUCKET_VERSION_REQUEST = Pattern.compile(V1_S3_MODEL_PKG
+                                                                              + "SetBucketVersioningConfigurationRequest");
 
     @Override
     public String getDisplayName() {
@@ -144,6 +148,27 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
 
+            if (SET_BUCKET_LOGGING.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                removeV1S3ModelImport("BucketLoggingConfiguration");
+                addV2S3ModelImport("BucketLoggingStatus");
+                addV2S3ModelImport("LoggingEnabled");
+
+                String comment = "Transform for setBucketLoggingConfiguration method not "
+                                 + "supported. The method is renamed to putBucketLogging. Please manually migrate your code by "
+                                 + "replacing BucketLoggingConfiguration with BucketLoggingStatus and LoggingEnabled builders, "
+                                 + "and updating the method name and parameters";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_PAYMENT_CONFIGURATION.matches(method)) {
+                String comment = "Transform for setRequestPaymentConfiguration method not supported. Payer enum is a "
+                                 + "separate class in v2 (not nested). Please manually migrate "
+                                 + "your code by update from RequestPaymentConfiguration.Payer to just Payer, and adjust "
+                                 + "imports and usages.";
+                return method.withComments(createComments(comment));
+            }
+
             return method;
         }
 
@@ -154,7 +179,9 @@ public class S3AddImportsAndComments extends Recipe {
                 return newClass;
             }
 
-            if (type.isAssignableFrom(MULTI_FACTOR_AUTH)) {
+            boolean setBucketVersionUsingMFA =
+                type.isAssignableFrom(SET_BUCKET_VERSION_REQUEST) && newClass.getArguments().size() == 3;
+            if (type.isAssignableFrom(MULTI_FACTOR_AUTH) || setBucketVersionUsingMFA) {
                 removeV1S3ModelImport("MultiFactorAuthentication");
                 String comment = "v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on "
                                  + "the request POJO.";
