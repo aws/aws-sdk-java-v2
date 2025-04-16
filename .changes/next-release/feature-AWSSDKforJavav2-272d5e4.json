@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "greg-at-moderne",
+    "description": "Bumping OpenRewrite to 3.6.1 for v2 migration tooling"
+}
