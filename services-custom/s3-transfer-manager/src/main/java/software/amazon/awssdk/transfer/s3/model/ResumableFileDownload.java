@@ -352,6 +352,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
          * @return a reference to this object so that method calls can be chained together.
          */
         Builder s3ObjectEtag(String s3ObjectEtag);
+
         /**
          * Sets the last modified time of the object
          *
