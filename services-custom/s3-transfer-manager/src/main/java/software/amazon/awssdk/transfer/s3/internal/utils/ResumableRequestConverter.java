@@ -63,7 +63,9 @@ public final class ResumableRequestConverter {
         String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
 
         String s3ObjectEtag = headObjectResponse.eTag();
-        boolean etagModified = resumableFileDownloadEtag != null && !s3ObjectEtag.equals(resumableFileDownloadEtag);
+        boolean etagModified = resumableFileDownloadEtag != null &&
+                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
+
 
         boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
         boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
