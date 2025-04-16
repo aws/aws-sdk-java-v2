@@ -18,11 +18,9 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
@@ -32,7 +30,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
-import software.amazon.awssdk.utils.CollectionUtils;
 
 public class AuthSchemeProviderSpec implements ClassSpec {
     private final IntermediateModel intermediateModel;
@@ -57,57 +54,17 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                         .addJavadoc(interfaceJavadoc())
                         .addMethod(resolveAuthSchemeMethod())
                         .addMethod(resolveAuthSchemeConsumerBuilderMethod())
-                        .addMethod(resolveCandidateAuthSchemeMethod())
-                        .addMethod(getAuthSchemePreferenceMethod())
                         .addMethod(defaultProviderMethod())
-                        .addMethod(defaultProviderWithAuthPreferenceMethod())
+                        .addMethod(defaultProviderWithPreferenceMethod())
                         .build();
     }
 
     private MethodSpec resolveAuthSchemeMethod() {
         MethodSpec.Builder b = MethodSpec.methodBuilder("resolveAuthScheme");
-        b.addModifiers(Modifier.PUBLIC, Modifier.DEFAULT);
+        b.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
         b.addParameter(authSchemeSpecUtils.parametersInterfaceName(), "authSchemeParams");
         b.returns(authSchemeSpecUtils.resolverReturnType());
         b.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
-        b.addStatement("$T candidateAuthSchemes = resolveCandidateAuthScheme(authSchemeParams)", authSchemeSpecUtils.resolverReturnType());
-        b.addStatement("$T authSchemePreference = getAuthSchemePreference()", ParameterizedTypeName.get(List.class,
-                                                                                                        String.class));
-        b.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
-            .addStatement("return candidateAuthSchemes")
-            .endControlFlow();
-
-        b.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
-        b.beginControlFlow("authSchemePreference.forEach( preferredSchemeId -> ")
-            .addStatement("candidateAuthSchemes.stream().filter(a -> a.schemeId().equals(preferredSchemeId)).findFirst()"
-                          + ".ifPresent(a -> authSchemes.add(a))")
-            .endControlFlow(")");
-
-        b.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
-            .beginControlFlow("if (!authSchemes.contains(candidate))")
-            .addStatement("authSchemes.add(candidate)")
-            .endControlFlow()
-            .endControlFlow(")");
-
-        b.addStatement("return authSchemes");
-
-        return b.build();
-    }
-
-    private MethodSpec resolveCandidateAuthSchemeMethod() {
-        MethodSpec.Builder b = MethodSpec.methodBuilder("resolveCandidateAuthScheme");
-        b.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
-        b.addParameter(authSchemeSpecUtils.parametersInterfaceName(), "authSchemeParams");
-        b.returns(authSchemeSpecUtils.resolverReturnType());
-        b.addJavadoc("Resolve candidate auth schemes based on the given set of parameters.");
-        return b.build();
-    }
-
-    private MethodSpec getAuthSchemePreferenceMethod() {
-        MethodSpec.Builder b = MethodSpec.methodBuilder("getAuthSchemePreference");
-        b.addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT);
-        b.returns(ParameterizedTypeName.get(List.class, String.class));
-        b.addJavadoc("get the ordered list of auth scheme preferences.");
         return b.build();
     }
 
@@ -131,21 +88,21 @@ public class AuthSchemeProviderSpec implements ClassSpec {
 
     private MethodSpec defaultProviderMethod() {
         return MethodSpec.methodBuilder("defaultProvider")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .returns(className())
-            .addJavadoc("Get the default auth scheme provider.")
-            .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
-            .build();
-    }
-
-    private MethodSpec defaultProviderWithAuthPreferenceMethod() {
-        return MethodSpec.methodBuilder("defaultProvider")
                          .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                          .returns(className())
-                         .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
                          .addJavadoc("Get the default auth scheme provider.")
-                         // TODO: Add javadoc here for the parameter
-                         .addStatement("return $T.create(authSchemePreference)", authSchemeSpecUtils.defaultAuthSchemeProviderName())
+                         .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
+                         .build();
+    }
+
+    private MethodSpec defaultProviderWithPreferenceMethod() {
+        return MethodSpec.methodBuilder("defaultProvider")
+                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                         .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
+                         .returns(className())
+                         .addJavadoc("Get the default auth scheme provider with auth scheme preference.")
+                         .addStatement("return new $T(defaultProvider(), authSchemePreference)",
+                                       authSchemeSpecUtils.preferredAuthSchemeProviderName())
                          .build();
     }
 
