@@ -350,6 +350,12 @@ public class CustomizationConfig {
      */
     private boolean enableFastUnmarshaller;
 
+    /**
+     * A boolean flag to indicate if  bearer token sourced from the environment support should be added to the
+     * generated service.
+     */
+    private boolean enableEnvironmentBearerToken = false;
+
     private CustomizationConfig() {
     }
 
@@ -923,5 +929,13 @@ public class CustomizationConfig {
 
     public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
         this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean isEnableEnvironmentBearerToken() {
+        return enableEnvironmentBearerToken;
+    }
+
+    public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
+        this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
     }
 }

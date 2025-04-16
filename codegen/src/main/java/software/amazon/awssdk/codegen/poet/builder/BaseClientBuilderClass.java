@@ -41,6 +41,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
@@ -88,6 +89,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
+import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private static final ParameterizedTypeName GENERIC_AUTH_SCHEME_TYPE =
@@ -266,24 +268,17 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private MethodSpec mergeServiceDefaultsMethod() {
         boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
+        boolean enableEnvironmentBearerToken = model.getCustomizationConfig().isEnableEnvironmentBearerToken();
 
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
                                                .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
                                                .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c");
+                                               .beginControlFlow("return config.merge(c ->");
 
+        builder.addCode("c");
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
-
-        if (authSchemeSpecUtils.useSraAuth()) {
-            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
-            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-        } else {
-            if (defaultAwsAuthSignerMethod().isPresent()) {
-                builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
-            }
-        }
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
@@ -293,16 +288,53 @@ public class BaseClientBuilderClass implements ClassSpec {
                             SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
         }
 
-        if (AuthUtils.usesBearerAuth(model)) {
+        if (enableEnvironmentBearerToken) {
+            // this applies only on SRA auth AND bearer it should be validated already, so skip those
+            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
             builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
-                            AwsClientOption.class, TokenUtils.class);
-            builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
-            if (!authSchemeSpecUtils.useSraAuth()) {
-                builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
+                     AwsClientOption.class, TokenUtils.class);
+            builder.addCode(";\n");
+            builder.addStatement("$T tokenFromEnv = $T.resolveEnvironmentVariable($S)",
+                                 ParameterizedTypeName.get(Optional.class, String.class),
+                                 SystemSettingUtils.class,
+                                 "AWS_BEARER_TOKEN_" + StringUtils.upperCase(model.getMetadata().getSigningName()));
+
+            builder
+                .beginControlFlow("if (tokenFromEnv.isPresent() && c.option($T.AUTH_SCHEME_PROVIDER) == null && c.option($T"
+                                  + ".TOKEN_IDENTITY_PROVIDER) == null)",
+                                  SdkClientOption.class, AwsClientOption.class)
+
+                .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
+                              SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
+                              "smithy.api#httpBearerAuth")
+                    .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
+                                  AwsClientOption.class, StaticTokenProvider.class);
+            builder.nextControlFlow("else")
+                   .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())", AwsClientOption.class)
+                   .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+            builder.endControlFlow();
+        } else {
+            if (authSchemeSpecUtils.useSraAuth()) {
+                builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+                builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
+            } else {
+                if (defaultAwsAuthSignerMethod().isPresent()) {
+                    builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
+                }
             }
+
+            if (AuthUtils.usesBearerAuth(model)) {
+                builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
+                                AwsClientOption.class, TokenUtils.class);
+                builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
+                if (!authSchemeSpecUtils.useSraAuth()) {
+                    builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
+                }
+            }
+            builder.addCode(";\n");
         }
 
-        builder.addCode(");");
+        builder.endControlFlow(")");
         return builder.build();
     }
 
