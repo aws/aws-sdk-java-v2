@@ -18,12 +18,23 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.RESUME_TOKEN;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
+import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -33,6 +44,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 import software.amazon.awssdk.services.s3.paginators.ListPartsPublisher;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -49,6 +61,7 @@ public final class UploadWithKnownContentLengthHelper {
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
     private final long maxMemoryUsageInBytes;
     private final long multipartUploadThresholdInBytes;
+    private final ExecutorService executor;
     private final MultipartUploadHelper multipartUploadHelper;
 
     public UploadWithKnownContentLengthHelper(S3AsyncClient s3AsyncClient,
@@ -64,6 +77,7 @@ public final class UploadWithKnownContentLengthHelper {
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
         this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, partSizeInBytes, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
+        this.executor = Executors.newCachedThreadPool();
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
@@ -102,8 +116,10 @@ public final class UploadWithKnownContentLengthHelper {
 
     private void initiateNewUpload(PutObjectRequest putObjectRequest, long contentLength, AsyncRequestBody asyncRequestBody,
                                    CompletableFuture<PutObjectResponse> returnFuture) {
+        boolean fullChecksum = true;
+
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-            multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture);
+            multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture, fullChecksum);
 
         createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
             if (throwable != null) {
@@ -183,10 +199,40 @@ public final class UploadWithKnownContentLengthHelper {
 
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
 
-        mpuRequestContext.request().right()
-            .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
-                         .bufferSizeInBytes(maxMemoryUsageInBytes))
-            .subscribe(subscriber);
+        AsyncRequestBody requestBody = mpuRequestContext.request().right();
+
+        SdkPublisher<AsyncRequestBody> split = requestBody.split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
+                                                                       .bufferSizeInBytes(maxMemoryUsageInBytes));
+        split.subscribe(subscriber);
+
+        if (requestBody instanceof FileAsyncRequestBody) {
+            Path path = ((FileAsyncRequestBody) requestBody).getPath();
+            CompletableFuture<String> checksumFuture = CompletableFuture.supplyAsync(() -> crc32Checksum(path), executor);
+            subscriber.setChecksumFuture(checksumFuture);
+        }
+
+        if (split instanceof SplittingPublisher) {
+            CompletableFuture<String> checksumFuture = ((SplittingPublisher) split).getChecksumFuture();
+            subscriber.setChecksumFuture(checksumFuture);
+        }
+    }
+
+    private String crc32Checksum(Path path) {
+        Crc32Checksum crc32Checksum = new Crc32Checksum();
+        try (ChecksumInputStream inputStream = new ChecksumInputStream(new FileInputStream(path.toFile()), Arrays.asList(crc32Checksum))) {
+            consuming(inputStream);
+
+            return BinaryUtils.toBase64(crc32Checksum.getChecksumBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void consuming(InputStream in) throws IOException {
+        byte[] buf = new byte[128 * 1024];
+        int n = 0;
+        while ((n = in.read(buf)) > -1) {
+        }
     }
 
     private CompletableFuture<Void> identifyExistingPartsForResume(String uploadId, PutObjectRequest putObjectRequest,

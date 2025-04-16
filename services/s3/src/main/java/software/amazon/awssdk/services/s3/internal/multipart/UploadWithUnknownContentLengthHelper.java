@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
@@ -83,9 +84,16 @@ public final class UploadWithUnknownContentLengthHelper {
             asyncRequestBody.split(b -> b.chunkSizeInBytes(partSizeInBytes)
                                          .bufferSizeInBytes(maxMemoryUsageInBytes));
 
-        splitAsyncRequestBodyResponse.subscribe(new UnknownContentLengthAsyncRequestBodySubscriber(partSizeInBytes,
-                                                                                                   putObjectRequest,
-                                                                                                   returnFuture));
+        UnknownContentLengthAsyncRequestBodySubscriber subscriber =
+            new UnknownContentLengthAsyncRequestBodySubscriber(partSizeInBytes,
+                                                               putObjectRequest,
+                                                               returnFuture);
+        splitAsyncRequestBodyResponse.subscribe(subscriber);
+
+        if (splitAsyncRequestBodyResponse instanceof SplittingPublisher) {
+            CompletableFuture<String> checksumFuture = ((SplittingPublisher) splitAsyncRequestBodyResponse).getChecksumFuture();
+            subscriber.setChecksumFuture(checksumFuture);
+        }
         return returnFuture;
     }
 
@@ -129,6 +137,7 @@ public final class UploadWithUnknownContentLengthHelper {
 
         private String uploadId;
         private volatile boolean isDone;
+        private CompletableFuture<String> checksumFuture;
 
         UnknownContentLengthAsyncRequestBodySubscriber(long maximumChunkSizeInByte,
                                                        PutObjectRequest putObjectRequest,
@@ -177,7 +186,7 @@ public final class UploadWithUnknownContentLengthHelper {
             if (createMultipartUploadInitiated.compareAndSet(false, true)) {
                 log.debug(() -> "Starting the upload as multipart upload request");
                 CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
-                    multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture);
+                    multipartUploadHelper.createMultipartUpload(putObjectRequest, returnFuture, true);
 
                 createMultipartUploadFuture.whenComplete((createMultipartUploadResponse, throwable) -> {
                     if (throwable != null) {
@@ -264,9 +273,15 @@ public final class UploadWithUnknownContentLengthHelper {
                 CompletedPart[] parts = completedParts.stream()
                                                       .sorted(Comparator.comparingInt(CompletedPart::partNumber))
                                                       .toArray(CompletedPart[]::new);
-                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
+                PutObjectRequest newPutObjectRequest =
+                    putObjectRequest.toBuilder().checksumCRC32(checksumFuture.join()).build();
+                multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, newPutObjectRequest,
                                                               this.contentLength.get());
             }
+        }
+
+        public void setChecksumFuture(CompletableFuture<String> checksumFuture) {
+            this.checksumFuture = checksumFuture;
         }
     }
 }

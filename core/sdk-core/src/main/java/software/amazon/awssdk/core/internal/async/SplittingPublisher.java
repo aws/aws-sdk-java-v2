@@ -17,17 +17,23 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.internal.Crc32Checksum;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -47,10 +53,30 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
     private final SimplePublisher<AsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
     private final long chunkSizeInBytes;
     private final long bufferSizeInBytes;
+    private final CompletableFuture<String> checksumFuture = new CompletableFuture<>();
 
     public SplittingPublisher(AsyncRequestBody asyncRequestBody,
                               AsyncRequestBodySplitConfiguration splitConfiguration) {
-        this.upstreamPublisher = Validate.paramNotNull(asyncRequestBody, "asyncRequestBody");
+
+        SdkChecksum sdkChecksum = new Crc32Checksum();
+        SdkPublisher<ByteBuffer> checksumPublisher = asyncRequestBody.map(b -> {
+            b.mark();
+            sdkChecksum.update(b);
+            b.reset();
+            return b;
+        }).doAfterOnComplete(() -> checksumFuture.complete(BinaryUtils.toBase64(sdkChecksum.getChecksumBytes())));
+
+        this.upstreamPublisher = Validate.paramNotNull(new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return asyncRequestBody.contentLength();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                checksumPublisher.subscribe(s);
+            }
+        }, "asyncRequestBody");
         Validate.notNull(splitConfiguration, "splitConfiguration");
         this.chunkSizeInBytes = splitConfiguration.chunkSizeInBytes() == null ?
                                 AsyncRequestBodySplitConfiguration.defaultConfiguration().chunkSizeInBytes() :
@@ -60,6 +86,7 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                                  AsyncRequestBodySplitConfiguration.defaultConfiguration().bufferSizeInBytes() :
                                  splitConfiguration.bufferSizeInBytes();
 
+
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
 
         if (!upstreamPublisher.contentLength().isPresent()) {
@@ -67,6 +94,10 @@ public class SplittingPublisher implements SdkPublisher<AsyncRequestBody> {
                             "bufferSizeInBytes must be larger than or equal to " +
                             "chunkSizeInBytes if the content length is unknown");
         }
+    }
+
+    public CompletableFuture<String> getChecksumFuture() {
+        return checksumFuture;
     }
 
     @Override

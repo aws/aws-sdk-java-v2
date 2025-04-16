@@ -73,6 +73,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
      */
     private final AtomicBoolean completedMultipartInitiated = new AtomicBoolean(false);
     private volatile CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture;
+    private volatile CompletableFuture<String> checksumFuture;
 
     KnownContentLengthAsyncRequestBodySubscriber(MpuRequestContext mpuRequestContext,
                                                  CompletableFuture<PutObjectResponse> returnFuture,
@@ -212,7 +213,10 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                 // List of CompletedParts needs to be in ascending order
                 parts = mergeCompletedParts();
             }
-            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
+
+            PutObjectRequest newPutObjectRequest =
+                putObjectRequest.toBuilder().checksumCRC32(checksumFuture.join()).build();
+            completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, newPutObjectRequest,
                                                                               contentLength);
         }
     }
@@ -227,5 +231,9 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             currPart++;
         }
         return merged;
+    }
+
+    public void setChecksumFuture(CompletableFuture<String> checksumFuture) {
+        this.checksumFuture = checksumFuture;
     }
 }

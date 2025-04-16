@@ -240,7 +240,7 @@ final class DefaultSdkHttpFullRequest implements SdkHttpFullRequest {
                        .add("host", host)
                        .add("port", port)
                        .add("encodedPath", path)
-                       .add("headers", headers.forInternalRead().keySet())
+                       .add("headers", headers.forInternalRead())
                        .add("queryParameters", queryParameters.forInternalRead().keySet())
                        .build();
     }

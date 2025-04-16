@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.ChecksumType;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -69,6 +70,23 @@ public final class MultipartUploadHelper {
     CompletableFuture<CreateMultipartUploadResponse> createMultipartUpload(PutObjectRequest putObjectRequest,
                                                                            CompletableFuture<PutObjectResponse> returnFuture) {
         CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
+        CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
+            s3AsyncClient.createMultipartUpload(request);
+
+        // Ensure cancellations are forwarded to the createMultipartUploadFuture future
+        CompletableFutureUtils.forwardExceptionTo(returnFuture, createMultipartUploadFuture);
+        return createMultipartUploadFuture;
+    }
+
+
+    public CompletableFuture<CreateMultipartUploadResponse> createMultipartUpload(PutObjectRequest putObjectRequest,
+                                                                                  CompletableFuture<PutObjectResponse> returnFuture,
+                                                                                  boolean fullChecksum) {
+        CreateMultipartUploadRequest request = SdkPojoConversionUtils.toCreateMultipartUploadRequest(putObjectRequest);
+        if (fullChecksum) {
+            request = request.toBuilder().checksumType(ChecksumType.FULL_OBJECT).build();
+        }
+
         CompletableFuture<CreateMultipartUploadResponse> createMultipartUploadFuture =
             s3AsyncClient.createMultipartUpload(request);
 
