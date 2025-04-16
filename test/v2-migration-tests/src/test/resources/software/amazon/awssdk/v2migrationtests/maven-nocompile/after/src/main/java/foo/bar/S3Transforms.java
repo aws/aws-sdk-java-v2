@@ -49,11 +49,11 @@ public class S3Transforms {
     }
 
     void setBucketAcl() {
-        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setBucketAcl(bucket, ObjectCannedACL.AUTHENTICATED_READ);
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setBucketAcl(bucket, CannedAccessControlList.AuthenticatedRead);
     }
 
     void setObjectAcl() {
-        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setObjectAcl(bucket, key, ObjectCannedACL.PUBLIC_READ);
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setObjectAcl(bucket, key, CannedAccessControlList.PublicRead);
     }
 
     void upload_streamWithLiteralLength(S3TransferManager tm) {
