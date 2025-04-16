@@ -47,10 +47,6 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * An opaque token that holds the state and can be used to resume a paused download operation.
  * <p>
- * This token stores metadata about the S3 object, including its last modified time and ETag,
- * which are used to validate that the object has not changed between pause and resume operations.
- * </p>
- * <p>
  * <b>Serialization: </b>When serializing this token, the following structures will not be preserved/persisted:
  * <ul>
  *     <li>{@link TransferRequestOverrideConfiguration}</li>

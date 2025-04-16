@@ -444,34 +444,6 @@ class GenericS3TransferManager implements S3TransferManager {
         CompletableFutureUtils.forwardExceptionTo(returnFuture, headFuture);
 
         headFuture.thenAccept(headObjectResponse -> {
-            resumableFileDownload.s3ObjectEtag().ifPresent(eTag -> {
-                if (!eTag.equals(headObjectResponse.eTag())) {
-                    throw SdkClientException.builder()
-                                            .message(String.format("ETag mismatch detected during resumed download. Object in "
-                                                                    + "bucket '%s' with key '%s' has been modified."
-                                                                    + " Expected ETag: %s, Found: %s",
-                                                                   getObjectRequest.bucket(),
-                                                                   getObjectRequest.key(),
-                                                                   eTag,
-                                                                   headObjectResponse.eTag())
-                                            ).build();
-                }
-            });
-
-            resumableFileDownload.s3ObjectLastModified().ifPresent(storedLastModified -> {
-                if (storedLastModified.isBefore(headObjectResponse.lastModified())) {
-                    throw SdkClientException.builder()
-                                            .message(String.format(
-                                                "The requested object in bucket '%s' with key '%s' is modified on Amazon S3 since the last pause. " +
-                                                "Last modified time recorded: %s, Current last modified time: %s",
-                                                getObjectRequest.bucket(),
-                                                getObjectRequest.key(),
-                                                storedLastModified,
-                                                headObjectResponse.lastModified())
-                                            ).build();
-                }
-            });
-
             Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>
                 requestPair = toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse,
                                                                   originalDownloadRequest);

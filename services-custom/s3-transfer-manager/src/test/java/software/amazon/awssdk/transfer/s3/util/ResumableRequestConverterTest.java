@@ -25,10 +25,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -116,6 +120,40 @@ class ResumableRequestConverterTest {
         verifyActualGetObjectRequest(getObjectRequest, actual.left().getObjectRequest(), null);
     }
 
+    static Stream<Arguments> EtagTestCases() {
+        return Stream.of(
+            Arguments.of("acbd18db4cc2f85cedef654fccc4a4d8", null), // etag of "foo"
+            Arguments.of("37b51d194a7513e45b56f6524f2d51f2", "bytes=1000-2000"), // etag of "bar"
+            Arguments.of(null, "bytes=1000-2000"),
+            Arguments.of("ddc35f88fa71b6ef142ae61f35364653", null) // etag of "Bar"
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("EtagTestCases")
+    void toDownloadFileAndTransformer_fileEtagChanged_shouldRestartOrResume(String etag, String range) {
+        Instant s3ObjectLastModified = Instant.now();
+        GetObjectRequest getObjectRequest = getObjectRequest();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred(1000L)
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                                                           .s3ObjectEtag(etag)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .build();
+
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
+                                                downloadFileRequest);
+
+        verifyActualGetObjectRequest(getObjectRequest, actual.left().getObjectRequest(), range);
+    }
+
     @Test
     void toDownloadFileAndTransformer_fileLengthChanged_shouldStartFromBeginning() {
         Instant s3ObjectLastModified = Instant.now();
@@ -149,6 +187,7 @@ class ResumableRequestConverterTest {
             .builder()
             .contentLength(2000L)
             .lastModified(s3ObjectLastModified)
+            .eTag("37b51d194a7513e45b56f6524f2d51f2")
             .build();
     }
 
