@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Added support for new AL2023 ARM64 NVIDIA AMIs to the supported AMITypes."
+}
