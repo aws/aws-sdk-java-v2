@@ -17,7 +17,6 @@ package foo.bar;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.ObjectTagging;
@@ -41,7 +40,7 @@ public class S3Streaming {
         S3Object s3Object = s3.getObject(bucket, key);
         s3Object.getObjectContent().close();
 
-        s3.getObject(new GetObjectRequest(bucket, key), file);
+        ObjectMetadata objectMetadata = s3.getObject(new GetObjectRequest(bucket, key), file);
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -111,7 +110,6 @@ public class S3Streaming {
             new PutObjectRequest("bucket", "key", "location")
                 .withBucketName("bucketName")
                 .withRedirectLocation("redirectLocation")
-                .withCannedAcl(CannedAccessControlList.AwsExecRead)
                 .withTagging(objectTagging);
     }
 
