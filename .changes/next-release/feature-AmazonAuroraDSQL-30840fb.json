@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Aurora DSQL",
+    "contributor": "",
+    "description": "Added GetClusterEndpointService API. The new API allows retrieving endpoint service name specific to a cluster."
+}
