@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "contributor": "",
-    "description": "Adding support for KmsKeyIdentifer in CreateConnection, UpdateConnection and DescribeConnection APIs"
-}

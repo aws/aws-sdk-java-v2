@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "greg-at-moderne",
-    "description": "Compile v2 migration OpenRewrite recipes with `-parameters`"
-}

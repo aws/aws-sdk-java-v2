@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.23__ __2025-04-16__
+## __AWS Resource Groups__
+  - ### Features
+    - Resource Groups: TagSyncTasks can be created with ResourceQuery
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Compile v2 migration OpenRewrite recipes with `-parameters`
+        - Contributed by: [@greg-at-moderne](https://github.com/greg-at-moderne)
+
+## __AWS Service Catalog__
+  - ### Features
+    - Updated default value for the access-level-filter in SearchProvisionedProducts API to Account. For access to userLevel or roleLevel, the user must provide access-level-filter parameter.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Added GetClusterEndpointService API. The new API allows retrieving endpoint service name specific to a cluster.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This feature provides capabilities to help track and meet service level agreements (SLAs) on cases programmatically. It allows configuring a new related item of type `Sla` on a case using CreateRelatedItem API and provides the ability to search for this new related item using SearchRelatedItems API.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Added support for new AL2023 ARM64 NVIDIA AMIs to the supported AMITypes.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adding support for KmsKeyIdentifer in CreateConnection, UpdateConnection and DescribeConnection APIs
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports setting encryption configurations on table buckets and tables. Encryption configurations can use server side encryption using AES256 or KMS customer-managed keys.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@greg-at-moderne](https://github.com/greg-at-moderne)
 # __2.31.22__ __2025-04-14__
 ## __AWS EntityResolution__
   - ### Features

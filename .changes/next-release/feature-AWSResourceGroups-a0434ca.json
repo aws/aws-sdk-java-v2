@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resource Groups",
-    "contributor": "",
-    "description": "Resource Groups: TagSyncTasks can be created with ResourceQuery"
-}
