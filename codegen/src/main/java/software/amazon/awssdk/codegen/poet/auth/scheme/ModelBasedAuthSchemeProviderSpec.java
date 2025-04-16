@@ -55,13 +55,9 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
                         .addAnnotation(SdkInternalApi.class)
                         .addSuperinterface(authSchemeSpecUtils.providerInterfaceName())
                         .addMethod(constructor())
-                        .addMethod(constructorWithAuthPreference())
                         .addField(defaultInstance())
-                        .addField(authPreference())
                         .addMethod(createMethod())
-                        .addMethod(createWithAuthPreferenceMethod())
-                        .addMethod(getAuthSchemePreferenceMethod())
-                        .addMethod(resolveCandidateAuthSchemeMethod())
+                        .addMethod(resolveAuthSchemeMethod())
                         .build();
     }
 
@@ -72,25 +68,8 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
                         .build();
     }
 
-    private FieldSpec authPreference() {
-        return FieldSpec.builder(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
-                        .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                        .build();
-    }
-
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PRIVATE)
-                         .addStatement("authSchemePreference = $T.emptyList()", Collections.class)
-                         .build();
-    }
-
-    private MethodSpec constructorWithAuthPreference() {
-        return MethodSpec.constructorBuilder()
-                         .addModifiers(Modifier.PRIVATE)
-                         .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
-                         .addStatement("this.authSchemePreference = authSchemePreference") // TODO: Should we copy this?
-                         .build();
+        return MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build();
     }
 
     private MethodSpec createMethod() {
@@ -101,26 +80,8 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
                          .build();
     }
 
-    private MethodSpec createWithAuthPreferenceMethod() {
-        return MethodSpec.methodBuilder("create")
-                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                         .returns(className())
-                         .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
-                         .addStatement("return new $T(authSchemePreference)", className())
-                         .build();
-    }
-
-    private MethodSpec getAuthSchemePreferenceMethod() {
-        return MethodSpec.methodBuilder("getAuthSchemePreference")
-        .addModifiers(Modifier.PUBLIC)
-        .addAnnotation(Override.class)
-        .returns(ParameterizedTypeName.get(List.class, String.class))
-        .addStatement("return authSchemePreference") // TODO: return copy?
-        .build();
-    }
-
-    private MethodSpec resolveCandidateAuthSchemeMethod() {
-        MethodSpec.Builder spec = MethodSpec.methodBuilder("resolveCandidateAuthScheme")
+    private MethodSpec resolveAuthSchemeMethod() {
+        MethodSpec.Builder spec = MethodSpec.methodBuilder("resolveAuthScheme")
                                             .addModifiers(Modifier.PUBLIC)
                                             .addAnnotation(Override.class)
                                             .returns(authSchemeSpecUtils.resolverReturnType())
