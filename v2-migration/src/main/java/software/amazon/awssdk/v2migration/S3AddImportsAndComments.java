@@ -50,6 +50,9 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher SET_PAYMENT_CONFIGURATION = v1S3MethodMatcher("setRequestPaymentConfiguration(..)");
     private static final MethodMatcher SET_S3CLIENT_OPTIONS = v1S3MethodMatcher("setS3ClientOptions(..)");
     private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
+    private static final MethodMatcher SET_LIFECYCLE_CONFIGURATION = v1S3MethodMatcher("setBucketLifecycleConfiguration(..)");
+    private static final MethodMatcher SET_TAGGING_CONFIGURATION = v1S3MethodMatcher("setBucketTaggingConfiguration(..)");
+
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
@@ -165,7 +168,25 @@ public class S3AddImportsAndComments extends Recipe {
                 String comment = "Transform for setRequestPaymentConfiguration method not supported. Payer enum is a "
                                  + "separate class in v2 (not nested). Please manually migrate "
                                  + "your code by update from RequestPaymentConfiguration.Payer to just Payer, and adjust "
-                                 + "imports and usages.";
+                                 + "imports and names.";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_LIFECYCLE_CONFIGURATION.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrating"
+                                 + " your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to "
+                                 + "LifecycleRule, StorageClass to TransitionStorageClass, and adjust "
+                                 + "imports and names.";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_TAGGING_CONFIGURATION.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for setBucketTaggingConfiguration method not supported. Please manually migrating"
+                                 + " your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList"
+                                 + "(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports"
+                                 + " and names.";
                 return method.withComments(createComments(comment));
             }
 
