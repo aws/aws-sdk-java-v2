@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "Adds a new AccountSetting - defaultLogDriverMode for ECS."
-}
