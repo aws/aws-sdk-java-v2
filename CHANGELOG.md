@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.24__ __2025-04-17__
+## __AWS IoT FleetWise__
+  - ### Features
+    - We've added stricter parameter validations to AWS IoT FleetWise signal catalog, model manifest, and decoder manifest APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Access Analyzer__
+  - ### Features
+    - Added new resource types to evaluate for public access in resource policies and added support for S3 directory bucket access points.
+
+## __Amazon Bedrock__
+  - ### Features
+    - With this release, Bedrock Evaluation will now support custom metrics for evaluation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds following capabilities to Contact Lens Rules APIs 1/ 'ASSIGN_SLA' action and '$.Case.TemplateId' comparison value for 'OnCaseCreate' and 'OnCaseUpdate' event sources 2/ 'OnSlaBreach' Cases event source which supports '$.RelatedItem.SlaConfiguration.Name' comparison value
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adds a new AccountSetting - defaultLogDriverMode for ECS.
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Added support for IPv6 and dual stack for Valkey and Redis clusters. Customers can now launch new Valkey and Redis clusters with IPv6 and dual stack networking support.
+
+## __Amazon Omics__
+  - ### Features
+    - Add versioning for HealthOmics workflows
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Workspace Configuration APIs for Amazon Prometheus
+
+## __Auto Scaling__
+  - ### Features
+    - Doc only update for EC2 Auto Scaling.
+
 # __2.31.23__ __2025-04-16__
 ## __AWS Resource Groups__
   - ### Features
