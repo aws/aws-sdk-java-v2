@@ -57,6 +57,8 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
         mappedTable.createTable();
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
+        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
+        RECORDS.forEach(record -> record.setVersion(1));
     }
 
     @AfterClass
@@ -68,14 +70,8 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         }
     }
 
-    private void insertRecords() {
-        RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
-    }
-
     @Test
     public void scan_withoutReturnConsumedCapacity_checksPageCount() {
-        insertRecords();
-
         Iterator<Page<Record>> results = mappedTable.scan(ScanEnhancedRequest.builder().limit(5).build())
                                                     .iterator();
         Page<Record> page1 = results.next();
@@ -97,8 +93,6 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
 
     @Test
     public void scan_withReturnConsumedCapacityAndDifferentReadConsistency_checksConsumedCapacity() {
-        insertRecords();
-
         Iterator<Page<Record>> eventualConsistencyResult =
             mappedTable.scan(ScanEnhancedRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build())
                        .iterator();
@@ -122,8 +116,6 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
 
     @Test
     public void query_withoutReturnConsumedCapacity_checksPageCount() {
-        insertRecords();
-
         Iterator<Page<Record>> results =
             mappedTable.query(QueryEnhancedRequest.builder()
                                                   .queryConditional(sortBetween(k-> k.partitionValue("id-value").sortValue(2),
@@ -151,8 +143,6 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
 
     @Test
     public void query_withReturnConsumedCapacityAndDifferentReadConsistency_checksConsumedCapacity() {
-        insertRecords();
-
         Iterator<Page<Record>> eventualConsistencyResult =
             mappedTable.query(QueryEnhancedRequest.builder()
                                                   .queryConditional(sortGreaterThan(k -> k.partitionValue("id-value").sortValue(3)))
