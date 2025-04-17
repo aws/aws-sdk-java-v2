@@ -184,4 +184,35 @@ public final class ChainExtension implements DynamoDbEnhancedClientExtension {
                                .transformedItem(transformedItem)
                                .build();
     }
+
+    /**
+     * Implementation of the {@link DynamoDbEnhancedClientExtension} interface that will call all the chained extensions
+     * in forward order, passing the results of each one to the next and coalescing the results into a single expression.
+     * Multiple conditional statements will be separated by the string " AND ".
+     *
+     * @param context A {@link DynamoDbExtensionContext.BeforeDelete} context
+     * @return A single {@link Expression} representing the coalesced results of all the chained extensions.
+     */
+    @Override
+    public Expression beforeDelete(DynamoDbExtensionContext.BeforeDelete context) {
+        Expression conditionalExpression = null;
+
+        for (DynamoDbEnhancedClientExtension extension : this.extensionChain) {
+
+            DynamoDbExtensionContext.BeforeDelete beforeDelete =
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(context.items())
+                                               .operationContext(context.operationContext())
+                                               .tableMetadata(context.tableMetadata())
+                                               .tableSchema(context.tableSchema())
+                                               .build();
+
+            Expression additionalConditionExpression = extension.beforeDelete(beforeDelete);
+
+            conditionalExpression = mergeConditionalExpressions(conditionalExpression,
+                                                                additionalConditionExpression);
+        }
+
+        return conditionalExpression;
+    }
 }

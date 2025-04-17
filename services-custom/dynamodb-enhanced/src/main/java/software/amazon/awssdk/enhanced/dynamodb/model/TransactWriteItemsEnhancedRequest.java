@@ -19,6 +19,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,6 +35,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOp
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -282,7 +284,10 @@ public final class TransactWriteItemsEnhancedRequest {
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {
-            return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
+            TransactDeleteItemEnhancedRequest request = TransactDeleteItemEnhancedRequest.builder().key(mappedTableResource.keyFrom(keyItem)).build();
+            itemSupplierList.add(() -> generateTransactDeleteItem(mappedTableResource, DeleteItemOperation.create(request),
+                                                                 mappedTableResource.tableSchema().itemToMap(keyItem, true)));
+            return this;
         }
 
         /**
@@ -453,6 +458,15 @@ public final class TransactWriteItemsEnhancedRequest {
             return generator.generateTransactWriteItem(mappedTableResource.tableSchema(),
                                                        DefaultOperationContext.create(mappedTableResource.tableName()),
                                                        mappedTableResource.mapperExtension());
+        }
+
+        private <T> TransactWriteItem generateTransactDeleteItem(MappedTableResource<T> mappedTableResource,
+                                                                 DeleteItemOperation<T> generator,
+                                                                 Map<String, AttributeValue> itemMap) {
+            return generator.generateTransactDeleteItem(mappedTableResource.tableSchema(),
+                                                        DefaultOperationContext.create(mappedTableResource.tableName()),
+                                                        mappedTableResource.mapperExtension(),
+                                                        itemMap);
         }
     }
 }
