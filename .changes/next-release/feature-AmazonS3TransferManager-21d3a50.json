@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Amazon S3 Transfer Manager",
     "contributor": "",
-    "description": "Add support for etag validation in resumableFileDownload"
+    "description": "Add support for etag validation in resumableFileDownload: restart paused downloads when etag does not match"
 }

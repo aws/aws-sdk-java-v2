@@ -47,6 +47,9 @@ import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.utils.Pair;
 
 class ResumableRequestConverterTest {
+    private static final String ETAG_FOO = "acbd18db4cc2f85cedef654fccc4a4d8";
+    private static final String ETAG_BAR = "37b51d194a7513e45b56f6524f2d51f2";
+    private static final String ETAG_BAR_UPPERCASE = "ddc35f88fa71b6ef142ae61f35364653";
 
     private File file;
 
@@ -126,10 +129,10 @@ class ResumableRequestConverterTest {
 
     static Stream<Arguments> EtagTestCases() {
         return Stream.of(
-            Arguments.of("acbd18db4cc2f85cedef654fccc4a4d8", null), // etag of "foo"
-            Arguments.of("37b51d194a7513e45b56f6524f2d51f2", "bytes=1000-2000"), // etag of "bar"
+            Arguments.of(ETAG_FOO, null),
+            Arguments.of(ETAG_BAR, "bytes=1000-2000"),
             Arguments.of(null, "bytes=1000-2000"),
-            Arguments.of("ddc35f88fa71b6ef142ae61f35364653", null) // etag of "Bar"
+            Arguments.of(ETAG_BAR_UPPERCASE, null)
         );
     }
 
@@ -216,7 +219,7 @@ class ResumableRequestConverterTest {
             .builder()
             .contentLength(2000L)
             .lastModified(s3ObjectLastModified)
-            .eTag("37b51d194a7513e45b56f6524f2d51f2")
+            .eTag(ETAG_BAR)
             .build();
     }
 
