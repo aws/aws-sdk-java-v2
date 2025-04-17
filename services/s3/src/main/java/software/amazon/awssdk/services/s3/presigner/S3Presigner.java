@@ -47,11 +47,13 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -328,13 +330,21 @@ public interface S3Presigner extends SdkPresigner {
      * <p />
      * This is a shorter method of invoking {@link #presignGetObject(GetObjectPresignRequest)} without needing
      * to call {@code GetObjectPresignRequest.builder()} or {@code .build()}.
-     * 
+     *
      * @see #presignGetObject(GetObjectPresignRequest)
      */
     default PresignedGetObjectRequest presignGetObject(Consumer<GetObjectPresignRequest.Builder> request) {
         GetObjectPresignRequest.Builder builder = GetObjectPresignRequest.builder();
         request.accept(builder);
         return presignGetObject(builder.build());
+    }
+
+    PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request);
+
+    default PresignedHeadObjectRequest presignHeadObject(Consumer<HeadObjectPresignRequest.Builder> request) {
+        HeadObjectPresignRequest.Builder builder = HeadObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignHeadObject(builder.build());
     }
 
     /**
@@ -462,7 +472,7 @@ public interface S3Presigner extends SdkPresigner {
      * @see #presignCreateMultipartUpload(CreateMultipartUploadPresignRequest)
      */
     default PresignedCreateMultipartUploadRequest presignCreateMultipartUpload(
-        Consumer<CreateMultipartUploadPresignRequest.Builder> request) {
+            Consumer<CreateMultipartUploadPresignRequest.Builder> request) {
         CreateMultipartUploadPresignRequest.Builder builder = CreateMultipartUploadPresignRequest.builder();
         request.accept(builder);
         return presignCreateMultipartUpload(builder.build());
@@ -551,7 +561,7 @@ public interface S3Presigner extends SdkPresigner {
      * @see #presignCompleteMultipartUpload(CompleteMultipartUploadPresignRequest)
      */
     default PresignedCompleteMultipartUploadRequest presignCompleteMultipartUpload(
-        Consumer<CompleteMultipartUploadPresignRequest.Builder> request) {
+            Consumer<CompleteMultipartUploadPresignRequest.Builder> request) {
         CompleteMultipartUploadPresignRequest.Builder builder = CompleteMultipartUploadPresignRequest.builder();
         request.accept(builder);
         return presignCompleteMultipartUpload(builder.build());
@@ -596,7 +606,7 @@ public interface S3Presigner extends SdkPresigner {
      * @see #presignAbortMultipartUpload(AbortMultipartUploadPresignRequest)
      */
     default PresignedAbortMultipartUploadRequest presignAbortMultipartUpload(
-        Consumer<AbortMultipartUploadPresignRequest.Builder> request) {
+            Consumer<AbortMultipartUploadPresignRequest.Builder> request) {
         AbortMultipartUploadPresignRequest.Builder builder = AbortMultipartUploadPresignRequest.builder();
         request.accept(builder);
         return presignAbortMultipartUpload(builder.build());
