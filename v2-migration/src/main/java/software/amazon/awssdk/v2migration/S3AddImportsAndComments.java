@@ -51,6 +51,7 @@ public class S3AddImportsAndComments extends Recipe {
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
+    private static final Pattern CREATE_BUCKET_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "CreateBucketRequest");
     private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
 
@@ -172,6 +173,13 @@ public class S3AddImportsAndComments extends Recipe {
                 String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported. Please "
                                  + "manually migrate your code by replacing ObjectMetadata with individual setter methods "
                                  + "or metadata map in the request builder.";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(CREATE_BUCKET_REQUEST) && newClass.getArguments().size() == 2) {
+                String comment = "Transform for createBucketRequest method with region is not supported. Please manually "
+                                 + "migrate your code by configuring the region as locationConstraint in "
+                                 + "createBucketConfiguration in the request builder";
                 return newClass.withComments(createComments(comment));
             }
 
