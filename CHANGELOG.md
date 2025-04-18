@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.25__ __2025-04-18__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release adds support for the following capabilities: Chunking generative answer replies from Amazon Q in Connect. Integration support for the use of additional LLM models with Amazon Q in Connect.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds a new Neuron driver option in InferenceAmiVersion parameter for ProductionVariant. Additionally, it adds support for fetching model lifecycle status in the ListModelPackages API. Users can now use this API to view the lifecycle stage of models that have been shared with them.
+
+## __Service Quotas__
+  - ### Features
+    - Add new optional SupportCaseAllowed query parameter to the RequestServiceQuotaIncrease API
+
 # __2.31.24__ __2025-04-17__
 ## __AWS IoT FleetWise__
   - ### Features
