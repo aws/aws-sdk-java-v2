@@ -26,6 +26,6 @@ public final class VersionRecordAttributeTags {
     }
 
     public static StaticAttributeTag attributeTagFor(DynamoDbVersionAttribute annotation) {
-        return VersionedRecordExtension.AttributeTags.versionAttribute();
+        return VersionedRecordExtension.AttributeTags.versionAttribute(annotation.startAt(), annotation.incrementBy());
     }
 }
