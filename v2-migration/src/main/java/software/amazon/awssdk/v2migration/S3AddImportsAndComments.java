@@ -57,6 +57,7 @@ public class S3AddImportsAndComments extends Recipe {
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
     private static final Pattern CREATE_BUCKET_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "CreateBucketRequest");
+    private static final Pattern DELETE_OBJECTS_RESULT = Pattern.compile(V1_S3_MODEL_PKG + "DeleteObjectsResult");
     private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
     private static final Pattern SET_BUCKET_VERSION_REQUEST = Pattern.compile(V1_S3_MODEL_PKG
@@ -168,7 +169,7 @@ public class S3AddImportsAndComments extends Recipe {
             if (SET_PAYMENT_CONFIGURATION.matches(method)) {
                 String comment = "Transform for setRequestPaymentConfiguration method not supported. Payer enum is a "
                                  + "separate class in v2 (not nested). Please manually migrate "
-                                 + "your code by update from RequestPaymentConfiguration.Payer to just Payer, and adjust "
+                                 + "your code by updating from RequestPaymentConfiguration.Payer to just Payer, and adjust "
                                  + "imports and names.";
                 return method.withComments(createComments(comment));
             }
@@ -176,7 +177,7 @@ public class S3AddImportsAndComments extends Recipe {
             if (SET_LIFECYCLE_CONFIGURATION.matches(method)) {
                 // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrating"
-                                 + " your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to "
+                                 + " your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to "
                                  + "LifecycleRule, StorageClass to TransitionStorageClass, and adjust "
                                  + "imports and names.";
                 return method.withComments(createComments(comment));
@@ -225,9 +226,16 @@ public class S3AddImportsAndComments extends Recipe {
             }
 
             if (type.isAssignableFrom(CREATE_BUCKET_REQUEST) && newClass.getArguments().size() == 2) {
-                String comment = "Transform for createBucketRequest method with region is not supported. Please manually "
+                String comment = "Transform for createBucketRequest with region is not supported. Please manually "
                                  + "migrate your code by configuring the region as locationConstraint in "
                                  + "createBucketConfiguration in the request builder";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(DELETE_OBJECTS_RESULT)) {
+                String comment = "Transform for DeleteObjectsResult class is not supported. DeletedObject class is a "
+                                 + "separate class in v2 (not nested). Please manually migrate your code by updating "
+                                 + "DeleteObjectsResult.DeletedObject to s3.model.DeletedObject";
                 return newClass.withComments(createComments(comment));
             }
 
