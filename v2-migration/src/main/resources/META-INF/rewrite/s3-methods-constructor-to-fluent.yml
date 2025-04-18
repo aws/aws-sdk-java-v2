@@ -757,6 +757,28 @@ recipeList:
       fluentNames:
         - withTagSet
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetObjectTaggingRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - com.amazonaws.services.s3.model.ObjectTagging
+      fluentNames:
+        - withBucket
+        - withKey
+        - withTagging
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetObjectTaggingRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - com.amazonaws.services.s3.model.ObjectTagging
+      fluentNames:
+        - withBucket
+        - withKey
+        - withVersionId
+        - withTagging
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.BucketVersioningConfiguration
       parameterTypes:
         - java.lang.String
