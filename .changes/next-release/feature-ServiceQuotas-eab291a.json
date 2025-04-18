@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Service Quotas",
+    "contributor": "",
+    "description": "Add new optional SupportCaseAllowed query parameter to the RequestServiceQuotaIncrease API"
+}
