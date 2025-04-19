@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Optimistic locking while using DynamoDbEnhancedClient - DeleteItem with TransactWriteItemsEnhancedRequest"
+}

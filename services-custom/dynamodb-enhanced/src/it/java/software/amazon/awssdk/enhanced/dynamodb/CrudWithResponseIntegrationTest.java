@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
 
 import org.assertj.core.data.Offset;
 import org.junit.After;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
@@ -216,6 +219,54 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         assertThatThrownBy(() -> mappedTable.deleteItem(request))
             .isInstanceOf(ConditionalCheckFailedException.class)
             .satisfies(e -> assertThat(((ConditionalCheckFailedException) e).hasItem()).isFalse());
+    }
+
+    @Test
+    public void deleteItemWithTransactWrite_shouldFailIfVersionMismatch() {
+        Record originalItem = new Record().setId("123").setSort(10).setStringAttribute("Original Item");
+        Key recordKey = Key.builder()
+                           .partitionValue(originalItem.getId())
+                           .sortValue(originalItem.getSort())
+                           .build();
+
+        mappedTable.putItem(originalItem);
+
+        // Retrieve the item and modify it separately
+        Record modifiedItem = mappedTable.getItem(r -> r.key(recordKey));
+        modifiedItem.setStringAttribute("Updated Item");
+
+        // Update the item, which will increment the version
+        mappedTable.updateItem(modifiedItem);
+
+        //  Now attempt to delete the original item using a transaction
+        TransactWriteItemsEnhancedRequest request = TransactWriteItemsEnhancedRequest.builder()
+                                                                                     .addDeleteItem(mappedTable, modifiedItem)
+                                                                                     .build();
+
+        assertThrows(TransactionCanceledException.class, () -> enhancedClient.transactWriteItems(request));
+    }
+
+    @Test
+    public void deleteItemWithTransactWrite_shouldSucceedIfVersionMatch() {
+        Record originalItem = new Record().setId("123").setSort(10).setStringAttribute("Original Item");
+        Key recordKey = Key.builder()
+                           .partitionValue(originalItem.getId())
+                           .sortValue(originalItem.getSort())
+                           .build();
+        mappedTable.putItem(originalItem);
+
+        // Retrieve the item
+        Record retrievedItem = mappedTable.getItem(r -> r.key(recordKey));
+
+        // Delete the item using a transaction
+        TransactWriteItemsEnhancedRequest request = TransactWriteItemsEnhancedRequest.builder()
+                                                                                     .addDeleteItem(mappedTable, retrievedItem)
+                                                                                     .build();
+
+        enhancedClient.transactWriteItems(request);
+
+        Record deletedItem = mappedTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
     }
 
     @Test
