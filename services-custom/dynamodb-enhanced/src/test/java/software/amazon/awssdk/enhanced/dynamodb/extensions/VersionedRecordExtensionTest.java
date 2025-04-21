@@ -193,7 +193,7 @@ public class VersionedRecordExtensionTest {
     @Test
     public void beforeWrite_versionEqualsStartAt_treatedAsInitialVersion() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
-                                                                           .startAt(5)
+                                                                           .startAt(5L)
                                                                            .build();
 
         FakeItem fakeItem = createUniqueFakeItem();
@@ -215,7 +215,7 @@ public class VersionedRecordExtensionTest {
 
     @ParameterizedTest
     @MethodSource("customStartAtAndIncrementValues")
-    public void customStartingValueAndIncrement_worksAsExpected(Integer startAt, Integer incrementBy, String expectedVersion) {
+    public void customStartingValueAndIncrement_worksAsExpected(Long startAt, Long incrementBy, String expectedVersion) {
         VersionedRecordExtension.Builder recordExtensionBuilder = VersionedRecordExtension.builder();
         if (startAt != null) {
             recordExtensionBuilder.startAt(startAt);
@@ -253,15 +253,15 @@ public class VersionedRecordExtensionTest {
 
     public static Stream<Arguments> customStartAtAndIncrementValues() {
         return Stream.of(
-            Arguments.of(0,1,"1"),
-            Arguments.of(3,2,"5"),
-            Arguments.of(3,null,"4"),
-            Arguments.of(null,3,"3"));
+            Arguments.of(0L,1L,"1"),
+            Arguments.of(3L,2L,"5"),
+            Arguments.of(3L,null,"4"),
+            Arguments.of(null,3L,"3"));
     }
 
     @ParameterizedTest
     @MethodSource("customFailingStartAtAndIncrementValues")
-    public void customStartingValueAndIncrement_shouldThrow(Integer startAt, Integer incrementBy) {
+    public void customStartingValueAndIncrement_shouldThrow(Long startAt, Long incrementBy) {
         assertThrows(IllegalArgumentException.class, () -> VersionedRecordExtension.builder()
                                                                                .startAt(startAt)
                                                                                .incrementBy(incrementBy)
@@ -270,15 +270,15 @@ public class VersionedRecordExtensionTest {
 
     public static Stream<Arguments> customFailingStartAtAndIncrementValues() {
         return Stream.of(
-            Arguments.of(-2, 1),
-            Arguments.of(3, 0));
+            Arguments.of(-2L, 1L),
+            Arguments.of(3L, 0L));
     }
 
     @Test
     public void beforeWrite_versionNotEqualsAnnotationStartAt_notTreatedAsInitialVersion() {
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
         item.setId(UUID.randomUUID().toString());
-        item.setVersion(10);
+        item.setVersion(10L);
 
         TableSchema<FakeVersionedThroughAnnotationItem> schema =
             TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
@@ -302,7 +302,7 @@ public class VersionedRecordExtensionTest {
     public void beforeWrite_versionEqualsAnnotationStartAt_isTreatedAsInitialVersion() {
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
         item.setId(UUID.randomUUID().toString());
-        item.setVersion(3);
+        item.setVersion(3L);
 
         TableSchema<FakeVersionedThroughAnnotationItem> schema =
             TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
@@ -326,7 +326,7 @@ public class VersionedRecordExtensionTest {
     @DynamoDbBean
     public static class FakeVersionedThroughAnnotationItem {
         private String id;
-        private Integer version;
+        private Long version;
 
         public FakeVersionedThroughAnnotationItem() {
         }
@@ -336,8 +336,8 @@ public class VersionedRecordExtensionTest {
         public void setId(String id) { this.id = id; }
 
         @DynamoDbVersionAttribute(startAt = 3, incrementBy = 2)
-        public Integer getVersion() { return version; }
-        public void setVersion(Integer version) { this.version = version; }
+        public Long getVersion() { return version; }
+        public void setVersion(Long version) { this.version = version; }
     }
 
 
@@ -373,8 +373,8 @@ public class VersionedRecordExtensionTest {
     @Test
     public void customAnnotationValuesAndBuilderValues_annotationShouldTakePrecedence() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
-                                                        .startAt(5)
-                                                        .incrementBy(2)
+                                                        .startAt(5L)
+                                                        .incrementBy(2L)
                                                         .build();
 
         FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
@@ -405,7 +405,7 @@ public class VersionedRecordExtensionTest {
     @DynamoDbBean
     public static class FakeVersionedThroughAnnotationItemWithExplicitDefaultValues {
         private String id;
-        private Integer version;
+        private Long version;
 
         public FakeVersionedThroughAnnotationItemWithExplicitDefaultValues() {
         }
@@ -415,15 +415,15 @@ public class VersionedRecordExtensionTest {
         public void setId(String id) { this.id = id; }
 
         @DynamoDbVersionAttribute(startAt = 0, incrementBy = 1)
-        public Integer getVersion() { return version; }
-        public void setVersion(Integer version) { this.version = version; }
+        public Long getVersion() { return version; }
+        public void setVersion(Long version) { this.version = version; }
     }
 
     @Test
     public void customAnnotationDefaultValuesAndBuilderValues_annotationShouldTakePrecedence() {
         VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
-                                                                           .startAt(5)
-                                                                           .incrementBy(2)
+                                                                           .startAt(5L)
+                                                                           .incrementBy(2L)
                                                                            .build();
 
         FakeVersionedThroughAnnotationItemWithExplicitDefaultValues item = new FakeVersionedThroughAnnotationItemWithExplicitDefaultValues();
@@ -454,7 +454,7 @@ public class VersionedRecordExtensionTest {
     @DynamoDbBean
     public static class FakeVersionedThroughAnnotationItemWithInvalidValues {
         private String id;
-        private Integer version;
+        private Long version;
 
         public FakeVersionedThroughAnnotationItemWithInvalidValues() {
         }
@@ -464,8 +464,8 @@ public class VersionedRecordExtensionTest {
         public void setId(String id) { this.id = id; }
 
         @DynamoDbVersionAttribute(startAt = -1, incrementBy = -1)
-        public Integer getVersion() { return version; }
-        public void setVersion(Integer version) { this.version = version; }
+        public Long getVersion() { return version; }
+        public void setVersion(Long version) { this.version = version; }
     }
 
     @Test
@@ -478,8 +478,8 @@ public class VersionedRecordExtensionTest {
 
     @ParameterizedTest
     @MethodSource("customIncrementForExistingVersionValues")
-    public void customIncrementForExistingVersion_worksAsExpected(Integer startAt, Integer incrementBy,
-                                                                  Integer existingVersion, String expectedNextVersion) {
+    public void customIncrementForExistingVersion_worksAsExpected(Long startAt, Long incrementBy,
+                                                                  Long existingVersion, String expectedNextVersion) {
         VersionedRecordExtension.Builder recordExtensionBuilder = VersionedRecordExtension.builder();
         if (startAt != null) {
             recordExtensionBuilder.startAt(startAt);
@@ -490,7 +490,7 @@ public class VersionedRecordExtensionTest {
         VersionedRecordExtension recordExtension = recordExtensionBuilder.build();
 
         FakeItem fakeItem = createUniqueFakeItem();
-        fakeItem.setVersion(existingVersion);
+        fakeItem.setVersion(existingVersion.intValue());
 
         Map<String, AttributeValue> inputMap =
             new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
@@ -513,9 +513,9 @@ public class VersionedRecordExtensionTest {
 
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
         return Stream.of(
-            Arguments.of(0, 1, 5, "6"),
-            Arguments.of(3, 2, 7, "9"),
-            Arguments.of(3, null, 10, "11"),
-            Arguments.of(null, 3, 4, "7"));
+            Arguments.of(0L, 1L, 5L, "6"),
+            Arguments.of(3L, 2L, 7L, "9"),
+            Arguments.of(3L, null, 10L, "11"),
+            Arguments.of(null, 3L, 4L, "7"));
     }
 }

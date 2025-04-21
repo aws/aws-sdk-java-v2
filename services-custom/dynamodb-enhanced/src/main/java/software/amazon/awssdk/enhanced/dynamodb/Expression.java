@@ -321,7 +321,7 @@ public final class Expression {
     }
 
     /**
-     * A builder for {@link Expression}v
+     * A builder for {@link Expression}
      */
     @NotThreadSafe
     public static final class Builder {
