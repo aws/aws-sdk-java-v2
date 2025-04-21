@@ -39,7 +39,7 @@ public @interface DynamoDbVersionAttribute {
      *
      * @return the starting value
      */
-    int startAt() default 0;
+    long startAt() default 0;
 
     /**
      * The amount to increment the version by with each update.
@@ -47,6 +47,6 @@ public @interface DynamoDbVersionAttribute {
      *
      * @return the increment value
      */
-    int incrementBy() default 1;
+    long incrementBy() default 1;
 
 }
