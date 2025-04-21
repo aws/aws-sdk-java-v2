@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.26__ __2025-04-21__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Updates to documentation and exception types for Zonal Autoshift
+
+## __AWS Budgets__
+  - ### Features
+    - Releasing the new Budget FilterExpression and Metrics fields to support more granular filtering options. These new fields are intended to replace CostFilters and CostTypes, which are deprecated as of 2025/18/04.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for Recurring Prefetch and Traffic Shaping on both Single and Recurring Prefetch. ListPrefetchSchedules now return single prefetchs by default and can be provided scheduleType of SINGLE, RECURRING, AND ALL.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Minor documentation update for the GetConfigurationPolicyAssociation example
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Documentation update regarding the number of streams you can create using the CreateDeliveryStream API.
+
+## __QBusiness__
+  - ### Features
+    - The CheckDocumentAccess API for Amazon Q Business is a self-service debugging API that allows administrators to verify document access permissions and review Access Control List (ACL) configurations.
+
 # __2.31.25__ __2025-04-18__
 ## __AWS SDK for Java v2__
   - ### Features

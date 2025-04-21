@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Firehose",
-    "contributor": "",
-    "description": "Documentation update regarding the number of streams you can create using the CreateDeliveryStream API."
-}
