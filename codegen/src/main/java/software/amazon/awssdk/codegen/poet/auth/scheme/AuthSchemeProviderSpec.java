@@ -101,9 +101,8 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                          .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
                          .returns(className())
                          .addJavadoc("Get the default auth scheme provider with auth scheme preference.")
-                         .addStatement("return new $T($T.create(), authSchemePreference)",
-                                       authSchemeSpecUtils.preferredAuthSchemeProviderName(),
-                                       authSchemeSpecUtils.defaultAuthSchemeProviderName())
+                         .addStatement("return new $T(defaultProvider(), authSchemePreference)",
+                                       authSchemeSpecUtils.preferredAuthSchemeProviderName())
                          .build();
     }
 
