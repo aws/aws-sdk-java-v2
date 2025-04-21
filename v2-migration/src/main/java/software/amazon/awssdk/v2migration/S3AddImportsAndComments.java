@@ -174,7 +174,7 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (SET_LIFECYCLE_CONFIGURATION.matches(method)) {
                 // TODO: add the developer guide link in the comments once the doc is published.
-                String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrating"
+                String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate"
                                  + " your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to "
                                  + "LifecycleRule, StorageClass to TransitionStorageClass, and adjust "
                                  + "imports and names.";
@@ -183,7 +183,7 @@ public class S3AddImportsAndComments extends Recipe {
 
             if (SET_TAGGING_CONFIGURATION.matches(method)) {
                 // TODO: add the developer guide link in the comments once the doc is published.
-                String comment = "Transform for setBucketTaggingConfiguration method not supported. Please manually migrating"
+                String comment = "Transform for setBucketTaggingConfiguration method not supported. Please manually migrate"
                                  + " your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList"
                                  + "(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports"
                                  + " and names.";
