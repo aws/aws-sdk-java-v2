@@ -62,6 +62,8 @@ public class S3AddImportsAndComments extends Recipe {
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
     private static final Pattern SET_BUCKET_VERSION_REQUEST = Pattern.compile(V1_S3_MODEL_PKG
                                                                               + "SetBucketVersioningConfigurationRequest");
+    private static final Pattern BUCKET_NOTIFICATION_CONFIG = Pattern.compile(V1_S3_MODEL_PKG
+                                                                              + "BucketNotificationConfiguration");
 
     @Override
     public String getDisplayName() {
@@ -236,6 +238,16 @@ public class S3AddImportsAndComments extends Recipe {
                 String comment = "Transform for DeleteObjectsResult class is not supported. DeletedObject class is a "
                                  + "separate class in v2 (not nested). Please manually migrate your code by updating "
                                  + "DeleteObjectsResult.DeletedObject to s3.model.DeletedObject";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(BUCKET_NOTIFICATION_CONFIG)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for BucketNotificationConfiguration class is not supported. "
+                                 + "BucketNotificationConfiguration is renamed as NotificationConfiguration. There is no common"
+                                 + " abstract class for lambdaFunction/topic/queue configurations. Use specific builders "
+                                 + "instead of addConfiguration() to add configurations. Change the vararg arguments or EnumSet "
+                                 + "in configurations constructor to List<String> in v2";
                 return newClass.withComments(createComments(comment));
             }
 
