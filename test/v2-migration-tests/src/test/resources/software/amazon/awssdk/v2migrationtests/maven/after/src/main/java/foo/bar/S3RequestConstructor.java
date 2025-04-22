@@ -398,7 +398,7 @@ public class S3RequestConstructor {
                 .build());
 
 
-        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrating your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(
+        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(
         PutBucketLifecycleConfigurationRequest.builder().bucket(bucketName).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
             .build())
             .build());
@@ -433,7 +433,7 @@ public class S3RequestConstructor {
                 .build())
                 .build());
 
-        /*AWS SDK for Java v2 migration: Transform for setBucketTaggingConfiguration method not supported. Please manually migrating your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports and names.*/s3.putBucketTagging(
+        /*AWS SDK for Java v2 migration: Transform for setBucketTaggingConfiguration method not supported. Please manually migrate your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports and names.*/s3.putBucketTagging(
         PutBucketTaggingRequest.builder().bucket(bucketName).tagging(Tagging.builder()
             .build())
             .build());

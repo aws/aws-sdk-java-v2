@@ -1,4 +1,62 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.27__ __2025-04-22__
+## __AWS Account__
+  - ### Features
+    - AWS Account Management now supports account name update via IAM principals.
+
+## __AWS EntityResolution__
+  - ### Features
+    - To expand support for matching records using digital identifiers with TransUnion
+
+## __AWS S3 Control__
+  - ### Features
+    - Fix endpoint resolution test cases
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds refresh token rotation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for ClientRouteEnforcementOptions flag in CreateClientVpnEndpoint and ModifyClientVpnEndpoint requests and DescribeClientVpnEndpoints responses
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - Add support for etag validation in resumableFileDownload: restart paused downloads when etag does not match
+
+## __AmazonMQ__
+  - ### Features
+    - You can now delete Amazon MQ broker configurations using the DeleteConfiguration API. For more information, see Configurations in the Amazon MQ API Reference.
+
+## __Redshift Serverless__
+  - ### Features
+    - Provides new and updated API members to support the Redshift Serverless reservations feature.
+
+# __2.31.26__ __2025-04-21__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Updates to documentation and exception types for Zonal Autoshift
+
+## __AWS Budgets__
+  - ### Features
+    - Releasing the new Budget FilterExpression and Metrics fields to support more granular filtering options. These new fields are intended to replace CostFilters and CostTypes, which are deprecated as of 2025/18/04.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for Recurring Prefetch and Traffic Shaping on both Single and Recurring Prefetch. ListPrefetchSchedules now return single prefetchs by default and can be provided scheduleType of SINGLE, RECURRING, AND ALL.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Minor documentation update for the GetConfigurationPolicyAssociation example
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Documentation update regarding the number of streams you can create using the CreateDeliveryStream API.
+
+## __QBusiness__
+  - ### Features
+    - The CheckDocumentAccess API for Amazon Q Business is a self-service debugging API that allows administrators to verify document access permissions and review Access Control List (ACL) configurations.
+
 # __2.31.25__ __2025-04-18__
 ## __AWS SDK for Java v2__
   - ### Features
