@@ -508,13 +508,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .fipsEnabled(c.get($T.FIPS_ENDPOINT_ENABLED))", AwsClientOption.class)
                .addCode("    .build());");
 
-        if (model.getMetadata().isJsonProtocol()) {
-            if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
-                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
-                                     SdkClientJsonProtocolAdvancedOption.class);
-            }
-        }
-
         if (hasRequestAlgorithmMember(model) || hasResponseAlgorithms(model)) {
             builder.addStatement("$T clientConfig = config", SdkClientConfiguration.class);
 
