@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Account",
+    "contributor": "",
+    "description": "AWS Account Management now supports account name update via IAM principals."
+}
