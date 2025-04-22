@@ -426,19 +426,19 @@ public class JsonProtocolUnmarshaller {
      * Builder for {@link JsonProtocolUnmarshaller}.
      */
     public static final class Builder {
-
-        private JsonNodeParser parser;
         private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
 
         private Builder() {
         }
 
         /**
+         * The parser is no longer used by this class. Keeping this method for backwards compatibility.
+         *
          * @param parser JSON parser to use.
          * @return This builder for method chaining.
          */
+        @Deprecated
         public Builder parser(JsonNodeParser parser) {
-            this.parser = parser;
             return this;
         }
 

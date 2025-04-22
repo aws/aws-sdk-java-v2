@@ -53,7 +53,6 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.AwsJsonResponse
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonProtocolUnmarshaller;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.JsonResponseHandler;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.ProtocolUnmarshallDependencies;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 
 @SdkProtectedApi
 public abstract class BaseAwsJsonProtocolFactory {
