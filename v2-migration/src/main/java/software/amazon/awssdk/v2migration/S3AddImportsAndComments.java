@@ -244,10 +244,10 @@ public class S3AddImportsAndComments extends Recipe {
             if (type.isAssignableFrom(BUCKET_NOTIFICATION_CONFIG)) {
                 // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for BucketNotificationConfiguration class is not supported. "
-                                 + "BucketNotificationConfiguration is renamed as NotificationConfiguration. There is no common"
+                                 + "BucketNotificationConfiguration is renamed to NotificationConfiguration. There is no common"
                                  + " abstract class for lambdaFunction/topic/queue configurations. Use specific builders "
                                  + "instead of addConfiguration() to add configurations. Change the vararg arguments or EnumSet "
-                                 + "in configurations constructor to List<String> in v2";
+                                 + "in specific configurations constructor to List<String> in v2";
                 return newClass.withComments(createComments(comment));
             }
 
