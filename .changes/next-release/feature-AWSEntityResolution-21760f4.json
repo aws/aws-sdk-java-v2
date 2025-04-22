@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS EntityResolution",
+    "contributor": "",
+    "description": "To expand support for matching records using digital identifiers with TransUnion"
+}
