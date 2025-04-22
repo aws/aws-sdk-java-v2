@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMQ",
-    "contributor": "",
-    "description": "You can now delete Amazon MQ broker configurations using the DeleteConfiguration API. For more information, see Configurations in the Amazon MQ API Reference."
-}
