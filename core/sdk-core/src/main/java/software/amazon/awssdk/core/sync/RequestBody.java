@@ -129,7 +129,6 @@ public class RequestBody {
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
      * <p>
-     * <b>Important:</b> If {@code inputStream} does not support mark and reset, the stream will be buffered.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream.
