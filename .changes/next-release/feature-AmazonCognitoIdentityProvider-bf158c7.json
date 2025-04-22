@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "This release adds refresh token rotation."
+}
