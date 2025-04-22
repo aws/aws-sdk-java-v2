@@ -357,8 +357,14 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * <p>An {@link ExecutorService} is required in order to perform the blocking data reads, to prevent blocking the
      * non-blocking event loop threads owned by the SDK.
      *
-     * <p>If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
-     * specified content length and only send exactly the number of bytes equal to the content length.
+     * @param inputStream The input stream containing the data to be sent
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @param executor The executor
+     *
+     * @return An AsyncRequestBody instance for the input stream
+     *
      */
     static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
         return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength).executor(executor));
@@ -389,8 +395,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * <p>By default, it will time out if streaming hasn't started within 10 seconds, and use application/octet-stream as
      * content type. You can configure it via {@link BlockingInputStreamAsyncRequestBody#builder()}
-     * <p>If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
-     * specified content length and only send exactly the number of bytes equal to the content length.
+     *
      * <p><b>Example Usage</b>
      *
      * <p>
@@ -413,6 +418,10 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
      * }
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @return The created {@code BlockingInputStreamAsyncRequestBody}.
      */
     static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
         return BlockingInputStreamAsyncRequestBody.builder()
@@ -429,8 +438,6 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * <p>By default, it will time out if streaming hasn't started within 10 seconds, and you can configure the timeout
      * via {@link BlockingOutputStreamAsyncRequestBody#builder()}
-     * <p>If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
-     * specified content length and only send exactly the number of bytes equal to the content length.
      * <p><b>Example Usage</b>
      * <p>
      * {@snippet :
@@ -454,6 +461,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     PutObjectResponse response = responseFuture.join();
      * }
      * @see BlockingOutputStreamAsyncRequestBody
+     *
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @return The created {@code BlockingOutputStreamAsyncRequestBody}.
      */
     static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
         return BlockingOutputStreamAsyncRequestBody.builder()
