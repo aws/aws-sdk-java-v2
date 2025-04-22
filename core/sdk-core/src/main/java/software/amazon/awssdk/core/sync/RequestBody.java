@@ -131,7 +131,8 @@ public class RequestBody {
      * <p>
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
-     * @param contentLength Content length of data in input stream.
+     * @param contentLength Content length of data in input stream. If a content length smaller than the actual size of
+     *                      the object is set, the client will truncate the stream to the specified content length.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
@@ -222,7 +223,8 @@ public class RequestBody {
      * methods</a>.
      *
      * @param provider The content provider.
-     * @param contentLength The content length.
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set,
+     *                      the client will truncate the stream to the specified content length.
      * @param mimeType The MIME type of the content.
      *
      * @return The created {@code RequestBody}.
