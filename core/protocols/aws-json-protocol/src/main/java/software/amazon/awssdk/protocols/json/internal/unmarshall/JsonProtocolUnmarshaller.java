@@ -48,7 +48,6 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
@@ -429,18 +428,6 @@ public final class JsonProtocolUnmarshaller {
         private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
 
         private Builder() {
-        }
-
-        /**
-         * The parser is no longer used by this class. Keeping this method for backwards compatibility.
-         *
-         * @param parser JSON parser to use.
-         * @return This builder for method chaining.
-         * @deprecated The json parser is not longer used by this class. If given the value will be ignored.
-         */
-        @Deprecated
-        public Builder parser(JsonNodeParser parser) {
-            return this;
         }
 
         /**
