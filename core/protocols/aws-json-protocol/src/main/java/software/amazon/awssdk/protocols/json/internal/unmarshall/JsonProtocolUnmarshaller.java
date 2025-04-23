@@ -59,7 +59,7 @@ import software.amazon.awssdk.utils.builder.Buildable;
  */
 @SdkInternalApi
 @ThreadSafe
-public class JsonProtocolUnmarshaller {
+public final class JsonProtocolUnmarshaller {
     private static final Lazy<DefaultProtocolUnmarshallDependencies> DEFAULT_DEPENDENCIES =
         new Lazy<>(JsonProtocolUnmarshaller::newProtocolUnmarshallDependencies);
 
@@ -436,6 +436,7 @@ public class JsonProtocolUnmarshaller {
          *
          * @param parser JSON parser to use.
          * @return This builder for method chaining.
+         * @deprecated The json parser is not longer used by this class. If given the value will be ignored.
          */
         @Deprecated
         public Builder parser(JsonNodeParser parser) {
