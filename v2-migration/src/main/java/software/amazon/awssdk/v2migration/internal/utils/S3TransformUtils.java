@@ -150,6 +150,13 @@ public final class S3TransformUtils {
         }
     }
 
+    public static String changeBucketNameToBucket(String methodName) {
+        if (methodName.contains("BucketName")) {
+            return methodName.replace("BucketName", "Bucket");
+        }
+        return methodName;
+    }
+
     public static String getArgumentName(J.MethodInvocation method) {
         Expression val = method.getArguments().get(0);
         return ((J.Identifier) val).getSimpleName();
