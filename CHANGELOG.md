@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.28__ __2025-04-23__
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for custom instance type for reserved capacity fleets
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Documentation-only update for CreateView option correction
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add support to roll back an In_Progress ECS Service Deployment
+
 # __2.31.27__ __2025-04-22__
 ## __AWS Account__
   - ### Features
