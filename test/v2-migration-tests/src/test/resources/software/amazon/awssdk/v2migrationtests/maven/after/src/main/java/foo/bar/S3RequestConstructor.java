@@ -398,7 +398,7 @@ public class S3RequestConstructor {
                 .build());
 
 
-        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(
+        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(
         PutBucketLifecycleConfigurationRequest.builder().bucket(bucketName).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
             .build())
             .build());
