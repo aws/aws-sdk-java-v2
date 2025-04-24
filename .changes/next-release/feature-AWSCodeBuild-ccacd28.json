@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CodeBuild",
-    "contributor": "",
-    "description": "Remove redundant validation check."
-}

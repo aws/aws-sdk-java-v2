@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Data Automation for Amazon Bedrock",
-    "contributor": "",
-    "description": "Added support for modality routing and modality enablement on CreateDataAutomationProject and UpdateDataAutomationProject APIs"
-}
