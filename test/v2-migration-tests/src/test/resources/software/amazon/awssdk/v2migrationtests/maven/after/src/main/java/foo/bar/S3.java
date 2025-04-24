@@ -373,7 +373,7 @@ public class S3 {
         s3.putBucketInventoryConfiguration(PutBucketInventoryConfigurationRequest.builder().bucket(bucket).inventoryConfiguration(InventoryConfiguration.builder()
             .build())
             .build());
-        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, update from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
+        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
         .build())
         .build());
         s3.putBucketMetricsConfiguration(PutBucketMetricsConfigurationRequest.builder().bucket(bucket).metricsConfiguration(MetricsConfiguration.builder()
