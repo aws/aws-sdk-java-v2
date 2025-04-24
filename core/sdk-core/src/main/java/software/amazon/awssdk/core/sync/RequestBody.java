@@ -128,10 +128,11 @@ public class RequestBody {
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
-     * <p>
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
-     * @param contentLength Content length of data in input stream.
+     * @param contentLength Content length of data in input stream. If a content length smaller than the actual size of the
+     *                      object is set, the client will truncate the stream to the specified content length and only send
+     *                      exactly the number of bytes equal to the content length.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
@@ -220,9 +221,14 @@ public class RequestBody {
      * S3's documentation for
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
      * methods</a>.
+     * <p>
+     * If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
+     * specified content length and only send exactly the number of bytes equal to the content length.
      *
      * @param provider The content provider.
-     * @param contentLength The content length.
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
      * @param mimeType The MIME type of the content.
      *
      * @return The created {@code RequestBody}.
