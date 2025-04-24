@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.28__ __2025-04-23__
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for custom instance type for reserved capacity fleets
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Documentation-only update for CreateView option correction
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add support to roll back an In_Progress ECS Service Deployment
+
+# __2.31.27__ __2025-04-22__
+## __AWS Account__
+  - ### Features
+    - AWS Account Management now supports account name update via IAM principals.
+
+## __AWS EntityResolution__
+  - ### Features
+    - To expand support for matching records using digital identifiers with TransUnion
+
+## __AWS S3 Control__
+  - ### Features
+    - Fix endpoint resolution test cases
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds refresh token rotation.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for ClientRouteEnforcementOptions flag in CreateClientVpnEndpoint and ModifyClientVpnEndpoint requests and DescribeClientVpnEndpoints responses
+
+## __Amazon S3 Transfer Manager__
+  - ### Features
+    - Add support for etag validation in resumableFileDownload: restart paused downloads when etag does not match
+
+## __AmazonMQ__
+  - ### Features
+    - You can now delete Amazon MQ broker configurations using the DeleteConfiguration API. For more information, see Configurations in the Amazon MQ API Reference.
+
+## __Redshift Serverless__
+  - ### Features
+    - Provides new and updated API members to support the Redshift Serverless reservations feature.
+
 # __2.31.26__ __2025-04-21__
 ## __AWS ARC - Zonal Shift__
   - ### Features

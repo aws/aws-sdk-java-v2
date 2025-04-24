@@ -43,16 +43,27 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
     private static final MethodMatcher SET_BUCKET_ACL = v1S3MethodMatcher("setBucketAcl(..)");
+    private static final MethodMatcher SET_BUCKET_LOGGING = v1S3MethodMatcher("setBucketLoggingConfiguration(..)");
     private static final MethodMatcher SET_ENDPOINT = v1S3MethodMatcher("setEndpoint(..)");
     private static final MethodMatcher SET_OBJECT_ACL = v1S3MethodMatcher("setObjectAcl(..)");
     private static final MethodMatcher SET_REGION = v1S3MethodMatcher("setRegion(..)");
+    private static final MethodMatcher SET_PAYMENT_CONFIGURATION = v1S3MethodMatcher("setRequestPaymentConfiguration(..)");
     private static final MethodMatcher SET_S3CLIENT_OPTIONS = v1S3MethodMatcher("setS3ClientOptions(..)");
     private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
+    private static final MethodMatcher SET_LIFECYCLE_CONFIGURATION = v1S3MethodMatcher("setBucketLifecycleConfiguration(..)");
+    private static final MethodMatcher SET_TAGGING_CONFIGURATION = v1S3MethodMatcher("setBucketTaggingConfiguration(..)");
+
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
+    private static final Pattern CREATE_BUCKET_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "CreateBucketRequest");
+    private static final Pattern DELETE_OBJECTS_RESULT = Pattern.compile(V1_S3_MODEL_PKG + "DeleteObjectsResult");
     private static final Pattern INITIATE_MPU = Pattern.compile(V1_S3_MODEL_PKG + "InitiateMultipartUpload");
     private static final Pattern MULTI_FACTOR_AUTH = Pattern.compile(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
+    private static final Pattern SET_BUCKET_VERSION_REQUEST = Pattern.compile(V1_S3_MODEL_PKG
+                                                                              + "SetBucketVersioningConfigurationRequest");
+    private static final Pattern BUCKET_NOTIFICATION_CONFIG = Pattern.compile(V1_S3_MODEL_PKG
+                                                                              + "BucketNotificationConfiguration");
 
     @Override
     public String getDisplayName() {
@@ -144,6 +155,45 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
 
+            if (SET_BUCKET_LOGGING.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                removeV1S3ModelImport("BucketLoggingConfiguration");
+                addV2S3ModelImport("BucketLoggingStatus");
+                addV2S3ModelImport("LoggingEnabled");
+
+                String comment = "Transform for setBucketLoggingConfiguration method not "
+                                 + "supported. The method is renamed to putBucketLogging. Please manually migrate your code by "
+                                 + "replacing BucketLoggingConfiguration with BucketLoggingStatus and LoggingEnabled builders, "
+                                 + "and updating the method name and parameters";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_PAYMENT_CONFIGURATION.matches(method)) {
+                String comment = "Transform for setRequestPaymentConfiguration method not supported. Payer enum is a "
+                                 + "separate class in v2 (not nested). Please manually migrate "
+                                 + "your code by updating from RequestPaymentConfiguration.Payer to just Payer, and adjust "
+                                 + "imports and names.";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_LIFECYCLE_CONFIGURATION.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate"
+                                 + " your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to "
+                                 + "LifecycleRule, StorageClass to TransitionStorageClass, and adjust "
+                                 + "imports and names.";
+                return method.withComments(createComments(comment));
+            }
+
+            if (SET_TAGGING_CONFIGURATION.matches(method)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for setBucketTaggingConfiguration method not supported. Please manually migrate"
+                                 + " your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList"
+                                 + "(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports"
+                                 + " and names.";
+                return method.withComments(createComments(comment));
+            }
+
             return method;
         }
 
@@ -154,7 +204,9 @@ public class S3AddImportsAndComments extends Recipe {
                 return newClass;
             }
 
-            if (type.isAssignableFrom(MULTI_FACTOR_AUTH)) {
+            boolean setBucketVersionUsingMFA =
+                type.isAssignableFrom(SET_BUCKET_VERSION_REQUEST) && newClass.getArguments().size() == 3;
+            if (type.isAssignableFrom(MULTI_FACTOR_AUTH) || setBucketVersionUsingMFA) {
                 removeV1S3ModelImport("MultiFactorAuthentication");
                 String comment = "v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on "
                                  + "the request POJO.";
@@ -172,6 +224,30 @@ public class S3AddImportsAndComments extends Recipe {
                 String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported. Please "
                                  + "manually migrate your code by replacing ObjectMetadata with individual setter methods "
                                  + "or metadata map in the request builder.";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(CREATE_BUCKET_REQUEST) && newClass.getArguments().size() == 2) {
+                String comment = "Transform for createBucketRequest with region is not supported. Please manually "
+                                 + "migrate your code by configuring the region as locationConstraint in "
+                                 + "createBucketConfiguration in the request builder";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(DELETE_OBJECTS_RESULT)) {
+                String comment = "Transform for DeleteObjectsResult class is not supported. DeletedObject class is a "
+                                 + "separate class in v2 (not nested). Please manually migrate your code by updating "
+                                 + "DeleteObjectsResult.DeletedObject to s3.model.DeletedObject";
+                return newClass.withComments(createComments(comment));
+            }
+
+            if (type.isAssignableFrom(BUCKET_NOTIFICATION_CONFIG)) {
+                // TODO: add the developer guide link in the comments once the doc is published.
+                String comment = "Transform for BucketNotificationConfiguration class is not supported. "
+                                 + "BucketNotificationConfiguration is renamed to NotificationConfiguration. There is no common"
+                                 + " abstract class for lambdaFunction/topic/queue configurations. Use specific builders "
+                                 + "instead of addConfiguration() to add configurations. Change the vararg arguments or EnumSet "
+                                 + "in specific configurations constructor to List<String> in v2";
                 return newClass.withComments(createComments(comment));
             }
 
