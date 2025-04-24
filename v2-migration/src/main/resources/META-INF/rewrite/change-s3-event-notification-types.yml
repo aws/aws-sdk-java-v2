@@ -21,3 +21,42 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification
       newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.RequestParametersEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.RequestParameters
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.ResponseElementsEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.ResponseElements
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.RestoreEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.RestoreEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3BucketEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3Bucket
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3Entity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3ObjectEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3Object
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.TransitionEventDataEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.UserIdentityEntity
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.UserIdentity
