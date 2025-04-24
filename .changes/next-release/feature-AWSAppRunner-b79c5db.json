@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS App Runner",
+    "contributor": "",
+    "description": "AWS App Runner adds Node.js 22 runtime."
+}
