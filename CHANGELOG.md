@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.29__ __2025-04-24__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds Node.js 22 runtime.
+
+## __AWS AppSync__
+  - ### Features
+    - Add data source support to Event APIs
+
+## __AWS CodeBuild__
+  - ### Features
+    - Remove redundant validation check.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Documentation-only update: added valid values for the version property of the Scheduler and SchedulerRequest data types.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add support for ARN-sourced account endpoint generation for TransactWriteItems. This will generate account endpoints for DynamoDB TransactWriteItems requests using ARN-sourced account ID when available.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release for Amazon ECS
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for managed master user passwords for Oracle CDBs.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for modality routing and modality enablement on CreateDataAutomationProject and UpdateDataAutomationProject APIs
+
 # __2.31.28__ __2025-04-23__
 ## __AWS CodeBuild__
   - ### Features
