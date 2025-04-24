@@ -44,7 +44,7 @@ public class S3EventNotificationTest {
 
             String eventName = record.getEventName();
 
-            //S3Event eventNameEnum = record.getEventNameAsEnum();
+            String eventNameEnum = record.getEventName();
 
             //DateTime eventTime = record.getEventTime();
 

@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntit
 import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
+import com.amazonaws.services.s3.model.S3Event;
 //import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
@@ -45,7 +46,7 @@ public class S3EventNotificationTest {
 
             String eventName = record.getEventName();
 
-            //S3Event eventNameEnum = record.getEventNameAsEnum();
+            S3Event eventNameEnum = record.getEventNameAsEnum();
 
             //DateTime eventTime = record.getEventTime();
 

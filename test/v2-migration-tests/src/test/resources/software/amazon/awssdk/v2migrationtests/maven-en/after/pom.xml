@@ -47,6 +47,11 @@
             <version>V2_VERSION</version>
         </dependency>
         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.12.5</version>
+        </dependency>
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3-event-notifications</artifactId>
             <version>V2_VERSION</version>
