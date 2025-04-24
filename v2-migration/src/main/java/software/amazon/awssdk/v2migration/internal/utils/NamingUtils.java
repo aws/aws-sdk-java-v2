@@ -36,18 +36,6 @@ public final class NamingUtils {
         return removePrefix(name, "get");
     }
 
-    public static String removeEntity(String name) {
-        if (StringUtils.isBlank(name)) {
-            return name;
-        }
-
-        if (!name.endsWith("Entity")) {
-            return name;
-        }
-
-        return name.substring(0, name.length() - 6);
-    }
-
     private static String removePrefix(String name, String prefix) {
         if (StringUtils.isBlank(name)) {
             return name;

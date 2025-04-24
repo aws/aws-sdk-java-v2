@@ -45,8 +45,6 @@ public final class S3TransformUtils {
     public static final String V2_TM_CLIENT = "software.amazon.awssdk.transfer.s3.S3TransferManager";
     public static final String V2_TM_MODEL_PKG = "software.amazon.awssdk.transfer.s3.model.";
 
-    public static final String V2_S3_EN_PKG = "software.amazon.awssdk.eventnotifications.s3.model";
-
     public static final Set<String> SUPPORTED_METADATA_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         "contentLength",
         "contentEncoding",
