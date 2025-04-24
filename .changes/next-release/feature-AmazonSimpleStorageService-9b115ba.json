@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Added LegacyMd5Plugin to perform MD5 checksums for operations that require checksum"
+}
