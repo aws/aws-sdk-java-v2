@@ -27,10 +27,10 @@ import com.amazonaws.services.s3.event.S3EventNotification.ResponseElementsEntit
 import com.amazonaws.services.s3.event.S3EventNotification.RestoreEventDataEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.UserIdentityEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity;
-// import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity;
-// import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
-// import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
-import org.joda.time.DateTime;
+import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity;
+import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
+import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
+//import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
     public void parseEvent(String jsonInput) {
@@ -47,7 +47,7 @@ public class S3EventNotificationTest {
 
             //S3Event eventNameEnum = record.getEventNameAsEnum();
 
-            DateTime eventTime = record.getEventTime();
+            //DateTime eventTime = record.getEventTime();
 
             RequestParametersEntity requestParams = record.getRequestParameters();
 
@@ -59,11 +59,11 @@ public class S3EventNotificationTest {
 
             RestoreEventDataEntity restoreEventData = glacierEventData.getRestoreEventData();
 
-            // LifecycleEventDataEntity lifecycleEventData = record.getLifecycleEventData();
-            //
-            // IntelligentTieringEventDataEntity intelligentTieringEventData = record.getIntelligentTieringEventData();
-            //
-            // ReplicationEventDataEntity replicationEventData = record.getReplicationEventDataEntity();
+            LifecycleEventDataEntity lifecycleEventData = record.getLifecycleEventData();
+
+            IntelligentTieringEventDataEntity intelligentTieringEventData = record.getIntelligentTieringEventData();
+
+            ReplicationEventDataEntity replicationEventData = record.getReplicationEventDataEntity();
         }
     }
 

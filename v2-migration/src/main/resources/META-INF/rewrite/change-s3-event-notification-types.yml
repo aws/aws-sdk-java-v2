@@ -19,9 +19,6 @@ displayName: Change SDK S3EventNotification types from v1 to v2
 description: Change SDK S3EventNotification types from v1 to v2.
 recipeList:
   - org.openrewrite.java.ChangeType:
-      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification
-      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification
-  - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord
       newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord
   - org.openrewrite.java.ChangeType:
@@ -60,3 +57,6 @@ recipeList:
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification.UserIdentityEntity
       newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.UserIdentity
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.event.S3EventNotification
+      newFullyQualifiedTypeName: software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification

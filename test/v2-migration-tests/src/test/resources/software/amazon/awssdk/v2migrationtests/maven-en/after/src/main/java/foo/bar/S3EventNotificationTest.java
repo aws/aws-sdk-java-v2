@@ -15,20 +15,21 @@
 
 package foo.bar;
 
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.S3Bucket;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.S3;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.S3EventNotificationRecord;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.S3Object;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.RequestParameters;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.ResponseElements;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.RestoreEventData;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.UserIdentity;
+import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
-import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification.GlacierEventData;
-// import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEntity;
-// import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
-// import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
-import org.joda.time.DateTime;
+import software.amazon.awssdk.eventnotifications.s3.model.S3;
+import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
+import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.RequestParameters;
+import software.amazon.awssdk.eventnotifications.s3.model.ResponseElements;
+import software.amazon.awssdk.eventnotifications.s3.model.RestoreEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
+import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
+
+//import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
     public void parseEvent(String jsonInput) {
@@ -45,7 +46,7 @@ public class S3EventNotificationTest {
 
             //S3Event eventNameEnum = record.getEventNameAsEnum();
 
-            DateTime eventTime = record.getEventTime();
+            //DateTime eventTime = record.getEventTime();
 
             RequestParameters requestParams = record.getRequestParameters();
 
@@ -57,11 +58,11 @@ public class S3EventNotificationTest {
 
             RestoreEventData restoreEventData = glacierEventData.getRestoreEventData();
 
-            // LifecycleEventDataEntity lifecycleEventData = record.getLifecycleEventData();
-            //
-            // IntelligentTieringEventDataEntity intelligentTieringEventData = record.getIntelligentTieringEventData();
-            //
-            // ReplicationEventDataEntity replicationEventData = record.getReplicationEventDataEntity();
+            LifecycleEventData lifecycleEventData = record.getLifecycleEventData();
+
+            IntelligentTieringEventData intelligentTieringEventData = record.getIntelligentTieringEventData();
+
+            ReplicationEventData replicationEventData = record.getReplicationEventData();
         }
     }
 
