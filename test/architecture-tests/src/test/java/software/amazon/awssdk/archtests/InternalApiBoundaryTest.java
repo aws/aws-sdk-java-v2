@@ -32,14 +32,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.internal.waiters.WaiterAttribute;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil;
-import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
@@ -57,7 +55,7 @@ public class InternalApiBoundaryTest {
     private static final Set<Class<?>> ALLOWED_INTERNAL_API_ACROSS_MODULE_SUPPRESSION = new HashSet<>(
         Arrays.asList(WaiterAttribute.class, RequestCompression.class, RequestCompression.Builder.class, EnumUtils.class,
                       AwsServiceProtocol.class, AwsProtocolMetadata.class, MetricUtils.class, SystemSettingUtils.class,
-                      ChecksumUtil.class, SdkClientJsonProtocolAdvancedOption.class));
+                      ChecksumUtil.class));
 
     @Test
     void internalApi_shouldNotUsedAcrossModule() {
