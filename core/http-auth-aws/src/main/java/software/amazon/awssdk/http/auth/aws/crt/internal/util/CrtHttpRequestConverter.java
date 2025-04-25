@@ -31,6 +31,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.crt.internal.io.CrtInputStream;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.uri.SdkURI;
 
 @SdkInternalApi
 public final class CrtHttpRequestConverter {
@@ -73,7 +74,7 @@ public final class CrtHttpRequestConverter {
             String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
             String encodedPath = encodedPathFromCrtFormat(request.encodedPath(), crtRequest.getEncodedPath());
             String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
-            fullUri = new URI(fullUriString);
+            fullUri = SdkURI.getInstance().newURI(fullUriString);
         } catch (URISyntaxException e) {
             throw new RuntimeException("Full URI could not be formed.", e);
         }

@@ -168,6 +168,10 @@ public final class LruCache<K, V>  {
         return cache.size();
     }
 
+    public boolean contains(K key) {
+        return cache.containsKey(key);
+    }
+
     public static <K, V> LruCache.Builder<K, V> builder(Function<K, V> supplier) {
         return new Builder<>(supplier);
     }

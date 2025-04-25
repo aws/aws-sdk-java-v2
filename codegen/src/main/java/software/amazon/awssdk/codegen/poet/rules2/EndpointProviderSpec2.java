@@ -222,10 +222,12 @@ public class EndpointProviderSpec2 implements ClassSpec {
     }
 
     private void codegenExpr(RuleExpression expr, CodeBlock.Builder builder) {
+        boolean useEndpointCaching = intermediateModel.getCustomizationConfig().getEnableEndpointProviderUriCaching();
         CodeGeneratorVisitor visitor = new CodeGeneratorVisitor(typeMirror,
                                                                 utils.symbolTable(),
                                                                 knownEndpointAttributes,
-                                                                builder);
+                                                                builder,
+                                                                useEndpointCaching);
         expr.accept(visitor);
     }
 

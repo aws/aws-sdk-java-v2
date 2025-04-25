@@ -26,21 +26,25 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.utils.uri.SdkURI;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private final CodeBlock.Builder builder;
     private final RuleRuntimeTypeMirror typeMirror;
     private final SymbolTable symbolTable;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
+    private final boolean endpointCaching;
 
     public CodeGeneratorVisitor(RuleRuntimeTypeMirror typeMirror,
                                 SymbolTable symbolTable,
                                 Map<String, KeyTypePair> knownEndpointAttributes,
-                                CodeBlock.Builder builder) {
+                                CodeBlock.Builder builder,
+                                boolean endpointCaching) {
         this.builder = builder;
         this.symbolTable = symbolTable;
         this.knownEndpointAttributes = knownEndpointAttributes;
         this.typeMirror = typeMirror;
+        this.endpointCaching = endpointCaching;
     }
 
     @Override
@@ -274,7 +278,11 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+        if (endpointCaching) {
+            builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkURI.class);
+        } else {
+            builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+        }
         e.url().accept(this);
         builder.add("))");
         e.headers().accept(this);

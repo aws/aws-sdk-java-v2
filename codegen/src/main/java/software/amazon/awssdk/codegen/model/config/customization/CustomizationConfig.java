@@ -350,6 +350,11 @@ public class CustomizationConfig {
      */
     private boolean enableFastUnmarshaller;
 
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
+
     private CustomizationConfig() {
     }
 
@@ -923,5 +928,13 @@ public class CustomizationConfig {
 
     public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
         this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
     }
 }
