@@ -312,7 +312,7 @@
                     <velocitySources>src/main/resources/recipe-vm-templates</velocitySources>
                     <resourcesOutputDirectory>${project.build.directory}/classes/META-INF/rewrite</resourcesOutputDirectory>
                     <properties>
-                        <sdkVersion>${awsjavasdk.previous.version}</sdkVersion>
+                        <sdkVersion>${awsjavasdk.previous-previous.version}</sdkVersion>
                     </properties>
                 </configuration>
             </plugin>
