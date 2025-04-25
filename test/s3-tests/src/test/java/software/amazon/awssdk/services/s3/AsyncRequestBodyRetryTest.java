@@ -136,7 +136,8 @@ public class AsyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
                 InputStream is = getMarkSupportedStreamOfSize(tc.size);
                 return AsyncRequestBody.fromInputStream(cfg -> cfg.inputStream(is)
                                                                   .contentLength((long) nBytes)
-                                                                  .maxReadLimit(nBytes)
+                                                                  // read limit has to be positive
+                                                                  .maxReadLimit(nBytes == 0 ? 1 : nBytes)
                                                                   .executor(requestBodyExecutor));
             }
             case REMAINING_BYTE_BUFFER:
@@ -167,12 +168,18 @@ public class AsyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
             case BYTE_BUFFERS_UNSAFE:
                 // fall through
             case BYTE_BUFFERS: {
-                byte[] bbContent = getDataSegment();
-                int nSegments = nBytes / bbContent.length;
-
-                ByteBuffer[] buffers = IntStream.range(0, nSegments)
-                                                                 .mapToObj(i -> ByteBuffer.wrap(bbContent))
-                                                                 .toArray(ByteBuffer[]::new);
+                ByteBuffer[] buffers;
+                if (tc.size.getNumBytes() > 0) {
+                    byte[] bbContent = getDataSegment();
+                    int nSegments = nBytes / bbContent.length;
+                    buffers = IntStream.range(0, nSegments)
+                                       .mapToObj(i -> ByteBuffer.wrap(bbContent))
+                                       .toArray(ByteBuffer[]::new);
+                } else {
+                    // TODO: This is a workaround because you can't do AsyncRequestBody.fromByteBuffers(new ByteBuffer[0]); the
+                    //  subscriber is never signaled onComplete. See issue JAVA-8215.
+                    buffers = new ByteBuffer[]{ ByteBuffer.allocate(0) };
+                }
 
                 switch (tc.type) {
                     case REMAINING_BYTE_BUFFERS:
