@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
-import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -38,6 +36,8 @@ import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public class LegacyMd5ExecutionInterceptor implements ExecutionInterceptor {
+
+    public static final String HTTP_CHECKSUM_HEADER_PREFIX = "x-amz-checksum";
 
     private LegacyMd5ExecutionInterceptor() {
     }

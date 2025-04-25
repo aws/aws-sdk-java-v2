@@ -39,11 +39,22 @@ import software.amazon.awssdk.services.s3.internal.handlers.LegacyMd5ExecutionIn
  * <p>Use this plugin only when you need to maintain compatibility with applications that depend on the
  * legacy MD5 checksum behavior, particularly for operations that previously calculated MD5 checksums
  * automatically.
+ * <p><b>Example usage:</b>
  *
+ * {@snippet :
+ * // For synchronous S3 client
+ * S3Client s3Client = S3Client.builder()
+ *                            .addPlugin(LegacyMd5Plugin.create())
+ *                            .build();
+ *
+ * // For asynchronous S3 client
+ * S3AsyncClient asyncClient = S3AsyncClient.builder()
+ *                                         .addPlugin(LegacyMd5Plugin.create())
+ *                                         .build();
+ * }*
  * @see RequestChecksumCalculation
  * @see ResponseChecksumValidation
  */
-
 @SdkPublicApi
 public final class LegacyMd5Plugin implements SdkPlugin {
 
