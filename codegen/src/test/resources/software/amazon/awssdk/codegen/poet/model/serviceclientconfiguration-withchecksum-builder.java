@@ -168,7 +168,7 @@ public class JsonServiceClientConfigurationBuilder implements JsonServiceClientC
     }
 
     /**
-     * Sets the value for client behavior for response checksum calculation
+     * Sets the value for client behavior for response checksum validation
      */
     @Override
     public JsonServiceClientConfiguration.Builder responseChecksumValidation(ResponseChecksumValidation responseChecksumValidation) {
@@ -177,7 +177,7 @@ public class JsonServiceClientConfigurationBuilder implements JsonServiceClientC
     }
 
     /**
-     * Gets the value for client behavior for response checksum calculation
+     * Gets the value for client behavior for response checksum validation
      */
     @Override
     public ResponseChecksumValidation responseChecksumValidation() {

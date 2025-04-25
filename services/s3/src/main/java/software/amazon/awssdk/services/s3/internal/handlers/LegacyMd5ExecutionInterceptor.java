@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import static software.amazon.awssdk.core.HttpChecksumConstant.HTTP_CHECKSUM_HEADER_PREFIX;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -28,11 +30,11 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
-import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public class LegacyMd5ExecutionInterceptor implements ExecutionInterceptor {
@@ -64,7 +66,7 @@ public class LegacyMd5ExecutionInterceptor implements ExecutionInterceptor {
         }
         boolean hasRequestValidation = httpChecksumTraitInOperation.requestValidationMode() != null;
         String requestAlgorithm = httpChecksumTraitInOperation.requestAlgorithm();
-        String checksumHeaderName = requestAlgorithm != null ? HttpChecksumUtils.httpChecksumHeader(requestAlgorithm) : null;
+        String checksumHeaderName = requestAlgorithm != null ? httpChecksumHeader(requestAlgorithm) : null;
         return ChecksumSpecs.builder()
                             .algorithmV2(DefaultChecksumAlgorithm.fromValue(requestAlgorithm))
                             .headerName(checksumHeaderName)
@@ -107,5 +109,9 @@ public class LegacyMd5ExecutionInterceptor implements ExecutionInterceptor {
     private boolean isHttpChecksumRequired(ExecutionAttributes executionAttributes) {
         return executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null
                || isMd5ChecksumRequired(executionAttributes);
+    }
+
+    private static String httpChecksumHeader(String algorithmName) {
+        return HTTP_CHECKSUM_HEADER_PREFIX + "-" + StringUtils.lowerCase(algorithmName);
     }
 }
