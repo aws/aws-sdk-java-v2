@@ -21,8 +21,6 @@ import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.services.s3.internal.handlers.LegacyMd5ExecutionInterceptor;
-
-
 /**
  * Plugin that enables legacy MD5 checksum behavior for S3 operations.
  *
@@ -40,21 +38,23 @@ import software.amazon.awssdk.services.s3.internal.handlers.LegacyMd5ExecutionIn
  * legacy MD5 checksum behavior, particularly for operations that previously calculated MD5 checksums
  * automatically.
  * <p><b>Example usage:</b>
- *
+ * <p>
  * {@snippet :
  * // For synchronous S3 client
- * S3Client s3Client = S3Client.builder()
- *                            .addPlugin(LegacyMd5Plugin.create())
- *                            .build();
+ *  S3Client s3Client = S3Client.builder()
+ *                             .addPlugin(LegacyMd5Plugin.create())
+ *                             .build();
  *
- * // For asynchronous S3 client
- * S3AsyncClient asyncClient = S3AsyncClient.builder()
- *                                         .addPlugin(LegacyMd5Plugin.create())
- *                                         .build();
- * }*
+ *  // For asynchronous S3 client
+ *  S3AsyncClient asyncClient = S3AsyncClient.builder()
+ *                                          .addPlugin(create())
+ *                                          .build();
+ *}*
+ *
  * @see RequestChecksumCalculation
  * @see ResponseChecksumValidation
  */
+
 @SdkPublicApi
 public final class LegacyMd5Plugin implements SdkPlugin {
 
@@ -67,12 +67,10 @@ public final class LegacyMd5Plugin implements SdkPlugin {
 
     @Override
     public void configureClient(SdkServiceClientConfiguration.Builder config) {
-if (!(config instanceof S3ServiceClientConfiguration.Builder)) {
-    return;
-}
-S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
-        s3Config.responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED);
-        s3Config.requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED);
+        if (!(config instanceof S3ServiceClientConfiguration.Builder)) {
+            return;
+        }
+        S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
         s3Config.overrideConfiguration(s3Config.overrideConfiguration()
                                                .toBuilder()
                                                .addExecutionInterceptor(LegacyMd5ExecutionInterceptor.create())

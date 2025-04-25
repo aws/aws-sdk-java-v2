@@ -34,6 +34,8 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -55,30 +57,32 @@ class LegacyMd5PluginOperationTest {
 
     private S3AsyncClient clientWithPlugin;
     private S3AsyncClient clientWithoutPlugin;
+    private S3AsyncClient clientWithPluginAndChecksumReq;
 
     @BeforeEach
     void setUp(WireMockRuntimeInfo wmRuntimeInfo) {
         stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
         URI endpoint = URI.create("http://localhost:" + wmRuntimeInfo.getHttpPort());
-        clientWithPlugin = createS3Client(endpoint, true);
-        clientWithoutPlugin = createS3Client(endpoint, false);
+        clientWithPlugin = s3ClientBuilder(endpoint).addPlugin(LegacyMd5Plugin.create()).build();
+        clientWithPluginAndChecksumReq = s3ClientBuilder(endpoint)
+            .addPlugin(LegacyMd5Plugin.create())
+            .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+            .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
+            .build();
+        clientWithoutPlugin = s3ClientBuilder(endpoint).build();
     }
 
-    private S3AsyncClient createS3Client(URI endpoint, boolean withPlugin) {
-        S3AsyncClientBuilder builder = S3AsyncClient.builder()
-                                                    .credentialsProvider(StaticCredentialsProvider.create(
-                                                         AwsBasicCredentials.create("akid", "skid")))
-                                                    .region(Region.US_WEST_2)
-                                                    .endpointOverride(endpoint)
-                                                    .serviceConfiguration(S3Configuration.builder()
-                                                                                          .pathStyleAccessEnabled(true)
-                                                                                          .build())
-                                                    .overrideConfiguration(c -> c.addExecutionInterceptor(CAPTURING_INTERCEPTOR));
+    private S3AsyncClientBuilder s3ClientBuilder(URI endpoint) {
+        return S3AsyncClient.builder()
+                            .credentialsProvider(StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create("akid", "skid")))
+                            .region(Region.US_WEST_2)
+                            .endpointOverride(endpoint)
+                            .serviceConfiguration(S3Configuration.builder()
+                                                                 .pathStyleAccessEnabled(true)
+                                                                 .build())
+                            .overrideConfiguration(c -> c.addExecutionInterceptor(CAPTURING_INTERCEPTOR));
 
-        if (withPlugin) {
-            builder.addPlugin(LegacyMd5Plugin.create());
-        }
-        return builder.build();
     }
 
     @AfterEach
@@ -87,8 +91,11 @@ class LegacyMd5PluginOperationTest {
         if (clientWithPlugin != null) {
             clientWithPlugin.close();
         }
-        if (clientWithoutPlugin != null) {
-            clientWithoutPlugin.close();
+        if (clientWithPlugin != null) {
+            clientWithPlugin.close();
+        }
+        if (clientWithPluginAndChecksumReq != null) {
+            clientWithPluginAndChecksumReq.close();
         }
     }
 
@@ -109,7 +116,8 @@ class LegacyMd5PluginOperationTest {
         }
 
         @Test
-        @DisplayName("PutObject  operation should not include checksums since its not required but just supported")
+        @DisplayName("PutObject operation should use checksum trailer and Not MD5 even with plugin since its not required but "
+                     + "supported")
         void putObjectShouldNotIncludeChecksums() {
             clientWithPlugin.putObject(
                 r -> r.bucket(BUCKET_NAME).key(KEY_NAME),
@@ -118,7 +126,7 @@ class LegacyMd5PluginOperationTest {
 
             assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isNull();
             assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isNull();
-            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isNull();
+            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isEqualTo("x-amz-checksum-crc32");
         }
     }
 
@@ -151,6 +159,37 @@ class LegacyMd5PluginOperationTest {
             assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isNull();
             // default CRC32 in trailer for streaming
             assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isEqualTo("x-amz-checksum-crc32");
+        }
+    }
+
+    @Nested
+    @DisplayName("With Legacy MD5 Plugin With Checksum Required")
+    class WithLegacyMd5PluginAndChecksumRequiredEnabled {
+
+        @Test
+        @DisplayName("DeleteObjects operation should include MD5 checksum since its required")
+        void deleteObjectsShouldIncludeMd5Checksum() {
+
+            clientWithPluginAndChecksumReq.deleteObjects(r -> r.bucket(BUCKET_NAME)
+                                                 .delete(d -> d.objects(o -> o.key(KEY_NAME))))
+                            .join();
+
+            assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isEqualTo("/JqOxTf3mydOdMWAqGGa3w==");
+            assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isEqualTo("Xyuzcg==");
+            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isNull();
+        }
+
+        @Test
+        @DisplayName("PutObject  operation should not include checksums since its not required but just supported")
+        void putObjectShouldNotIncludeChecksums() {
+            clientWithPluginAndChecksumReq.putObject(
+                r -> r.bucket(BUCKET_NAME).key(KEY_NAME),
+                AsyncRequestBody.fromBytes(TEST_CONTENT.getBytes(StandardCharsets.UTF_8))
+            ).join();
+
+            assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isNull();
+            assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isNull();
+            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isNull();
         }
     }
 
