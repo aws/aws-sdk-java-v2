@@ -56,7 +56,10 @@ public final class LegacyMd5Plugin implements SdkPlugin {
 
     @Override
     public void configureClient(SdkServiceClientConfiguration.Builder config) {
-        S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
+if (!(config instanceof S3ServiceClientConfiguration.Builder)) {
+    return;
+}
+S3ServiceClientConfiguration.Builder s3Config = (S3ServiceClientConfiguration.Builder) config;
         s3Config.responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED);
         s3Config.requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED);
         s3Config.overrideConfiguration(s3Config.overrideConfiguration()
