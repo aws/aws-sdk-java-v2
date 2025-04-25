@@ -48,7 +48,6 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
@@ -59,42 +58,24 @@ import software.amazon.awssdk.utils.builder.Buildable;
  */
 @SdkInternalApi
 @ThreadSafe
-public class JsonProtocolUnmarshaller {
+public final class JsonProtocolUnmarshaller {
     private static final Lazy<DefaultProtocolUnmarshallDependencies> DEFAULT_DEPENDENCIES =
         new Lazy<>(JsonProtocolUnmarshaller::newProtocolUnmarshallDependencies);
 
     private final JsonUnmarshallerRegistry registry;
     private final JsonUnmarshallingParser unmarshallingParser;
-    private final JsonNodeParser parser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
         ProtocolUnmarshallDependencies dependencies = builder.protocolUnmarshallDependencies;
         this.registry = dependencies.jsonUnmarshallerRegistry();
-        if (builder.enableFastUnmarshalling) {
-            this.unmarshallingParser = JsonUnmarshallingParser.builder()
-                                                              .jsonValueNodeFactory(dependencies.nodeValueFactory())
-                                                              .jsonFactory(dependencies.jsonFactory())
-                                                              .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
-                                                              .defaultTimestampFormat(dependencies.timestampFormats()
-                                                                                                  .get(MarshallLocation.PAYLOAD))
+        this.unmarshallingParser = JsonUnmarshallingParser.builder()
+                                                          .jsonValueNodeFactory(dependencies.nodeValueFactory())
+                                                          .jsonFactory(dependencies.jsonFactory())
+                                                          .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
+                                                          .defaultTimestampFormat(dependencies.timestampFormats()
+                                                                                              .get(MarshallLocation.PAYLOAD))
 
-                                                              .build();
-            this.parser = null;
-        } else {
-            this.unmarshallingParser = null;
-            this.parser = createParser(builder, dependencies);
-        }
-    }
-
-    private JsonNodeParser createParser(Builder builder, ProtocolUnmarshallDependencies dependencies) {
-        if (builder.parser != null) {
-            return builder.parser;
-        }
-        return JsonNodeParser
-            .builder()
-            .jsonFactory(dependencies.jsonFactory())
-            .jsonValueNodeFactory(dependencies.nodeValueFactory())
-            .build();
+                                                          .build();
     }
 
     public static DefaultProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
@@ -238,15 +219,6 @@ public class JsonProtocolUnmarshaller {
     }
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
-                                                    SdkHttpFullResponse response) throws IOException {
-        if (this.unmarshallingParser != null) {
-            return fastUnmarshall(sdkPojo, response);
-        }
-        JsonNode jsonNode = hasJsonPayload(sdkPojo, response) ? parser.parse(response.content().get()) : null;
-        return unmarshall(sdkPojo, response, jsonNode);
-    }
-
-    private <TypeT extends SdkPojo> TypeT fastUnmarshall(SdkPojo sdkPojo,
                                                     SdkHttpFullResponse response) throws IOException {
         if (!hasJsonPayload(sdkPojo, response)) {
             return unmarshallResponse(sdkPojo, response);
@@ -453,21 +425,9 @@ public class JsonProtocolUnmarshaller {
      * Builder for {@link JsonProtocolUnmarshaller}.
      */
     public static final class Builder {
-
-        private JsonNodeParser parser;
         private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
-        private boolean enableFastUnmarshalling = false;
 
         private Builder() {
-        }
-
-        /**
-         * @param parser JSON parser to use.
-         * @return This builder for method chaining.
-         */
-        public Builder parser(JsonNodeParser parser) {
-            this.parser = parser;
-            return this;
         }
 
         /**
@@ -488,15 +448,6 @@ public class JsonProtocolUnmarshaller {
             ProtocolUnmarshallDependencies protocolUnmarshallDependencies
         ) {
             this.protocolUnmarshallDependencies = protocolUnmarshallDependencies;
-            return this;
-        }
-
-        /**
-         * @param enableFastUnmarshalling Whether to enable the fast unmarshalling codepath. Default to {@code false}.
-         * @return This builder for method chaining.
-         */
-        public Builder enableFastUnmarshalling(boolean enableFastUnmarshalling) {
-            this.enableFastUnmarshalling = enableFastUnmarshalling;
             return this;
         }
 
