@@ -187,6 +187,9 @@ public class KinesisStabilityTest extends AwsTestBase {
                                                        .startingPosition(s -> s.type(ShardIteratorType.TRIM_HORIZON)),
                                                  responseHandler)
                                .thenAccept(b -> {
+                                   // Only verify data if all events have been received and the received data is not empty.
+                                   // It is possible the received data is empty because there is no record at the position
+                                   // event with TRIM_HORIZON.
                                    if (responseHandler.allEventsReceived && !responseHandler.receivedData.isEmpty()) {
                                        assertThat(producedData).as(responseHandler.id + " has not received all events"
                                                                    + ".").containsSequence(responseHandler.receivedData);
