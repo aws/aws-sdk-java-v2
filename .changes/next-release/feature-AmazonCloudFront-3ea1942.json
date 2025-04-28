@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Add distribution tenant, connection group, and multi-tenant distribution APIs to the CloudFront SDK."
-}
