@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.LegacyMd5Plugin;
@@ -190,6 +191,42 @@ class LegacyMd5PluginOperationTest {
             assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isNull();
             assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isNull();
             assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isNull();
+        }
+    }
+
+
+    @Nested
+    @DisplayName("With Legacy MD5 Plugin And Custom Headers")
+    class WithoutLegacyMd5PluginAndManuallyConfiguredMd5HeaderOnRequest {
+
+        @Test
+        @DisplayName("DeleteObjects operation should not override md5 checksum header by user")
+        void deleteObjectsShouldNotOverrideUserProvidedMd5Checksum() {
+            clientWithPlugin.deleteObjects(r -> r.bucket(BUCKET_NAME)
+                                                    .delete(d -> d.objects(o -> o.key(KEY_NAME)))
+                                   .overrideConfiguration(o->o.putHeader(Header.CONTENT_MD5, "user-1" )))
+                               .join();
+
+            assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isEqualTo("user-1");
+            // default CRC32
+            assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isEqualTo("Xyuzcg==");
+            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isNull();
+        }
+
+        @Test
+        @DisplayName("PutObject operation should not override md5 checksum header by user")
+        void putObjectShouldUseChecksumTrailer() {
+            clientWithPlugin.putObject(
+                r -> r.bucket(BUCKET_NAME).key(KEY_NAME)
+                      .overrideConfiguration(o -> o.putHeader(CONTENT_MD5, "user-1")),
+                AsyncRequestBody.fromBytes(TEST_CONTENT.getBytes(StandardCharsets.UTF_8)
+                )
+            ).join();
+
+            assertThat(CAPTURING_INTERCEPTOR.md5Checksum).isEqualTo("user-1");
+            assertThat(CAPTURING_INTERCEPTOR.crc32ChecksumHeader).isNull();
+            // default CRC32 in trailer for streaming
+            assertThat(CAPTURING_INTERCEPTOR.checksumTrailer).isEqualTo("x-amz-checksum-crc32");
         }
     }
 
