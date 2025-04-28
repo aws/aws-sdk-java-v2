@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager",
+    "contributor": "",
+    "description": "Add support for file-based HTTP domain control validation, available through Amazon CloudFront."
+}
