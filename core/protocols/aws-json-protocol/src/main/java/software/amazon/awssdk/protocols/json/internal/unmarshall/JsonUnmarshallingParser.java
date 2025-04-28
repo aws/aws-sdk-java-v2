@@ -383,17 +383,14 @@ final class JsonUnmarshallingParser {
         JsonToken lookAhead
     ) throws IOException {
         TimestampFormatTrait.Format format = resolveTimestampFormat(field);
-        switch (format) {
-            case UNIX_TIMESTAMP:
-                return Instant.ofEpochMilli(Math.round(parser.getDoubleValue() * 1_000d));
-            case UNIX_TIMESTAMP_MILLIS:
-                return Instant.ofEpochMilli(parser.getLongValue());
-            default:
-                JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
-                                                                                             field.marshallingType());
-                return (Instant) unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
-                                                         (SdkField<Object>) field);
+        if (format == TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS) {
+            return Instant.ofEpochMilli(parser.getLongValue());
         }
+
+        JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
+                                                                                     field.marshallingType());
+        return (Instant) unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
+                                                 (SdkField<Object>) field);
     }
 
     /**
