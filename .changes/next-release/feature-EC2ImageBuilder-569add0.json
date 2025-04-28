@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "Add integration with SSM Parameter Store to Image Builder."
+}
