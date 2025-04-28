@@ -116,9 +116,10 @@
     },
 
     "dependencies": {
-        "com.fasterxml.jackson.core:jackson-annotations": { "packageName": "Jackson-annotations", "packageVersion": "2.9.x" },
+        "com.fasterxml.jackson.core:jackson-annotations": { "packageName": "Jackson-annotations", "packageVersion": "2.12.x" },
         "com.fasterxml.jackson.core:jackson-core": { "packageName": "Jackson-core", "packageVersion": "2.9.x" },
-        "com.fasterxml.jackson.core:jackson-databind": { "packageName": "Jackson-databind", "packageVersion": "2.9.x" },
+        "com.fasterxml.jackson.core:jackson-databind": { "packageName": "Jackson-databind", "packageVersion": "2.12.x" },
+        "com.fasterxml.jackson.core:jackson-databind": { "packageName": "Jackson-datatype-jdk8", "packageVersion": "2.12.x" },
         "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor": { "packageName": "Jackson-dataformat-cbor", "packageVersion": "2.9.x" },
         "com.fasterxml.jackson.jr:jackson-jr-objects": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-objects", "packageVersion": "2.11.x" },
         "com.fasterxml.jackson.jr:jackson-jr-stree": { "packageName": "Maven-com-fasterxml-jackson-jr_jackson-jr-stree", "packageVersion": "2.11.x" },
