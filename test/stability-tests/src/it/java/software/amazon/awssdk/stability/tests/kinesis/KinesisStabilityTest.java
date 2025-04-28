@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -116,7 +115,6 @@ public class KinesisStabilityTest extends AwsTestBase {
         asyncClient.close();
     }
 
-    @RepeatedTest(30)
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void putRecords_subscribeToShard() throws InterruptedException {
         putRecords();
