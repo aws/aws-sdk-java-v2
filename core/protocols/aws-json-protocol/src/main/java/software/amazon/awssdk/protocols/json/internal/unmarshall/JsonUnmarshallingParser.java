@@ -385,7 +385,7 @@ final class JsonUnmarshallingParser {
         TimestampFormatTrait.Format format = resolveTimestampFormat(field);
         switch (format) {
             case UNIX_TIMESTAMP:
-                return Instant.ofEpochMilli((long) (parser.getDoubleValue() * 1_000d));
+                return Instant.ofEpochMilli(Math.round(parser.getDoubleValue() * 1_000d));
             case UNIX_TIMESTAMP_MILLIS:
                 return Instant.ofEpochMilli(parser.getLongValue());
             default:
