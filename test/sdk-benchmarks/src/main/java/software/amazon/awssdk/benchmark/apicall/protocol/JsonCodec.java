@@ -67,7 +67,6 @@ public final class JsonCodec {
             JsonProtocolUnmarshaller unmarshaller =
                 JsonProtocolUnmarshaller
                     .builder()
-                    .enableFastUnmarshalling(true)
                     .protocolUnmarshallDependencies(behavior.protocolUnmarshallDependencies())
                     .build();
             SdkHttpFullResponse response = SdkHttpFullResponse
