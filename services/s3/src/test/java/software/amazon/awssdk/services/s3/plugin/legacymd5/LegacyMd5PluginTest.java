@@ -19,6 +19,7 @@ package software.amazon.awssdk.services.s3.plugin.legacymd5;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,8 +73,13 @@ class LegacyMd5PluginTest {
         SdkPlugin plugin = LegacyMd5Plugin.create();
         plugin.configureClient(configBuilder);
 
-        verify(configBuilder).responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED);
-        verify(configBuilder).requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED);
+        // Verify these methods were never called
+        verify(configBuilder, never()).responseChecksumValidation(any(ResponseChecksumValidation.class));
+        verify(configBuilder, never()).requestChecksumCalculation(any(RequestChecksumCalculation.class));
+
+        // Verify that overrideConfiguration is called on configBuilder
+        verify(configBuilder).overrideConfiguration();
+        verify(configBuilder).overrideConfiguration(originalOverrideConfig);
 
         ArgumentCaptor<ExecutionInterceptor> interceptorCaptor =
             ArgumentCaptor.forClass(ExecutionInterceptor.class);
@@ -82,7 +88,6 @@ class LegacyMd5PluginTest {
         ExecutionInterceptor capturedInterceptor = interceptorCaptor.getValue();
         assertThat(capturedInterceptor).isNotNull();
         assertThat(capturedInterceptor).isInstanceOf(LegacyMd5ExecutionInterceptor.class);
-
-        verify(configBuilder).overrideConfiguration(originalOverrideConfig);
     }
+
 }

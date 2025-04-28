@@ -21,35 +21,45 @@ import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.services.s3.internal.handlers.LegacyMd5ExecutionInterceptor;
+
 /**
  * Plugin that enables legacy MD5 checksum behavior for S3 operations.
  *
- * <p>This plugin configures the S3 client to:
- * <ul>
- *   <li>Set request checksum calculation to WHEN_REQUIRED mode, which calculates default checksums only when
- *       required by the S3 service for specific operations</li>
- *   <li>Set response checksum validation to WHEN_REQUIRED mode, which validates checksums only when
- *       the S3 service provides them in responses</li>
- *   <li>Add an interceptor that maintains backward compatibility with older SDK versions
- *       that automatically calculated MD5 checksums for certain operations</li>
- * </ul>
+ * <p>This plugin configures the S3 client to add an interceptor that maintains backward compatibility
+ * with older SDK versions that automatically calculated MD5 checksums for certain operations.</p>
  *
  * <p>Use this plugin only when you need to maintain compatibility with applications that depend on the
  * legacy MD5 checksum behavior, particularly for operations that previously calculated MD5 checksums
- * automatically.
- * <p><b>Example usage:</b>
- * <p>
+ * automatically.</p>
+ *
+ * <p><b>Example usage:</b></p>
+ *
  * {@snippet :
  * // For synchronous S3 client
- *  S3Client s3Client = S3Client.builder()
+ * S3Client s3Client = S3Client.builder()
  *                             .addPlugin(LegacyMd5Plugin.create())
  *                             .build();
  *
- *  // For asynchronous S3 client
- *  S3AsyncClient asyncClient = S3AsyncClient.builder()
- *                                          .addPlugin(create())
+ * // For asynchronous S3 client
+ * S3AsyncClient asyncClient = S3AsyncClient.builder()
+ *                                          .addPlugin(LegacyMd5Plugin.create())
  *                                          .build();
- *}*
+ * }
+ *
+ * <p>If you want to add MD5 checksums to the operations that require checksums and want
+ * to skip adding of SDK Default checksums for operations that support checksums but not required,
+ * then you can enable ClientBuilder options requestChecksumCalculation and responseChecksumValidation
+ * as WHEN_REQUIRED, this will add SDK default checksums only to operation that required checksums</p>
+ *
+ * {@snippet :
+ *
+ * // Use LegacyMd5Plugin with requestChecksumCalculation and responseChecksumValidation set to WHEN_REQUIRED
+ * S3AsyncClient asyncClient = S3AsyncClient.builder()
+ *                                          .addPlugin(LegacyMd5Plugin.create())
+ *                                          .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+ *                                          .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
+ *                                          .build();
+ * }
  *
  * @see RequestChecksumCalculation
  * @see ResponseChecksumValidation
