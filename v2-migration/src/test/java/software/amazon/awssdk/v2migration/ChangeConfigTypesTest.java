@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnJre;
 import org.junit.jupiter.api.condition.JRE;
@@ -30,9 +29,8 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
-@Disabled("With OpenRewrite version bump, unit tests fail when ExecutionContext#putMessage is used with multiple recipes "
-          + "(invoked in HttpSettingsToHttpClient)")
 public class ChangeConfigTypesTest implements RewriteTest {
 
     @Override
@@ -49,7 +47,8 @@ public class ChangeConfigTypesTest implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"));
+        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"))
+            .typeValidationOptions(TypeValidation.all().immutableExecutionContext(false));
     }
 
     @Test
