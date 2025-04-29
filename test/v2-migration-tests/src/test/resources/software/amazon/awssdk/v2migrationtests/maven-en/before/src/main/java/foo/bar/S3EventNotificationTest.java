@@ -60,6 +60,8 @@ public class S3EventNotificationTest {
 
             RestoreEventDataEntity restoreEventData = glacierEventData.getRestoreEventData();
 
+            DateTime expireTime = restoreEventData.getLifecycleRestorationExpiryTime();
+
             LifecycleEventDataEntity lifecycleEventData = record.getLifecycleEventData();
 
             IntelligentTieringEventDataEntity intelligentTieringEventData = record.getIntelligentTieringEventData();

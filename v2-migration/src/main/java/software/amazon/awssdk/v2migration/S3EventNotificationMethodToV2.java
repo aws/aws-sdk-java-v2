@@ -32,6 +32,8 @@ public class S3EventNotificationMethodToV2 extends Recipe {
     private static final MethodMatcher GET_EVENT_TIME = v1EnMethodMatcher("S3EventNotification.S3EventNotificationRecord "
                                                                           + "getEventTime(..)");
 
+    private static final MethodMatcher  GET_EXPIRY_TIME = v1EnMethodMatcher("S3EventNotification.RestoreEventDataEntity "
+                                                                          + "getLifecycleRestorationExpiryTime(..)");
     @Override
     public String getDisplayName() {
         return "S3 Event Notification method to v2";
@@ -50,7 +52,7 @@ public class S3EventNotificationMethodToV2 extends Recipe {
     private static class Visitor extends JavaVisitor<ExecutionContext> {
         @Override
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-            if (GET_EVENT_TIME.matches(method)) {
+            if (GET_EVENT_TIME.matches(method) || GET_EXPIRY_TIME.matches(method)) {
                 JavaTemplate template = JavaTemplate.builder("new DateTime(#{any(java.time.Instant)}.toEpochMilli())")
                                                     .build();
                 J m = super.visitMethodInvocation(method, ctx);

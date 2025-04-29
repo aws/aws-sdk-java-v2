@@ -57,6 +57,8 @@ public class S3EventNotificationTest {
 
             RestoreEventData restoreEventData = glacierEventData.getRestoreEventData();
 
+            DateTime expireTime = /*AWS SDK for Java v2 migration: getLifecycleRestorationExpiryTime returns Instant instead of DateTime in v2. AWS SDK v2 does not include org.joda.time as a dependency. If you want to keep using DateTime, you'll need to manually add "org.joda.time:joda-time" dependency to your project after migration.*/new DateTime(restoreEventData.getLifecycleRestorationExpiryTime().toEpochMilli());
+
             LifecycleEventData lifecycleEventData = record.getLifecycleEventData();
 
             IntelligentTieringEventData intelligentTieringEventData = record.getIntelligentTieringEventData();
