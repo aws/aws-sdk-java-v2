@@ -55,7 +55,7 @@ public class MavenTestBase {
 
         List<String> rewriteArgs = new ArrayList<>();
         // pin version since updates have broken tests
-        String rewriteMavenPluginVersion = "5.46.0";
+        String rewriteMavenPluginVersion = "6.6.0";
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
                "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
                recipeCmd);

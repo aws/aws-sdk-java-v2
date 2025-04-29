@@ -61,7 +61,7 @@ public class S3Streaming {
         HeadObjectResponse metadataWithLength = HeadObjectResponse.builder()
             .build();
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength(22L)
-            .build(), RequestBody.fromInputStream(stream, 22L));
+            .build(), RequestBody.fromInputStream(stream, 22));
 
 
         HeadObjectResponse metadataWithoutLength = HeadObjectResponse.builder()
@@ -105,7 +105,7 @@ public class S3Streaming {
         HeadObjectResponse metadata = HeadObjectResponse.builder()
             .build();
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(11L)
-            .build(), RequestBody.fromInputStream(inputStream2, 11L));
+            .build(), RequestBody.fromInputStream(inputStream2, 11));
     }
 
     void putObject_requestPojoWithoutPayload(String bucket, String key) {
