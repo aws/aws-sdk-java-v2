@@ -1039,6 +1039,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "greg-at-moderne",
+      "name": "Greg Oledzki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/192309513?v=4",
+      "profile": "https://github.com/greg-at-moderne",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

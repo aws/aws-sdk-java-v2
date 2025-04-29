@@ -253,7 +253,7 @@ public class S3 {
         s3.getBucketPolicy(GetBucketPolicyRequest.builder().bucket(bucket)
             .build());
         s3.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucket)
-            .build());
+            .build()).locationConstraint().toString();
         s3.deleteBucketLifecycle(DeleteBucketLifecycleRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketReplication(DeleteBucketReplicationRequest.builder().bucket(bucket)
@@ -373,9 +373,9 @@ public class S3 {
         s3.putBucketInventoryConfiguration(PutBucketInventoryConfigurationRequest.builder().bucket(bucket).inventoryConfiguration(InventoryConfiguration.builder()
             .build())
             .build());
-        s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
-            .build())
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names.*/s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
+        .build())
+        .build());
         s3.putBucketMetricsConfiguration(PutBucketMetricsConfigurationRequest.builder().bucket(bucket).metricsConfiguration(MetricsConfiguration.builder()
             .build())
             .build());
@@ -388,9 +388,9 @@ public class S3 {
         s3.putBucketReplication(PutBucketReplicationRequest.builder().bucket(bucket).replicationConfiguration(ReplicationConfiguration.builder()
             .build())
             .build());
-        s3.putBucketTagging(PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
-            .build())
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for setBucketTaggingConfiguration method not supported. Please manually migrate your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports and names.*/s3.putBucketTagging(PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
+        .build())
+        .build());
         s3.putBucketWebsite(PutBucketWebsiteRequest.builder().bucket(bucket).websiteConfiguration(WebsiteConfiguration.builder()
             .build())
             .build());

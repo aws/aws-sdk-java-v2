@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.23-SNAPSHOT</version>
+        <version>2.31.33-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -288,6 +288,15 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>com.nativelibs4java</groupId>
                 <artifactId>maven-velocity-plugin</artifactId>
                 <version>${maven-velocity-plugin.version}</version>
@@ -303,7 +312,7 @@
                     <velocitySources>src/main/resources/recipe-vm-templates</velocitySources>
                     <resourcesOutputDirectory>${project.build.directory}/classes/META-INF/rewrite</resourcesOutputDirectory>
                     <properties>
-                        <sdkVersion>${awsjavasdk.previous.version}</sdkVersion>
+                        <sdkVersion>${awsjavasdk.previous-previous.version}</sdkVersion>
                     </properties>
                 </configuration>
             </plugin>

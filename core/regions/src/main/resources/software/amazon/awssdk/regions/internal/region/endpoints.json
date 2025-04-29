@@ -3193,6 +3193,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
               "hostname" : "athena-fips.ca-central-1.amazonaws.com",
@@ -3325,6 +3326,7 @@
               "tags" : [ "dualstack" ]
             } ]
           },
+          "mx-central-1" : { },
           "sa-east-1" : {
             "variants" : [ {
               "hostname" : "athena.sa-east-1.api.aws",
@@ -19105,6 +19107,18 @@
           }
         }
       },
+      "query.timestream" : {
+        "endpoints" : {
+          "ap-northeast-1" : { },
+          "ap-south-1" : { },
+          "ap-southeast-2" : { },
+          "eu-central-1" : { },
+          "eu-west-1" : { },
+          "us-east-1" : { },
+          "us-east-2" : { },
+          "us-west-2" : { }
+        }
+      },
       "quicksight" : {
         "endpoints" : {
           "af-south-1" : { },
@@ -21295,6 +21309,7 @@
       "rum" : {
         "endpoints" : {
           "af-south-1" : { },
+          "ap-east-1" : { },
           "ap-northeast-1" : { },
           "ap-northeast-2" : { },
           "ap-northeast-3" : { },
@@ -21313,6 +21328,7 @@
           "eu-west-1" : { },
           "eu-west-2" : { },
           "eu-west-3" : { },
+          "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
@@ -21401,6 +21417,7 @@
           "ap-southeast-2" : { },
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
+          "ap-southeast-7" : { },
           "ca-central-1" : { },
           "ca-west-1" : { },
           "eu-central-1" : { },
@@ -21414,6 +21431,7 @@
           "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
+          "mx-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
@@ -27189,6 +27207,7 @@
           "il-central-1" : { },
           "me-central-1" : { },
           "me-south-1" : { },
+          "mx-central-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
             "variants" : [ {
@@ -34559,6 +34578,11 @@
           }
         }
       },
+      "query.timestream" : {
+        "endpoints" : {
+          "us-gov-west-1" : { }
+        }
+      },
       "quicksight" : {
         "endpoints" : {
           "us-gov-east-1" : { },
@@ -36506,6 +36530,11 @@
           "us-iso-west-1" : { }
         }
       },
+      "batch" : {
+        "endpoints" : {
+          "us-iso-east-1" : { }
+        }
+      },
       "bedrock" : {
         "endpoints" : {
           "bedrock-runtime-us-iso-east-1" : {
@@ -37400,6 +37429,12 @@
           }
         }
       },
+      "servicediscovery" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
+        }
+      },
       "snowball" : {
         "endpoints" : {
           "us-iso-east-1" : { },
@@ -37479,6 +37514,12 @@
               "tags" : [ "fips" ]
             } ]
           }
+        }
+      },
+      "storagegateway" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
         }
       },
       "streams.dynamodb" : {
@@ -37630,6 +37671,12 @@
             } ]
           }
         }
+      },
+      "xray" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
+        }
       }
     }
   }, {
@@ -37710,6 +37757,11 @@
         "defaults" : {
           "protocols" : [ "http", "https" ]
         },
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
+      "batch" : {
         "endpoints" : {
           "us-isob-east-1" : { }
         }
@@ -37796,6 +37848,11 @@
               "tags" : [ "fips" ]
             } ]
           }
+        }
+      },
+      "datasync" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
         }
       },
       "directconnect" : {
@@ -37960,6 +38017,11 @@
           "us-isob-east-1" : { }
         }
       },
+      "fsx" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
+        }
+      },
       "glacier" : {
         "endpoints" : {
           "fips-us-isob-east-1" : {
@@ -37975,6 +38037,11 @@
               "tags" : [ "fips" ]
             } ]
           }
+        }
+      },
+      "glue" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
         }
       },
       "health" : {
@@ -38269,6 +38336,11 @@
           "us-isob-east-1-fips" : {
             "deprecated" : true
           }
+        }
+      },
+      "servicediscovery" : {
+        "endpoints" : {
+          "us-isob-east-1" : { }
         }
       },
       "snowball" : {
@@ -38606,6 +38678,11 @@
           "eu-isoe-west-1" : { }
         }
       },
+      "dms" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
       "ds" : {
         "endpoints" : {
           "eu-isoe-west-1" : { }
@@ -38701,6 +38778,11 @@
         }
       },
       "glue" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
+      "kinesis" : {
         "endpoints" : {
           "eu-isoe-west-1" : { }
         }
@@ -38847,6 +38929,11 @@
         "partitionEndpoint" : "aws-iso-e-global"
       },
       "scheduler" : {
+        "endpoints" : {
+          "eu-isoe-west-1" : { }
+        }
+      },
+      "secretsmanager" : {
         "endpoints" : {
           "eu-isoe-west-1" : { }
         }
