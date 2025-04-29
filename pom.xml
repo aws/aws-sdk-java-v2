@@ -656,6 +656,7 @@
                             <includeModule>sdk-core</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
+                            <includeModule>apache5-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
