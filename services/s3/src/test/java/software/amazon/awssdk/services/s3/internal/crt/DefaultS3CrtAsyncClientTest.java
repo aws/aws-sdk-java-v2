@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -29,6 +30,8 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
@@ -116,4 +119,23 @@ class DefaultS3CrtAsyncClientTest {
         }
     }
 
+    @Test
+    void defaultClient_credentialsProvidersNotSingleton() {
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder().build();
+             S3AsyncClient anotherClient = S3AsyncClient.crtBuilder().build()) {
+
+            IdentityProvider<? extends AwsCredentialsIdentity> identityProvider =
+                client.serviceClientConfiguration().credentialsProvider();
+
+            IdentityProvider<? extends AwsCredentialsIdentity> identityProviderFromAnotherClient =
+                anotherClient.serviceClientConfiguration().credentialsProvider();
+
+            assertThat(identityProvider)
+                .isNotEqualTo(identityProviderFromAnotherClient);
+            assertThat(identityProvider)
+                .isNotEqualTo(DefaultCredentialsProvider.create());
+            assertThat(identityProviderFromAnotherClient)
+                .isNotEqualTo(DefaultCredentialsProvider.create());
+        }
+    }
 }
