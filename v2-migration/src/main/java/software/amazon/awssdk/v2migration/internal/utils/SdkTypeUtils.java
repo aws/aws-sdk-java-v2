@@ -174,6 +174,7 @@ public final class SdkTypeUtils {
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3ObjectId");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3ObjectIdBuilder");
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "TagSet");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SelectObjectContentEvent");
 
         // S3 Enums with no v2 equivalent
         CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "GroupGrantee");

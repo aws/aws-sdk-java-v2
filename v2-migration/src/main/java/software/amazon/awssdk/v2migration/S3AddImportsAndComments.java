@@ -18,6 +18,7 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.createComments;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1EnMethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1S3MethodMatcher;
 
 import java.util.List;
@@ -52,6 +53,8 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
     private static final MethodMatcher SET_LIFECYCLE_CONFIGURATION = v1S3MethodMatcher("setBucketLifecycleConfiguration(..)");
     private static final MethodMatcher SET_TAGGING_CONFIGURATION = v1S3MethodMatcher("setBucketTaggingConfiguration(..)");
+    private static final MethodMatcher GET_EVENT_TIME = v1EnMethodMatcher("S3EventNotification.S3EventNotificationRecord "
+                                                                          + "getEventTime(..)");
 
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
@@ -194,6 +197,13 @@ public class S3AddImportsAndComments extends Recipe {
                 return method.withComments(createComments(comment));
             }
 
+            if (GET_EVENT_TIME.matches(method)) {
+                String comment = "getEventTime returns Instant instead of DateTime in v2. AWS SDK v2 does not include org.joda"
+                                 + ".time as a dependency. If you want to keep using DateTime, you'll need to manually add "
+                                 + "\"org.joda.time:joda-time\" dependency to your"
+                                 + " project after migration and wrap the returned Instant into DateTime";
+                return method.withComments(createComments(comment));
+            }
             return method;
         }
 
