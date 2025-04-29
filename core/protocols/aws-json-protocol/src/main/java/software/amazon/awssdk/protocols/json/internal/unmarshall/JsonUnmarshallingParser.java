@@ -159,7 +159,7 @@ final class JsonUnmarshallingParser {
         if (isScalarType(marshallingType)) {
             MarshallingKnownType marshallingKnownType = marshallingType.getKnownType();
             while (currentToken != JsonToken.END_ARRAY) {
-                result.add(simpleValueFor(field, marshallingKnownType, c, parser, currentToken));
+                result.add(simpleValueFor(memberInfo, marshallingKnownType, c, parser, currentToken));
                 currentToken = parser.nextToken();
             }
             return result;
@@ -190,7 +190,7 @@ final class JsonUnmarshallingParser {
             while (currentToken != JsonToken.END_OBJECT) {
                 String fieldName = parser.getText();
                 currentToken = parser.nextToken();
-                Object valueFor = simpleValueFor(field, valueMarshallingKnownType, c, parser, currentToken);
+                Object valueFor = simpleValueFor(valueInfo, valueMarshallingKnownType, c, parser, currentToken);
                 result.put(fieldName, valueFor);
                 currentToken = parser.nextToken();
             }
