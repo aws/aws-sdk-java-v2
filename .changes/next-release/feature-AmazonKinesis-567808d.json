@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis",
+    "contributor": "",
+    "description": "Amazon KDS now supports tagging and attribute-based access control (ABAC) for enhanced fan-out consumers."
+}
