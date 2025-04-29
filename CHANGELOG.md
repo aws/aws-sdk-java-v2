@@ -1,4 +1,95 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.32__ __2025-04-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix timestamp unmarshalling off-by-one errors
+        - Contributed by: [@brandondahler](https://github.com/brandondahler)
+
+## __AWS SSM-GUIConnect__
+  - ### Features
+    - This release adds API support for the connection recording GUI Connect feature of AWS Systems Manager
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Introduces CustomEntity as part of the UserUnion data type. This field is used to indicate the entity who is performing the API action.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon KDS now supports tagging and attribute-based access control (ABAC) for enhanced fan-out consumers.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging has added MONITOR and FILTER functionality to SMS Protect.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - SageMaker Metrics Service now supports FIPS endpoint in all US and Canada Commercial regions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for P5en instance types on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added LegacyMd5Plugin to perform MD5 checksums for operations that require checksum
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for just-In-time node access in AWS Systems Manager. Just-in-time node access enables customers to move towards zero standing privileges by requiring operators to request access and obtain approval before remotely connecting to nodes managed by the SSM Agent.
+
+## __QBusiness__
+  - ### Features
+    - Add support for anonymous user access for Q Business applications
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brandondahler](https://github.com/brandondahler)
+# __2.31.31__ __2025-04-28__
+## __AWS Certificate Manager__
+  - ### Features
+    - Add support for file-based HTTP domain control validation, available through Amazon CloudFront.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds native h2 support for the bedrock runtime API, the support is only limited to SDKs that support h2 requests natively.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add distribution tenant, connection group, and multi-tenant distribution APIs to the CloudFront SDK.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc only update for GSI descriptions.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add integration with SSM Parameter Store to Image Builder.
+
+# __2.31.30__ __2025-04-25__
+## __AWS Marketplace Deployment Service__
+  - ### Features
+    - Doc only update for the AWS Marketplace Deployment Service that fixes several customer-reported issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - You can now reference images and documents stored in Amazon S3 when using InvokeModel and Converse APIs with Amazon Nova Lite and Nova Pro. This enables direct integration of S3-stored multimedia assets in your model requests without manual downloading or base64 encoding.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release for Amazon ECS.
+
 # __2.31.29__ __2025-04-24__
 ## __AWS App Runner__
   - ### Features
