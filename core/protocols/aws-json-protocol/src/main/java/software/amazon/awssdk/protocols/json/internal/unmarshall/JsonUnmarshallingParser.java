@@ -159,7 +159,7 @@ final class JsonUnmarshallingParser {
         if (isScalarType(marshallingType)) {
             MarshallingKnownType marshallingKnownType = marshallingType.getKnownType();
             while (currentToken != JsonToken.END_ARRAY) {
-                result.add(simpleValueFor(field, marshallingKnownType, c, parser, currentToken));
+                result.add(simpleValueFor(memberInfo, marshallingKnownType, c, parser, currentToken));
                 currentToken = parser.nextToken();
             }
             return result;
@@ -190,7 +190,7 @@ final class JsonUnmarshallingParser {
             while (currentToken != JsonToken.END_OBJECT) {
                 String fieldName = parser.getText();
                 currentToken = parser.nextToken();
-                Object valueFor = simpleValueFor(field, valueMarshallingKnownType, c, parser, currentToken);
+                Object valueFor = simpleValueFor(valueInfo, valueMarshallingKnownType, c, parser, currentToken);
                 result.put(fieldName, valueFor);
                 currentToken = parser.nextToken();
             }
@@ -383,17 +383,14 @@ final class JsonUnmarshallingParser {
         JsonToken lookAhead
     ) throws IOException {
         TimestampFormatTrait.Format format = resolveTimestampFormat(field);
-        switch (format) {
-            case UNIX_TIMESTAMP:
-                return Instant.ofEpochMilli((long) (parser.getDoubleValue() * 1_000d));
-            case UNIX_TIMESTAMP_MILLIS:
-                return Instant.ofEpochMilli(parser.getLongValue());
-            default:
-                JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
-                                                                                             field.marshallingType());
-                return (Instant) unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
-                                                         (SdkField<Object>) field);
+        if (format == TimestampFormatTrait.Format.UNIX_TIMESTAMP_MILLIS) {
+            return Instant.ofEpochMilli(parser.getLongValue());
         }
+
+        JsonUnmarshaller<Object> unmarshaller = unmarshallerRegistry.getUnmarshaller(MarshallLocation.PAYLOAD,
+                                                                                     field.marshallingType());
+        return (Instant) unmarshaller.unmarshall(context, jsonValueNodeFactory.node(parser, lookAhead),
+                                                 (SdkField<Object>) field);
     }
 
     /**
