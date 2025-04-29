@@ -28,8 +28,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
-
-//import org.joda.time.DateTime;
+import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
     public void parseEvent(String jsonInput) {
@@ -46,7 +45,7 @@ public class S3EventNotificationTest {
 
             String eventNameEnum = record.getEventName();
 
-            //DateTime eventTime = record.getEventTime();
+            DateTime eventTime = /*AWS SDK for Java v2 migration: getEventTime returns Instant instead of DateTime in v2. AWS SDK v2 does not include org.joda.time as a dependency. If you want to keep using DateTime, you'll need to manually add "org.joda.time:joda-time" dependency to your project after migration.*/new DateTime(record.getEventTime().toEpochMilli());
 
             RequestParameters requestParams = record.getRequestParameters();
 

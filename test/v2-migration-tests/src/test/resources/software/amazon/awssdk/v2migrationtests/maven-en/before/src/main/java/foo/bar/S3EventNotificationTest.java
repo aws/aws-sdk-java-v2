@@ -31,7 +31,7 @@ import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEnt
 import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
 import com.amazonaws.services.s3.model.S3Event;
-//import org.joda.time.DateTime;
+import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
     public void parseEvent(String jsonInput) {
@@ -48,7 +48,7 @@ public class S3EventNotificationTest {
 
             S3Event eventNameEnum = record.getEventNameAsEnum();
 
-            //DateTime eventTime = record.getEventTime();
+            DateTime eventTime = record.getEventTime();
 
             RequestParametersEntity requestParams = record.getRequestParameters();
 

@@ -24,6 +24,7 @@ recipeList:
   - software.amazon.awssdk.v2migration.AddS3EventNotificationDependency
   - software.amazon.awssdk.v2migration.UpgradeSdkDependencies
   - software.amazon.awssdk.v2migration.S3AddImportsAndComments
+  - software.amazon.awssdk.v2migration.S3EventNotificationMethodToV2
   - software.amazon.awssdk.v2migration.S3TypesToV2
   - software.amazon.awssdk.v2migration.S3StreamingResponseToV2
   - software.amazon.awssdk.v2migration.S3StreamingRequestToV2
