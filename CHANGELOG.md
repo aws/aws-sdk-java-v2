@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.32__ __2025-04-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix timestamp unmarshalling off-by-one errors
+        - Contributed by: [@brandondahler](https://github.com/brandondahler)
+
+## __AWS SSM-GUIConnect__
+  - ### Features
+    - This release adds API support for the connection recording GUI Connect feature of AWS Systems Manager
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Introduces CustomEntity as part of the UserUnion data type. This field is used to indicate the entity who is performing the API action.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon KDS now supports tagging and attribute-based access control (ABAC) for enhanced fan-out consumers.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging has added MONITOR and FILTER functionality to SMS Protect.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - SageMaker Metrics Service now supports FIPS endpoint in all US and Canada Commercial regions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for P5en instance types on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added LegacyMd5Plugin to perform MD5 checksums for operations that require checksum
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for just-In-time node access in AWS Systems Manager. Just-in-time node access enables customers to move towards zero standing privileges by requiring operators to request access and obtain approval before remotely connecting to nodes managed by the SSM Agent.
+
+## __QBusiness__
+  - ### Features
+    - Add support for anonymous user access for Q Business applications
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brandondahler](https://github.com/brandondahler)
 # __2.31.31__ __2025-04-28__
 ## __AWS Certificate Manager__
   - ### Features
