@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Introduced support for P5en instance types on SageMaker Studio for JupyterLab and CodeEditor applications."
+}
