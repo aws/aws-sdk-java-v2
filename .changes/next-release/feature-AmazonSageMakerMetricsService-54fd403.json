@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Metrics Service",
-    "contributor": "",
-    "description": "SageMaker Metrics Service now supports FIPS endpoint in all US and Canada Commercial regions."
-}
