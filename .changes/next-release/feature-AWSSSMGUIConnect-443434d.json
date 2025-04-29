@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SSM-GUIConnect",
+    "contributor": "",
+    "description": "This release adds API support for the connection recording GUI Connect feature of AWS Systems Manager"
+}
