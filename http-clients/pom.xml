@@ -34,6 +34,7 @@
         <module>aws-crt-client</module>
         <module>netty-nio-client</module>
         <module>url-connection-client</module>
+        <module>apache5-client</module>
     </modules>
 
     <dependencyManagement>
