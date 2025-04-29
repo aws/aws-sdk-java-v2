@@ -34,6 +34,7 @@ public class S3EventNotificationMethodToV2 extends Recipe {
 
     private static final MethodMatcher  GET_EXPIRY_TIME = v1EnMethodMatcher("S3EventNotification.RestoreEventDataEntity "
                                                                           + "getLifecycleRestorationExpiryTime(..)");
+
     @Override
     public String getDisplayName() {
         return "S3 Event Notification method to v2";
