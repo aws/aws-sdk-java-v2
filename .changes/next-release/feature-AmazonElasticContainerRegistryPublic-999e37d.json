@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry Public",
+    "contributor": "",
+    "description": "Adds dualstack support for Amazon Elastic Container Registry Public (Amazon ECR Public)."
+}
