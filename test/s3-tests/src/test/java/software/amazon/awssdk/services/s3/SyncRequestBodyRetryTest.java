@@ -55,7 +55,7 @@ public class SyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
     private S3Client s3;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
         BaseRequestBodyRetryTest.setup();
         apache = ApacheHttpClient.builder()
                                  .buildWithDefaults(AttributeMap.builder()
@@ -71,14 +71,14 @@ public class SyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
                                                                                       .backoffStrategy(BackoffStrategy.retryImmediately())
                                                                                       .build()))
                      .region(Region.US_WEST_2)
-                     .endpointOverride(URI.create("https://localhost:" + wireMockServer.httpsPort()))
+                     .endpointOverride(URI.create("https://localhost:" + serverHttpsPort()))
                      .forcePathStyle(true)
                      .httpClient(apache)
                      .build();
     }
 
     @AfterAll
-    public static void teardown() {
+    public static void teardown() throws Exception {
         apache.close();
         BaseRequestBodyRetryTest.teardown();
     }

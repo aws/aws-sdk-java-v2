@@ -54,7 +54,7 @@ public class AsyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
     private S3AsyncClient s3;
 
     @BeforeAll
-    public static void setup() throws IOException {
+    public static void setup() throws Exception {
         BaseRequestBodyRetryTest.setup();
         requestBodyExecutor = Executors.newSingleThreadExecutor();
         netty = NettyNioAsyncHttpClient.builder()
@@ -72,14 +72,14 @@ public class AsyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
                                                                                            .backoffStrategy(BackoffStrategy.retryImmediately())
                                                                                            .build()))
                           .region(Region.US_WEST_2)
-                          .endpointOverride(URI.create("https://localhost:" + wireMockServer.httpsPort()))
+                          .endpointOverride(URI.create("https://localhost:" + serverHttpsPort()))
                           .httpClient(netty)
                           .forcePathStyle(true)
                           .build();
     }
 
     @AfterAll
-    public static void teardown() {
+    public static void teardown() throws Exception {
         BaseRequestBodyRetryTest.teardown();
         netty.close();
         requestBodyExecutor.shutdown();

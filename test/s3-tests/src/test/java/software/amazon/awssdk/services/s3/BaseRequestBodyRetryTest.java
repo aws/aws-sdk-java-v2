@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.services.s3;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
-import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,17 +23,23 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.stream.Collectors;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -54,17 +56,19 @@ public class BaseRequestBodyRetryTest {
     protected static final int KB = 1024;
     protected static final int MB = KB * 1024;
     protected static final Map<BodySize, Path> testFiles = new EnumMap<>(BodySize.class);
-    protected static final WireMockServer wireMockServer = new WireMockServer(0, 0);
     protected static final SdkChecksum crc32 = SdkChecksum.forAlgorithm(DefaultChecksumAlgorithm.CRC32);
 
+    private static final ChecksumServlet checksumServlet = new ChecksumServlet(DefaultChecksumAlgorithm.CRC32);
+    private static final TestServer testServer = new TestServer(checksumServlet);
+
     @BeforeAll
-    public static void setup() throws IOException {
-        wireMockServer.start();
+    public static void setup() throws Exception {
+        testServer.start();
         createTestFiles();
     }
 
     @AfterAll
-    public static void teardown() {
+    public static void teardown() throws Exception {
         testFiles.values().forEach(tf -> {
             try {
                 Files.delete(tf);
@@ -72,14 +76,16 @@ public class BaseRequestBodyRetryTest {
                 LOG.warn(() -> "Could not delete test file " + tf.toAbsolutePath());
             }
         });
-        wireMockServer.stop();
+        testServer.stop();
     }
 
     @BeforeEach
-    public void resetWireMock() {
-        wireMockServer.resetAll();
-        wireMockServer.stubFor(WireMock.put(WireMock.anyUrl())
-                                       .willReturn(WireMock.aResponse().withStatus(500)));
+    public void resetServlet() {
+        checksumServlet.clearChecksums();
+    }
+
+    protected int serverHttpsPort() {
+        return testServer.getHttpsPort();
     }
 
     protected byte[] getDataSegment() {
@@ -129,23 +135,7 @@ public class BaseRequestBodyRetryTest {
     }
 
     protected List<String> getRequestChecksums() {
-        return requestBodies().stream()
-                              .map(r -> {
-                                  if (isRequestChunked(r)) {
-                                      return getDecodedChecksum(r.getBody());
-                                  }
-                                  crc32.reset();
-                                  crc32.update(r.getBody());
-                                  return crc32.getChecksumBytes();
-                              }).map(BaseRequestBodyRetryTest::base64Encode)
-                              .collect(Collectors.toList());
-    }
-
-    private List<LoggedRequest> requestBodies() {
-        return wireMockServer.getAllServeEvents().stream()
-            .filter(ServeEvent::getWasMatched)
-            .map(ServeEvent::getRequest)
-            .collect(Collectors.toList());
+        return checksumServlet.requestChecksums();
     }
 
     protected static byte[] getDecodedChecksum(byte[] chunkEncoded) {
@@ -197,10 +187,6 @@ public class BaseRequestBodyRetryTest {
         }
     }
 
-    private boolean isRequestChunked(LoggedRequest request) {
-        return "aws-chunked".equalsIgnoreCase(request.getHeader("content-encoding"));
-    }
-
     protected enum BodySize {
         SZ_0B(0),
 
@@ -223,6 +209,41 @@ public class BaseRequestBodyRetryTest {
 
         public int getNumBytes() {
             return bytes;
+        }
+    }
+
+    private static class ChecksumServlet extends HttpServlet {
+        private final List<String> checksums = new ArrayList<>();
+        private final SdkChecksum checksum;
+
+        public ChecksumServlet(ChecksumAlgorithm checksumAlgorithm) {
+            checksum = SdkChecksum.forAlgorithm(checksumAlgorithm);
+        }
+
+        public List<String> requestChecksums() {
+            return checksums;
+        }
+
+        public void clearChecksums() {
+            checksums.clear();
+        }
+
+        @Override
+        public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
+            ServletInputStream inputStream = request.getInputStream();
+
+            byte[] buff = new byte[4096];
+            int read;
+
+            checksum.reset();
+            ChunkedDecoder decoder = new ChunkedDecoder(checksum);
+            while ((read = inputStream.read(buff)) != -1) {
+                decoder.update(buff, 0, read);
+            }
+            checksums.add(base64Encode(decoder.checksumBytes()));
+
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            response.setContentLength(0);
         }
     }
 }
