@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
   ~
@@ -18,35 +17,38 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>aws-sdk-java-pom</artifactId>
+        <artifactId>http-clients</artifactId>
         <groupId>software.amazon.awssdk</groupId>
         <version>2.31.33-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>http-clients</artifactId>
-    <name>AWS Java SDK :: HTTP Clients</name>
-    <packaging>pom</packaging>
+    <artifactId>apache5-client</artifactId>
+    <name>AWS Java SDK :: HTTP Clients :: Apache5</name>
 
-    <modules>
-        <module>apache-client</module>
-        <module>aws-crt-client</module>
-        <module>netty-nio-client</module>
-        <module>url-connection-client</module>
-        <module>apache5-client</module>
-    </modules>
+<dependencies>
+    <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>http-client-spi</artifactId>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+</dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>bom-internal</artifactId>
-                <version>${project.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+                <archive>
+                    <manifestEntries>
+                        <Automatic-Module-Name>software.amazon.awssdk.http.apache5</Automatic-Module-Name>
+                    </manifestEntries>
+                </archive>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 
 </project>

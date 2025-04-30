@@ -194,6 +194,11 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
+                <artifactId>apache5-client</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>netty-nio-client</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
