@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.33__ __2025-04-30__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for ProtectedQuery results to be delivered to more than one collaboration member via the new distribute output configuration in StartProtectedQuery.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tag management on workers and tag inheritance from fleets to their associated workers.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Features: Add inline code node to prompt flow
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Support for Custom Orchestration within InlineAgents
+
+## __Amazon Bedrock__
+  - ### Features
+    - You can now specify a cross region inference profile as a teacher model for the CreateModelCustomizationJob API. Additionally, the GetModelCustomizationJob API has been enhanced to return the sub-task statuses of a customization job within the StatusDetails response field.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs supports "DELIVERY" log class. This log class is used only for delivering AWS Lambda logs to Amazon S3 or Amazon Data Firehose.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launch of cost distribution feature for IPAM owners to distribute costs to internal teams.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds dualstack support for Amazon Elastic Container Registry (Amazon ECR).
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Adds dualstack support for Amazon Elastic Container Registry Public (Amazon ECR Public).
+
+## __MailManager__
+  - ### Features
+    - Introducing new RuleSet rule PublishToSns action, which allows customers to publish email notifications to an Amazon SNS topic. New PublishToSns action enables customers to easily integrate their email workflows via Amazon SNS, allowing them to notify other systems about important email events.
+
 # __2.31.32__ __2025-04-29__
 ## __AWS SDK for Java v2__
   - ### Features
