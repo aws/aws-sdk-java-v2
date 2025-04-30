@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.customization.processors;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessorChain;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 
 public final class DefaultCustomizationProcessor {
 
@@ -25,7 +26,7 @@ public final class DefaultCustomizationProcessor {
     }
 
     public static CodegenCustomizationProcessor getProcessorFor(
-            CustomizationConfig config) {
+        CustomizationConfig config, NamingStrategy namingStrategy) {
 
         return new CodegenCustomizationProcessorChain(
                 new MetadataModifiersProcessor(config.getCustomServiceMetadata()),
@@ -37,7 +38,7 @@ public final class DefaultCustomizationProcessor {
                 new SmithyRpcV2CborProtocolProcessor(),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
-                new EventStreamUniqueEventShapesProcessor(config.getUseLegacyEventGenerationScheme()),
+                new EventStreamUniqueEventShapesProcessor(config.getUseLegacyEventGenerationScheme(), namingStrategy),
                 new NewAndLegacyEventStreamProcessor(),
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),

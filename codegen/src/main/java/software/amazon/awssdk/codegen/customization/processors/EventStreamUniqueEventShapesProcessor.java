@@ -23,6 +23,7 @@ import software.amazon.awssdk.codegen.model.config.customization.LegacyEventGene
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -36,10 +37,13 @@ public final class EventStreamUniqueEventShapesProcessor implements CodegenCusto
     private static final Logger log = Logger.loggerFor(EventStreamUniqueEventShapesProcessor.class);
 
     private final Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme;
+    private final NamingStrategy namingStrategy;
 
     public EventStreamUniqueEventShapesProcessor(
-        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme) {
+        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme,
+        NamingStrategy namingStrategy) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+        this.namingStrategy = namingStrategy;
     }
 
     @Override
@@ -67,11 +71,8 @@ public final class EventStreamUniqueEventShapesProcessor implements CodegenCusto
                 .getOrDefault(memberName, LegacyEventGenerationMode.DISABLED);
 
             if (memberTargetShape.isEvent() && legacyEventGenerationMode == LegacyEventGenerationMode.DISABLED) {
-                String newShapeName = eventShapeName + eventStreamName;
+                String newShapeName = namingStrategy.getUniqueEventStreamEventShapeName(member, eventStreamName);
                 if (serviceModel.getShapes().containsKey(newShapeName)) {
-                    // TODO: This could be an error instead.  Its unlikely we'll run into this.  And if we do, not creating the
-                    //  unique name is only an issue when/if the event is shared with another event stream whos event/eventstream
-                    // shape name is also in the model.
                     log.warn(() -> String.format("Shape name conflict, unable to create a new unique event shape name for %s in"
                                                  + " eventstream %s because %s already exists in the model.  Skipping.",
                                                  eventShapeName, eventStreamName, newShapeName));
