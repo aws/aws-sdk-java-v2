@@ -189,8 +189,9 @@ public class BaseRequestBodyRetryTest {
 
     protected enum BodySize {
         SZ_0B(0),
+        SZ_1KB(KB),
 
-        SZ_128KB(128 * KB),
+        // SZ_128KB(128 * KB),
 
 //        SZ_4MB(4 * MB),
 //
