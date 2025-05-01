@@ -15,8 +15,6 @@
 
 package foo.bar;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.event.S3EventNotification;
 import com.amazonaws.services.s3.event.S3EventNotification.S3BucketEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.S3Entity;
@@ -31,7 +29,6 @@ import com.amazonaws.services.s3.event.S3EventNotification.LifecycleEventDataEnt
 import com.amazonaws.services.s3.event.S3EventNotification.IntelligentTieringEventDataEntity;
 import com.amazonaws.services.s3.event.S3EventNotification.ReplicationEventDataEntity;
 import com.amazonaws.services.s3.model.S3Event;
-import org.joda.time.DateTime;
 
 public class S3EventNotificationTest {
     public void parseEvent(String jsonInput) {
@@ -48,8 +45,6 @@ public class S3EventNotificationTest {
 
             S3Event eventNameEnum = record.getEventNameAsEnum();
 
-            DateTime eventTime = record.getEventTime();
-
             RequestParametersEntity requestParams = record.getRequestParameters();
 
             ResponseElementsEntity responseElements = record.getResponseElements();
@@ -59,8 +54,6 @@ public class S3EventNotificationTest {
             GlacierEventDataEntity glacierEventData = record.getGlacierEventData();
 
             RestoreEventDataEntity restoreEventData = glacierEventData.getRestoreEventData();
-
-            DateTime expireTime = restoreEventData.getLifecycleRestorationExpiryTime();
 
             LifecycleEventDataEntity lifecycleEventData = record.getLifecycleEventData();
 
