@@ -49,7 +49,7 @@ import software.amazon.awssdk.utils.FunctionalUtils;
 
 /**
  * Tests to ensure different {@link RequestBody} implementations return the same data for every retry.
- */
+ // */
 public class SyncRequestBodyRetryTest extends BaseRequestBodyRetryTest {
     private static SdkHttpClient apache;
     private S3Client s3;
