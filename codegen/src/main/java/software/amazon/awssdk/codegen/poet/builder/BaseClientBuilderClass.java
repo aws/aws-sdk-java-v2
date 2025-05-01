@@ -87,9 +87,9 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
-import software.amazon.awssdk.utils.internal.SystemSettingUtils;
 
 public class BaseClientBuilderClass implements ClassSpec {
     private static final ParameterizedTypeName GENERIC_AUTH_SCHEME_TYPE =
@@ -294,10 +294,34 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
                      AwsClientOption.class, TokenUtils.class);
             builder.addCode(";\n");
-            builder.addStatement("$T tokenFromEnv = $T.resolveEnvironmentVariable($S)",
-                                 ParameterizedTypeName.get(Optional.class, String.class),
-                                 SystemSettingUtils.class,
-                                 "AWS_BEARER_TOKEN_" + StringUtils.upperCase(model.getMetadata().getSigningName()));
+            String signingName = model.getMetadata().getSigningName();
+            // TODO: is this the right  transformation
+            String systemPropertyName = "aws.bearerToken" + StringUtils.capitalize(signingName);
+            String envName = "AWS_BEARER_TOKEN_" + StringUtils.upperCase(signingName);
+            TypeSpec inlineSystemSetting = TypeSpec.anonymousClassBuilder("")
+                                                    .addSuperinterface(SystemSetting.class)
+                                                    .addMethod(MethodSpec.methodBuilder("property")
+                                                                         .addAnnotation(Override.class)
+                                                                         .addModifiers(Modifier.PUBLIC)
+                                                                         .returns(String.class)
+                                                                         .addStatement("return $S", systemPropertyName)
+                                                                         .build())
+                                                    .addMethod(MethodSpec.methodBuilder("environmentVariable")
+                                                                         .addAnnotation(Override.class)
+                                                                         .addModifiers(Modifier.PUBLIC)
+                                                                         .returns(String.class)
+                                                                         .addStatement("return $S", envName)
+                                                                         .build())
+                                                    .addMethod(MethodSpec.methodBuilder("defaultValue")
+                                                                         .addAnnotation(Override.class)
+                                                                         .addModifiers(Modifier.PUBLIC)
+                                                                         .returns(String.class)
+                                                                         .addStatement("return null")
+                                                                         .build())
+                                                    .build();
+            builder.addStatement("$T tokenSystemSetting = $L", SystemSetting.class, inlineSystemSetting);
+            builder.addStatement("$T tokenFromEnv = tokenSystemSetting.getStringValue()",
+                                 ParameterizedTypeName.get(Optional.class, String.class));
 
             builder
                 .beginControlFlow("if (tokenFromEnv.isPresent() && c.option($T.AUTH_SCHEME_PROVIDER) == null && c.option($T"
@@ -324,11 +348,16 @@ public class BaseClientBuilderClass implements ClassSpec {
             }
 
             if (AuthUtils.usesBearerAuth(model)) {
-                builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
-                                AwsClientOption.class, TokenUtils.class);
-                builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
+                builder.addCode(
+                    ".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
+                    AwsClientOption.class, TokenUtils.class);
+                builder.addCode(
+                    ".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n",
+                    AwsClientOption.class);
                 if (!authSchemeSpecUtils.useSraAuth()) {
-                    builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
+                    builder.addCode(
+                        ".option($T.TOKEN_SIGNER, defaultTokenSigner())",
+                        SdkAdvancedClientOption.class);
                 }
             }
             builder.addCode(";\n");
