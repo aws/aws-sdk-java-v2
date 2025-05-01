@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.34__ __2025-05-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Adding waiter support for deployments and environments; documentation updates
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following fields to DescribeContact: DisconnectReason, AgentInitiatedHoldDuration, AfterContactWorkStartTimestamp, AfterContactWorkEndTimestamp, AfterContactWorkDuration, StateTransitions, Recordings, ContactDetails, ContactEvaluations, Attributes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Feature - Adding support for Scheduled and Rolling Update Software in Sagemaker Hyperpod.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for tagging policy stores.
+
 # __2.31.33__ __2025-04-30__
 ## __AWS Clean Rooms Service__
   - ### Features
