@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppConfig",
-    "contributor": "",
-    "description": "Adding waiter support for deployments and environments; documentation updates"
-}

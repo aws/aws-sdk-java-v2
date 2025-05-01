@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Feature - Adding support for Scheduled and Rolling Update Software in Sagemaker Hyperpod."
-}
