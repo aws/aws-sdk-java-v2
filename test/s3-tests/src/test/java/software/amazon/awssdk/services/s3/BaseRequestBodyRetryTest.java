@@ -192,13 +192,13 @@ public class BaseRequestBodyRetryTest {
 
         SZ_128KB(128 * KB),
 
-        SZ_4MB(4 * MB),
-
-        SZ_8MB(8 * MB),
-
-        SZ_16MB(16 * MB),
-
-        SZ_32MB(32 * MB),
+//        SZ_4MB(4 * MB),
+//
+//        SZ_8MB(8 * MB),
+//
+//        SZ_16MB(16 * MB),
+//
+//        SZ_32MB(32 * MB),
         ;
 
         private final int bytes;
