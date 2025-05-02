@@ -63,6 +63,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -72,13 +73,18 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -340,42 +346,79 @@ public class BaseClientBuilderClass implements ClassSpec {
             .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
                           SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
                           "smithy.api#httpBearerAuth")
-                .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
-                              AwsClientOption.class, StaticTokenProvider.class);
+            .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
+                          AwsClientOption.class, StaticTokenProvider.class)
+            .addStatement("$T interceptors = c.option($T.EXECUTION_INTERCEPTORS)",
+                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), SdkClientOption.class)
+            .addStatement("$T envTokenMetricInterceptors = $T.singletonList($L)",
+                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), Collections.class,
+                          envTokenMetricInterceptor())
+            .addStatement("c.option($T.EXECUTION_INTERCEPTORS, $T.mergeLists(interceptors, envTokenMetricInterceptors))",
+                          SdkClientOption.class, CollectionUtils.class);
         builder.nextControlFlow("else")
                .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())", AwsClientOption.class)
                .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
         builder.endControlFlow();
     }
 
-    private  TypeSpec bearerTokenSystemSetting() {
+    private TypeSpec bearerTokenSystemSetting() {
         NamingStrategy namingStrategy = model.getNamingStrategy();
 
         String systemPropertyName = "aws.bearerToken" + namingStrategy.getSigningNameForSystemProperties();
         String envName = "AWS_BEARER_TOKEN_" + namingStrategy.getSigningNameForEnvironmentVariables();
 
         return TypeSpec.anonymousClassBuilder("")
-                .addSuperinterface(SystemSetting.class)
-                .addMethod(MethodSpec.methodBuilder("property")
-                                     .addAnnotation(Override.class)
-                                     .addModifiers(Modifier.PUBLIC)
-                                     .returns(String.class)
-                                     .addStatement("return $S", systemPropertyName)
-                                     .build())
-                .addMethod(MethodSpec.methodBuilder("environmentVariable")
-                                     .addAnnotation(Override.class)
-                                     .addModifiers(Modifier.PUBLIC)
-                                     .returns(String.class)
-                                     .addStatement("return $S", envName)
-                                     .build())
-                .addMethod(MethodSpec.methodBuilder("defaultValue")
-                                     .addAnnotation(Override.class)
-                                     .addModifiers(Modifier.PUBLIC)
-                                     .returns(String.class)
-                                     .addStatement("return null")
-                                     .build())
-            .build();
+                       .addSuperinterface(SystemSetting.class)
+                       .addMethod(MethodSpec.methodBuilder("property")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return $S", systemPropertyName)
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("environmentVariable")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return $S", envName)
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("defaultValue")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return null")
+                                            .build())
+                       .build();
 
+    }
+
+    private TypeSpec envTokenMetricInterceptor() {
+        MethodSpec beforeExeuction =
+            MethodSpec
+                .methodBuilder("beforeExecution")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Context.BeforeExecution.class, "context")
+                .addParameter(ExecutionAttributes.class, "executionAttributes")
+                .addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
+                              SelectedAuthScheme.class, SdkInternalExecutionAttribute.class)
+                .beginControlFlow("if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals($T"
+                                  + ".SCHEME_ID) && selectedAuthScheme.identity().isDone())", BearerAuthScheme.class)
+                .beginControlFlow("if (selectedAuthScheme.identity().getNow(null) instanceof $T)", TokenIdentity.class)
+
+                .addStatement("$T configuredToken = ($T) selectedAuthScheme.identity().getNow(null)",
+                              TokenIdentity.class, TokenIdentity.class)
+                .beginControlFlow("if (configuredToken.token().equals(tokenFromEnv.get()))")
+                .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
+                              + ".addMetric($T.BEARER_SERVICE_ENV_VARS.value())",
+                              SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+                .endControlFlow()
+                .endControlFlow()
+                .endControlFlow()
+                .build();
+        return TypeSpec.anonymousClassBuilder("")
+                       .addSuperinterface(ExecutionInterceptor.class)
+                       .addMethod(beforeExeuction)
+                       .build();
     }
 
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {
@@ -514,7 +557,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             // serviceConfigBuilder; the service configuration classes (e.g. S3Configuration) return primitive booleans that
             // have a default when not present.
             builder.addStatement("builder.option($T.DUALSTACK_ENDPOINT_ENABLED, serviceConfigBuilder.dualstackEnabled())",
-                            AwsClientOption.class);
+                                 AwsClientOption.class);
         }
 
         if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
@@ -524,14 +567,14 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (model.getEndpointOperation().isPresent()) {
             builder.addStatement("builder.option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
-                            SdkClientOption.class);
+                                 SdkClientOption.class);
         }
 
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryStrategy())) {
             builder.addStatement("builder.option($1T.RETRY_STRATEGY, $2T.resolveRetryStrategy(config))",
-                            SdkClientOption.class,
-                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
+                                 SdkClientOption.class,
+                                 PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
         }
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
@@ -557,7 +600,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (endpointParamsKnowledgeIndex.hasAccountIdEndpointModeBuiltIn()) {
             builder.addStatement("builder.option($T.$L, resolveAccountIdEndpointMode(config))",
-                            AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
+                                 AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
         }
 
         String serviceNameForEnvVar = model.getNamingStrategy().getServiceNameForEnvironmentVariables();
@@ -1039,10 +1082,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         List<String> internalPlugins = model.getCustomizationConfig().getInternalPlugins();
         if (internalPlugins.isEmpty()) {
             return builder.addStatement("return $T.emptyList()", Collections.class)
-                .build();
+                          .build();
         }
 
-        builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName,  ArrayList.class);
+        builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName, ArrayList.class);
 
         for (String internalPlugin : internalPlugins) {
             String arguments = internalPluginNewArguments(internalPlugin);
