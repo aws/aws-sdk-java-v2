@@ -22,10 +22,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.services.environmenttokenprovider.auth.scheme.EnvironmentTokenProviderAuthSchemeProvider;
+import software.amazon.awssdk.services.environmenttokenprovider.model.OneOperationRequest;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
@@ -89,6 +92,8 @@ public class EnvironmentTokenProviderTest {
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
         assertThat(loggedRequest.firstMatchingHeader("Authorization").get()).isEqualTo(String.format("Bearer %s", ENV_TOKEN));
+        assertThat(loggedRequest.firstMatchingHeader("User-Agent").get())
+            .matches(".*m\\/[A-Za-z0-9,]+" + BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS);
     }
 
     @Test
@@ -131,6 +136,27 @@ public class EnvironmentTokenProviderTest {
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
         assertThat(loggedRequest.firstMatchingHeader("Authorization").get()).startsWith("AWS4-HMAC-SHA256 Credential=akid/");
+    }
+
+    @Test
+    public void metricNotSetWhenTokenOverriddenOnOperation() {
+        environmentVariableHelper.set(ENV_NAME, ENV_TOKEN);
+        mockHttpClient.stubNextResponse(mockResponse());
+
+        EnvironmentTokenProviderClient client = EnvironmentTokenProviderClient
+            .builder()
+            .httpClient(mockHttpClient)
+            .build();
+
+        client.oneOperation(OneOperationRequest.builder()
+                                               .overrideConfiguration(c -> c.tokenIdentityProvider(
+                                                   StaticTokenProvider.create(() -> "operation-token")))
+                                               .build());
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
+        assertThat(loggedRequest.firstMatchingHeader("Authorization").get()).isEqualTo("Bearer operation-token");
+        assertThat(loggedRequest.firstMatchingHeader("User-Agent").get())
+            .doesNotMatch(".*m\\/[A-Za-z0-9,]+" + BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS);
     }
 
     private HttpExecuteResponse mockResponse() {
