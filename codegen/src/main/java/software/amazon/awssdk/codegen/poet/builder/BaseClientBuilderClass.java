@@ -52,6 +52,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -289,54 +290,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         if (enableEnvironmentBearerToken) {
-            // this applies only on SRA auth AND bearer it should be validated already, so skip those
-            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-            builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
-                     AwsClientOption.class, TokenUtils.class);
-            builder.addCode(";\n");
-            String signingName = model.getMetadata().getSigningName();
-            // TODO: is this the right  transformation
-            String systemPropertyName = "aws.bearerToken" + StringUtils.capitalize(signingName);
-            String envName = "AWS_BEARER_TOKEN_" + StringUtils.upperCase(signingName);
-            TypeSpec inlineSystemSetting = TypeSpec.anonymousClassBuilder("")
-                                                    .addSuperinterface(SystemSetting.class)
-                                                    .addMethod(MethodSpec.methodBuilder("property")
-                                                                         .addAnnotation(Override.class)
-                                                                         .addModifiers(Modifier.PUBLIC)
-                                                                         .returns(String.class)
-                                                                         .addStatement("return $S", systemPropertyName)
-                                                                         .build())
-                                                    .addMethod(MethodSpec.methodBuilder("environmentVariable")
-                                                                         .addAnnotation(Override.class)
-                                                                         .addModifiers(Modifier.PUBLIC)
-                                                                         .returns(String.class)
-                                                                         .addStatement("return $S", envName)
-                                                                         .build())
-                                                    .addMethod(MethodSpec.methodBuilder("defaultValue")
-                                                                         .addAnnotation(Override.class)
-                                                                         .addModifiers(Modifier.PUBLIC)
-                                                                         .returns(String.class)
-                                                                         .addStatement("return null")
-                                                                         .build())
-                                                    .build();
-            builder.addStatement("$T tokenSystemSetting = $L", SystemSetting.class, inlineSystemSetting);
-            builder.addStatement("$T tokenFromEnv = tokenSystemSetting.getStringValue()",
-                                 ParameterizedTypeName.get(Optional.class, String.class));
-
-            builder
-                .beginControlFlow("if (tokenFromEnv.isPresent() && c.option($T.AUTH_SCHEME_PROVIDER) == null && c.option($T"
-                                  + ".TOKEN_IDENTITY_PROVIDER) == null)",
-                                  SdkClientOption.class, AwsClientOption.class)
-
-                .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
-                              SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
-                              "smithy.api#httpBearerAuth")
-                    .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
-                                  AwsClientOption.class, StaticTokenProvider.class);
-            builder.nextControlFlow("else")
-                   .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())", AwsClientOption.class)
-                   .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
-            builder.endControlFlow();
+            configureEnvironmentBearerToken(builder);
         } else {
             if (authSchemeSpecUtils.useSraAuth()) {
                 builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
@@ -365,6 +319,63 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.endControlFlow(")");
         return builder.build();
+    }
+
+    private void configureEnvironmentBearerToken(MethodSpec.Builder builder) {
+        // this applies only on SRA auth AND bearer it should be validated already, so skip those
+        builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
+        builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
+                        AwsClientOption.class, TokenUtils.class);
+        builder.addCode(";\n");
+
+        builder.addStatement("$T tokenSystemSetting = $L", SystemSetting.class, bearerTokenSystemSetting());
+        builder.addStatement("$T tokenFromEnv = tokenSystemSetting.getStringValue()",
+                             ParameterizedTypeName.get(Optional.class, String.class));
+
+        builder
+            .beginControlFlow("if (tokenFromEnv.isPresent() && c.option($T.AUTH_SCHEME_PROVIDER) == null && c.option($T"
+                              + ".TOKEN_IDENTITY_PROVIDER) == null)",
+                              SdkClientOption.class, AwsClientOption.class)
+
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
+                          SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
+                          "smithy.api#httpBearerAuth")
+                .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
+                              AwsClientOption.class, StaticTokenProvider.class);
+        builder.nextControlFlow("else")
+               .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())", AwsClientOption.class)
+               .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+        builder.endControlFlow();
+    }
+
+    private  TypeSpec bearerTokenSystemSetting() {
+        NamingStrategy namingStrategy = model.getNamingStrategy();
+
+        String systemPropertyName = "aws.bearerToken" + namingStrategy.getSigningNameForSystemProperties();
+        String envName = "AWS_BEARER_TOKEN_" + namingStrategy.getSigningNameForEnvironmentVariables();
+
+        return TypeSpec.anonymousClassBuilder("")
+                .addSuperinterface(SystemSetting.class)
+                .addMethod(MethodSpec.methodBuilder("property")
+                                     .addAnnotation(Override.class)
+                                     .addModifiers(Modifier.PUBLIC)
+                                     .returns(String.class)
+                                     .addStatement("return $S", systemPropertyName)
+                                     .build())
+                .addMethod(MethodSpec.methodBuilder("environmentVariable")
+                                     .addAnnotation(Override.class)
+                                     .addModifiers(Modifier.PUBLIC)
+                                     .returns(String.class)
+                                     .addStatement("return $S", envName)
+                                     .build())
+                .addMethod(MethodSpec.methodBuilder("defaultValue")
+                                     .addAnnotation(Override.class)
+                                     .addModifiers(Modifier.PUBLIC)
+                                     .returns(String.class)
+                                     .addStatement("return null")
+                                     .build())
+            .build();
+
     }
 
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {

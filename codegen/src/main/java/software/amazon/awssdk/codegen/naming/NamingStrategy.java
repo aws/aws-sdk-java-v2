@@ -201,6 +201,21 @@ public interface NamingStrategy {
     String getExistenceCheckMethodName(String memberName, Shape parentShape);
 
     /**
+     * Retrieve the service's signing name that should be used based on the model.
+     */
+    String getSigningName();
+
+    /**
+     * Retrieve the service name that should be used for environment variables.
+     */
+    String getSigningNameForEnvironmentVariables();
+
+    /**
+     * Retrieve the service name that should be used for system properties.
+     */
+    String getSigningNameForSystemProperties();
+
+    /**
      * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.
      */
     void validateCustomerVisibleNaming(IntermediateModel trimmedModel);
