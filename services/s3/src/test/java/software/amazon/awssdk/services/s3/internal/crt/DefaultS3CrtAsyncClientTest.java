@@ -133,6 +133,8 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(identityProvider)
                 .isNotEqualTo(identityProviderFromAnotherClient);
             assertThat(identityProvider)
+                .isInstanceOf(DefaultCredentialsProvider.class);
+            assertThat(identityProvider)
                 .isNotEqualTo(DefaultCredentialsProvider.create());
             assertThat(identityProviderFromAnotherClient)
                 .isNotEqualTo(DefaultCredentialsProvider.create());
