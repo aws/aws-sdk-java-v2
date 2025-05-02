@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Data Automation for Amazon Bedrock",
-    "contributor": "",
-    "description": "Added support for Custom output and blueprints for AUDIO data types."
-}

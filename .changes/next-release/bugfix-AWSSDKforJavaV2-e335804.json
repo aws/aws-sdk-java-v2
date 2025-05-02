@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java V2",
-    "contributor": "",
-    "description": "Add synchronization around use of JDT code formatter to prevent NPE/race condition during code generation."
-}

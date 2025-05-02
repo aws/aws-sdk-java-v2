@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.35__ __2025-05-02__
+## __AWS Directory Service__
+  - ### Features
+    - Doc only update - fixed typos.
+
+## __AWS SDK for Java V2__
+  - ### Bugfixes
+    - Add synchronization around use of JDT code formatter to prevent NPE/race condition during code generation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Marking ResourceARN as required for Amazon Kinesis Data Streams APIs TagResource, UntagResource, and ListTagsForResource.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Custom output and blueprints for AUDIO data types.
+
 # __2.31.34__ __2025-05-01__
 ## __AWS SDK for Java v2__
   - ### Features
