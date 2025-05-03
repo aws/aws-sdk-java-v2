@@ -182,13 +182,19 @@ public final class AwsExecutionContextBuilder {
             return attributes.getOptionalAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST).orElse(true);
         }
 
-        // post SRA case.
-        // By default, SRA uses new HttpSigner, so we shouldn't use old non-SRA Signer, unless the customer has provided a signer
-        // override.
-        // But, if the operation was modeled as authTpye=None, we don't want to use the provided overridden Signer either. In
-        // post SRA, modeled authType=None would default to NoAuthAuthScheme.
-        // Note, for authType=None operation, technically, customer could override the AuthSchemeProvider and select a different
-        // AuthScheme (than NoAuthAuthScheme). In this case, we are choosing to use the customer's overridden Signer.
+        /*
+          Post-SRA case:
+
+          By default, SRA uses the new HttpSigner, so we shouldn't fall back to the old non-SRA Signer
+          unless the customer has explicitly provided a signer override.
+
+          However, if the operation was modeled with authType=None, we should not use the overridden
+          Signer either. In post-SRA, such operations default to the NoAuthAuthScheme.
+
+          Note: For authType=None operations, a customer could technically override the AuthSchemeProvider
+          to select a different AuthScheme (instead of NoAuthAuthScheme). In that case, we choose to honor
+          the customer's overridden Signer.
+         */
         SelectedAuthScheme<?> selectedAuthScheme = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
         return SignerOverrideUtils.isSignerOverridden(request, attributes) &&
                selectedAuthScheme != null &&
@@ -199,14 +205,20 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO(sra-identity-and-auth): When request-level auth scheme provider is added, use the request-level auth scheme
-        //  provider if the customer specified an override, otherwise fall back to the one on the client.
+        /*
+          TODO(sra-identity-and-auth): When a request-level auth scheme provider is added,
+          use the request-level provider if the customer specifies an override;
+          otherwise, fall back to the provider configured on the client.
+         */
         AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
 
-        // Use auth schemes that the user specified at the request level with
-        // preference over those on the client.
-        // TODO(sra-identity-and-auth): The request level schemes should be "merged" with client level, with request preferred
-        //  over client.
+        /*
+          Use auth schemes that the user specified at the request level with
+          preference over those on the client.
+
+          TODO(sra-identity-and-auth): The request-level schemes should be "merged" with
+          client-level schemes, with request-level taking precedence.
+         */
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
@@ -217,17 +229,21 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
-    // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
-    //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
-    //  tokenIdentityProvider. When adding that support this method will need to be updated.
+    /**
+     * TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
+     *  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
+     *  tokenIdentityProvider. When adding that support this method will need to be updated.
+     */
     private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
                                                               SdkClientConfiguration clientConfig) {
         IdentityProviders identityProviders =
             clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
-        // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
-        // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
-        // client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also needed for SRA logic.
+        /*
+          identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
+          has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
+          client won't have AUTH_SCHEME_PROVIDER/AUTH_SCHEMES set either, which are also needed for SRA logic.
+         */
         if (identityProviders == null) {
             return null;
         }
