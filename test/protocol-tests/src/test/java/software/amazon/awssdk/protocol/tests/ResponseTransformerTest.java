@@ -33,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.UUID;
 import org.junit.Rule;
@@ -132,6 +133,19 @@ public class ResponseTransformerTest {
                                                                        ResponseTransformer
                                                                            .toOutputStream(new ByteArrayOutputStream())))
             .isInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void downloadToExistingFileWithOverwriteSucceeds() throws IOException {
+        stubForSuccess();
+
+        Path tmpFile = Files.createTempFile("overwrite-test.", ".tmp");
+        tmpFile.toFile().deleteOnExit();
+
+        testClient().streamingOutputOperation(StreamingOutputOperationRequest.builder().build(),
+                                              ResponseTransformer.toFile(tmpFile, StandardCopyOption.REPLACE_EXISTING));
+
+        assertThat(Files.readAllLines(tmpFile)).containsExactly("test \uD83D\uDE02");
     }
 
     @Test
