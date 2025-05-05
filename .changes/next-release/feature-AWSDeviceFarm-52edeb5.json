@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Device Farm",
+    "contributor": "",
+    "description": "Add an optional parameter to the GetDevicePoolCompatibility API to pass in project information to check device pool compatibility."
+}
