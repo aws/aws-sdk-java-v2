@@ -274,18 +274,28 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec mergeServiceDefaultsMethod() {
-        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
-        boolean enableEnvironmentBearerToken = model.getCustomizationConfig().isEnableEnvironmentBearerToken();
-
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
                                                .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
-                                               .addParameter(SdkClientConfiguration.class, "config")
-                                               .beginControlFlow("return config.merge(c ->");
+                                               .addParameter(SdkClientConfiguration.class, "config");
 
-        builder.addCode("c");
+        if (model.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            configureEnvironmentBearerToken(builder);
+        }
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
+
+        builder.addCode("return config.merge(c -> c");
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
+
+        if (authSchemeSpecUtils.useSraAuth()) {
+            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
+        } else {
+            if (defaultAwsAuthSignerMethod().isPresent()) {
+                builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
+            }
+        }
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
 
@@ -295,34 +305,16 @@ public class BaseClientBuilderClass implements ClassSpec {
                             SdkClientOption.class, ClassName.bestGuess(clientConfigClassName));
         }
 
-        if (enableEnvironmentBearerToken) {
-            configureEnvironmentBearerToken(builder);
-        } else {
-            if (authSchemeSpecUtils.useSraAuth()) {
-                builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
-                builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-            } else {
-                if (defaultAwsAuthSignerMethod().isPresent()) {
-                    builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
-                }
+        if (AuthUtils.usesBearerAuth(model)) {
+            builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
+                            AwsClientOption.class, TokenUtils.class);
+            builder.addCode(".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n", AwsClientOption.class);
+            if (!authSchemeSpecUtils.useSraAuth()) {
+                builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
             }
-            if (AuthUtils.usesBearerAuth(model)) {
-                builder.addCode(
-                    ".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
-                    AwsClientOption.class, TokenUtils.class);
-                builder.addCode(
-                    ".option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())\n",
-                    AwsClientOption.class);
-                if (!authSchemeSpecUtils.useSraAuth()) {
-                    builder.addCode(
-                        ".option($T.TOKEN_SIGNER, defaultTokenSigner())",
-                        SdkAdvancedClientOption.class);
-                }
-            }
-            builder.addCode(";\n");
         }
 
-        builder.endControlFlow(")");
+        builder.addCode(");");
         return builder.build();
     }
 
@@ -335,20 +327,15 @@ public class BaseClientBuilderClass implements ClassSpec {
                                             + "support smithy.api#httpBearerAuth.");
         }
 
-        builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-        builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
-                        AwsClientOption.class, TokenUtils.class);
-        builder.addCode(";\n");
-
         builder.addStatement("$T tokenSystemSetting = $L", SystemSetting.class, bearerTokenSystemSetting());
         builder.addStatement("$T tokenFromEnv = tokenSystemSetting.getStringValue()",
                              ParameterizedTypeName.get(Optional.class, String.class));
 
         builder
-            .beginControlFlow("if (tokenFromEnv.isPresent() && c.option($T.AUTH_SCHEME_PROVIDER) == null && c.option($T"
+            .beginControlFlow("if (tokenFromEnv.isPresent() && config.option($T.AUTH_SCHEME_PROVIDER) == null && config.option($T"
                               + ".TOKEN_IDENTITY_PROVIDER) == null)",
                               SdkClientOption.class, AwsClientOption.class)
-
+            .beginControlFlow("config = config.merge(c -> ")
             .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
                           SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
                           "smithy.api#httpBearerAuth")
@@ -360,11 +347,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                           ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), Collections.class,
                           envTokenMetricInterceptor())
             .addStatement("c.option($T.EXECUTION_INTERCEPTORS, $T.mergeLists(interceptors, envTokenMetricInterceptors))",
-                          SdkClientOption.class, CollectionUtils.class);
-        builder.nextControlFlow("else")
-               .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())", AwsClientOption.class)
-               .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
-        builder.endControlFlow();
+                          SdkClientOption.class, CollectionUtils.class)
+            .endControlFlow(");")
+            .endControlFlow();
     }
 
     private TypeSpec bearerTokenSystemSetting() {

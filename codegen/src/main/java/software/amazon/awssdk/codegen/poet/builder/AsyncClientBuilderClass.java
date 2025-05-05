@@ -30,7 +30,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -156,8 +155,6 @@ public class AsyncClientBuilderClass implements ClassSpec {
                          .returns(builderClassName)
                          .addStatement("clientConfiguration.option($T.TOKEN_IDENTITY_PROVIDER, tokenProvider)",
                                        AwsClientOption.class)
-                         .addStatement("clientConfiguration.option($T.TOKEN_PROVIDER_CONFIGURED_EXPLICITLY, true)",
-                                       SdkAdvancedClientOption.class)
                          .addStatement("return this")
                          .build();
     }
