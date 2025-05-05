@@ -287,7 +287,8 @@ public class S3CrtAsyncHttpClientTest {
 
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                                                  "test")))
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -312,7 +313,8 @@ public class S3CrtAsyncHttpClientTest {
 
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                       "test")))
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -425,6 +427,8 @@ public class S3CrtAsyncHttpClientTest {
                                        .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
                                        .targetThroughputInGbps(3.5)
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .maxNativeMemoryLimitInBytes(5L * 1024 * 1024 * 1024)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
@@ -466,6 +470,8 @@ public class S3CrtAsyncHttpClientTest {
         long partSizeInBytes = 1024 * 8L;
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .partSizeInBytes(partSizeInBytes)
                                        .build();
         try (S3CrtAsyncHttpClient client =
@@ -480,6 +486,8 @@ public class S3CrtAsyncHttpClientTest {
     void build_nullHttpConfiguration() {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
@@ -539,6 +547,8 @@ public class S3CrtAsyncHttpClientTest {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .httpConfiguration(s3CrtHttpConfiguration)
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .build();
         try(S3CrtAsyncHttpClient client =
             (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
