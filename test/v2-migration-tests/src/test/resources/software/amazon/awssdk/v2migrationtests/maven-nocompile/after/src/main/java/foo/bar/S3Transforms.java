@@ -18,10 +18,6 @@ package foo.bar;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
 import com.amazonaws.services.s3.model.SSECustomerKey;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Date;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
@@ -34,6 +30,11 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Date;
+
 public class S3Transforms {
 
     S3Client s3;
@@ -41,7 +42,7 @@ public class S3Transforms {
     String key;
 
     void s3Pojos() {
-        MultiFactorAuthentication mfa = /*AWS SDK for Java v2 migration: v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on the request POJO.*/new MultiFactorAuthentication("serialNum", "token");
+        MultiFactorAuthentication mfa = /*AWS SDK for Java v2 migration: v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on the request POJO. Please reference https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-MultifactorAuthentication*/new MultiFactorAuthentication("serialNum", "token");
 
         DeleteObjectRequest deleteVersionRequest =
             DeleteObjectRequest.builder().bucket("bucket").key("key").versionId("id").mfa(mfa)
@@ -49,11 +50,11 @@ public class S3Transforms {
     }
 
     void setBucketAcl() {
-        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setBucketAcl(bucket, CannedAccessControlList.AuthenticatedRead);
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects. Please reference https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-AccessControlList*/s3.setBucketAcl(bucket, CannedAccessControlList.AuthenticatedRead);
     }
 
     void setObjectAcl() {
-        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects.*/s3.setObjectAcl(bucket, key, CannedAccessControlList.PublicRead);
+        /*AWS SDK for Java v2 migration: Transform for AccessControlList and CannedAccessControlList not supported. In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and ObjectCannedACL for objects. Please reference https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-AccessControlList*/s3.setObjectAcl(bucket, key, CannedAccessControlList.PublicRead);
     }
 
     void upload_streamWithLiteralLength(S3TransferManager tm) {

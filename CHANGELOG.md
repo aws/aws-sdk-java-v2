@@ -1,4 +1,232 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.35__ __2025-05-02__
+## __AWS Directory Service__
+  - ### Features
+    - Doc only update - fixed typos.
+
+## __AWS SDK for Java V2__
+  - ### Bugfixes
+    - Add synchronization around use of JDT code formatter to prevent NPE/race condition during code generation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Marking ResourceARN as required for Amazon Kinesis Data Streams APIs TagResource, UntagResource, and ListTagsForResource.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Custom output and blueprints for AUDIO data types.
+
+# __2.31.34__ __2025-05-01__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppConfig__
+  - ### Features
+    - Adding waiter support for deployments and environments; documentation updates
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following fields to DescribeContact: DisconnectReason, AgentInitiatedHoldDuration, AfterContactWorkStartTimestamp, AfterContactWorkEndTimestamp, AfterContactWorkDuration, StateTransitions, Recordings, ContactDetails, ContactEvaluations, Attributes
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Feature - Adding support for Scheduled and Rolling Update Software in Sagemaker Hyperpod.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for tagging policy stores.
+
+# __2.31.33__ __2025-04-30__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release adds support for ProtectedQuery results to be delivered to more than one collaboration member via the new distribute output configuration in StartProtectedQuery.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tag management on workers and tag inheritance from fleets to their associated workers.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Features: Add inline code node to prompt flow
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Support for Custom Orchestration within InlineAgents
+
+## __Amazon Bedrock__
+  - ### Features
+    - You can now specify a cross region inference profile as a teacher model for the CreateModelCustomizationJob API. Additionally, the GetModelCustomizationJob API has been enhanced to return the sub-task statuses of a customization job within the StatusDetails response field.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs supports "DELIVERY" log class. This log class is used only for delivering AWS Lambda logs to Amazon S3 or Amazon Data Firehose.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launch of cost distribution feature for IPAM owners to distribute costs to internal teams.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds dualstack support for Amazon Elastic Container Registry (Amazon ECR).
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Adds dualstack support for Amazon Elastic Container Registry Public (Amazon ECR Public).
+
+## __MailManager__
+  - ### Features
+    - Introducing new RuleSet rule PublishToSns action, which allows customers to publish email notifications to an Amazon SNS topic. New PublishToSns action enables customers to easily integrate their email workflows via Amazon SNS, allowing them to notify other systems about important email events.
+
+# __2.31.32__ __2025-04-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix timestamp unmarshalling off-by-one errors
+        - Contributed by: [@brandondahler](https://github.com/brandondahler)
+
+## __AWS SSM-GUIConnect__
+  - ### Features
+    - This release adds API support for the connection recording GUI Connect feature of AWS Systems Manager
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Introduces CustomEntity as part of the UserUnion data type. This field is used to indicate the entity who is performing the API action.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon KDS now supports tagging and attribute-based access control (ABAC) for enhanced fan-out consumers.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging has added MONITOR and FILTER functionality to SMS Protect.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - SageMaker Metrics Service now supports FIPS endpoint in all US and Canada Commercial regions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduced support for P5en instance types on SageMaker Studio for JupyterLab and CodeEditor applications.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added LegacyMd5Plugin to perform MD5 checksums for operations that require checksum
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - This release adds support for just-In-time node access in AWS Systems Manager. Just-in-time node access enables customers to move towards zero standing privileges by requiring operators to request access and obtain approval before remotely connecting to nodes managed by the SSM Agent.
+
+## __QBusiness__
+  - ### Features
+    - Add support for anonymous user access for Q Business applications
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brandondahler](https://github.com/brandondahler)
+# __2.31.31__ __2025-04-28__
+## __AWS Certificate Manager__
+  - ### Features
+    - Add support for file-based HTTP domain control validation, available through Amazon CloudFront.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds native h2 support for the bedrock runtime API, the support is only limited to SDKs that support h2 requests natively.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add distribution tenant, connection group, and multi-tenant distribution APIs to the CloudFront SDK.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Doc only update for GSI descriptions.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Add integration with SSM Parameter Store to Image Builder.
+
+# __2.31.30__ __2025-04-25__
+## __AWS Marketplace Deployment Service__
+  - ### Features
+    - Doc only update for the AWS Marketplace Deployment Service that fixes several customer-reported issues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - You can now reference images and documents stored in Amazon S3 when using InvokeModel and Converse APIs with Amazon Nova Lite and Nova Pro. This enables direct integration of S3-stored multimedia assets in your model requests without manual downloading or base64 encoding.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release for Amazon ECS.
+
+# __2.31.29__ __2025-04-24__
+## __AWS App Runner__
+  - ### Features
+    - AWS App Runner adds Node.js 22 runtime.
+
+## __AWS AppSync__
+  - ### Features
+    - Add data source support to Event APIs
+
+## __AWS CodeBuild__
+  - ### Features
+    - Remove redundant validation check.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Documentation-only update: added valid values for the version property of the Scheduler and SchedulerRequest data types.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add support for ARN-sourced account endpoint generation for TransactWriteItems. This will generate account endpoints for DynamoDB TransactWriteItems requests using ARN-sourced account ID when available.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation only release for Amazon ECS
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This Amazon RDS release adds support for managed master user passwords for Oracle CDBs.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for modality routing and modality enablement on CreateDataAutomationProject and UpdateDataAutomationProject APIs
+
+# __2.31.28__ __2025-04-23__
+## __AWS CodeBuild__
+  - ### Features
+    - Add support for custom instance type for reserved capacity fleets
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Documentation-only update for CreateView option correction
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add support to roll back an In_Progress ECS Service Deployment
+
 # __2.31.27__ __2025-04-22__
 ## __AWS Account__
   - ### Features

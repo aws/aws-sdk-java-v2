@@ -35,6 +35,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -124,6 +126,10 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         if (builder.executionInterceptors != null) {
             builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
+        }
+
+        if (builder.credentialsProvider == null) {
+            builder = builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
         }
 
         DefaultS3CrtClientBuilder finalBuilder = resolveChecksumConfiguration(builder);
@@ -227,6 +233,13 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
+
+
+        @Override
+        public DefaultS3CrtClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
+            return this;
+        }
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(
