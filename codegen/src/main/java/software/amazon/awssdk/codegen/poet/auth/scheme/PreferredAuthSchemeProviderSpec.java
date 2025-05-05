@@ -30,11 +30,9 @@ import software.amazon.awssdk.utils.CollectionUtils;
 
 public class PreferredAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
-    private final AuthSchemeCodegenKnowledgeIndex knowledgeIndex;
 
     public PreferredAuthSchemeProviderSpec(IntermediateModel intermediateModel) {
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
-        this.knowledgeIndex = AuthSchemeCodegenKnowledgeIndex.of(intermediateModel);
     }
 
     @Override
@@ -58,6 +56,7 @@ public class PreferredAuthSchemeProviderSpec implements ClassSpec {
                         .addMethod(resolveAuthSchemeMethod())
                         .build();
     }
+
     private MethodSpec constructor() {
         return MethodSpec
             .constructorBuilder()
@@ -70,31 +69,31 @@ public class PreferredAuthSchemeProviderSpec implements ClassSpec {
     }
 
     private MethodSpec resolveAuthSchemeMethod() {
-        MethodSpec.Builder b = MethodSpec.methodBuilder("resolveAuthScheme")
-                                         .addModifiers(Modifier.PUBLIC)
-                                         .addAnnotation(Override.class)
-                                         .returns(authSchemeSpecUtils.resolverReturnType())
-                                         .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
-        b.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
-        b.addStatement("$T candidateAuthSchemes = delegate.resolveAuthScheme(params)",
-                       authSchemeSpecUtils.resolverReturnType());
-        b.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
-         .addStatement("return candidateAuthSchemes")
-         .endControlFlow();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("resolveAuthScheme")
+                                               .addModifiers(Modifier.PUBLIC)
+                                               .addAnnotation(Override.class)
+                                               .returns(authSchemeSpecUtils.resolverReturnType())
+                                               .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+        builder.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
+        builder.addStatement("$T candidateAuthSchemes = delegate.resolveAuthScheme(params)",
+                             authSchemeSpecUtils.resolverReturnType());
+        builder.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
+               .addStatement("return candidateAuthSchemes")
+               .endControlFlow();
 
-        b.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
-        b.beginControlFlow("authSchemePreference.forEach( preferredSchemeId -> ")
-         .addStatement("candidateAuthSchemes.stream().filter(a -> a.schemeId().equals(preferredSchemeId)).findFirst()"
-                       + ".ifPresent(a -> authSchemes.add(a))")
-         .endControlFlow(")");
+        builder.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
+        builder.beginControlFlow("authSchemePreference.forEach( preferredSchemeId -> ")
+               .addStatement("candidateAuthSchemes.stream().filter(a -> a.schemeId().equals(preferredSchemeId)).findFirst()"
+                             + ".ifPresent(a -> authSchemes.add(a))")
+               .endControlFlow(")");
 
-        b.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
-         .beginControlFlow("if (!authSchemes.contains(candidate))")
-         .addStatement("authSchemes.add(candidate)")
-         .endControlFlow()
-         .endControlFlow(")");
+        builder.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
+               .beginControlFlow("if (!authSchemes.contains(candidate))")
+               .addStatement("authSchemes.add(candidate)")
+               .endControlFlow()
+               .endControlFlow(")");
 
-        b.addStatement("return authSchemes");
-        return b.build();
+        builder.addStatement("return authSchemes");
+        return builder.build();
     }
 }
