@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Allow default values for non-builtIn endpoint params"
-}
