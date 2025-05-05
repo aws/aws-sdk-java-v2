@@ -229,3 +229,9 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.SetBucketPolicyRequest withPolicyText(String)
       newMethodName: withPolicy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.BucketPolicy getPolicyText()
+      newMethodName: policy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.VersionListing getVersionSummaries()
+      newMethodName: versions

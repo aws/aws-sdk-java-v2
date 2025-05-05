@@ -37,6 +37,7 @@ public final class S3TransformUtils {
     public static final String V1_S3_CLIENT = "com.amazonaws.services.s3.AmazonS3";
     public static final String V1_S3_MODEL_PKG = "com.amazonaws.services.s3.model.";
     public static final String V1_S3_PKG = "com.amazonaws.services.s3.";
+    public static final String V1_EN_PKG = "com.amazonaws.services.s3.event.";
 
     public static final String V2_S3_CLIENT = "software.amazon.awssdk.services.s3.S3Client";
     public static final String V2_S3_MODEL_PKG = "software.amazon.awssdk.services.s3.model.";
@@ -75,6 +76,10 @@ public final class S3TransformUtils {
 
     public static MethodMatcher v1S3MethodMatcher(String methodSignature) {
         return new MethodMatcher(V1_S3_CLIENT + " " + methodSignature, true);
+    }
+
+    public static MethodMatcher v1EnMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V1_EN_PKG + methodSignature, true);
     }
 
     public static MethodMatcher v2S3MethodMatcher(String methodSignature) {
