@@ -167,7 +167,8 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                                    "authSchemePreference"
                                )
                                .returns(className().nestedClass("Builder"))
-                               .addStatement("this.authSchemePreference = new $T<>(authSchemePreference)", ArrayList.class).addStatement("return this")
+                               .addStatement("this.authSchemePreference = new $T<>(authSchemePreference)", ArrayList.class)
+                               .addStatement("return this")
                                .build())
                        .addMethod(
                            MethodSpec
