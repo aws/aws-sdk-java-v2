@@ -18,6 +18,7 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.createComments;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1EnMethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v1S3MethodMatcher;
 
 import java.util.List;
@@ -52,6 +53,10 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher SELECT_OBJECT_CONTENT = v1S3MethodMatcher("selectObjectContent(..)");
     private static final MethodMatcher SET_LIFECYCLE_CONFIGURATION = v1S3MethodMatcher("setBucketLifecycleConfiguration(..)");
     private static final MethodMatcher SET_TAGGING_CONFIGURATION = v1S3MethodMatcher("setBucketTaggingConfiguration(..)");
+    private static final MethodMatcher GET_EVENT_TIME = v1EnMethodMatcher("S3EventNotification.S3EventNotificationRecord "
+                                                                          + "getEventTime(..)");
+    private static final MethodMatcher  GET_EXPIRY_TIME = v1EnMethodMatcher("S3EventNotification.RestoreEventDataEntity "
+                                                                            + "getLifecycleRestorationExpiryTime(..)");
 
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
@@ -90,45 +95,44 @@ public class S3AddImportsAndComments extends Recipe {
             if (isSetObjectAcl || isSetBucketAcl) {
                 removeV1S3ModelImport("CannedAccessControlList");
                 maybeAddV2CannedAclImport(method.getArguments(), isSetObjectAcl, isSetBucketAcl);
-
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for AccessControlList and CannedAccessControlList not supported. "
                                  + "In v2, CannedAccessControlList is replaced by BucketCannedACL for buckets and "
-                                 + "ObjectCannedACL for objects.";
+                                 + "ObjectCannedACL for objects." + devGuideLink("AccessControlList");
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_OBJECTS.matches(method)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for listNextBatchOfObjects method not supported. "
                                  + "listNextBatchOfObjects() only exists in SDK v1, for SDK v2 use either "
                                  + "listObjectsV2Paginator().stream() for automatic pagination"
                                  + " or manually handle pagination with listObjectsV2() and nextToken in the response for more "
-                                 + "control";
+                                 + "control" + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
             if (LIST_NEXT_BATCH_VERSIONS.matches(method)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for listNextBatchOfVersions method not supported."
                                 + "listNextBatchOfVersions() only exists in SDK v1, for SDK v2 use either "
                                 + "listObjectVersionsPaginator().stream for automatic pagination"
-                                + " or manually handle pagination with listObjectVersions() and VersionIdMarker/KeyMarker. ";
+                                + " or manually handle pagination with listObjectVersions() and VersionIdMarker/KeyMarker."
+                                + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
             if (SET_REGION.matches(method)) {
                 String comment = "Transform for setRegion method not supported. Please manually "
-                                 + "migrate your code by configuring the region in the s3 client builder";
+                                 + "migrate your code by configuring the region in the s3 client builder"
+                                 + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
             if (SET_S3CLIENT_OPTIONS.matches(method)) {
                 String comment = "Transform for setS3ClientOptions method not supported. Please manually "
                                  + "migrate setS3ClientOptions by configuring the equivalent settings in "
-                                 + "S3Configuration.builder() when building your S3Client.";
+                                 + "S3Configuration.builder() when building your S3Client."
+                                 + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
             if (SELECT_OBJECT_CONTENT.matches(method)) {
                 String comment = "Note: selectObjectContent is only supported in AWS SDK v2 with S3AsyncClient. "
                                  + "Please manually migrate to event-based response handling using "
-                                 + "SelectObjectContentEventStream";
+                                 + "SelectObjectContentEventStream" + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
 
@@ -156,7 +160,6 @@ public class S3AddImportsAndComments extends Recipe {
             }
 
             if (SET_BUCKET_LOGGING.matches(method)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 removeV1S3ModelImport("BucketLoggingConfiguration");
                 addV2S3ModelImport("BucketLoggingStatus");
                 addV2S3ModelImport("LoggingEnabled");
@@ -164,7 +167,8 @@ public class S3AddImportsAndComments extends Recipe {
                 String comment = "Transform for setBucketLoggingConfiguration method not "
                                  + "supported. The method is renamed to putBucketLogging. Please manually migrate your code by "
                                  + "replacing BucketLoggingConfiguration with BucketLoggingStatus and LoggingEnabled builders, "
-                                 + "and updating the method name and parameters";
+                                 + "and updating the method name and parameters"
+                                 + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
 
@@ -177,23 +181,28 @@ public class S3AddImportsAndComments extends Recipe {
             }
 
             if (SET_LIFECYCLE_CONFIGURATION.matches(method)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate"
                                  + " your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to "
                                  + "LifecycleRule, StorageClass to TransitionStorageClass, and adjust "
-                                 + "imports and names.";
+                                 + "imports and names." + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
 
             if (SET_TAGGING_CONFIGURATION.matches(method)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for setBucketTaggingConfiguration method not supported. Please manually migrate"
                                  + " your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList"
                                  + "(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports"
-                                 + " and names.";
+                                 + " and names." + devGuideLink(method.getSimpleName());
                 return method.withComments(createComments(comment));
             }
 
+            if (GET_EVENT_TIME.matches(method) || GET_EXPIRY_TIME.matches(method)) {
+                String comment = method.getSimpleName() + " returns Instant instead of DateTime in v2. AWS SDK v2 does not "
+                                 + "include org.joda.time as a dependency. If you want to keep using DateTime, you'll need to "
+                                 + "manually add \"org.joda.time:joda-time\" dependency to your"
+                                 + " project after migration.";
+                return method.withComments(createComments(comment));
+            }
             return method;
         }
 
@@ -209,21 +218,23 @@ public class S3AddImportsAndComments extends Recipe {
             if (type.isAssignableFrom(MULTI_FACTOR_AUTH) || setBucketVersionUsingMFA) {
                 removeV1S3ModelImport("MultiFactorAuthentication");
                 String comment = "v2 does not have a MultiFactorAuthentication POJO. Please manually set the String value on "
-                                 + "the request POJO.";
+                                 + "the request POJO." + devGuideLink("MultifactorAuthentication");
                 return newClass.withComments(createComments(comment));
             }
 
             if (type.isAssignableFrom(GET_OBJECT_REQUEST) && newClass.getArguments().size() == 1) {
                 removeV1S3ModelImport("S3ObjectId");
                 String comment = "v2 does not have S3ObjectId class. Please manually migrate the code by setting the configs "
-                                 + "directly into the request builder pattern.";
+                                 + "directly into the request builder pattern."
+                                 + devGuideLink("getObject-using-V1s-S3ObjectId");
                 return newClass.withComments(createComments(comment));
             }
 
             if (type.isAssignableFrom(INITIATE_MPU) && newClass.getArguments().size() == 3) {
                 String comment = "Transform for ObjectMetadata in initiateMultipartUpload() method is not supported. Please "
                                  + "manually migrate your code by replacing ObjectMetadata with individual setter methods "
-                                 + "or metadata map in the request builder.";
+                                 + "or metadata map in the request builder."
+                                 + devGuideLink("initiateMultipartUpload");
                 return newClass.withComments(createComments(comment));
             }
 
@@ -242,12 +253,12 @@ public class S3AddImportsAndComments extends Recipe {
             }
 
             if (type.isAssignableFrom(BUCKET_NOTIFICATION_CONFIG)) {
-                // TODO: add the developer guide link in the comments once the doc is published.
                 String comment = "Transform for BucketNotificationConfiguration class is not supported. "
                                  + "BucketNotificationConfiguration is renamed to NotificationConfiguration. There is no common"
                                  + " abstract class for lambdaFunction/topic/queue configurations. Use specific builders "
                                  + "instead of addConfiguration() to add configurations. Change the vararg arguments or EnumSet "
-                                 + "in specific configurations constructor to List<String> in v2";
+                                 + "in specific configurations constructor to List<String> in v2"
+                                 + devGuideLink("BucketNotificationConfiguration");
                 return newClass.withComments(createComments(comment));
             }
 
@@ -276,6 +287,12 @@ public class S3AddImportsAndComments extends Recipe {
 
         private void addV2S3ModelImport(String className) {
             doAfterVisit(new AddImport<>(V2_S3_MODEL_PKG + className, null, false));
+        }
+
+        private String devGuideLink(String name) {
+            String prefix = " Please reference https://docs.aws.amazon"
+                            + ".com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-";
+            return prefix + name;
         }
     }
 }

@@ -1,0 +1,36 @@
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License").
+  ~ You may not use this file except in compliance with the License.
+  ~ A copy of the License is located at
+  ~
+  ~  http://aws.amazon.com/apache2.0
+  ~
+  ~ or in the "license" file accompanying this file. This file is distributed
+  ~ on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  ~ express or implied. See the License for the specific language governing
+  ~ permissions and limitations under the License.
+  -->
+
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c:%L - %m%n" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="WARN">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Root>
+<!--        <Logger name="software.amazon.awssdk" level="WARN" />-->
+<!--        <Logger name="software.amazon.awssdk.request" level="DEBUG" />-->
+<!--        <Logger name="org.apache.http.wire" level="DEBUG" />-->
+<!--        <Logger name="org.apache.http.headers" level="DEBUG" />-->
+
+        <!--        <Logger name="software.amazon.awssdk.services.s3.checksum" level="DEBUG" />-->
+<!--        <Logger name="io.netty.handler.logging" level="DEBUG" />-->
+<!--        <Logger name="io.netty.handler.codec.http2.Http2FrameLogger" level="DEBUG" />-->
+    </Loggers>
+</Configuration>
