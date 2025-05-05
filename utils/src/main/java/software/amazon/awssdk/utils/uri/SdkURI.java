@@ -30,6 +30,8 @@ import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
  */
 @SdkProtectedApi
 public final class SdkURI {
+    private final String HTTPS_PREFIX = "https://";
+    private final String HTTP_PREFIX = "http://";
 
     private static final Logger log = Logger.loggerFor(SdkURI.class);
 
@@ -105,16 +107,28 @@ public final class SdkURI {
         return uri;
     }
 
-    // We only want to cache account-id based URI
+    /*
+     * Best-effort check for uri string being account-id based.
+     *
+     * The troublesome uris are of the form 'https://123456789012.ddb.us-east-1.amazonaws.com' The heuristic chosen to detect such
+     * candidate URI is to check the first char after the scheme, and then the char 10 places further down the string. If both
+     * are digits, there is a potential for that string to represent a number that would exceed the value of Integer.MAX_VALUE,
+     * which would cause the performance degradation observed with such URIs.
+     */
     private boolean isAccountIdUri(String s) {
-        if (s.startsWith("https://")) {
-            return Character.isDigit(s.charAt(8));
+        int firstCharAfterScheme = 0;
+        int maxIntSizeBase10 = 10;
+        if (s.startsWith(HTTPS_PREFIX)) {
+            firstCharAfterScheme = HTTPS_PREFIX.length();
+        } else if (s.startsWith(HTTP_PREFIX)) {
+            firstCharAfterScheme = HTTP_PREFIX.length();
         }
 
-        if (s.startsWith("http://")) {
-            return Character.isDigit(s.charAt(7));
+        if (s.length() > firstCharAfterScheme + maxIntSizeBase10) {
+            return Character.isDigit(s.charAt(firstCharAfterScheme))
+                   && Character.isDigit(s.charAt(firstCharAfterScheme + maxIntSizeBase10));
         }
-        return Character.isDigit(s.charAt(0));
+        return false;
     }
 
     private void logCacheUsage(boolean containsKey, URI uri) {
