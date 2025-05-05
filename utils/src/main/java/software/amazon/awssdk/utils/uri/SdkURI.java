@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils.uri;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
@@ -132,11 +133,13 @@ public final class SdkURI {
     }
 
     private void logCacheUsage(boolean containsKey, URI uri) {
-        log.trace(() -> "URI cache size: " + cache.size());
-        if (containsKey) {
-            log.trace(() -> "Using cached uri for " + uri.toString());
-        } else {
-            log.trace(() -> "Cache empty for " + uri.toString());
+        if (log.isLoggingLevelEnabled(Level.TRACE)) {
+            log.trace(() -> "URI cache size: " + cache.size());
+            if (containsKey) {
+                log.trace(() -> "Using cached uri for " + uri.toString());
+            } else {
+                log.trace(() -> "Cache empty for " + uri.toString());
+            }
         }
     }
 

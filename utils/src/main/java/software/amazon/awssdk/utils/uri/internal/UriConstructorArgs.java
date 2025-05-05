@@ -18,7 +18,21 @@ package software.amazon.awssdk.utils.uri.internal;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
+/**
+ * Represent the different constructor to the URI class used by the SDK. Implementation of this interface are able to create new
+ * URIs based on the different arguments passed to classes to them.
+ *
+ * @see URI#create(String)
+ * @see URI#URI(String, String, String, String, String)
+ * @see URI#URI(String, String, String, int, String, String, String)
+ */
 @SdkInternalApi
 public interface UriConstructorArgs {
+
+    /**
+     * Creates a new instance of the URI. Can return a new instance everytime it is called.
+     *
+     * @return a new URI instance
+     */
     URI newInstance();
 }
