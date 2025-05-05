@@ -306,7 +306,6 @@ public class BaseClientBuilderClass implements ClassSpec {
                     builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
                 }
             }
-
             if (AuthUtils.usesBearerAuth(model)) {
                 builder.addCode(
                     ".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
@@ -328,7 +327,14 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private void configureEnvironmentBearerToken(MethodSpec.Builder builder) {
-        // this applies only on SRA auth AND bearer it should be validated already, so skip those
+        if (!authSchemeSpecUtils.useSraAuth()) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires SRA Auth.");
+        }
+        if (!AuthUtils.usesBearerAuth(model)) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires the service to model and "
+                                            + "support smithy.api#httpBearerAuth.");
+        }
+
         builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
         builder.addCode(".lazyOption($1T.TOKEN_PROVIDER, p -> $2T.toSdkTokenProvider(p.get($1T.TOKEN_IDENTITY_PROVIDER)))",
                         AwsClientOption.class, TokenUtils.class);
