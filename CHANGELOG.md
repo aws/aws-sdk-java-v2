@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.36__ __2025-05-05__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed "Connection pool shut down" error thrown when a default AWS CRT-based S3 client is created and closed per request. See [#5881](https://github.com/aws/aws-sdk-java-v2/issues/5881)
+
+## __AWS Device Farm__
+  - ### Features
+    - Add an optional parameter to the GetDevicePoolCompatibility API to pass in project information to check device pool compatibility.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds an optional sidecar per-frame video quality metrics report and an ALL_PCM option for audio selectors. It also changes the data type for Probe API response fields related to video and audio bitrate from integer to double.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Allow default values for non-builtIn endpoint params
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds a new authorization policy to control the usage of custom AssetType when creating an Asset. Customer can now add new grant(s) of policyType USE_ASSET_TYPE for custom AssetTypes to apply authorization policy to projects members and domain unit owners.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add support to roll back an In_Progress ECS Service Deployment
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This update introduces API operations to manage and create local gateway VIF and VIF groups. It also includes API operations to describe Outpost LAGs and service link VIFs.
+
 # __2.31.35__ __2025-05-02__
 ## __AWS Directory Service__
   - ### Features
