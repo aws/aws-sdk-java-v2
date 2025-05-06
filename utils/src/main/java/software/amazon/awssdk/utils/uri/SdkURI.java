@@ -26,13 +26,12 @@ import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
 
 /**
  * Global cache for account-id based URI. Prevent calling new URI constructor for the same string, which can cause performance
- * issues with some uri pattern.
- * Do not directly depend on this class, it will be removed in the future.
+ * issues with some uri pattern. Do not directly depend on this class, it will be removed in the future.
  */
 @SdkProtectedApi
 public final class SdkURI {
-    private final String HTTPS_PREFIX = "https://";
-    private final String HTTP_PREFIX = "http://";
+    private static final String HTTPS_PREFIX = "https://";
+    private static final String HTTP_PREFIX = "http://";
 
     private static final Logger log = Logger.loggerFor(SdkURI.class);
 
@@ -71,7 +70,7 @@ public final class SdkURI {
             return uri;
         } catch (IllegalArgumentException e) {
             // URI.create() wraps the URISyntaxException thrown by new URI in a IllegalArgumentException, we need to unwrap it
-            if (e.getCause() != null && e.getCause() instanceof URISyntaxException) {
+            if (e.getCause() instanceof URISyntaxException) {
                 throw (URISyntaxException) e.getCause();
             }
             throw e;
@@ -81,7 +80,7 @@ public final class SdkURI {
     public URI newURI(String scheme,
                       String userInfo, String host, int port,
                       String path, String query, String fragment)
-        throws URISyntaxException {
+                        throws URISyntaxException {
         if (!isAccountIdUri(host)) {
             log.trace(() -> "skipping cache for host" + host);
             return new URI(scheme, userInfo, host, port, path, query, fragment);
@@ -96,7 +95,7 @@ public final class SdkURI {
     public URI newURI(String scheme,
                       String authority,
                       String path, String query, String fragment)
-        throws URISyntaxException {
+                        throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
             log.trace(() -> "skipping cache for authority" + authority);
             return new URI(scheme, authority, path, query, fragment);
@@ -208,7 +207,9 @@ public final class SdkURI {
             }
 
             HostConstructorArgs that = (HostConstructorArgs) o;
-            return port == that.port && Objects.equals(scheme, that.scheme) && Objects.equals(userInfo, that.userInfo) && Objects.equals(host, that.host) && Objects.equals(path, that.path) && Objects.equals(query, that.query) && Objects.equals(fragment, that.fragment);
+            return port == that.port && Objects.equals(scheme, that.scheme) && Objects.equals(userInfo, that.userInfo)
+                   && Objects.equals(host, that.host) && Objects.equals(path, that.path) && Objects.equals(query, that.query)
+                   && Objects.equals(fragment, that.fragment);
         }
 
         @Override
@@ -255,8 +256,9 @@ public final class SdkURI {
             }
 
             AuthorityConstructorArgs that = (AuthorityConstructorArgs) o;
-            return Objects.equals(scheme, that.scheme) && Objects.equals(authority, that.authority) && Objects.equals(path,
-                                                                                                                      that.path) && Objects.equals(query, that.query) && Objects.equals(fragment, that.fragment);
+            return Objects.equals(scheme, that.scheme) && Objects.equals(authority, that.authority)
+                   && Objects.equals(path, that.path) && Objects.equals(query, that.query)
+                   && Objects.equals(fragment, that.fragment);
         }
 
         @Override
