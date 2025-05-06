@@ -30,13 +30,18 @@ import org.junit.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.ImmutableFakeVersionedItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
@@ -504,6 +509,44 @@ public class VersionedRecordExtensionTest {
                                             .builder()
                                             .items(inputMap)
                                             .tableMetadata(FakeItem.getTableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(expectedVersionedItem));
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("#AMZN_MAPPED_version = :old_version_value"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("customIncrementForExistingVersionValues")
+    public void customIncrementForExistingVersion_withImmutableSchema_worksAsExpected(Long startAt, Long incrementBy,
+                                                                  Long existingVersion, String expectedNextVersion) {
+        VersionedRecordExtension.Builder recordExtensionBuilder = VersionedRecordExtension.builder();
+        if (startAt != null) {
+            recordExtensionBuilder.startAt(startAt);
+        }
+        if (incrementBy != null) {
+            recordExtensionBuilder.incrementBy(incrementBy);
+        }
+        VersionedRecordExtension recordExtension = recordExtensionBuilder.build();
+
+        ImmutableFakeVersionedItem fakeItem = ImmutableFakeVersionedItem
+            .builder()
+            .id(UUID.randomUUID().toString())
+            .version(existingVersion)
+            .build();
+
+        Map<String, AttributeValue> inputMap =
+            new HashMap<>(ImmutableFakeVersionedItem.getTableSchema().itemToMap(fakeItem, true));
+
+        Map<String, AttributeValue> expectedVersionedItem =
+            new HashMap<>(ImmutableFakeVersionedItem.getTableSchema().itemToMap(fakeItem, true));
+        expectedVersionedItem.put("version", AttributeValue.builder().n(expectedNextVersion).build());
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(ImmutableFakeVersionedItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.transformedItem(), is(expectedVersionedItem));
