@@ -212,9 +212,8 @@ class SdkURITest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"potatoes tomatoes", "123412341234. potatoes tomatoes"})
-    void malformedURI_shouldThrowsSameExceptionAsUriClass(String malformedURI) {
-        String malformedUri = "potatoes tomatoes"; // not cached by SdkURI
+    @ValueSource(strings = {"potatoes tomatoes", "123412341234 potatoes tomatoes"})
+    void malformedURI_shouldThrowsSameExceptionAsUriClass(String malformedUri) {
 
         assertThatThrownBy(() -> SdkURI.getInstance().create(malformedUri))
             .as("Malformed uri should throw IllegalArgumentException using the create method")
@@ -233,6 +232,13 @@ class SdkURITest {
             .isInstanceOf(URISyntaxException.class);
         assertThat(getCache().size()).as("Cache should be empty if create URI fails")
                                      .isEqualTo(0);
+
+        assertThatThrownBy(() -> new URI("scheme", malformedUri, "path", "query", "fragment"))
+            .as("CONSTRUCTOR")
+            .isInstanceOf(URISyntaxException.class);
+        assertThat(getCache().size()).as("Cache should be empty if create URI fails")
+                                     .isEqualTo(0);
+
 
         assertThatThrownBy(() -> SdkURI.getInstance().newURI("scheme", "userInfo", malformedUri,
                                                              444, "path", "query", "fragment"))

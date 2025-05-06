@@ -80,31 +80,46 @@ public final class SdkURI {
     public URI newURI(String scheme,
                       String userInfo, String host, int port,
                       String path, String query, String fragment)
-                        throws URISyntaxException {
+        throws URISyntaxException {
         if (!isAccountIdUri(host)) {
             log.trace(() -> "skipping cache for host" + host);
             return new URI(scheme, userInfo, host, port, path, query, fragment);
         }
-        HostConstructorArgs key = new HostConstructorArgs(scheme, userInfo, host, port, path, query, fragment);
-        boolean containsK = cache.contains(key);
-        URI uri = cache.get(key);
-        logCacheUsage(containsK, uri);
-        return uri;
+        try {
+            HostConstructorArgs key = new HostConstructorArgs(scheme, userInfo, host, port, path, query, fragment);
+            boolean containsK = cache.contains(key);
+            URI uri = cache.get(key);
+            logCacheUsage(containsK, uri);
+            return uri;
+        } catch (IllegalArgumentException e) {
+            if (e.getCause() instanceof URISyntaxException) {
+                throw (URISyntaxException) e.getCause();
+            }
+            throw e;
+        }
+
     }
 
     public URI newURI(String scheme,
                       String authority,
                       String path, String query, String fragment)
-                        throws URISyntaxException {
+        throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
             log.trace(() -> "skipping cache for authority" + authority);
             return new URI(scheme, authority, path, query, fragment);
         }
-        AuthorityConstructorArgs key = new AuthorityConstructorArgs(scheme, authority, path, query, fragment);
-        boolean containsK = cache.contains(key);
-        URI uri = cache.get(key);
-        logCacheUsage(containsK, uri);
-        return uri;
+        try {
+            AuthorityConstructorArgs key = new AuthorityConstructorArgs(scheme, authority, path, query, fragment);
+            boolean containsK = cache.contains(key);
+            URI uri = cache.get(key);
+            logCacheUsage(containsK, uri);
+            return uri;
+        } catch (IllegalArgumentException e) {
+            if (e.getCause() instanceof URISyntaxException) {
+                throw (URISyntaxException) e.getCause();
+            }
+            throw e;
+        }
     }
 
     /*
