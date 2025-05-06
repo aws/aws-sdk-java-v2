@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog",
-    "contributor": "",
-    "description": "ServiceCatalog's APIs (DeleteServiceAction, DisassociateServiceActionFromProvisioningArtifact, AssociateServiceActionWithProvisioningArtifact) now throw InvalidParametersException when IdempotencyToken is invalid."
-}
