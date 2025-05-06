@@ -69,7 +69,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         Validate.isNotNegativeOrNull(startAt, "startAt");
 
         if (incrementBy != null && incrementBy < 1) {
-            throw new IllegalArgumentException("IncrementBy must be greater than 0.");
+            throw new IllegalArgumentException("incrementBy must be greater than 0.");
         }
 
         this.startAt = startAt != null ? startAt : 0L;
@@ -156,13 +156,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         Optional<Long> versionIncrementByFromAnnotation = context.tableMetadata()
                                                                  .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
                                                                                        Long.class);
-
-        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get()) ||
-            (existingVersionValue.get().n() != null &&
-             ((versionStartAtFromAnnotation.isPresent() &&
-               Long.parseLong(existingVersionValue.get().n()) == versionStartAtFromAnnotation.get()) ||
-              Long.parseLong(existingVersionValue.get().n()) == this.startAt))) {
-
+        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
             long startValue = versionStartAtFromAnnotation.orElse(this.startAt);
             long increment = versionIncrementByFromAnnotation.orElse(this.incrementBy);
 
@@ -200,10 +194,25 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
+    private boolean isInitialVersion(Optional<AttributeValue> existingVersionValue, Optional<Long> versionStartAtFromAnnotation) {
+        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
+            return true;
+        }
+
+        AttributeValue value = existingVersionValue.get();
+        if (value.n() != null) {
+            long currentVersion = Long.parseLong(value.n());
+            return (versionStartAtFromAnnotation.isPresent() && currentVersion == versionStartAtFromAnnotation.get())
+                   || currentVersion == this.startAt;
+        }
+
+        return false;
+    }
+
     @NotThreadSafe
     public static final class Builder {
-        private Long startAt = 0L;
-        private Long incrementBy = 1L;
+        private Long startAt;
+        private Long incrementBy;
 
         private Builder() {
         }
