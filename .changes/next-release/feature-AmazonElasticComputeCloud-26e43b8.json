@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds support for Amazon EBS Provisioned Rate for Volume Initialization, which lets you specify a volume initialization rate to ensure that your EBS volumes are initialized in a predictable amount of time."
+}
