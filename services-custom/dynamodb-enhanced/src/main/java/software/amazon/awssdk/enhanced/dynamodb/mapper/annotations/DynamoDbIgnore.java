@@ -24,9 +24,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 /**
  * Opts this attribute out of participating in the table schema. It will be completely ignored by the mapper.
  * <p>
- * Example using {@link DynamoDbAttribute}:
- * <pre>
- * {@code
+ * Example using {@link DynamoDbIgnore}:
+ *
+ * {@snippet :
  * @DynamoDbBean
  * public class Bean {
  *      private String internalKey;
@@ -37,11 +37,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  *      }
  *
  *      public void setInternalKey(String internalKey) {
- *          return this.internalKey = internalKey;}
+ *          return this.internalKey = internalKey;
  *      }
  * }
  * }
- * </pre>
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
