@@ -36,7 +36,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 @SdkInternalApi
 public final class CrtHttpRequestConverter {
@@ -78,7 +78,7 @@ public final class CrtHttpRequestConverter {
             String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
             String encodedPath = encodedPathFromCrtFormat(inputRequest.encodedPath(), signedCrtRequest.getEncodedPath());
             String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
-            fullUri = SdkURI.getInstance().newURI(fullUriString);
+            fullUri = SdkUri.getInstance().newURI(fullUriString);
         } catch (URISyntaxException e) {
             return null;
         }

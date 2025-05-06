@@ -29,16 +29,16 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.opentest4j.AssertionFailedError;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
 
-class SdkURITest {
+class SdkUriTest {
 
     @AfterEach
     void resetCache() throws IllegalAccessException {
         Field cacheField = getCacheField();
         cacheField.setAccessible(true);
-        cacheField.set(SdkURI.getInstance(), LruCache.builder(UriConstructorArgs::newInstance)
+        cacheField.set(SdkUri.getInstance(), LruCache.builder(UriConstructorArgs::newInstance)
                                                      .maxSize(100)
                                                      .build());
     }
@@ -47,7 +47,7 @@ class SdkURITest {
     @ValueSource(strings = {"https://123456789012.ddb.us-east-1.amazonaws.com",
                             "http://123456789012.ddb.us-east-1.amazonaws.com"})
     void multipleCreate_simpleURI_SameStringConstructor_ShouldCacheOnlyOnce(String strURI) {
-        URI uri = SdkURI.getInstance().create(strURI);
+        URI uri = SdkUri.getInstance().create(strURI);
         String scheme = strURI.startsWith("https") ? "https" : "http";
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasScheme(scheme)
@@ -55,7 +55,7 @@ class SdkURITest {
                        .hasNoPort()
                        .hasNoQuery();
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().create(strURI);
+        URI uri2 = SdkUri.getInstance().create(strURI);
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
     }
@@ -64,7 +64,7 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleCreate_FullUri_SameConstructor_ShouldCacheOnlyOne(String scheme) {
         String strURI = scheme + "://123456789012.ddb.us-east-1.amazonaws.com:322/some/path?foo=bar#test";
-        URI uri = SdkURI.getInstance().create(strURI);
+        URI uri = SdkUri.getInstance().create(strURI);
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasScheme(scheme)
                        .hasNoUserInfo()
@@ -74,7 +74,7 @@ class SdkURITest {
                        .hasFragment("test");
 
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().create(strURI);
+        URI uri2 = SdkUri.getInstance().create(strURI);
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
 
@@ -93,7 +93,7 @@ class SdkURITest {
             "https://123456789019.ddb.us-east-1.amazonaws.com",
             };
         for (String uri : strURIs) {
-            URI u = SdkURI.getInstance().create(uri);
+            URI u = SdkUri.getInstance().create(uri);
         }
         assertThat(getCache().size()).isEqualTo(8);
     }
@@ -102,14 +102,14 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUriWithNulls_SameAuthorityConstructor_ShouldCacheOnlyOnce(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, strURI, null, null, null);
+        URI uri = SdkUri.getInstance().newURI(scheme, strURI, null, null, null);
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasScheme(scheme)
                        .hasNoParameters()
                        .hasNoPort()
                        .hasNoQuery();
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, strURI, null, null, null);
+        URI uri2 = SdkUri.getInstance().newURI(scheme, strURI, null, null, null);
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
     }
@@ -118,14 +118,14 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUri_SameAuthorityConstructor_ShouldCacheOnlyOnce(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
+        URI uri = SdkUri.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
         assertThat(uri).hasHost(strURI)
                        .hasPath("/somePath/to/resource")
                        .hasQuery("foo=bar")
                        .hasFragment("test")
                        .hasScheme(scheme);
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
+        URI uri2 = SdkUri.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
     }
@@ -134,14 +134,14 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUri_DifferentAuthorityConstructor_ShouldCacheAll(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
+        URI uri = SdkUri.getInstance().newURI(scheme, strURI, "/somePath/to/resource", "foo=bar", "test");
         assertThat(uri).hasHost(strURI)
                        .hasPath("/somePath/to/resource")
                        .hasQuery("foo=bar")
                        .hasFragment("test")
                        .hasScheme(scheme);
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, strURI, "/some/otherPath/to/resource", null, "test2");
+        URI uri2 = SdkUri.getInstance().newURI(scheme, strURI, "/some/otherPath/to/resource", null, "test2");
         assertThat(getCache().size()).isEqualTo(2);
         assertThat(uri).isNotSameAs(uri2);
     }
@@ -150,13 +150,13 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUriWithNulls_SameHostConstructor_ShouldCacheOnlyOnce(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, null, strURI, 322, null, null, null);
+        URI uri = SdkUri.getInstance().newURI(scheme, null, strURI, 322, null, null, null);
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasNoParameters()
                        .hasPort(322)
                        .hasNoQuery();
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, null, strURI, 322, null, null, null);
+        URI uri2 = SdkUri.getInstance().newURI(scheme, null, strURI, 322, null, null, null);
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
     }
@@ -165,7 +165,7 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUri_SameHostConstructor_ShouldCacheOnlyOnce(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
+        URI uri = SdkUri.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasScheme(scheme)
                        .hasUserInfo("user1")
@@ -174,7 +174,7 @@ class SdkURITest {
                        .hasQuery("foo=bar")
                        .hasFragment("test");
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
+        URI uri2 = SdkUri.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
         assertThat(getCache().size()).isEqualTo(1);
         assertThat(uri).isSameAs(uri2);
     }
@@ -183,7 +183,7 @@ class SdkURITest {
     @ValueSource(strings = {"http", "https"})
     void multipleNewUri_DifferentHostConstructor_ShouldCacheOnlyOnce(String scheme) throws URISyntaxException {
         String strURI = "123456789012.ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
+        URI uri = SdkUri.getInstance().newURI(scheme, "user1", strURI, 322, "/some/path", "foo=bar", "test");
         assertThat(uri).hasHost("123456789012.ddb.us-east-1.amazonaws.com")
                        .hasScheme(scheme)
                        .hasUserInfo("user1")
@@ -192,7 +192,7 @@ class SdkURITest {
                        .hasQuery("foo=bar")
                        .hasFragment("test");
         assertThat(getCache().size()).isEqualTo(1);
-        URI uri2 = SdkURI.getInstance().newURI(scheme, "user1", strURI, 322, "/some/other/path", "foo=bar", "test2");
+        URI uri2 = SdkUri.getInstance().newURI(scheme, "user1", strURI, 322, "/some/other/path", "foo=bar", "test2");
         assertThat(getCache().size()).isEqualTo(2);
         assertThat(uri).isNotSameAs(uri2);
     }
@@ -200,13 +200,13 @@ class SdkURITest {
     @Test
     void notCached_shouldCreateNewInstance() {
         String strURI = "https://ddb.us-east-1.amazonaws.com";
-        URI uri = SdkURI.getInstance().create(strURI);
+        URI uri = SdkUri.getInstance().create(strURI);
         assertThat(uri).hasHost("ddb.us-east-1.amazonaws.com")
                        .hasNoParameters()
                        .hasNoPort()
                        .hasNoQuery();
         assertThat(getCache().size()).isEqualTo(0);
-        URI uri2 = SdkURI.getInstance().create(strURI);
+        URI uri2 = SdkUri.getInstance().create(strURI);
         assertThat(getCache().size()).isEqualTo(0);
         assertThat(uri).isNotSameAs(uri2);
     }
@@ -215,19 +215,19 @@ class SdkURITest {
     @ValueSource(strings = {"potatoes tomatoes", "123412341234 potatoes tomatoes"})
     void malformedURI_shouldThrowsSameExceptionAsUriClass(String malformedUri) {
 
-        assertThatThrownBy(() -> SdkURI.getInstance().create(malformedUri))
+        assertThatThrownBy(() -> SdkUri.getInstance().create(malformedUri))
             .as("Malformed uri should throw IllegalArgumentException using the create method")
             .isInstanceOf(IllegalArgumentException.class);
         assertThat(getCache().size()).as("Cache should be empty if create URI fails")
                                      .isEqualTo(0);
 
-        assertThatThrownBy(() -> SdkURI.getInstance().newURI(malformedUri))
+        assertThatThrownBy(() -> SdkUri.getInstance().newURI(malformedUri))
             .as("Malformed uri should throw URISyntaxException using the newURI method")
             .isInstanceOf(URISyntaxException.class);
         assertThat(getCache().size()).as("Cache should be empty if create URI fails")
                                      .isEqualTo(0);
 
-        assertThatThrownBy(() -> SdkURI.getInstance().newURI("scheme", malformedUri, "path", "query", "fragment"))
+        assertThatThrownBy(() -> SdkUri.getInstance().newURI("scheme", malformedUri, "path", "query", "fragment"))
             .as("Malformed uri should throw URISyntaxException using the newURI with authority method")
             .isInstanceOf(URISyntaxException.class);
         assertThat(getCache().size()).as("Cache should be empty if create URI fails")
@@ -240,7 +240,7 @@ class SdkURITest {
                                      .isEqualTo(0);
 
 
-        assertThatThrownBy(() -> SdkURI.getInstance().newURI("scheme", "userInfo", malformedUri,
+        assertThatThrownBy(() -> SdkUri.getInstance().newURI("scheme", "userInfo", malformedUri,
                                                              444, "path", "query", "fragment"))
             .as("Malformed uri should throw URISyntaxException using the newURI with host method")
             .isInstanceOf(URISyntaxException.class);
@@ -267,9 +267,9 @@ class SdkURITest {
         "z"
     })
     void shouldNotCache_whenLeadingDigitsDoNotExceedIntegerMaxValue(String strURI) {
-        URI uri = SdkURI.getInstance().create(strURI);
+        URI uri = SdkUri.getInstance().create(strURI);
         assertThat(getCache().size()).isEqualTo(0);
-        URI uri2 = SdkURI.getInstance().create(strURI);
+        URI uri2 = SdkUri.getInstance().create(strURI);
         assertThat(getCache().size()).isEqualTo(0);
         assertThat(uri).isNotSameAs(uri2);
     }
@@ -279,7 +279,7 @@ class SdkURITest {
         Field field = getCacheField();
         field.setAccessible(true);
         try {
-            return (LruCache<UriConstructorArgs, URI>) field.get(SdkURI.getInstance());
+            return (LruCache<UriConstructorArgs, URI>) field.get(SdkUri.getInstance());
         } catch (IllegalAccessException e) {
             fail(e);
             return null;
@@ -287,12 +287,12 @@ class SdkURITest {
     }
 
     private Field getCacheField() {
-        return ReflectionUtils.streamFields(SdkURI.class,
+        return ReflectionUtils.streamFields(SdkUri.class,
                                             f -> "cache".equals(f.getName()),
                                             ReflectionUtils.HierarchyTraversalMode.TOP_DOWN)
                               .findFirst()
                               .orElseThrow(() -> new AssertionFailedError("Unexpected error - Could not find field "
-                                                                          + "'cache' in " + SdkURI.class.getName()));
+                                                                          + "'cache' in " + SdkUri.class.getName()));
     }
 
 }

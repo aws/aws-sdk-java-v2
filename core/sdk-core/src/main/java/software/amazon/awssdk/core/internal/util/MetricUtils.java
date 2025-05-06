@@ -38,7 +38,7 @@ import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * Utility methods for working with metrics.
@@ -113,7 +113,7 @@ public final class MetricUtils {
             // Only interested in the service endpoint so don't include any path, query, or fragment component
             URI requestUri = httpRequest.getUri();
             try {
-                URI serviceEndpoint = SdkURI.getInstance().newURI(
+                URI serviceEndpoint = SdkUri.getInstance().newURI(
                     requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
                 metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, serviceEndpoint);
             } catch (URISyntaxException e) {

@@ -26,7 +26,7 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private final CodeBlock.Builder builder;
@@ -279,7 +279,7 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
         if (endpointCaching) {
-            builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkURI.class);
+            builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
         } else {
             builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
         }

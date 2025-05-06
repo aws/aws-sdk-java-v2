@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -155,7 +155,7 @@ public interface SdkHttpRequest extends SdkHttpHeaders, ToCopyableBuilder<SdkHtt
         // Do not include the port in the URI when using the default port for the protocol.
         String portString = SdkHttpUtils.isUsingStandardPort(protocol(), port()) ? "" : ":" + port();
 
-        return SdkURI.getInstance().create(protocol() + "://" + host() + portString + encodedPath() + encodedQueryString);
+        return SdkUri.getInstance().create(protocol() + "://" + host() + portString + encodedPath() + encodedQueryString);
     }
 
     /**

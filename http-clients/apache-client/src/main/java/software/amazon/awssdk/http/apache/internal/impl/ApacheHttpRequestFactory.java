@@ -40,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
@@ -81,7 +81,7 @@ public class ApacheHttpRequestFactory {
             String portString = SdkHttpUtils.isUsingStandardPort(protocol, port) ?
                                 "" : ":" + port;
 
-            return SdkURI.getInstance().create(protocol + "://" + request.host() + portString + newPath + encodedQueryString);
+            return SdkUri.getInstance().create(protocol + "://" + request.host() + portString + newPath + encodedQueryString);
         }
 
         return request.getUri();

@@ -59,7 +59,7 @@ import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -170,7 +170,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> SdkURI.getInstance().newURI(sdkRequest.protocol(), null, sdkRequest.host(),
+        return invokeSafely(() -> SdkUri.getInstance().newURI(sdkRequest.protocol(), null, sdkRequest.host(),
                                                               sdkRequest.port(), null, null, null));
     }
 

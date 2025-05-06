@@ -29,19 +29,19 @@ import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
  * issues with some uri pattern. Do not directly depend on this class, it will be removed in the future.
  */
 @SdkProtectedApi
-public final class SdkURI {
+public final class SdkUri {
     private static final String HTTPS_PREFIX = "https://";
     private static final String HTTP_PREFIX = "http://";
 
-    private static final Logger log = Logger.loggerFor(SdkURI.class);
+    private static final Logger log = Logger.loggerFor(SdkUri.class);
 
-    private static final SdkURI INSTANCE = new SdkURI();
+    private static final SdkUri INSTANCE = new SdkUri();
 
     private final LruCache<UriConstructorArgs, URI> cache = LruCache.builder(UriConstructorArgs::newInstance)
                                                                     .maxSize(100)
                                                                     .build();
 
-    public static SdkURI getInstance() {
+    public static SdkUri getInstance() {
         return INSTANCE;
     }
 
@@ -79,8 +79,7 @@ public final class SdkURI {
 
     public URI newURI(String scheme,
                       String userInfo, String host, int port,
-                      String path, String query, String fragment)
-        throws URISyntaxException {
+                      String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(host)) {
             log.trace(() -> "skipping cache for host" + host);
             return new URI(scheme, userInfo, host, port, path, query, fragment);
@@ -102,8 +101,7 @@ public final class SdkURI {
 
     public URI newURI(String scheme,
                       String authority,
-                      String path, String query, String fragment)
-        throws URISyntaxException {
+                      String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
             log.trace(() -> "skipping cache for authority" + authority);
             return new URI(scheme, authority, path, query, fragment);

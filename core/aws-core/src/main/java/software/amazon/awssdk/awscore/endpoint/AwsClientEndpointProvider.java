@@ -38,7 +38,7 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.OptionalUtils;
-import software.amazon.awssdk.utils.uri.SdkURI;
+import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
@@ -239,7 +239,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                                           .region(builder.region)
                                                           .tags(endpointTags)
                                                           .build());
-        URI endpoint = SdkURI.getInstance().create(builder.protocol + "://" + endpointWithoutProtocol);
+        URI endpoint = SdkUri.getInstance().create(builder.protocol + "://" + endpointWithoutProtocol);
         if (endpoint.getHost() == null) {
             String error = "Configured region (" + builder.region + ") and tags (" + endpointTags + ") resulted in "
                            + "an invalid URI: " + endpoint + ". This is usually caused by an invalid region "
@@ -261,7 +261,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     private Optional<URI> createUri(String source, Optional<String> uri) {
         return uri.map(u -> {
             try {
-                URI parsedUri = SdkURI.getInstance().newURI(uri.get());
+                URI parsedUri = SdkUri.getInstance().newURI(uri.get());
                 log.trace(() -> "Client endpoint was loaded from the " + source + ": " + parsedUri);
                 return parsedUri;
             } catch (URISyntaxException e) {

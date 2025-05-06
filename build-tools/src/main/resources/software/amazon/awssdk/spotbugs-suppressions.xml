@@ -360,7 +360,7 @@
         <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
     </Match>
     <Match>
-        <Class name="software.amazon.awssdk.utils.uri.SdkURI" />
+        <Class name="software.amazon.awssdk.utils.uri.SdkUri" />
         <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
     </Match>
 </FindBugsFilter>
