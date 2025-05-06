@@ -39,7 +39,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  *      }
  *
  *      public void setInternalKey(String internalKey) {
- *          return this.internalKey = internalKey;
+ *          this.internalKey = internalKey;
  *      }
  * }
  * }
