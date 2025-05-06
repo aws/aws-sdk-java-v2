@@ -1048,6 +1048,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kstich",
+      "name": "Kevin Stich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26905335?v=4",
+      "profile": "https://github.com/kstich",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
