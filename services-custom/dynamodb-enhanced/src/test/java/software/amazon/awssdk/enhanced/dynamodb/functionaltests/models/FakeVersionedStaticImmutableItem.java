@@ -25,13 +25,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchem
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
-@DynamoDbImmutable(builder = ImmutableFakeVersionedItem.Builder.class)
-public class ImmutableFakeVersionedItem {
+@DynamoDbImmutable(builder = FakeVersionedStaticImmutableItem.Builder.class)
+public class FakeVersionedStaticImmutableItem {
     private final String id;
     private final String attribute;
     private final long version;
 
-    private ImmutableFakeVersionedItem(Builder b) {
+    private FakeVersionedStaticImmutableItem(Builder b) {
         this.id = b.id;
         this.attribute = b.attribute;
         this.version = b.version;
@@ -62,7 +62,7 @@ public class ImmutableFakeVersionedItem {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ImmutableFakeVersionedItem that = (ImmutableFakeVersionedItem) o;
+        FakeVersionedStaticImmutableItem that = (FakeVersionedStaticImmutableItem) o;
         return version == that.version && Objects.equals(id, that.id) && Objects.equals(attribute, that.attribute);
     }
 
@@ -71,25 +71,22 @@ public class ImmutableFakeVersionedItem {
         return Objects.hash(id, attribute, version);
     }
 
-    public static TableSchema<ImmutableFakeVersionedItem> getTableSchema() {
-        return StaticImmutableTableSchema.builder(ImmutableFakeVersionedItem.class, ImmutableFakeVersionedItem.Builder.class)
-                                         .newItemBuilder(ImmutableFakeVersionedItem::builder, ImmutableFakeVersionedItem.Builder::build)
+    public static TableSchema<FakeVersionedStaticImmutableItem> getTableSchema() {
+        return StaticImmutableTableSchema.builder(FakeVersionedStaticImmutableItem.class, FakeVersionedStaticImmutableItem.Builder.class)
+                                         .newItemBuilder(FakeVersionedStaticImmutableItem::builder, FakeVersionedStaticImmutableItem.Builder::build)
                                          .addAttribute(String.class, a -> a.name("id")
-                                                                           .getter(ImmutableFakeVersionedItem::id)
-                                                                           .setter(ImmutableFakeVersionedItem.Builder::id)
+                                                                           .getter(FakeVersionedStaticImmutableItem::id)
+                                                                           .setter(FakeVersionedStaticImmutableItem.Builder::id)
                                                                            .tags(primaryPartitionKey()))
                                          .addAttribute(Long.class, a -> a.name("version")
-                                                                           .getter(ImmutableFakeVersionedItem::version)
-                                                                           .setter(ImmutableFakeVersionedItem.Builder::version)
+                                                                           .getter(FakeVersionedStaticImmutableItem::version)
+                                                                           .setter(FakeVersionedStaticImmutableItem.Builder::version)
                                                                            .tags(versionAttribute()))
                                          .addAttribute(String.class, a -> a.name("attribute")
-                                                                           .getter(ImmutableFakeVersionedItem::attribute)
-                                                                           .setter(ImmutableFakeVersionedItem.Builder::attribute))
+                                                                           .getter(FakeVersionedStaticImmutableItem::attribute)
+                                                                           .setter(FakeVersionedStaticImmutableItem.Builder::attribute))
                                          .build();
     }
-
-
-
 
     public static TableMetadata getTableMetadata() {
         return getTableSchema().tableMetadata();
@@ -115,8 +112,8 @@ public class ImmutableFakeVersionedItem {
             return this;
         }
 
-        public ImmutableFakeVersionedItem build() {
-            return new ImmutableFakeVersionedItem(this);
+        public FakeVersionedStaticImmutableItem build() {
+            return new FakeVersionedStaticImmutableItem(this);
         }
     }
 }
