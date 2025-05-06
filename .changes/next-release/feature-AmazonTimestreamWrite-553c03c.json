@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Timestream Write",
+    "contributor": "",
+    "description": "Add dualstack endpoints support."
+}
