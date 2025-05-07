@@ -38,10 +38,10 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.OptionalUtils;
-import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An implementation of {@link ClientEndpointProvider} that loads the default client endpoint from:
