@@ -163,7 +163,7 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     }
 
     URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> SdkUri.getInstance().newURI(sdkRequest.protocol(), null, sdkRequest.host(),
+        return invokeSafely(() -> SdkUri.getInstance().newUri(sdkRequest.protocol(), null, sdkRequest.host(),
                                                               sdkRequest.port(), null, null, null));
     }
 

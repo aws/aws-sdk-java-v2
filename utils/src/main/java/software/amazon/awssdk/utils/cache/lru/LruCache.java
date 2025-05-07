@@ -168,7 +168,7 @@ public final class LruCache<K, V>  {
         return cache.size();
     }
 
-    public boolean contains(K key) {
+    public boolean containsKey(K key) {
         return cache.containsKey(key);
     }
 

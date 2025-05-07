@@ -170,7 +170,7 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> SdkUri.getInstance().newURI(sdkRequest.protocol(), null, sdkRequest.host(),
+        return invokeSafely(() -> SdkUri.getInstance().newUri(sdkRequest.protocol(), null, sdkRequest.host(),
                                                               sdkRequest.port(), null, null, null));
     }
 

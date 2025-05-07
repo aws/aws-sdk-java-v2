@@ -37,4 +37,11 @@ class EndpointProviderCompiledRulesClassSpecTest {
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-know-prop-override-class.java"));
     }
+
+    @Test
+    void endpointProviderClassWithUriCache() {
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUriCache());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-uri-cache-class.java"));
+    }
 }

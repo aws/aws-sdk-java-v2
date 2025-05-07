@@ -113,7 +113,7 @@ public final class MetricUtils {
             // Only interested in the service endpoint so don't include any path, query, or fragment component
             URI requestUri = httpRequest.getUri();
             try {
-                URI serviceEndpoint = SdkUri.getInstance().newURI(
+                URI serviceEndpoint = SdkUri.getInstance().newUri(
                     requestUri.getScheme(), requestUri.getAuthority(), null, null, null);
                 metricCollector.reportMetric(CoreMetric.SERVICE_ENDPOINT, serviceEndpoint);
             } catch (URISyntaxException e) {

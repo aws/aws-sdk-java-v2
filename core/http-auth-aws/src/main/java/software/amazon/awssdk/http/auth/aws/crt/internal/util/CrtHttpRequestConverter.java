@@ -74,7 +74,7 @@ public final class CrtHttpRequestConverter {
             String portString = SdkHttpUtils.isUsingStandardPort(builder.protocol(), builder.port()) ? "" : ":" + builder.port();
             String encodedPath = encodedPathFromCrtFormat(request.encodedPath(), crtRequest.getEncodedPath());
             String fullUriString = builder.protocol() + "://" + builder.host() + portString + encodedPath;
-            fullUri = SdkUri.getInstance().newURI(fullUriString);
+            fullUri = SdkUri.getInstance().newUri(fullUriString);
         } catch (URISyntaxException e) {
             throw new RuntimeException("Full URI could not be formed.", e);
         }

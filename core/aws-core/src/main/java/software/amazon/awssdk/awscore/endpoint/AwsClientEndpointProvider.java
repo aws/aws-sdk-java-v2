@@ -261,7 +261,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     private Optional<URI> createUri(String source, Optional<String> uri) {
         return uri.map(u -> {
             try {
-                URI parsedUri = SdkUri.getInstance().newURI(uri.get());
+                URI parsedUri = SdkUri.getInstance().newUri(uri.get());
                 log.trace(() -> "Client endpoint was loaded from the " + source + ": " + parsedUri);
                 return parsedUri;
             } catch (URISyntaxException e) {

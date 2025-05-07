@@ -18,7 +18,6 @@ package software.amazon.awssdk.utils.uri;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
-import org.slf4j.event.Level;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
@@ -30,16 +29,26 @@ import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
  */
 @SdkProtectedApi
 public final class SdkUri {
+    private static final Logger log = Logger.loggerFor(SdkUri.class);
+
     private static final String HTTPS_PREFIX = "https://";
     private static final String HTTP_PREFIX = "http://";
 
-    private static final Logger log = Logger.loggerFor(SdkUri.class);
+    /*
+     * The default LRUCache size is 100, but for a single service call we cache at least 3 different URIs so the cache size is
+     * increased a bit to account for the different URIs.
+     */
+    private static final int CACHE_SIZE = 150;
 
     private static final SdkUri INSTANCE = new SdkUri();
 
-    private final LruCache<UriConstructorArgs, URI> cache = LruCache.builder(UriConstructorArgs::newInstance)
-                                                                    .maxSize(100)
-                                                                    .build();
+    private final LruCache<UriConstructorArgs, URI> cache;
+
+    private SdkUri() {
+        this.cache = LruCache.builder(UriConstructorArgs::newInstance)
+                            .maxSize(CACHE_SIZE)
+                            .build();
+    }
 
     public static SdkUri getInstance() {
         return INSTANCE;
@@ -51,20 +60,20 @@ public final class SdkUri {
             return URI.create(s);
         }
         StringConstructorArgs key = new StringConstructorArgs(s);
-        boolean containsK = cache.contains(key);
+        boolean containsK = cache.containsKey(key);
         URI uri = cache.get(key);
         logCacheUsage(containsK, uri);
         return uri;
     }
 
-    public URI newURI(String s) throws URISyntaxException {
+    public URI newUri(String s) throws URISyntaxException {
         if (!isAccountIdUri(s)) {
             log.trace(() -> "skipping cache for uri " + s);
             return new URI(s);
         }
         try {
             StringConstructorArgs key = new StringConstructorArgs(s);
-            boolean containsK = cache.contains(key);
+            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
             logCacheUsage(containsK, uri);
             return uri;
@@ -77,7 +86,7 @@ public final class SdkUri {
         }
     }
 
-    public URI newURI(String scheme,
+    public URI newUri(String scheme,
                       String userInfo, String host, int port,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(host)) {
@@ -86,7 +95,7 @@ public final class SdkUri {
         }
         try {
             HostConstructorArgs key = new HostConstructorArgs(scheme, userInfo, host, port, path, query, fragment);
-            boolean containsK = cache.contains(key);
+            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
             logCacheUsage(containsK, uri);
             return uri;
@@ -99,7 +108,7 @@ public final class SdkUri {
 
     }
 
-    public URI newURI(String scheme,
+    public URI newUri(String scheme,
                       String authority,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
@@ -108,7 +117,7 @@ public final class SdkUri {
         }
         try {
             AuthorityConstructorArgs key = new AuthorityConstructorArgs(scheme, authority, path, query, fragment);
-            boolean containsK = cache.contains(key);
+            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
             logCacheUsage(containsK, uri);
             return uri;
@@ -145,13 +154,11 @@ public final class SdkUri {
     }
 
     private void logCacheUsage(boolean containsKey, URI uri) {
-        if (log.isLoggingLevelEnabled(Level.TRACE)) {
-            log.trace(() -> "URI cache size: " + cache.size());
-            if (containsKey) {
-                log.trace(() -> "Using cached uri for " + uri.toString());
-            } else {
-                log.trace(() -> "Cache empty for " + uri.toString());
-            }
+        log.trace(() -> "URI cache size: " + cache.size());
+        if (containsKey) {
+            log.trace(() -> "Using cached uri for " + uri.toString());
+        } else {
+            log.trace(() -> "Cache empty for " + uri.toString());
         }
     }
 
