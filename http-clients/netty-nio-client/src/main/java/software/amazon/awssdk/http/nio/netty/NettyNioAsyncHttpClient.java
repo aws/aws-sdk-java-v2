@@ -59,8 +59,8 @@ import software.amazon.awssdk.http.nio.netty.internal.SharedSdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An implementation of {@link SdkAsyncHttpClient} that uses a Netty non-blocking HTTP client to communicate with the service.

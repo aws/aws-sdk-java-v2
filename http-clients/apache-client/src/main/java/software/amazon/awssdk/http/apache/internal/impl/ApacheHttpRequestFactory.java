@@ -40,9 +40,9 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache.internal.ApacheHttpRequestConfig;
 import software.amazon.awssdk.http.apache.internal.RepeatableInputStreamRequestEntity;
 import software.amazon.awssdk.http.apache.internal.utils.ApacheUtils;
-import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * Responsible for creating Apache HttpClient 4 request objects.
