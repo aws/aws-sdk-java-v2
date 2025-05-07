@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.38__ __2025-05-07__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Enables Updating Anywhere Settings on a MediaLive Anywhere Channel.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds API support for Path Component Exclusion (Filter Out ARN) for Reachability Analyzer
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - SageMaker AI Studio users can now migrate to SageMaker Unified Studio, which offers a unified web-based development experience that integrates AWS data, analytics, artificial intelligence (AI), and machine learning (ML) services, as well as additional tools and resource
+
+## __EC2 Image Builder__
+  - ### Features
+    - Updated the CreateImageRecipeRequest ParentImage description to include all valid values as updated with the SSM Parameters project.
+
+## __Synthetics__
+  - ### Features
+    - Add support to test a canary update by invoking a dry run of a canary. This behavior can be used via the new StartCanaryDryRun API along with new fields in UpdateCanary to apply dry run changes. Also includes changes in GetCanary and GetCanaryRuns to support retrieving dry run configurations.
+
 # __2.31.37__ __2025-05-06__
 ## __AWS SDK for Java v2__
   - ### Features
