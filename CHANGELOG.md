@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.37__ __2025-05-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix Smithy RPC v2 CBOR URI resolution allowing custom URIs.
+        - Contributed by: [@kstich](https://github.com/kstich)
+
+## __AWS Service Catalog__
+  - ### Features
+    - ServiceCatalog's APIs (DeleteServiceAction, DisassociateServiceActionFromProvisioningArtifact, AssociateServiceActionWithProvisioningArtifact) now throw InvalidParametersException when IdempotencyToken is invalid.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for Amazon EBS Provisioned Rate for Volume Initialization, which lets you specify a volume initialization rate to ensure that your EBS volumes are initialized in a predictable amount of time.
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Add dualstack endpoints support and correct us-gov-west-1 FIPS endpoint.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - Add dualstack endpoints support.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@kstich](https://github.com/kstich)
 # __2.31.36__ __2025-05-05__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
