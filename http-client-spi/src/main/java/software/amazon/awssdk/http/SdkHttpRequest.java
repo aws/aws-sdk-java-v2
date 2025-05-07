@@ -26,10 +26,10 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
-import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An immutable HTTP request without access to the request body. {@link SdkHttpFullRequest} should be used when access to a

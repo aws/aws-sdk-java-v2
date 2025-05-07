@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
@@ -40,7 +41,7 @@ public final class SdkUri {
      */
     private static final int CACHE_SIZE = 150;
 
-    private static final SdkUri INSTANCE = new SdkUri();
+    private static final Lazy<SdkUri> INSTANCE = new Lazy<>(SdkUri::new);
 
     private final LruCache<UriConstructorArgs, URI> cache;
 
@@ -51,7 +52,7 @@ public final class SdkUri {
     }
 
     public static SdkUri getInstance() {
-        return INSTANCE;
+        return INSTANCE.getValue();
     }
 
     public URI create(String s) {
@@ -105,7 +106,6 @@ public final class SdkUri {
             }
             throw e;
         }
-
     }
 
     public URI newUri(String scheme,
