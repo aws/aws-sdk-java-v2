@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS SDK for Java v2",
+    "category": "Amazon DyanmoDB",
     "contributor": "",
     "description": "Enable caching calls to URI constructors for account-id based endpoints"
 }
