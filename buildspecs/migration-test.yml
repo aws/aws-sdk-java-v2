@@ -7,7 +7,8 @@ phases:
 
   build:
     commands:
-      - mvn clean install -pl :v2-migration-tests -P quick -am && mvn install -pl :v2-migration-tests -P migration-tests -T1C $MAVEN_OPTIONS
+      - mvn clean install -pl :v2-migration-tests,:bom-internal -am -P quick $MAVEN_OPTIONS
+      - mvn install -pl :v2-migration-tests -P migration-tests -T2C $MAVEN_OPTIONS
     finally:
       - mkdir -p codebuild-test-reports
       - find ./ -name 'TEST-*.xml' -type f -exec cp {} codebuild-test-reports/ \;
