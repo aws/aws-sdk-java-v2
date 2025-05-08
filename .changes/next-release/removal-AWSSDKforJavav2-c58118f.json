@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Separate migration tests from normal builds"
+}

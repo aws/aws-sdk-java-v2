@@ -191,6 +191,7 @@
         <s3accessgrants.version>2.1.0</s3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
+        <v2.migration.tests.skip>true</v2.migration.tests.skip>
         <integTestSourceDirectory>${project.basedir}/src/it/java</integTestSourceDirectory>
         <javadoc.resourcesDir>${session.executionRootDirectory}</javadoc.resourcesDir>
         <scm.github.url>https://github.com/aws/aws-sdk-java-v2</scm.github.url>
@@ -824,6 +825,21 @@
                 <mdep.analyze.skip>true</mdep.analyze.skip>
                 <japicmp.skip>true</japicmp.skip>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>migration-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <v2.migration.tests.skip>false</v2.migration.tests.skip>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
 
