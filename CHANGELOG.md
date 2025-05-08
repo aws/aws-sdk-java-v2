@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.39__ __2025-05-08__
+## __AWS CodePipeline__
+  - ### Features
+    - Add support for Secrets Manager and Plaintext environment variable types in Commands action
+
+## __AWS Glue__
+  - ### Features
+    - This new release supports customizable RefreshInterval for all Saas ZETL integrations from 15 minutes to 6 days.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Update PutPermissionBoundaryToPermissionSet API's managedPolicyArn pattern to allow valid ARN only. Update ApplicationName to allow white spaces.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc-only update for CloudFront. These changes include customer-reported issues.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Launching the feature to support ENA queues offering flexibility to support multiple queues per Enhanced Network Interface (ENI)
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated description of a data structure.
+
 # __2.31.38__ __2025-05-07__
 ## __AWS Elemental MediaLive__
   - ### Features
