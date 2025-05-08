@@ -40,7 +40,8 @@ public final class DefaultCustomizationProcessor {
                 new NewAndLegacyEventStreamProcessor(),
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),
-                new ExplicitStringPayloadQueryProtocolProcessor()
+                new ExplicitStringPayloadQueryProtocolProcessor(),
+                new LowercaseShapeValidatorProcessor()
                 );
     }
 }

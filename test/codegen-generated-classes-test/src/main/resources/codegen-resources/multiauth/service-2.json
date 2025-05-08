@@ -1,0 +1,88 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"internalconfig",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"AwsMultiAuthService",
+    "serviceFullName":"AWS Multi Auth Service",
+    "serviceId":"Multiauth",
+    "signatureVersion":"v4",
+    "targetPrefix":"MultiAuth",
+    "timestampFormat":"unixTimestamp",
+    "uid":"restjson-2016-03-11"
+  },
+  "operations":{
+    "multiAuthWithOnlySigv4a":{
+      "name":"multiAuthWithOnlySigv4a",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/multiAuthWithOnlySigv4a"
+      },
+      "input":{"shape":"SampleRequest"},
+      "auth": ["aws.auth#sigv4a"],
+      "staticContextParams":{
+        "ApiType":{"value":"NoEndpointSigningProperties"}
+      }
+    },
+    "multiAuthWithOnlySigv4aAndSigv4":{
+      "name":"multiAuthWithOnlySigv4aAndSigv4",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/multiAuthWithOnlySigv4aAndSigv4"
+      },
+      "input":{"shape":"SampleRequest"},
+      "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"],
+      "staticContextParams":{
+        "ApiType":{"value":"NoEndpointSigningProperties"}
+      }
+    },
+    "legacySigv4WithEndpointsRules": {
+      "name": "legacySigv4WithEndpointsRules",
+      "http": {
+        "method": "GET",
+        "requestUri": "/legacySigv4WithEndpointsRules",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "SampleRequest"
+      },
+      "documentation": "<p>Operation with EndpointParams w</p>",
+      "staticContextParams": {
+        "ApiType": {
+          "value": "RegionDefinedInRules"
+        }
+      }
+    },
+    "multiAuthWithRegionSetInEndpointParams": {
+      "name": "multiAuthWithRegionSetInEndpointParams",
+      "http": {
+        "method": "GET",
+        "requestUri": "/multiAuthWithRegionSetInEndpointParams",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "SampleRequest"
+      },
+      "documentation": "<p>Operation with EndpointParams w</p>",
+      "auth": ["aws.auth#sigv4a", "aws.auth#sigv4"],
+      "staticContextParams": {
+        "ApiType": {
+          "value": "onlySigv4a"
+        }
+      }
+    }
+  },
+  "shapes": {
+    "SampleRequest": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

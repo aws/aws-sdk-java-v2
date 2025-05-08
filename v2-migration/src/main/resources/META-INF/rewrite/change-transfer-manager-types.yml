@@ -1,0 +1,74 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+#
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.ChangeTransferManagerTypes
+displayName: Change SDK TransferManager types from v1 to v2
+description: Change SDK TransferManager types from v1 to v2.
+recipeList:
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.TransferManager
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.S3TransferManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.TransferManagerBuilder
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.S3TransferManager
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Transfer
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Transfer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.AbortableTransfer
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Transfer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Copy
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Copy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Download
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.FileDownload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.Upload
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.Upload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.MultipleFileDownload
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.DirectoryDownload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.MultipleFileUpload
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.DirectoryUpload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.PersistableDownload
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.ResumableFileDownload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.PersistableTransfer
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.ResumableTransfer
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.PersistableUpload
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.ResumableFileUpload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.PauseResult
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.ResumableFileUpload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.model.CopyResult
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.CompletedCopy
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.model.UploadResult
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.model.CompletedUpload
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.KeyFilter
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.config.DownloadFilter
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.TransferProgress
+      newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.progress.TransferProgress
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.TransferManagerConfiguration
+      newFullyQualifiedTypeName: software.amazon.awssdk.services.s3.multipart.MultipartConfiguration

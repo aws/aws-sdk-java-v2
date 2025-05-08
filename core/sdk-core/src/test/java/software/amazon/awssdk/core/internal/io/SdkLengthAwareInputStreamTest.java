@@ -16,6 +16,8 @@
 package software.amazon.awssdk.core.internal.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.IoUtils;
 
 class SdkLengthAwareInputStreamTest {
     private InputStream delegateStream;
@@ -164,20 +167,155 @@ class SdkLengthAwareInputStreamTest {
     }
 
     @Test
-    void read_delegateAtEof_returnsEof() throws IOException {
-        when(delegateStream.read()).thenReturn(-1);
+    void readArray_delegateShorterThanExpected_throws() {
+        int delegateLength = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength + 1);
 
-        assertThat(is.read()).isEqualTo(-1);
+        assertThatThrownBy(() -> {
+            int read;
+            byte[] buff = new byte[4096];
+            while ((read = is.read(buff, 0, buff.length)) != -1) {
+            }
+        })
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("The request content has fewer bytes than the specified content-length");
     }
 
     @Test
-    void readArray_delegateAtEof_returnsEof() throws IOException {
-        when(delegateStream.read(any(byte[].class), any(int.class), any(int.class))).thenReturn(-1);
+    void readArray_readExactLength_doesNotThrow() throws IOException {
+        int delegateLength = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
 
-        assertThat(is.read(new byte[8], 0, 8)).isEqualTo(-1);
+        int total = 0;
+        int read;
+        byte[] buff = new byte[delegateLength];
+        while ((read = is.read(buff, 0, delegateLength)) != -1) {
+            total += read;
+        }
+
+        assertThat(total).isEqualTo(delegateLength);
+    }
+
+    @Test
+    void readArray_delegateLongerThanRequired_truncated() throws IOException {
+        int delegateLength = 32;
+        int length = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, length);
+
+        int total = 0;
+        int read;
+        byte[] buff = new byte[delegateLength];
+        while ((read = is.read(buff, 0, delegateLength)) != -1) {
+            total += read;
+        }
+
+        assertThat(total).isEqualTo(length);
+    }
+
+    @Test
+    void readByte_delegateShorterThanExpected_throws() {
+        int delegateLength = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength + 1);
+
+        assertThatThrownBy(() -> {
+            int read;
+            while ((read = is.read()) != -1) {
+            }
+        })
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("The request content has fewer bytes than the specified content-length");
+    }
+
+    @Test
+    void readByte_readExactLength_doesNotThrow() throws IOException {
+        int delegateLength = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+
+        int total = 0;
+        while (total != delegateLength && is.read() != -1) {
+            ++total;
+        }
+
+        assertThat(total).isEqualTo(delegateLength);
+    }
+
+    @Test
+    void readByte_delegateLongerThanRequired_truncated() throws IOException {
+        int delegateLength = 32;
+        int length = 16;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, length);
+
+        int total = 0;
+        while (total != delegateLength && is.read() != -1) {
+            ++total;
+        }
+
+        assertThat(total).isEqualTo(length);
+    }
+
+    @Test
+    public void skip_thenReadByteUntilEof_doesNotThrowLengthMismatch() throws IOException {
+        int delegateLength = 32;
+
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+
+        int bytesToSkip = 8;
+        int skippedBytes = 0;
+        while (skippedBytes != bytesToSkip) {
+            long skipped = is.skip(1);
+            if (skipped > 0) {
+                skippedBytes += skipped;
+            }
+        }
+
+        int totalRead = 0;
+        while (is.read() != -1) {
+            ++totalRead;
+        }
+
+        assertThat(totalRead + skippedBytes).isEqualTo(delegateLength);
+    }
+
+    @Test
+    public void skip_thenReadArrayUntilEof_doesNotThrowLengthMismatch() throws IOException {
+        int delegateLength = 32;
+
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+
+        int bytesToSkip = 8;
+        int skippedBytes = 0;
+        while (skippedBytes != bytesToSkip) {
+            long skipped = is.skip(1);
+            if (skipped > 0) {
+                skippedBytes += skipped;
+            }
+        }
+
+        int totalRead = 0;
+        byte[] buff = new byte[8];
+        int read;
+
+        while ((read = is.read(buff, 0, buff.length)) != -1) {
+            totalRead += read;
+        }
+
+
+        assertThat(totalRead + skippedBytes).isEqualTo(delegateLength);
     }
 }

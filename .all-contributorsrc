@@ -1021,6 +1021,42 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "S-Saranya1",
+      "name": "Saranya Somepalli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/196712423?v=4",
+      "profile": "https://github.com/S-Saranya1",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "RanVaknin",
+      "name": "Ran Vaknin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50976344?v=4",
+      "profile": "https://github.com/RanVaknin",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "greg-at-moderne",
+      "name": "Greg Oledzki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/192309513?v=4",
+      "profile": "https://github.com/greg-at-moderne",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kstich",
+      "name": "Kevin Stich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26905335?v=4",
+      "profile": "https://github.com/kstich",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

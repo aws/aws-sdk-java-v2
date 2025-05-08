@@ -1,0 +1,90 @@
+{
+  "version": "1.2",
+  "serviceId": "Database Service",
+  "parameters": {
+    "region": {
+      "type": "string",
+      "builtIn": "AWS::Region",
+      "required": true,
+      "documentation": "The region to send requests to"
+    },
+    "useDualStackEndpoint": {
+      "type": "boolean",
+      "builtIn": "AWS::UseDualStack"
+    },
+    "useFIPSEndpoint": {
+      "type": "boolean",
+      "builtIn": "AWS::UseFIPS"
+    },
+    "AccountId": {
+      "type": "String",
+      "builtIn": "AWS::Auth::AccountId"
+    },
+    "operationContextParam": {
+      "type": "string"
+    }
+  },
+  "rules": [
+    {
+      "conditions": [
+        {
+          "fn": "aws.partition",
+          "argv": [
+            {
+              "ref": "region"
+            }
+          ],
+          "assign": "partitionResult"
+        }
+      ],
+      "rules": [
+        {
+          "conditions": [
+            {
+              "fn": "isSet",
+              "argv": [
+                {
+                  "ref": "endpointId"
+                }
+              ]
+            }
+          ],
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "fn": "isSet",
+                  "argv": [
+                    {
+                      "ref": "useFIPSEndpoint"
+                    }
+                  ]
+                }
+              ],
+              "error": "FIPS endpoints not supported with multi-region endpoints",
+              "type": "error"
+            },
+            {
+              "endpoint": {
+                "url": "https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}",
+                "properties": {
+                  "authSchemes": [
+                    {
+                      "name": "sigv4a",
+                      "signingName": "query",
+                      "signingRegionSet": ["*"]
+                    }
+                  ]
+                }
+              },
+              "type": "endpoint"
+            }
+          ],
+          "type": "tree"
+        }
+      ],
+      "type": "tree"
+    }
+  ]
+}
+

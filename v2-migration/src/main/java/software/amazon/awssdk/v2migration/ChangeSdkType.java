@@ -18,7 +18,9 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2Equivalent;
 import static software.amazon.awssdk.v2migration.internal.utils.NamingConversionUtils.getV2ModelPackageWildCardEquivalent;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1Class;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1ClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ClientClass;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.shouldSkip;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -116,6 +118,10 @@ public class ChangeSdkType extends Recipe {
                     maybeAddImport(getV2ModelPackageWildCardEquivalent(fullName));
                     wildcardImports.add(fullName);
                 }
+                return anImport;
+            }
+
+            if (shouldSkip(fullyQualified.getFullyQualifiedName())) {
                 return anImport;
             }
 
@@ -315,7 +321,8 @@ public class ChangeSdkType extends Recipe {
         }
 
         private void storeV1ClassMetadata(String currentFqcn) {
-            if (oldTypeToNewType.containsKey(currentFqcn)) {
+            if (oldTypeToNewType.containsKey(currentFqcn)
+                || shouldSkip(currentFqcn)) {
                 return;
             }
 
@@ -335,7 +342,7 @@ public class ChangeSdkType extends Recipe {
 
             JavaType.FullyQualified declaringType = method.getMethodType().getDeclaringType();
             JavaType returnType = method.getMethodType().getReturnType();
-            if (isV1ClientClass(returnType)) {
+            if (isV1ClientClass(returnType) && isSupportedV1ClientClass(returnType)) {
                 if (returnType instanceof JavaType.FullyQualified) {
                     String fullyQualifiedName = ((JavaType.FullyQualified) returnType).getFullyQualifiedName();
                     storeV1ClassMetadata(fullyQualifiedName);

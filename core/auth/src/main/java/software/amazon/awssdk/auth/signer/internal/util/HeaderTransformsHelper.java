@@ -32,7 +32,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public final class HeaderTransformsHelper {
 
     private static final List<String> LIST_OF_HEADERS_TO_IGNORE_IN_LOWER_CASE =
-            Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect");
+        Arrays.asList("connection", "x-amzn-trace-id", "user-agent", "expect", "transfer-encoding");
 
     private HeaderTransformsHelper() {
     }

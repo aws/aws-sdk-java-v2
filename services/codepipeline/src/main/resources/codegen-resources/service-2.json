@@ -342,7 +342,7 @@
         {"shape":"ValidationException"},
         {"shape":"InvalidNextTokenException"}
       ],
-      "documentation":"<p>Lists the rules for the condition. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
+      "documentation":"<p>Lists the rules for the condition. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>.For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -390,7 +390,7 @@
         {"shape":"NotLatestPipelineExecutionException"},
         {"shape":"ConcurrentPipelineExecutionsLimitExceededException"}
       ],
-      "documentation":"<p>Used to override a stage condition.</p>"
+      "documentation":"<p>Used to override a stage condition. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>.</p>"
     },
     "PollForJobs":{
       "name":"PollForJobs",
@@ -950,6 +950,10 @@
         "timeoutInMinutes":{
           "shape":"ActionTimeout",
           "documentation":"<p>A timeout duration in minutes that can be applied against the ActionType’s default timeout value specified in <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/limits.html\">Quotas for CodePipeline </a>. This attribute is available only to the manual approval ActionType.</p>"
+        },
+        "environmentVariables":{
+          "shape":"EnvironmentVariableList",
+          "documentation":"<p>The environment variables for the action.</p>"
         }
       },
       "documentation":"<p>Represents information about an action declaration.</p>"
@@ -1169,8 +1173,7 @@
     },
     "ActionNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified action cannot be found.</p>",
       "exception":true
     },
@@ -1285,8 +1288,7 @@
     },
     "ActionTypeAlreadyExistsException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified action type already exists with a different definition.</p>",
       "exception":true
     },
@@ -1445,8 +1447,7 @@
     },
     "ActionTypeNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified action type cannot be found.</p>",
       "exception":true
     },
@@ -1562,8 +1563,7 @@
     },
     "ApprovalAlreadyCompletedException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The approval action has already been approved or rejected.</p>",
       "exception":true
     },
@@ -1763,7 +1763,7 @@
           "documentation":"<p>The conditions that are configured as entry conditions.</p>"
         }
       },
-      "documentation":"<p>The conditions for making checks for entry to a stage. </p>"
+      "documentation":"<p>The conditions for making checks for entry to a stage. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>. </p>"
     },
     "BlockerDeclaration":{
       "type":"structure",
@@ -1848,7 +1848,7 @@
           "documentation":"<p>The rules that make up the condition.</p>"
         }
       },
-      "documentation":"<p>The condition for the stage. A condition is made up of the rules and the result for the condition. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
+      "documentation":"<p>The condition for the stage. A condition is made up of the rules and the result for the condition. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>.. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
     },
     "ConditionExecution":{
       "type":"structure",
@@ -2093,8 +2093,7 @@
     },
     "DeleteWebhookOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeregisterWebhookWithThirdPartyInput":{
       "type":"structure",
@@ -2107,8 +2106,7 @@
     },
     "DeregisterWebhookWithThirdPartyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Description":{
       "type":"string",
@@ -2207,6 +2205,53 @@
     "EncryptionKeyType":{
       "type":"string",
       "enum":["KMS"]
+    },
+    "EnvironmentVariable":{
+      "type":"structure",
+      "required":[
+        "name",
+        "value"
+      ],
+      "members":{
+        "name":{
+          "shape":"EnvironmentVariableName",
+          "documentation":"<p>The environment variable name in the key-value pair.</p>"
+        },
+        "value":{
+          "shape":"EnvironmentVariableValue",
+          "documentation":"<p>The environment variable value in the key-value pair.</p>"
+        },
+        "type":{
+          "shape":"EnvironmentVariableType",
+          "documentation":"<p>Specifies the type of use for the environment variable value. The value can be either <code>PLAINTEXT</code> or <code>SECRETS_MANAGER</code>. If the value is <code>SECRETS_MANAGER</code>, provide the Secrets reference in the EnvironmentVariable value.</p>"
+        }
+      },
+      "documentation":"<p>The environment variables for the action.</p>"
+    },
+    "EnvironmentVariableList":{
+      "type":"list",
+      "member":{"shape":"EnvironmentVariable"},
+      "max":10,
+      "min":1
+    },
+    "EnvironmentVariableName":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[A-Za-z0-9_]+"
+    },
+    "EnvironmentVariableType":{
+      "type":"string",
+      "enum":[
+        "PLAINTEXT",
+        "SECRETS_MANAGER"
+      ]
+    },
+    "EnvironmentVariableValue":{
+      "type":"string",
+      "max":2000,
+      "min":1,
+      "pattern":".*"
     },
     "ErrorDetails":{
       "type":"structure",
@@ -2315,10 +2360,10 @@
         },
         "conditions":{
           "shape":"ConditionList",
-          "documentation":"<p>The conditions that are configured as failure conditions.</p>"
+          "documentation":"<p>The conditions that are configured as failure conditions. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>.</p>"
         }
       },
-      "documentation":"<p>The configuration that specifies the result, such as rollback, to occur upon stage failure. </p>"
+      "documentation":"<p>The configuration that specifies the result, such as rollback, to occur upon stage failure. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>. </p>"
     },
     "FailureDetails":{
       "type":"structure",
@@ -2633,7 +2678,7 @@
       "members":{
         "events":{
           "shape":"GitPullRequestEventTypeList",
-          "documentation":"<p>The field that specifies which pull request events to filter on (opened, updated, closed) for the trigger configuration.</p>"
+          "documentation":"<p>The field that specifies which pull request events to filter on (OPEN, UPDATED, CLOSED) for the trigger configuration.</p>"
         },
         "branches":{
           "shape":"GitBranchFilterCriteria",
@@ -2644,7 +2689,7 @@
           "documentation":"<p>The field that specifies to filter on file paths for the pull request trigger configuration.</p>"
         }
       },
-      "documentation":"<p>The event criteria for the pull request trigger configuration, such as the lists of branches or file paths to include and exclude.</p>"
+      "documentation":"<p>The event criteria for the pull request trigger configuration, such as the lists of branches or file paths to include and exclude.</p> <p>The following are valid values for the events for this filter:</p> <ul> <li> <p>CLOSED</p> </li> <li> <p>OPEN</p> </li> <li> <p>UPDATED</p> </li> </ul>"
     },
     "GitPullRequestFilterList":{
       "type":"list",
@@ -2718,15 +2763,13 @@
     },
     "InvalidActionDeclarationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The action declaration was specified in an invalid format.</p>",
       "exception":true
     },
     "InvalidApprovalTokenException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The approval request already received a response or has expired.</p>",
       "exception":true
     },
@@ -2740,57 +2783,49 @@
     },
     "InvalidBlockerDeclarationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Reserved for future use.</p>",
       "exception":true
     },
     "InvalidClientTokenException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The client token was specified in an invalid format</p>",
       "exception":true
     },
     "InvalidJobException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The job was specified in an invalid format or cannot be found.</p>",
       "exception":true
     },
     "InvalidJobStateException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The job state was specified in an invalid format.</p>",
       "exception":true
     },
     "InvalidNextTokenException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The next token was specified in an invalid format. Make sure that the next token you provide is the token returned by a previous call.</p>",
       "exception":true
     },
     "InvalidNonceException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The nonce was specified in an invalid format.</p>",
       "exception":true
     },
     "InvalidStageDeclarationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The stage declaration was specified in an invalid format.</p>",
       "exception":true
     },
     "InvalidStructureException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The structure was specified in an invalid format.</p>",
       "exception":true
     },
@@ -2804,15 +2839,13 @@
     },
     "InvalidWebhookAuthenticationParametersException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified authentication type is in an invalid format.</p>",
       "exception":true
     },
     "InvalidWebhookFilterPatternException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified event filter rule is in an invalid format.</p>",
       "exception":true
     },
@@ -2904,8 +2937,7 @@
     },
     "JobNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The job was specified in an invalid format or cannot be found.</p>",
       "exception":true
     },
@@ -2985,8 +3017,7 @@
     },
     "LimitExceededException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The number of pipelines associated with the Amazon Web Services account has exceeded the limit allowed for the account.</p>",
       "exception":true
     },
@@ -3337,8 +3368,7 @@
     },
     "NotLatestPipelineExecutionException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The stage has failed in a later run of the pipeline and the <code>pipelineExecutionId</code> associated with the request is out of date.</p>",
       "exception":true
     },
@@ -3566,8 +3596,7 @@
     },
     "PipelineExecutionNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The pipeline execution was specified in an invalid format or cannot be found, or an execution ID does not belong to the specified pipeline. </p>",
       "exception":true
     },
@@ -3675,7 +3704,7 @@
         },
         "pollingDisabledAt":{
           "shape":"Timestamp",
-          "documentation":"<p>The date and time that polling for source changes (periodic checks) was stopped for the pipeline, in timestamp format. You can migrate (update) a polling pipeline to use event-based change detection. For example, for a pipeline with a CodeCommit source, we recommend you migrate (update) your pipeline to use CloudWatch Events. To learn more, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/update-change-detection.html\">Migrate polling pipelines to use event-based change detection</a> in the CodePipeline User Guide.</p>"
+          "documentation":"<p>The date and time that polling for source changes (periodic checks) was stopped for the pipeline, in timestamp format. </p> <important> <p>Pipelines that are inactive for longer than 30 days will have polling disabled for the pipeline. For more information, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/reference-pipeline-structure.html#metadata.pollingDisabledAt\">pollingDisabledAt</a> in the pipeline structure reference. For the steps to migrate your pipeline from polling to event-based change detection, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/update-change-detection.html\">Migrate polling pipelines to use event-based change detection</a>.</p> </important> <p>You can migrate (update) a polling pipeline to use event-based change detection. For example, for a pipeline with a CodeCommit source, we recommend you migrate (update) your pipeline to use CloudWatch Events. To learn more, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/update-change-detection.html\">Migrate polling pipelines to use event-based change detection</a> in the <i>CodePipeline User Guide</i>.</p>"
         }
       },
       "documentation":"<p>Information about a pipeline.</p>"
@@ -3688,15 +3717,13 @@
     },
     "PipelineNameInUseException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified pipeline name is already in use.</p>",
       "exception":true
     },
     "PipelineNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The pipeline was specified in an invalid format or cannot be found.</p>",
       "exception":true
     },
@@ -3850,8 +3877,7 @@
     },
     "PipelineVersionNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The pipeline version was specified in an invalid format or cannot be found.</p>",
       "exception":true
     },
@@ -4001,7 +4027,7 @@
         },
         "token":{
           "shape":"ApprovalToken",
-          "documentation":"<p>The system-generated token used to identify a unique approval request. The token for each open approval request can be obtained using the <a>GetPipelineState</a> action. It is used to validate that the approval request corresponding to this token is still valid.</p> <important> <p>For a pipeline where the execution mode is set to PARALLEL, the token required to approve/reject approval request as detailed above is not available. Instead, use the <code>externalExecutionId</code> from the <code>GetPipelineState</code> action as the token in the approval request.</p> </important>"
+          "documentation":"<p>The system-generated token used to identify a unique approval request. The token for each open approval request can be obtained using the <a>GetPipelineState</a> action. It is used to validate that the approval request corresponding to this token is still valid.</p> <important> <p>For a pipeline where the execution mode is set to PARALLEL, the token required to approve/reject an approval request as detailed above is not available. Instead, use the <code>externalExecutionId</code> in the response output from the <a>ListActionExecutions</a> action as the token in the approval request.</p> </important>"
         }
       },
       "documentation":"<p>Represents the input of a <code>PutApprovalResult</code> action.</p>"
@@ -4155,8 +4181,7 @@
     },
     "RegisterWebhookWithThirdPartyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RequestFailedException":{
       "type":"structure",
@@ -4200,8 +4225,7 @@
     },
     "ResourceNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The resource was specified in an invalid format.</p>",
       "exception":true
     },
@@ -4457,7 +4481,7 @@
           "documentation":"<p>The action timeout for the rule.</p>"
         }
       },
-      "documentation":"<p>Represents information about the rule to be created for an associated condition. An example would be creating a new rule for an entry condition, such as a rule that checks for a test result before allowing the run to enter the deployment stage. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
+      "documentation":"<p>Represents information about the rule to be created for an associated condition. An example would be creating a new rule for an entry condition, such as a rule that checks for a test result before allowing the run to enter the deployment stage. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
     },
     "RuleDeclarationList":{
       "type":"list",
@@ -4579,7 +4603,7 @@
       "members":{
         "ruleTypeId":{
           "shape":"RuleTypeId",
-          "documentation":"<p>The ID for the rule type, which is made up of the combined values for category, owner, provider, and version.</p>"
+          "documentation":"<p>The ID for the rule type, which is made up of the combined values for category, owner, provider, and version. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
         },
         "configuration":{
           "shape":"RuleConfigurationMap",
@@ -4763,14 +4787,14 @@
         },
         "provider":{
           "shape":"RuleProvider",
-          "documentation":"<p>The rule provider, such as the <code>DeploymentWindow</code> rule.</p>"
+          "documentation":"<p>The rule provider, such as the <code>DeploymentWindow</code> rule. For a list of rule provider names, see the rules listed in the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
         },
         "version":{
           "shape":"Version",
           "documentation":"<p>A string that describes the rule version.</p>"
         }
       },
-      "documentation":"<p>The ID for the rule type, which is made up of the combined values for category, owner, provider, and version.</p>"
+      "documentation":"<p>The ID for the rule type, which is made up of the combined values for category, owner, provider, and version. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a>. For more information about rules, see the <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/rule-reference.html\">CodePipeline rule reference</a>.</p>"
     },
     "RuleTypeList":{
       "type":"list",
@@ -5046,15 +5070,13 @@
     },
     "StageNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The stage was specified in an invalid format or cannot be found.</p>",
       "exception":true
     },
     "StageNotRetryableException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Unable to retry. The pipeline structure or stage state might have changed while actions awaited retry, or the stage contains no failed actions.</p>",
       "exception":true
     },
@@ -5228,7 +5250,7 @@
           "documentation":"<p>The conditions that are success conditions.</p>"
         }
       },
-      "documentation":"<p>The conditions for making checks that, if met, succeed a stage.</p>"
+      "documentation":"<p>The conditions for making checks that, if met, succeed a stage. For more information about conditions, see <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/stage-conditions.html\">Stage conditions</a> and <a href=\"https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts-how-it-works-conditions.html\">How do stage conditions work?</a>.</p>"
     },
     "Tag":{
       "type":"structure",
@@ -5280,8 +5302,7 @@
     },
     "TagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -5445,8 +5466,7 @@
     },
     "UntagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateActionTypeInput":{
       "type":"structure",
@@ -5491,8 +5511,7 @@
     },
     "ValidationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The validation was specified in an invalid format.</p>",
       "exception":true
     },
@@ -5608,8 +5627,7 @@
     },
     "WebhookNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified webhook was entered in an invalid format or cannot be found.</p>",
       "exception":true
     },

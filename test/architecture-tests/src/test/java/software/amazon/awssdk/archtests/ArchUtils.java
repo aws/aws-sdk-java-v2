@@ -26,6 +26,10 @@ public final class ArchUtils {
         return Pattern.compile(".*/" + clazz.getCanonicalName().replace('.', '/') + ".class");
     }
 
+    public static Pattern classNameToPattern(String className) {
+        return Pattern.compile(".*/" + className.replace('.', '/') + ".class");
+    }
+
     public static boolean resideInSameRootPackage(String pkg1, String pkg2) {
         if (pkg1.startsWith(pkg2) || pkg2.startsWith(pkg1)) {
             return true;

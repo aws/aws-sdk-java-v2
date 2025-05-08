@@ -14,7 +14,9 @@
  */
 
 package foo.bar;
-
+import software.amazon.awssdk.services.s3.model.Event;
+import software.amazon.awssdk.services.s3.model.JSONType;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
 import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
@@ -27,16 +29,19 @@ public class Enums {
     public static void main(String... args) {
         QueueAttributeName qan = QueueAttributeName.DELAY_SECONDS;
         QueueAttributeName qan2 = QueueAttributeName.ALL;
-        System.out.println(qan);
-        System.out.println(qan2);
 
         ReceiveMessageRequest v1Request = ReceiveMessageRequest.builder()
             .build();
         List<String> attributes = v1Request.attributeNamesAsStrings();
-        System.out.println(attributes);
 
         SendMessageRequest v2Request = SendMessageRequest.builder().build();
         Map<String, MessageAttributeValue> messageAttributes = v2Request.messageAttributes();
-        System.out.println(messageAttributes);
+    }
+
+    public void s3Enums() {
+        StorageClass sc1 = StorageClass.STANDARD_IA;
+        StorageClass sc2 = StorageClass.ONEZONE_IA;
+        Event se = Event.S3_OBJECT_CREATED;
+        JSONType jsonType = JSONType.DOCUMENT;
     }
 }

@@ -76,6 +76,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -213,6 +214,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         }
 
         builder.addMethod(validateClientOptionsMethod());
+
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            builder.addMethod(sigv4aSigningRegionSetMethod());
+        }
 
         return builder.build();
     }
@@ -504,10 +509,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .build());");
 
         if (model.getMetadata().isJsonProtocol()) {
-            if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
-                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
-                                     SdkClientJsonProtocolAdvancedOption.class);
-            }
+            builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
+                                 SdkClientJsonProtocolAdvancedOption.class);
         }
 
         if (hasRequestAlgorithmMember(model) || hasResponseAlgorithms(model)) {
@@ -807,6 +810,18 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addParameter(authSchemeSpecUtils.providerInterfaceName(), "authSchemeProvider")
                          .addStatement("clientConfiguration.option($T.AUTH_SCHEME_PROVIDER, authSchemeProvider)",
                                        SdkClientOption.class)
+                         .addStatement("return thisBuilder()")
+                         .build();
+    }
+
+    private MethodSpec sigv4aSigningRegionSetMethod() {
+        return MethodSpec.methodBuilder("sigv4aSigningRegionSet")
+                         .addModifiers(Modifier.PUBLIC)
+                         .returns(TypeVariableName.get("B"))
+                         .addParameter(RegionSet.class, "sigv4aSigningRegionSet")
+                         .addStatement("clientConfiguration.option($T.AWS_SIGV4A_SIGNING_REGION_SET, "
+                                       + "sigv4aSigningRegionSet == null ? $T.emptySet() : sigv4aSigningRegionSet.asSet())",
+                                       AwsClientOption.class, Collections.class)
                          .addStatement("return thisBuilder()")
                          .build();
     }
