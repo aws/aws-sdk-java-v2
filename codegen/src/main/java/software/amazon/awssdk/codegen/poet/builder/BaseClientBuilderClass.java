@@ -348,7 +348,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                           envTokenMetricInterceptor())
             .addStatement("c.option($T.EXECUTION_INTERCEPTORS, $T.mergeLists(interceptors, envTokenMetricInterceptors))",
                           SdkClientOption.class, CollectionUtils.class)
-            .endControlFlow(");")
+            .endControlFlow(")")
             .endControlFlow();
     }
 

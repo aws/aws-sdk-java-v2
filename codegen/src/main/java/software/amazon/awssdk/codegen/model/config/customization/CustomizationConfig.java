@@ -351,7 +351,7 @@ public class CustomizationConfig {
     private boolean enableFastUnmarshaller;
 
     /**
-     * A boolean flag to indicate if  bearer token sourced from the environment support should be added to the
+     * A boolean flag to indicate if support for configuring a bearer token sourced from the environment should be added to the
      * generated service.
      */
     private boolean enableEnvironmentBearerToken = false;

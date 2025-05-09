@@ -56,11 +56,6 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedClientOption<Signer> TOKEN_SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
     /**
-     * Set when a token provider is configured explicitly in code by a customer.
-     */
-    public static final SdkAdvancedClientOption<Boolean> TOKEN_PROVIDER_CONFIGURED_EXPLICITLY =
-        new SdkAdvancedClientOption<>(Boolean.class);
-    /**
      * SDK uses endpoint trait and hostPrefix trait specified in service model to modify
      * the endpoint host that the API request is sent to.
      *
