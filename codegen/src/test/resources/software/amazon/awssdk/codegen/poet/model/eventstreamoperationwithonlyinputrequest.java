@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -92,6 +94,8 @@ public final class EventStreamOperationWithOnlyInputRequest extends JsonProtocol
         return Collections.emptyMap();
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsRequest.Builder, SdkPojo,
                                      CopyableBuilder<Builder, EventStreamOperationWithOnlyInputRequest> {
         @Override
