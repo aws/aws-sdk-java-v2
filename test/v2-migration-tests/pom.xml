@@ -163,6 +163,17 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Separate Codebuild for migration tests -->
+                    <skipTests>${v2.migration.tests.skip}</skipTests>
+                    <!-- Sets the VM argument line used when migration tests are run. -->
+                    <argLine>${argLine}</argLine>
+                    <trimStackTrace>false</trimStackTrace>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
