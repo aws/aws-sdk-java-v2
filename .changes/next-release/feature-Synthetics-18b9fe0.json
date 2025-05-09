@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Synthetics",
+    "contributor": "",
+    "description": "Add support to retry a canary automatically after schedule run failures. Users can enable this feature by configuring the RetryConfig field when calling the CreateCanary or UpdateCanary API. Also includes changes in GetCanary and GetCanaryRuns to support retrieving retry configurations."
+}
