@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Remove parameter EnableWorkDocs from WorkSpacesServiceModel due to end of support of Amazon WorkDocs service."
+}
