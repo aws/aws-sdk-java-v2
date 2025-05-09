@@ -208,7 +208,7 @@ public class CustomizationConfig {
      * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
      * for any other purpose.
      */
-    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
+    private Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
@@ -646,11 +646,12 @@ public class CustomizationConfig {
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 
-    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
+    public Map<String, Map<String, LegacyEventGenerationMode>> getUseLegacyEventGenerationScheme() {
         return useLegacyEventGenerationScheme;
     }
 
-    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
+    public void setUseLegacyEventGenerationScheme(
+        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 

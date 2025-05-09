@@ -41,6 +41,7 @@ import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNa
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.utils.Logger;
@@ -410,6 +411,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     public String getUnionEnumTypeName(MemberModel memberModel) {
         return screamCase(memberModel.getName());
     }
+
+    @Override
+    public String getUniqueEventStreamEventShapeName(Member eventMember, String eventStreamName) {
+        return eventMember.getShape() + eventStreamName;
+    }
+
 
     private String rewriteInvalidMemberName(String memberName, Shape parentShape) {
         if (isJavaKeyword(memberName) || isDisallowedNameForShape(memberName, parentShape)) {
