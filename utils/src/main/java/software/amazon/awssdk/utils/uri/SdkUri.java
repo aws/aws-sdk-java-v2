@@ -34,6 +34,7 @@ public final class SdkUri {
 
     private static final String HTTPS_PREFIX = "https://";
     private static final String HTTP_PREFIX = "http://";
+    private static final int MAX_INT_DIGITS_BASE_10 = 10;
 
     /*
      * The default LRUCache size is 100, but for a single service call we cache at least 3 different URIs so the cache size is
@@ -91,7 +92,7 @@ public final class SdkUri {
                       String userInfo, String host, int port,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(host)) {
-            log.trace(() -> "skipping cache for host" + host);
+            log.trace(() -> "skipping cache for host " + host);
             return new URI(scheme, userInfo, host, port, path, query, fragment);
         }
         try {
@@ -112,7 +113,7 @@ public final class SdkUri {
                       String authority,
                       String path, String query, String fragment) throws URISyntaxException {
         if (!isAccountIdUri(authority)) {
-            log.trace(() -> "skipping cache for authority" + authority);
+            log.trace(() -> "skipping cache for authority " + authority);
             return new URI(scheme, authority, path, query, fragment);
         }
         try {
@@ -139,16 +140,15 @@ public final class SdkUri {
      */
     private boolean isAccountIdUri(String s) {
         int firstCharAfterScheme = 0;
-        int maxIntSizeBase10 = 10;
         if (s.startsWith(HTTPS_PREFIX)) {
             firstCharAfterScheme = HTTPS_PREFIX.length();
         } else if (s.startsWith(HTTP_PREFIX)) {
             firstCharAfterScheme = HTTP_PREFIX.length();
         }
 
-        if (s.length() > firstCharAfterScheme + maxIntSizeBase10) {
+        if (s.length() > firstCharAfterScheme + MAX_INT_DIGITS_BASE_10) {
             return Character.isDigit(s.charAt(firstCharAfterScheme))
-                   && Character.isDigit(s.charAt(firstCharAfterScheme + maxIntSizeBase10));
+                   && Character.isDigit(s.charAt(firstCharAfterScheme + MAX_INT_DIGITS_BASE_10));
         }
         return false;
     }
