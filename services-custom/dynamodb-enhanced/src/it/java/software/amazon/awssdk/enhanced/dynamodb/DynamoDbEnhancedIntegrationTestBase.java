@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
@@ -73,6 +74,10 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
                          .addAttribute(String.class, a -> a.name("stringAttribute")
                                                            .getter(Record::getStringAttribute)
                                                            .setter(Record::setStringAttribute))
+                         .addAttribute(Integer.class, a -> a.name("version")
+                                                            .getter(Record::getVersion)
+                                                            .setter(Record::setVersion)
+                                                            .tags(versionAttribute()))
                          .build();
 
 

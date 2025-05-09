@@ -76,4 +76,12 @@ public final class DynamoDbExtensionContext {
     @ThreadSafe
     public interface AfterRead extends Context {
     }
+
+    /**
+     * The state of the execution when the {@link DynamoDbEnhancedClientExtension#beforeDelete} method is invoked.
+     */
+    @SdkPublicApi
+    @ThreadSafe
+    public interface BeforeDelete extends Context {
+    }
 }
