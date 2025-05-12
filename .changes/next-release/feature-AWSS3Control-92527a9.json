@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3 Control",
-    "contributor": "",
-    "description": "Updates to support S3 Express zonal endpoints for directory buckets in AWS CLI"
-}
