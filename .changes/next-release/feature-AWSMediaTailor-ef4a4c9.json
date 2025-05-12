@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "Documenting that EnabledLoggingStrategies is always present in responses of PlaybackConfiguration read operations."
+}
