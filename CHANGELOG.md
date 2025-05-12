@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.41__ __2025-05-12__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Add support to the AV1 rate control mode
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updating the endpoint list for the Identity and access management (IAM) service
+
+## __AWS MediaTailor__
+  - ### Features
+    - Documenting that EnabledLoggingStrategies is always present in responses of PlaybackConfiguration read operations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Updates to support S3 Express zonal endpoints for directory buckets in AWS CLI
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add `@Mutable` and `@NotThreadSafe` to model Builders
+
+## __AWS Supply Chain__
+  - ### Features
+    - Launch new AWS Supply Chain public APIs for DataIntegrationEvent, DataIntegrationFlowExecution and DatasetNamespace. Also add more capabilities to existing public APIs to support direct dataset event publish, data deduplication in DataIntegrationFlow, partition specification of custom datasets.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud service-managed fleets now support configuration scripts. Configuration scripts make it easy to install additional software, like plugins and packages, onto a worker.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 - Adding support for AvailabilityZoneId
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - No API changes from previous release. This release migrated the model to Smithy keeping all features unchanged.
+
 # __2.31.40__ __2025-05-09__
 ## __AWS SDK for Java v2__
   - ### Features
