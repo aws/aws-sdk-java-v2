@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.utils.ToString;
@@ -90,6 +92,8 @@ public final class StreamingOutputOperationResponse extends JsonProtocolTestsRes
         return Collections.emptyMap();
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends JsonProtocolTestsResponse.Builder, SdkPojo,
                                      CopyableBuilder<Builder, StreamingOutputOperationResponse> {
     }
