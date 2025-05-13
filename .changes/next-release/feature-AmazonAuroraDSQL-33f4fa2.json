@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Aurora DSQL",
+    "contributor": "",
+    "description": "CreateMultiRegionClusters and DeleteMultiRegionClusters APIs marked as deprecated. Introduced new multi-Region clusters creation experience through multiRegionProperties parameter in CreateCluster API."
+}
