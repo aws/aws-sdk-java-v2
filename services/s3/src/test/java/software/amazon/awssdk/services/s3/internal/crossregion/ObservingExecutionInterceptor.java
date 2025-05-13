@@ -84,7 +84,7 @@ public class ObservingExecutionInterceptor implements ExecutionInterceptor {
                 observationContext.setHttpMethod(httpRequest.method().name());
                 observationContext.setPath(httpRequest.encodedPath());
             }
-        }x
+        }
     }
 
     @Override
