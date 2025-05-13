@@ -94,6 +94,9 @@
         <module>test/crt-unavailable-tests</module>
         <module>test/architecture-tests</module>
         <module>test/s3-tests</module>
+        <module>observability</module>
+        <module>observability-spi</module>
+        <module>observability/micrometer</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>

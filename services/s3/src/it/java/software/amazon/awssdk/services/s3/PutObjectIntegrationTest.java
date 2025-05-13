@@ -22,6 +22,9 @@ import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEna
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import java.io.ByteArrayInputStream;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -54,6 +57,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.observability.micrometer.MicrometerPlugin;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -87,6 +91,22 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
             Arguments.of(s3AsyncClientBuilder().requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED).build()),
             Arguments.of(s3AsyncClientBuilder().build()),
             Arguments.of(crtClientBuilder().build()));
+    }
+
+    @Test
+    public void micrometer() {
+        ObservationRegistry observationRegistry = ObservationRegistry.create();
+        SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
+        observationRegistry.observationConfig().observationHandler(new DefaultMeterObservationHandler(meterRegistry));
+
+        S3Client s3Client = s3ClientBuilder().addPlugin(new MicrometerPlugin(observationRegistry)).build();
+
+
+        TestContentProvider provider = new TestContentProvider(CONTENT);
+        s3Client.putObject(r -> r.bucket(BUCKET).key(SYNC_KEY),
+                           RequestBody.fromContentProvider(provider, CONTENT.length, "binary/octet-stream"));
+
+        System.out.println(meterRegistry.getMetersAsString());
     }
 
     @Test
