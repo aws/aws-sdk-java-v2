@@ -224,5 +224,19 @@
             <artifactId>jimfs</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Core Micrometer -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>1.10.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-observation</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+
+
+
     </dependencies>
 </project>
