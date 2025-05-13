@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.apache5.internal.conn;
 
-import software.amazon.awssdk.http.apache5.internal.conn;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;

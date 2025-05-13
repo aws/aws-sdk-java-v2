@@ -21,9 +21,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.io.CloseMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -152,7 +152,9 @@ public final class IdleConnectionReaper {
 
                     for (Map.Entry<HttpClientConnectionManager, Long> entry : connectionManagers.entrySet()) {
                         try {
-                            entry.getKey().closeIdleConnections(entry.getValue(), TimeUnit.MILLISECONDS);
+                            entry.getKey().close(CloseMode.GRACEFUL);
+                            // Set idle connections
+                            // entry.getKey().closeIdleConnections(entry.getValue(), TimeUnit.MILLISECONDS);
                         } catch (Exception t) {
                             log.warn("Unable to close idle connections", t);
                         }

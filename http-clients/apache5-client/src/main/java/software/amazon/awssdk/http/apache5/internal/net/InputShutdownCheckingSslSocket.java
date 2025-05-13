@@ -21,13 +21,12 @@ import java.io.OutputStream;
 import javax.net.ssl.SSLSocket;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
-
-
 // TODO : This class will be removed in further PR , keeping it now so that we have a clear  baseleine to compare
 /**
  * Wrapper socket that ensures the read end of the socket is still open before performing a {@code write()}. In TLS 1.3, it is
- * permitted for the connection to be in a half-closed state, which is dangerous for the Apache5 client because it can get stuck in
- * a state where it continues to write to the socket and potentially end up a blocked state writing to the socket indefinitely.
+ * permitted for the connection to be in a half-closed state, which is dangerous for the Apache5 client because it can get stuck
+ * in a state where it continues to write to the socket and potentially end up a blocked state writing to the socket
+ * indefinitely.
  */
 @SdkInternalApi
 public final class InputShutdownCheckingSslSocket extends DelegateSslSocket {

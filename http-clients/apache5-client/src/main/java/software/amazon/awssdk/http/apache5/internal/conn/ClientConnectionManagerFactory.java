@@ -16,16 +16,19 @@
 package software.amazon.awssdk.http.apache5.internal.conn;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import org.apache.hc.client5.http.ConnectionRequest;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.core5.http.io.HttpClientConnection;
+import org.apache.hc.client5.http.io.LeaseRequest;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
 public final class ClientConnectionManagerFactory {
+
 
     private ClientConnectionManagerFactory() {
     }
@@ -44,7 +47,7 @@ public final class ClientConnectionManagerFactory {
     }
 
     /**
-     * Further wraps {@link ConnectionRequest} to capture performance metrics.
+     * Further wraps {@link LeaseRequest} to capture performance metrics.
      */
     private static class InstrumentedHttpClientConnectionManager extends DelegatingHttpClientConnectionManager {
 
@@ -53,10 +56,12 @@ public final class ClientConnectionManagerFactory {
         }
 
         @Override
-        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
-            ConnectionRequest connectionRequest = super.requestConnection(route, state);
+        public LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state) {
+            LeaseRequest connectionRequest =  super.lease(id, route, requestTimeout, state);
             return ClientConnectionRequestFactory.wrap(connectionRequest);
         }
+
+
     }
 
     /**
@@ -71,44 +76,37 @@ public final class ClientConnectionManagerFactory {
         }
 
         @Override
-        public ConnectionRequest requestConnection(HttpRoute route, Object state) {
-            return delegate.requestConnection(route, state);
+        public LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state) {
+            return delegate.lease(id, route, requestTimeout, state);
         }
 
         @Override
-        public void releaseConnection(HttpClientConnection conn, Object newState, long validDuration, TimeUnit timeUnit) {
-            delegate.releaseConnection(conn, newState, validDuration, timeUnit);
+        public void release(ConnectionEndpoint endpoint, Object newState, TimeValue validDuration) {
+            delegate.release(endpoint, newState, validDuration);
+
         }
 
         @Override
-        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context)
-                throws IOException {
-            delegate.connect(conn, route, connectTimeout, context);
+        public void connect(ConnectionEndpoint endpoint, TimeValue connectTimeout, HttpContext context) throws IOException {
+            delegate.connect(endpoint, connectTimeout, context);
+
         }
 
         @Override
-        public void upgrade(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
-            delegate.upgrade(conn, route, context);
+        public void upgrade(ConnectionEndpoint endpoint, HttpContext context) throws IOException {
+            delegate.upgrade(endpoint, context);
         }
 
         @Override
-        public void routeComplete(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
-            delegate.routeComplete(conn, route, context);
+        public void close(CloseMode closeMode) {
+            delegate.close(closeMode);
+
         }
 
         @Override
-        public void closeIdleConnections(long idletime, TimeUnit timeUnit) {
-            delegate.closeIdleConnections(idletime, timeUnit);
-        }
+        public void close() throws IOException {
+            delegate.close();
 
-        @Override
-        public void closeExpiredConnections() {
-            delegate.closeExpiredConnections();
-        }
-
-        @Override
-        public void shutdown() {
-            delegate.shutdown();
         }
     }
 }

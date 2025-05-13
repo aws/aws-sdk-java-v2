@@ -30,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.HostnameVerifier;
@@ -37,31 +38,32 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
+import org.apache.hc.client5.http.DnsResolver;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.HeaderIterator;
-import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
-import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.client5.http.protocol.HttpClientContext;
-import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.config.Registry;
-import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
-import org.apache.hc.client5.http.DnsResolver;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
-import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
-import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
-import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
+import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
+import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
+import org.apache.hc.core5.ssl.SSLInitializationException;
+import org.apache.hc.core5.util.TimeValue;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -107,7 +109,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
     public static final String CLIENT_NAME = "Apache5";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
-
+    private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
     private final Apache5HttpRequestFactory apacheHttpRequestFactory = new Apache5HttpRequestFactory();
     private final ConnectionManagerAwareHttpClient httpClient;
     private final Apache5HttpRequestConfig requestConfig;
@@ -146,24 +148,22 @@ public final class Apache5HttpClient implements SdkHttpClient {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
         HttpClientBuilder builder = HttpClients.custom();
+
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
         HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
-        Registry<AuthSchemeProvider> authSchemeProviderRegistry = configuration.authSchemeProviderRegistry;
-        if (authSchemeProviderRegistry != null) {
-            builder.setDefaultAuthSchemeRegistry(authSchemeProviderRegistry);
+        Registry<AuthSchemeFactory> authSchemeRegistry = configuration.authSchemeRegistry ;
+        if (authSchemeRegistry != null) {
+            builder.setDefaultAuthSchemeRegistry(authSchemeRegistry);
         }
-
 
         builder.setRequestExecutor(new HttpRequestExecutor())
                // SDK handles decompression
                .disableContentCompression()
                .setKeepAliveStrategy(buildKeepAliveStrategy(standardOptions))
-               .disableRedirectHandling()
-               .disableAutomaticRetries()
-               .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache5 waste time
+               .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm));
 
         addProxyConfig(builder, configuration);
@@ -250,19 +250,27 @@ public final class Apache5HttpClient implements SdkHttpClient {
     public void close() {
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
         IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
-        cm.shutdown();
+        // TODO : need to add test cases for this
+        cm.close(CloseMode.IMMEDIATE);
     }
 
     private HttpExecuteResponse execute(HttpUriRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
         HttpClientContext localRequestContext = Apache5Utils.newClientContext(requestConfig.proxyConfiguration());
         THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
         try {
-            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-            return createResponse(httpResponse, apacheRequest);
+            return httpClient.execute(apacheRequest, localRequestContext, response -> {
+
+                // TODO : This is required since Apache5 closes streams immediately, check memory impacts because of this.
+                if (response.getEntity() != null) {
+                    response.setEntity(new BufferedHttpEntity(response.getEntity()));
+                }
+                return createResponse(response, apacheRequest);
+            });
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
     }
+
 
     private HttpUriRequestBase toApacheRequest(HttpExecuteRequest request) {
         return apacheHttpRequestFactory.create(request, requestConfig);
@@ -276,17 +284,19 @@ public final class Apache5HttpClient implements SdkHttpClient {
      * @throws IOException If there were any problems getting any response information from the
      *                     HttpClient method object.
      */
-    private HttpExecuteResponse createResponse(HttpResponse apacheHttpResponse,
+    private HttpExecuteResponse createResponse(ClassicHttpResponse apacheHttpResponse,
                                                HttpUriRequestBase apacheRequest) throws IOException {
         SdkHttpResponse.Builder responseBuilder =
             SdkHttpResponse.builder()
                            .statusCode(apacheHttpResponse.getCode())
                            .statusText(apacheHttpResponse.getReasonPhrase());
 
-        HeaderIterator headerIterator = apacheHttpResponse.headerIterator();
+
+        Iterator<Header> headerIterator = apacheHttpResponse.headerIterator();
         while (headerIterator.hasNext()) {
-            Header header = headerIterator.nextHeader();
+            Header header = headerIterator.next();
             responseBuilder.appendHeader(header.getName(), header.getValue());
+
         }
 
         AbortableInputStream responseBody = apacheHttpResponse.getEntity() != null ?
@@ -296,8 +306,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
     }
 
-    private AbortableInputStream toAbortableInputStream(HttpResponse apacheHttpResponse, HttpUriRequestBase apacheRequest)
-        throws IOException {
+    private AbortableInputStream toAbortableInputStream(ClassicHttpResponse apacheHttpResponse,
+                                                        HttpUriRequestBase apacheRequest) throws IOException {
         return AbortableInputStream.create(apacheHttpResponse.getEntity().getContent(), apacheRequest::abort);
     }
 
@@ -416,7 +426,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
          * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
          */
-        Builder socketFactory(ConnectionSocketFactory socketFactory);
+        Builder socketFactory(SSLConnectionSocketFactory socketFactory);
 
         /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
@@ -462,19 +472,19 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * Configure the authentication scheme registry that can be used to obtain the corresponding authentication scheme
          * implementation for a given type of authorization challenge.
          */
-        Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry);
+        Builder authSchemeRegistry(Registry<AuthSchemeFactory> authSchemeRegistry) ;
     }
 
     private static final class DefaultBuilder implements Builder {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
-        private Registry<AuthSchemeProvider> authSchemeProviderRegistry;
+        private Registry<AuthSchemeFactory> authSchemeRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
         private InetAddress localAddress;
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
-        private ConnectionSocketFactory socketFactory;
+        private SSLConnectionSocketFactory socketFactory;
 
         private DefaultBuilder() {
         }
@@ -596,12 +606,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder socketFactory(ConnectionSocketFactory socketFactory) {
+        public Builder socketFactory(SSLConnectionSocketFactory socketFactory) {
             this.socketFactory = socketFactory;
             return this;
         }
 
-        public void setSocketFactory(ConnectionSocketFactory socketFactory) {
+        public void setSocketFactory(SSLConnectionSocketFactory socketFactory) {
             socketFactory(socketFactory);
         }
 
@@ -655,15 +665,17 @@ public final class Apache5HttpClient implements SdkHttpClient {
             tlsTrustManagersProvider(tlsTrustManagersProvider);
         }
 
+
         @Override
-        public Builder authSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
-            this.authSchemeProviderRegistry = authSchemeProviderRegistry;
+        public Builder authSchemeRegistry(Registry<AuthSchemeFactory> authSchemeRegistry) {
+            this.authSchemeRegistry = authSchemeRegistry;
             return this;
         }
 
-        public void setAuthSchemeProviderRegistry(Registry<AuthSchemeProvider> authSchemeProviderRegistry) {
-            authSchemeProviderRegistry(authSchemeProviderRegistry);
+        public void setAuthSchemeProviderRegistry(Registry<AuthSchemeFactory> authSchemeRegistry) {
+            authSchemeRegistry(authSchemeRegistry);
         }
+
 
         @Override
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
@@ -677,16 +689,20 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         public HttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
                                                   AttributeMap standardOptions) {
-            ConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
+            // TODO : Deprecated method needs to be removed with new replacements
+            SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
 
-            PoolingHttpClientConnectionManager cm = new
-                PoolingHttpClientConnectionManager(
-                createSocketFactoryRegistry(sslsf),
-                null,
-                DefaultSchemePortResolver.INSTANCE,
-                configuration.dnsResolver,
-                standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
-                TimeUnit.MILLISECONDS);
+            PoolingHttpClientConnectionManager cm =
+                PoolingHttpClientConnectionManagerBuilder.create()
+                                                         .setSSLSocketFactory(sslsf)
+                                                         .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
+                                                         .setDnsResolver(configuration.dnsResolver)
+                                                         .setConnectionTimeToLive(
+                                                             TimeValue.of(standardOptions.get(
+                                                                 SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
+                                                                          TimeUnit.MILLISECONDS))
+                                                         .build();
+
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             cm.setMaxTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
@@ -695,17 +711,18 @@ public final class Apache5HttpClient implements SdkHttpClient {
             return cm;
         }
 
-        private ConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,
+        private SSLConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,
                                                                   AttributeMap standardOptions) {
             return Optional.ofNullable(configuration.socketFactory)
                            .orElseGet(() -> new SdkTlsSocketFactory(getSslContext(standardOptions),
                                                                     getHostNameVerifier(standardOptions)));
         }
 
+
         private HostnameVerifier getHostNameVerifier(AttributeMap standardOptions) {
             return standardOptions.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES)
                    ? NoopHostnameVerifier.INSTANCE
-                   : SSLConnectionSocketFactory.getDefaultHostnameVerifier();
+                   : DEFAULT_HOSTNAME_VERIFIER;
         }
 
         private SSLContext getSslContext(AttributeMap standardOptions) {
@@ -770,11 +787,5 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                .build();
         }
 
-        private Registry<ConnectionSocketFactory> createSocketFactoryRegistry(ConnectionSocketFactory sslSocketFactory) {
-            return RegistryBuilder.<ConnectionSocketFactory>create()
-                                  .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                                  .register("https", sslSocketFactory)
-                                  .build();
-        }
     }
 }

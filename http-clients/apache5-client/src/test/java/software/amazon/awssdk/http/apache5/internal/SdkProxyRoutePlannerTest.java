@@ -13,7 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5.internal;import software.amazon.awssdk.http.apache5.internal;
+package software.amazon.awssdk.http.apache5.internal;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
