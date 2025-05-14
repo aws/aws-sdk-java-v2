@@ -13,18 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics.internal;
+package software.amazon.awssdk.observability.tracing;
 
-import software.amazon.awssdk.observability.metrics.SdkInstrument;
-
-public class SdkHistogram implements SdkInstrument {
-
-    /*
-    // Record a value
-    void record(
-        value: Double,
-        attributes: Attributes? = null,
-        context: Context? = null
-    );
-     */
+public enum TraceSpanStatus {
+    UNSET,
+    OK,
+    ERROR;
 }

@@ -13,9 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics.internal;
+package software.amazon.awssdk.observability.metrics;
 
-import software.amazon.awssdk.observability.metrics.SdkInstrument;
+public interface SdkUpDownCounter {
 
-public class SdkGauge implements SdkInstrument {
+    void add(long value);
+
+    long get();
 }

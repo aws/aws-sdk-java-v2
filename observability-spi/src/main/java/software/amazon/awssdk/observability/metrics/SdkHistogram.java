@@ -15,11 +15,7 @@
 
 package software.amazon.awssdk.observability.metrics;
 
-import software.amazon.awssdk.observability.attributes.Attributes;
+public interface SdkHistogram {
 
-public interface SdkMeterProvider {
-
-    SdkMeter meter(String scope);
-
-    SdkMeter meter(String scope, Attributes attributes);
+    void record(double value);
 }

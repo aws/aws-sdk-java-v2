@@ -13,18 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics.internal;
+package software.amazon.awssdk.observability.tracing;
 
-import software.amazon.awssdk.observability.metrics.SdkInstrument;
+import software.amazon.awssdk.observability.attributes.Attributes;
 
-public class SdkMonotonicCounter implements SdkInstrument {
+public interface SdkTracerProvider {
 
-    /*
-    // Increment a counter by a fixed amount
-    void add(
-        value: Long,
-        attributes: Attributes? = null,
-        context: Context? = null
-    );
-     */
+    default SdkTracer tracer(String scope) {
+        return tracer(scope, null);
+    }
+
+    SdkTracer tracer(String scope, Attributes attributes);
 }

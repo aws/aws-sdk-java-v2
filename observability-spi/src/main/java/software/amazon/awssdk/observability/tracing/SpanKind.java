@@ -13,13 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.tracing;
 
-import software.amazon.awssdk.observability.attributes.Attributes;
-
-public interface SdkMeterProvider {
-
-    SdkMeter meter(String scope);
-
-    SdkMeter meter(String scope, Attributes attributes);
+public enum SpanKind {
+    INTERNAL,
+    CLIENT,
+    SERVER,
+    PRODUCER,
+    CONSUMER;
 }

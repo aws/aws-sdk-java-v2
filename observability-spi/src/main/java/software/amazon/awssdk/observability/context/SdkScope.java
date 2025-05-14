@@ -13,13 +13,8 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.context;
 
-import software.amazon.awssdk.observability.attributes.Attributes;
+public interface SdkScope extends AutoCloseable {
 
-public interface SdkMeterProvider {
-
-    SdkMeter meter(String scope);
-
-    SdkMeter meter(String scope, Attributes attributes);
 }

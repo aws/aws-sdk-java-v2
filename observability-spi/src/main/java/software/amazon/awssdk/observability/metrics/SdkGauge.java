@@ -13,18 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics.internal;
+package software.amazon.awssdk.observability.metrics;
 
-import software.amazon.awssdk.observability.metrics.SdkInstrument;
+public interface SdkGauge {
 
-public class SdkUpDownCounter implements SdkInstrument {
+    void set(double value);
 
-    /*
-    // Increment or decrement a counter by a fixed amount
-    void add(
-        value: Long,
-        attributes: Attributes? = null,
-        context: Context? = null
-    );
-     */
+    double get();
 }

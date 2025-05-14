@@ -57,7 +57,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.observability.micrometer.MicrometerPlugin;
+import software.amazon.awssdk.observability.micrometer.MicrometerObservabilityPlugin;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -99,7 +99,10 @@ public class PutObjectIntegrationTest extends S3IntegrationTestBase {
         SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
         observationRegistry.observationConfig().observationHandler(new DefaultMeterObservationHandler(meterRegistry));
 
-        S3Client s3Client = s3ClientBuilder().addPlugin(new MicrometerPlugin(observationRegistry)).build();
+        S3Client s3Client =
+            s3ClientBuilder()
+            .addPlugin(MicrometerObservabilityPlugin.builder().observationRegistry(observationRegistry).build())
+            .build();
 
 
         TestContentProvider provider = new TestContentProvider(CONTENT);

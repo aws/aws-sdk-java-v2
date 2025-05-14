@@ -13,13 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.tracing;
 
-import software.amazon.awssdk.observability.attributes.Attributes;
+public interface SdkSpanContext {
 
-public interface SdkMeterProvider {
+    String traceId();
 
-    SdkMeter meter(String scope);
+    String spanId();
 
-    SdkMeter meter(String scope, Attributes attributes);
+    boolean isRemote();
+
+    boolean isValid();
 }

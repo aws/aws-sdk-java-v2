@@ -15,68 +15,23 @@
 
 package software.amazon.awssdk.observability.metrics;
 
+import software.amazon.awssdk.observability.attributes.Attributes;
+
 public interface SdkMeter {
 
-    /*
-    AsyncMeasurementHandle createGauge(
-        // The instrument name
-        name: String,
-        // Callback invoked when gauge value is read
-        callback: (DoubleAsyncMeasurement) -> void,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
+    SdkMonotonicCounter counter(String name, String units, String description);
 
-    UpDownCounter createUpDownCounter(
-        // The instrument name
-        name: String,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
+    SdkMonotonicCounter counter(String name, String units, String description, Attributes attributes);
 
+    SdkHistogram histogram(String name, String units, String description);
 
-    AsyncMeasurementHandle createAsyncUpDownCounter(
-        // The instrument name
-        name: String,
-        // Callback invoked when gauge value is read
-        callback: (LongAsyncMeasurement) -> void,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
+    SdkHistogram histogram(String name, String units, String description, Attributes attributes);
 
-    MonotonicCounter createCounter(
-        // The instrument name
-        name: String,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
+    SdkUpDownCounter upDownCounter(String name, String units, String description);
 
-    AsyncMeasurementHandle createAsyncMonotonicCounter(
-        // The instrument name
-        name: String,
-        // Callback invoked when gauge value is read
-        callback: (LongAsyncMeasurement) -> void,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
+    SdkUpDownCounter upDownCounter(String name, String units, String description, Attributes attributes);
 
-    Histogram createHistogram(
-        // The instrument name
-        name: String,
-        // (Optional) The unit of measure
-        units: String? = null,
-        // (Optional) A description of the metric
-        description: String? = null
-    );
-     */
+    SdkGauge gauge(String name, String units, String description);
+
+    SdkGauge gauge(String name, String units, String description, Attributes attributes);
 }

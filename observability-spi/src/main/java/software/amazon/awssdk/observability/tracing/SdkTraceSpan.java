@@ -13,7 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.tracing;
 
-public interface SdkInstrument {
+import software.amazon.awssdk.observability.context.SdkScope;
+
+public interface SdkTraceSpan extends SdkScope {
+
+    String name();
+
+    void emitEvent(String name);
 }

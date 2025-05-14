@@ -13,13 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability;
 
-import software.amazon.awssdk.observability.attributes.Attributes;
+import software.amazon.awssdk.observability.context.SdkContextManager;
+import software.amazon.awssdk.observability.metrics.SdkMeterProvider;
+import software.amazon.awssdk.observability.tracing.SdkTracerProvider;
 
-public interface SdkMeterProvider {
+public interface ObservabilityProvider {
 
-    SdkMeter meter(String scope);
+    SdkTracerProvider tracerProvider();
 
-    SdkMeter meter(String scope, Attributes attributes);
+    SdkMeterProvider meterProvider();
+
+    SdkContextManager contextManager();
 }
