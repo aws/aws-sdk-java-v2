@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.43__ __2025-05-14__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update enables cropping for video overlays and adds a new STL to Teletext upconversion toggle to preserve styling.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds a new API "ListLogGroups" and an improvement in API "DescribeLogGroups"
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add exceptions to WebAuthn operations.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release adds catalogARN support for s3 tables multi-catalog catalogARNs.
+
 # __2.31.42__ __2025-05-13__
 ## __AWS Control Tower__
   - ### Features
