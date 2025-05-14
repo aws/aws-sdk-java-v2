@@ -34,7 +34,13 @@ public final class RulesEngineRuntimeLiteGeneratorTask extends RulesEngineRuntim
                                                                 "/Partition.java.resource",
                                                                 "/PartitionDataProvider.java.resource",
                                                                 "/AwsEndpointProviderUtils.java.resource",
-                                                                "/Arn.java.resource")
+                                                                "/Arn.java.resource",
+                                                                "/Value.java.resource",
+                                                                "/Identifier.java.resource",
+                                                                "/EndpointAuthSchemeStrategy.java.resource",
+                                                                "/EndpointAttributeProvider.java.resource",
+                                                                "/EndpointAuthSchemeStrategyFactory.java.resource",
+                                                                "/DefaultEndpointAuthSchemeStrategy.java.resource")
                                                             .collect(Collectors.toList());
 
     public RulesEngineRuntimeLiteGeneratorTask(GeneratorTaskParams generatorTaskParams) {
