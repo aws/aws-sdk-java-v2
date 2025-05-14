@@ -33,7 +33,8 @@ public final class RulesEngineRuntimeLiteGeneratorTask extends RulesEngineRuntim
                                                                 "RegionOverride.java.resource",
                                                                 "Partition.java.resource",
                                                                 "PartitionDataProvider.java.resource",
-                                                                "AwsEndpointProviderUtils.java.resource")
+                                                                "AwsEndpointProviderUtils.java.resource",
+                                                                "Arn.java.resource")
                                                             .collect(Collectors.toList());
 
     public RulesEngineRuntimeLiteGeneratorTask(GeneratorTaskParams generatorTaskParams) {
