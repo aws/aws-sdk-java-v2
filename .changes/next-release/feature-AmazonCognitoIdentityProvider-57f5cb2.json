@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "contributor": "",
-    "description": "Add exceptions to WebAuthn operations."
-}
