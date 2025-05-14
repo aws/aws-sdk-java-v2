@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis Firehose",
+    "contributor": "",
+    "description": "This release adds catalogARN support for s3 tables multi-catalog catalogARNs."
+}
