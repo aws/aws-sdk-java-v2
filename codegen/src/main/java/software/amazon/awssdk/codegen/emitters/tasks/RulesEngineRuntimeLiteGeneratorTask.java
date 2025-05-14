@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
  * @see CustomizationConfig#isEnableGenerateCompiledEndpointRules()
  */
 public final class RulesEngineRuntimeLiteGeneratorTask extends RulesEngineRuntimeGeneratorTask {
+    // Note: leading slashes are important to disambiguate between files that share the same suffix
     private static final List<String> FILES_TO_COPY = Stream.of("/Outputs.java.resource",
                                                                 "/RegionOverride.java.resource",
                                                                 "/Partition.java.resource",
