@@ -29,12 +29,12 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
  * @see CustomizationConfig#isEnableGenerateCompiledEndpointRules()
  */
 public final class RulesEngineRuntimeLiteGeneratorTask extends RulesEngineRuntimeGeneratorTask {
-    private static final List<String> FILES_TO_COPY = Stream.of("Outputs.java.resource",
-                                                                "RegionOverride.java.resource",
-                                                                "Partition.java.resource",
-                                                                "PartitionDataProvider.java.resource",
-                                                                "AwsEndpointProviderUtils.java.resource",
-                                                                "Arn.java.resource")
+    private static final List<String> FILES_TO_COPY = Stream.of("/Outputs.java.resource",
+                                                                "/RegionOverride.java.resource",
+                                                                "/Partition.java.resource",
+                                                                "/PartitionDataProvider.java.resource",
+                                                                "/AwsEndpointProviderUtils.java.resource",
+                                                                "/Arn.java.resource")
                                                             .collect(Collectors.toList());
 
     public RulesEngineRuntimeLiteGeneratorTask(GeneratorTaskParams generatorTaskParams) {
