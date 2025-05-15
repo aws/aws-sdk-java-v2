@@ -1,0 +1,313 @@
+[
+{
+  "name":"java.lang.Boolean",
+  "methods":[{"name":"getBoolean","parameterTypes":["java.lang.String"] }]
+},
+{
+  "name":"java.lang.Long",
+  "methods":[{"name":"longValue","parameterTypes":[] }]
+},
+{
+  "name":"java.nio.Buffer",
+  "allDeclaredConstructors" : true,
+  "allPublicConstructors" : true,
+  "allDeclaredMethods" : true,
+  "allPublicMethods" : true,
+  "allDeclaredClasses" : true,
+  "allPublicClasses" : true
+},
+{
+  "name":"java.nio.ByteBuffer",
+  "allDeclaredConstructors" : true,
+  "allPublicConstructors" : true,
+  "allDeclaredMethods" : true,
+  "allPublicMethods" : true,
+  "allDeclaredClasses" : true,
+  "allPublicClasses" : true
+},
+{
+  "name":"java.util.concurrent.CompletableFuture",
+  "methods":[
+    {"name":"complete","parameterTypes":["java.lang.Object"] },
+    {"name":"completeExceptionally","parameterTypes":["java.lang.Throwable"] }
+  ]
+},
+{
+  "name":"java.util.function.Predicate",
+  "methods":[{"name":"test","parameterTypes":["java.lang.Object"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.AsyncCallback",
+  "methods":[
+    {"name":"onFailure","parameterTypes":["java.lang.Throwable"] },
+    {"name":"onSuccess","parameterTypes":[] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.CRT",
+  "methods":[{"name":"testJniException","parameterTypes":["boolean"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.CrtResource",
+  "methods":[
+    {"name":"addRef","parameterTypes":[] },
+    {"name":"close","parameterTypes":[] },
+    {"name":"getNativeHandle","parameterTypes":[] },
+    {"name":"releaseReferences","parameterTypes":[] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.CrtRuntimeException",
+  "fields":[{"name":"errorCode"}],
+  "methods":[{"name":"<init>","parameterTypes":["int","java.lang.String"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.SystemInfo$CpuInfo",
+  "methods":[{"name":"<init>","parameterTypes":["int","boolean"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.auth.credentials.Credentials",
+  "fields":[
+    {"name":"accessKeyId"},
+    {"name":"secretAccessKey"},
+    {"name":"sessionToken"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.auth.credentials.CredentialsProvider",
+  "methods":[
+    {"name":"onGetCredentialsComplete","parameterTypes":["java.util.concurrent.CompletableFuture","software.amazon.awssdk.crt.auth.credentials.Credentials"] },
+    {"name":"onShutdownComplete","parameterTypes":[] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.auth.credentials.DelegateCredentialsHandler",
+  "methods":[{"name":"getCredentials","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.auth.signing.AwsSigningConfig",
+  "fields":[
+    {"name":"algorithm"},
+    {"name":"credentials"},
+    {"name":"credentialsProvider"},
+    {"name":"expirationInSeconds"},
+    {"name":"omitSessionToken"},
+    {"name":"region"},
+    {"name":"service"},
+    {"name":"shouldNormalizeUriPath"},
+    {"name":"shouldSignHeader"},
+    {"name":"signatureType"},
+    {"name":"signedBodyHeader"},
+    {"name":"signedBodyValue"},
+    {"name":"time"},
+    {"name":"useDoubleUriEncode"}
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.auth.signing.AwsSigningResult",
+  "fields":[
+    {"name":"signature"},
+    {"name":"signedRequest"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.cal.EccKeyPair",
+  "methods":[{"name":"<init>","parameterTypes":["long"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ClientConnectionContinuationHandler",
+  "methods":[
+    {"name":"onContinuationClosedShim","parameterTypes":[] },
+    {"name":"onContinuationMessageShim","parameterTypes":["byte[]","byte[]","int","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ClientConnectionHandler",
+  "methods":[
+    {"name":"onConnectionClosedShim","parameterTypes":["int"] },
+    {"name":"onConnectionSetupShim","parameterTypes":["long","int"] },
+    {"name":"onProtocolMessage","parameterTypes":["byte[]","byte[]","int","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.MessageFlushCallback",
+  "methods":[{"name":"onCallbackInvoked","parameterTypes":["int"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerConnection",
+  "methods":[{"name":"<init>","parameterTypes":["long"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerConnectionContinuation",
+  "methods":[{"name":"<init>","parameterTypes":["long"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerConnectionContinuationHandler",
+  "methods":[
+    {"name":"onContinuationClosedShim","parameterTypes":[] },
+    {"name":"onContinuationMessageShim","parameterTypes":["byte[]","byte[]","int","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerConnectionHandler",
+  "methods":[
+    {"name":"onIncomingStream","parameterTypes":["software.amazon.awssdk.crt.eventstream.ServerConnectionContinuation","byte[]"] },
+    {"name":"onProtocolMessage","parameterTypes":["byte[]","byte[]","int","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerListener",
+  "methods":[{"name":"onShutdownComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.eventstream.ServerListenerHandler",
+  "methods":[
+    {"name":"onConnectionShutdownShim","parameterTypes":["software.amazon.awssdk.crt.eventstream.ServerConnection","int"] },
+    {"name":"onNewConnection","parameterTypes":["software.amazon.awssdk.crt.eventstream.ServerConnection","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpClientConnection",
+  "methods":[{"name":"onConnectionAcquired","parameterTypes":["java.util.concurrent.CompletableFuture","long","int"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpClientConnectionManager",
+  "methods":[{"name":"onShutdownComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpHeader",
+  "methods":[{"name":"<init>","parameterTypes":["byte[]","byte[]"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpRequest",
+  "fields":[{"name":"bodyStream"}],
+  "methods":[{"name":"<init>","parameterTypes":["java.nio.ByteBuffer","software.amazon.awssdk.crt.http.HttpRequestBodyStream"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpRequestBodyStream",
+  "methods":[
+    {"name":"getLength","parameterTypes":[] },
+    {"name":"resetPosition","parameterTypes":[] },
+    {"name":"sendRequestBody","parameterTypes":["java.nio.ByteBuffer"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpStream",
+  "methods":[{"name":"<init>","parameterTypes":["long"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpStream$HttpStreamWriteChunkCompletionCallback",
+  "methods":[{"name":"onChunkCompleted","parameterTypes":["int"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.http.HttpStreamResponseHandlerNativeAdapter",
+  "methods":[
+    {"name":"onResponseBody","parameterTypes":["software.amazon.awssdk.crt.http.HttpStream","java.nio.ByteBuffer"] },
+    {"name":"onResponseComplete","parameterTypes":["software.amazon.awssdk.crt.http.HttpStream","int"] },
+    {"name":"onResponseHeaders","parameterTypes":["software.amazon.awssdk.crt.http.HttpStream","int","int","java.nio.ByteBuffer"] },
+    {"name":"onResponseHeadersDone","parameterTypes":["software.amazon.awssdk.crt.http.HttpStream","int"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.ClientBootstrap",
+  "methods":[{"name":"onShutdownComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.DirectoryEntry",
+  "fields":[
+    {"name":"fileSize"},
+    {"name":"isDirectory"},
+    {"name":"isFile"},
+    {"name":"isSymLink"},
+    {"name":"path"},
+    {"name":"relativePath"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.DirectoryTraversalHandler",
+  "methods":[{"name":"onDirectoryEntry","parameterTypes":["software.amazon.awssdk.crt.io.DirectoryEntry"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.EventLoopGroup",
+  "methods":[{"name":"onCleanupComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions",
+  "fields":[
+    {"name":"backoffScaleFactorMS"},
+    {"name":"eventLoopGroup"},
+    {"name":"jitterMode"},
+    {"name":"maxRetries"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions$JitterMode",
+  "fields":[{"name":"value"}]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.StandardRetryOptions",
+  "fields":[
+    {"name":"backoffRetryOptions"},
+    {"name":"initialBucketCapacity"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.io.TlsContextPkcs11Options",
+  "fields":[
+    {"name":"certificateFileContents"},
+    {"name":"certificateFilePath"},
+    {"name":"pkcs11Lib"},
+    {"name":"privateKeyObjectLabel"},
+    {"name":"slotId"},
+    {"name":"tokenLabel"},
+    {"name":"userPin"}
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.mqtt.MqttClientConnection",
+  "methods":[
+    {"name":"onConnectionComplete","parameterTypes":["int","boolean"] },
+    {"name":"onConnectionInterrupted","parameterTypes":["int","software.amazon.awssdk.crt.AsyncCallback"] },
+    {"name":"onConnectionResumed","parameterTypes":["boolean"] },
+    {"name":"onWebsocketHandshake","parameterTypes":["software.amazon.awssdk.crt.http.HttpRequest","long"] }
+  ]
+},
+{
+  "name":"software.amazon.awssdk.crt.mqtt.MqttClientConnection$MessageHandler",
+  "methods":[{"name":"deliver","parameterTypes":["java.lang.String","byte[]","boolean","int","boolean"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.mqtt.MqttException",
+  "methods":[{"name":"<init>","parameterTypes":["int"] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.s3.S3Client",
+  "methods":[{"name":"onShutdownComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.s3.S3MetaRequest",
+  "methods":[{"name":"onShutdownComplete","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.s3.S3MetaRequestProgress",
+  "fields":[
+    {"name":"bytesTransferred"},
+    {"name":"contentLength"}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandlerNativeAdapter",
+  "methods":[
+    {"name":"onFinished","parameterTypes":["int","int","byte[]"] },
+    {"name":"onProgress","parameterTypes":["software.amazon.awssdk.crt.s3.S3MetaRequestProgress"] },
+    {"name":"onResponseBody","parameterTypes":["byte[]","long","long"] },
+    {"name":"onResponseHeaders","parameterTypes":["int","java.nio.ByteBuffer"] }
+  ]
+}
+]
