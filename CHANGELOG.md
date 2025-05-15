@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.44__ __2025-05-15__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports Docker Server capability
+
+## __AWS Control Tower__
+  - ### Features
+    - Updated the descriptions for the AWS Control Tower Baseline APIs to make them more intuitive.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces Data Resync feature to describe-table-statistics and IAM database authentication for MariaDB, MySQL, and PostgreSQL.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for Slurm accounting. For more information, see the Slurm accounting topic in the AWS PCS User Guide. Slurm accounting is supported for Slurm 24.11 and later. This release also adds 24.11 as a valid value for the version parameter of the Scheduler data type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Small optimization for endpoint rules. Lazily compile the region pattern instead of parsing it every time. This will pay the penalty of parsing it just once at the cost of using a bit more of memory to keep the parsed pattern.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Flows introduces DoWhile loops nodes, parallel node executions, and enhancements to knowledge base nodes.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added the new AlwaysOn running mode for WorkSpaces Pools. Customers can now choose between AlwaysOn (for instant access, with hourly usage billing regardless of connection status), or AutoStop (to optimize cost, with a brief startup delay) for their pools.
+
 # __2.31.43__ __2025-05-14__
 ## __AWS Elemental MediaConvert__
   - ### Features
