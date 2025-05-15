@@ -39,6 +39,7 @@ import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
@@ -72,7 +73,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
-    private static final String PROVIDER_NAME = "ContainerCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_HTTP.value();
     private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
     private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
@@ -90,6 +91,7 @@ public final class ContainerCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String asyncThreadName;
+    private final String source;
 
     /**
      * @see #builder()
@@ -98,7 +100,8 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
+        this.source = builder.source;
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -158,6 +161,14 @@ public final class ContainerCredentialsProvider
         Instant fifteenMinutesBeforeExpiration = expiration.minus(15, ChronoUnit.MINUTES);
 
         return ComparableUtils.minimum(oneHourFromNow, fifteenMinutesBeforeExpiration);
+    }
+
+    private String providerName() {
+        String providerName = PROVIDER_NAME;
+        if (source != null && !source.isEmpty()) {
+            providerName = String.format("%s,%s", source, providerName);
+        }
+        return providerName;
     }
 
     @Override
@@ -318,6 +329,7 @@ public final class ContainerCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
+        private String source;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -327,6 +339,7 @@ public final class ContainerCredentialsProvider
             this.endpoint = credentialsProvider.endpoint;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
+            this.source = credentialsProvider.source;
         }
 
         @Override
@@ -358,6 +371,17 @@ public final class ContainerCredentialsProvider
         public void setAsyncThreadName(String asyncThreadName) {
             asyncThreadName(asyncThreadName);
         }
+
+        @Override
+        public Builder source(String source) {
+            this.source = source;
+            return this;
+        }
+
+        public void setSource(String source) {
+            source(source);
+        }
+
 
         @Override
         public ContainerCredentialsProvider build() {
