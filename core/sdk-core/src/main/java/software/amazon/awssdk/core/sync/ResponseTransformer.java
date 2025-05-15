@@ -26,6 +26,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -102,10 +103,24 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return ResponseTransformer instance.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
+        return toFile(path, new StandardCopyOption[0]);
+    }
+
+    /**
+     * Creates a response transformer that writes all response content to the specified file. Passing
+     * {@link StandardCopyOption#REPLACE_EXISTING} will prevent a a {@link java.nio.file.FileAlreadyExistsException} to be thrown
+     * if the file already exists.
+     *
+     * @param path        Path to file to write to.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @param copyOptions options to be passed to the file copy
+     * @return ResponseTransformer instance.
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path, StandardCopyOption... copyOptions) {
         return (resp, in) -> {
             try {
                 InterruptMonitor.checkInterrupted();
-                Files.copy(in, path);
+                Files.copy(in, path, copyOptions);
                 return resp;
             } catch (IOException copyException) {
                 String copyError = "Failed to read response into file: " + path;
