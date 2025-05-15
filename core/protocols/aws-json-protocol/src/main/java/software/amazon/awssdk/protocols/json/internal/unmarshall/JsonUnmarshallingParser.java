@@ -123,6 +123,7 @@ final class JsonUnmarshallingParser {
             }
         });
     }
+
     /**
      * Parses an sdk pojo and fills its fields. The given SdkPojo instance is expected to be a {@link Buildable} instance. This
      * method expects that the START_OBJECT token has been already consumed, so the next token should be either a field name or an
