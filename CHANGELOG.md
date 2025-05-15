@@ -1,4 +1,75 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.44__ __2025-05-15__
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports Docker Server capability
+
+## __AWS Control Tower__
+  - ### Features
+    - Updated the descriptions for the AWS Control Tower Baseline APIs to make them more intuitive.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Introduces Data Resync feature to describe-table-statistics and IAM database authentication for MariaDB, MySQL, and PostgreSQL.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for Slurm accounting. For more information, see the Slurm accounting topic in the AWS PCS User Guide. Slurm accounting is supported for Slurm 24.11 and later. This release also adds 24.11 as a valid value for the version parameter of the Scheduler data type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Small optimization for endpoint rules. Lazily compile the region pattern instead of parsing it every time. This will pay the penalty of parsing it just once at the cost of using a bit more of memory to keep the parsed pattern.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Flows introduces DoWhile loops nodes, parallel node executions, and enhancements to knowledge base nodes.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added the new AlwaysOn running mode for WorkSpaces Pools. Customers can now choose between AlwaysOn (for instant access, with hourly usage billing regardless of connection status), or AutoStop (to optimize cost, with a brief startup delay) for their pools.
+
+# __2.31.43__ __2025-05-14__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This update enables cropping for video overlays and adds a new STL to Teletext upconversion toggle to preserve styling.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds a new API "ListLogGroups" and an improvement in API "DescribeLogGroups"
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Add exceptions to WebAuthn operations.
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - This release adds catalogARN support for s3 tables multi-catalog catalogARNs.
+
+# __2.31.42__ __2025-05-13__
+## __AWS Control Tower__
+  - ### Features
+    - AWS Control Tower now reports the inheritance drift status for EnabledBaselines through the GetEnabledBaseline and ListEnabledBaselines APIs. You can now filter EnabledBaselines by their enablement and drift status using the ListEnabledBaselines API to view accounts and OUs that require attention.
+
+## __AWS License Manager__
+  - ### Features
+    - Add Tagging feature to resources in the Managed Entitlements service. License and Grant resources can now be tagged.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Changes for enhanced metadata in trace
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - CreateMultiRegionClusters and DeleteMultiRegionClusters APIs marked as deprecated. Introduced new multi-Region clusters creation experience through multiRegionProperties parameter in CreateCluster API.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Enable cross-Region inference for Amazon Bedrock Guardrails by using the crossRegionConfig parameter when calling the CreateGuardrail or UpdateGuardrail operation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release extends functionality for Amazon EBS volumes attached to Amazon ECS tasks by adding support for the new EBS volumeInitializationRate parameter in ECS RunTask/StartTask/CreateService/UpdateService APIs.
+
 # __2.31.41__ __2025-05-12__
 ## __AWS Elemental MediaLive__
   - ### Features
