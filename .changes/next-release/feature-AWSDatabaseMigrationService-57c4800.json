@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Introduces Data Resync feature to describe-table-statistics and IAM database authentication for MariaDB, MySQL, and PostgreSQL."
+}
