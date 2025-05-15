@@ -94,7 +94,7 @@ public class HandlerSubscriberTest {
     }
 
     private DefaultFullHttpRequest emptyHttpRequest() {
-        return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://fake.com");
+        return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://fake.com", false);
     }
 
     private Subscription doNothingSubscription() {
