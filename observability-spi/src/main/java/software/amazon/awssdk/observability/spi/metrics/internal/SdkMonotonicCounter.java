@@ -13,14 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics.internal;
+package software.amazon.awssdk.observability.spi.metrics.internal;
 
 import software.amazon.awssdk.observability.metrics.SdkInstrument;
 
-public class SdkUpDownCounter implements SdkInstrument {
+public class SdkMonotonicCounter implements SdkInstrument {
 
     /*
-    // Increment or decrement a counter by a fixed amount
+    // Increment a counter by a fixed amount
     void add(
         value: Long,
         attributes: Attributes? = null,

@@ -13,7 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.spi.metrics;
 
-public interface SdkInstrument {
+public interface SdkMeterProvider {
+
+    /*
+    // Get or create a named meter
+    Meter getMeter(
+       // The name of the instrumentation scope that uniquely identifies this meter
+        scope: String,
+
+       // (Optional) Instrumentation scope attributes to associate with emitted
+       // telemetry data
+       attributes: Attributes? = null
+    );
+     */
 }

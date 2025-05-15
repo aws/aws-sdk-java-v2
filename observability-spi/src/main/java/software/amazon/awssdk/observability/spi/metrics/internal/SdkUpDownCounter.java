@@ -13,19 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.observability.metrics;
+package software.amazon.awssdk.observability.spi.metrics.internal;
 
-public interface SdkMeterProvider {
+import software.amazon.awssdk.observability.metrics.SdkInstrument;
+
+public class SdkUpDownCounter implements SdkInstrument {
 
     /*
-    // Get or create a named meter
-    Meter getMeter(
-       // The name of the instrumentation scope that uniquely identifies this meter
-        scope: String,
-
-       // (Optional) Instrumentation scope attributes to associate with emitted
-       // telemetry data
-       attributes: Attributes? = null
+    // Increment or decrement a counter by a fixed amount
+    void add(
+        value: Long,
+        attributes: Attributes? = null,
+        context: Context? = null
     );
      */
 }
