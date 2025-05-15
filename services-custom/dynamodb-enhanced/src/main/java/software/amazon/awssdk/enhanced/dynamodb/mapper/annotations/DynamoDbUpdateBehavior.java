@@ -22,10 +22,14 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.model.IgnoreNullsMode;
 
 /**
  * Specifies the behavior when this attribute is updated as part of an 'update' operation such as UpdateItem. See
  * documentation of {@link UpdateBehavior} for details on the different behaviors supported and the default behavior.
+ * For attributes within nested objects, this annotation is only respected when the request uses
+ * {@link IgnoreNullsMode#SCALAR_ONLY}. In {@link IgnoreNullsMode#MAPS_ONLY} or {@link IgnoreNullsMode#DEFAULT},
+ * the annotation has no effect.
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})
