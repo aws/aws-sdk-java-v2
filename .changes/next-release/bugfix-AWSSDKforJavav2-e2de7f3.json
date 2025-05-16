@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "bugfix", 
-    "description": "Fix a regression for the JSON REST protocol for which an structure explicit payload member was set to the empty object instead of null"
-}
