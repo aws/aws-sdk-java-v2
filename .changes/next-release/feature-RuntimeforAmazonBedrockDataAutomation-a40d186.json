@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Runtime for Amazon Bedrock Data Automation",
+    "contributor": "",
+    "description": "Add AssetProcessingConfiguration for video segment to InputConfiguration"
+}
