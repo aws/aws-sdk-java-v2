@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -174,6 +175,17 @@ public final class StaticTableSchema<T> extends WrappedTableSchema<T, StaticImmu
                                       Function<T, R> otherItemGetter,
                                       BiConsumer<T, R> otherItemSetter) {
             this.delegateBuilder.flatten(otherTableSchema, otherItemGetter, otherItemSetter);
+            return this;
+        }
+
+        /**
+         * Flattens all the attributes defined in a Map into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         */
+        public <R> Builder<T> flatten(String mapName,
+                                      Function<T, Map<String, String>> mapItemGetter,
+                                      BiConsumer<T, Map<String, String>> mapItemSetter) {
+            this.delegateBuilder.flatten(mapName, mapItemGetter, mapItemSetter);
             return this;
         }
 
