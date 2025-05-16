@@ -509,8 +509,10 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .build());");
 
         if (model.getMetadata().isJsonProtocol()) {
-            builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
-                                 SdkClientJsonProtocolAdvancedOption.class);
+            if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
+                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
+                                     SdkClientJsonProtocolAdvancedOption.class);
+            }
         }
 
         if (hasRequestAlgorithmMember(model) || hasResponseAlgorithms(model)) {
