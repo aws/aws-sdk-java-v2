@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.45__ __2025-05-16__
+## __AWS CodePipeline__
+  - ### Features
+    - CodePipeline now supports new API ListDeployActionExecutionTargets that lists the deployment target details for deploy action executions.
+
+## __AWS Glue__
+  - ### Features
+    - Changes include (1) Excel as S3 Source type and XML and Tableau's Hyper as S3 Sink types, (2) targeted number of partitions parameter in S3 sinks and (3) new compression types in CSV/JSON and Parquet S3 sinks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a regression for the JSON REST protocol for which an structure explicit payload member was set to the empty object instead of null
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECs documentation only release to support the change of the container exit "reason" field from 255 characters to 1024 characters.
+
+## __Amazon EMR__
+  - ### Features
+    - Added APIs for managing Application UIs: Access Persistent (serverless) UIs via CreatePersistentAppUI DescribePersistentAppUI & GetPersistentAppUIPresignedURL, and Cluster-based UIs through GetOnClusterAppUIPresignedURL. Supports Yarn, Spark History, and TEZ interfaces.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds Global Cluster Switchover capability which enables you to change your global cluster's primary AWS Region, the region that serves writes, while preserving the replication between all regions in the global cluster.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Add support for VIDEO modality to BlueprintType enum.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Add AssetProcessingConfiguration for video segment to InputConfiguration
+
+## __Service Quotas__
+  - ### Features
+    - This release introduces CreateSupportCase operation to SDK.
+
 # __2.31.44__ __2025-05-15__
 ## __AWS CodeBuild__
   - ### Features
