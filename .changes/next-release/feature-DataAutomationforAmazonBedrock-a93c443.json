@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Data Automation for Amazon Bedrock",
+    "contributor": "",
+    "description": "Add support for VIDEO modality to BlueprintType enum."
+}
