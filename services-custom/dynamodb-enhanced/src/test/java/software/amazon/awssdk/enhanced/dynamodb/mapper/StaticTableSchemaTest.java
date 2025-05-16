@@ -28,7 +28,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -43,6 +45,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -54,10 +57,15 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.CompositeRecord;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRecord;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedRecordWithUpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EntityEnvelopeBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.flattenmap.BeanWithFlattenRecordAndFlattenMap;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.flattenmap.MultipleFlattenMapsOnRecordInvalidBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -1515,6 +1523,183 @@ public class StaticTableSchemaTest {
 
         assertThat(envelopeTableSchema.itemToMap(testEnvelope, false), equalTo(expectedMap));
         assertThat(envelopeTableSchema.mapToItem(expectedMap).getEntity(), equalTo("test-value"));
+    }
+
+    @Test
+    public void itemToMap_withFlattenedMapAndIgnoreNulls_correctlyFlattensAndOmitNulls() {
+        StaticTableSchema<FakeItem> tableSchema = StaticTableSchema.builder(FakeItem.class)
+                                                                   .flatten("attributesMap",
+                                                                            FakeItem::getAttributesMap,
+                                                                            FakeItem::setAttributesMap)
+                                                                   .build();
+
+        FakeItem fakeItem = FakeItem.builder()
+                                    .testMap(new HashMap<String, String>() {{
+                                        put("mapAttribute1", "mapValue1");
+                                        put("mapAttribute2", null);
+                                        put("mapAttribute3", null);
+                                    }}).build();
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(fakeItem, true);
+
+        assertThat(itemMap.size(), is(1));
+        assertThat(itemMap, hasEntry("mapAttribute1", stringValue("mapValue1")));
+    }
+
+    @Test
+    public void itemToMap_withFlattenedMapAndNotIgnoringNulls_correctlyFlattensAndAndAddNullAttributes() {
+        StaticTableSchema<FakeItem> tableSchema = StaticTableSchema.builder(FakeItem.class)
+                                                                   .flatten("attributesMap",
+                                                                            FakeItem::getAttributesMap,
+                                                                            FakeItem::setAttributesMap)
+                                                                   .build();
+
+        FakeItem fakeItem = FakeItem.builder()
+                                    .testMap(new HashMap<String, String>() {{
+                                        put("mapAttribute1", "mapValue1");
+                                        put("mapAttribute2", null);
+                                        put("mapAttribute3", null);
+                                    }}).build();
+
+        Map<String, AttributeValue> itemMap = tableSchema.itemToMap(fakeItem, false);
+
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("mapAttribute1", stringValue("mapValue1")));
+        assertThat(itemMap, hasEntry("mapAttribute2", AttributeValue.builder().build()));
+        assertThat(itemMap, hasEntry("mapAttribute3", AttributeValue.builder().build()));
+    }
+
+    @Test
+    public void itemToMap_withMultipleAnnotatedMaps_throwsIllegalArgumentException() {
+        MultipleFlattenMapsOnRecordInvalidBean multipleFlattenMapsOnRecordInvalidBean = new MultipleFlattenMapsOnRecordInvalidBean();
+        multipleFlattenMapsOnRecordInvalidBean.setId("idValue");
+        multipleFlattenMapsOnRecordInvalidBean.setRootAttribute1("rootValue1");
+        multipleFlattenMapsOnRecordInvalidBean.setRootAttribute2("rootValue2");
+
+        multipleFlattenMapsOnRecordInvalidBean.setAttributesMap(new HashMap<String, String>() {{
+            put("mapAttribute1", "mapValue1");
+            put("mapAttribute2", "mapValue2");
+            put("mapAttribute3", "mapValue3");
+        }});
+
+        multipleFlattenMapsOnRecordInvalidBean.setSecondaryAttributesMap(new HashMap<String, String>() {{
+            put("secondaryMapAttribute1", "secondaryMapValue1");
+            put("secondaryMapAttribute2", "secondaryMapValue2");
+            put("secondaryMapAttribute3", "secondaryMapValue3");
+        }});
+
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("More than one @DynamoDbFlattenMap annotation found on the same record");
+
+        BeanTableSchema<MultipleFlattenMapsOnRecordInvalidBean> beanTableSchema = BeanTableSchema.create(MultipleFlattenMapsOnRecordInvalidBean.class);
+        beanTableSchema.itemToMap(multipleFlattenMapsOnRecordInvalidBean, false);
+    }
+
+    @Test
+    public void itemToMap_withFlattenRecordAndFlattenMap_correctlyMapsAttributes() {
+        BeanWithFlattenRecordAndFlattenMap beanWithFlattenRecordAndFlattenMap = new BeanWithFlattenRecordAndFlattenMap();
+        beanWithFlattenRecordAndFlattenMap.setRootAttribute1("rootValue1");
+        beanWithFlattenRecordAndFlattenMap.setRootAttribute2("rootValue2");
+
+        FlattenRecord flattenRecord = new FlattenRecord();
+        NestedRecordWithUpdateBehavior updateNestedRecord = new NestedRecordWithUpdateBehavior();
+        updateNestedRecord.setNestedCounter(100L);
+        CompositeRecord updateCompositeRecord = new CompositeRecord();
+        updateCompositeRecord.setNestedRecord(updateNestedRecord);
+        flattenRecord.setCompositeRecord(updateCompositeRecord);
+        beanWithFlattenRecordAndFlattenMap.setFlattenRecord(flattenRecord);
+
+        beanWithFlattenRecordAndFlattenMap.setAttributesMap(new HashMap<String, String>() {{
+            put("mapAttribute1", "mapValue1");
+            put("mapAttribute2", "mapValue2");
+            put("mapAttribute3", "mapValue3");
+        }});
+
+
+        BeanTableSchema<BeanWithFlattenRecordAndFlattenMap> beanTableSchema = BeanTableSchema.create(BeanWithFlattenRecordAndFlattenMap.class);
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(beanWithFlattenRecordAndFlattenMap, true);
+
+        assertThat(itemMap.size(), is(6));
+        assertThat(itemMap, hasEntry("rootAttribute1", stringValue("rootValue1")));
+        assertThat(itemMap, hasEntry("rootAttribute2", stringValue("rootValue2")));
+        assertThat(itemMap, hasEntry("mapAttribute1", stringValue("mapValue1")));
+        assertThat(itemMap, hasEntry("mapAttribute2", stringValue("mapValue2")));
+        assertThat(itemMap, hasEntry("mapAttribute3", stringValue("mapValue3")));
+
+        AttributeValue resultedNestedRecord = itemMap.get("nestedRecord");
+        Assertions.assertThat(resultedNestedRecord).isNotNull();
+    }
+
+    @Test
+    public void mapToItem_withFlattenedMapAndIgnoreNulls_correctlyCreatesItemAndOmitNulls() {
+        StaticTableSchema<FakeItem> staticTableSchema =
+            StaticTableSchema.builder(FakeItem.class)
+                             .newItemSupplier(FakeItem::new)
+                             .flatten(FakeItemComposedClass.getTableSchema(),
+                                      FakeItem::getComposedObject,
+                                      FakeItem::setComposedObject)
+                             .flatten("attributesMap",
+                                      FakeItem::getAttributesMap,
+                                      FakeItem::setAttributesMap)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeItem::getId)
+                                                               .setter(FakeItem::setId)
+                                                               .addTag(primaryPartitionKey()))
+                             .addAttribute(Integer.class, a -> a.name("version")
+                                                                .getter(FakeItem::getVersion)
+                                                                .setter(FakeItem::setVersion))
+                             .build();
+
+        FakeItemComposedClass nestedBean = new FakeItemComposedClass();
+        FakeItem fakeItem = new FakeItem("1", 1, nestedBean,  new HashMap<String, String>() {{
+            put("mapAttribute1", "mapValue1");
+            put("mapAttribute2", null);
+            put("mapAttribute3", null);
+        }});
+
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, true);
+
+        assertThat(itemMap.size(), is(3));
+        assertThat(itemMap, hasEntry("id", stringValue("1")));
+        assertThat(itemMap, hasEntry("version", numberValue(1)));
+        assertThat(itemMap, hasEntry("mapAttribute1", stringValue("mapValue1")));
+    }
+
+    @Test
+    public void mapToItem_withFlattenedMapAndNotIgnoringNulls_correctlyCreatesItemAndAndAddNullAttributes() {
+        StaticTableSchema<FakeItem> staticTableSchema =
+            StaticTableSchema.builder(FakeItem.class)
+                             .newItemSupplier(FakeItem::new)
+                             .flatten(FakeItemComposedClass.getTableSchema(),
+                                      FakeItem::getComposedObject,
+                                      FakeItem::setComposedObject)
+                             .flatten("attributesMap",
+                                      FakeItem::getAttributesMap,
+                                      FakeItem::setAttributesMap)
+                             .addAttribute(String.class, a -> a.name("id")
+                                                               .getter(FakeItem::getId)
+                                                               .setter(FakeItem::setId)
+                                                               .addTag(primaryPartitionKey()))
+                             .addAttribute(Integer.class, a -> a.name("version")
+                                                                .getter(FakeItem::getVersion)
+                                                                .setter(FakeItem::setVersion))
+                             .build();
+
+        FakeItemComposedClass nestedBean = new FakeItemComposedClass();
+        FakeItem fakeItem = new FakeItem("1", 1, nestedBean,  new HashMap<String, String>() {{
+            put("mapAttribute1", "mapValue1");
+            put("mapAttribute2", null);
+            put("mapAttribute3", null);
+        }});
+
+        Map<String, AttributeValue> itemMap = staticTableSchema.itemToMap(fakeItem, false);
+
+        assertThat(itemMap.size(), is(6));
+        assertThat(itemMap, hasEntry("id", stringValue("1")));
+        assertThat(itemMap, hasEntry("version", numberValue(1)));
+        assertThat(itemMap, hasEntry("mapAttribute1", stringValue("mapValue1")));
+        assertThat(itemMap, hasEntry("mapAttribute2", AttributeValue.builder().build()));
+        assertThat(itemMap, hasEntry("mapAttribute3", AttributeValue.builder().build()));
     }
 
     private <R> void verifyAttribute(EnhancedType<R> attributeType,

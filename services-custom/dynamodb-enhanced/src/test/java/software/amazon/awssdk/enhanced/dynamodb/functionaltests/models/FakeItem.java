@@ -18,6 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests.models;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -31,6 +32,9 @@ public class FakeItem extends FakeItemAbstractSubclass {
                          .flatten(FakeItemComposedClass.getTableSchema(),
                                   FakeItem::getComposedObject,
                                   FakeItem::setComposedObject)
+                         .flatten("attributesMap",
+                                  FakeItem::getAttributesMap,
+                                  FakeItem::setAttributesMap)
                          .extend(getSubclassTableSchema())
                          .addAttribute(String.class, a -> a.name("id")
                                                            .getter(FakeItem::getId)
@@ -46,13 +50,16 @@ public class FakeItem extends FakeItemAbstractSubclass {
     private Integer version;
     private FakeItemComposedClass composedObject;
 
+    private Map<String, String> attributesMap;
+
     public FakeItem() {
     }
 
-    public FakeItem(String id, Integer version, FakeItemComposedClass composedObject) {
+    public FakeItem(String id, Integer version, FakeItemComposedClass composedObject, Map<String, String> attributesMap) {
         this.id = id;
         this.version = version;
         this.composedObject = composedObject;
+        this.attributesMap = attributesMap;
     }
 
     public static Builder builder() {
@@ -97,6 +104,14 @@ public class FakeItem extends FakeItemAbstractSubclass {
         this.composedObject = composedObject;
     }
 
+    public Map<String, String> getAttributesMap() {
+        return attributesMap;
+    }
+
+    public void setAttributesMap(Map<String, String> attributesMap) {
+        this.attributesMap = attributesMap;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -117,6 +132,7 @@ public class FakeItem extends FakeItemAbstractSubclass {
         private String id;
         private Integer version;
         private FakeItemComposedClass composedObject;
+        private Map<String, String> attributesMap;
 
         public Builder id(String id) {
             this.id = id;
@@ -133,8 +149,13 @@ public class FakeItem extends FakeItemAbstractSubclass {
             return this;
         }
 
+        public Builder testMap(Map<String, String> attributesMap) {
+            this.attributesMap = attributesMap;
+            return this;
+        }
+
         public FakeItem build() {
-            return new FakeItem(id, version, composedObject);
+            return new FakeItem(id, version, composedObject, attributesMap);
         }
     }
 }
