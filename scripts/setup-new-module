@@ -1,0 +1,352 @@
+#!/bin/bash
+
+# setup-new-module - Script to set up a new module in the AWS SDK for Java v2
+# Usage: ./scripts/setup-new-module -n module-name [-t] [-p parent-dir]
+# Options:
+#   -n module-name: Name of the new module (required)
+#   -t: Set up as a test module (optional, default: false)
+#   -p parent-dir: Parent directory for the module (optional, default: root project directory for regular modules, test directory for test modules)
+#   -h: Show help
+
+set -e
+
+# Get the root project directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# Default values
+IS_TEST_MODULE=false
+PARENT_DIR=""
+MODULE_NAME=""
+
+# Parse command line arguments
+while getopts "n:tp:h" opt; do
+  case ${opt} in
+    n)
+      MODULE_NAME=$OPTARG
+      ;;
+    t)
+      IS_TEST_MODULE=true
+      ;;
+    p)
+      PARENT_DIR=$OPTARG
+      ;;
+    h)
+      echo "Usage: $0 -n module-name [-t] [-p parent-dir]"
+      echo "Options:"
+      echo "  -n module-name: Name of the new module (required)"
+      echo "  -t: Set up as a test module (optional, default: false)"
+      echo "  -p parent-dir: Parent directory for the module (optional, default: root project directory for regular modules, test directory for test modules)"
+      echo "  -h: Show help"
+      exit 0
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Check if module name is provided
+if [ -z "$MODULE_NAME" ]; then
+  echo "Error: Module name is required. Use -n option to specify the module name."
+  exit 1
+fi
+
+# Set default parent directory based on module type
+if [ -z "$PARENT_DIR" ]; then
+  if [ "$IS_TEST_MODULE" = true ]; then
+    PARENT_DIR="$ROOT_DIR/test"
+    echo "Setting default parent directory for test module to: $PARENT_DIR"
+  else
+    PARENT_DIR="$ROOT_DIR"
+  fi
+fi
+
+# Create module directory
+MODULE_DIR="$PARENT_DIR/$MODULE_NAME"
+echo "Creating module directory: $MODULE_DIR"
+mkdir -p "$MODULE_DIR"
+mkdir -p "$MODULE_DIR/src/main/java"
+mkdir -p "$MODULE_DIR/src/main/resources"
+mkdir -p "$MODULE_DIR/src/test/java"
+mkdir -p "$MODULE_DIR/src/test/resources"
+
+# Create basic pom.xml
+# Get the current SDK version from the root pom.xml
+SDK_VERSION=$(grep -o "<version>[^<]*</version>" "$ROOT_DIR/pom.xml" | head -1 | sed 's/<version>\(.*\)<\/version>/\1/')
+
+echo "Using SDK version: $SDK_VERSION"
+
+cat > "$MODULE_DIR/pom.xml" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>${SDK_VERSION}</version>
+    </parent>
+
+    <artifactId>${MODULE_NAME}</artifactId>
+    <name>AWS Java SDK :: ${MODULE_NAME}</name>
+    <description>AWS SDK for Java - ${MODULE_NAME}</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+EOF
+
+# Add Automatic-Module-Name for non-test modules
+if [ "$IS_TEST_MODULE" = false ]; then
+  cat >> "$MODULE_DIR/pom.xml" << EOF
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- should be same as package name -->
+                            <Automatic-Module-Name>software.amazon.awssdk.TODO</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+EOF
+fi
+
+# Close pom.xml
+cat >> "$MODULE_DIR/pom.xml" << EOF
+
+    <dependencies>
+        <!-- Add your dependencies here -->
+    </dependencies>
+
+</project>
+EOF
+
+echo "Basic module structure created at $MODULE_DIR"
+
+# Function to add dependency to a pom.xml file
+add_dependency_to_pom() {
+    local pom_file=$1
+    local module_name=$2
+    
+    # Check if the file exists
+    if [ ! -f "$pom_file" ]; then
+        echo "Warning: $pom_file does not exist. Skipping."
+        return
+    fi
+    
+    # Check if dependency already exists
+    if grep -q "<artifactId>$module_name</artifactId>" "$pom_file"; then
+        echo "Dependency already exists in $pom_file. Skipping."
+        return
+    fi
+    
+    # Find the dependencies section and add the new dependency
+    sed -i.bak "/<dependencies>/a\\
+        <dependency>\\
+            <groupId>software.amazon.awssdk</groupId>\\
+            <artifactId>$module_name</artifactId>\\
+            <version>\${awsjavasdk.version}</version>\\
+        </dependency>\\
+" "$pom_file"
+    
+    # Remove backup file
+    rm -f "${pom_file}.bak"
+    
+    echo "Added dependency to $pom_file"
+}
+
+# Function to update the root pom.xml to include the new module
+update_root_pom() {
+    local root_pom="$ROOT_DIR/pom.xml"
+    local module_name=$1
+
+    # Check if the file exists
+    if [ ! -f "$root_pom" ]; then
+        echo "Warning: $root_pom does not exist. Skipping."
+        return
+    fi
+
+    # Determine the module path based on whether it's a test module
+    local module_path="$module_name"
+    if [ "$IS_TEST_MODULE" = true ]; then
+        module_path="test/$module_name"
+    fi
+
+    # Check if module already exists
+    if grep -q "<module>$module_path</module>" "$root_pom"; then
+        echo "Module already exists in root pom.xml. Skipping."
+        return
+    fi
+
+    # Find the modules section and add the new module
+    sed -i.bak "/<modules>/a\\
+        <module>$module_path</module>\\
+" "$root_pom"
+
+    # Remove backup file
+    rm -f "${root_pom}.bak"
+
+    echo "Added module to root pom.xml"
+}
+
+# Function to update japicmp plugin config
+update_japicmp_config() {
+    local root_pom="$ROOT_DIR/pom.xml"
+    local module_name=$1
+    
+    # Check if the file exists
+    if [ ! -f "$root_pom" ]; then
+        echo "Warning: $root_pom does not exist. Skipping japicmp update."
+        return
+    fi
+    
+    # Check if module already exists in japicmp config
+    if grep -q "<includeModule>$module_name</includeModule>" "$root_pom"; then
+        echo "Module already exists in japicmp config. Skipping."
+        return
+    fi
+    
+    # Add the module to the includeModules section
+    # Find the last includeModule line and add the new module after it
+    sed -i.bak "/<\/includeModules>/i\\
+                             <includeModule>$module_name</includeModule>\\
+" "$root_pom"
+    
+    # Remove backup file
+    rm -f "${root_pom}.bak"
+    
+    echo "Added $module_name to japicmp plugin configuration in $root_pom"
+}
+
+# Function to update .brazil.json
+update_brazil_json() {
+    local brazil_json="$ROOT_DIR/.brazil.json"
+    local module_name=$1
+    local is_test=$2
+    
+    # Check if the file exists
+    if [ ! -f "$brazil_json" ]; then
+        echo "Warning: $brazil_json does not exist. Skipping."
+        return
+    fi
+    
+    # Check if module already exists in .brazil.json
+    if grep -q "\"$module_name\":" "$brazil_json"; then
+        echo "Module already exists in .brazil.json. Skipping."
+        return
+    fi
+    
+    if [ "$is_test" = true ]; then
+        # Find a specific test module entry to anchor our insertion
+        # Using a specific entry (s3-tests) as an anchor point to avoid multiple insertions
+        sed -i.bak "/\"s3-tests\": {\"skipImport\":  true}/i\\
+        \"$module_name\": { \"skipImport\": true },\\
+" "$brazil_json"
+        
+        echo "Added $module_name to .brazil.json with skipImport: true"
+    else
+        # Find a specific non-test module entry to anchor our insertion
+        # Using the first module entry as an anchor point
+        sed -i.bak "/\"annotations\": { \"packageName\": /i\\
+        \"$module_name\": { \"packageName\": \"TODO\" },\\
+" "$brazil_json"
+        
+        echo "Added $module_name to .brazil.json with packageName: TODO"
+    fi
+    
+    # Remove backup file
+    rm -f "${brazil_json}.bak"
+}
+
+# Function to update buildspec files for test modules
+update_buildspecs() {
+    local module_name=$1
+    local release_maven="$ROOT_DIR/buildspecs/release-to-maven.yml"
+    local release_javadoc="$ROOT_DIR/buildspecs/release-javadoc.yml"
+    
+    # Check if files exist
+    if [ ! -f "$release_maven" ]; then
+        echo "Warning: $release_maven does not exist. Skipping."
+    else
+        # Update MODULES_TO_SKIP in release-to-maven.yml
+        if grep -q "MODULES_TO_SKIP=" "$release_maven"; then
+            # Extract current value
+            current_modules=$(grep "MODULES_TO_SKIP=" "$release_maven" | cut -d'"' -f2)
+            # Add new module to skip
+            new_modules="$current_modules,$module_name"
+            # Update the file
+            sed -i.bak "s/MODULES_TO_SKIP=\"$current_modules\"/MODULES_TO_SKIP=\"$new_modules\"/" "$release_maven"
+            rm -f "${release_maven}.bak"
+            echo "Updated MODULES_TO_SKIP in $release_maven to include $module_name"
+        else
+            echo "MODULES_TO_SKIP variable not found in $release_maven. Please manually update."
+        fi
+    fi
+    
+    if [ ! -f "$release_javadoc" ]; then
+        echo "Warning: $release_javadoc does not exist. Skipping."
+    else
+        # Update MODULES_TO_SKIP in release-javadoc.yml
+        if grep -q "MODULES_TO_SKIP=" "$release_javadoc"; then
+            # Extract current value
+            current_modules=$(grep "MODULES_TO_SKIP=" "$release_javadoc" | cut -d'"' -f2)
+            # Add new module to skip
+            new_modules="$current_modules,$module_name"
+            # Update the file
+            sed -i.bak "s/MODULES_TO_SKIP=\"$current_modules\"/MODULES_TO_SKIP=\"$new_modules\"/" "$release_javadoc"
+            rm -f "${release_javadoc}.bak"
+            echo "Updated MODULES_TO_SKIP in $release_javadoc to include $module_name"
+        else
+            echo "MODULES_TO_SKIP variable not found in $release_javadoc. Please manually update."
+        fi
+    fi
+}
+
+# Perform updates based on module type
+if [ "$IS_TEST_MODULE" = false ]; then
+    echo "Performing non-test module updates..."
+    
+    # Add to tests-coverage-reporting pom.xml
+    add_dependency_to_pom "$ROOT_DIR/test/tests-coverage-reporting/pom.xml" "$MODULE_NAME"
+    
+    # Add to aws-sdk-java pom.xml
+    add_dependency_to_pom "$ROOT_DIR/aws-sdk-java/pom.xml" "$MODULE_NAME"
+    
+    # Add to architecture-tests pom.xml
+    add_dependency_to_pom "$ROOT_DIR/test/architecture-tests/pom.xml" "$MODULE_NAME"
+    
+    # Add to bom pom.xml
+    add_dependency_to_pom "$ROOT_DIR/bom/pom.xml" "$MODULE_NAME"
+    
+    # Update japicmp plugin config
+    update_japicmp_config "$MODULE_NAME"
+    
+    # Update .brazil.json
+    update_brazil_json "$MODULE_NAME" false
+    
+    # Update root pom.xml
+    update_root_pom "$MODULE_NAME"
+    
+else
+    echo "Performing test module updates..."
+    
+    # Update buildspecs
+    update_buildspecs "$MODULE_NAME"
+    
+    # Update .brazil.json
+    update_brazil_json "$MODULE_NAME" true
+    
+    # Update root pom.xml
+    update_root_pom "$MODULE_NAME"
+fi
+
+echo ""
+echo "Module setup complete! Please review the changes and complete any manual steps mentioned above."
