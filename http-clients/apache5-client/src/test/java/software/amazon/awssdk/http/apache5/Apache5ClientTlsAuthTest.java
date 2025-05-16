@@ -37,6 +37,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,10 +59,10 @@ import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
 import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
- * Tests to ensure that {@link ApacheHttpClient} can properly support TLS
+ * Tests to ensure that {@link Apache5HttpClient} can properly support TLS
  * client authentication.
  */
-public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
+public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     private static WireMockServer wireMockServer;
     private static TlsKeyManagersProvider keyManagersProvider;
     private SdkHttpClient client;
@@ -115,7 +116,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     @Test
     public void canMakeHttpsRequestWhenKeyProviderConfigured() throws IOException {
-        client = ApacheHttpClient.builder()
+        client = Apache5HttpClient.builder()
                 .tlsKeyManagersProvider(keyManagersProvider)
                 .build();
         HttpExecuteResponse httpExecuteResponse = makeRequestWithHttpClient(client);
@@ -125,7 +126,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
     @Test
     public void requestFailsWhenKeyProviderNotConfigured() throws IOException {
         thrown.expect(anyOf(instanceOf(NoHttpResponseException.class), instanceOf(SSLException.class), instanceOf(SocketException.class)));
-        client = ApacheHttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
+        client = Apache5HttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
         makeRequestWithHttpClient(client);
     }
 
@@ -135,7 +136,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
                 .endpoint(URI.create("https://localhost:" + wireMockServer.httpsPort()))
                 .build();
 
-        client = ApacheHttpClient.builder()
+        client = Apache5HttpClient.builder()
                 .proxyConfiguration(proxyConfig)
                 .tlsKeyManagersProvider(keyManagersProvider)
                 .build();
@@ -152,7 +153,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
 
-        client = ApacheHttpClient.builder().build();
+        client = Apache5HttpClient.builder().build();
         try {
             makeRequestWithHttpClient(client);
         } finally {
@@ -168,7 +169,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
 
-        client = ApacheHttpClient.builder().tlsKeyManagersProvider(null).build();
+        client = Apache5HttpClient.builder().tlsKeyManagersProvider(null).build();
         try {
             makeRequestWithHttpClient(client);
         } finally {
@@ -197,7 +198,7 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
         ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
 
-        client = ApacheHttpClient.builder().build();
+        client = Apache5HttpClient.builder().build();
 
         try {
             HttpExecuteResponse httpExecuteResponse = makeRequestWithHttpClient(client);
@@ -220,18 +221,24 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
                                                                                  STORE_PASSWORD);
         KeyManager[] keyManagers = provider.keyManagers();
 
-        SSLContext sslcontext = SSLContext.getInstance("TLS");
-        sslcontext.init(keyManagers, null, null);
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagers, null, null);
 
-        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
-        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+        SdkTlsSocketFactory socketFactory = new SdkTlsSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        SdkTlsSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
 
-        client = ApacheHttpClient.builder()
-                                 .socketFactory(socketFactoryMock)
+
+        client = Apache5HttpClient.builder()
+                                 .socketFactory(socketFactorySpy)
                                  .build();
         makeRequestWithHttpClient(client);
 
-        Mockito.verify(socketFactoryMock).createSocket(Mockito.any());
+        Mockito.verify(socketFactorySpy).createLayeredSocket(
+            Mockito.any(),       // Socket
+            Mockito.anyString(), // Target host
+            Mockito.anyInt(),    // Port
+            Mockito.any()        // HttpContext
+        );
     }
 
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.classic.methods.HttpDelete;
-import org.apache.hc.client5.http.classic.methods.HttpEntityEnclosingRequestBase;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpHead;
 import org.apache.hc.client5.http.classic.methods.HttpOptions;
@@ -89,17 +88,17 @@ public class Apache5HttpRequestFactory {
         return request.getUri();
     }
 
-    private void addRequestConfig(final HttpUriRequestBase base,
-                                  final SdkHttpRequest request,
-                                  final Apache5HttpRequestConfig requestConfig) {
+    private void addRequestConfig(HttpUriRequestBase base,
+                                  SdkHttpRequest request,
+                                  Apache5HttpRequestConfig requestConfig) {
         int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
         int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
         RequestConfig.Builder requestConfigBuilder = RequestConfig
-                .custom()
-                .setConnectionRequestTimeout(connectAcquireTimeout, TimeUnit.MILLISECONDS)
-                .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-                .setResponseTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()), TimeUnit.MILLISECONDS)
-                .setLocalAddress(requestConfig.localAddress());
+            .custom()
+            .setConnectionRequestTimeout(connectAcquireTimeout, TimeUnit.MILLISECONDS)
+            .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+            .setResponseTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()), TimeUnit.MILLISECONDS);
+        //    TODO as part of removed API :   .setLocalAddress(requestConfig.localAddress());
 
         Apache5Utils.disableNormalizeUri(requestConfigBuilder);
 
@@ -140,7 +139,7 @@ public class Apache5HttpRequestFactory {
     }
 
     private HttpUriRequestBase wrapEntity(HttpExecuteRequest request,
-                                       HttpEntityEnclosingRequestBase entityEnclosingRequest) {
+                                          HttpUriRequestBase entityEnclosingRequest) {
 
         /*
          * We should never reuse the entity of the previous request, since

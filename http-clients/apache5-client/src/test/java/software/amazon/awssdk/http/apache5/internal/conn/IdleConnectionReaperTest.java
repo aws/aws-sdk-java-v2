@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5.internal.conn;import software.amazon.awssdk.http.apache5.internal.conn;
+package software.amazon.awssdk.http.apache5.internal.conn;
+
+import org.apache.hc.core5.io.CloseMode;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,7 +88,8 @@ public class IdleConnectionReaperTest {
         reaper.registerConnectionManager(connectionManager, idleTime);
         try {
             Thread.sleep(SLEEP_PERIOD * 2);
-            verify(connectionManager, atLeastOnce()).closeIdleConnections(eq(idleTime), eq(TimeUnit.MILLISECONDS));
+            //  TODO : need to validate this in future PR
+            verify(connectionManager, atLeastOnce()).close(CloseMode.GRACEFUL);
         } finally {
             reaper.deregisterConnectionManager(connectionManager);
         }

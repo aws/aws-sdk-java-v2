@@ -22,11 +22,9 @@ import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.net.URI;
-import org.apache.hc.client5.http.auth.AuthSchemeProvider;
+import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.AuthScope;
-import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
-import org.apache.hc.client5.http.config.AuthSchemes;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
 import org.apache.hc.client5.http.impl.auth.KerberosSchemeFactory;
@@ -41,7 +39,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 
 
-class ApacheHttpClientAuthRegistryTest {
+class Apache5HttpClientAuthRegistryTest {
 
     @RegisterExtension
     static WireMockExtension proxyWireMock = WireMockExtension.newInstance()
@@ -52,31 +50,35 @@ class ApacheHttpClientAuthRegistryTest {
                                                               .options(wireMockConfig().dynamicPort())
                                                               .build();
 
-    private ApacheHttpClient httpClient;
+    private Apache5HttpClient httpClient;
     private static final String PROXY_AUTH_SCENARIO = "Proxy Auth";
     private static final String SERVER_AUTH_SCENARIO = "Server Auth";
     private static final String CHALLENGED_STATE = "Challenged";
+    private static final String BASIC_AUTH = "Basic";
+    private static final String KERBEROS_AUTH = "Kerberos";
 
 
-    private Registry<AuthSchemeProvider> createAuthSchemeRegistry(String scheme, AuthSchemeProvider provider) {
-        return RegistryBuilder.<AuthSchemeProvider>create()
-                              .register(scheme, provider)
+    private Registry<AuthSchemeFactory> createAuthSchemeRegistry(String scheme, AuthSchemeFactory factory) {
+        return RegistryBuilder.<AuthSchemeFactory>create()
+                              .register(scheme, factory)
                               .build();
     }
 
-    private ApacheHttpClient createHttpClient(Registry<AuthSchemeProvider> authSchemeRegistry) {
-        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+
+    private Apache5HttpClient createHttpClient(Registry<AuthSchemeFactory> authSchemeRegistry) {
+        BasicCredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(
-            new AuthScope("localhost", AuthScope.ANY_PORT),
+            new AuthScope("localhost", -1),
             new UsernamePasswordCredentials("u1", "p1".toCharArray()));
 
-        return (ApacheHttpClient) ApacheHttpClient.builder()
-            .proxyConfiguration(ProxyConfiguration.builder().endpoint(URI.create("http://localhost:" + proxyWireMock.getPort()))
-                                                   .build())
-                                                  .authSchemeProviderRegistry(authSchemeRegistry)
-            .credentialsProvider(credsProvider)
-                                                  .build();
+        return (Apache5HttpClient) Apache5HttpClient.builder()
+                                                    .proxyConfiguration(ProxyConfiguration.builder().endpoint(URI.create("http://localhost:" + proxyWireMock.getPort()))
+                                                                                          .build())
+                                                    .authSchemeRegistry(authSchemeRegistry)
+                                                    .credentialsProvider(credsProvider)
+                                                    .build();
     }
+
 
     private SdkHttpRequest createHttpRequest() {
         return SdkHttpRequest.builder()
@@ -120,10 +122,12 @@ class ApacheHttpClientAuthRegistryTest {
 
     @Test
     void authSchemeRegistryConfigured_registeredAuthShouldPass() throws Exception {
-        Registry<AuthSchemeProvider> authSchemeRegistry = createAuthSchemeRegistry(
-            AuthSchemes.BASIC,
+        Registry<AuthSchemeFactory> authSchemeRegistry = createAuthSchemeRegistry(
+            BASIC_AUTH,
             new BasicSchemeFactory()
         );
+
+
 
         httpClient = createHttpClient(authSchemeRegistry);
         setupProxyWireMockStub();
@@ -138,10 +142,11 @@ class ApacheHttpClientAuthRegistryTest {
 
     @Test
     void authSchemeRegistryConfigured_unRegisteredAuthShouldWarn() throws Exception {
-        Registry<AuthSchemeProvider> authSchemeRegistry = createAuthSchemeRegistry(
-            AuthSchemes.KERBEROS,
-            new KerberosSchemeFactory()
+        Registry<AuthSchemeFactory> authSchemeRegistry = createAuthSchemeRegistry(
+                  KERBEROS_AUTH,
+            KerberosSchemeFactory.DEFAULT
         );
+
 
         httpClient = createHttpClient(authSchemeRegistry);
         setupProxyWireMockStub();
