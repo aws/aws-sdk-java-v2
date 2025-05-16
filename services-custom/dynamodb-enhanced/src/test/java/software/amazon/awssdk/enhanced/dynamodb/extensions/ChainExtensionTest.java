@@ -279,11 +279,51 @@ public class ChainExtensionTest {
         assertThat(result.transformedItem(), is(nullValue()));
     }
 
+    @Test
+    public void beforeDelete_multipleExtensions_multipleExpressions() {
+        ChainExtension extension = ChainExtension.create(mockExtension1, mockExtension2, mockExtension3);
+        Expression deleteExpression1 = Expression.builder().expression("one").expressionValues(ATTRIBUTE_VALUES_1).build();
+        Expression deleteExpression2 = Expression.builder().expression("two").expressionValues(ATTRIBUTE_VALUES_2).build();
+        Expression deleteExpression3 = Expression.builder().expression("three").expressionValues(ATTRIBUTE_VALUES_3).build();
+        when(mockExtension1.beforeDelete(any(DynamoDbExtensionContext.BeforeDelete.class))).thenReturn(deleteExpression1);
+        when(mockExtension2.beforeDelete(any(DynamoDbExtensionContext.BeforeDelete.class))).thenReturn(deleteExpression2);
+        when(mockExtension3.beforeDelete(any(DynamoDbExtensionContext.BeforeDelete.class))).thenReturn(deleteExpression3);
+
+        Map<String, AttributeValue> combinedMap = new HashMap<>(ATTRIBUTE_VALUES_1);
+        combinedMap.putAll(ATTRIBUTE_VALUES_2);
+        combinedMap.putAll(ATTRIBUTE_VALUES_3);
+        Expression expectedConditionalExpression =
+            Expression.builder().expression("((one) AND (two)) AND (three)").expressionValues(combinedMap).build();
+
+        Expression result = extension.beforeDelete(getDeleteExtensionContext(0));
+
+        assertThat(result, is(expectedConditionalExpression));
+
+        InOrder inOrder = Mockito.inOrder(mockExtension1, mockExtension2, mockExtension3);
+        inOrder.verify(mockExtension1).beforeDelete(getDeleteExtensionContext(0));
+        inOrder.verify(mockExtension2).beforeDelete(getDeleteExtensionContext(0));
+        inOrder.verify(mockExtension3).beforeDelete(getDeleteExtensionContext(0));
+        inOrder.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void beforeDelete_noExtensions() {
+        ChainExtension extension = ChainExtension.create();
+
+        Expression result = extension.beforeDelete(getDeleteExtensionContext(0));
+
+        assertThat(result, is(nullValue()));
+    }
+
     private DefaultDynamoDbExtensionContext getWriteExtensionContext(int i) {
         return getExtensionContext(i, OperationName.BATCH_WRITE_ITEM);
     }
 
     private DefaultDynamoDbExtensionContext getReadExtensionContext(int i) {
+        return getExtensionContext(i, null);
+    }
+
+    private DefaultDynamoDbExtensionContext getDeleteExtensionContext(int i) {
         return getExtensionContext(i, null);
     }
 
