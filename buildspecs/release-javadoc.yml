@@ -13,12 +13,15 @@ phases:
   pre_build:
     commands:
     - DOC_PATH='s3://aws-java-sdk-javadoc/java/api'
+    - MODULES_TO_SKIP="protocol-tests,protocol-tests-core,codegen-generated-classes-test,sdk-benchmarks,s3-benchmarks,module-path-tests,test-utils,http-client-tests,tests-coverage-reporting,sdk-native-image-test,ruleset-testing-core,old-client-version-compatibility-test,crt-unavailable-tests,bundle-shading-tests,v2-migration,v2-migration-tests,architecture-tests,s3-tests"
 
   build:
     commands:
     - python ./scripts/doc_crosslinks/generate_cross_link_data.py --apiDefinitionsBasePath ./services/ --apiDefinitionsRelativeFilePath src/main/resources/codegen-resources/service-2.json  --templateFilePath ./scripts/doc_crosslinks/crosslink_redirect.html --outputFilePath ./scripts/crosslink_redirect.html
     - mvn install -P quick -T1C
-    - mvn clean install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl '!:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:s3-benchmarks,!:module-path-tests,!:test-utils,!:http-client-tests,!:tests-coverage-reporting,!:sdk-native-image-test,!:ruleset-testing-core,!:old-client-version-compatibility-test,!:crt-unavailable-tests,!:bundle-shading-tests,!:v2-migration,!:v2-migration-tests,!:architecture-tests,!:s3-tests'
+    # Convert comma-separated list to space-separated list with !: prefix for each module
+    - MODULES_TO_SKIP_FORMATTED=$(echo $MODULES_TO_SKIP | sed 's/,/,!:/g' | sed 's/^/!:/')
+    - mvn clean install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl $MODULES_TO_SKIP_FORMATTED
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
     -
     - aws s3 sync target/site/apidocs/ $DOC_PATH/$RELEASE_VERSION/ --acl="public-read"
