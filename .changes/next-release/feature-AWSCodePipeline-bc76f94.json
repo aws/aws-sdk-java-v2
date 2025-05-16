@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "contributor": "",
+    "description": "CodePipeline now supports new API ListDeployActionExecutionTargets that lists the deployment target details for deploy action executions."
+}
