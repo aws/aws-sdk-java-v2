@@ -399,7 +399,7 @@ def main():
         update_root_pom(root_dir, args.name, True)
     
     print("")
-    print("Module setup complete! Please review the changes and complete any manual steps mentioned above.")
+    print("Module setup complete! Please review the changes.")
 
 
 if __name__ == "__main__":
