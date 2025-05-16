@@ -83,12 +83,8 @@ public class MetricReportingTest {
         MetricCollector collector = MetricCollector.create("test");
         HttpExecuteRequest executeRequest = newRequest(collector);
 
-        HttpExecuteResponse response = client.prepareRequest(executeRequest).call();
-
-        System.out.println("response "+response);
-
+        client.prepareRequest(executeRequest).call();
         MetricCollection collected = collector.collect();
-
         assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5");
         assertThat(collected.metricValues(LEASED_CONCURRENCY)).containsExactly(1);
         assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).containsExactly(2);
@@ -131,12 +127,9 @@ public class MetricReportingTest {
                 .host("amazonaws.com")
                 .protocol("https")
                 .build();
-
-        HttpExecuteRequest executeRequest = HttpExecuteRequest.builder()
-                .request(sdkRequest)
-                .metricCollector(collector)
-                .build();
-
-        return executeRequest;
+        return HttpExecuteRequest.builder()
+                                 .request(sdkRequest)
+                                 .metricCollector(collector)
+                                 .build();
     }
 }

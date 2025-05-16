@@ -115,7 +115,7 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
         mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
     }
 
-    //TODO : Future PR will handle this
+    //TODO : Handle this as a part of supporting CredentialsProvider for Apache 5.x
     // @Ignore("Need to fix CredentialsProvider for Apache 5.x")
     // @Test
     // public void credentialPlannerIsInvoked() throws Exception {
