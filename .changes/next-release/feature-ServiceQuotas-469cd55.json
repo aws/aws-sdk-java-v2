@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Service Quotas",
+    "contributor": "",
+    "description": "This release introduces CreateSupportCase operation to SDK."
+}
