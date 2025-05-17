@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -71,33 +70,6 @@ final class JsonUnmarshallingParser {
      */
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * Parse the provided {@link InputStream} and return the deserialized {@link SdkPojo}. Unlike
-     * {@link #parse(SdkPojo, InputStream)} this method returns null if the input stream is empty. This is used to unmarshall
-     * payload members that can be null unlike top-level response pojos.
-     */
-    public SdkPojo parseMember(Supplier<SdkPojo> constructor, InputStream content) {
-        return invokeSafely(() -> {
-            try (JsonParser parser = jsonFactory.createParser(content)
-                                                .configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false)) {
-
-                JsonUnmarshallerContext c = JsonUnmarshallerContext.builder().build();
-                JsonToken token = parser.nextToken();
-                if (token == null) {
-                    return null;
-                }
-                if (token == JsonToken.VALUE_NULL) {
-                    return null;
-                }
-                if (token != JsonToken.START_OBJECT) {
-                    throw new JsonParseException("expecting start object, got instead: " + token);
-                }
-                SdkPojo pojo = constructor.get();
-                return parseSdkPojo(c, pojo, parser);
-            }
-        });
     }
 
     /**
