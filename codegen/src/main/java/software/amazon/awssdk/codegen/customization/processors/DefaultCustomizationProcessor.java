@@ -38,7 +38,10 @@ public final class DefaultCustomizationProcessor {
                 new SmithyRpcV2CborProtocolProcessor(),
                 new RemoveExceptionMessagePropertyProcessor(),
                 new UseLegacyEventGenerationSchemeProcessor(),
-                new EventStreamUniqueEventShapesProcessor(config.getUseLegacyEventGenerationScheme(), namingStrategy),
+                new EventStreamUniqueEventShapesProcessor(
+                    config.getUseLegacyEventGenerationScheme(),
+                    config.getDisableUniqueEventStreamShapePreprocessing(),
+                    namingStrategy),
                 new NewAndLegacyEventStreamProcessor(),
                 new S3RemoveBucketFromUriProcessor(),
                 new S3ControlRemoveAccountIdHostPrefixProcessor(),

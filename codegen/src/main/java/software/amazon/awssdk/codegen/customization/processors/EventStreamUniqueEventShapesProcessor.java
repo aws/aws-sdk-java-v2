@@ -17,9 +17,12 @@ package software.amazon.awssdk.codegen.customization.processors;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
-import software.amazon.awssdk.codegen.model.config.customization.LegacyEventGenerationMode;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
@@ -36,13 +39,16 @@ import software.amazon.awssdk.utils.Logger;
 public final class EventStreamUniqueEventShapesProcessor implements CodegenCustomizationProcessor {
     private static final Logger log = Logger.loggerFor(EventStreamUniqueEventShapesProcessor.class);
 
-    private final Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme;
+    private final Map<String, List<String>> useLegacyEventGenerationScheme;
+    private final Map<String, List<String>> disableUniqueEventStreamShapePreProcessing;
     private final NamingStrategy namingStrategy;
 
     public EventStreamUniqueEventShapesProcessor(
-        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme,
+        Map<String, List<String>> useLegacyEventGenerationScheme,
+        Map<String, List<String>> disableUniqueEventStreamShapePreProcessing,
         NamingStrategy namingStrategy) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+        this.disableUniqueEventStreamShapePreProcessing = disableUniqueEventStreamShapePreProcessing;
         this.namingStrategy = namingStrategy;
     }
 
@@ -61,16 +67,19 @@ public final class EventStreamUniqueEventShapesProcessor implements CodegenCusto
 
     private void preprocessEventStream(ServiceModel serviceModel, String eventStreamName, Shape eventStreamShape, Map<String,
         Shape> newEventShapes) {
-        Map<String, LegacyEventGenerationMode> eventLegacyModes = useLegacyEventGenerationScheme
-            .getOrDefault(eventStreamName, Collections.emptyMap());
+        Set<String> disableUniqueEventDuplication =
+            Stream.of(
+                      useLegacyEventGenerationScheme.getOrDefault(eventStreamName, Collections.emptyList()),
+                      disableUniqueEventStreamShapePreProcessing.getOrDefault(eventStreamName, Collections.emptyList())
+                  )
+                  .flatMap(List::stream)
+                  .collect(Collectors.toSet());
 
         eventStreamShape.getMembers().forEach((memberName, member) -> {
             String eventShapeName = member.getShape();
             Shape memberTargetShape = serviceModel.getShape(eventShapeName);
-            LegacyEventGenerationMode legacyEventGenerationMode = eventLegacyModes
-                .getOrDefault(memberName, LegacyEventGenerationMode.DISABLED);
 
-            if (memberTargetShape.isEvent() && legacyEventGenerationMode == LegacyEventGenerationMode.DISABLED) {
+            if (memberTargetShape.isEvent() && !disableUniqueEventDuplication.contains(memberName)) {
                 String newShapeName = namingStrategy.getUniqueEventStreamEventShapeName(member, eventStreamName);
                 if (serviceModel.getShapes().containsKey(newShapeName)) {
                     log.warn(() -> String.format("Shape name conflict, unable to create a new unique event shape name for %s in"

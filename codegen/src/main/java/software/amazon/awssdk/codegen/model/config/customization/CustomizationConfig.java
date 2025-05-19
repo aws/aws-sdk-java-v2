@@ -208,7 +208,16 @@ public class CustomizationConfig {
      * generation scheme for the visitor methods was changed. There should be no good reason to use this customization
      * for any other purpose.
      */
-    private Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme = new HashMap<>();
+    private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
+
+    /**
+     * Customization to instruct the code generator to not duplicate event shapes to ensure that event stream shapes
+     * are unique
+     * <p>
+     * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
+     * EventStreamUniqueEventShapesProcessor was added.
+     */
+    private Map<String, List<String>> disableUniqueEventStreamShapePreprocessing = new HashMap<>();
 
     /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
@@ -646,13 +655,21 @@ public class CustomizationConfig {
             allowEndpointOverrideForEndpointDiscoveryRequiredOperations;
     }
 
-    public Map<String, Map<String, LegacyEventGenerationMode>> getUseLegacyEventGenerationScheme() {
+    public Map<String, List<String>> getUseLegacyEventGenerationScheme() {
         return useLegacyEventGenerationScheme;
     }
 
-    public void setUseLegacyEventGenerationScheme(
-        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme) {
+    public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+    }
+
+    public Map<String, List<String>> getDisableUniqueEventStreamShapePreprocessing() {
+        return disableUniqueEventStreamShapePreprocessing;
+    }
+
+    public void setDisableUniqueEventStreamShapePreprocessing(
+        Map<String, List<String>> disableUniqueEventStreamShapePreprocessing) {
+        this.disableUniqueEventStreamShapePreprocessing = disableUniqueEventStreamShapePreprocessing;
     }
 
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {

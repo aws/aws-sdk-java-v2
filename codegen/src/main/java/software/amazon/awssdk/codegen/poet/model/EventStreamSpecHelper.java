@@ -19,10 +19,10 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.codegen.model.config.customization.LegacyEventGenerationMode;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
@@ -56,16 +56,16 @@ public final class EventStreamSpecHelper {
     }
 
     public boolean useLegacyGenerationScheme(MemberModel event) {
-        Map<String, Map<String, LegacyEventGenerationMode>> useLegacyEventGenerationScheme =
-            intermediateModel.getCustomizationConfig().getUseLegacyEventGenerationScheme();
+        Map<String, List<String>> useLegacyEventGenerationScheme = intermediateModel.getCustomizationConfig()
+                .getUseLegacyEventGenerationScheme();
 
-        Map<String, LegacyEventGenerationMode> targetEvents = useLegacyEventGenerationScheme.get(eventStream.getC2jName());
+        List<String> targetEvents = useLegacyEventGenerationScheme.get(eventStream.getC2jName());
 
-        if (targetEvents == null || !targetEvents.containsKey(event.getC2jName())) {
+        if (targetEvents == null) {
             return false;
         }
 
-        return targetEvents.get(event.getC2jName()).equals(LegacyEventGenerationMode.NO_EVENT_SUBCLASS);
+        return targetEvents.stream().anyMatch(e -> e.equals(event.getC2jName()));
     }
 
     public ClassName eventClassName(MemberModel eventModel) {
