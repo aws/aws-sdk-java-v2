@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Aurora DSQL",
-    "contributor": "",
-    "description": "CreateMultiRegionCluster and DeleteMultiRegionCluster APIs removed"
-}

@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.46__ __2025-05-19__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for DVB-DASH, EBU-TT-D subtitle format, and non-compacted manifests for DASH in MediaPackage v2 Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - CreateMultiRegionCluster and DeleteMultiRegionCluster APIs removed
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes new APIs for System Integrity Protection (SIP) configuration and automated root volume ownership delegation for EC2 Mac instances.
+
 # __2.31.45__ __2025-05-16__
 ## __AWS CodePipeline__
   - ### Features
