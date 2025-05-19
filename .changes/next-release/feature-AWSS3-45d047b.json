@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3",
+    "contributor": "tmccombs",
+    "description": "Add `presignHeadObject` to S3Presigner"
+}
