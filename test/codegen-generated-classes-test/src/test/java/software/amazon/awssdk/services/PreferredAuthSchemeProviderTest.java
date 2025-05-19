@@ -30,13 +30,17 @@ import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthScheme
 
 public class PreferredAuthSchemeProviderTest {
 
+    private static final String OPERATION_SIGV4_ONLY = "multiAuthWithOnlySigv4a";
     private static final String OPERATION_SIGV4A_ONLY = "multiAuthWithOnlySigv4a";
     private static final String OPERATION_SIGV4A_AND_SIGV4 = "multiAuthWithOnlySigv4aAndSigv4";
+    private static final String OPERATION_NOAUTH = "multiAuthNoAuth";
 
-    private static final String SIGV4 = "aws.auth#sigv4";
-    private static final String SIGV4A = "aws.auth#sigv4a";
-    private static final String BEARER = "aws.auth#bearer";
-    private static final String ANONYMOUS = "aws.auth#noauth";
+    private static final String SIGV4 = "sigv4";
+    private static final String PREFIXED_SIGV4 = "aws.auth#sigv4";
+    private static final String PREFIXED_SIGV4A = "aws.auth#sigv4a";
+    private static final String SIGV4A = "sigv4a";
+    private static final String BEARER = "bearer";
+    private static final String ANONYMOUS = "noauth";
 
     @ParameterizedTest(name = "{3}")
     @MethodSource("authSchemeTestCases")
@@ -63,42 +67,77 @@ public class PreferredAuthSchemeProviderTest {
             Arguments.of(
                 Arrays.asList(BEARER, ANONYMOUS),
                 OPERATION_SIGV4A_AND_SIGV4,
-                SIGV4A,
+                PREFIXED_SIGV4A,
                 "Unsupported auth schemes only"
+            ),
+
+            Arguments.of(
+                Arrays.asList(SIGV4, SIGV4A),
+                OPERATION_NOAUTH,
+                PREFIXED_SIGV4,
+                "Operation with no auth scheme should default to Sigv4"
+            ),
+
+            Arguments.of(
+                Arrays.asList(SIGV4A),
+                OPERATION_NOAUTH,
+                PREFIXED_SIGV4A,
+                ""
+            ),
+
+            Arguments.of(
+                Arrays.asList(SIGV4A, SIGV4),
+                OPERATION_NOAUTH,
+                PREFIXED_SIGV4A,
+                ""
+            ),
+
+            Arguments.of(
+                Arrays.asList(SIGV4A, SIGV4),
+                OPERATION_NOAUTH,
+                PREFIXED_SIGV4A,
+                ""
             ),
 
             Arguments.of(
                 Arrays.asList(BEARER, SIGV4, ANONYMOUS),
                 OPERATION_SIGV4A_AND_SIGV4,
-                SIGV4,
+                PREFIXED_SIGV4,
                 "Mix of supported and unsupported schemes"
             ),
 
             Arguments.of(
                 Arrays.asList(SIGV4, SIGV4A),
                 OPERATION_SIGV4A_AND_SIGV4,
-                SIGV4,
+                PREFIXED_SIGV4,
                 "All supported schemes in reverse order"
+            ),
+
+            Arguments.of(
+                Arrays.asList(SIGV4A),
+                OPERATION_SIGV4_ONLY,
+                PREFIXED_SIGV4,
+                "Operation with only sigv4 supported scheme"
             ),
 
             Arguments.of(
                 Arrays.asList(SIGV4, SIGV4A),
                 OPERATION_SIGV4A_ONLY,
-                SIGV4A,
-                "Operation with only one supported scheme"
+                PREFIXED_SIGV4A,
+                "Operation with only sigv4a supported scheme"
             ),
 
             Arguments.of(
                 Collections.emptyList(),
                 OPERATION_SIGV4A_AND_SIGV4,
-                SIGV4A,
+                PREFIXED_SIGV4A,
                 "Empty preference list"
             ),
 
             Arguments.of(
                 Arrays.asList(SIGV4A, SIGV4, BEARER),
                 OPERATION_SIGV4A_AND_SIGV4,
-                SIGV4A,
+                PREFIXED_SIGV4A,
                 "First preference is supported"
             )
         );

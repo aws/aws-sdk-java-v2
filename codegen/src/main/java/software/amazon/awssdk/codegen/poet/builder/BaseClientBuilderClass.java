@@ -46,6 +46,7 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -832,6 +833,13 @@ public class BaseClientBuilderClass implements ClassSpec {
         return MethodSpec.methodBuilder("defaultAuthSchemeProvider")
                          .addModifiers(PRIVATE)
                          .returns(authSchemeSpecUtils.providerInterfaceName())
+                         .addStatement("$T authSchemePreferenceProvider = "
+                                       + "$T.builder().build()", AuthSchemePreferenceProvider.class, AuthSchemePreferenceProvider.class)
+                         .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
+                         .beginControlFlow("if(preferences != null && !preferences.isEmpty())")
+                         .addStatement("return $T.builder().withPreferredAuthSchemes(preferences).build()",
+                                       authSchemeSpecUtils.providerInterfaceName())
+                         .endControlFlow()
                          .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())
                          .build();
     }

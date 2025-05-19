@@ -13,6 +13,7 @@ import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -59,13 +60,13 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c
-            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-            .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                .lazyOption(AwsClientOption.TOKEN_PROVIDER,
                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
+                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -76,7 +77,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -92,21 +93,21 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.lazyOptionIfAbsent(
-            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-            c -> AwsClientEndpointProvider
-                .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
-                .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
-                .serviceProfileProperty("json_service")
-                .serviceEndpointPrefix(serviceEndpointPrefix())
-                .defaultProtocol("https")
-                .region(c.get(AwsClientOption.AWS_REGION))
-                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                c -> AwsClientEndpointProvider
+                        .builder()
+                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
+                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
+                        .serviceProfileProperty("json_service")
+                        .serviceEndpointPrefix(serviceEndpointPrefix())
+                        .defaultProtocol("https")
+                        .region(c.get(AwsClientOption.AWS_REGION))
+                        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                        .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                        .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                        .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                        .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         return builder.build();
     }
 
@@ -125,6 +126,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     private JsonAuthSchemeProvider defaultAuthSchemeProvider() {
+        AuthSchemePreferenceProvider authSchemePreferenceProvider = AuthSchemePreferenceProvider.builder().build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (preferences != null && !preferences.isEmpty()) {
+            return JsonAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
+        }
         return JsonAuthSchemeProvider.defaultProvider();
     }
 
@@ -194,6 +200,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                         "The 'tokenProvider' must be configured in the client builder.");
+                "The 'tokenProvider' must be configured in the client builder.");
     }
 }

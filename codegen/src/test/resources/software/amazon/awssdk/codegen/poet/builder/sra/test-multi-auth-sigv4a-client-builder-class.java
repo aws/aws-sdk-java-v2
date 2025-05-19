@@ -11,6 +11,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
@@ -120,6 +121,11 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     }
 
     private DatabaseAuthSchemeProvider defaultAuthSchemeProvider() {
+        AuthSchemePreferenceProvider authSchemePreferenceProvider = AuthSchemePreferenceProvider.builder().build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (preferences != null && !preferences.isEmpty()) {
+            return DatabaseAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
+        }
         return DatabaseAuthSchemeProvider.defaultProvider();
     }
 
