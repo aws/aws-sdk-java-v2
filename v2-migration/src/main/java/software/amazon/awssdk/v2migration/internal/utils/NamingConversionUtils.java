@@ -182,7 +182,11 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("RoutingRuleCondition", "Condition");
         S3_POJO_MAPPING.put("S3ObjectSummary", "S3Object");
         S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        S3_POJO_MAPPING.put("VersionListing", "ListObjectVersionsResponse");
+        S3_POJO_MAPPING.put("S3VersionSummary", "ObjectVersion");
         S3_POJO_MAPPING.put("AmazonS3Exception", "S3Exception");
+        S3_POJO_MAPPING.put("CloudFunctionConfiguration", "LambdaFunctionConfiguration");
+        S3_POJO_MAPPING.put("LambdaConfiguration", "LambdaFunctionConfiguration");
 
         //Special Enum mapping
         S3_POJO_MAPPING.put("S3Event", "Event");

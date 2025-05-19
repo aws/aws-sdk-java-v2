@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.stree.JrSimpleTreeExtension;
 import com.fasterxml.jackson.jr.stree.JrsValue;
@@ -78,6 +79,7 @@ public final class Jackson {
             synchronized (Jackson.class) {
                 if (OBJECT_MAPPER == null) {
                     OBJECT_MAPPER = new ObjectMapper().configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+                                                      .registerModule(new Jdk8Module())
                                                       .writerWithDefaultPrettyPrinter();
                 }
             }

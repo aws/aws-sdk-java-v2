@@ -116,7 +116,7 @@ public class KinesisStabilityTest extends AwsTestBase {
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
-    public void putRecords_subscribeToShard() {
+    public void putRecords_subscribeToShard() throws InterruptedException {
         putRecords();
         subscribeToShard();
     }
@@ -124,7 +124,7 @@ public class KinesisStabilityTest extends AwsTestBase {
     /**
      * We only have one run of subscribeToShard tests because it takes 5 minutes.
      */
-    private void subscribeToShard() {
+    private void subscribeToShard() throws InterruptedException {
         log.info(() -> "starting to test subscribeToShard to stream: " + streamName);
         List<CompletableFuture<?>> completableFutures = generateSubscribeToShardFutures();
         StabilityTestRunner.newRunner()
@@ -170,12 +170,15 @@ public class KinesisStabilityTest extends AwsTestBase {
      * Generate request per consumer/shard combination
      * @return a lit of completablefutures
      */
-    private List<CompletableFuture<?>> generateSubscribeToShardFutures() {
+    private List<CompletableFuture<?>> generateSubscribeToShardFutures() throws InterruptedException {
         List<CompletableFuture<?>> completableFutures = new ArrayList<>();
+        int baseDelay = 150;
+        int jitterRange = 150;
         for (int i = 0; i < CONSUMER_COUNT; i++) {
             final int consumerIndex = i;
             for (int j = 0; j < SHARD_COUNT; j++) {
                 final int shardIndex = j;
+                Thread.sleep(baseDelay + (int)(Math.random() * jitterRange));
                 TestSubscribeToShardResponseHandler responseHandler =
                     new TestSubscribeToShardResponseHandler(consumerIndex, shardIndex);
                 CompletableFuture<Void> completableFuture =

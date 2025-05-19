@@ -65,8 +65,8 @@
       "input":{"shape":"DeleteAgentMemoryRequest"},
       "output":{"shape":"DeleteAgentMemoryResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -88,8 +88,8 @@
       "input":{"shape":"DeleteSessionRequest"},
       "output":{"shape":"DeleteSessionResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"},
@@ -108,8 +108,8 @@
       "input":{"shape":"EndSessionRequest"},
       "output":{"shape":"EndSessionResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"},
@@ -128,8 +128,8 @@
       "input":{"shape":"GenerateQueryRequest"},
       "output":{"shape":"GenerateQueryResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -150,8 +150,8 @@
       "input":{"shape":"GetAgentMemoryRequest"},
       "output":{"shape":"GetAgentMemoryResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -209,8 +209,8 @@
       "output":{"shape":"InvokeAgentResponse"},
       "errors":[
         {"shape":"ModelNotReadyException"},
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -219,7 +219,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<note> </note> <p>Sends a prompt for the agent to process and respond to. Note the following fields for the request:</p> <ul> <li> <p>To continue the same conversation with an agent, use the same <code>sessionId</code> value in the request.</p> </li> <li> <p>To activate trace enablement, turn <code>enableTrace</code> to <code>true</code>. Trace enablement helps you follow the agent's reasoning process that led it to the information it processed, the actions it took, and the final result it yielded. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html#trace-events\">Trace enablement</a>.</p> </li> <li> <p>End a conversation by setting <code>endSession</code> to <code>true</code>.</p> </li> <li> <p>In the <code>sessionState</code> object, you can include attributes for the session or prompt or, if you configured an action group to return control, results from invocation of the action group.</p> </li> </ul> <p>The response contains both <b>chunk</b> and <b>trace</b> attributes.</p> <p>The final response is returned in the <code>bytes</code> field of the <code>chunk</code> object. The <code>InvokeAgent</code> returns one chunk for the entire interaction.</p> <ul> <li> <p>The <code>attribution</code> object contains citations for parts of the response.</p> </li> <li> <p>If you set <code>enableTrace</code> to <code>true</code> in the request, you can trace the agent's steps and reasoning process that led it to the response.</p> </li> <li> <p>If the action predicted was configured to return control, the response returns parameters for the action, elicited from the user, in the <code>returnControl</code> field.</p> </li> <li> <p>Errors are also surfaced in the response.</p> </li> </ul>"
+      "documentation":"<p><note> </note> <p>Sends a prompt for the agent to process and respond to. Note the following fields for the request:</p> <ul> <li> <p>To continue the same conversation with an agent, use the same <code>sessionId</code> value in the request.</p> </li> <li> <p>To activate trace enablement, turn <code>enableTrace</code> to <code>true</code>. Trace enablement helps you follow the agent's reasoning process that led it to the information it processed, the actions it took, and the final result it yielded. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/agents-test.html#trace-events\">Trace enablement</a>.</p> </li> <li> <p>End a conversation by setting <code>endSession</code> to <code>true</code>.</p> </li> <li> <p>In the <code>sessionState</code> object, you can include attributes for the session or prompt or, if you configured an action group to return control, results from invocation of the action group.</p> </li> </ul> <p>The response contains both <b>chunk</b> and <b>trace</b> attributes.</p> <p>The final response is returned in the <code>bytes</code> field of the <code>chunk</code> object. The <code>InvokeAgent</code> returns one chunk for the entire interaction.</p> <ul> <li> <p>The <code>attribution</code> object contains citations for parts of the response.</p> </li> <li> <p>If you set <code>enableTrace</code> to <code>true</code> in the request, you can trace the agent's steps and reasoning process that led it to the response.</p> </li> <li> <p>If the action predicted was configured to return control, the response returns parameters for the action, elicited from the user, in the <code>returnControl</code> field.</p> </li> <li> <p>Errors are also surfaced in the response.</p> </li> </ul></p>"
     },
     "InvokeFlow":{
       "name":"InvokeFlow",
@@ -231,8 +231,8 @@
       "input":{"shape":"InvokeFlowRequest"},
       "output":{"shape":"InvokeFlowResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -253,8 +253,8 @@
       "input":{"shape":"InvokeInlineAgentRequest"},
       "output":{"shape":"InvokeInlineAgentResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -365,8 +365,8 @@
       "input":{"shape":"PutInvocationStepRequest"},
       "output":{"shape":"PutInvocationStepResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"},
@@ -386,8 +386,8 @@
       "input":{"shape":"RerankRequest"},
       "output":{"shape":"RerankResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -408,8 +408,8 @@
       "input":{"shape":"RetrieveRequest"},
       "output":{"shape":"RetrieveResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -430,8 +430,8 @@
       "input":{"shape":"RetrieveAndGenerateRequest"},
       "output":{"shape":"RetrieveAndGenerateResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -452,8 +452,8 @@
       "input":{"shape":"RetrieveAndGenerateStreamRequest"},
       "output":{"shape":"RetrieveAndGenerateStreamResponse"},
       "errors":[
-        {"shape":"ConflictException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"},
         {"shape":"DependencyFailedException"},
@@ -613,6 +613,10 @@
     "ActionGroupInvocationOutput":{
       "type":"structure",
       "members":{
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the action group output.</p>"
+        },
         "text":{
           "shape":"ActionGroupOutputString",
           "documentation":"<p>The JSON-formatted string returned by the API invoked by the action group.</p>"
@@ -782,6 +786,10 @@
         "agentCollaboratorName":{
           "shape":"String",
           "documentation":"<p>The output's agent collaborator name.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the output from the agent collaborator.</p>"
         },
         "output":{
           "shape":"AgentCollaboratorOutputPayload",
@@ -1215,6 +1223,10 @@
         "files":{
           "shape":"Files",
           "documentation":"<p>Contains output files, if generated by code execution.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the output from the code interpreter.</p>"
         }
       },
       "documentation":"<p>Contains the JSON-formatted string returned by the API invoked by the code interpreter.</p>"
@@ -1485,6 +1497,16 @@
       "type":"string",
       "enum":["RETURN_CONTROL"]
     },
+    "CustomOrchestration":{
+      "type":"structure",
+      "members":{
+        "executor":{
+          "shape":"OrchestrationExecutor",
+          "documentation":"<p>The structure of the executor invoking the actions in custom orchestration. </p>"
+        }
+      },
+      "documentation":"<p>Contains details of the custom orchestration configured for the agent. </p>"
+    },
     "CustomOrchestrationTrace":{
       "type":"structure",
       "members":{
@@ -1725,9 +1747,17 @@
     "FailureTrace":{
       "type":"structure",
       "members":{
+        "failureCode":{
+          "shape":"Integer",
+          "documentation":"<p>The failure code for the trace.</p>"
+        },
         "failureReason":{
           "shape":"FailureReasonString",
           "documentation":"<p>The reason the interaction failed.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Information about the failure that occurred.</p>"
         },
         "traceId":{
           "shape":"TraceId",
@@ -1846,6 +1876,10 @@
     "FinalResponse":{
       "type":"structure",
       "members":{
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the invoke agent operation.</p>"
+        },
         "text":{
           "shape":"FinalResponseString",
           "documentation":"<p>The text in the response to the user.</p>"
@@ -3049,6 +3083,10 @@
           "shape":"GuardrailAssessmentList",
           "documentation":"<p>The details of the input assessments used in the Guardrail Trace.</p>"
         },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the Guardrail output.</p>"
+        },
         "outputAssessments":{
           "shape":"GuardrailAssessmentList",
           "documentation":"<p>The details of the output assessments used in the Guardrail Trace.</p>"
@@ -3343,6 +3381,18 @@
     "InlineAgentTracePart":{
       "type":"structure",
       "members":{
+        "callerChain":{
+          "shape":"CallerChain",
+          "documentation":"<p>The caller chain for the trace part.</p>"
+        },
+        "collaboratorName":{
+          "shape":"Name",
+          "documentation":"<p>The collaborator name for the trace part.</p>"
+        },
+        "eventTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The time that trace occurred. </p>"
+        },
         "sessionId":{
           "shape":"SessionId",
           "documentation":"<p>The unique identifier of the session with the agent.</p>"
@@ -3822,6 +3872,10 @@
           "shape":"AgentCollaboration",
           "documentation":"<p> Defines how the inline collaborator agent handles information across multiple collaborator agents to coordinate a final response. The inline collaborator agent can also be the supervisor. </p>"
         },
+        "agentName":{
+          "shape":"Name",
+          "documentation":"<p>The name for the agent.</p>"
+        },
         "bedrockModelConfigurations":{
           "shape":"InlineBedrockModelConfigurations",
           "documentation":"<p>Model settings for the request.</p>"
@@ -3834,13 +3888,17 @@
           "shape":"Collaborators",
           "documentation":"<p> List of collaborator inline agents. </p>"
         },
+        "customOrchestration":{
+          "shape":"CustomOrchestration",
+          "documentation":"<p>Contains details of the custom orchestration configured for the agent. </p>"
+        },
         "customerEncryptionKeyArn":{
           "shape":"KmsKeyArn",
           "documentation":"<p> The Amazon Resource Name (ARN) of the Amazon Web Services KMS key to use to encrypt your inline agent. </p>"
         },
         "enableTrace":{
           "shape":"Boolean",
-          "documentation":"<p> Specifies whether to turn on the trace or not to track the agent's reasoning process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html\">Using trace</a>. <pre><code> &lt;/p&gt; </code></pre>"
+          "documentation":"<p> Specifies whether to turn on the trace or not to track the agent's reasoning process. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/trace-events.html\">Using trace</a>. </p>"
         },
         "endSession":{
           "shape":"Boolean",
@@ -3874,6 +3932,10 @@
           "shape":"KnowledgeBases",
           "documentation":"<p> Contains information of the knowledge bases to associate with. </p>"
         },
+        "orchestrationType":{
+          "shape":"OrchestrationType",
+          "documentation":"<p>Specifies the type of orchestration strategy for the agent. This is set to DEFAULT orchestration type, by default. </p>"
+        },
         "promptOverrideConfiguration":{
           "shape":"PromptOverrideConfiguration",
           "documentation":"<p> Configurations for advanced prompts used to override the default prompts to enhance the accuracy of the inline agent. </p>"
@@ -3900,7 +3962,7 @@
       "members":{
         "completion":{
           "shape":"InlineAgentResponseStream",
-          "documentation":"<p> <pre><code> &lt;/p&gt; </code></pre>"
+          "documentation":"<p>The inline agent's response to the user prompt. </p>"
         },
         "contentType":{
           "shape":"MimeType",
@@ -4001,6 +4063,10 @@
     "KnowledgeBaseLookupOutput":{
       "type":"structure",
       "members":{
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>Contains information about the knowledge base output.</p>"
+        },
         "retrievedReferences":{
           "shape":"RetrievedReferences",
           "documentation":"<p>Contains metadata about the sources cited for the generated response.</p>"
@@ -4270,6 +4336,10 @@
         }
       }
     },
+    "Long":{
+      "type":"long",
+      "box":true
+    },
     "MaxResults":{
       "type":"integer",
       "documentation":"<p>Max Results.</p>",
@@ -4365,12 +4435,32 @@
     "Metadata":{
       "type":"structure",
       "members":{
+        "clientRequestId":{
+          "shape":"String",
+          "documentation":"<p>A unique identifier associated with the downstream invocation. This ID can be used for tracing, debugging, and identifying specific invocations in customer logs or systems.</p>"
+        },
+        "endTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>In the final response, <code>endTime</code> is the end time time of the agent invocation operation.</p>"
+        },
+        "operationTotalTimeMs":{
+          "shape":"Long",
+          "documentation":"<p>The total time it took for the agent to complete execution. This field is only set for the final response.</p>"
+        },
+        "startTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>In the final response, <code>startTime</code> is the start time of the agent invocation operation.</p>"
+        },
+        "totalTimeMs":{
+          "shape":"Long",
+          "documentation":"<p> The total execution time for the specific invocation being processed (model, knowledge base, guardrail, agent collaborator, or code interpreter). It represents how long the individual invocation took.</p>"
+        },
         "usage":{
           "shape":"Usage",
-          "documentation":"<p>Contains details of the foundation model usage.</p>"
+          "documentation":"<p>Specific to model invocation and contains details about the usage of a foundation model.</p>"
         }
       },
-      "documentation":"<p>Provides details of the foundation model.</p>",
+      "documentation":"<p>Provides information about the execution process for different types of invocations, such as model invocation, knowledge base invocation, agent collaborator invocation, guardrail invocation, and code interpreter Invocation.</p>",
       "sensitive":true
     },
     "MetadataAttributeSchema":{
@@ -4698,6 +4788,17 @@
       },
       "documentation":"<p>Settings for how the model processes the prompt prior to retrieval and generation.</p>"
     },
+    "OrchestrationExecutor":{
+      "type":"structure",
+      "members":{
+        "lambda":{
+          "shape":"LambdaArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function containing the business logic that is carried out upon invoking the action. </p>"
+        }
+      },
+      "documentation":"<p>The structure of the executor invoking the actions in custom orchestration.</p>",
+      "union":true
+    },
     "OrchestrationModelInvocationOutput":{
       "type":"structure",
       "members":{
@@ -4748,6 +4849,13 @@
       "documentation":"<p>Details about the orchestration step, in which the agent determines the order in which actions are executed and which knowledge bases are retrieved.</p>",
       "sensitive":true,
       "union":true
+    },
+    "OrchestrationType":{
+      "type":"string",
+      "enum":[
+        "DEFAULT",
+        "CUSTOM_ORCHESTRATION"
+      ]
     },
     "OutputFile":{
       "type":"structure",
