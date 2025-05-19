@@ -20,6 +20,7 @@ import static software.amazon.awssdk.http.Header.TRANSFER_ENCODING;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
@@ -52,6 +53,10 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
      */
     private InputStreamEntity inputStreamRequestEntity;
 
+    /**
+     * The InputStream containing the content to write out
+     */
+    private InputStream content;
 
     /**
      * Record the original exception if we do attempt a retry, so that if the
@@ -78,8 +83,9 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
               getContentTypeFromRequest(request),
               null,
               request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED));
-
-        inputStreamRequestEntity = new InputStreamEntity(getContent(),
+        InputStream inputStream = getContent();
+        this.content = inputStream;
+        inputStreamRequestEntity = new InputStreamEntity(inputStream,
                                                          getContentLengthFromRequest(request),
                                                          getContentTypeFromRequest(request));
     }
@@ -104,6 +110,7 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
         }
     }
 
+
     private boolean isRepeatableStream() {
         return getContent().markSupported() || inputStreamRequestEntity.isRepeatable();
     }
@@ -122,7 +129,8 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
     public void writeTo(OutputStream output) throws IOException {
         try {
             if (!firstAttempt && isRepeatableStream()) {
-                getContent().reset();
+
+                content.reset();
             }
 
             firstAttempt = false;
