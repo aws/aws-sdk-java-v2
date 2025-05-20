@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "Remove Discovery APIs from the DataSync service"
+}
