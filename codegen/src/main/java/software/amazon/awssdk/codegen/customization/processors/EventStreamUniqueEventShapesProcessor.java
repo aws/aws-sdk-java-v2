@@ -40,15 +40,15 @@ public final class EventStreamUniqueEventShapesProcessor implements CodegenCusto
     private static final Logger log = Logger.loggerFor(EventStreamUniqueEventShapesProcessor.class);
 
     private final Map<String, List<String>> useLegacyEventGenerationScheme;
-    private final Map<String, List<String>> disableUniqueEventStreamShapePreProcessing;
+    private final Map<String, List<String>> disableUniqueEventStreamShapePreprocessing;
     private final NamingStrategy namingStrategy;
 
     public EventStreamUniqueEventShapesProcessor(
         Map<String, List<String>> useLegacyEventGenerationScheme,
-        Map<String, List<String>> disableUniqueEventStreamShapePreProcessing,
+        Map<String, List<String>> disableUniqueEventStreamShapePreprocessing,
         NamingStrategy namingStrategy) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
-        this.disableUniqueEventStreamShapePreProcessing = disableUniqueEventStreamShapePreProcessing;
+        this.disableUniqueEventStreamShapePreprocessing = disableUniqueEventStreamShapePreprocessing;
         this.namingStrategy = namingStrategy;
     }
 
@@ -70,7 +70,7 @@ public final class EventStreamUniqueEventShapesProcessor implements CodegenCusto
         Set<String> disableUniqueEventDuplication =
             Stream.of(
                       useLegacyEventGenerationScheme.getOrDefault(eventStreamName, Collections.emptyList()),
-                      disableUniqueEventStreamShapePreProcessing.getOrDefault(eventStreamName, Collections.emptyList())
+                      disableUniqueEventStreamShapePreprocessing.getOrDefault(eventStreamName, Collections.emptyList())
                   )
                   .flatMap(List::stream)
                   .collect(Collectors.toSet());
