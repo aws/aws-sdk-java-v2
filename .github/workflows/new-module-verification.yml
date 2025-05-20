@@ -183,7 +183,7 @@ jobs:
           echo "Non-test modules found: $NON_TEST_MODULES"
           
           if [ $HAS_ERRORS -eq 1 ]; then
-            echo "::error::Some verification checks failed. Please review the errors above and fix them according to new-module-checklist.md"
+            echo "::error::Some verification checks failed. Please review the errors above and fix them."
             exit 1
           else
             echo "✅ All automated verification checks passed!"
