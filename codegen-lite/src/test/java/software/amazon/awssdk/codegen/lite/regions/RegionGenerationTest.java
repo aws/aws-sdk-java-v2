@@ -27,23 +27,29 @@ import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 public class RegionGenerationTest {
 
     private static final String ENDPOINTS = "/software/amazon/awssdk/codegen/lite/test-endpoints.json";
+    private static final String PARTITIONS = "/software/amazon/awssdk/codegen/lite/test-partitions.json.resource";
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
     private static final String PARTITION_METADATA_BASE = "software.amazon.awssdk.regions.partitionmetadata";
     private static final String REGION_BASE = "software.amazon.awssdk.regions";
 
     private File endpoints;
+    private File partitionsFile;
     private Partitions partitions;
+    private Partitions partitionsRegions;
+
 
     @BeforeEach
     public void before() throws Exception {
         this.endpoints = Paths.get(getClass().getResource(ENDPOINTS).toURI()).toFile();
+        this.partitionsFile = Paths.get(getClass().getResource(PARTITIONS).toURI()).toFile();
         this.partitions = RegionMetadataLoader.build(endpoints);
+        this.partitionsRegions = RegionMetadataLoader.build(partitionsFile);
     }
 
     @Test
     public void regionClass() {
-        RegionGenerator regions = new RegionGenerator(partitions, REGION_BASE);
+        RegionGenerator regions = new RegionGenerator(partitionsRegions, REGION_BASE);
         assertThat(regions, generatesTo("regions.java"));
     }
 
