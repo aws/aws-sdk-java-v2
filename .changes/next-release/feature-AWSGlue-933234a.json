@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Enhanced AWS Glue ListConnectionTypes API Model with additional metadata fields."
+}
