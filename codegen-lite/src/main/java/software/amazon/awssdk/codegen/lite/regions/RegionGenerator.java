@@ -100,7 +100,7 @@ public class RegionGenerator implements PoetClass {
                                           .add("$T.unmodifiableList($T.asList(", Collections.class, Arrays.class);
 
         String regionsCodeBlock = regions.stream().map(r -> {
-            boolean isGlobal = r.toLowerCase().contains("global");
+            boolean isGlobal = r.contains("global");
             builder.addField(FieldSpec.builder(className(), regionName(r))
                                       .addModifiers(PUBLIC, STATIC, FINAL)
                                       .initializer(isGlobal ? "$T.of($S, true)" : "$T.of($S)", className(), r)
