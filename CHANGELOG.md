@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.47__ __2025-05-20__
+## __AWS DataSync__
+  - ### Features
+    - Remove Discovery APIs from the DataSync service
+
+## __AWS Glue__
+  - ### Features
+    - Enhanced AWS Glue ListConnectionTypes API Model with additional metadata fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release expands the ModifyInstanceMaintenanceOptions API to enable or disable instance migration during customer-initiated reboots for EC2 Scheduled Reboot Events.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release introduces the new DescribeDBMajorEngineVersions API for describing the properties of specific major versions of database engines.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - Add IncludeTags field to GetLink, GetSink and UpdateLink API
+
+## __Inspector2__
+  - ### Features
+    - This release adds GetClustersForImage API and filter updates as part of the mapping of container images to running containers feature.
+
 # __2.31.46__ __2025-05-19__
 ## __AWS Elemental MediaPackage v2__
   - ### Features

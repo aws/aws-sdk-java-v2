@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "This release adds GetClustersForImage API and filter updates as part of the mapping of container images to running containers feature."
-}
