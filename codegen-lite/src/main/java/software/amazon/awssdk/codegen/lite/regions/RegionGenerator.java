@@ -107,43 +107,13 @@ public class RegionGenerator implements PoetClass {
             return regionName(r);
         }).collect(Collectors.joining(", "));
 
-        addGlobalRegions(builder);
-
-        regionsArray.add(regionsCodeBlock + ", ")
-                    .add("AWS_GLOBAL, ")
-                    .add("AWS_CN_GLOBAL, ")
-                    .add("AWS_US_GOV_GLOBAL, ")
-                    .add("AWS_ISO_GLOBAL, ")
-                    .add("AWS_ISO_B_GLOBAL");
+        regionsArray.add(regionsCodeBlock);
         regionsArray.add("))");
 
         TypeName listOfRegions = ParameterizedTypeName.get(ClassName.get(List.class), className());
         builder.addField(FieldSpec.builder(listOfRegions, "REGIONS")
                                   .addModifiers(PRIVATE, STATIC, FINAL)
                                   .initializer(regionsArray.build()).build());
-    }
-
-    private void addGlobalRegions(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(className(), "AWS_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_CN_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-cn-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_US_GOV_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-us-gov-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_ISO_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-iso-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_ISO_B_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-iso-b-global")
-                                  .build());
     }
 
     private String regionName(String region) {

@@ -59,19 +59,24 @@ public class RegionGenerationMojo extends AbstractMojo {
         "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/endpoints.json")
     private File endpoints;
 
+    @Parameter(property = "partitionsjson", defaultValue =
+        "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/partitions.json.resource")
+    private File partitionsjson;
+
     @Override
     public void execute() throws MojoExecutionException {
         Path baseSourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
         Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         Partitions partitions = RegionMetadataLoader.build(endpoints);
+        Partitions regionpartitions = RegionMetadataLoader.build(partitionsjson);
 
         generatePartitionMetadataClass(baseSourcesDirectory, partitions);
-        generateRegionClass(baseSourcesDirectory, partitions);
+        generateRegionClass(baseSourcesDirectory, regionpartitions);
         generateServiceMetadata(baseSourcesDirectory, partitions);
-        generateRegions(baseSourcesDirectory, partitions);
+        generateRegions(baseSourcesDirectory, regionpartitions);
         generatePartitionProvider(baseSourcesDirectory, partitions);
-        generateRegionProvider(baseSourcesDirectory, partitions);
+        generateRegionProvider(baseSourcesDirectory, regionpartitions);
         generateServiceProvider(baseSourcesDirectory, partitions);
         generateEndpointTags(baseSourcesDirectory, partitions);
 
