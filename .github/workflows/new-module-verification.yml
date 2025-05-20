@@ -1,0 +1,191 @@
+name: New Module Verification
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    branches:
+      - master
+      - feature/master/*
+    paths:
+      - '**/*.xml'
+      - '.brazil.json'
+
+permissions:
+  contents: read
+
+jobs:
+  new-module-verification:
+    name: Verify New Modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for new module additions
+        id: check-new-modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          echo "::group::Detecting new modules"
+          git fetch origin ${{ github.base_ref }} --depth 1
+          
+          # Find new pom.xml files in the diff
+          NEW_POM_FILES=$(git diff --name-only remotes/origin/${{ github.base_ref }} | grep -E '.*pom\.xml$' | grep -v "target/" || echo "")
+          
+          if [ -z "$NEW_POM_FILES" ]; then
+            echo "No new modules detected."
+            echo "new_modules_found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Potential new modules detected:"
+          echo "$NEW_POM_FILES"
+          echo "new_modules_found=true" >> $GITHUB_OUTPUT
+          
+          # Save the list of new pom files for later steps
+          echo "$NEW_POM_FILES" > new_pom_files.txt
+          echo "::endgroup::"
+      
+      - name: Verify new modules
+        if: steps.check-new-modules.outputs.new_modules_found == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          NEW_POM_FILES=$(cat new_pom_files.txt)
+          
+          # Initialize counters and error flag
+          TEST_MODULES=0
+          NON_TEST_MODULES=0
+          HAS_ERRORS=0
+          
+          echo "::group::Analyzing new modules"
+          
+          for POM_FILE in $NEW_POM_FILES; do
+            MODULE_DIR=$(dirname "$POM_FILE")
+            MODULE_NAME=$(basename "$MODULE_DIR")
+            
+            # Check if this is a new module (not just an updated pom.xml)
+            if git show remotes/origin/${{ github.base_ref }}:"$POM_FILE" &>/dev/null; then
+              echo "Skipping $POM_FILE - file already exists in base branch"
+              continue
+            fi
+            
+            echo "New module detected: $MODULE_DIR"
+            
+            # Check if it's a test module
+            if [[ "$MODULE_DIR" == *"/test/"* || "$MODULE_DIR" == *"/it/"* || "$MODULE_DIR" == *"-test"* || "$MODULE_DIR" == *"-tests"* ]]; then
+              echo "::group::Test module: $MODULE_DIR"
+              TEST_MODULES=$((TEST_MODULES + 1))
+              
+              echo "Verifying test module requirements..."
+              
+              # 1. Check if excluded from maven deploy command
+              if ! grep -q "$MODULE_NAME" buildspecs/release-to-maven.yml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not excluded from maven deploy command in buildspecs/release-to-maven.yml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is excluded from maven deploy command"
+              fi
+              
+              # 2. Check if excluded from javadoc generation
+              if ! grep -q "$MODULE_NAME" buildspecs/release-javadoc.yml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not excluded from javadoc generation in buildspecs/release-javadoc.yml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is excluded from javadoc generation"
+              fi
+              
+              # 3. Check if Brazil import is skipped
+              if ! grep -q "\"$MODULE_NAME\".*\"skip\".*true" .brazil.json 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not configured to skip Brazil import in .brazil.json"
+                HAS_ERRORS=1
+              else
+                echo "✅ Brazil import is skipped for this module"
+              fi
+              echo "::endgroup::"
+              
+            else
+              echo "::group::Non-test module: $MODULE_DIR"
+              NON_TEST_MODULES=$((NON_TEST_MODULES + 1))
+              
+              echo "Verifying non-test module requirements..."
+              
+              # 1. Check for Automatic-Module-Name in pom.xml
+              if ! grep -q "Automatic-Module-Name" "$POM_FILE" 2>/dev/null; then
+                echo "::error::Automatic-Module-Name is not specified in $POM_FILE"
+                HAS_ERRORS=1
+              else
+                echo "✅ Automatic-Module-Name is specified"
+              fi
+              
+              # 2. Check if added to tests-coverage-reporting pom.xml
+              if ! grep -q "<module>.*$MODULE_NAME</module>" test/tests-coverage-reporting/pom.xml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not added to tests-coverage-reporting pom.xml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is added to tests-coverage-reporting"
+              fi
+              
+              # 3. Check if added to aws-sdk-java pom.xml
+              if ! grep -q "<module>.*$MODULE_NAME</module>" aws-sdk-java/pom.xml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not added to aws-sdk-java pom.xml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is added to aws-sdk-java pom.xml"
+              fi
+              
+              # 4. Check if added to architecture-tests pom.xml
+              if ! grep -q "<module>.*$MODULE_NAME</module>" test/architecture-tests/pom.xml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not added to architecture-tests pom.xml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is added to architecture-tests pom.xml"
+              fi
+              
+              # 5. Check if added to bom pom.xml
+              if ! grep -q "<artifactId>$MODULE_NAME</artifactId>" bom/pom.xml 2>/dev/null; then
+                echo "::error::Module $MODULE_NAME is not added to bom pom.xml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is added to bom pom.xml"
+              fi
+              
+              # 6. Check if japicmp plugin config is updated
+              JAPICMP_CHECK=$(grep -A 50 "<artifactId>japicmp-maven-plugin</artifactId>" pom.xml 2>/dev/null | grep -A 50 "<includeModules>" 2>/dev/null | grep -q "<includeModule>$MODULE_NAME</includeModule>" 2>/dev/null || echo "MISSING")
+              if [ "$JAPICMP_CHECK" = "MISSING" ]; then
+                echo "::error::Module $MODULE_NAME is not included in japicmp-maven-plugin includeModules section in pom.xml"
+                HAS_ERRORS=1
+              else
+                echo "✅ Module is included in japicmp-maven-plugin configuration"
+              fi
+              
+              # 7. Check if package name mapping is added in .brazil.json
+              if ! grep -q "\"$MODULE_NAME\"" .brazil.json 2>/dev/null; then
+                echo "::error::Package name mapping for $MODULE_NAME is not added in .brazil.json"
+                HAS_ERRORS=1
+              else
+                echo "✅ Package name mapping is added in .brazil.json"
+              fi
+              echo "::endgroup::"
+            fi
+          done
+          echo "::endgroup::"
+          
+          echo "::group::Verification summary"
+          echo "Verification complete."
+          echo "Test modules found: $TEST_MODULES"
+          echo "Non-test modules found: $NON_TEST_MODULES"
+          
+          if [ $HAS_ERRORS -eq 1 ]; then
+            echo "::error::Some verification checks failed. Please review the errors above and fix them according to new-module-checklist.md"
+            exit 1
+          else
+            echo "✅ All automated verification checks passed!"
+          fi
+          echo "::endgroup::"
