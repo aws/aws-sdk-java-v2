@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "This release introduces the new DescribeDBMajorEngineVersions API for describing the properties of specific major versions of database engines."
+}
