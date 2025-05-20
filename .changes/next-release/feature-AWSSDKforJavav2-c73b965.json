@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixes codegeneration issues for eventstreams with shared event shapes: Duplicate and rename all eventstream event shapes with a unique name + add new disableUniqueEventStreamShapePreprocessing customization config."
+}
