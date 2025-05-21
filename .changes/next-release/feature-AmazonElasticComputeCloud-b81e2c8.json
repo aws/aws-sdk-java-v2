@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Release of Dualstack and Ipv6-only EC2 Public DNS hostnames"
+}
