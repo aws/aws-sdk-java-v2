@@ -75,7 +75,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         public CompletableFuture<Response<OutputT>> execute() {
             CompletableFuture<Response<OutputT>> future = new CompletableFuture<>();
-            attemptFirstExecute(future);
+            try {
+                attemptFirstExecute(future);
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
             return future;
         }
 
@@ -126,6 +130,9 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
                 retryableStageHelper.recordAttemptSucceeded();
                 future.complete(response);
+            }).exceptionally(t -> {
+                future.completeExceptionally(t);
+                return null;
             });
         }
 
@@ -149,7 +156,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
         private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Exception exception) {
             retryableStageHelper.setLastException(exception);
-            maybeAttemptExecute(future);
+            try {
+                maybeAttemptExecute(future);
+            } catch (Throwable t) {
+                future.completeExceptionally(t);
+            }
         }
     }
 }
