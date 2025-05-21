@@ -33,6 +33,8 @@ import software.amazon.awssdk.services.kinesis.model.ResourceNotFoundException;
 import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class KinesisExceptionTest {
     private static final Logger logger = LoggerFactory.getLogger(KinesisExceptionTest.class);
@@ -63,24 +65,21 @@ public class KinesisExceptionTest {
                                  .willReturn(WireMock.aResponse()
                                                      .withStatus(400)
                                                      .withHeader("x-amzn-ErrorType", "InvalidArgumentException")
-                                                     .withBody("{\"__type\":\"InvalidArgumentException\",\"message\":\"Invalid shard iterator\"}")));
+                                                     .withHeader("Content-Type", "application/json")));
 
-        try {
-            GetRecordsRequest request = GetRecordsRequest.builder()
-                                                         .shardIterator("Invalid-Shard-Iterator")
-                                                         .build();
+        GetRecordsRequest request = GetRecordsRequest.builder()
+                                                     .shardIterator("Invalid-Shard-Iterator")
+                                                     .build();
 
-            client.getRecords(request);
-        } catch (InvalidArgumentException e) {
-            logger.info("Caught expected exception: {}", e.getClass().getSimpleName());
-            logger.info("Status Code: {}", e.statusCode());
-            logger.info("Error Code: {}", e.awsErrorDetails().errorCode());
-            logger.info("Error Message: {}", e.awsErrorDetails().errorMessage());
-
-            assertEquals(400, e.statusCode());
-            assertEquals("InvalidArgumentException", e.awsErrorDetails().errorCode());
-        }
+        assertThatThrownBy(() -> client.getRecords(request))
+            .isInstanceOf(InvalidArgumentException.class)
+            .satisfies(e -> {
+                InvalidArgumentException exception = (InvalidArgumentException) e;
+                assertThat(exception.statusCode()).isEqualTo(400);
+                assertThat(exception.awsErrorDetails().errorCode()).isEqualTo("InvalidArgumentException");
+            });
     }
+
 
     @Test
     public void testResourceNotFoundException() {
@@ -89,20 +88,16 @@ public class KinesisExceptionTest {
                                                      .withStatus(400)
                                                      .withHeader("x-amzn-ErrorType", "ResourceNotFoundException")));
 
-        try {
-            GetRecordsRequest request = GetRecordsRequest.builder()
-                                                         .shardIterator("NonExistent-Shard-Iterator")
-                                                         .build();
+        GetRecordsRequest request = GetRecordsRequest.builder()
+                                                     .shardIterator("NonExistent-Shard-Iterator")
+                                                     .build();
 
-            client.getRecords(request);
-        } catch (ResourceNotFoundException e) {
-            logger.info("Caught expected exception: {}", e.getClass().getSimpleName());
-            logger.info("Status Code: {}", e.statusCode());
-            logger.info("Error Code: {}", e.awsErrorDetails().errorCode());
-            logger.info("Error Message: {}", e.awsErrorDetails().errorMessage());
-
-            assertEquals(400, e.statusCode());
-            assertEquals("ResourceNotFoundException", e.awsErrorDetails().errorCode());
-        }
+        assertThatThrownBy(() -> client.getRecords(request))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .satisfies(e -> {
+                ResourceNotFoundException exception = (ResourceNotFoundException) e;
+                assertThat(exception.statusCode()).isEqualTo(400);
+                assertThat(exception.awsErrorDetails().errorCode()).isEqualTo("ResourceNotFoundException");
+            });
     }
 }
