@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "Adds support for setting up Contributor Insight rules on logs transformed via Logs Transformation feature."
+}
