@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.48__ __2025-05-21__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock introduces asynchronous flows (in preview), which let you run flows for longer durations and yield control so that your application can perform other tasks and you don't have to actively monitor the flow's progress.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for setting up Contributor Insight rules on logs transformed via Logs Transformation feature.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release of Dualstack and Ipv6-only EC2 Public DNS hostnames
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update that addresses a customer reported issue.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Modified validation to allow expectedCustomerSpend array with zero elements in Partner Opportunity operations.
+
 # __2.31.47__ __2025-05-20__
 ## __AWS DataSync__
   - ### Features
