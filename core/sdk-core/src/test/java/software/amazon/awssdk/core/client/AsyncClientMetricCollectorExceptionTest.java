@@ -71,7 +71,7 @@ public class AsyncClientMetricCollectorExceptionTest {
     private SdkAsyncHttpClient asyncHttpClient;
 
     @Test
-    public void exceptionInReportMetricReportedInFuture() throws Exception {
+    public void exceptionInReportMetricReportedInFuture() {
         when(metricCollector.createChild(any())).thenReturn(metricCollector);
         Exception exception = new RuntimeException(MESSAGE);
         doThrow(exception).when(metricCollector).reportMetric(eq(CoreMetric.API_CALL_DURATION), any(Duration.class));
@@ -81,7 +81,7 @@ public class AsyncClientMetricCollectorExceptionTest {
         assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS)).hasRootCause(exception);
     }
 
-    private CompletableFuture<SdkResponse> makeRequest() throws Exception {
+    private CompletableFuture<SdkResponse> makeRequest() {
         when(asyncHttpClient.execute(any(AsyncExecuteRequest.class))).thenAnswer((Answer<CompletableFuture<Void>>) invocationOnMock -> {
             SdkAsyncHttpResponseHandler handler = invocationOnMock.getArgument(0, AsyncExecuteRequest.class).responseHandler();
             handler.onHeaders(SdkHttpFullResponse.builder()
