@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
@@ -41,7 +42,7 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuilder<B, C>, C> extends
-                                                                                              AwsDefaultClientBuilder<B, C> {
+        AwsDefaultClientBuilder<B, C> {
     @Override
     protected final String serviceEndpointPrefix() {
         return "database-service-endpoint";
@@ -91,21 +92,22 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.lazyOptionIfAbsent(
-            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-            c -> AwsClientEndpointProvider
-                .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
-                .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
-                .serviceProfileProperty("database_service")
-                .serviceEndpointPrefix(serviceEndpointPrefix())
-                .defaultProtocol("https")
-                .region(c.get(AwsClientOption.AWS_REGION))
-                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                c -> AwsClientEndpointProvider
+                        .builder()
+                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
+                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
+                        .serviceProfileProperty("database_service")
+                        .serviceEndpointPrefix(serviceEndpointPrefix())
+                        .defaultProtocol("https")
+                        .region(c.get(AwsClientOption.AWS_REGION))
+                        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                        .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                        .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                        .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                        .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+        builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         return builder.build();
     }
 
@@ -140,7 +142,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         SdkClientConfiguration.Builder configuration = config.toBuilder();
         DatabaseServiceClientConfigurationBuilder serviceConfigBuilder = new DatabaseServiceClientConfigurationBuilder(
-            configuration);
+                configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }

@@ -22,15 +22,21 @@ tags:
   - sdk
 recipeList:
   - software.amazon.awssdk.v2migration.AddTransferManagerDependency
+  - software.amazon.awssdk.v2migration.AddS3EventNotificationDependency
   - software.amazon.awssdk.v2migration.UpgradeSdkDependencies
+  - software.amazon.awssdk.v2migration.S3AddImportsAndComments
+  - software.amazon.awssdk.v2migration.S3EventNotificationMethodToV2
+  - software.amazon.awssdk.v2migration.S3TypesToV2
   - software.amazon.awssdk.v2migration.S3StreamingResponseToV2
   - software.amazon.awssdk.v2migration.S3StreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3MethodsToV2
+  - software.amazon.awssdk.v2migration.S3EventNotificationMethodsToV2
   - software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
   - software.amazon.awssdk.v2migration.S3UriToV2
   - software.amazon.awssdk.v2migration.EnumGettersToV2
   - software.amazon.awssdk.v2migration.ChangeTransferManagerTypes
+  - software.amazon.awssdk.v2migration.ChangeS3EventNotificationTypes
   - software.amazon.awssdk.v2migration.ChangeSdkType
   - software.amazon.awssdk.v2migration.ChangeSdkCoreTypes
   # At this point, all classes should be changed to v2 equivalents

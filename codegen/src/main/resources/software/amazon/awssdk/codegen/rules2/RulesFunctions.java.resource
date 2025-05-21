@@ -90,8 +90,7 @@ public class RulesFunctions {
         if (matchedPartition == null) {
             // try matching on region name pattern
             for (Partition p : data.partitions) {
-                Pattern regex = Pattern.compile(p.regionRegex());
-                if (regex.matcher(regionName).matches()) {
+                if (p.regionMatches(regionName)) {
                     matchedPartition = p;
                     break;
                 }
