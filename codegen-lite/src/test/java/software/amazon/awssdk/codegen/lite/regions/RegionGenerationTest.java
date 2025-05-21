@@ -55,7 +55,7 @@ public class RegionGenerationTest {
 
     @Test
     public void regionMetadataClass()  {
-        Partition partition = partitions.getPartitions().get(0);
+        Partition partition = partitionsRegions.getPartitions().get(0);
         RegionMetadataGenerator metadataGenerator = new RegionMetadataGenerator(partition,
                                                                                 "us-east-1",
                                                                                 "US East (N. Virginia)",
