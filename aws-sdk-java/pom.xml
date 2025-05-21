@@ -1540,11 +1540,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>privatenetworks</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>supportapp</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>

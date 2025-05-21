@@ -320,7 +320,6 @@
         <module>redshiftserverless</module>
         <module>rolesanywhere</module>
         <module>licensemanagerusersubscriptions</module>
-        <module>privatenetworks</module>
         <module>supportapp</module>
         <module>controltower</module>
         <module>iotfleetwise</module>
