@@ -130,9 +130,6 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
 
                 retryableStageHelper.recordAttemptSucceeded();
                 future.complete(response);
-            }).exceptionally(t -> {
-                future.completeExceptionally(t);
-                return null;
             });
         }
 
