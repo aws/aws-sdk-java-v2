@@ -41,7 +41,7 @@ public interface EventStream extends SdkPojo {
     /**
      * Create a builder for the {@code Person} event type for this stream.
      */
-    static PersonEventStream.Builder personBuilder() {
+    static EventStreamPerson.Builder personBuilder() {
         return DefaultPerson.builder();
     }
 

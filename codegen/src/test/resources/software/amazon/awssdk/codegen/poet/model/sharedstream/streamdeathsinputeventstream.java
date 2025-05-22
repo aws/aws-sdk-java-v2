@@ -17,7 +17,7 @@ public interface StreamDeathsInputEventStream {
     /**
      * Create a builder for the {@code Person} event type for this stream.
      */
-    static PersonStreamDeathsInputEventStream.Builder personBuilder() {
+    static StreamDeathsInputEventStreamPerson.Builder personBuilder() {
         return DefaultPerson.builder();
     }
 

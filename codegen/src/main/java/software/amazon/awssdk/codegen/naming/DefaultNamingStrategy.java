@@ -414,7 +414,7 @@ public class DefaultNamingStrategy implements NamingStrategy {
 
     @Override
     public String getUniqueEventStreamEventShapeName(Member eventMember, String eventStreamName) {
-        return eventMember.getShape() + eventStreamName;
+        return eventStreamName + eventMember.getShape();
     }
 
 
