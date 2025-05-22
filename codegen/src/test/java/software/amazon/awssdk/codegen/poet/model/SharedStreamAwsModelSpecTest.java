@@ -21,7 +21,6 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Locale;
 import org.junit.Test;
