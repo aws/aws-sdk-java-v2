@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Prometheus Service",
-    "contributor": "",
-    "description": "Add QueryLoggingConfiguration APIs for Amazon Managed Prometheus"
-}
