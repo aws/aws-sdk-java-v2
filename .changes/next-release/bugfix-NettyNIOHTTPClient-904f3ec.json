@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Enable Netty HTTP header validation when connecting with proxy"
+}
