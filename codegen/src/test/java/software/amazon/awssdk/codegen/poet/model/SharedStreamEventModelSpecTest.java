@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Locale;
 import org.junit.Test;
@@ -53,7 +52,7 @@ public class SharedStreamEventModelSpecTest {
         return "sharedstream/" + namespacedEventImpl.toLowerCase(Locale.ENGLISH) + ".java";
     }
 
-    private static void setUp() throws IOException {
+    private static void setUp() {
         File serviceModelFile = new File(SharedStreamEventModelSpecTest.class.getResource("sharedstream/service-2.json").getFile());
         ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
 
