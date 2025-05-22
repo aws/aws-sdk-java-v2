@@ -52,7 +52,7 @@ public class SharedStreamAwsModelSpecTest {
     }
 
     @Test
-    public void basicGeneration() throws Exception {
+    public void basicGeneration() {
         assertThat(new AwsServiceModel(intermediateModel, shapeModel), generatesTo(referenceFileForShape()));
     }
 
@@ -60,7 +60,7 @@ public class SharedStreamAwsModelSpecTest {
         return "sharedstream/" + shapeModel.getShapeName().toLowerCase(Locale.ENGLISH) + ".java";
     }
 
-    private static void setUp() throws IOException {
+    private static void setUp() {
         File serviceModelFile = new File(SharedStreamAwsModelSpecTest.class.getResource("sharedstream/service-2.json").getFile());
         ServiceModel serviceModel = ModelLoaderUtils.loadModel(ServiceModel.class, serviceModelFile);
 
