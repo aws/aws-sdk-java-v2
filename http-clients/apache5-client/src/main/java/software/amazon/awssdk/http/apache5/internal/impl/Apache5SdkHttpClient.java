@@ -16,15 +16,13 @@
 package software.amazon.awssdk.http.apache5.internal.impl;
 
 import java.io.IOException;
-import org.apache.hc.client5.http.ClientConnectionManager;
-import org.apache.hc.client5.http.ResponseHandler;
 import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpHost;
-import org.apache.hc.core5.http.HttpRequest;
 import org.apache.hc.core5.http.HttpResponse;
-import org.apache.hc.core5.http.params.HttpParams;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -53,58 +51,47 @@ public class Apache5SdkHttpClient implements ConnectionManagerAwareHttpClient {
     }
 
     @Override
-    public HttpParams getParams() {
-        return delegate.getParams();
-    }
-
-    @Override
-    public ClientConnectionManager getConnectionManager() {
-        return delegate.getConnectionManager();
-    }
-
-    @Override
-    public HttpResponse execute(HttpUriRequest request) throws IOException {
+    public HttpResponse execute(ClassicHttpRequest request) throws IOException {
         return delegate.execute(request);
     }
 
     @Override
-    public HttpResponse execute(HttpUriRequest request, HttpContext context) throws IOException {
+    public HttpResponse execute(ClassicHttpRequest request, HttpContext context) throws IOException {
         return delegate.execute(request, context);
     }
 
     @Override
-    public HttpResponse execute(HttpHost target, HttpRequest request) throws IOException {
+    public ClassicHttpResponse execute(HttpHost target, ClassicHttpRequest request) throws IOException {
         return delegate.execute(target, request);
     }
 
     @Override
-    public HttpResponse execute(HttpHost target, HttpRequest request, HttpContext context) throws IOException {
+    public HttpResponse execute(HttpHost target, ClassicHttpRequest request, HttpContext context) throws IOException {
         return delegate.execute(target, request, context);
     }
 
     @Override
-    public <T> T execute(HttpUriRequest request, ResponseHandler<? extends T> responseHandler) throws IOException {
+    public <T> T execute(ClassicHttpRequest request, HttpClientResponseHandler<? extends T> responseHandler) throws IOException {
         return delegate.execute(request, responseHandler);
     }
 
     @Override
-    public <T> T execute(HttpUriRequest request,
-                         ResponseHandler<? extends T> responseHandler,
-                         HttpContext context) throws IOException {
-        return delegate.execute(request, responseHandler, context);
+    public <T> T execute(ClassicHttpRequest request, HttpContext context,
+                         HttpClientResponseHandler<? extends T> responseHandler) throws IOException {
+        return delegate.execute(request, context, responseHandler);
     }
 
     @Override
-    public <T> T execute(HttpHost target,
-                         HttpRequest request,
-                         ResponseHandler<? extends T> responseHandler) throws IOException {
+    public <T> T execute(HttpHost target, ClassicHttpRequest request,
+                         HttpClientResponseHandler<? extends T> responseHandler) throws IOException {
         return delegate.execute(target, request, responseHandler);
     }
 
     @Override
-    public <T> T execute(HttpHost target, HttpRequest request, ResponseHandler<? extends T> responseHandler,
-                         HttpContext context) throws IOException {
-        return delegate.execute(target, request, responseHandler, context);
+    public <T> T execute(HttpHost target, ClassicHttpRequest request,
+                         HttpContext context,
+                         HttpClientResponseHandler<? extends T> responseHandler) throws IOException {
+        return delegate.execute(target, request, context, responseHandler);
     }
 
     @Override

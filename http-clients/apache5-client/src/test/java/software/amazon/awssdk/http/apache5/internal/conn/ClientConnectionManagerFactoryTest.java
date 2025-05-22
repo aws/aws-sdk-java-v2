@@ -13,58 +13,51 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5.internal.conn;import software.amazon.awssdk.http.apache5.internal.conn;
+package software.amazon.awssdk.http.apache5.internal.conn;
+
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.LeaseRequest;
+import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import org.apache.hc.client5.http.ConnectionRequest;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.core5.http.io.HttpClientConnection;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.Test;
 
 public class ClientConnectionManagerFactoryTest {
     HttpClientConnectionManager noop = new HttpClientConnectionManager() {
+
         @Override
-        public void connect(HttpClientConnection conn, HttpRoute route, int connectTimeout, HttpContext context) throws
-                                                                                                                 IOException {
+        public void close() throws IOException {
 
         }
 
         @Override
-        public void upgrade(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
+        public void close(CloseMode closeMode) {
 
         }
 
         @Override
-        public void routeComplete(HttpClientConnection conn, HttpRoute route, HttpContext context) throws IOException {
-
-        }
-
-        @Override
-        public ConnectionRequest requestConnection(HttpRoute route,
-                                                   Object state) {
+        public LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state) {
             return null;
         }
 
         @Override
-        public void releaseConnection(HttpClientConnection conn,
-                                      Object newState,
-                                      long validDuration,
-                                      TimeUnit timeUnit) {
+        public void release(ConnectionEndpoint endpoint, Object newState, TimeValue validDuration) {
+
         }
 
         @Override
-        public void closeIdleConnections(long idletime, TimeUnit tunit) {
+        public void connect(ConnectionEndpoint endpoint, TimeValue connectTimeout, HttpContext context) throws IOException {
+
         }
 
         @Override
-        public void closeExpiredConnections() {
-        }
+        public void upgrade(ConnectionEndpoint endpoint, HttpContext context) throws IOException {
 
-        @Override
-        public void shutdown() {
         }
     };
 

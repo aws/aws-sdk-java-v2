@@ -18,11 +18,11 @@ package software.amazon.awssdk.http.apache5;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientDefaultTestSuite;
 
-public class ApacheHttpClientDefaultWireMockTest extends SdkHttpClientDefaultTestSuite {
+public class Apache5HttpClientDefaultWireMockTest extends SdkHttpClientDefaultTestSuite {
 
     @Override
     protected SdkHttpClient createSdkHttpClient() {
-        return ApacheHttpClient.create();
+        return Apache5HttpClient.create();
     }
 
 }

@@ -30,7 +30,10 @@ import java.time.Duration;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.pool.PoolStats;
@@ -40,6 +43,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
@@ -59,8 +63,14 @@ public class MetricReportingTest {
 
     @Before
     public void methodSetup() throws IOException {
-        when(mockHttpClient.execute(any(HttpUriRequest.class), any(HttpContext.class)))
-                .thenReturn(new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK"));
+
+        ClassicHttpResponse httpResponse = new BasicClassicHttpResponse(200, "OK");
+        when(mockHttpClient.execute(any(HttpUriRequest.class), any(HttpContext.class), any(HttpClientResponseHandler.class)))
+            .thenAnswer(invocation -> {
+                HttpClientResponseHandler<HttpExecuteResponse> handler = invocation.getArgument(2);
+                return handler.handleResponse(httpResponse);
+            });
+
         when(mockHttpClient.getHttpClientConnectionManager()).thenReturn(cm);
 
         PoolStats stats = new PoolStats(1, 2, 3, 4);
@@ -69,14 +79,12 @@ public class MetricReportingTest {
 
     @Test
     public void prepareRequest_callableCalled_metricsReported() throws IOException {
-        ApacheHttpClient client = newClient();
+        Apache5HttpClient client = newClient();
         MetricCollector collector = MetricCollector.create("test");
         HttpExecuteRequest executeRequest = newRequest(collector);
 
         client.prepareRequest(executeRequest).call();
-
         MetricCollection collected = collector.collect();
-
         assertThat(collected.metricValues(HTTP_CLIENT_NAME)).containsExactly("Apache5");
         assertThat(collected.metricValues(LEASED_CONCURRENCY)).containsExactly(1);
         assertThat(collected.metricValues(PENDING_CONCURRENCY_ACQUIRES)).containsExactly(2);
@@ -86,7 +94,7 @@ public class MetricReportingTest {
 
     @Test
     public void prepareRequest_connectionManagerNotPooling_callableCalled_metricsReported() throws IOException {
-        ApacheHttpClient client = newClient();
+        Apache5HttpClient client = newClient();
         when(mockHttpClient.getHttpClientConnectionManager()).thenReturn(mock(HttpClientConnectionManager.class));
         MetricCollector collector = MetricCollector.create("test");
         HttpExecuteRequest executeRequest = newRequest(collector);
@@ -102,7 +110,7 @@ public class MetricReportingTest {
         assertThat(collected.metricValues(MAX_CONCURRENCY)).isEmpty();
     }
 
-    private ApacheHttpClient newClient() {
+    private Apache5HttpClient newClient() {
         Apache5HttpRequestConfig config = Apache5HttpRequestConfig.builder()
                                                                   .connectionAcquireTimeout(Duration.ofDays(1))
                                                                   .connectionTimeout(Duration.ofDays(1))
@@ -110,7 +118,7 @@ public class MetricReportingTest {
                                                                   .proxyConfiguration(ProxyConfiguration.builder().build())
                                                                   .build();
 
-        return new ApacheHttpClient(mockHttpClient, config, AttributeMap.empty());
+        return new Apache5HttpClient(mockHttpClient, config, AttributeMap.empty());
     }
 
     private HttpExecuteRequest newRequest(MetricCollector collector) {
@@ -119,12 +127,9 @@ public class MetricReportingTest {
                 .host("amazonaws.com")
                 .protocol("https")
                 .build();
-
-        HttpExecuteRequest executeRequest = HttpExecuteRequest.builder()
-                .request(sdkRequest)
-                .metricCollector(collector)
-                .build();
-
-        return executeRequest;
+        return HttpExecuteRequest.builder()
+                                 .request(sdkRequest)
+                                 .metricCollector(collector)
+                                 .build();
     }
 }

@@ -13,7 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5.internal.impl;import software.amazon.awssdk.http.apache5.internal.impl;
+package software.amazon.awssdk.http.apache5.internal.impl;
+
+import java.net.URISyntaxException;
+import org.apache.hc.core5.http.HttpEntityContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +28,6 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import org.apache.hc.client5.http.classic.methods.HttpEntityEnclosingRequestBase;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
@@ -42,11 +44,11 @@ import software.amazon.awssdk.http.apache5.internal.RepeatableInputStreamRequest
 public class ApacheHttpRequestFactoryTest {
 
     private Apache5HttpRequestConfig requestConfig;
-    private ApacheHttpRequestFactory instance;
+    private Apache5HttpRequestFactory instance;
 
     @BeforeEach
     public void setup() {
-        instance = new ApacheHttpRequestFactory();
+        instance = new Apache5HttpRequestFactory();
         requestConfig = Apache5HttpRequestConfig.builder()
                                                 .connectionAcquireTimeout(Duration.ZERO)
                                                 .connectionTimeout(Duration.ZERO)
@@ -127,8 +129,9 @@ public class ApacheHttpRequestFactoryTest {
         Header[] transferEncodingHeaders = result.getHeaders("Transfer-Encoding");
         assertThat(transferEncodingHeaders).isEmpty();
 
-        HttpEntityEnclosingRequestBase enclosingRequest = (HttpEntityEnclosingRequestBase) result;
-        HttpEntity httpEntity = enclosingRequest.getEntity();
+        assertThat(result).isInstanceOf(HttpEntityContainer.class);
+        HttpEntity httpEntity = ((HttpEntityContainer) result).getEntity();
+
         assertThat(httpEntity.isChunked()).isTrue();
         assertThat(httpEntity).isNotInstanceOf(BufferedHttpEntity.class);
         assertThat(httpEntity).isInstanceOf(RepeatableInputStreamRequestEntity.class);
@@ -193,6 +196,10 @@ public class ApacheHttpRequestFactoryTest {
                                                        .request(sdkRequest)
                                                        .build();
 
-        return instance.create(request, requestConfig).getUri().toString();
+        try {
+            return instance.create(request, requestConfig).getUri().toString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -22,7 +22,7 @@ import java.util.Set;
 import software.amazon.awssdk.http.HttpProxyTestSuite;
 import software.amazon.awssdk.http.proxy.TestProxySetting;
 
-public class ApacheHttpProxyTest extends HttpProxyTestSuite {
+public class Apache5HttpProxyTest extends HttpProxyTestSuite {
     @Override
     protected void assertProxyConfiguration(TestProxySetting userSetProxySettings,
                                             TestProxySetting expectedProxySettings,

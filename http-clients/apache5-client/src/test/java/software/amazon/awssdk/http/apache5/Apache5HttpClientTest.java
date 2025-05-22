@@ -29,9 +29,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 /**
- * @see ApacheHttpClientWireMockTest
+ * @see Apache5HttpClientWireMockTest
  */
-public class ApacheHttpClientTest {
+public class Apache5HttpClientTest {
     @AfterEach
     public void cleanup() {
         System.clearProperty("http.proxyHost");
@@ -42,7 +42,7 @@ public class ApacheHttpClientTest {
 
     @Test
     public void connectionReaperCanBeManuallyEnabled() {
-        ApacheHttpClient.builder()
+        Apache5HttpClient.builder()
                         .useIdleConnectionReaper(true)
                         .build()
                         .close();
@@ -55,7 +55,7 @@ public class ApacheHttpClientTest {
                                                       .useSystemPropertyValues(Boolean.FALSE)
                                                       .build();
         assertThatThrownBy(() -> {
-            ApacheHttpClient.builder()
+            Apache5HttpClient.builder()
                             .proxyConfiguration(proxyConfig)
                             .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
                             .build();
@@ -68,7 +68,7 @@ public class ApacheHttpClientTest {
         System.setProperty("http.proxyPort", "1234");
 
         assertThatThrownBy(() -> {
-            ApacheHttpClient.builder()
+            Apache5HttpClient.builder()
                             .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
                             .build();
         }).isInstanceOf(IllegalArgumentException.class);
@@ -83,7 +83,7 @@ public class ApacheHttpClientTest {
                                                            .useSystemPropertyValues(Boolean.FALSE)
                                                            .build();
 
-        ApacheHttpClient.builder()
+        Apache5HttpClient.builder()
                         .proxyConfiguration(proxyConfig)
                         .httpRoutePlanner(Mockito.mock(HttpRoutePlanner.class))
                         .build();
@@ -97,7 +97,7 @@ public class ApacheHttpClientTest {
                                                            .password("bar")
                                                            .build();
         assertThatThrownBy(() -> {
-            ApacheHttpClient.builder()
+            Apache5HttpClient.builder()
                             .proxyConfiguration(proxyConfig)
                             .credentialsProvider(Mockito.mock(CredentialsProvider.class))
                             .build();
@@ -110,7 +110,7 @@ public class ApacheHttpClientTest {
         System.setProperty("http.proxyPassword", "bar");
 
         assertThatThrownBy(() -> {
-            ApacheHttpClient.builder()
+            Apache5HttpClient.builder()
                             .credentialsProvider(Mockito.mock(CredentialsProvider.class))
                             .build();
         }).isInstanceOf(IllegalArgumentException.class);
@@ -121,7 +121,7 @@ public class ApacheHttpClientTest {
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
                                                            .endpoint(URI.create("http://localhost:1234"))
                                                            .build();
-        ApacheHttpClient.builder()
+        Apache5HttpClient.builder()
                         .proxyConfiguration(proxyConfig)
                         .credentialsProvider(Mockito.mock(CredentialsProvider.class))
                         .build();
@@ -140,7 +140,7 @@ public class ApacheHttpClientTest {
             }
         };
 
-        ApacheHttpClient.builder()
+        Apache5HttpClient.builder()
                         .dnsResolver(dnsResolver)
                         .build()
                         .close();

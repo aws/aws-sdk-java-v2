@@ -19,10 +19,10 @@ package software.amazon.awssdk.http.apache5.internal.conn;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import org.apache.hc.client5.http.ConnectionPoolTimeoutException;
-import org.apache.hc.client5.http.ConnectionRequest;
-import org.apache.hc.core5.http.io.HttpClientConnection;
+import java.util.concurrent.TimeoutException;
+import org.apache.hc.client5.http.io.ConnectionEndpoint;
+import org.apache.hc.client5.http.io.LeaseRequest;
+import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
@@ -40,12 +40,12 @@ public final class ClientConnectionRequestFactory {
     }
 
     /**
-     * Returns a wrapped instance of {@link ConnectionRequest}
+     * Returns a wrapped instance of {@link LeaseRequest}
      * to capture the necessary performance metrics.
      *
      * @param orig the target instance to be wrapped
      */
-    static ConnectionRequest wrap(ConnectionRequest orig) {
+    static LeaseRequest wrap(LeaseRequest orig) {
         if (orig instanceof DelegatingConnectionRequest) {
             throw new IllegalArgumentException();
         }
@@ -53,48 +53,48 @@ public final class ClientConnectionRequestFactory {
     }
 
     /**
-     * Measures the latency of {@link ConnectionRequest#get(long, TimeUnit)}.
+     * Measures the latency of {@link LeaseRequest#get(Timeout)}.
      */
     private static class InstrumentedConnectionRequest extends DelegatingConnectionRequest {
 
-        private InstrumentedConnectionRequest(ConnectionRequest delegate) {
+        private InstrumentedConnectionRequest(LeaseRequest delegate) {
             super(delegate);
         }
 
+
         @Override
-        public HttpClientConnection get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException,
-                                                                                ConnectionPoolTimeoutException {
+        public ConnectionEndpoint get(Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
             Instant startTime = Instant.now();
             try {
-                return super.get(timeout, timeUnit);
+                return super.get(timeout);
             } finally {
                 Duration elapsed = Duration.between(startTime, Instant.now());
                 MetricCollector metricCollector = THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.get();
                 metricCollector.reportMetric(HttpMetric.CONCURRENCY_ACQUIRE_DURATION, elapsed);
             }
         }
+
     }
 
     /**
-     * Delegates all methods to {@link ConnectionRequest}. Subclasses can override select methods to change behavior.
+     * Delegates all methods to {@link LeaseRequest}. Subclasses can override select methods to change behavior.
      */
-    private static class DelegatingConnectionRequest implements ConnectionRequest {
+    private static class DelegatingConnectionRequest implements LeaseRequest {
 
-        private final ConnectionRequest delegate;
+        private final LeaseRequest delegate;
 
-        private DelegatingConnectionRequest(ConnectionRequest delegate) {
+        private DelegatingConnectionRequest(LeaseRequest delegate) {
             this.delegate = delegate;
-        }
-
-        @Override
-        public HttpClientConnection get(long timeout, TimeUnit timeUnit)
-                throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
-            return delegate.get(timeout, timeUnit);
         }
 
         @Override
         public boolean cancel() {
             return delegate.cancel();
+        }
+
+        @Override
+        public ConnectionEndpoint get(Timeout timeout) throws InterruptedException, ExecutionException, TimeoutException {
+            return delegate.get(timeout);
         }
     }
 }

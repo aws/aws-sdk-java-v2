@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5.internal.conn;import software.amazon.awssdk.http.apache5.internal.conn;
+package software.amazon.awssdk.http.apache5.internal.conn;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;

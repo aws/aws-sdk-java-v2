@@ -22,7 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Optional;
+import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.BasicHttpEntity;
 import org.apache.hc.core5.http.io.entity.InputStreamEntity;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -47,10 +47,6 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
      */
     private boolean firstAttempt = true;
 
-    /**
-     * True if the "Transfer-Encoding:chunked" header is present
-     */
-    private boolean isChunked;
 
     /**
      * The underlying InputStreamEntity being delegated to
@@ -80,33 +76,32 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
      * @param request The details of the request being written out (content type,
      *                content length, and content).
      */
-    public RepeatableInputStreamRequestEntity(final HttpExecuteRequest request) {
-        isChunked = request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
-        setChunked(isChunked);
-
-        /*
-         * If we don't specify a content length when we instantiate our
-         * InputStreamRequestEntity, then HttpClient will attempt to
-         * buffer the entire stream contents into memory to determine
-         * the content length.
-         */
-        long contentLength = request.httpRequest().firstMatchingHeader("Content-Length")
-                                    .map(this::parseContentLength)
-                                    .orElse(-1L);
-
-        content = getContent(request.contentStreamProvider());
-        // TODO v2 MetricInputStreamEntity
-        inputStreamRequestEntity = new InputStreamEntity(content, contentLength);
-        setContent(content);
-        setContentLength(contentLength);
-
-        request.httpRequest().firstMatchingHeader("Content-Type").ifPresent(contentType -> {
-            inputStreamRequestEntity.setContentType(contentType);
-            setContentType(contentType);
-        });
+    public RepeatableInputStreamRequestEntity(HttpExecuteRequest request) {
+        super(request.contentStreamProvider().map(ContentStreamProvider::newStream)
+                     .orElseGet(() -> new ByteArrayInputStream(new byte[0])),
+              getContentLengthFromRequest(request),
+              getContentTypeFromRequest(request),
+              null,
+              request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED));
+        InputStream inputStream = getContent();
+        this.content = inputStream;
+        inputStreamRequestEntity = new InputStreamEntity(inputStream,
+                                                         getContentLengthFromRequest(request),
+                                                         getContentTypeFromRequest(request));
     }
 
-    private long parseContentLength(String contentLength) {
+
+    private static ContentType getContentTypeFromRequest(HttpExecuteRequest request) {
+        return request.httpRequest().firstMatchingHeader("Content-Type").map(ContentType::create).orElse(null);
+    }
+
+    private static Long getContentLengthFromRequest(HttpExecuteRequest request) {
+        return request.httpRequest().firstMatchingHeader("Content-Length")
+                      .map(RepeatableInputStreamRequestEntity::parseContentLength)
+                      .orElse(-1L);
+    }
+
+    private static long parseContentLength(String contentLength) {
         try {
             return Long.parseLong(contentLength);
         } catch (NumberFormatException nfe) {
@@ -115,25 +110,9 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
         }
     }
 
-    /**
-     * @return The request content input stream or an empty input stream if there is no content.
-     */
-    private InputStream getContent(Optional<ContentStreamProvider> contentStreamProvider) {
-        return contentStreamProvider.map(ContentStreamProvider::newStream).orElseGet(() -> new ByteArrayInputStream(new byte[0]));
-    }
 
-    @Override
-    public boolean isChunked() {
-        return isChunked;
-    }
-
-    /**
-     * Returns true if the underlying InputStream supports marking/reseting or
-     * if the underlying InputStreamRequestEntity is repeatable.
-     */
-    @Override
-    public boolean isRepeatable() {
-        return content.markSupported() || inputStreamRequestEntity.isRepeatable();
+    private boolean isRepeatableStream() {
+        return getContent().markSupported() || inputStreamRequestEntity.isRepeatable();
     }
 
     /**
@@ -149,7 +128,8 @@ public class RepeatableInputStreamRequestEntity extends BasicHttpEntity {
     @Override
     public void writeTo(OutputStream output) throws IOException {
         try {
-            if (!firstAttempt && isRepeatable()) {
+            if (!firstAttempt && isRepeatableStream()) {
+
                 content.reset();
             }
 

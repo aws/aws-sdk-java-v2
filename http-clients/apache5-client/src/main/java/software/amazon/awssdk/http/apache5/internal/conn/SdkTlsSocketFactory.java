@@ -25,6 +25,7 @@ import javax.net.ssl.SSLSocket;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache5.internal.net.InputShutdownCheckingSslSocket;
 import software.amazon.awssdk.http.apache5.internal.net.SdkSocket;
@@ -40,7 +41,7 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         super(sslContext, hostnameVerifier);
         if (sslContext == null) {
             throw new IllegalArgumentException(
-                    "sslContext must not be null. " + "Use SSLContext.getDefault() if you are unsure.");
+                "sslContext must not be null. " + "Use SSLContext.getDefault() if you are unsure.");
         }
     }
 
@@ -52,7 +53,7 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
     }
 
     @Override
-    public Socket connectSocket(int connectTimeout,
+        public Socket connectSocket(TimeValue connectTimeout,
             Socket socket,
             HttpHost host,
             InetSocketAddress remoteAddress,
@@ -60,13 +61,10 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
             HttpContext context) throws IOException {
         log.trace(() -> String.format("Connecting to %s:%s", remoteAddress.getAddress(), remoteAddress.getPort()));
 
-        Socket connectedSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
-
-        if (connectedSocket instanceof SSLSocket) {
-            return new InputShutdownCheckingSslSocket(new SdkSslSocket((SSLSocket) connectedSocket));
+        Socket connectSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
+        if (connectSocket instanceof SSLSocket) {
+            return new InputShutdownCheckingSslSocket(new SdkSslSocket((SSLSocket) connectSocket));
         }
-
-        return new SdkSocket(connectedSocket);
+        return new SdkSocket(connectSocket);
     }
-
 }

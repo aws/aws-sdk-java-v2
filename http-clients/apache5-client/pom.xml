@@ -45,10 +45,49 @@
     </dependency>
     <dependency>
         <groupId>software.amazon.awssdk</groupId>
+        <artifactId>utils</artifactId>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>metrics-spi</artifactId>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>annotations</artifactId>
+        <version>${awsjavasdk.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>software.amazon.awssdk</groupId>
         <artifactId>http-client-tests</artifactId>
         <version>${awsjavasdk.version}</version>
         <scope>test</scope>
     </dependency>
+    <!-- Added for WIRE logging details while testing-->
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-api</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <scope>test</scope>
+        <version>${slf4j.version}</version>
+    </dependency>
+
     <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>

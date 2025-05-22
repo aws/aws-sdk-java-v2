@@ -40,7 +40,7 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 
-public class ApacheMetricsTest {
+public class Apache5MetricsTest {
     private static WireMockServer wireMockServer;
     private SdkHttpClient client;
 
@@ -73,7 +73,7 @@ public class ApacheMetricsTest {
 
     @Test
     public void concurrencyAcquireDurationIsRecorded() throws IOException {
-        client = ApacheHttpClient.create();
+        client = Apache5HttpClient.create();
         MetricCollector collector = MetricCollector.create("test");
         makeRequestWithMetrics(client, collector);
 
