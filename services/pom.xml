@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.48</version>
+        <version>2.31.49</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -320,7 +320,6 @@
         <module>redshiftserverless</module>
         <module>rolesanywhere</module>
         <module>licensemanagerusersubscriptions</module>
-        <module>privatenetworks</module>
         <module>supportapp</module>
         <module>controltower</module>
         <module>iotfleetwise</module>
