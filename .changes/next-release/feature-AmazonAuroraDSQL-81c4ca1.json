@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Aurora DSQL",
+    "contributor": "",
+    "description": "Features: support for customer managed encryption keys"
+}
