@@ -20,21 +20,31 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
-import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.Lazy;
 
-@SdkProtectedApi
+@SdkInternalApi
 public class AuthSchemePreferenceProvider {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
     private AuthSchemePreferenceProvider(Builder builder) {
-        this.profileFile = Validate.paramNotNull(builder.profileFile, "profileFile");
-        this.profileName = builder.profileName;
+        if (builder.profileFile != null) {
+            this.profileFile = builder.profileFile;
+        } else {
+           this.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+        }
+
+        if (builder.profileName != null) {
+            this.profileName = builder.profileName;
+        } else {
+            this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
+        }
     }
 
     public static Builder builder() {
@@ -79,7 +89,7 @@ public class AuthSchemePreferenceProvider {
     }
 
     public static final class Builder {
-        private Supplier<ProfileFile> profileFile = ProfileFile::defaultProfileFile;
+        private Supplier<ProfileFile> profileFile;
         private String profileName;
 
         public AuthSchemePreferenceProvider.Builder profileFile(Supplier<ProfileFile> profileFile) {

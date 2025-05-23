@@ -939,14 +939,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addModifiers(PRIVATE)
                          .addParameter(SdkClientConfiguration.class, "config")
                          .returns(authSchemeSpecUtils.providerInterfaceName())
-                         .addStatement("$T builder = "
-                                       + "$T.builder()",
-                                       AuthSchemePreferenceProvider.Builder.class, AuthSchemePreferenceProvider.class)
-                         .addStatement("config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder"
-                                       + ".profileFile(() -> profileFile))")
-                         .addStatement("config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder"
-                                       + ".profileName(profileName))")
-                         .addStatement("List<String> preferences = builder.build().resolveAuthSchemePreference()")
+                         .addCode("$T authSchemePreferenceProvider = "
+                                  + "$T.builder()",
+                                  AuthSchemePreferenceProvider.class, AuthSchemePreferenceProvider.class)
+                         .addCode(".profileFile(config.option($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class)
+                         .addCode(".profileName(config.option($T.PROFILE_NAME))", SdkClientOption.class)
+                         .addStatement(".build()")
+                         .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
                          .beginControlFlow("if(preferences != null && !preferences.isEmpty())")
                          .addStatement("return $T.builder().withPreferredAuthSchemes(preferences).build()",
                                        authSchemeSpecUtils.providerInterfaceName())
