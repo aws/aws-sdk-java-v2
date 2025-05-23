@@ -22,7 +22,6 @@ import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -82,8 +81,8 @@ public class PreferredAuthSchemeProviderSpec implements ClassSpec {
         b.addStatement("$T candidateAuthSchemes = delegate.resolveAuthScheme(params)",
                        authSchemeSpecUtils.resolverReturnType());
         b.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
-         .addStatement("return candidateAuthSchemes")
-         .endControlFlow();
+            .addStatement("return candidateAuthSchemes")
+            .endControlFlow();
 
         b.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
 
@@ -97,10 +96,10 @@ public class PreferredAuthSchemeProviderSpec implements ClassSpec {
         b.endControlFlow(")");
 
         b.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
-         .beginControlFlow("if (!authSchemes.contains(candidate))")
-         .addStatement("authSchemes.add(candidate)")
-         .endControlFlow()
-         .endControlFlow(")");
+            .beginControlFlow("if (!authSchemes.contains(candidate))")
+            .addStatement("authSchemes.add(candidate)")
+            .endControlFlow()
+            .endControlFlow(")");
 
         b.addStatement("return authSchemes");
         return b.build();

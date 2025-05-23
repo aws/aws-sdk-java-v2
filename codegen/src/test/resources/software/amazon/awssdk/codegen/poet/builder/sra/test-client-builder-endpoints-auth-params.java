@@ -70,13 +70,13 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c
-                .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+            .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
+            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -87,7 +87,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         endpointInterceptors.add(new QueryRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -109,21 +109,21 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
         builder.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE, resolveAccountIdEndpointMode(config));
         builder.lazyOptionIfAbsent(
-                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                c -> AwsClientEndpointProvider
-                        .builder()
-                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
-                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
-                        .serviceProfileProperty("query_service")
-                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                        .defaultProtocol("https")
-                        .region(c.get(AwsClientOption.AWS_REGION))
-                        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                        .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                        .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                        .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                        .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                .serviceProfileProperty("query_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         SdkClientConfiguration clientConfig = config;
         builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
         builder.lazyOption(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION, c -> resolveResponseChecksumValidation(clientConfig));
@@ -144,9 +144,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return thisBuilder();
     }
 
-    private QueryAuthSchemeProvider defaultAuthSchemeProvider() {
-        AuthSchemePreferenceProvider authSchemePreferenceProvider = AuthSchemePreferenceProvider.builder().build();
-        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+    private QueryAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceProvider.Builder builder = AuthSchemePreferenceProvider.builder();
+        config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder.profileFile(() -> profileFile));
+        config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder.profileName(profileName));
+        List<String> preferences = builder.build().resolveAuthSchemePreference();
         if (preferences != null && !preferences.isEmpty()) {
             return QueryAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
         }
@@ -250,9 +252,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         AccountIdEndpointMode configuredMode = config.option(AwsClientOption.ACCOUNT_ID_ENDPOINT_MODE);
         if (configuredMode == null) {
             configuredMode = AccountIdEndpointModeResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
-                    .resolve();
+                                                          .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                          .profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultMode(AccountIdEndpointMode.PREFERRED)
+                                                          .resolve();
         }
         return configuredMode;
     }
@@ -261,9 +263,9 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         RequestChecksumCalculation configuredChecksumCalculation = config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION);
         if (configuredChecksumCalculation == null) {
             configuredChecksumCalculation = RequestChecksumCalculationResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                    .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
+                                                                              .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                              .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                              .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
         }
         return configuredChecksumCalculation;
     }
@@ -272,21 +274,21 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         ResponseChecksumValidation configuredChecksumValidation = config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION);
         if (configuredChecksumValidation == null) {
             configuredChecksumValidation = ResponseChecksumValidationResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                    .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
+                                                                             .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                             .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                             .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
         }
         return configuredChecksumValidation;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                "The 'tokenProvider' must be configured in the client builder.");
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 
     public B sigv4aSigningRegionSet(RegionSet sigv4aSigningRegionSet) {
         clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET,
-                sigv4aSigningRegionSet == null ? Collections.emptySet() : sigv4aSigningRegionSet.asSet());
+                                   sigv4aSigningRegionSet == null ? Collections.emptySet() : sigv4aSigningRegionSet.asSet());
         return thisBuilder();
     }
 }

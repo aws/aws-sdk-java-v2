@@ -278,7 +278,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
 
         if (authSchemeSpecUtils.useSraAuth()) {
-            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class);
             builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
         } else {
             if (defaultAwsAuthSignerMethod().isPresent()) {
@@ -510,10 +510,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("    .build());");
 
         if (model.getMetadata().isJsonProtocol()) {
-            if (model.getCustomizationConfig().getEnableFastUnmarshaller()) {
-                builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
-                                     SdkClientJsonProtocolAdvancedOption.class);
-            }
+            builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
+                                 SdkClientJsonProtocolAdvancedOption.class);
         }
 
         if (hasRequestAlgorithmMember(model) || hasResponseAlgorithms(model)) {
@@ -832,10 +830,16 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec defaultAuthSchemeProviderMethod() {
         return MethodSpec.methodBuilder("defaultAuthSchemeProvider")
                          .addModifiers(PRIVATE)
+                         .addParameter(SdkClientConfiguration.class, "config")
                          .returns(authSchemeSpecUtils.providerInterfaceName())
-                         .addStatement("$T authSchemePreferenceProvider = "
-                                       + "$T.builder().build()", AuthSchemePreferenceProvider.class, AuthSchemePreferenceProvider.class)
-                         .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
+                         .addStatement("$T builder = "
+                                       + "$T.builder()",
+                                       AuthSchemePreferenceProvider.Builder.class, AuthSchemePreferenceProvider.class)
+                         .addStatement("config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder"
+                                       + ".profileFile(() -> profileFile))")
+                         .addStatement("config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder"
+                                       + ".profileName(profileName))")
+                         .addStatement("List<String> preferences = builder.build().resolveAuthSchemePreference()")
                          .beginControlFlow("if(preferences != null && !preferences.isEmpty())")
                          .addStatement("return $T.builder().withPreferredAuthSchemes(preferences).build()",
                                        authSchemeSpecUtils.providerInterfaceName())

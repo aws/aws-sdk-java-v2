@@ -47,16 +47,14 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
  * </ul>
  *
  * Example using attribute converter providers with one custom provider and the default provider:
- * <pre>
- * {@code
+ *
+ * {@snippet :
  * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
  * }
- * </pre>
  *
  * <p>
  * Example using {@link DynamoDbImmutable}:
- * <pre>
- * {@code
+ * {@snippet :
  * @DynamoDbImmutable(builder = Customer.Builder.class)
  * public class Customer {
  *     private final String accountId;
@@ -104,7 +102,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
  *     }
  * }
  * }
- * </pre>
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +35,15 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
@@ -79,6 +89,8 @@ public class AuthSchemePreferenceProviderTest {
                                .region(Region.US_WEST_2)
                                .credentialsProvider(AnonymousCredentialsProvider.create());
 
+            builder.putAuthScheme(authScheme("aws.auth#sigv4a", new SkipCrtNoOpSigner()));
+
             if (testCase.clientSetting != null) {
                 builder.authSchemeProvider(MultiauthAuthSchemeProvider.builder().withPreferredAuthSchemes(testCase.clientSetting).build());
             }
@@ -114,61 +126,80 @@ public class AuthSchemePreferenceProviderTest {
                 // expected
             }
 
-            assertThat(interceptor.authScheme()).isEqualTo(testCase.expectedValues.get(0));
+            assertThat(interceptor.authScheme()).isEqualTo(testCase.resolvedAuthScheme);
         } finally {
             tearDown();
         }
     }
 
+    private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
+        return new AuthScheme<AwsCredentialsIdentity>() {
+            @Override
+            public String schemeId() {
+                return schemeId;
+            }
+
+            @Override
+            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
+                return providers.identityProvider(AwsCredentialsIdentity.class);
+            }
+
+            @Override
+            public HttpSigner<AwsCredentialsIdentity> signer() {
+                return signer;
+            }
+        };
+    }
+
     static Stream<Arguments> testCases() {
         return Stream.of(
-            // Arguments.of(new TestCase(
-            //     null,
-            //     null,
-            //     null,
-            //     Arrays.asList("sigv4", "noauth"),
-            //     Arrays.asList("sigv4", "noauth"),
-            //     "Client config is used when set")),
-            //
-            // Arguments.of(new TestCase(
-            //     null,
-            //     null,
-            //     "sigv4,sigv4a,bearer",
-            //     null,
-            //     Arrays.asList("sigv4", "sigv4a", "bearer"),
-            //     "System property value is used")),
+            Arguments.of(new TestCase(
+                null,
+                null,
+                null,
+                Arrays.asList("sigv4", "noauth"),
+                "sigv4",
+                "Client config is used when set")),
+
+            Arguments.of(new TestCase(
+                null,
+                null,
+                "sigv4,sigv4a,bearer",
+                null,
+                "sigv4",
+                "System property value is used")),
 
             Arguments.of(new TestCase(
                 null,
                 "sigv4a,sigv4,bearer",
                 null,
                 null,
-                Arrays.asList("sigv4a", "sigv4", "bearer"),
-                "Environment variable is used when other properties is null"))
+                "sigv4a",
+                "Environment variable is used when other properties is null")),
 
-            // Arguments.of(new TestCase(
-            //     "bearer,sigv4,sigv4a",
-            //     null,
-            //     null,
-            //     null,
-            //     Arrays.asList("bearer", "sigv4", "sigv4a"),
-            //     "Profile setting is used when others are null")),
-            //
-            // Arguments.of(new TestCase(
-            //     "bearer,sigv4,sigv4a",
-            //     "sigv4a,sigv4,bearer",
-            //     "sigv4,sigv4a,bearer",
-            //     null,
-            //     Arrays.asList("sigv4", "sigv4a", "bearer"),
-            //     "JVM system property has precedence over env var and profile")),
-            //
-            // Arguments.of(new TestCase(
-            //     "bearer,sigv4,sigv4a",
-            //     "sigv4a,sigv4,bearer",
-            //     "sigv4,sigv4a,bearer",
-            //     Arrays.asList("noauth", "sigv4a", "bearer"),
-            //     Arrays.asList("noauth", "sigv4a", "bearer"),
-            //     "Client config has highest precedence"))
+            Arguments.of(new TestCase(
+                "bearer,sigv4,sigv4a",
+                null,
+                null,
+                null,
+                "sigv4",
+                "Profile setting is used when others are null")),
+
+            Arguments.of(new TestCase(
+                "bearer,sigv4,sigv4a",
+                "sigv4a,sigv4,bearer",
+                "sigv4,sigv4a,bearer",
+                null,
+                "sigv4",
+                "JVM system property has precedence over env var and profile")),
+
+            Arguments.of(new TestCase(
+                "bearer,sigv4,sigv4a",
+                "sigv4,sigv4a,bearer",
+                "sigv4,sigv4a,bearer",
+                Arrays.asList("sigv4a", "noauth", "bearer"),
+                "sigv4a",
+                "Client config has highest precedence"))
         );
     }
 
@@ -177,16 +208,16 @@ public class AuthSchemePreferenceProviderTest {
         private final String envVarSetting;
         private final String systemPropSetting;
         private final List<String> clientSetting;
-        private final List<String> expectedValues;
+        private final String resolvedAuthScheme;
         private final String caseName;
 
         public TestCase(String profileSetting, String envVarSetting, String systemPropSetting, List<String> clientSetting,
-                       List<String> expectedValues, String caseName) {
+                        String resolvedAuthScheme, String caseName) {
             this.profileSetting = profileSetting;
             this.envVarSetting = envVarSetting;
             this.systemPropSetting = systemPropSetting;
             this.clientSetting = clientSetting;
-            this.expectedValues = expectedValues;
+            this.resolvedAuthScheme = resolvedAuthScheme;
 
             this.caseName = caseName;
         }
@@ -214,6 +245,27 @@ public class AuthSchemePreferenceProviderTest {
         }
 
         public static class CaptureException extends RuntimeException {
+        }
+    }
+
+    public static class SkipCrtNoOpSigner implements HttpSigner<AwsCredentialsIdentity> {
+
+        @Override
+        public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+            return SignedRequest
+                .builder()
+                .request(request.request())
+                .build();
+        }
+
+        @Override
+        public CompletableFuture<AsyncSignedRequest> signAsync(
+            AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+            return CompletableFuture.completedFuture(
+                AsyncSignedRequest.builder()
+                                  .request(request.request())
+                                  .build()
+            );
         }
     }
 }
