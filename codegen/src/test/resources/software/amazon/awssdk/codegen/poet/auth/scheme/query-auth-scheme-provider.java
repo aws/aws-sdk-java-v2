@@ -1,27 +1,15 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.query.auth.scheme;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.auth.scheme.internal.PreferredQueryAuthSchemeProvider;
 
 /**
  * An auth scheme provider for Query service. The auth scheme provider takes a set of parameters using
@@ -49,5 +37,41 @@ public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
      */
     static QueryAuthSchemeProvider defaultProvider() {
         return DefaultQueryAuthSchemeProvider.create();
+    }
+
+    /**
+     * Create a builder for the auth scheme provider.
+     */
+    static Builder builder() {
+        return new QueryAuthSchemeProviderBuilder();
+    }
+
+    interface Builder {
+        /**
+         * Returns a {@link QueryAuthSchemeProvider} object that is created from the properties that have been set on
+         * the builder.
+         */
+        QueryAuthSchemeProvider build();
+
+        /**
+         * Set the preferred auth schemes in order of preference.
+         */
+        Builder withPreferredAuthSchemes(List<String> authSchemePreference);
+    }
+
+    @SdkInternalApi
+    final class QueryAuthSchemeProviderBuilder implements Builder {
+        private List<String> authSchemePreference;
+
+        @Override
+        public Builder withPreferredAuthSchemes(List<String> authSchemePreference) {
+            this.authSchemePreference = new ArrayList<>(authSchemePreference);
+            return this;
+        }
+
+        @Override
+        public QueryAuthSchemeProvider build() {
+            return new PreferredQueryAuthSchemeProvider(defaultProvider(), authSchemePreference);
+        }
     }
 }
