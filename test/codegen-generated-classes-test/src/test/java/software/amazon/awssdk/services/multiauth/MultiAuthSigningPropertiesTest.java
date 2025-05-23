@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.api.Assertions;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;

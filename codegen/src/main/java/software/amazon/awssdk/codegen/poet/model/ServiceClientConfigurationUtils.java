@@ -108,6 +108,7 @@ public class ServiceClientConfigurationUtils {
         ));
         fields.addAll(addCustomClientParams(model));
         fields.addAll(addModeledIdentityProviders(model));
+        fields.addAll(addCustomClientConfigParams(model));
         return fields;
     }
 

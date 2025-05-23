@@ -15,6 +15,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
@@ -70,7 +71,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c
             .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
@@ -143,7 +144,14 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
         return thisBuilder();
     }
 
-    private QueryAuthSchemeProvider defaultAuthSchemeProvider() {
+    private QueryAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceProvider.Builder builder = AuthSchemePreferenceProvider.builder();
+        config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder.profileFile(() -> profileFile));
+        config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder.profileName(profileName));
+        List<String> preferences = builder.build().resolveAuthSchemePreference();
+        if (preferences != null && !preferences.isEmpty()) {
+            return QueryAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
+        }
         return QueryAuthSchemeProvider.defaultProvider();
     }
 

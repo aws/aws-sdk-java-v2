@@ -17,13 +17,16 @@ package software.amazon.awssdk.codegen.poet.auth.scheme;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -55,7 +58,9 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                         .addMethod(resolveAuthSchemeMethod())
                         .addMethod(resolveAuthSchemeConsumerBuilderMethod())
                         .addMethod(defaultProviderMethod())
-                        .addMethod(defaultProviderWithPreferenceMethod())
+                        .addMethod(staticBuilderMethodSpec())
+                        .addType(builderInterfaceSpec())
+                        .addType(builderClassSpec())
                         .build();
     }
 
@@ -88,22 +93,11 @@ public class AuthSchemeProviderSpec implements ClassSpec {
 
     private MethodSpec defaultProviderMethod() {
         return MethodSpec.methodBuilder("defaultProvider")
-                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                         .returns(className())
-                         .addJavadoc("Get the default auth scheme provider.")
-                         .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
-                         .build();
-    }
-
-    private MethodSpec defaultProviderWithPreferenceMethod() {
-        return MethodSpec.methodBuilder("defaultProvider")
-                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                         .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
-                         .returns(className())
-                         .addJavadoc("Get the default auth scheme provider with auth scheme preference.")
-                         .addStatement("return new $T(defaultProvider(), authSchemePreference)",
-                                       authSchemeSpecUtils.preferredAuthSchemeProviderName())
-                         .build();
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .returns(className())
+            .addJavadoc("Get the default auth scheme provider.")
+            .addStatement("return $T.create()", authSchemeSpecUtils.defaultAuthSchemeProviderName())
+            .build();
     }
 
     private CodeBlock interfaceJavadoc() {
@@ -117,4 +111,74 @@ public class AuthSchemeProviderSpec implements ClassSpec {
 
         return b.build();
     }
+
+    private MethodSpec staticBuilderMethodSpec() {
+        return MethodSpec.methodBuilder("builder")
+                         .addJavadoc("Create a builder for the auth scheme provider.")
+                         .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                         .returns(className().nestedClass("Builder"))
+                         .addStatement("return new $T()", ClassName.get(className().packageName(),
+                                                                      className().simpleName(),
+                                                                      className().simpleName() + "Builder")
+                         )
+                         .build();
+    }
+
+
+    private TypeSpec builderInterfaceSpec() {
+        return TypeSpec.interfaceBuilder("Builder")
+                       .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                       .addMethod(MethodSpec.methodBuilder("build")
+                                            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                            .addJavadoc("Returns a {@link $T} object that is created from the "
+                                                        + "properties that have been set on the builder.",
+                                                        className())
+                                            .returns(className())
+                                            .build())
+
+                       .addMethod(MethodSpec.methodBuilder("withPreferredAuthSchemes")
+                                            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                                            .addJavadoc("Set the preferred auth schemes in order of preference.")
+                                            .returns(className().nestedClass("Builder"))
+                                            .addParameter(
+                                                ParameterizedTypeName.get(List.class, String.class),
+                                                "authSchemePreference"
+                                            )
+                                            .build())
+                       .build();
+    }
+
+    private TypeSpec builderClassSpec() {
+        return TypeSpec.classBuilder(authSchemeSpecUtils.authSchemeProviderBuilderName())
+                       .addAnnotation(SdkInternalApi.class)
+                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC)
+                       .addSuperinterface(className().nestedClass("Builder"))
+                       .addField(
+                           FieldSpec
+                               .builder(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
+                               .addModifiers(Modifier.PRIVATE)
+                               .build())
+                       .addMethod(
+                           MethodSpec
+                               .methodBuilder("withPreferredAuthSchemes").addAnnotation(Override.class)
+                               .addModifiers(Modifier.PUBLIC)
+                               .addParameter(
+                                   ParameterizedTypeName.get(List.class, String.class),
+                                   "authSchemePreference"
+                               )
+                               .returns(className().nestedClass("Builder"))
+                               .addStatement("this.authSchemePreference = new $T<>(authSchemePreference)", ArrayList.class)
+                               .addStatement("return this")
+                               .build())
+                       .addMethod(
+                           MethodSpec
+                               .methodBuilder("build").addAnnotation(Override.class)
+                               .addModifiers(Modifier.PUBLIC)
+                               .returns(className())
+                               .addStatement("return new $T(defaultProvider(), authSchemePreference)",
+                                             authSchemeSpecUtils.preferredAuthSchemeProviderName())
+                               .build())
+                       .build();
+    }
 }
+

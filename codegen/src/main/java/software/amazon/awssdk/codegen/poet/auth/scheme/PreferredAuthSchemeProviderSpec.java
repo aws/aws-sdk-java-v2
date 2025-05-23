@@ -20,6 +20,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -64,36 +65,44 @@ public class PreferredAuthSchemeProviderSpec implements ClassSpec {
             .addParameter(authSchemeSpecUtils.providerInterfaceName(), "delegate")
             .addParameter(ParameterizedTypeName.get(List.class, String.class), "authSchemePreference")
             .addStatement("this.delegate = delegate")
-            .addStatement("this.authSchemePreference = authSchemePreference")
+            .addStatement("this.authSchemePreference = authSchemePreference != null ? authSchemePreference "
+                          + ": $T.emptyList()",
+                          Collections.class)
             .build();
     }
 
     private MethodSpec resolveAuthSchemeMethod() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("resolveAuthScheme")
-                                               .addModifiers(Modifier.PUBLIC)
-                                               .addAnnotation(Override.class)
-                                               .returns(authSchemeSpecUtils.resolverReturnType())
-                                               .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
-        builder.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
-        builder.addStatement("$T candidateAuthSchemes = delegate.resolveAuthScheme(params)",
-                             authSchemeSpecUtils.resolverReturnType());
-        builder.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
-               .addStatement("return candidateAuthSchemes")
-               .endControlFlow();
+        MethodSpec.Builder b = MethodSpec.methodBuilder("resolveAuthScheme")
+                                         .addModifiers(Modifier.PUBLIC)
+                                         .addAnnotation(Override.class)
+                                         .returns(authSchemeSpecUtils.resolverReturnType())
+                                         .addParameter(authSchemeSpecUtils.parametersInterfaceName(), "params");
+        b.addJavadoc("Resolve the auth schemes based on the given set of parameters.");
+        b.addStatement("$T candidateAuthSchemes = delegate.resolveAuthScheme(params)",
+                       authSchemeSpecUtils.resolverReturnType());
+        b.beginControlFlow("if ($T.isNullOrEmpty(authSchemePreference))", CollectionUtils.class)
+            .addStatement("return candidateAuthSchemes")
+            .endControlFlow();
 
-        builder.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
-        builder.beginControlFlow("authSchemePreference.forEach( preferredSchemeId -> ")
-               .addStatement("candidateAuthSchemes.stream().filter(a -> a.schemeId().equals(preferredSchemeId)).findFirst()"
-                             + ".ifPresent(a -> authSchemes.add(a))")
-               .endControlFlow(")");
+        b.addStatement("$T authSchemes = new $T<>()", authSchemeSpecUtils.resolverReturnType(), ArrayList.class);
 
-        builder.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
-               .beginControlFlow("if (!authSchemes.contains(candidate))")
-               .addStatement("authSchemes.add(candidate)")
-               .endControlFlow()
-               .endControlFlow(")");
+        b.beginControlFlow("authSchemePreference.forEach(preferredSchemeId -> ");
 
-        builder.addStatement("return authSchemes");
-        return builder.build();
+        b.beginControlFlow("candidateAuthSchemes.stream().filter(candidate -> ");
+        b.addStatement("String candidateSchemeName = candidate.schemeId().contains(\"#\") ? " +
+                       "candidate.schemeId().split(\"#\")[1] : candidate.schemeId()");
+        b.addStatement("return candidateSchemeName.equals(preferredSchemeId)");
+        b.endControlFlow(").findFirst().ifPresent(authSchemes::add)");
+        b.endControlFlow(")");
+
+        b.beginControlFlow("candidateAuthSchemes.forEach(candidate -> ")
+            .beginControlFlow("if (!authSchemes.contains(candidate))")
+            .addStatement("authSchemes.add(candidate)")
+            .endControlFlow()
+            .endControlFlow(")");
+
+        b.addStatement("return authSchemes");
+        return b.build();
     }
+
 }

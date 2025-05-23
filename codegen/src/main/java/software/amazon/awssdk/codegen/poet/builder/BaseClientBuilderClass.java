@@ -47,6 +47,7 @@ import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.internal.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -289,7 +290,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
 
         if (authSchemeSpecUtils.useSraAuth()) {
-            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class);
             builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
         } else {
             if (defaultAwsAuthSignerMethod().isPresent()) {
@@ -336,7 +337,8 @@ public class BaseClientBuilderClass implements ClassSpec {
                               + ".TOKEN_IDENTITY_PROVIDER) == null)",
                               SdkClientOption.class, AwsClientOption.class)
             .beginControlFlow("config = config.merge(c -> ")
-            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.builder()"
+                          + ".withPreferredAuthSchemes($T.singletonList($S)).build())",
                           SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
                           "smithy.api#httpBearerAuth")
             .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
@@ -935,7 +937,20 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec defaultAuthSchemeProviderMethod() {
         return MethodSpec.methodBuilder("defaultAuthSchemeProvider")
                          .addModifiers(PRIVATE)
+                         .addParameter(SdkClientConfiguration.class, "config")
                          .returns(authSchemeSpecUtils.providerInterfaceName())
+                         .addStatement("$T builder = "
+                                       + "$T.builder()",
+                                       AuthSchemePreferenceProvider.Builder.class, AuthSchemePreferenceProvider.class)
+                         .addStatement("config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder"
+                                       + ".profileFile(() -> profileFile))")
+                         .addStatement("config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder"
+                                       + ".profileName(profileName))")
+                         .addStatement("List<String> preferences = builder.build().resolveAuthSchemePreference()")
+                         .beginControlFlow("if(preferences != null && !preferences.isEmpty())")
+                         .addStatement("return $T.builder().withPreferredAuthSchemes(preferences).build()",
+                                       authSchemeSpecUtils.providerInterfaceName())
+                         .endControlFlow()
                          .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())
                          .build();
     }
