@@ -245,7 +245,7 @@ public final class AwsExecutionContextBuilder {
     /**
      * Finalize {@link SdkRequest} by running beforeExecution and modifyRequest interceptors.
      *
-     * @param interceptorContext  containing the immutable SdkRequest information the interceptor can act on
+     * @param interceptorContext containing the immutable SdkRequest information the interceptor can act on
      * @param executionAttributes mutable container of attributes concerning the execution and request
      * @return the {@link InterceptorContext} returns a context with a new SdkRequest
      */
