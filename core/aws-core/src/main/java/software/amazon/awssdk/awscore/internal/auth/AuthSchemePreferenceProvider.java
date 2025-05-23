@@ -24,13 +24,11 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
-import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
 public class AuthSchemePreferenceProvider {
-    private static final String AUTH_SCHEME_PREFERENCE_SYSTEM_PROPERTY = "aws.authSchemePreference";
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
@@ -44,14 +42,9 @@ public class AuthSchemePreferenceProvider {
     }
 
     public List<String> resolveAuthSchemePreference() {
-        List<String> jvmPrefList = fromJvmProperty();
-        if (jvmPrefList != null && !jvmPrefList.isEmpty()) {
-            return jvmPrefList;
-        }
-
-        List<String> envVarPrefList = fromEnvVariable();
-        if (envVarPrefList != null && !envVarPrefList.isEmpty()) {
-            return envVarPrefList;
+        List<String> systemSettingList = fromSystemSetting();
+        if (systemSettingList != null && !systemSettingList.isEmpty()) {
+            return systemSettingList;
         }
 
         List<String> profileFilePrefList = fromProfileFile();
@@ -62,7 +55,7 @@ public class AuthSchemePreferenceProvider {
         return Collections.emptyList();
     }
 
-    private List<String> fromEnvVariable() {
+    private List<String> fromSystemSetting() {
         Optional<String> value = SdkSystemSetting.AWS_AUTH_SCHEME_PREFERENCE.getStringValue();
         if (value.isPresent()) {
             return parseAuthSchemeList(value.get());
@@ -70,15 +63,10 @@ public class AuthSchemePreferenceProvider {
         return Collections.emptyList();
     }
 
-    private List<String> fromJvmProperty() {
-        String value = System.getProperty(AUTH_SCHEME_PREFERENCE_SYSTEM_PROPERTY);
-        return parseAuthSchemeList(value);
-    }
-
     private List<String> fromProfileFile() {
         ProfileFile profileFile = this.profileFile.get();
 
-        Optional<Profile> profile = profileFile.profile(ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow());
+        Optional<Profile> profile = profileFile.profile(profileName);
 
         String unformattedAuthSchemePreferenceList =
             profile
@@ -114,7 +102,7 @@ public class AuthSchemePreferenceProvider {
             return Collections.emptyList();
         }
 
-        unformattedList = unformattedList.replaceAll("\\s+","");
+        unformattedList = unformattedList.replaceAll("\\s+", "");
         String[] splitByTabs = unformattedList.split("\t");
         String finalFormat = String.join("", splitByTabs);
         return Arrays.asList(finalFormat.split(","));

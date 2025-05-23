@@ -263,8 +263,7 @@ public enum SdkSystemSetting implements SystemSetting {
      * Configure the preferred auth scheme to use.
      * This is a comma-delimited list of AWS auth scheme names used during signing.
      */
-    AWS_AUTH_SCHEME_PREFERENCE("AWS_AUTH_SCHEME_PREFERENCE", null)
-    ;
+    AWS_AUTH_SCHEME_PREFERENCE("aws.authSchemePreference", null);
 
     private final String systemProperty;
     private final String defaultValue;
