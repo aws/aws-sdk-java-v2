@@ -37,7 +37,7 @@ public class AuthSchemePreferenceProvider {
         if (builder.profileFile != null) {
             this.profileFile = builder.profileFile;
         } else {
-           this.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
+            this.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
         }
 
         if (builder.profileName != null) {
