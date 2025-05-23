@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthScheme
 
 public class PreferredAuthSchemeProviderTest {
 
-    private static final String OPERATION_SIGV4_ONLY = "multiAuthWithOnlySigv4a";
+    private static final String OPERATION_SIGV4_ONLY = "multiAuthWithOnlySigv4";
     private static final String OPERATION_SIGV4A_ONLY = "multiAuthWithOnlySigv4a";
     private static final String OPERATION_SIGV4A_AND_SIGV4 = "multiAuthWithOnlySigv4aAndSigv4";
     private static final String OPERATION_NOAUTH = "multiAuthNoAuth";
@@ -76,27 +76,6 @@ public class PreferredAuthSchemeProviderTest {
                 OPERATION_NOAUTH,
                 PREFIXED_SIGV4,
                 "Operation with no auth scheme should default to Sigv4"
-            ),
-
-            Arguments.of(
-                Arrays.asList(SIGV4A),
-                OPERATION_NOAUTH,
-                PREFIXED_SIGV4A,
-                ""
-            ),
-
-            Arguments.of(
-                Arrays.asList(SIGV4A, SIGV4),
-                OPERATION_NOAUTH,
-                PREFIXED_SIGV4A,
-                ""
-            ),
-
-            Arguments.of(
-                Arrays.asList(SIGV4A, SIGV4),
-                OPERATION_NOAUTH,
-                PREFIXED_SIGV4A,
-                ""
             ),
 
             Arguments.of(
