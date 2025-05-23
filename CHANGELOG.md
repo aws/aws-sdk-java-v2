@@ -1,4 +1,24 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.50__ __2025-05-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix CompletableFuture hanging when RetryStrategy/MetricsCollector raise errors
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the C7i-flex, M7i-flex, I7i, I7ie, I8g, P6-b200, Trn2, C8gd, M8gd and R8gd instances
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Enable Netty HTTP header validation when connecting with proxy
+
+## __Security Incident Response__
+  - ### Features
+    - Update PrincipalId pattern documentation to reflect what user should receive back from the API call
+
 # __2.31.49__ __2025-05-22__
 ## __AWS Audit Manager__
   - ### Features
