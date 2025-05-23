@@ -143,10 +143,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     }
 
     private QueryAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
-        AuthSchemePreferenceProvider.Builder builder = AuthSchemePreferenceProvider.builder();
-        config.asOverrideConfiguration().defaultProfileFile().ifPresent(profileFile -> builder.profileFile(() -> profileFile));
-        config.asOverrideConfiguration().defaultProfileName().ifPresent(profileName -> builder.profileName(profileName));
-        List<String> preferences = builder.build().resolveAuthSchemePreference();
+        AuthSchemePreferenceProvider authSchemePreferenceProvider = AuthSchemePreferenceProvider.builder()
+                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
         if (preferences != null && !preferences.isEmpty()) {
             return QueryAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
         }
