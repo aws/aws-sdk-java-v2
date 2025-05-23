@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Security Incident Response",
-    "contributor": "",
-    "description": "Update PrincipalId pattern documentation to reflect what user should receive back from the API call"
-}
