@@ -23,4 +23,5 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  */
 @SdkPublicApi
 public interface AuthSchemeProvider {
+
 }

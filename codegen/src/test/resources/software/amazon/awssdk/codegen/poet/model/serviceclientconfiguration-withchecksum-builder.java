@@ -18,6 +18,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.json.JsonServiceClientConfiguration;
 import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
@@ -165,6 +166,23 @@ public class JsonServiceClientConfigurationBuilder implements JsonServiceClientC
         }
         return Validate.isInstanceOf(JsonAuthSchemeProvider.class, result, "Expected an instance of "
                                                                            + JsonAuthSchemeProvider.class.getSimpleName());
+    }
+
+    /**
+     * Sets the value for token provider
+     */
+    @Override
+    public JsonServiceClientConfiguration.Builder tokenProvider(IdentityProvider<? extends TokenIdentity> tokenProvider) {
+        config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, tokenProvider);
+        return this;
+    }
+
+    /**
+     * Gets the value for token provider
+     */
+    @Override
+    public IdentityProvider<? extends TokenIdentity> tokenProvider() {
+        return config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
     }
 
     /**

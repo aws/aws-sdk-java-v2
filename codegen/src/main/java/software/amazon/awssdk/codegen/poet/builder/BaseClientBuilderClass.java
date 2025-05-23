@@ -41,6 +41,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
@@ -62,6 +64,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -71,13 +74,18 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
@@ -87,6 +95,7 @@ import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
@@ -266,15 +275,18 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec mergeServiceDefaultsMethod() {
-        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
-
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
                                                .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
-                                               .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c");
+                                               .addParameter(SdkClientConfiguration.class, "config");
 
+        if (model.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            configureEnvironmentBearerToken(builder);
+        }
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
+
+        builder.addCode("return config.merge(c -> c");
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
 
         if (authSchemeSpecUtils.useSraAuth()) {
@@ -305,6 +317,101 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         builder.addCode(");");
         return builder.build();
+    }
+
+    private void configureEnvironmentBearerToken(MethodSpec.Builder builder) {
+        if (!authSchemeSpecUtils.useSraAuth()) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires SRA Auth.");
+        }
+        if (!AuthUtils.usesBearerAuth(model)) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires the service to model and "
+                                            + "support smithy.api#httpBearerAuth.");
+        }
+
+        builder.addStatement("$T tokenSystemSetting = $L", SystemSetting.class, bearerTokenSystemSetting());
+        builder.addStatement("$T tokenFromEnv = tokenSystemSetting.getStringValue()",
+                             ParameterizedTypeName.get(Optional.class, String.class));
+
+        builder
+            .beginControlFlow("if (tokenFromEnv.isPresent() && config.option($T.AUTH_SCHEME_PROVIDER) == null && config.option($T"
+                              + ".TOKEN_IDENTITY_PROVIDER) == null)",
+                              SdkClientOption.class, AwsClientOption.class)
+            .beginControlFlow("config = config.merge(c -> ")
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.builder()"
+                          + ".withPreferredAuthSchemes($T.singletonList($S)).build())",
+                          SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
+                          "smithy.api#httpBearerAuth")
+            .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
+                          AwsClientOption.class, StaticTokenProvider.class)
+            .addStatement("$T interceptors = c.option($T.EXECUTION_INTERCEPTORS)",
+                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), SdkClientOption.class)
+            .addStatement("$T envTokenMetricInterceptors = $T.singletonList($L)",
+                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), Collections.class,
+                          envTokenMetricInterceptor())
+            .addStatement("c.option($T.EXECUTION_INTERCEPTORS, $T.mergeLists(interceptors, envTokenMetricInterceptors))",
+                          SdkClientOption.class, CollectionUtils.class)
+            .endControlFlow(")")
+            .endControlFlow();
+    }
+
+    private TypeSpec bearerTokenSystemSetting() {
+        NamingStrategy namingStrategy = model.getNamingStrategy();
+
+        String systemPropertyName = "aws.bearerToken" + namingStrategy.getSigningNameForSystemProperties();
+        String envName = "AWS_BEARER_TOKEN_" + namingStrategy.getSigningNameForEnvironmentVariables();
+
+        return TypeSpec.anonymousClassBuilder("")
+                       .addSuperinterface(SystemSetting.class)
+                       .addMethod(MethodSpec.methodBuilder("property")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return $S", systemPropertyName)
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("environmentVariable")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return $S", envName)
+                                            .build())
+                       .addMethod(MethodSpec.methodBuilder("defaultValue")
+                                            .addAnnotation(Override.class)
+                                            .addModifiers(Modifier.PUBLIC)
+                                            .returns(String.class)
+                                            .addStatement("return null")
+                                            .build())
+                       .build();
+
+    }
+
+    private TypeSpec envTokenMetricInterceptor() {
+        MethodSpec beforeExeuction =
+            MethodSpec
+                .methodBuilder("beforeExecution")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(Context.BeforeExecution.class, "context")
+                .addParameter(ExecutionAttributes.class, "executionAttributes")
+                .addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
+                              SelectedAuthScheme.class, SdkInternalExecutionAttribute.class)
+                .beginControlFlow("if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals($T"
+                                  + ".SCHEME_ID) && selectedAuthScheme.identity().isDone())", BearerAuthScheme.class)
+                .beginControlFlow("if (selectedAuthScheme.identity().getNow(null) instanceof $T)", TokenIdentity.class)
+
+                .addStatement("$T configuredToken = ($T) selectedAuthScheme.identity().getNow(null)",
+                              TokenIdentity.class, TokenIdentity.class)
+                .beginControlFlow("if (configuredToken.token().equals(tokenFromEnv.get()))")
+                .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
+                              + ".addMetric($T.BEARER_SERVICE_ENV_VARS.value())",
+                              SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+                .endControlFlow()
+                .endControlFlow()
+                .endControlFlow()
+                .build();
+        return TypeSpec.anonymousClassBuilder("")
+                       .addSuperinterface(ExecutionInterceptor.class)
+                       .addMethod(beforeExeuction)
+                       .build();
     }
 
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {

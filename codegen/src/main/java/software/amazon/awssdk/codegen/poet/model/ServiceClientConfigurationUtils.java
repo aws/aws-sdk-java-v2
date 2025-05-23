@@ -36,6 +36,7 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
@@ -105,8 +107,32 @@ public class ServiceClientConfigurationUtils {
             authSchemeProviderField()
         ));
         fields.addAll(addCustomClientParams(model));
+        fields.addAll(addModeledIdentityProviders(model));
         fields.addAll(addCustomClientConfigParams(model));
         return fields;
+    }
+
+    private List<Field> addModeledIdentityProviders(IntermediateModel model) {
+        List<Field> identityProviderFields = new ArrayList<>();
+        if (AuthUtils.usesBearerAuth(model)) {
+            identityProviderFields.add(tokenIdentityProviderField());
+        }
+        return identityProviderFields;
+    }
+
+    private Field tokenIdentityProviderField() {
+        TypeName tokenIdentityProviderType =
+            ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                      WildcardTypeName.subtypeOf(TokenIdentity.class));
+
+        return fieldBuilder("tokenProvider", tokenIdentityProviderType)
+            .doc("token provider")
+            .isInherited(false)
+            .localSetter(basicLocalSetterCode("tokenProvider"))
+            .localGetter(basicLocalGetterCode("tokenProvider"))
+            .configSetter(basicConfigSetterCode(AwsClientOption.TOKEN_IDENTITY_PROVIDER, "tokenProvider"))
+            .configGetter(basicConfigGetterCode(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+            .build();
     }
 
     private List<Field> addCustomClientParams(IntermediateModel model) {

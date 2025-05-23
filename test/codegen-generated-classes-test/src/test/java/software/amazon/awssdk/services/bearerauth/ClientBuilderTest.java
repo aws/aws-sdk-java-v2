@@ -57,6 +57,9 @@ public class ClientBuilderTest {
 
         assertThat(config.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
             .isSameAs(mockProvider);
+
+        assertThat(builder.buildClient().serviceClientConfiguration().tokenProvider())
+            .isSameAs(mockProvider);
     }
 
     @Test

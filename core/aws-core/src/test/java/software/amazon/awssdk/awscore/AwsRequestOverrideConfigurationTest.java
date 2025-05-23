@@ -22,8 +22,10 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 
 public class AwsRequestOverrideConfigurationTest {
 
@@ -42,6 +44,17 @@ public class AwsRequestOverrideConfigurationTest {
         assertCredentialsEqual(configuration2.credentialsProvider().get(), configuration2.credentialsIdentityProvider().get());
         assertCredentialsEqual(configuration1.credentialsProvider().get(), configuration2.credentialsIdentityProvider().get());
         assertCredentialsEqual(configuration2.credentialsProvider().get(), configuration1.credentialsIdentityProvider().get());
+    }
+
+    @Test
+    public void testTokenIdentityProvider() {
+        IdentityProvider<TokenIdentity> tokenIdentityProvider = StaticTokenProvider.create(() -> "test-token");
+
+        AwsRequestOverrideConfiguration configuration1 = AwsRequestOverrideConfiguration
+            .builder().tokenIdentityProvider(tokenIdentityProvider).build();
+
+        assertThat(configuration1.tokenIdentityProvider().get().resolveIdentity().join().token())
+            .isEqualTo(tokenIdentityProvider.resolveIdentity().join().token());
     }
 
     private void assertCredentialsEqual(AwsCredentialsProvider credentialsProvider,

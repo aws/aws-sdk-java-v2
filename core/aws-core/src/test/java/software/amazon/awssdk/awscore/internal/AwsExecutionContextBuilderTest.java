@@ -36,6 +36,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -67,6 +68,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.RegionScope;
 
@@ -396,16 +398,24 @@ public class AwsExecutionContextBuilderTest {
     public void invokeInterceptorsAndCreateExecutionContext_requestOverrideForIdentityProvider_updatesIdentityProviders() {
         IdentityProvider<? extends AwsCredentialsIdentity> clientCredentialsProvider =
             StaticCredentialsProvider.create(AwsBasicCredentials.create("foo", "bar"));
+        IdentityProvider<? extends TokenIdentity> clientTokenProvider = StaticTokenProvider.create(() -> "client-token");
         IdentityProviders identityProviders =
-            IdentityProviders.builder().putIdentityProvider(clientCredentialsProvider).build();
+            IdentityProviders.builder()
+                             .putIdentityProvider(clientCredentialsProvider)
+                             .putIdentityProvider(clientTokenProvider)
+                             .build();
         SdkClientConfiguration clientConfig = testClientConfiguration()
             .option(SdkClientOption.IDENTITY_PROVIDERS, identityProviders)
             .build();
 
         IdentityProvider<? extends AwsCredentialsIdentity> requestCredentialsProvider =
             StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+        IdentityProvider<? extends TokenIdentity> requestTokenProvider = StaticTokenProvider.create(() -> "request-token");
         Optional overrideConfiguration =
-            Optional.of(AwsRequestOverrideConfiguration.builder().credentialsProvider(requestCredentialsProvider).build());
+            Optional.of(AwsRequestOverrideConfiguration.builder()
+                                                       .credentialsProvider(requestCredentialsProvider)
+                                                       .tokenIdentityProvider(requestTokenProvider)
+                                                       .build());
         when(sdkRequest.overrideConfiguration()).thenReturn(overrideConfiguration);
 
         ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
@@ -420,6 +430,11 @@ public class AwsExecutionContextBuilderTest {
             actualIdentityProviders.identityProvider(AwsCredentialsIdentity.class);
 
         assertThat(actualIdentityProvider).isSameAs(requestCredentialsProvider);
+
+        IdentityProvider<TokenIdentity> actualTokenProvider =
+            actualIdentityProviders.identityProvider(TokenIdentity.class);
+
+        assertThat(actualTokenProvider).isSameAs(requestTokenProvider);
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
