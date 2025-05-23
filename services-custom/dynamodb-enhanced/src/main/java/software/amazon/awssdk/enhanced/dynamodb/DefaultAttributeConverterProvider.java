@@ -43,6 +43,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Cha
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DocumentAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DoubleAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.DurationAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.FallbackAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.FloatAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.InstantAsStringAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.IntegerAttributeConverter;
@@ -72,6 +73,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Uui
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneIdAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneOffsetAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZonedDateTimeAsStringAttributeConverter;
+import software.amazon.awssdk.enhanced.dynamodb.internal.converter.string.FallbackStringConverterProvider;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -191,9 +193,8 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         EnhancedType<?> keyType = type.rawClassParameters().get(0);
         EnhancedType<T> valueType = (EnhancedType<T>) type.rawClassParameters().get(1);
 
-        StringConverter<?> keyConverter = StringConverterProvider.defaultProvider().converterFor(keyType);
-        AttributeConverter<?> valueConverter = findConverter(valueType)
-            .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
+        StringConverter<?> keyConverter = getStringConverter(keyType);
+        AttributeConverter<?> valueConverter = getAttributeConverter(valueType);
 
         return (AttributeConverter<T>) MapAttributeConverter.mapConverter(keyConverter, valueConverter);
     }
@@ -201,8 +202,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createSetConverter(EnhancedType<T> type) {
         EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
-        AttributeConverter<?> innerConverter = findConverter(innerType)
-            .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
+        AttributeConverter<?> innerConverter = getAttributeConverter(innerType);
 
         return (AttributeConverter<T>) SetAttributeConverter.setConverter(innerConverter);
     }
@@ -270,5 +270,15 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         public DefaultAttributeConverterProvider build() {
             return new DefaultAttributeConverterProvider(this);
         }
+    }
+
+    private StringConverter<?> getStringConverter(EnhancedType<?> type) {
+        FallbackStringConverterProvider provider = new FallbackStringConverterProvider(StringConverterProvider.defaultProvider());
+        return provider.converterFor(type);
+    }
+
+    private <T> AttributeConverter<T> getAttributeConverter(EnhancedType<T> type) {
+        return findConverter(type)
+            .orElseGet(() -> FallbackAttributeConverter.create(type));
     }
 }

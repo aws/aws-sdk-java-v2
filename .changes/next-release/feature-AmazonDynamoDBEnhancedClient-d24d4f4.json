@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Added the support for custom AttributeConverters and StringConverters to be used in collections"
+}
