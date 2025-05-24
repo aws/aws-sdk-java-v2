@@ -197,9 +197,6 @@ public class EndpointProviderSpec2 implements ClassSpec {
     }
 
     private void createRuleMethod(RuleSetExpression expr, List<MethodSpec.Builder> methods) {
-        if (!expr.isTree()) {
-            return;
-        }
         MethodSpec.Builder builder = methodBuilderForRule(expr);
         methods.add(builder);
         CodeBlock.Builder block = CodeBlock.builder();
@@ -207,7 +204,9 @@ public class EndpointProviderSpec2 implements ClassSpec {
         builder.addCode(block.build());
         if (expr.isTree()) {
             for (RuleSetExpression child : expr.children()) {
-                createRuleMethod(child, methods);
+                if (child.isTree()) {
+                    createRuleMethod(child, methods);
+                }
             }
         }
     }
@@ -229,13 +228,13 @@ public class EndpointProviderSpec2 implements ClassSpec {
         return builder;
     }
 
-    private void codegenExpr(RuleExpression expr, CodeBlock.Builder builder) {
+    private void codegenExpr(RuleSetExpression expr, CodeBlock.Builder builder) {
         CodeGeneratorVisitor visitor = new CodeGeneratorVisitor(typeMirror,
                                                                 utils.symbolTable(),
                                                                 knownEndpointAttributes,
                                                                 utils.scopesByName(),
                                                                 builder);
-        expr.accept(visitor);
+        visitor.visitRuleSetExpression(expr);
     }
 
     private TypeName ruleResult() {
