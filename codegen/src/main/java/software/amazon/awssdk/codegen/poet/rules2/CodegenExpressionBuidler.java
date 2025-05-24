@@ -21,10 +21,16 @@ import java.util.Map;
 public final class CodegenExpressionBuidler {
     private final RuleSetExpression root;
     private final SymbolTable symbolTable;
+    private final Map<String, ComputeScopeTree.Scope> scopesByName;
 
-    public CodegenExpressionBuidler(RuleSetExpression root, SymbolTable symbolTable) {
+    public CodegenExpressionBuidler(
+        RuleSetExpression root,
+        SymbolTable symbolTable,
+        Map<String, ComputeScopeTree.Scope> scopesByName
+    ) {
         this.root = root;
         this.symbolTable = symbolTable;
+        this.scopesByName = scopesByName;
     }
 
     public static CodegenExpressionBuidler from(RuleSetExpression root, RuleRuntimeTypeMirror typeMirror, SymbolTable table) {
@@ -36,10 +42,17 @@ public final class CodegenExpressionBuidler {
         }
         table = assignTypesVisitor.symbolTable();
         root = assignIdentifier(root);
-        PrepareForCodegenVisitor prepareForCodegenVisitor = new PrepareForCodegenVisitor(table);
-        root = (RuleSetExpression) root.accept(prepareForCodegenVisitor);
-        table = prepareForCodegenVisitor.symbolTable();
-        return new CodegenExpressionBuidler(root, table);
+
+        RenameForCodegenVisitor renameForCodegenVisitor = new RenameForCodegenVisitor(table);
+        root = (RuleSetExpression) root.accept(renameForCodegenVisitor);
+        table = renameForCodegenVisitor.symbolTable();
+
+        ComputeScopeTree computeScopeTree = new ComputeScopeTree(table);
+        root.accept(computeScopeTree);
+
+        PrepareForCodegenVisitor prepareForCodegenVisitor = new PrepareForCodegenVisitor();
+        RuleSetExpression newRoot = (RuleSetExpression) root.accept(prepareForCodegenVisitor);
+        return new CodegenExpressionBuidler(newRoot, table, computeScopeTree.scopesByName());
     }
 
     private static RuleSetExpression assignIdentifier(RuleSetExpression root) {
@@ -51,27 +64,15 @@ public final class CodegenExpressionBuidler {
         return root;
     }
 
-    public boolean isParam(String name) {
-        return symbolTable.isParam(name);
-    }
-
-    public boolean isLocal(String name) {
-        return symbolTable.isLocal(name);
-    }
-
     public String regionParamName() {
         return symbolTable.regionParamName();
     }
 
-    public Map<String, RuleType> locals() {
-        return symbolTable.locals();
-    }
-
-    public Map<String, RuleType> params() {
-        return symbolTable.params();
-    }
-
     public SymbolTable symbolTable() {
         return symbolTable;
+    }
+
+    public Map<String, ComputeScopeTree.Scope> scopesByName() {
+        return scopesByName;
     }
 }

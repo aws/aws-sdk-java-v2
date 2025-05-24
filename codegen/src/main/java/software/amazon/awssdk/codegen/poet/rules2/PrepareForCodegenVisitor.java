@@ -16,29 +16,13 @@
 package software.amazon.awssdk.codegen.poet.rules2;
 
 import java.util.List;
-import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 /**
- * Visitor that rewrites some expressions in preparation for codegen and also renaming locals assignments to use idiomatic java
- * names. This visitor in particular rewrites variable references to the equivalent to {@code getAttr(params, NAME)} or {@code
- * getAttr(locals, NAME)}, depending on whether the reference is an endpoint params variable or a locally assigned one.
+ * Visitor that rewrites expressions in preparation for codegen.
  */
 public final class PrepareForCodegenVisitor extends RewriteRuleExpressionVisitor {
-    private final SymbolTable symbolTable;
-    private final SymbolTable.Builder renames;
 
-    public PrepareForCodegenVisitor(SymbolTable symbolTable) {
-        this.symbolTable = symbolTable;
-        this.renames = SymbolTable.builder();
-    }
-
-    public SymbolTable symbolTable() {
-        String regionParamName = symbolTable.regionParamName();
-        if (regionParamName != null) {
-            renames.regionParamName(javaName(regionParamName));
-        }
-        return renames.build();
+    public PrepareForCodegenVisitor() {
     }
 
     @Override
@@ -73,34 +57,6 @@ public final class PrepareForCodegenVisitor extends RewriteRuleExpressionVisitor
     }
 
     @Override
-    public RuleExpression visitVariableReferenceExpression(VariableReferenceExpression e) {
-        String name = e.variableName();
-        if (symbolTable.isLocal(name)) {
-            RuleType type = symbolTable.localType(name);
-            String newName = javaName(name);
-            renames.putLocal(newName, type);
-            return MemberAccessExpression
-                .builder()
-                .type(e.type())
-                .source(VariableReferenceExpression.builder().variableName("locals").build())
-                .name(newName)
-                .build();
-        }
-        if (symbolTable.isParam(name)) {
-            RuleType type = symbolTable.paramType(name);
-            String newName = javaName(name);
-            renames.putParam(newName, type);
-            return MemberAccessExpression
-                .builder()
-                .type(e.type())
-                .source(VariableReferenceExpression.builder().variableName("params").build())
-                .name(newName)
-                .build();
-        }
-        return e;
-    }
-
-    @Override
     public RuleExpression visitIndexedAccessExpression(IndexedAccessExpression e) {
         e = (IndexedAccessExpression) super.visitIndexedAccessExpression(e);
         return FunctionCallExpression
@@ -110,18 +66,6 @@ public final class PrepareForCodegenVisitor extends RewriteRuleExpressionVisitor
             .addArgument(e.source())
             .addArgument(new LiteralIntegerExpression(e.index()))
             .build();
-    }
-
-    @Override
-    public RuleExpression visitLetExpression(LetExpression e) {
-        LetExpression.Builder builder = LetExpression.builder();
-        e.bindings().forEach((k, v) -> {
-            String newName = javaName(k);
-            RuleExpression value = v.accept(this);
-            builder.putBinding(newName, value);
-            renames.putLocal(newName, value.type());
-        });
-        return builder.build();
     }
 
     /**
@@ -211,9 +155,5 @@ public final class PrepareForCodegenVisitor extends RewriteRuleExpressionVisitor
             }
         }
         return e;
-    }
-
-    private String javaName(String name) {
-        return Utils.unCapitalize(CodegenNamingUtils.pascalCase(name));
     }
 }
