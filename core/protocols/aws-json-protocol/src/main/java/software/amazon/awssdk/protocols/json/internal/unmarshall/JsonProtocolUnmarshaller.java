@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.protocols.json.internal.AwsStructuredPlainJsonFact
 import software.amazon.awssdk.protocols.json.internal.MarshallerUtil;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
+import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.protocols.jsoncore.JsonValueNodeFactory;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.builder.Buildable;
@@ -58,24 +60,42 @@ import software.amazon.awssdk.utils.builder.Buildable;
  */
 @SdkInternalApi
 @ThreadSafe
-public final class JsonProtocolUnmarshaller {
+public class JsonProtocolUnmarshaller {
     private static final Lazy<DefaultProtocolUnmarshallDependencies> DEFAULT_DEPENDENCIES =
         new Lazy<>(JsonProtocolUnmarshaller::newProtocolUnmarshallDependencies);
 
     private final JsonUnmarshallerRegistry registry;
     private final JsonUnmarshallingParser unmarshallingParser;
+    private final JsonNodeParser parser;
 
     private JsonProtocolUnmarshaller(Builder builder) {
         ProtocolUnmarshallDependencies dependencies = builder.protocolUnmarshallDependencies;
         this.registry = dependencies.jsonUnmarshallerRegistry();
-        this.unmarshallingParser = JsonUnmarshallingParser.builder()
-                                                          .jsonValueNodeFactory(dependencies.nodeValueFactory())
-                                                          .jsonFactory(dependencies.jsonFactory())
-                                                          .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
-                                                          .defaultTimestampFormat(dependencies.timestampFormats()
-                                                                                              .get(MarshallLocation.PAYLOAD))
+        if (builder.enableFastUnmarshalling) {
+            this.unmarshallingParser = JsonUnmarshallingParser.builder()
+                                                              .jsonValueNodeFactory(dependencies.nodeValueFactory())
+                                                              .jsonFactory(dependencies.jsonFactory())
+                                                              .unmarshallerRegistry(dependencies.jsonUnmarshallerRegistry())
+                                                              .defaultTimestampFormat(dependencies.timestampFormats()
+                                                                                                  .get(MarshallLocation.PAYLOAD))
 
-                                                          .build();
+                                                              .build();
+            this.parser = null;
+        } else {
+            this.unmarshallingParser = null;
+            this.parser = createParser(builder, dependencies);
+        }
+    }
+
+    private JsonNodeParser createParser(Builder builder, ProtocolUnmarshallDependencies dependencies) {
+        if (builder.parser != null) {
+            return builder.parser;
+        }
+        return JsonNodeParser
+            .builder()
+            .jsonFactory(dependencies.jsonFactory())
+            .jsonValueNodeFactory(dependencies.nodeValueFactory())
+            .build();
     }
 
     public static DefaultProtocolUnmarshallDependencies defaultProtocolUnmarshallDependencies() {
@@ -220,6 +240,15 @@ public final class JsonProtocolUnmarshaller {
 
     public <TypeT extends SdkPojo> TypeT unmarshall(SdkPojo sdkPojo,
                                                     SdkHttpFullResponse response) throws IOException {
+        if (this.unmarshallingParser != null) {
+            return fastUnmarshall(sdkPojo, response);
+        }
+        JsonNode jsonNode = hasJsonPayload(sdkPojo, response) ? parser.parse(response.content().get()) : null;
+        return unmarshall(sdkPojo, response, jsonNode);
+    }
+
+    private <TypeT extends SdkPojo> TypeT fastUnmarshall(SdkPojo sdkPojo,
+                                                    SdkHttpFullResponse response) throws IOException {
         if (!hasJsonPayload(sdkPojo, response)) {
             return unmarshallResponse(sdkPojo, response);
         }
@@ -236,6 +265,11 @@ public final class JsonProtocolUnmarshaller {
     @SuppressWarnings("unchecked")
     private <T extends SdkPojo> T unmarshallFromJson(SdkPojo sdkPojo, InputStream inputStream) {
         return (T) unmarshallingParser.parse(sdkPojo, inputStream);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T extends SdkPojo> T unmarshallMemberFromJson(Supplier<SdkPojo> constructor, InputStream inputStream) {
+        return (T) unmarshallingParser.parseMember(constructor, inputStream);
     }
 
     private <TypeT extends SdkPojo> TypeT unmarshallResponse(SdkPojo sdkPojo,
@@ -262,7 +296,7 @@ public final class JsonProtocolUnmarshaller {
             } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_POJO) {
                 Optional<AbortableInputStream> responseContent = context.response().content();
                 if (responseContent.isPresent()) {
-                    field.set(sdkPojo, unmarshallFromJson(field.constructor().get(), responseContent.get()));
+                    field.set(sdkPojo, unmarshallMemberFromJson(field.constructor(), responseContent.get()));
                 } else {
                     field.set(sdkPojo, null);
                 }
@@ -425,9 +459,21 @@ public final class JsonProtocolUnmarshaller {
      * Builder for {@link JsonProtocolUnmarshaller}.
      */
     public static final class Builder {
+
+        private JsonNodeParser parser;
         private ProtocolUnmarshallDependencies protocolUnmarshallDependencies;
+        private boolean enableFastUnmarshalling = false;
 
         private Builder() {
+        }
+
+        /**
+         * @param parser JSON parser to use.
+         * @return This builder for method chaining.
+         */
+        public Builder parser(JsonNodeParser parser) {
+            this.parser = parser;
+            return this;
         }
 
         /**
@@ -448,6 +494,15 @@ public final class JsonProtocolUnmarshaller {
             ProtocolUnmarshallDependencies protocolUnmarshallDependencies
         ) {
             this.protocolUnmarshallDependencies = protocolUnmarshallDependencies;
+            return this;
+        }
+
+        /**
+         * @param enableFastUnmarshalling Whether to enable the fast unmarshalling codepath. Default to {@code false}.
+         * @return This builder for method chaining.
+         */
+        public Builder enableFastUnmarshalling(boolean enableFastUnmarshalling) {
+            this.enableFastUnmarshalling = enableFastUnmarshalling;
             return this;
         }
 

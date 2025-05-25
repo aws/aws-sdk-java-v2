@@ -1274,7 +1274,9 @@
       "documentation":"<p>Type</p>",
       "enum":[
         "DOCUMENT",
-        "IMAGE"
+        "IMAGE",
+        "AUDIO",
+        "VIDEO"
       ]
     },
     "UntagResourceRequest":{
