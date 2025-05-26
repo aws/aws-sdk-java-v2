@@ -1,4 +1,156 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.50__ __2025-05-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix CompletableFuture hanging when RetryStrategy/MetricsCollector raise errors
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for the C7i-flex, M7i-flex, I7i, I7ie, I8g, P6-b200, Trn2, C8gd, M8gd and R8gd instances
+
+## __Netty NIO HTTP Client__
+  - ### Bugfixes
+    - Enable Netty HTTP header validation when connecting with proxy
+
+## __Security Incident Response__
+  - ### Features
+    - Update PrincipalId pattern documentation to reflect what user should receive back from the API call
+
+# __2.31.49__ __2025-05-22__
+## __AWS Audit Manager__
+  - ### Features
+    - With this release, the AssessmentControl description field has been deprecated, as of May 19, 2025. Additionally, the UpdateAssessment API can now return a ServiceQuotaExceededException when applicable service quotas are exceeded.
+
+## __AWS Glue__
+  - ### Features
+    - This release supports additional ConversionSpec parameter as part of IntegrationPartition Structure in CreateIntegrationTableProperty API. This parameter is referred to apply appropriate column transformation for columns that are used for timestamp based partitioning
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Update non-streaming error unmarshalling to properly unmarshall exceptions to their expected types.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Features: support for customer managed encryption keys
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add QueryLoggingConfiguration APIs for Amazon Managed Prometheus
+
+# __2.31.48__ __2025-05-21__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock introduces asynchronous flows (in preview), which let you run flows for longer durations and yield control so that your application can perform other tasks and you don't have to actively monitor the flow's progress.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Adds support for setting up Contributor Insight rules on logs transformed via Logs Transformation feature.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release of Dualstack and Ipv6-only EC2 Public DNS hostnames
+
+## __Application Auto Scaling__
+  - ### Features
+    - Doc only update that addresses a customer reported issue.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Modified validation to allow expectedCustomerSpend array with zero elements in Partner Opportunity operations.
+
+# __2.31.47__ __2025-05-20__
+## __AWS DataSync__
+  - ### Features
+    - Remove Discovery APIs from the DataSync service
+
+## __AWS Glue__
+  - ### Features
+    - Enhanced AWS Glue ListConnectionTypes API Model with additional metadata fields.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release expands the ModifyInstanceMaintenanceOptions API to enable or disable instance migration during customer-initiated reboots for EC2 Scheduled Reboot Events.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release introduces the new DescribeDBMajorEngineVersions API for describing the properties of specific major versions of database engines.
+
+## __CloudWatch Observability Access Manager__
+  - ### Features
+    - Add IncludeTags field to GetLink, GetSink and UpdateLink API
+
+## __Inspector2__
+  - ### Features
+    - This release adds GetClustersForImage API and filter updates as part of the mapping of container images to running containers feature.
+
+# __2.31.46__ __2025-05-19__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for DVB-DASH, EBU-TT-D subtitle format, and non-compacted manifests for DASH in MediaPackage v2 Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - CreateMultiRegionCluster and DeleteMultiRegionCluster APIs removed
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes new APIs for System Integrity Protection (SIP) configuration and automated root volume ownership delegation for EC2 Mac instances.
+
+# __2.31.45__ __2025-05-16__
+## __AWS CodePipeline__
+  - ### Features
+    - CodePipeline now supports new API ListDeployActionExecutionTargets that lists the deployment target details for deploy action executions.
+
+## __AWS Glue__
+  - ### Features
+    - Changes include (1) Excel as S3 Source type and XML and Tableau's Hyper as S3 Sink types, (2) targeted number of partitions parameter in S3 sinks and (3) new compression types in CSV/JSON and Parquet S3 sinks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix a regression for the JSON REST protocol for which an structure explicit payload member was set to the empty object instead of null
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is an Amazon ECs documentation only release to support the change of the container exit "reason" field from 255 characters to 1024 characters.
+
+## __Amazon EMR__
+  - ### Features
+    - Added APIs for managing Application UIs: Access Persistent (serverless) UIs via CreatePersistentAppUI DescribePersistentAppUI & GetPersistentAppUIPresignedURL, and Cluster-based UIs through GetOnClusterAppUIPresignedURL. Supports Yarn, Spark History, and TEZ interfaces.
+
+## __Amazon Neptune__
+  - ### Features
+    - This release adds Global Cluster Switchover capability which enables you to change your global cluster's primary AWS Region, the region that serves writes, while preserving the replication between all regions in the global cluster.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Add support for VIDEO modality to BlueprintType enum.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Add AssetProcessingConfiguration for video segment to InputConfiguration
+
+## __Service Quotas__
+  - ### Features
+    - This release introduces CreateSupportCase operation to SDK.
+
 # __2.31.44__ __2025-05-15__
 ## __AWS CodeBuild__
   - ### Features
