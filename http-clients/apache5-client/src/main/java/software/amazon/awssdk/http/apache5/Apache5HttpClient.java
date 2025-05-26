@@ -148,6 +148,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         ApacheConnectionManagerFactory cmFactory = new ApacheConnectionManagerFactory();
 
         HttpClientBuilder builder = HttpClients.custom();
+        //This is done to keep backward compatibility with Apache 4.x
+        builder.disableRedirectHandling();
 
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
