@@ -27,10 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -45,6 +41,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,7 +119,7 @@ class RepeatableInputStreamRequestEntityTest {
                                                        .request(httpRequest)
                                                        .build();
         entity = new RepeatableInputStreamRequestEntity(request);
-        assertEquals(contentType, entity.getContentType().toString());
+        assertEquals(contentType, entity.getContentType());
     }
 
     @Test
@@ -203,8 +200,16 @@ class RepeatableInputStreamRequestEntityTest {
     void writeTo_FirstAttempt_DoesNotResetStream() throws IOException {
         // Given
         String content = "test content";
-        ByteArrayInputStream inputStream = spy(new ByteArrayInputStream(content.getBytes()));
-        ContentStreamProvider provider = () -> inputStream;
+        // Create a custom stream that tracks reset calls
+        AtomicInteger resetCallCount = new AtomicInteger(0);
+        ByteArrayInputStream trackingStream = new ByteArrayInputStream(content.getBytes()) {
+            @Override
+            public synchronized void reset() {
+                resetCallCount.incrementAndGet();
+                super.reset();
+            }
+        };
+        ContentStreamProvider provider = () -> trackingStream;
 
         SdkHttpRequest httpRequest = httpRequestBuilder.build();
         HttpExecuteRequest request = HttpExecuteRequest.builder()
@@ -216,7 +221,7 @@ class RepeatableInputStreamRequestEntityTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         entity.writeTo(output);
         assertEquals(content, output.toString());
-        verify(inputStream, never()).reset();
+        assertEquals(0, resetCallCount.get(), "Reset should not be called on first attempt");
     }
 
     @Test
@@ -224,8 +229,17 @@ class RepeatableInputStreamRequestEntityTest {
     void writeTo_SubsequentAttemptWithRepeatableStream_ResetsStream() throws IOException {
         // Given
         String content = "test content";
-        ByteArrayInputStream inputStream = spy(new ByteArrayInputStream(content.getBytes()));
-        ContentStreamProvider provider = () -> inputStream;
+
+        // Create a custom stream that tracks reset calls
+        AtomicInteger resetCallCount = new AtomicInteger(0);
+        ByteArrayInputStream trackingStream = new ByteArrayInputStream(content.getBytes()) {
+            @Override
+            public synchronized void reset() {
+                resetCallCount.incrementAndGet();
+                super.reset();
+            }
+        };
+        ContentStreamProvider provider = () -> trackingStream;
 
         SdkHttpRequest httpRequest = httpRequestBuilder.build();
         HttpExecuteRequest request = HttpExecuteRequest.builder()
@@ -236,14 +250,16 @@ class RepeatableInputStreamRequestEntityTest {
         entity = new RepeatableInputStreamRequestEntity(request);
 
         // First write
-        entity.writeTo(new ByteArrayOutputStream());
+        ByteArrayOutputStream firstOutput = new ByteArrayOutputStream();
+        entity.writeTo(firstOutput);
 
         //Second write
         ByteArrayOutputStream secondOutput = new ByteArrayOutputStream();
         entity.writeTo(secondOutput);
 
-        verify(inputStream, times(1)).reset();
+        assertEquals(content, firstOutput.toString());
         assertEquals(content, secondOutput.toString());
+        assertEquals(1, resetCallCount.get(), "Reset should be called exactly once for second attempt");
     }
 
     @Test
@@ -326,7 +342,9 @@ class RepeatableInputStreamRequestEntityTest {
                     return -1;
                 }
                 hasBeenRead = true;
-                return data[position++] & 0xFF;
+                int i = data[position] & 0xFF;
+                position++;
+                return i;
             }
 
             @Override
@@ -445,7 +463,7 @@ class RepeatableInputStreamRequestEntityTest {
         entity = new RepeatableInputStreamRequestEntity(request);
 
         assertEquals(2048L, entity.getContentLength());
-        assertEquals("application/xml", entity.getContentType().toString());
+        assertEquals("application/xml", entity.getContentType());
         assertTrue(entity.isChunked());
     }
 

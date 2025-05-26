@@ -32,11 +32,9 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Custom implementation of HttpEntity that delegates to an
- * InputStreamEntity, with the one notable difference, that if
- * the underlying InputStream supports being reset, this RequestEntity will
- * report that it is repeatable and will reset the stream on all subsequent
- * attempts to write out the request.
+ * Custom implementation of HttpEntity that delegates to an InputStreamEntity, with the one notable difference, that if the
+ * underlying InputStream supports being reset, this RequestEntity will report that it is repeatable and will reset the stream on
+ * all subsequent attempts to write out the request.
  */
 @SdkInternalApi
 public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
@@ -80,7 +78,7 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
      * @param request The details of the request being written out (content type,
      *                content length, and content).
      */
-    public RepeatableInputStreamRequestEntity(final HttpExecuteRequest request) {
+    public RepeatableInputStreamRequestEntity(HttpExecuteRequest request) {
         super(createInputStreamEntity(request));
 
         isChunked = request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
@@ -92,14 +90,14 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
          * the content length.
          */
         long contentLength = request.httpRequest().firstMatchingHeader("Content-Length")
-                                    .map(this::parseContentLength)
+                                    .map(RepeatableInputStreamRequestEntity::parseContentLength)
                                     .orElse(-1L);
 
         content = getContent(request.contentStreamProvider());
 
         // Create InputStreamEntity with proper ContentType handling for HttpClient 5.x
         ContentType contentType = request.httpRequest().firstMatchingHeader("Content-Type")
-                                         .map(this::parseContentType)
+                                         .map(RepeatableInputStreamRequestEntity::parseContentType)
                                          .orElse(null);
 
         if (contentLength >= 0) {
@@ -113,21 +111,20 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
         InputStream content = getContent(request.contentStreamProvider());
 
         long contentLength = request.httpRequest().firstMatchingHeader("Content-Length")
-                                    .map(RepeatableInputStreamRequestEntity::parseContentLengthStatic)
+                                    .map(RepeatableInputStreamRequestEntity::parseContentLength)
                                     .orElse(-1L);
 
         ContentType contentType = request.httpRequest().firstMatchingHeader("Content-Type")
-                                         .map(RepeatableInputStreamRequestEntity::parseContentTypeStatic)
+                                         .map(RepeatableInputStreamRequestEntity::parseContentType)
                                          .orElse(null);
 
         if (contentLength >= 0) {
             return new InputStreamEntity(content, contentLength, contentType);
-        } else {
-            return new InputStreamEntity(content, contentType);
         }
+        return new InputStreamEntity(content, contentType);
     }
 
-    private long parseContentLength(String contentLength) {
+    private static long parseContentLength(String contentLength) {
         try {
             return Long.parseLong(contentLength);
         } catch (NumberFormatException nfe) {
@@ -136,28 +133,7 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
         }
     }
 
-    private static long parseContentLengthStatic(String contentLength) {
-        try {
-            return Long.parseLong(contentLength);
-        } catch (NumberFormatException nfe) {
-            log.warn(() -> "Unable to parse content length from request. Buffering contents in memory.");
-            return -1;
-        }
-    }
-
-    private ContentType parseContentType(String contentTypeValue) {
-        if (contentTypeValue == null) {
-            return null;
-        }
-        try {
-            return ContentType.parse(contentTypeValue);
-        } catch (Exception e) {
-            log.warn(() -> "Unable to parse content type: " + contentTypeValue);
-            return null;
-        }
-    }
-
-    private static ContentType parseContentTypeStatic(String contentTypeValue) {
+    private static ContentType parseContentType(String contentTypeValue) {
         if (contentTypeValue == null) {
             return null;
         }
