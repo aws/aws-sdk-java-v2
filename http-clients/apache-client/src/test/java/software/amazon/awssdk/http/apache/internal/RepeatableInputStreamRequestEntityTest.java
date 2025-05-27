@@ -26,12 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -181,6 +176,7 @@ class RepeatableInputStreamRequestEntityTest {
             public int read() {
                 return -1;
             }
+
             @Override
             public boolean markSupported() {
                 return false;
@@ -208,7 +204,7 @@ class RepeatableInputStreamRequestEntityTest {
         AtomicInteger resetCallCount = new AtomicInteger(0);
         ByteArrayInputStream trackingStream = new ByteArrayInputStream(content.getBytes()) {
             @Override
-            public synchronized void reset()  {
+            public synchronized void reset() {
                 resetCallCount.incrementAndGet();
                 super.reset();
             }
@@ -239,7 +235,7 @@ class RepeatableInputStreamRequestEntityTest {
         AtomicInteger resetCallCount = new AtomicInteger(0);
         ByteArrayInputStream trackingStream = new ByteArrayInputStream(content.getBytes()) {
             @Override
-            public synchronized void reset()  {
+            public synchronized void reset() {
                 resetCallCount.incrementAndGet();
                 super.reset();
             }
@@ -452,8 +448,8 @@ class RepeatableInputStreamRequestEntityTest {
     }
 
     @Test
-    @DisplayName("Entity should handle mixed headers correctly")
-    void constructor_WithMixedHeaders_HandlesAllCorrectly() {
+    @DisplayName("Entity should handle multiple headers correctly")
+    void constructor_WithMultiHeaders_HandlesAllCorrectly() {
         // Given
         SdkHttpRequest httpRequest = httpRequestBuilder
             .putHeader("Content-Length", "2048")
@@ -548,8 +544,8 @@ class RepeatableInputStreamRequestEntityTest {
     }
 
     @Test
-    @DisplayName("Entity should handle partial stream reads")
-    void writeTo_PartialReads_CompletesSuccessfully() throws IOException {
+    @DisplayName("Entity should handle non repeatable data arriving in chunks")
+    void writeTo_withChunkedReads_CompletesSuccessfully() throws IOException {
         // Given - Stream that returns data in small chunks
         String content = "This is a test content that will be read in chunks";
         InputStream chunkingStream = new InputStream() {
@@ -649,7 +645,6 @@ class RepeatableInputStreamRequestEntityTest {
 
         entity.writeTo(output1);
         entity.writeTo(output2);
-
 
         assertEquals(content, output1.toString());
         assertEquals(content, output2.toString());
