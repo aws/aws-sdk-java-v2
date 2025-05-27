@@ -15,33 +15,21 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
-public class EndpointDiscovery {
+import nl.jqno.equalsverifier.EqualsVerifier;
+import org.junit.jupiter.api.Test;
 
-    private boolean required;
+public class OperationModelTest {
+    @Test
+    void equals_isCorrect() {
+        MemberModel blueMemberModel = new MemberModel();
+        blueMemberModel.setName("blue");
+        MemberModel redMemberModel = new MemberModel();
+        redMemberModel.setName("red");
 
-    public boolean isRequired() {
-        return required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        EndpointDiscovery that = (EndpointDiscovery) o;
-        return required == that.required;
-    }
-
-    @Override
-    public int hashCode() {
-        return Boolean.hashCode(required);
+        EqualsVerifier.simple()
+                      .forClass(OperationModel.class)
+                      .withPrefabValues(MemberModel.class, blueMemberModel, redMemberModel)
+                      .usingGetClass()
+                      .verify();
     }
 }
