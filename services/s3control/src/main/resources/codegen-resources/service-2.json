@@ -1375,7 +1375,7 @@
         "locationName":"PutAccessPointScopeRequest",
         "xmlNamespace":{"uri":"http://awss3control.amazonaws.com/doc/2018-08-20/"}
       },
-      "documentation":"<p>Creates or replaces the access point scope for a directory bucket. You can use the access point scope to restrict access to specific prefixes, API operations, or a combination of both.</p> <p>You can include one or more of the following API operations as permissions:</p> <ul> <li> <p> <code>PutObjet</code> </p> </li> <li> <p> <code>GetObject</code> </p> </li> <li> <p> <code>DeleteObject</code> </p> </li> <li> <p> <code>ListBucket</code> </p> </li> <li> <p> <code>GetObjectAttributes</code> </p> </li> <li> <p> <code>AbortMultipartUpload</code> </p> </li> <li> <p> <code>ListBucketMultipartUpload</code> </p> </li> <li> <p> <code>ListMultiPartUploadParts</code> </p> </li> </ul> <note> <p>You can specify any amount of prefixes, but the total length of characters of all prefixes must be less than 512 KB in size.</p> </note> <p>To use this operation, you must have the permission to perform the <code>s3express:PutAccessPointScope</code> action.</p> <p>For information about REST API errors, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses\">REST error responses</a>.</p>",
+      "documentation":"<p>Creates or replaces the access point scope for a directory bucket. You can use the access point scope to restrict access to specific prefixes, API operations, or a combination of both.</p> <note> <p>You can specify any amount of prefixes, but the total length of characters of all prefixes must be less than 256 bytes in size.</p> </note> <p>To use this operation, you must have the permission to perform the <code>s3express:PutAccessPointScope</code> action.</p> <p>For information about REST API errors, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#RESTErrorResponses\">REST error responses</a>.</p>",
       "staticContextParams":{
         "RequiresAccountId":{"value":true},
         "UseS3ExpressControlEndpoint":{"value":true}
@@ -2081,15 +2081,13 @@
     "Boolean":{"type":"boolean"},
     "BucketAlreadyExists":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The requested Outposts bucket name is not available. The bucket namespace is shared by all users of the Outposts in this Region. Select a different name and try again.</p>",
       "exception":true
     },
     "BucketAlreadyOwnedByYou":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The Outposts bucket you tried to create already exists, and you own it. </p>",
       "exception":true
     },
@@ -3099,8 +3097,7 @@
     },
     "DeleteJobTaggingResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteMarkerReplication":{
       "type":"structure",
@@ -3229,8 +3226,7 @@
     },
     "DeleteStorageLensConfigurationTaggingResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteStorageLensGroupRequest":{
       "type":"structure",
@@ -7038,8 +7034,7 @@
     },
     "PutJobTaggingResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PutMultiRegionAccessPointPolicyInput":{
       "type":"structure",
@@ -7181,8 +7176,7 @@
     },
     "PutStorageLensConfigurationTaggingResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Region":{
       "type":"structure",
@@ -7690,8 +7684,7 @@
     },
     "S3DeleteObjectTaggingOperation":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Contains no configuration parameters because the DELETE Object tagging (<code>DeleteObjectTagging</code>) API operation accepts only the bucket name and key name as parameters, which are defined in the job's manifest.</p>"
     },
     "S3ExpirationInDays":{
@@ -7984,8 +7977,7 @@
     },
     "S3ReplicateObjectOperation":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Directs the specified job to invoke <code>ReplicateObject</code> on every object in the job's manifest.</p>"
     },
     "S3ResourceArn":{
@@ -8128,15 +8120,13 @@
     "SSEKMSKeyId":{"type":"string"},
     "SSES3":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p/>",
       "locationName":"SSE-S3"
     },
     "SSES3Encryption":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Configuration for the use of SSE-S3 to encrypt generated manifest objects.</p>",
       "locationName":"SSE-S3"
     },
@@ -8145,7 +8135,7 @@
       "members":{
         "Prefixes":{
           "shape":"PrefixesList",
-          "documentation":"<p>You can specify any amount of prefixes, but the total length of characters of all prefixes must be less than 512 KB in size.</p>",
+          "documentation":"<p>You can specify any amount of prefixes, but the total length of characters of all prefixes must be less than 256 bytes in size.</p>",
           "locationName":"Prefixes"
         },
         "Permissions":{
@@ -8573,8 +8563,7 @@
     },
     "SubmitMultiRegionAccessPointRoutesResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Suffix":{"type":"string"},
     "SuspendedCause":{
@@ -8652,8 +8641,7 @@
     },
     "TagResourceResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValueString":{
       "type":"string",
@@ -8761,8 +8749,7 @@
     },
     "UntagResourceResult":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAccessGrantsLocationRequest":{
       "type":"structure",

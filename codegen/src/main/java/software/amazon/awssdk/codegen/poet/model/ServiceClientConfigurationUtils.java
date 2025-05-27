@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasRequestAlgorithmMember;
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasResponseAlgorithms;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -34,6 +37,8 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -100,6 +105,7 @@ public class ServiceClientConfigurationUtils {
             authSchemeProviderField()
         ));
         fields.addAll(addCustomClientParams(model));
+        fields.addAll(addCustomClientConfigParams(model));
         return fields;
     }
 
@@ -552,5 +558,52 @@ public class ServiceClientConfigurationUtils {
         throw new java.util.NoSuchElementException(String.format("cannot find constant %s in class %s",
                                                                  fieldObject,
                                                                  fieldObject.getClass().getName()));
+    }
+
+    private List<Field> addCustomClientConfigParams(IntermediateModel model) {
+        List<Field> customClientParamFields = new ArrayList<>();
+
+        if (hasRequestAlgorithmMember(model) && hasResponseAlgorithms(model)) {
+            customClientParamFields.add(
+                createChecksumConfigField(
+                    "responseChecksumValidation",
+                    ResponseChecksumValidation.class,
+                    "client behavior for response checksum validation",
+                    SdkClientOption.class,
+                    "RESPONSE_CHECKSUM_VALIDATION"
+                )
+            );
+            customClientParamFields.add(
+                createChecksumConfigField(
+                    "requestChecksumCalculation",
+                    RequestChecksumCalculation.class,
+                    "client behavior for request checksum calculation",
+                    SdkClientOption.class,
+                    "REQUEST_CHECKSUM_CALCULATION"
+                )
+            );
+        }
+        return customClientParamFields;
+    }
+
+    private Field createChecksumConfigField(String fieldName, Class<?> fieldType, String docString,
+                                            Class<?> optionClass, String optionName) {
+        return fieldBuilder(fieldName, fieldType)
+            .doc(docString)
+            .isInherited(false)
+            .localSetter(basicLocalSetterCode(fieldName))
+            .localGetter(basicLocalGetterCode(fieldName))
+            .configSetter(
+                CodeBlock.builder()
+                         .addStatement("config.option($1T.$2L, $3L)", optionClass, optionName, fieldName)
+                         .addStatement("return this")
+                         .build()
+            )
+            .configGetter(
+                CodeBlock.builder()
+                         .addStatement("return config.option($1T.$2L)", optionClass, optionName)
+                         .build()
+            )
+            .build();
     }
 }

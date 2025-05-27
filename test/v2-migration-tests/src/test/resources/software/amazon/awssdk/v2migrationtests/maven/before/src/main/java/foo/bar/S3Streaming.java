@@ -17,24 +17,30 @@ package foo.bar;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class S3Streaming {
 
     AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
-    void getObject(String bucket, String key) throws Exception {
+    void getObject(String bucket, String key, File file) throws Exception {
         S3Object s3Object = s3.getObject(bucket, key);
         s3Object.getObjectContent().close();
+
+        ObjectMetadata objectMetadata = s3.getObject(new GetObjectRequest(bucket, key), file);
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -53,6 +59,8 @@ public class S3Streaming {
 
         ObjectMetadata metadataWithoutLength = new ObjectMetadata();
         s3.putObject(bucket, key, stream, metadataWithoutLength);
+
+        s3.putObject("bucket", "key", stream, new ObjectMetadata());
     }
 
     /**
@@ -95,10 +103,14 @@ public class S3Streaming {
 
 
     void putObjectSetters() {
+        List<Tag> tags = new ArrayList<>();
+        ObjectTagging objectTagging = new ObjectTagging(tags);
+
         PutObjectRequest putObjectRequest =
             new PutObjectRequest("bucket", "key", "location")
-            .withBucketName("bucketName")
-                .withCannedAcl(CannedAccessControlList.AwsExecRead);
+                .withBucketName("bucketName")
+                .withRedirectLocation("redirectLocation")
+                .withTagging(objectTagging);
     }
 
     void putObjectRequesterPaysSetter() {
@@ -141,7 +153,7 @@ public class S3Streaming {
         PutObjectRequest request = new PutObjectRequest("bucket", "key", "location").withMetadata(metadata);
     }
 
-    void putObjectRequester_emptyMetadata() {
+    void putObjectRequest_emptyMetadata() {
         ObjectMetadata emptyMetadata1 = new ObjectMetadata();
         PutObjectRequest request1 = new PutObjectRequest("bucket", "key", "location").withMetadata(emptyMetadata1);
 

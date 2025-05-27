@@ -66,15 +66,18 @@ public final class DefaultFileDownload implements FileDownload {
         completionFuture.cancel(true);
 
         Instant s3objectLastModified = null;
+        String s3objectEtag = null;
         Long totalSizeInBytes = null;
         TransferProgressSnapshot snapshot = progress.snapshot();
 
         if (snapshot.sdkResponse().isPresent() && snapshot.sdkResponse().get() instanceof GetObjectResponse) {
             GetObjectResponse getObjectResponse = (GetObjectResponse) snapshot.sdkResponse().get();
             s3objectLastModified = getObjectResponse.lastModified();
+            s3objectEtag = getObjectResponse.eTag();
             totalSizeInBytes = getObjectResponse.contentLength();
         } else if (resumedDownload != null) {
             s3objectLastModified = resumedDownload.s3ObjectLastModified().orElse(null);
+            s3objectEtag = resumedDownload.s3ObjectEtag().orElse(null);
             totalSizeInBytes = resumedDownload.totalSizeInBytes().isPresent() ? resumedDownload.totalSizeInBytes().getAsLong()
                                                                               : null;
         }
@@ -87,6 +90,7 @@ public final class DefaultFileDownload implements FileDownload {
         return ResumableFileDownload.builder()
                                     .downloadFileRequest(request)
                                     .s3ObjectLastModified(s3objectLastModified)
+                                    .s3ObjectEtag(s3objectEtag)
                                     .fileLastModified(fileLastModified)
                                     .bytesTransferred(length)
                                     .totalSizeInBytes(totalSizeInBytes)

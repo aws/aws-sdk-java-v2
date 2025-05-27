@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.changeBucketNameToBucket;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.hasArguments;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isS3PutObjectOrObjectMetadata;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isEligibleToConvertToBuilder;
@@ -102,15 +103,13 @@ public class V1SetterToV2 extends Recipe {
                 return method;
             }
 
+            methodName = changeBucketNameToBucket(methodName);
+
             if (NamingUtils.isWither(methodName)) {
                 methodName = NamingUtils.removeWith(methodName);
             } else if (NamingUtils.isSetter(methodName) && isS3PutObjectOrObjectMetadata(method)) {
                 // We will change remaining setters to `request = request.toBuilder().setter(val).build()` in SettersToBuilderV2
                 methodName = NamingUtils.removeSet(methodName);
-            }
-
-            if ("bucketName".equals(methodName)) {
-                methodName = "bucket";
             }
 
             if (isClientBuilderClass(methodType)) {

@@ -47,15 +47,15 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  * </ul>
  *
  * Example using attribute converter providers with one custom provider and the default provider:
- * <pre>
- * {@code
+ *
+ * {@snippet :
  * (converterProviders = {CustomAttributeConverter.class, DefaultAttributeConverterProvider.class});
  * }
- * </pre>
+ *
  * <p>
  * Example using {@link DynamoDbBean}:
- * <pre>
- * {@code
+ *
+ * {@snippet :
  * @DynamoDbBean
  * public class Customer {
  *     private String id;
@@ -73,12 +73,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.BeanTableSchema;
  *     public Instant getCreatedOn() {
  *          return this.createdOn;
  *     }
+ *
  *     public void setCreatedOn(Instant createdOn) {
  *          this.createdOn = createdOn;
- *      }
+ *     }
  * }
  * }
- * </pre>
+ *
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

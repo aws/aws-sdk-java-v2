@@ -5961,8 +5961,7 @@
     },
     "CancelDataQualityRuleRecommendationRunResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CancelDataQualityRulesetEvaluationRunRequest":{
       "type":"structure",
@@ -5976,8 +5975,7 @@
     },
     "CancelDataQualityRulesetEvaluationRunResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CancelMLTaskRunRequest":{
       "type":"structure",
@@ -6036,8 +6034,7 @@
     },
     "CancelStatementResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Capabilities":{
       "type":"structure",
@@ -6592,6 +6589,10 @@
           "shape":"S3CsvSource",
           "documentation":"<p>Specifies a command-separated value (CSV) data store stored in Amazon S3.</p>"
         },
+        "S3ExcelSource":{
+          "shape":"S3ExcelSource",
+          "documentation":"<p>Defines configuration parameters for reading Excel files from Amazon S3.</p>"
+        },
         "S3JsonSource":{
           "shape":"S3JsonSource",
           "documentation":"<p>Specifies a JSON data store stored in Amazon S3.</p>"
@@ -6632,9 +6633,17 @@
           "shape":"S3GlueParquetTarget",
           "documentation":"<p>Specifies a data target that writes to Amazon S3 in Apache Parquet columnar storage.</p>"
         },
+        "S3HyperDirectTarget":{
+          "shape":"S3HyperDirectTarget",
+          "documentation":"<p>Defines configuration parameters for writing data to Amazon S3 using HyperDirect optimization.</p>"
+        },
         "S3DirectTarget":{
           "shape":"S3DirectTarget",
           "documentation":"<p>Specifies a data target that writes to Amazon S3.</p>"
+        },
+        "S3IcebergDirectTarget":{
+          "shape":"S3IcebergDirectTarget",
+          "documentation":"<p>Defines configuration parameters for writing data to Amazon S3 as an Apache Iceberg table.</p>"
         },
         "ApplyMapping":{
           "shape":"ApplyMapping",
@@ -7557,7 +7566,8 @@
     },
     "ConditionList":{
       "type":"list",
-      "member":{"shape":"Condition"}
+      "member":{"shape":"Condition"},
+      "max":500
     },
     "ConfigValueString":{
       "type":"string",
@@ -7864,6 +7874,15 @@
         "FAILED"
       ]
     },
+    "ConnectionString":{
+      "type":"string",
+      "max":255
+    },
+    "ConnectionStringList":{
+      "type":"list",
+      "member":{"shape":"ConnectionString"},
+      "max":1000
+    },
     "ConnectionType":{
       "type":"string",
       "enum":[
@@ -7905,13 +7924,33 @@
           "shape":"ConnectionType",
           "documentation":"<p>The name of the connection type.</p>"
         },
+        "DisplayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The human-readable name for the connection type that is displayed in the Glue console.</p>"
+        },
+        "Vendor":{
+          "shape":"Vendor",
+          "documentation":"<p>The name of the vendor or provider that created or maintains this connection type.</p>"
+        },
         "Description":{
           "shape":"Description",
           "documentation":"<p>A description of the connection type.</p>"
         },
+        "Categories":{
+          "shape":"ListOfString",
+          "documentation":"<p>A list of categories that this connection type belongs to. Categories help users filter and find appropriate connection types based on their use cases.</p>"
+        },
         "Capabilities":{
           "shape":"Capabilities",
           "documentation":"<p>The supported authentication types, data interface types (compute environments), and data operations of the connector.</p>"
+        },
+        "LogoUrl":{
+          "shape":"UrlString",
+          "documentation":"<p>The URL of the logo associated with a connection type.</p>"
+        },
+        "ConnectionTypeVariants":{
+          "shape":"ConnectionTypeVariantList",
+          "documentation":"<p>A list of variants available for this connection type. Different variants may provide specialized configurations for specific use cases or implementations of the same general connection type.</p>"
         }
       },
       "documentation":"<p>Brief information about a supported connection type returned by the <code>ListConnectionTypes</code> API.</p>"
@@ -7920,11 +7959,37 @@
       "type":"list",
       "member":{"shape":"ConnectionTypeBrief"}
     },
+    "ConnectionTypeVariant":{
+      "type":"structure",
+      "members":{
+        "ConnectionTypeVariantName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The unique identifier for the connection type variant. This name is used internally to identify the specific variant of a connection type. </p>"
+        },
+        "DisplayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>The human-readable name for the connection type variant that is displayed in the Glue console.</p>"
+        },
+        "Description":{
+          "shape":"Description",
+          "documentation":"<p>A detailed description of the connection type variant, including its purpose, use cases, and any specific configuration requirements.</p>"
+        },
+        "LogoUrl":{
+          "shape":"UrlString",
+          "documentation":"<p>The URL of the logo associated with a connection type variant.</p>"
+        }
+      },
+      "documentation":"<p>Represents a variant of a connection type in Glue Data Catalog. Connection type variants provide specific configurations and behaviors for different implementations of the same general connection type.</p>"
+    },
+    "ConnectionTypeVariantList":{
+      "type":"list",
+      "member":{"shape":"ConnectionTypeVariant"}
+    },
     "ConnectionsList":{
       "type":"structure",
       "members":{
         "Connections":{
-          "shape":"OrchestrationStringList",
+          "shape":"ConnectionStringList",
           "documentation":"<p>A list of connections used by the job.</p>"
         }
       },
@@ -8429,8 +8494,7 @@
     },
     "CreateCatalogResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateClassifierRequest":{
       "type":"structure",
@@ -8455,8 +8519,7 @@
     },
     "CreateClassifierResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateColumnStatisticsTaskSettingsRequest":{
       "type":"structure",
@@ -8506,8 +8569,7 @@
     },
     "CreateColumnStatisticsTaskSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateConnectionRequest":{
       "type":"structure",
@@ -8608,8 +8670,7 @@
     },
     "CreateCrawlerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateCsvClassifierRequest":{
       "type":"structure",
@@ -8758,8 +8819,7 @@
     },
     "CreateDatabaseResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateDevEndpointRequest":{
       "type":"structure",
@@ -8977,6 +9037,10 @@
         "Tags":{
           "shape":"IntegrationTagsList",
           "documentation":"<p>Metadata assigned to the resource consisting of a list of key-value pairs.</p>"
+        },
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>The configuration settings.</p>"
         }
       }
     },
@@ -9074,6 +9138,10 @@
         "DataFilter":{
           "shape":"String2048",
           "documentation":"<p>Selects source tables for the integration using Maxwell filter syntax.</p>"
+        },
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>The configuration settings.</p>"
         }
       }
     },
@@ -9086,7 +9154,7 @@
       "members":{
         "ResourceArn":{
           "shape":"String128",
-          "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to create integration table properties. Currently, this API only supports creating integration table properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for creating integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
           "shape":"String128",
@@ -9094,7 +9162,7 @@
         },
         "SourceTableConfig":{
           "shape":"SourceTableConfig",
-          "documentation":"<p>A structure for the source table configuration.</p>"
+          "documentation":"<p>A structure for the source table configuration. See the <code>SourceTableConfig</code> structure to see list of supported source properties.</p>"
         },
         "TargetTableConfig":{
           "shape":"TargetTableConfig",
@@ -9104,8 +9172,7 @@
     },
     "CreateIntegrationTablePropertiesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateJobRequest":{
       "type":"structure",
@@ -9346,8 +9413,7 @@
     },
     "CreatePartitionIndexResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreatePartitionRequest":{
       "type":"structure",
@@ -9377,8 +9443,7 @@
     },
     "CreatePartitionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateRegistryInput":{
       "type":"structure",
@@ -9691,8 +9756,7 @@
     },
     "CreateTableOptimizerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateTableRequest":{
       "type":"structure",
@@ -9729,8 +9793,7 @@
     },
     "CreateTableResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateTriggerRequest":{
       "type":"structure",
@@ -9848,8 +9911,7 @@
     },
     "CreateUserDefinedFunctionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateWorkflowRequest":{
       "type":"structure",
@@ -9860,7 +9922,7 @@
           "documentation":"<p>The name to be assigned to the workflow. It should be unique within your account.</p>"
         },
         "Description":{
-          "shape":"GenericString",
+          "shape":"WorkflowDescriptionString",
           "documentation":"<p>A description of the workflow.</p>"
         },
         "DefaultRunProperties":{
@@ -11059,8 +11121,7 @@
     },
     "DeleteCatalogResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteClassifierRequest":{
       "type":"structure",
@@ -11074,8 +11135,7 @@
     },
     "DeleteClassifierResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteColumnStatisticsForPartitionRequest":{
       "type":"structure",
@@ -11110,8 +11170,7 @@
     },
     "DeleteColumnStatisticsForPartitionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteColumnStatisticsForTableRequest":{
       "type":"structure",
@@ -11141,8 +11200,7 @@
     },
     "DeleteColumnStatisticsForTableResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteColumnStatisticsTaskSettingsRequest":{
       "type":"structure",
@@ -11163,8 +11221,7 @@
     },
     "DeleteColumnStatisticsTaskSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteConnectionNameList":{
       "type":"list",
@@ -11188,8 +11245,7 @@
     },
     "DeleteConnectionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCrawlerRequest":{
       "type":"structure",
@@ -11203,8 +11259,7 @@
     },
     "DeleteCrawlerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCustomEntityTypeRequest":{
       "type":"structure",
@@ -11237,8 +11292,7 @@
     },
     "DeleteDataQualityRulesetResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDatabaseRequest":{
       "type":"structure",
@@ -11256,8 +11310,7 @@
     },
     "DeleteDatabaseResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDevEndpointRequest":{
       "type":"structure",
@@ -11271,8 +11324,7 @@
     },
     "DeleteDevEndpointResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteIntegrationRequest":{
       "type":"structure",
@@ -11364,8 +11416,7 @@
     },
     "DeleteIntegrationTablePropertiesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteJobRequest":{
       "type":"structure",
@@ -11433,8 +11484,7 @@
     },
     "DeletePartitionIndexResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePartitionRequest":{
       "type":"structure",
@@ -11464,8 +11514,7 @@
     },
     "DeletePartitionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteRegistryInput":{
       "type":"structure",
@@ -11509,8 +11558,7 @@
     },
     "DeleteResourcePolicyResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteSchemaInput":{
       "type":"structure",
@@ -11577,8 +11625,7 @@
     },
     "DeleteSecurityConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteSessionRequest":{
       "type":"structure",
@@ -11632,8 +11679,7 @@
     },
     "DeleteTableOptimizerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteTableRequest":{
       "type":"structure",
@@ -11662,8 +11708,7 @@
     },
     "DeleteTableResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteTableVersionRequest":{
       "type":"structure",
@@ -11693,8 +11738,7 @@
     },
     "DeleteTableVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteTriggerRequest":{
       "type":"structure",
@@ -11727,8 +11771,7 @@
     },
     "DeleteUsageProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteUserDefinedFunctionRequest":{
       "type":"structure",
@@ -11753,8 +11796,7 @@
     },
     "DeleteUserDefinedFunctionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteWorkflowRequest":{
       "type":"structure",
@@ -12244,6 +12286,11 @@
         }
       },
       "documentation":"<p>A policy that specifies update behavior for the crawler.</p>"
+    },
+    "DisplayName":{
+      "type":"string",
+      "max":128,
+      "min":1
     },
     "Double":{"type":"double"},
     "DoubleColumnStatisticsData":{
@@ -14419,7 +14466,7 @@
       "members":{
         "ResourceArn":{
           "shape":"String128",
-          "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to retrieve integration table properties. Currently, this API only supports retrieving properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for retrieving integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
           "shape":"String128",
@@ -14432,7 +14479,7 @@
       "members":{
         "ResourceArn":{
           "shape":"String128",
-          "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to retrieve integration table properties. Currently, this API only supports retrieving properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for retrieving integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
           "shape":"String128",
@@ -16444,6 +16491,10 @@
       "type":"list",
       "member":{"shape":"HudiTarget"}
     },
+    "HyperTargetCompressionType":{
+      "type":"string",
+      "enum":["uncompressed"]
+    },
     "IAMRoleArn":{
       "type":"string",
       "pattern":"^arn:aws(-(cn|us-gov|iso(-[bef])?))?:iam::[0-9]{12}:role/.+"
@@ -16459,9 +16510,13 @@
           "shape":"metricCounts",
           "documentation":"<p>The number of files removed by the compaction job run.</p>"
         },
+        "DpuHours":{
+          "shape":"dpuHours",
+          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+        },
         "NumberOfDpus":{
           "shape":"dpuCounts",
-          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+          "documentation":"<p>The number of DPUs consumed by the job, rounded up to the nearest whole number.</p>"
         },
         "JobDurationInHour":{
           "shape":"dpuDurationInHour",
@@ -16506,9 +16561,13 @@
           "shape":"metricCounts",
           "documentation":"<p>The number of orphan files deleted by the orphan file deletion job run.</p>"
         },
+        "DpuHours":{
+          "shape":"dpuHours",
+          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+        },
         "NumberOfDpus":{
           "shape":"dpuCounts",
-          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+          "documentation":"<p>The number of DPUs consumed by the job, rounded up to the nearest whole number.</p>"
         },
         "JobDurationInHour":{
           "shape":"dpuDurationInHour",
@@ -16550,9 +16609,13 @@
           "shape":"metricCounts",
           "documentation":"<p>The number of manifest lists deleted by the retention job run.</p>"
         },
+        "DpuHours":{
+          "shape":"dpuHours",
+          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+        },
         "NumberOfDpus":{
           "shape":"dpuCounts",
-          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+          "documentation":"<p>The number of DPUs consumed by the job, rounded up to the nearest whole number.</p>"
         },
         "JobDurationInHour":{
           "shape":"dpuDurationInHour",
@@ -16582,6 +16645,15 @@
         }
       },
       "documentation":"<p>Specifies an Apache Iceberg data source where Iceberg tables are stored in Amazon S3.</p>"
+    },
+    "IcebergTargetCompressionType":{
+      "type":"string",
+      "enum":[
+        "gzip",
+        "lzo",
+        "uncompressed",
+        "snappy"
+      ]
     },
     "IcebergTargetList":{
       "type":"list",
@@ -16652,8 +16724,7 @@
     },
     "ImportCatalogToGlueResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ImportLabelsTaskRunProperties":{
       "type":"structure",
@@ -16698,6 +16769,10 @@
         "CreateTime":{
           "shape":"IntegrationTimestamp",
           "documentation":"<p>The time that the integration was created, in UTC.</p>"
+        },
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>Properties associated with the integration.</p>"
         },
         "Errors":{
           "shape":"IntegrationErrorList",
@@ -16779,6 +16854,10 @@
           "shape":"IntegrationTimestamp",
           "documentation":"<p>The time that the integration was created, in UTC.</p>"
         },
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>Properties associated with the integration.</p>"
+        },
         "Errors":{
           "shape":"IntegrationErrorList",
           "documentation":"<p>A list of errors associated with the integration.</p>"
@@ -16794,6 +16873,16 @@
       "type":"map",
       "key":{"shape":"IntegrationString"},
       "value":{"shape":"IntegrationString"}
+    },
+    "IntegrationConfig":{
+      "type":"structure",
+      "members":{
+        "RefreshInterval":{
+          "shape":"String128",
+          "documentation":"<p>Specifies the frequency at which CDC (Change Data Capture) pulls or incremental loads should occur. This parameter provides flexibility to align the refresh rate with your specific data update patterns, system load considerations, and performance optimization goals. Time increment can be set from 15 minutes to 8640 minutes (six days). Currently supports creation of <code>RefreshInterval</code> only.</p>"
+        }
+      },
+      "documentation":"<p>Properties associated with the integration.</p>"
     },
     "IntegrationConflictOperationFault":{
       "type":"structure",
@@ -16869,11 +16958,15 @@
       "members":{
         "FieldName":{
           "shape":"String128",
-          "documentation":"<p>The field name used to partition data on the target.</p>"
+          "documentation":"<p>The field name used to partition data on the target. Avoid using columns that have unique values for each row (for example, `LastModifiedTimestamp`, `SystemModTimeStamp`) as the partition column. These columns are not suitable for partitioning because they create a large number of small partitions, which can lead to performance issues.</p>"
         },
         "FunctionSpec":{
           "shape":"String128",
-          "documentation":"<p>Specifies a function used to partition data on the target.</p>"
+          "documentation":"<p>Specifies the function used to partition data on the target. The only accepted value for this parameter is `'identity'` (string). The `'identity'` function ensures that the data partitioning on the target follows the same scheme as the source. In other words, the partitioning structure of the source data is preserved in the target destination.</p>"
+        },
+        "ConversionSpec":{
+          "shape":"String128",
+          "documentation":"<p>Specifies the timestamp format of the source data. Valid values are:</p> <ul> <li> <p> <code>epoch_sec</code> - Unix epoch timestamp in seconds</p> </li> <li> <p> <code>epoch_milli</code> - Unix epoch timestamp in milliseconds</p> </li> <li> <p> <code>iso</code> - ISO 8601 formatted timestamp</p> </li> </ul> <note> <p> Only specify <code>ConversionSpec</code> when using timestamp-based partition functions (year, month, day, or hour). Glue Zero-ETL uses this parameter to correctly transform source data into timestamp format before partitioning. </p> <p> Do not use high-cardinality columns with the <code>identity</code> partition function. High-cardinality columns include: </p> <ul> <li> <p>Primary keys</p> </li> <li> <p>Timestamp fields (such as <code>LastModifiedTimestamp</code>, <code>CreatedDate</code>)</p> </li> <li> <p>System-generated timestamps</p> </li> </ul> <p> Using high-cardinality columns with identity partitioning creates many small partitions, which can significantly degrade ingestion performance. </p> </note>"
         }
       },
       "documentation":"<p>A structure that describes how data is partitioned on the target.</p>"
@@ -19742,6 +19835,7 @@
       "type":"string",
       "box":true
     },
+    "NumberTargetPartitionsString":{"type":"string"},
     "OAuth2ClientApplication":{
       "type":"structure",
       "members":{
@@ -20186,6 +20280,8 @@
         "snappy",
         "lzo",
         "gzip",
+        "brotli",
+        "lz4",
         "uncompressed",
         "none"
       ]
@@ -20727,8 +20823,7 @@
     },
     "PutDataCatalogEncryptionSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PutDataQualityProfileAnnotationRequest":{
       "type":"structure",
@@ -20749,8 +20844,7 @@
     },
     "PutDataQualityProfileAnnotationResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Left blank.</p>"
     },
     "PutResourcePolicyRequest":{
@@ -20871,8 +20965,7 @@
     },
     "PutWorkflowRunPropertiesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PythonScript":{"type":"string"},
     "PythonVersionString":{
@@ -21050,8 +21143,7 @@
     },
     "Record":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "document":true,
       "sensitive":true
     },
@@ -21574,7 +21666,7 @@
         },
         "NumberOfDpus":{
           "shape":"MessageString",
-          "documentation":"<p>The number of DPU hours consumed by the job.</p>"
+          "documentation":"<p>The number of DPUs consumed by the job, rounded up to the nearest whole number.</p>"
         },
         "JobDurationInHour":{
           "shape":"MessageString",
@@ -21905,6 +21997,10 @@
           "shape":"DeltaTargetCompressionType",
           "documentation":"<p>Specifies how the data is compressed. This is generally not necessary if the data has a standard file extension. Possible values are <code>\"gzip\"</code> and <code>\"bzip\"</code>).</p>"
         },
+        "NumberTargetPartitions":{
+          "shape":"NumberTargetPartitionsString",
+          "documentation":"<p>Specifies the number of target partitions for distributing Delta Lake dataset files across Amazon S3.</p>"
+        },
         "Format":{
           "shape":"TargetFormat",
           "documentation":"<p>Specifies the data output format for the target.</p>"
@@ -22001,6 +22097,10 @@
           "shape":"EnclosedInStringProperty",
           "documentation":"<p>Specifies how the data is compressed. This is generally not necessary if the data has a standard file extension. Possible values are <code>\"gzip\"</code> and <code>\"bzip\"</code>).</p>"
         },
+        "NumberTargetPartitions":{
+          "shape":"NumberTargetPartitionsString",
+          "documentation":"<p>Specifies the number of target partitions when writing data directly to Amazon S3.</p>"
+        },
         "Format":{
           "shape":"TargetFormat",
           "documentation":"<p>Specifies the data output format for the target.</p>"
@@ -22038,6 +22138,68 @@
         "SSE-S3"
       ]
     },
+    "S3ExcelSource":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Paths"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The name of the S3 Excel data source.</p>"
+        },
+        "Paths":{
+          "shape":"EnclosedInStringProperties",
+          "documentation":"<p>The S3 paths where the Excel files are located.</p>"
+        },
+        "CompressionType":{
+          "shape":"ParquetCompressionType",
+          "documentation":"<p>The compression format used for the Excel files.</p>"
+        },
+        "Exclusions":{
+          "shape":"EnclosedInStringProperties",
+          "documentation":"<p>Patterns to exclude specific files or paths from processing.</p>"
+        },
+        "GroupSize":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Defines the size of file groups for batch processing.</p>"
+        },
+        "GroupFiles":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Specifies how files should be grouped for processing.</p>"
+        },
+        "Recurse":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Indicates whether to recursively process subdirectories.</p>"
+        },
+        "MaxBand":{
+          "shape":"BoxedNonNegativeInt",
+          "documentation":"<p>The maximum number of processing bands to use.</p>"
+        },
+        "MaxFilesInBand":{
+          "shape":"BoxedNonNegativeInt",
+          "documentation":"<p>The maximum number of files to process in each band.</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"S3DirectSourceAdditionalOptions",
+          "documentation":"<p>Additional configuration options for S3 direct source processing.</p>"
+        },
+        "NumberRows":{
+          "shape":"BoxedLong",
+          "documentation":"<p>The number of rows to process from each Excel file.</p>"
+        },
+        "SkipFooter":{
+          "shape":"BoxedNonNegativeInt",
+          "documentation":"<p>The number of rows to skip at the end of each Excel file.</p>"
+        },
+        "OutputSchemas":{
+          "shape":"GlueSchemas",
+          "documentation":"<p>The AWS Glue schemas to apply to the processed data.</p>"
+        }
+      },
+      "documentation":"<p>Specifies an S3 Excel data source.</p>"
+    },
     "S3GlueParquetTarget":{
       "type":"structure",
       "required":[
@@ -22065,6 +22227,10 @@
         "Compression":{
           "shape":"ParquetCompressionType",
           "documentation":"<p>Specifies how the data is compressed. This is generally not necessary if the data has a standard file extension. Possible values are <code>\"gzip\"</code> and <code>\"bzip\"</code>).</p>"
+        },
+        "NumberTargetPartitions":{
+          "shape":"NumberTargetPartitionsString",
+          "documentation":"<p>Specifies the number of target partitions for Parquet files when writing to Amazon S3 using AWS Glue.</p>"
         },
         "SchemaChangePolicy":{
           "shape":"DirectSchemaChangePolicy",
@@ -22141,6 +22307,10 @@
           "shape":"HudiTargetCompressionType",
           "documentation":"<p>Specifies how the data is compressed. This is generally not necessary if the data has a standard file extension. Possible values are <code>\"gzip\"</code> and <code>\"bzip\"</code>).</p>"
         },
+        "NumberTargetPartitions":{
+          "shape":"NumberTargetPartitionsString",
+          "documentation":"<p>Specifies the number of target partitions for distributing Hudi dataset files across Amazon S3.</p>"
+        },
         "PartitionKeys":{
           "shape":"GlueStudioPathList",
           "documentation":"<p>Specifies native partitioning using a sequence of keys.</p>"
@@ -22189,6 +22359,90 @@
         }
       },
       "documentation":"<p>Specifies a Hudi data source stored in Amazon S3.</p>"
+    },
+    "S3HyperDirectTarget":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "Path"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>The unique identifier for the HyperDirect target node.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>Specifies the input source for the HyperDirect target.</p>"
+        },
+        "PartitionKeys":{
+          "shape":"GlueStudioPathList",
+          "documentation":"<p>Defines the partitioning strategy for the output data.</p>"
+        },
+        "Path":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>The S3 location where the output data will be written.</p>"
+        },
+        "Compression":{
+          "shape":"HyperTargetCompressionType",
+          "documentation":"<p>The compression type to apply to the output data.</p>"
+        },
+        "SchemaChangePolicy":{
+          "shape":"DirectSchemaChangePolicy",
+          "documentation":"<p>Defines how schema changes are handled during write operations.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a HyperDirect data target that writes to Amazon S3.</p>"
+    },
+    "S3IcebergDirectTarget":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Inputs",
+        "Path",
+        "Format",
+        "Compression"
+      ],
+      "members":{
+        "Name":{
+          "shape":"NodeName",
+          "documentation":"<p>Specifies the unique identifier for the Iceberg target node in your data pipeline.</p>"
+        },
+        "Inputs":{
+          "shape":"OneInput",
+          "documentation":"<p>Defines the single input source that provides data to this Iceberg target.</p>"
+        },
+        "PartitionKeys":{
+          "shape":"GlueStudioPathList",
+          "documentation":"<p>Specifies the columns used to partition the Iceberg table data in S3.</p>"
+        },
+        "Path":{
+          "shape":"EnclosedInStringProperty",
+          "documentation":"<p>Defines the S3 location where the Iceberg table data will be stored.</p>"
+        },
+        "Format":{
+          "shape":"TargetFormat",
+          "documentation":"<p>Specifies the file format used for storing Iceberg table data (e.g., Parquet, ORC).</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"AdditionalOptions",
+          "documentation":"<p>Provides additional configuration options for customizing the Iceberg table behavior.</p>"
+        },
+        "SchemaChangePolicy":{
+          "shape":"DirectSchemaChangePolicy",
+          "documentation":"<p>Defines how schema changes are handled when writing data to the Iceberg table.</p>"
+        },
+        "Compression":{
+          "shape":"IcebergTargetCompressionType",
+          "documentation":"<p>Specifies the compression codec used for Iceberg table files in S3.</p>"
+        },
+        "NumberTargetPartitions":{
+          "shape":"NumberTargetPartitionsString",
+          "documentation":"<p>Sets the number of target partitions for distributing Iceberg table files across S3.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a target that writes to an Iceberg data source in Amazon S3.</p>"
     },
     "S3JsonSource":{
       "type":"structure",
@@ -23213,19 +23467,19 @@
       "members":{
         "Fields":{
           "shape":"SourceTableFieldsList",
-          "documentation":"<p>A list of fields used for column-level filtering.</p>"
+          "documentation":"<p>A list of fields used for column-level filtering. Currently unsupported.</p>"
         },
         "FilterPredicate":{
           "shape":"String128",
-          "documentation":"<p>A condition clause used for row-level filtering.</p>"
+          "documentation":"<p>A condition clause used for row-level filtering. Currently unsupported.</p>"
         },
         "PrimaryKey":{
           "shape":"PrimaryKeyList",
-          "documentation":"<p>Unique identifier of a record.</p>"
+          "documentation":"<p>Provide the primary key set for this table. Currently supported specifically for SAP <code>EntityOf</code> entities upon request. Contact Amazon Web Services Support to make this feature available.</p>"
         },
         "RecordUpdateField":{
           "shape":"String128",
-          "documentation":"<p>Incremental pull timestamp-based field.</p>"
+          "documentation":"<p>Incremental pull timestamp-based field. Currently unsupported.</p>"
         }
       },
       "documentation":"<p>Properties used by the source leg to process data from the source.</p>"
@@ -23519,8 +23773,7 @@
     },
     "StartColumnStatisticsTaskRunScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartCrawlerRequest":{
       "type":"structure",
@@ -23534,8 +23787,7 @@
     },
     "StartCrawlerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartCrawlerScheduleRequest":{
       "type":"structure",
@@ -23549,8 +23801,7 @@
     },
     "StartCrawlerScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartDataQualityRuleRecommendationRunRequest":{
       "type":"structure",
@@ -24133,8 +24384,7 @@
     },
     "StopColumnStatisticsTaskRunResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopColumnStatisticsTaskRunScheduleRequest":{
       "type":"structure",
@@ -24155,8 +24405,7 @@
     },
     "StopColumnStatisticsTaskRunScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopCrawlerRequest":{
       "type":"structure",
@@ -24170,8 +24419,7 @@
     },
     "StopCrawlerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopCrawlerScheduleRequest":{
       "type":"structure",
@@ -24185,8 +24433,7 @@
     },
     "StopCrawlerScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopSessionRequest":{
       "type":"structure",
@@ -24249,8 +24496,7 @@
     },
     "StopWorkflowRunResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StorageDescriptor":{
       "type":"structure",
@@ -24848,8 +25094,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -24877,7 +25122,10 @@
         "orc",
         "parquet",
         "hudi",
-        "delta"
+        "delta",
+        "iceberg",
+        "hyper",
+        "xml"
       ]
     },
     "TargetProcessingProperties":{
@@ -25129,8 +25377,7 @@
     },
     "TestConnectionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ThrottlingException":{
       "type":"structure",
@@ -25595,8 +25842,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateBehavior":{
       "type":"string",
@@ -25661,8 +25907,7 @@
     },
     "UpdateCatalogResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateClassifierRequest":{
       "type":"structure",
@@ -25687,8 +25932,7 @@
     },
     "UpdateClassifierResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateColumnStatisticsForPartitionRequest":{
       "type":"structure",
@@ -25814,8 +26058,7 @@
     },
     "UpdateColumnStatisticsTaskSettingsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateConnectionRequest":{
       "type":"structure",
@@ -25840,8 +26083,7 @@
     },
     "UpdateConnectionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateCrawlerRequest":{
       "type":"structure",
@@ -25907,8 +26149,7 @@
     },
     "UpdateCrawlerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateCrawlerScheduleRequest":{
       "type":"structure",
@@ -25926,8 +26167,7 @@
     },
     "UpdateCrawlerScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateCsvClassifierRequest":{
       "type":"structure",
@@ -26034,8 +26274,7 @@
     },
     "UpdateDatabaseResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateDevEndpointRequest":{
       "type":"structure",
@@ -26077,8 +26316,7 @@
     },
     "UpdateDevEndpointResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateGrokClassifierRequest":{
       "type":"structure",
@@ -26165,8 +26403,7 @@
     },
     "UpdateIntegrationTablePropertiesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateJobFromSourceControlRequest":{
       "type":"structure",
@@ -26351,8 +26588,7 @@
     },
     "UpdatePartitionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateRegistryInput":{
       "type":"structure",
@@ -26507,8 +26743,7 @@
     },
     "UpdateTableOptimizerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateTableRequest":{
       "type":"structure",
@@ -26553,8 +26788,7 @@
     },
     "UpdateTableResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateTriggerRequest":{
       "type":"structure",
@@ -26640,8 +26874,7 @@
     },
     "UpdateUserDefinedFunctionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateWorkflowRequest":{
       "type":"structure",
@@ -26652,7 +26885,7 @@
           "documentation":"<p>Name of the workflow to be updated.</p>"
         },
         "Description":{
-          "shape":"GenericString",
+          "shape":"WorkflowDescriptionString",
           "documentation":"<p>The description of the workflow.</p>"
         },
         "DefaultRunProperties":{
@@ -26713,6 +26946,7 @@
       "documentation":"<p>The options to configure an upsert operation when writing to a Redshift target .</p>"
     },
     "UriString":{"type":"string"},
+    "UrlString":{"type":"string"},
     "UsageProfileDefinition":{
       "type":"structure",
       "members":{
@@ -26842,6 +27076,11 @@
     "ValueStringList":{
       "type":"list",
       "member":{"shape":"ValueString"}
+    },
+    "Vendor":{
+      "type":"string",
+      "max":128,
+      "min":1
     },
     "VersionId":{"type":"long"},
     "VersionLongNumber":{
@@ -27104,6 +27343,10 @@
       },
       "documentation":"<p>A workflow is a collection of multiple dependent Glue jobs and crawlers that are run to complete a complex ETL task. A workflow manages the execution and monitoring of all its jobs and crawlers.</p>"
     },
+    "WorkflowDescriptionString":{
+      "type":"string",
+      "max":120000
+    },
     "WorkflowGraph":{
       "type":"structure",
       "members":{
@@ -27280,6 +27523,7 @@
     "double":{"type":"double"},
     "dpuCounts":{"type":"integer"},
     "dpuDurationInHour":{"type":"double"},
+    "dpuHours":{"type":"double"},
     "glueConnectionNameString":{
       "type":"string",
       "min":1

@@ -37,6 +37,7 @@ public final class S3TransformUtils {
     public static final String V1_S3_CLIENT = "com.amazonaws.services.s3.AmazonS3";
     public static final String V1_S3_MODEL_PKG = "com.amazonaws.services.s3.model.";
     public static final String V1_S3_PKG = "com.amazonaws.services.s3.";
+    public static final String V1_EN_PKG = "com.amazonaws.services.s3.event.";
 
     public static final String V2_S3_CLIENT = "software.amazon.awssdk.services.s3.S3Client";
     public static final String V2_S3_MODEL_PKG = "software.amazon.awssdk.services.s3.model.";
@@ -61,6 +62,13 @@ public final class S3TransformUtils {
         "httpExpiresDate"
     )));
 
+    public static final Set<String> UNSUPPORTED_PUT_OBJ_REQUEST_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(
+        Arrays.asList(
+            "sseCustomerKey",
+            "sseAwsKeyManagementParams",
+            "accessControlList"
+        )));
+
 
     private S3TransformUtils() {
 
@@ -68,6 +76,10 @@ public final class S3TransformUtils {
 
     public static MethodMatcher v1S3MethodMatcher(String methodSignature) {
         return new MethodMatcher(V1_S3_CLIENT + " " + methodSignature, true);
+    }
+
+    public static MethodMatcher v1EnMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V1_EN_PKG + methodSignature, true);
     }
 
     public static MethodMatcher v2S3MethodMatcher(String methodSignature) {
@@ -143,6 +155,13 @@ public final class S3TransformUtils {
         }
     }
 
+    public static String changeBucketNameToBucket(String methodName) {
+        if (methodName.contains("BucketName")) {
+            return methodName.replace("BucketName", "Bucket");
+        }
+        return methodName;
+    }
+
     public static String getArgumentName(J.MethodInvocation method) {
         Expression val = method.getArguments().get(0);
         return ((J.Identifier) val).getSimpleName();
@@ -153,9 +172,29 @@ public final class S3TransformUtils {
         return ((J.Identifier) select).getSimpleName();
     }
 
+    private static Comment generateComment(String comment, boolean withNewLine) {
+        String suffix = withNewLine ? "\n" : "";
+        return new TextComment(true, "AWS SDK for Java v2 migration: " + comment, suffix, Markers.EMPTY);
+    }
+
+    public static Comment createComment(String comment) {
+        return generateComment(comment, false);
+    }
+
+    public static Comment createCommentWithNewline(String comment) {
+        return generateComment(comment, true);
+    }
+
     public static List<Comment> createComments(String comment) {
-        return Collections.singletonList(
-            new TextComment(true, "AWS SDK for Java v2 migration: " + comment, "", Markers.EMPTY));
+        return Arrays.asList(createComment(comment));
+    }
+
+    public static List<Comment> createCommentsWithNewline(String comment) {
+        return Arrays.asList(createCommentWithNewline(comment));
+    }
+
+    public static boolean isUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
+        return UNSUPPORTED_PUT_OBJ_REQUEST_TRANSFORMS.contains(method.getSimpleName());
     }
 
     public static boolean isObjectMetadataSetter(J.MethodInvocation method) {
@@ -212,8 +251,24 @@ public final class S3TransformUtils {
                                            method.getSelect().getType());
     }
 
+    public static boolean isGetObjectRequestPayerSetter(J.MethodInvocation method) {
+        return "requestPayer".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_MODEL_PKG + "GetObjectRequest.Builder", method.getSelect().getType());
+    }
+
+    public static boolean isRestoreObjectRequestDaysSetter(J.MethodInvocation method) {
+        return "days".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_MODEL_PKG + "RestoreObjectRequest.Builder",
+                                           method.getSelect().getType());
+    }
+
     public static boolean isGeneratePresignedUrl(J.MethodInvocation method) {
         return "generatePresignedUrl".equals(method.getSimpleName())
+               && TypeUtils.isAssignableTo(V2_S3_CLIENT, method.getSelect().getType());
+    }
+
+    public static boolean isGetS3AccountOwner(J.MethodInvocation method) {
+        return "getS3AccountOwner".equals(method.getSimpleName())
                && TypeUtils.isAssignableTo(V2_S3_CLIENT, method.getSelect().getType());
     }
 
@@ -221,24 +276,34 @@ public final class S3TransformUtils {
         return Arrays.asList("Head", "Post", "Patch").contains(httpMethod);
     }
 
+    public static List<Comment> inputStreamBufferingWarningComment() {
+        String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
+                         + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"
+                         + " content length must be unknown, we recommend using the CRT-based S3 client - "
+                         + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html";
+        return createComments(warning);
+    }
+
     public static List<Comment> assignedVariableHttpMethodNotSupportedComment() {
         String comment = "Transform for S3 generatePresignedUrl() with an assigned variable for HttpMethod is not supported."
-                         + " Please manually migrate your code - https://sdk.amazonaws"
-                         + ".com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html";
+                         + " Please manually migrate your code - "
+                         + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner"
+                         + ".html";
         return createComments(comment);
     }
 
     public static List<Comment> requestPojoTransformNotSupportedComment() {
-        String comment = "Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code "
-                         + "- https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner"
-                         + "/S3Presigner.html";
+        String comment = "Transforms are not supported for GeneratePresignedUrlRequest, please manually migrate your code - "
+                         + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner"
+                         + ".html";
         return createComments(comment);
     }
 
     public static List<Comment> httpMethodNotSupportedComment(String httpMethod) {
         String comment = String.format("S3 generatePresignedUrl() with %s HTTP method is not supported in v2. Only GET, PUT, "
-                                       + "and DELETE are supported - https://sdk.amazonaws"
-                                       + ".com/java/api/latest/software/amazon/awssdk/services/s3/presigner/S3Presigner.html",
+                                       + "and DELETE are supported - "
+                                       + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3"
+                                       + "/presigner/S3Presigner.html",
                                        httpMethod.toUpperCase(Locale.ROOT));
         return createComments(comment);
     }
@@ -247,6 +312,54 @@ public final class S3TransformUtils {
         String comment = "If generating multiple pre-signed URLs, it is recommended to create a single instance of "
                          + "S3Presigner, since creating a presigner can be expensive. If applicable, please manually "
                          + "refactor the transformed code.";
-        return createComments(comment);
+        return createCommentsWithNewline(comment);
+    }
+
+    public static J.MethodInvocation sseAwsKeyManagementParamsNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for PutObjectRequest setter sseAwsKeyManagementParam is not supported, please manually "
+                         + "migrate your code to use the v2 setters: ssekmsKeyId, serverSideEncryption, sseCustomerAlgorithm - "
+                         + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model"
+                         + "/PutObjectRequest.Builder.html#ssekmsKeyId(java.lang.String)";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation sseCustomerKeyNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for PutObjectRequest setter sseCustomerKey is not supported, please manually "
+                         + "migrate your code to use the v2 setters: sseCustomerKey, sseCustomerKeyMD5 - "
+                         + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model"
+                         + "/PutObjectRequest.Builder.html#sseCustomerKey(java.lang.String)";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation accessControlListNotSupportedComment(J.MethodInvocation method) {
+        String comment = "Transform for PutObjectRequest setter accessControlList is not supported, please manually "
+                         + "migrate your code to use the v2 setters: acl, grantReadACP, grantWriteACP - "
+                         + "https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/services/s3/model"
+                         + "/PutObjectRequest.Builder.html#acl(java.lang.String)";
+        return appendCommentToMethod(method, comment);
+    }
+
+    public static J.MethodInvocation addCommentForUnsupportedPutObjectRequestSetter(J.MethodInvocation method) {
+        String methodName = method.getSimpleName();
+        switch (methodName) {
+            case "sseCustomerKey":
+                return sseAwsKeyManagementParamsNotSupportedComment(method);
+            case "sseAwsKeyManagementParams":
+                return sseCustomerKeyNotSupportedComment(method);
+            case "accessControlList":
+                return accessControlListNotSupportedComment(method);
+            default:
+                return method;
+        }
+    }
+
+    public static J.MethodInvocation appendCommentToMethod(J.MethodInvocation method, String comment) {
+        if (method.getComments().isEmpty()) {
+            return method.withComments(createCommentsWithNewline(comment));
+        }
+
+        List<Comment> existingComments = method.getComments();
+        existingComments.add(createCommentWithNewline(comment));
+        return method.withComments(existingComments);
     }
 }
