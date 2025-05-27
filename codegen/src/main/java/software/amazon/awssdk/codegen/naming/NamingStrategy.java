@@ -206,12 +206,12 @@ public interface NamingStrategy {
     String getSigningName();
 
     /**
-     * Retrieve the service name that should be used for environment variables.
+     * Retrieve the service's signing name that should be used for environment variables.
      */
     String getSigningNameForEnvironmentVariables();
 
     /**
-     * Retrieve the service name that should be used for system properties.
+     * Retrieve the service's signing name that should be used for system properties.
      */
     String getSigningNameForSystemProperties();
 
