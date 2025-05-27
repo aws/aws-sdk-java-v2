@@ -21,7 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -30,6 +33,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
+import software.amazon.awssdk.codegen.IntermediateModelBuilder;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
@@ -38,13 +43,13 @@ import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * The Maven mojo to generate Java client code using software.amazon.awssdk:codegen module.
  */
 @Mojo(name = "generate")
 public class GenerationMojo extends AbstractMojo {
-
     private static final String MODEL_FILE = "service-2.json";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
@@ -62,6 +67,8 @@ public class GenerationMojo extends AbstractMojo {
     @Parameter(property = "writeIntermediateModel", defaultValue = "false")
     private boolean writeIntermediateModel;
 
+    @Parameter(property = "writeValidationReport", defaultValue = "false")
+    private boolean writeValidationReport;
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
@@ -76,20 +83,51 @@ public class GenerationMojo extends AbstractMojo {
         this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
-        findModelRoots().forEach(p -> {
-            Path modelRootPath = p.modelRoot;
-            getLog().info("Loading from: " + modelRootPath.toString());
-            generateCode(C2jModels.builder()
-                                  .customizationConfig(p.customizationConfig)
-                                  .serviceModel(loadServiceModel(modelRootPath))
-                                  .waitersModel(loadWaiterModel(modelRootPath))
-                                  .paginatorsModel(loadPaginatorModel(modelRootPath))
-                                  .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
-                                  .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
-                                  .build());
+        List<GenerationParams> generationParams = initGenerationParams();
+
+        Map<String, IntermediateModel> serviceNameToModelMap =
+            generationParams.stream().collect(Collectors.toMap(
+                params -> {
+                    IntermediateModel model = params.intermediateModel;
+                    return StringUtils.lowerCase(model.getMetadata().getServiceName());
+                },
+                params -> params.intermediateModel));
+
+        // Update each param with the intermediate model it shares models with, if any
+        generationParams.forEach(params -> {
+            CustomizationConfig customizationConfig = params.intermediateModel.getCustomizationConfig();
+
+            if (customizationConfig.getShareModelConfig() != null) {
+                String shareModelWithName = customizationConfig.getShareModelConfig().getShareModelWith();
+                params.withShareModelsTarget(serviceNameToModelMap.get(shareModelWithName));
+            }
         });
+
+        generationParams.forEach(this::generateCode);
+
         project.addCompileSourceRoot(sourcesDirectory.toFile().getAbsolutePath());
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
+    }
+
+    private List<GenerationParams> initGenerationParams() throws MojoExecutionException {
+        List<ModelRoot> modelRoots = findModelRoots().collect(Collectors.toList());
+
+        return modelRoots.stream().map(r -> {
+            Path modelRootPath = r.modelRoot;
+            getLog().info("Loading from: " + modelRootPath.toString());
+            C2jModels c2jModels = C2jModels.builder()
+                                           .customizationConfig(r.customizationConfig)
+                                           .serviceModel(loadServiceModel(modelRootPath))
+                                           .waitersModel(loadWaiterModel(modelRootPath))
+                                           .paginatorsModel(loadPaginatorModel(modelRootPath))
+                                           .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                           .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
+                                           .build();
+            String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(c2jModels);
+            IntermediateModel intermediateModel = new IntermediateModelBuilder(c2jModels).build();
+            return new GenerationParams().withIntermediateModel(intermediateModel)
+                                         .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
+        }).collect(Collectors.toList());
     }
 
     private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
@@ -111,13 +149,14 @@ public class GenerationMojo extends AbstractMojo {
         return p.toString().endsWith(MODEL_FILE);
     }
 
-    private void generateCode(C2jModels models) {
+    private void generateCode(GenerationParams params) {
         CodeGenerator.builder()
-                     .models(models)
+                     .intermediateModel(params.intermediateModel)
+                     .shareModelsTarget(params.shareModelsTarget)
                      .sourcesDirectory(sourcesDirectory.toFile().getAbsolutePath())
                      .resourcesDirectory(resourcesDirectory.toFile().getAbsolutePath())
                      .testsDirectory(testsDirectory.toFile().getAbsolutePath())
-                     .intermediateModelFileNamePrefix(intermediateModelFileNamePrefix(models))
+                     .intermediateModelFileNamePrefix(params.intermediateModelFileNamePrefix)
                      .build()
                      .execute();
     }
@@ -176,6 +215,27 @@ public class GenerationMojo extends AbstractMojo {
         private ModelRoot(Path modelRoot, CustomizationConfig customizationConfig) {
             this.modelRoot = modelRoot;
             this.customizationConfig = customizationConfig;
+        }
+    }
+
+    private static class GenerationParams {
+        private IntermediateModel intermediateModel;
+        private IntermediateModel shareModelsTarget;
+        private String intermediateModelFileNamePrefix;
+
+        public GenerationParams withIntermediateModel(IntermediateModel intermediateModel) {
+            this.intermediateModel = intermediateModel;
+            return this;
+        }
+
+        public GenerationParams withShareModelsTarget(IntermediateModel shareModelsTarget) {
+            this.shareModelsTarget = shareModelsTarget;
+            return this;
+        }
+
+        public GenerationParams withIntermediateModelFileNamePrefix(String intermediateModelFileNamePrefix) {
+            this.intermediateModelFileNamePrefix = intermediateModelFileNamePrefix;
+            return this;
         }
     }
 }
