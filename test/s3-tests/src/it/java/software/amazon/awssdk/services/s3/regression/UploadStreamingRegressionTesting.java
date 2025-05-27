@@ -16,9 +16,6 @@
 package software.amazon.awssdk.services.s3.regression;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
@@ -119,10 +116,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     @ParameterizedTest
     @MethodSource("uploadConfigs")
     void putObject(UploadConfig config) throws Exception {
-        assumeNotAccelerateWithPathStyle(config.getBaseConfig());
         assumeNotAccessPointWithPathStyle(config.getBaseConfig());
-        assumeNotAccelerateWithArnType(config.getBaseConfig());
-        assumeNotAccelerateWithEoz(config.getBaseConfig());
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length

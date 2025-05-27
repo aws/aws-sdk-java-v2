@@ -17,9 +17,6 @@ package software.amazon.awssdk.services.s3.regression;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.ControlPlaneOperationRegressionTesting.testConfigs;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 
@@ -115,10 +112,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     @ParameterizedTest
     @MethodSource("downloadConfigs")
     void downloadObject(DownloadConfig config) throws Exception {
-        assumeNotAccelerateWithPathStyle(config.baseConfig());
         assumeNotAccessPointWithPathStyle(config.baseConfig());
-        assumeNotAccelerateWithArnType(config.baseConfig());
-        assumeNotAccelerateWithEoz(config.baseConfig());
 
         LOG.debug(() -> "Running downloadObject with config: " + config);
 
@@ -494,7 +488,6 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                .requestChecksumCalculation(config.getRequestChecksumValidation())
                                .region(REGION)
                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                               .accelerate(config.isAccelerateEnabled())
                                .build();
             default:
                 throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
@@ -509,7 +502,6 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(REGION)
                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
@@ -517,7 +509,6 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(REGION)
                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
             case CRT_BASED: {
@@ -526,7 +517,6 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(REGION)
                                     .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             }
             default:
