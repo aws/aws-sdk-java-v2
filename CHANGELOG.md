@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.51__ __2025-05-27__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces Cost Comparison feature (GetCostAndUsageComparisons, GetCostComparisonDrivers) allowing you find cost variations across multiple dimensions and identify key drivers of spending changes.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud service-managed fleets now support storage profiles. With storage profiles, you can map file paths between a workstation and the worker hosts running the job.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds three features - option to store AWS Site-to-Site VPN pre-shared keys in AWS Secrets Manager, GetActiveVpnTunnelStatus API to check the in-use VPN algorithms, and SampleType option in GetVpnConnectionDeviceSampleConfiguration API to get recommended sample configs for VPN devices.
+
 # __2.31.50__ __2025-05-23__
 ## __AWS SDK for Java v2__
   - ### Features
