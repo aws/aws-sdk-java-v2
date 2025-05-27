@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.BucketAccelerateStatus;
 import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -62,8 +61,6 @@ public final class S3ChecksumsTestUtils {
     public static String createBucket(S3Client s3, String name, Logger log) {
         log.debug(() -> "Creating bucket: " + name);
         createBucket(s3, name, 3, log);
-        s3.putBucketAccelerateConfiguration(r -> r.bucket(name)
-                                                  .accelerateConfiguration(c -> c.status(BucketAccelerateStatus.ENABLED)));
         return name;
     }
 
@@ -193,22 +190,6 @@ public final class S3ChecksumsTestUtils {
                                 "Path style doesn't work with ARN type buckets");
     }
 
-    public static void assumeNotAccelerateWithPathStyle(TestConfig config) {
-        Assumptions.assumeFalse(config.isForcePathStyle() && config.isAccelerateEnabled(),
-                                "Path style doesn't work with Accelerate");
-    }
-
-    public static void assumeNotAccelerateWithArnType(TestConfig config) {
-        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType().isArnType(),
-                                "Accelerate doesn't work with ARN buckets");
-    }
-
-    public static void assumeNotAccelerateWithEoz(TestConfig config) {
-        Assumptions.assumeFalse(config.isAccelerateEnabled() && config.getBucketType() == BucketType.EOZ,
-                                "Accelerate is not supported with Express One Zone");
-    }
-
-
     public static String crc32(String s) {
         return crc32(s.getBytes(StandardCharsets.UTF_8));
     }
@@ -245,7 +226,6 @@ public final class S3ChecksumsTestUtils {
                                .requestChecksumCalculation(config.getRequestChecksumValidation())
                                .region(region)
                                .credentialsProvider(provider)
-                               .accelerate(config.isAccelerateEnabled())
                                .build();
             default:
                 throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
@@ -260,7 +240,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
@@ -268,7 +247,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
             case CRT_BASED: {
@@ -277,7 +255,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             }
             default:
@@ -295,7 +272,6 @@ public final class S3ChecksumsTestUtils {
                                .requestChecksumCalculation(config.getRequestChecksumValidation())
                                .region(region)
                                .credentialsProvider(provider)
-                               .accelerate(config.isAccelerateEnabled())
                                .build();
             default:
                 throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
@@ -312,7 +288,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             case MULTIPART_ENABLED:
                 return S3AsyncClient.builder()
@@ -321,7 +296,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .multipartEnabled(true)
                                     .build();
             case CRT_BASED: {
@@ -330,7 +304,6 @@ public final class S3ChecksumsTestUtils {
                                     .requestChecksumCalculation(config.getRequestChecksumValidation())
                                     .region(region)
                                     .credentialsProvider(provider)
-                                    .accelerate(config.isAccelerateEnabled())
                                     .build();
             }
             default:

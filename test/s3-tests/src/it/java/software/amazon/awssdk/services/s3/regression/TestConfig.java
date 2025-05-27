@@ -24,7 +24,6 @@ public class TestConfig {
     private BucketType bucketType;
     private boolean forcePathStyle;
     private RequestChecksumCalculation requestChecksumValidation;
-    private boolean accelerateEnabled;
 
     public S3ClientFlavor getFlavor() {
         return flavor;
@@ -58,14 +57,6 @@ public class TestConfig {
         this.requestChecksumValidation = requestChecksumValidation;
     }
 
-    public boolean isAccelerateEnabled() {
-        return accelerateEnabled;
-    }
-
-    public void setAccelerateEnabled(boolean accelerateEnabled) {
-        this.accelerateEnabled = accelerateEnabled;
-    }
-
     @Override
     public String toString() {
         return "[" +
@@ -73,7 +64,6 @@ public class TestConfig {
                ", bucketType=" + bucketType +
                ", forcePathStyle=" + forcePathStyle +
                ", requestChecksumValidation=" + requestChecksumValidation +
-               ", accelerateEnabled=" + accelerateEnabled +
                ']';
     }
 
@@ -83,20 +73,16 @@ public class TestConfig {
         boolean[] forcePathStyle = {true, false};
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
                                                             RequestChecksumCalculation.WHEN_SUPPORTED};
-        boolean[] accelerateEnabled = {true, false};
         for (boolean pathStyle : forcePathStyle) {
             for (RequestChecksumCalculation checksumValidation : checksumValidations) {
                 for (S3ClientFlavor flavor : S3ClientFlavor.values()) {
                     for (BucketType bucketType : BucketType.values()) {
-                        for (boolean accelerate : accelerateEnabled) {
-                            TestConfig testConfig = new TestConfig();
-                            testConfig.setFlavor(flavor);
-                            testConfig.setBucketType(bucketType);
-                            testConfig.setForcePathStyle(pathStyle);
-                            testConfig.setRequestChecksumValidation(checksumValidation);
-                            testConfig.setAccelerateEnabled(accelerate);
-                            configs.add(testConfig);
-                        }
+                        TestConfig testConfig = new TestConfig();
+                        testConfig.setFlavor(flavor);
+                        testConfig.setBucketType(bucketType);
+                        testConfig.setForcePathStyle(pathStyle);
+                        testConfig.setRequestChecksumValidation(checksumValidation);
+                        configs.add(testConfig);
                     }
                 }
             }
