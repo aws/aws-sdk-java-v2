@@ -447,7 +447,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     long lengthOfDataToSend = dataToSend.length();
      *
      *     // Start the operation
-     *     BlockingInputStreamAsyncRequestBody body =
+     *     BlockingOutputStreamAsyncRequestBody body =
      *         AsyncRequestBody.forBlockingOutputStream(lengthOfDataToSend);
      *     CompletableFuture<PutObjectResponse> responseFuture =
      *         s3.putObject(r -> r.bucket("bucketName").key("key"), body);
