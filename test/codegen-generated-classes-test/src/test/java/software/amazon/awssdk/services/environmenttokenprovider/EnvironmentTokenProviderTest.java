@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -117,7 +118,26 @@ public class EnvironmentTokenProviderTest {
             .isEqualTo(String.format("Bearer %s", SYSTEM_TEST_TOKEN));
     }
 
-    // TODO: Additional priority tests when auth scheme preference is complete
+    @Test
+    public void usesBearerAuthWithTokenFromEnvironmentOverAuthSchemePreference() {
+        environmentVariableHelper.set(ENV_NAME, ENV_TOKEN);
+        environmentVariableHelper.set(
+            SdkSystemSetting.AWS_AUTH_SCHEME_PREFERENCE.environmentVariable(), "sigv4");
+        mockHttpClient.stubNextResponse(mockResponse());
+
+        EnvironmentTokenProviderClient client = EnvironmentTokenProviderClient
+            .builder()
+            .httpClient(mockHttpClient)
+            .build();
+
+        client.oneOperation(b -> {
+        });
+
+        SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockHttpClient.getLastRequest();
+        assertThat(loggedRequest.firstMatchingHeader("Authorization").get()).isEqualTo(String.format("Bearer %s", ENV_TOKEN));
+        assertThat(loggedRequest.firstMatchingHeader("User-Agent").get())
+            .matches(".*m\\/[A-Za-z0-9,]+" + BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS);
+    }
 
     @Test
     public void usesSigv4WhenAuthSchemeProviderIsManuallyConfigured() {
