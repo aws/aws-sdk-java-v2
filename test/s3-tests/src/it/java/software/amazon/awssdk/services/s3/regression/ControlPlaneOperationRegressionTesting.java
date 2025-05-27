@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.services.s3.regression;
 
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithArnType;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithEoz;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccelerateWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeSyncClient;
@@ -50,9 +47,6 @@ public class ControlPlaneOperationRegressionTesting extends BaseS3RegressionTest
     @MethodSource("testConfigs")
     void deleteObject(TestConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
-        assumeNotAccelerateWithPathStyle(config);
-        assumeNotAccelerateWithArnType(config);
-        assumeNotAccelerateWithEoz(config);
 
         LOG.debug(() -> "Running deleteObject with config: " + config.toString());
 
@@ -83,8 +77,6 @@ public class ControlPlaneOperationRegressionTesting extends BaseS3RegressionTest
     @MethodSource("testConfigs")
     void restoreObject(TestConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
-        assumeNotAccelerateWithPathStyle(config);
-        assumeNotAccelerateWithArnType(config);
 
         Assumptions.assumeFalse(config.getBucketType() == BucketType.EOZ,
                                 "Restore is not supported for S3 Express");
