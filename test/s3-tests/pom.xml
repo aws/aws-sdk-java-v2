@@ -177,6 +177,10 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>test-utils</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>bundle-sdk</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
