@@ -278,8 +278,8 @@ public final class AwsExecutionContextBuilder {
     }
 
     /**
-     * Resolves the endpoint provider, with the request override configuration taking precedence over the provided default client
-     * clientConfig.
+     * Resolves the endpoint provider, with the request override configuration taking precedence over the provided client
+     * configuration.
      *
      * @return The endpoint provider that will be used by the SDK to resolve endpoints.
      */
