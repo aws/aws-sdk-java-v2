@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Synthetics",
-    "contributor": "",
-    "description": "Add support to change ephemeral storage. Add a new field \"TestResult\" under CanaryRunStatus."
-}

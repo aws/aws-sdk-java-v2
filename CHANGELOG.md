@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.52__ __2025-05-28__
+## __AWS Network Firewall__
+  - ### Features
+    - You can now use VPC endpoint associations to create multiple firewall endpoints for a single firewall.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Enable the option to automatically delete underlying Amazon EBS snapshots when deregistering Amazon Machine Images (AMIs)
+
+## __Amazon EventBridge__
+  - ### Features
+    - Allow for more than 2 characters for location codes in EventBridge ARNs
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release allows customers to modify their preferred commitment term and payment options.
+
+## __Synthetics__
+  - ### Features
+    - Add support to change ephemeral storage. Add a new field "TestResult" under CanaryRunStatus.
+
 # __2.31.51__ __2025-05-27__
 ## __AWS Cost Explorer Service__
   - ### Features
