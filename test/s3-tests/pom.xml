@@ -182,7 +182,7 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>bundle</artifactId>
+            <artifactId>bundle-sdk</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
