@@ -81,6 +81,7 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -113,11 +114,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.vintage</groupId>
-            <artifactId>junit-vintage-engine</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
