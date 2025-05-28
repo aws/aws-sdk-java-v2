@@ -115,44 +115,43 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
         mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
     }
 
-    //TODO : Handle this as a part of supporting CredentialsProvider for Apache 5.x
-    // @Ignore("Need to fix CredentialsProvider for Apache 5.x")
-    // @Test
-    // public void credentialPlannerIsInvoked() throws Exception {
-    //     mockProxyServer.addStubMapping(any(urlPathEqualTo("/"))
-    //                                            .willReturn(aResponse()
-    //                                                            .withHeader("WWW-Authenticate", "Basic realm=\"proxy server\"")
-    //                                                            .withStatus(401))
-    //                                            .build());
-    //
-    //     mockProxyServer.addStubMapping(any(urlPathEqualTo("/"))
-    //                                            .withBasicAuth("foo", "bar")
-    //                                            .willReturn(aResponse()
-    //                                                            .proxiedFrom("http://localhost:" + mockServer.port()))
-    //                                            .build());
-    //
-    //     CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
-    //                                                                         .add(new AuthScope(null, 0),
-    //                                                                              new UsernamePasswordCredentials("foo",
-    //                                                                                                              "bar".toCharArray()))
-    //                                                                         .build();
-    //
-    //
-    //     SdkHttpClient client = Apache5HttpClient.builder()
-    //                                             .credentialsProvider(credentialsProvider)
-    //                                             .httpRoutePlanner(
-    //                                                 (request, context) ->
-    //                                                     new HttpRoute(
-    //                                                         new HttpHost("https", "localhost", mockProxyServer.httpsPort())
-    //
-    //                                                     ))
-    //                                             .buildWithDefaults(AttributeMap.builder()
-    //                                                                            .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
-    //                                                                            .build());
-    //     testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
-    //
-    //     mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
-    // }
+    @Test
+    public void credentialPlannerIsInvoked() throws Exception {
+
+        mockProxyServer.addStubMapping(any(urlPathEqualTo("/"))
+                                               .willReturn(aResponse()
+                                                               .withHeader("WWW-Authenticate", "Basic realm=\"proxy server\"")
+                                                               .withStatus(401))
+                                               .build());
+
+        mockProxyServer.addStubMapping(any(urlPathEqualTo("/"))
+                                               .withBasicAuth("foo", "bar")
+                                               .willReturn(aResponse()
+                                                               .proxiedFrom("http://localhost:" + mockServer.port()))
+                                               .build());
+
+        CredentialsProvider credentialsProvider = CredentialsProviderBuilder.create()
+                                                                            .add(new AuthScope("localhost", -1),
+                                                                                 new UsernamePasswordCredentials("foo", "bar".toCharArray()))
+                                                                            .build();
+
+
+
+        SdkHttpClient client = Apache5HttpClient.builder()
+                                                .credentialsProvider(credentialsProvider)
+                                                .httpRoutePlanner(
+                                                    (request, context) ->
+                                                        new HttpRoute(
+                                                            new HttpHost("https", "localhost", mockProxyServer.httpsPort())
+
+                                                        ))
+                                                .buildWithDefaults(AttributeMap.builder()
+                                                                               .put(TRUST_ALL_CERTIFICATES, Boolean.TRUE)
+                                                                               .build());
+        testForResponseCodeUsingHttps(client, HttpURLConnection.HTTP_OK);
+
+        mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
+    }
 
 
     @Override
