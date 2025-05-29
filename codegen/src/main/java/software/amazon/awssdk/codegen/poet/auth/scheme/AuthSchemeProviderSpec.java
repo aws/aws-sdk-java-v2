@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -128,6 +128,8 @@ public class AuthSchemeProviderSpec implements ClassSpec {
     private TypeSpec builderInterfaceSpec() {
         return TypeSpec.interfaceBuilder("Builder")
                        .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                       .addAnnotation(NotThreadSafe.class)
+                       .addJavadoc("A builder for creating {@link $T} instances.\n", className())
                        .addMethod(MethodSpec.methodBuilder("build")
                                             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                             .addJavadoc("Returns a {@link $T} object that is created from the "
@@ -136,7 +138,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                                             .returns(className())
                                             .build())
 
-                       .addMethod(MethodSpec.methodBuilder("withPreferredAuthSchemes")
+                       .addMethod(MethodSpec.methodBuilder("preferredAuthSchemes")
                                             .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
                                             .addJavadoc("Set the preferred auth schemes in order of preference.")
                                             .returns(className().nestedClass("Builder"))
@@ -150,7 +152,6 @@ public class AuthSchemeProviderSpec implements ClassSpec {
 
     private TypeSpec builderClassSpec() {
         return TypeSpec.classBuilder(authSchemeSpecUtils.authSchemeProviderBuilderName())
-                       .addAnnotation(SdkInternalApi.class)
                        .addModifiers(Modifier.PUBLIC, Modifier.FINAL, Modifier.STATIC)
                        .addSuperinterface(className().nestedClass("Builder"))
                        .addField(
@@ -160,7 +161,7 @@ public class AuthSchemeProviderSpec implements ClassSpec {
                                .build())
                        .addMethod(
                            MethodSpec
-                               .methodBuilder("withPreferredAuthSchemes").addAnnotation(Override.class)
+                               .methodBuilder("preferredAuthSchemes").addAnnotation(Override.class)
                                .addModifiers(Modifier.PUBLIC)
                                .addParameter(
                                    ParameterizedTypeName.get(List.class, String.class),

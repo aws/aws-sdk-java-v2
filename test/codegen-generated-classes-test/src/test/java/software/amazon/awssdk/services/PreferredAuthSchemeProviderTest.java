@@ -47,7 +47,7 @@ public class PreferredAuthSchemeProviderTest {
     void testAuthSchemePreference(List<String> preferredAuthSchemes, String operation, String expectedFirstScheme, String testName) {
         MultiauthAuthSchemeProvider provider = MultiauthAuthSchemeProvider
             .builder()
-            .withPreferredAuthSchemes(preferredAuthSchemes)
+            .preferredAuthSchemes(preferredAuthSchemes)
             .build();
 
         MultiauthAuthSchemeParams params = MultiauthAuthSchemeParams

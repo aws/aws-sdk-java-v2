@@ -43,7 +43,7 @@ import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
-import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceProvider;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
@@ -834,13 +834,13 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .returns(authSchemeSpecUtils.providerInterfaceName())
                          .addCode("$T authSchemePreferenceProvider = "
                                   + "$T.builder()",
-                                  AuthSchemePreferenceProvider.class, AuthSchemePreferenceProvider.class)
+                                  AuthSchemePreferenceResolver.class, AuthSchemePreferenceResolver.class)
                          .addCode(".profileFile(config.option($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class)
                          .addCode(".profileName(config.option($T.PROFILE_NAME))", SdkClientOption.class)
                          .addStatement(".build()")
                          .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
-                         .beginControlFlow("if(preferences != null && !preferences.isEmpty())")
-                         .addStatement("return $T.builder().withPreferredAuthSchemes(preferences).build()",
+                         .beginControlFlow("if(!preferences.isEmpty())")
+                         .addStatement("return $T.builder().preferredAuthSchemes(preferences).build()",
                                        authSchemeSpecUtils.providerInterfaceName())
                          .endControlFlow()
                          .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())

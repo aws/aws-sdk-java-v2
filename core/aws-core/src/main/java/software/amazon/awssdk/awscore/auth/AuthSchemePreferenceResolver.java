@@ -27,24 +27,17 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
-public class AuthSchemePreferenceProvider {
+public final class AuthSchemePreferenceResolver {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
-    private AuthSchemePreferenceProvider(Builder builder) {
-        if (builder.profileFile != null) {
-            this.profileFile = builder.profileFile;
-        } else {
-            this.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
-        }
-
-        if (builder.profileName != null) {
-            this.profileName = builder.profileName;
-        } else {
-            this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-        }
+    private AuthSchemePreferenceResolver(Builder builder) {
+        this.profileFile = Validate.getOrDefault(builder.profileFile, () -> ProfileFile::defaultProfileFile);
+        this.profileName = Validate.getOrDefault(builder.profileName,
+                                                 ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
     }
 
     public static Builder builder() {
@@ -92,18 +85,18 @@ public class AuthSchemePreferenceProvider {
         private Supplier<ProfileFile> profileFile;
         private String profileName;
 
-        public AuthSchemePreferenceProvider.Builder profileFile(Supplier<ProfileFile> profileFile) {
+        public AuthSchemePreferenceResolver.Builder profileFile(Supplier<ProfileFile> profileFile) {
             this.profileFile = profileFile;
             return this;
         }
 
-        public AuthSchemePreferenceProvider.Builder profileName(String profileName) {
+        public AuthSchemePreferenceResolver.Builder profileName(String profileName) {
             this.profileName = profileName;
             return this;
         }
 
-        public AuthSchemePreferenceProvider build() {
-            return new AuthSchemePreferenceProvider(this);
+        public AuthSchemePreferenceResolver build() {
+            return new AuthSchemePreferenceResolver(this);
         }
     }
 
@@ -112,9 +105,6 @@ public class AuthSchemePreferenceProvider {
             return Collections.emptyList();
         }
 
-        unformattedList = unformattedList.replaceAll("\\s+", "");
-        String[] splitByTabs = unformattedList.split("\t");
-        String finalFormat = String.join("", splitByTabs);
-        return Arrays.asList(finalFormat.split(","));
+        return Arrays.asList(unformattedList.replaceAll("\\s+", "").split(","));
     }
 }

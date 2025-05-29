@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -46,6 +46,10 @@ public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
         return new QueryAuthSchemeProviderBuilder();
     }
 
+    /**
+     * A builder for creating {@link QueryAuthSchemeProvider} instances.
+     */
+    @NotThreadSafe
     interface Builder {
         /**
          * Returns a {@link QueryAuthSchemeProvider} object that is created from the properties that have been set on
@@ -56,15 +60,14 @@ public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
         /**
          * Set the preferred auth schemes in order of preference.
          */
-        Builder withPreferredAuthSchemes(List<String> authSchemePreference);
+        Builder preferredAuthSchemes(List<String> authSchemePreference);
     }
 
-    @SdkInternalApi
     final class QueryAuthSchemeProviderBuilder implements Builder {
         private List<String> authSchemePreference;
 
         @Override
-        public Builder withPreferredAuthSchemes(List<String> authSchemePreference) {
+        public Builder preferredAuthSchemes(List<String> authSchemePreference) {
             this.authSchemePreference = new ArrayList<>(authSchemePreference);
             return this;
         }

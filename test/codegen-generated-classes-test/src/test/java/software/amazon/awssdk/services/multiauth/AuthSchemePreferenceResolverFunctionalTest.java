@@ -16,9 +16,9 @@
 package software.amazon.awssdk.services.multiauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -28,7 +28,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -52,32 +51,13 @@ import software.amazon.awssdk.services.multiauth.model.MultiAuthWithOnlySigv4AAn
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
 
-public class AuthSchemePreferenceProviderTest {
+public class AuthSchemePreferenceResolverFunctionalTest {
     private final EnvironmentVariableHelper helper = new EnvironmentVariableHelper();
 
     @AfterEach
     void tearDown() {
         System.clearProperty(SdkSystemSetting.AWS_AUTH_SCHEME_PREFERENCE.property());
         helper.reset();
-    }
-
-    @ParameterizedTest
-    @MethodSource("schemeParsingCases")
-    void parsesAuthSchemeCorrectly(String authSchemePreference, List<String> actual) {
-        System.setProperty(SdkSystemSetting.AWS_AUTH_SCHEME_PREFERENCE.property(), authSchemePreference);
-        AuthSchemePreferenceProvider provider = AuthSchemePreferenceProvider.builder().build();
-        List<String> pref = provider.resolveAuthSchemePreference();
-        assertThat(pref).isEqualTo(actual);
-    }
-
-    static Stream<Arguments> schemeParsingCases() {
-        return Stream.of(
-            Arguments.of("scheme1, scheme2 , \tscheme3 \t", Arrays.asList("scheme1", "scheme2", "scheme3")),
-            Arguments.of("scheme1, scheme2 \t scheme3 scheme4", Arrays.asList("scheme1", "scheme2scheme3scheme4")),
-            Arguments.of("sigv4, sig v 4 a, bearer", Arrays.asList("sigv4", "sigv4a", "bearer")),
-            Arguments.of("", Collections.singletonList(""))
-
-            );
     }
 
     @ParameterizedTest
@@ -92,7 +72,7 @@ public class AuthSchemePreferenceProviderTest {
             builder.putAuthScheme(authScheme("aws.auth#sigv4a", new SkipCrtNoOpSigner()));
 
             if (testCase.clientSetting != null) {
-                builder.authSchemeProvider(MultiauthAuthSchemeProvider.builder().withPreferredAuthSchemes(testCase.clientSetting).build());
+                builder.authSchemeProvider(MultiauthAuthSchemeProvider.builder().preferredAuthSchemes(testCase.clientSetting).build());
             }
 
             if (testCase.systemPropSetting != null) {
@@ -120,11 +100,9 @@ public class AuthSchemePreferenceProviderTest {
 
             MultiauthClient client = builder.build();
 
-            try {
-                client.multiAuthWithOnlySigv4aAndSigv4(MultiAuthWithOnlySigv4AAndSigv4Request.builder().build());
-            } catch (AutSchemeCapturingInterceptor.CaptureException e) {
-                // expected
-            }
+            assertThatThrownBy(() ->
+                                   client.multiAuthWithOnlySigv4aAndSigv4(MultiAuthWithOnlySigv4AAndSigv4Request.builder().build())
+            ).isInstanceOf(AutSchemeCapturingInterceptor.CaptureException.class);
 
             assertThat(interceptor.authScheme()).isEqualTo(testCase.resolvedAuthScheme);
         } finally {
@@ -184,6 +162,15 @@ public class AuthSchemePreferenceProviderTest {
                 null,
                 "sigv4",
                 "Profile setting is used when others are null")),
+
+            Arguments.of(new TestCase(
+                "",
+                null,
+                null,
+                null,
+                "sigv4a",
+                "Profile setting is used when explicit empty string is supplied")),
+
 
             Arguments.of(new TestCase(
                 "bearer,sigv4,sigv4a",
@@ -269,5 +256,3 @@ public class AuthSchemePreferenceProviderTest {
         }
     }
 }
-
-

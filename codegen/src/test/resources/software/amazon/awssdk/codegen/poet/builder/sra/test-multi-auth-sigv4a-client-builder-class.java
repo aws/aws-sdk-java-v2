@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceProvider;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
@@ -123,12 +123,12 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     }
 
     private DatabaseAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
-        AuthSchemePreferenceProvider authSchemePreferenceProvider = AuthSchemePreferenceProvider.builder()
+        AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
                                                                                                 .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
                                                                                                 .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
         List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
-        if (preferences != null && !preferences.isEmpty()) {
-            return DatabaseAuthSchemeProvider.builder().withPreferredAuthSchemes(preferences).build();
+        if (!preferences.isEmpty()) {
+            return DatabaseAuthSchemeProvider.builder().preferredAuthSchemes(preferences).build();
         }
         return DatabaseAuthSchemeProvider.defaultProvider();
     }
