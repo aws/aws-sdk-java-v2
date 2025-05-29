@@ -16,8 +16,13 @@
 package software.amazon.awssdk.codegen.validation;
 
 import java.util.Optional;
+import software.amazon.awssdk.codegen.model.config.customization.ShareModelConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 
+/**
+ * Context object for {@link ModelValidator}s. This object contains all the information available to the validations in order
+ * for them to perform their tasks.
+ */
 public final class ModelValidationContext {
     private final IntermediateModel intermediateModel;
     private final IntermediateModel shareModelsTarget;
@@ -27,10 +32,17 @@ public final class ModelValidationContext {
         this.shareModelsTarget = builder.shareModelsTarget;
     }
 
+    /**
+     * The service model for which code is being generated.
+     */
     public IntermediateModel intermediateModel() {
         return intermediateModel;
     }
 
+    /**
+     * The model of the service that the currently generating service shares models with. In other words, this is the service
+     * model for the service defined in {@link ShareModelConfig#getShareModelWith()}.
+     */
     public Optional<IntermediateModel> shareModelsTarget() {
         return Optional.ofNullable(shareModelsTarget);
     }
@@ -43,11 +55,18 @@ public final class ModelValidationContext {
         private IntermediateModel intermediateModel;
         private IntermediateModel shareModelsTarget;
 
+        /**
+         * The service model for which code is being generated.
+         */
         public Builder intermediateModel(IntermediateModel intermediateModel) {
             this.intermediateModel = intermediateModel;
             return this;
         }
 
+        /**
+         * The model of the service that the currently generating service shares models with. In other words, this is the service
+         * model for the service defined in {@link ShareModelConfig#getShareModelWith()}.
+         */
         public Builder shareModelsTarget(IntermediateModel shareModelsTarget) {
             this.shareModelsTarget = shareModelsTarget;
             return this;
