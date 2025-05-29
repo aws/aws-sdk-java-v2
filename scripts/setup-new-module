@@ -1,0 +1,406 @@
+#!/usr/bin/env python
+
+"""
+setup-new-module - Script to set up a new module in the AWS SDK for Java v2
+Usage: ./scripts/setup-new-module -n module-name [-t] [-p parent-dir]
+Options:
+  -n module-name: Name of the new module (required)
+  -t: Set up as a test module (optional, default: false)
+  -p parent-dir: Parent directory for the module (optional, default: root project directory for regular modules, test directory for test modules)
+  -h: Show help
+"""
+
+import os
+import sys
+import argparse
+import re
+import shutil
+from pathlib import Path
+
+
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description='Set up a new module in the AWS SDK for Java v2')
+    parser.add_argument('-n', '--name', required=True, help='Name of the new module (required)')
+    parser.add_argument('-t', '--test', action='store_true', help='Set up as a test module (optional, default: false)')
+    parser.add_argument('-p', '--parent-dir', help='Parent directory for the module (optional)')
+    return parser.parse_args()
+
+
+def get_sdk_version(root_dir):
+    """Get the current SDK version from the root pom.xml."""
+    pom_path = os.path.join(root_dir, 'pom.xml')
+    with open(pom_path, 'r') as f:
+        content = f.read()
+    
+    # Find the first version tag
+    match = re.search(r'<version>([^<]+)</version>', content)
+    if match:
+        return match.group(1)
+    else:
+        print("Warning: Could not find SDK version in pom.xml")
+        return "UNKNOWN"
+
+
+def create_module_directory(module_dir):
+    """Create the module directory structure."""
+    print(f"Creating module directory: {module_dir}")
+    os.makedirs(module_dir, exist_ok=True)
+    os.makedirs(os.path.join(module_dir, 'src/main/java'), exist_ok=True)
+    os.makedirs(os.path.join(module_dir, 'src/main/resources'), exist_ok=True)
+    os.makedirs(os.path.join(module_dir, 'src/test/java'), exist_ok=True)
+    os.makedirs(os.path.join(module_dir, 'src/test/resources'), exist_ok=True)
+
+
+def create_pom_xml(module_dir, module_name, sdk_version, is_test_module):
+    """Create a basic pom.xml file for the module."""
+    pom_path = os.path.join(module_dir, 'pom.xml')
+    
+    print(f"Using SDK version: {sdk_version}")
+    
+    with open(pom_path, 'w') as f:
+        f.write(f'''<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>aws-sdk-java-pom</artifactId>
+        <version>{sdk_version}</version>
+    </parent>
+
+    <artifactId>{module_name}</artifactId>
+    <name>AWS Java SDK :: {module_name}</name>
+    <description>AWS SDK for Java - {module_name}</description>
+    <url>https://aws.amazon.com/sdkforjava</url>
+''')
+        
+        # Add Automatic-Module-Name for non-test modules
+        if not is_test_module:
+            f.write('''    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <!-- should be same as package name -->
+                            <Automatic-Module-Name>software.amazon.awssdk.TODO</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+''')
+        
+        # Close pom.xml
+        f.write('''
+    <dependencies>
+        <!-- Add your dependencies here -->
+    </dependencies>
+
+</project>
+''')
+    
+    print(f"Created pom.xml at {pom_path}")
+def add_dependency_to_pom(pom_file, module_name):
+    """Add dependency to a pom.xml file."""
+    # Check if the file exists
+    if not os.path.isfile(pom_file):
+        print(f"Warning: {pom_file} does not exist. Skipping.")
+        return
+    
+    # Read the file content
+    with open(pom_file, 'r') as f:
+        content = f.read()
+    
+    # Check if dependency already exists
+    dependency_pattern = f"<artifactId>{module_name}</artifactId>"
+    if dependency_pattern in content:
+        print(f"Dependency already exists in {pom_file}. Skipping.")
+        return
+    
+    # Find the dependencies section and add the new dependency
+    dependencies_pattern = r"<dependencies>"
+    new_dependency = f'''        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>{module_name}</artifactId>
+            <version>${{awsjavasdk.version}}</version>
+        </dependency>
+'''
+    
+    # Insert the new dependency after the dependencies tag
+    modified_content = re.sub(
+        dependencies_pattern,
+        f"{dependencies_pattern}\n{new_dependency}",
+        content
+    )
+    
+    # Write the modified content back to the file
+    with open(pom_file, 'w') as f:
+        f.write(modified_content)
+    
+    print(f"Added dependency to {pom_file}")
+
+
+def update_root_pom(root_dir, module_name, is_test_module):
+    """Update the root pom.xml to include the new module."""
+    root_pom = os.path.join(root_dir, 'pom.xml')
+    
+    # Check if the file exists
+    if not os.path.isfile(root_pom):
+        print(f"Warning: {root_pom} does not exist. Skipping.")
+        return
+    
+    # Determine the module path based on whether it's a test module
+    module_path = module_name
+    if is_test_module:
+        module_path = f"test/{module_name}"
+    
+    # Read the file content
+    with open(root_pom, 'r') as f:
+        content = f.read()
+    
+    # Check if module already exists
+    module_pattern = f"<module>{module_path}</module>"
+    if module_pattern in content:
+        print("Module already exists in root pom.xml. Skipping.")
+        return
+    
+    # Find the modules section and add the new module
+    modules_pattern = r"<modules>"
+    new_module = f"        <module>{module_path}</module>"
+    
+    # Insert the new module after the modules tag
+    modified_content = re.sub(
+        modules_pattern,
+        f"{modules_pattern}\n{new_module}",
+        content
+    )
+    
+    # Write the modified content back to the file
+    with open(root_pom, 'w') as f:
+        f.write(modified_content)
+    
+    print("Added module to root pom.xml")
+def update_japicmp_config(root_dir, module_name):
+    """Update japicmp plugin config in root pom.xml."""
+    root_pom = os.path.join(root_dir, 'pom.xml')
+    
+    # Check if the file exists
+    if not os.path.isfile(root_pom):
+        print(f"Warning: {root_pom} does not exist. Skipping japicmp update.")
+        return
+    
+    # Read the file content
+    with open(root_pom, 'r') as f:
+        content = f.read()
+    
+    # Check if module already exists in japicmp config
+    include_module_pattern = f"  <includeModule>{module_name}</includeModule>"
+    if include_module_pattern in content:
+        print("Module already exists in japicmp config. Skipping.")
+        return
+    
+    # Find the includeModules section and add the new module
+    include_modules_end_pattern = r"</includeModules>"
+    new_include_module = f"<includeModule>{module_name}</includeModule>\n"
+    
+    # Insert the new module before the includeModules end tag
+    modified_content = re.sub(
+        include_modules_end_pattern,
+        f"{new_include_module}                             {include_modules_end_pattern}",
+        content
+    )
+    
+    # Write the modified content back to the file
+    with open(root_pom, 'w') as f:
+        f.write(modified_content)
+    
+    print(f"Added {module_name} to japicmp plugin configuration in {root_pom}")
+
+
+def update_brazil_json(root_dir, module_name, is_test):
+    """Update .brazil.json file."""
+    brazil_json = os.path.join(root_dir, '.brazil.json')
+    
+    # Check if the file exists
+    if not os.path.isfile(brazil_json):
+        print(f"Warning: {brazil_json} does not exist. Skipping.")
+        return
+    
+    # Read the file content
+    with open(brazil_json, 'r') as f:
+        content = f.read()
+    
+    # Check if module already exists in .brazil.json
+    module_pattern = f'"{module_name}":'
+    if module_pattern in content:
+        print("Module already exists in .brazil.json. Skipping.")
+        return
+    
+    if is_test:
+        # Find a specific test module entry to anchor our insertion
+        anchor_pattern = r'"s3-tests": {"skipImport":  true}'
+        new_module_entry = f'"{module_name}": {{ "skipImport": true }},\n'
+        
+        # Insert the new module before the anchor
+        modified_content = re.sub(
+            anchor_pattern,
+            f"{new_module_entry}        {anchor_pattern}",
+            content
+        )
+        
+        print(f"Added {module_name} to .brazil.json with skipImport: true")
+    else:
+        # Find a specific non-test module entry to anchor our insertion
+        anchor_pattern = r'"annotations": { "packageName": '
+        new_module_entry = f'"{module_name}": {{ "packageName": "TODO" }},\n'
+        
+        # Insert the new module before the anchor
+        modified_content = re.sub(
+            anchor_pattern,
+            f"{new_module_entry}        {anchor_pattern}",
+            content
+        )
+        
+        print(f"Added {module_name} to .brazil.json with packageName: TODO")
+    
+    # Write the modified content back to the file
+    with open(brazil_json, 'w') as f:
+        f.write(modified_content)
+def update_buildspecs(root_dir, module_name):
+    """Update buildspec files for test modules."""
+    release_maven = os.path.join(root_dir, 'buildspecs/release-to-maven.yml')
+    release_javadoc = os.path.join(root_dir, 'buildspecs/release-javadoc.yml')
+    
+    # Update release-to-maven.yml
+    if os.path.isfile(release_maven):
+        with open(release_maven, 'r') as f:
+            content = f.read()
+        
+        # Look for MODULES_TO_SKIP variable
+        modules_pattern = r'MODULES_TO_SKIP="([^"]*)"'
+        match = re.search(modules_pattern, content)
+        
+        if match:
+            current_modules = match.group(1)
+            new_modules = f"{current_modules},{module_name}" if current_modules else module_name
+            
+            # Update the file
+            modified_content = re.sub(
+                modules_pattern,
+                f'MODULES_TO_SKIP="{new_modules}"',
+                content
+            )
+            
+            with open(release_maven, 'w') as f:
+                f.write(modified_content)
+            
+            print(f"Updated MODULES_TO_SKIP in {release_maven} to include {module_name}")
+        else:
+            print(f"MODULES_TO_SKIP variable not found in {release_maven}. Please manually update.")
+    else:
+        print(f"Warning: {release_maven} does not exist. Skipping.")
+    
+    # Update release-javadoc.yml
+    if os.path.isfile(release_javadoc):
+        with open(release_javadoc, 'r') as f:
+            content = f.read()
+        
+        # Look for MODULES_TO_SKIP variable
+        modules_pattern = r'MODULES_TO_SKIP="([^"]*)"'
+        match = re.search(modules_pattern, content)
+        
+        if match:
+            current_modules = match.group(1)
+            new_modules = f"{current_modules},{module_name}" if current_modules else module_name
+            
+            # Update the file
+            modified_content = re.sub(
+                modules_pattern,
+                f'MODULES_TO_SKIP="{new_modules}"',
+                content
+            )
+            
+            with open(release_javadoc, 'w') as f:
+                f.write(modified_content)
+            
+            print(f"Updated MODULES_TO_SKIP in {release_javadoc} to include {module_name}")
+        else:
+            print(f"MODULES_TO_SKIP variable not found in {release_javadoc}. Please manually update.")
+    else:
+        print(f"Warning: {release_javadoc} does not exist. Skipping.")
+def main():
+    """Main function to set up a new module."""
+    args = parse_arguments()
+    
+    # Get the root project directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.dirname(script_dir)
+    
+    # Set default parent directory based on module type
+    parent_dir = args.parent_dir
+    if not parent_dir:
+        if args.test:
+            parent_dir = os.path.join(root_dir, 'test')
+            print(f"Setting default parent directory for test module to: {parent_dir}")
+        else:
+            parent_dir = root_dir
+    
+    # Create module directory
+    module_dir = os.path.join(parent_dir, args.name)
+    create_module_directory(module_dir)
+    
+    # Get SDK version
+    sdk_version = get_sdk_version(root_dir)
+    
+    # Create pom.xml
+    create_pom_xml(module_dir, args.name, sdk_version, args.test)
+    
+    # Perform updates based on module type
+    if not args.test:
+        print("Performing non-test module updates...")
+        
+        # Add to tests-coverage-reporting pom.xml
+        add_dependency_to_pom(os.path.join(root_dir, 'test/tests-coverage-reporting/pom.xml'), args.name)
+        
+        # Add to aws-sdk-java pom.xml
+        add_dependency_to_pom(os.path.join(root_dir, 'aws-sdk-java/pom.xml'), args.name)
+        
+        # Add to architecture-tests pom.xml
+        add_dependency_to_pom(os.path.join(root_dir, 'test/architecture-tests/pom.xml'), args.name)
+        
+        # Add to bom pom.xml
+        add_dependency_to_pom(os.path.join(root_dir, 'bom/pom.xml'), args.name)
+        
+        # Update japicmp plugin config
+        update_japicmp_config(root_dir, args.name)
+        
+        # Update .brazil.json
+        update_brazil_json(root_dir, args.name, False)
+        
+        # Update root pom.xml
+        update_root_pom(root_dir, args.name, False)
+    else:
+        print("Performing test module updates...")
+        
+        # Update buildspecs
+        update_buildspecs(root_dir, args.name)
+        
+        # Update .brazil.json
+        update_brazil_json(root_dir, args.name, True)
+        
+        # Update root pom.xml
+        update_root_pom(root_dir, args.name, True)
+    
+    print("")
+    print("Module setup complete! Please review the changes.")
+
+
+if __name__ == "__main__":
+    main()
