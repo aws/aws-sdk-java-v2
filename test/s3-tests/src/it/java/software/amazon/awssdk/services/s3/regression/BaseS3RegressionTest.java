@@ -82,6 +82,8 @@ public abstract class BaseS3RegressionTest {
         eozBucket = S3ChecksumsTestUtils.createEozBucket(s3, getBucketName() + EOZ_SUFFIX, LOG);
         apArn = S3ChecksumsTestUtils.createAccessPoint(s3Control, accountId, AP_NAME, bucketName);
 
+        LOG.info(() -> "Using bucket: " + bucketName);
+
     }
 
     @AfterEach

@@ -87,11 +87,15 @@ public final class S3ChecksumsTestUtils {
                 } else {
                     throw e;
                 }
+            } else if ("OperationAborted".equals(e.awsErrorDetails().errorCode())) {
+                log.warn(() -> e.awsErrorDetails().errorMessage() + " --- Likely another operation is creating the bucket, "
+                                + "just wait for the bucket to be available");
             } else {
                 throw e;
             }
         }
 
+        log.info(() -> String.format("waiting for bucket '%s' to be created and available", bucketName));
         s3.waiter().waitUntilBucketExists(r -> r.bucket(bucketName));
     }
 
