@@ -29,29 +29,9 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache5.ProxyConfiguration;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.ReflectionMethodInvoker;
 
 @SdkInternalApi
 public final class Apache5Utils {
-    private static final Logger logger = Logger.loggerFor(Apache5Utils.class);
-    private static final ReflectionMethodInvoker<RequestConfig.Builder, RequestConfig.Builder> NORMALIZE_URI_INVOKER;
-
-    static {
-        // Attempt to initialize the invoker once on class-load. If it fails, it will not be attempted again, but we'll
-        // use that opportunity to log a warning.
-        NORMALIZE_URI_INVOKER =
-            new ReflectionMethodInvoker<>(RequestConfig.Builder.class,
-                                          RequestConfig.Builder.class,
-                                          "setNormalizeUri",
-                                          boolean.class);
-
-        try {
-            NORMALIZE_URI_INVOKER.initialize();
-        } catch (NoSuchMethodException ignored) {
-            noSuchMethodThrownByNormalizeUriInvoker();
-        }
-    }
 
     private Apache5Utils() {
     }
@@ -79,35 +59,9 @@ public final class Apache5Utils {
         addPreemptiveAuthenticationProxy(clientContext, proxyConfiguration);
 
         RequestConfig.Builder builder = RequestConfig.custom();
-        disableNormalizeUri(builder);
-
         clientContext.setRequestConfig(builder.build());
         return clientContext;
 
-    }
-
-    /**
-     * From Apache v4.5.8, normalization should be disabled or AWS requests with special characters in URI path will fail
-     * with Signature Errors.
-     * <p>
-     *    setNormalizeUri is added only in 4.5.8, so customers using the latest version of SDK with old versions (4.5.6 or less)
-     *    of Apache httpclient will see NoSuchMethodError. Hence this method will suppress the error.
-     *
-     *    Do not use Apache version 4.5.7 as it breaks URI paths with special characters and there is no option
-     *    to disable normalization.
-     * </p>
-     *
-     * For more information, See https://github.com/aws/aws-sdk-java/issues/1919
-     */
-    public static void disableNormalizeUri(RequestConfig.Builder requestConfigBuilder) {
-        // For efficiency, do not attempt to call the invoker again if it failed to initialize on class-load
-        if (NORMALIZE_URI_INVOKER.isInitialized()) {
-            try {
-                NORMALIZE_URI_INVOKER.invoke(requestConfigBuilder, false);
-            } catch (NoSuchMethodException ignored) {
-                noSuchMethodThrownByNormalizeUriInvoker();
-            }
-        }
     }
 
     /**
@@ -154,13 +108,4 @@ public final class Apache5Utils {
         }
     }
 
-    // Just log and then swallow the exception
-    private static void noSuchMethodThrownByNormalizeUriInvoker() {
-        // setNormalizeUri method was added in httpclient 4.5.8
-        logger.warn(() -> "NoSuchMethodException was thrown when disabling normalizeUri. This indicates you are using "
-                 + "an old version (< 4.5.8) of Apache http client. It is recommended to use http client "
-                 + "version >= 4.5.9 to avoid the breaking change introduced in apache client 4.5.7 and "
-                 + "the latency in exception handling. See https://github.com/aws/aws-sdk-java/issues/1919"
-                 + " for more information");
-    }
 }

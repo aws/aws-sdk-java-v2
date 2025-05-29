@@ -100,8 +100,6 @@ public class Apache5HttpRequestFactory {
             .setResponseTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()), TimeUnit.MILLISECONDS);
         //    TODO as part of removed API :   .setLocalAddress(requestConfig.localAddress());
 
-        Apache5Utils.disableNormalizeUri(requestConfigBuilder);
-
         /*
          * Enable 100-continue support for PUT operations, since this is
          * where we're potentially uploading large amounts of data and want
