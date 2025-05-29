@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Data Exchange",
+    "contributor": "",
+    "description": "This release adds Tag support for Event Action resource, through which customers can create event actions with Tags and retrieve event actions with Tags."
+}
