@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.53__ __2025-05-29__
+## __AWS Amplify__
+  - ### Features
+    - Add support for customizable build instance sizes. CreateApp and UpdateApp operations now accept a new JobConfig parameter composed of BuildComputeType.
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Add AFTER_DISCOUNTS_AND_COMMITMENTS to Workload Estimate Rate Type. Set ListWorkLoadEstimateUsage maxResults range to minimum of 0 and maximum of 300.
+
+## __AWS CloudTrail__
+  - ### Features
+    - CloudTrail Feature Release: Support for Enriched Events with Configurable Context for Event Data Store
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release adds Tag support for Event Action resource, through which customers can create event actions with Tags and retrieve event actions with Tags.
+
+## __AWS DataSync__
+  - ### Features
+    - AgentArns field is made optional for Object Storage and Azure Blob location create requests. Location credentials are now managed via Secrets Manager, and may be encrypted with service managed or customer managed keys. Authentication is now optional for Azure Blob locations.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Feature: Email Recipient Limit Increase
+
+## __Amazon FSx__
+  - ### Features
+    - FSx API changes to support the public launch of new Intelligent Tiering storage class on Amazon FSx for Lustre
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS Real-Time now offers customers the participant replication that allow customers to copy a participant from one stage to another.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add maintenance status field to DescribeMlflowTrackingServer API response
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adding checksum support for S3 PutBucketOwnershipControls API.
+
+## __AmazonMWAA__
+  - ### Features
+    - Amazon MWAA now lets you choose a worker replacement strategy when updating an environment. This release adds two worker replacement strategies: FORCED (default), which stops workers immediately, and GRACEFUL, which allows workers to finish current tasks before shutting down.
+
+## __Auto Scaling__
+  - ### Features
+    - Add support for "apple" CpuManufacturer in ABIS
+
 # __2.31.52__ __2025-05-28__
 ## __AWS Network Firewall__
   - ### Features

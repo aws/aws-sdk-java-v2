@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudTrail",
-    "contributor": "",
-    "description": "CloudTrail Feature Release: Support for Enriched Events with Configurable Context for Event Data Store"
-}

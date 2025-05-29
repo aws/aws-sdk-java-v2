@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Amplify",
-    "contributor": "",
-    "description": "Add support for customizable build instance sizes. CreateApp and UpdateApp operations now accept a new JobConfig parameter composed of BuildComputeType."
-}
