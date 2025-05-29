@@ -92,7 +92,7 @@ class AuthSchemePreferenceResolverTest {
     static Stream<Arguments> systemSettingTestCases() {
         return Stream.of(
             Arguments.of("Basic system setting", "sigv4,bearer", Arrays.asList("sigv4", "bearer")),
-            Arguments.of("Empty system setting", "", Collections.singletonList("")),
+            Arguments.of("Empty system setting", "", Collections.emptyList()),
             Arguments.of("No system setting", null, Collections.emptyList()),
 
             // Whitespace/formatting cases (from schemeParsingCases)

@@ -26,6 +26,7 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkProtectedApi
@@ -100,7 +101,7 @@ public final class AuthSchemePreferenceResolver {
     }
 
     private static List<String> parseAuthSchemeList(String unformattedList) {
-        if (unformattedList == null) {
+        if (StringUtils.isEmpty(unformattedList)) {
             return Collections.emptyList();
         }
 
