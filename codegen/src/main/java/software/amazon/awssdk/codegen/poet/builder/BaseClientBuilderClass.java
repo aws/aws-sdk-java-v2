@@ -73,7 +73,9 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
@@ -339,13 +341,9 @@ public class BaseClientBuilderClass implements ClassSpec {
                           "httpBearerAuth")
             .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
                           AwsClientOption.class, StaticTokenProvider.class)
-            .addStatement("$T interceptors = c.option($T.EXECUTION_INTERCEPTORS)",
-                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), SdkClientOption.class)
-            .addStatement("$T envTokenMetricInterceptors = $T.singletonList(new $T(tokenFromEnv.get()))",
-                          ParameterizedTypeName.get(List.class, ExecutionInterceptor.class), Collections.class,
-                          poetExtensions.getEnvironmentTokenMetricsInterceptorClass())
-            .addStatement("c.option($T.EXECUTION_INTERCEPTORS, $T.mergeLists(interceptors, envTokenMetricInterceptors))",
-                          SdkClientOption.class, CollectionUtils.class)
+            .addStatement("c.option($T.EXECUTION_ATTRIBUTES, "
+                           + "$T.builder().put($T.TOKEN_CONFIGURED_FROM_ENV, tokenFromEnv.get()).build())",
+                          SdkClientOption.class, ExecutionAttributes.class, SdkInternalExecutionAttribute.class)
             .endControlFlow()
             .beginControlFlow("else")
             .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class)

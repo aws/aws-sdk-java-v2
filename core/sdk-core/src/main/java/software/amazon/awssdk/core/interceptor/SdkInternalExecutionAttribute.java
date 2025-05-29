@@ -197,6 +197,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
         new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
 
+    /**
+     * The response checksum validation setting.
+     */
+    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
+        "TokenConfiguredFromEnv");
+
     private SdkInternalExecutionAttribute() {
     }
 }
