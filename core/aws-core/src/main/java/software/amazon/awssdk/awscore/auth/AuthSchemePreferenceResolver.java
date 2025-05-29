@@ -29,6 +29,11 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * A resolver for the default value of auth scheme preference. This checks environment variables,
+ * system properties and the profile file for the relevant configuration options when
+ * {@link #resolveAuthSchemePreference()} is invoked.
+ */
 @SdkProtectedApi
 public final class AuthSchemePreferenceResolver {
     private final Supplier<ProfileFile> profileFile;
@@ -44,6 +49,13 @@ public final class AuthSchemePreferenceResolver {
         return new Builder();
     }
 
+    /**
+     * Resolve the auth scheme preference based on the following order of precedence:
+     * 1. System settings (jvm and then environment).
+     * 2. Profile file
+     *
+     * @return The resolved, ordered list of auth scheme preferences or an empty list if no values are found.
+     */
     public List<String> resolveAuthSchemePreference() {
         List<String> systemSettingList = fromSystemSetting();
         if (systemSettingList != null && !systemSettingList.isEmpty()) {
