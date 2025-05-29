@@ -51,7 +51,7 @@ public abstract class HttpClientUriNormalizationTestSuite {
     }
 
     @BeforeEach
-    void prepare(){
+    void prepare() {
         wireMockServer.stubFor(any(urlMatching(".*"))
                                    .willReturn(aResponse()
                                                    .withStatus(200)
@@ -59,7 +59,7 @@ public abstract class HttpClientUriNormalizationTestSuite {
     }
 
     @AfterEach
-    void reset(){
+    void reset() {
         wireMockServer.resetAll();
     }
 
