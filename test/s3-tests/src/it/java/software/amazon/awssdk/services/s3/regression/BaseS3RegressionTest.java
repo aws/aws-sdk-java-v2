@@ -61,7 +61,6 @@ public abstract class BaseS3RegressionTest {
 
     @BeforeAll
     static void setup() throws InterruptedException, IOException {
-        // Log.initLoggingToStdout(Log.LogLevel.Trace);
 
         s3 = S3Client.builder()
                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)

@@ -923,20 +923,20 @@
                                     <goal>verify</goal>
                                 </goals>
                                 <configuration>
-                                    <!-- Sets the VM argument line used when integration tests are run. -->
                                     <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
                                     <argLine>-Xmx12g -Xms4g -XX:+AllowRedefinitionToAddDeleteMethods</argLine>
                                     <includes>
                                         <include>**/*RegressionTesting.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
+                                    <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                                    <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
                                 </configuration>
                             </execution>
                         </executions>
                     </plugin>
                 </plugins>
             </build>
-
         </profile>
 
         <profile>
