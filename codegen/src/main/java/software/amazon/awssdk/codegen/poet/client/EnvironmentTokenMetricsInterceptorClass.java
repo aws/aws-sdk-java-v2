@@ -69,10 +69,10 @@ public class EnvironmentTokenMetricsInterceptorClass implements ClassSpec {
 
     private MethodSpec beforeExecutionMethod() {
         return MethodSpec
-            .methodBuilder("beforeExecution")
+            .methodBuilder("beforeMarshalling")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
-            .addParameter(Context.BeforeExecution.class, "context")
+            .addParameter(Context.BeforeMarshalling.class, "context")
             .addParameter(ExecutionAttributes.class, "executionAttributes")
             .addStatement("$T<?> selectedAuthScheme = executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME)",
                           SelectedAuthScheme.class, SdkInternalExecutionAttribute.class)
