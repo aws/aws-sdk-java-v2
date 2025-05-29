@@ -1,4 +1,42 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.52__ __2025-05-28__
+## __AWS Network Firewall__
+  - ### Features
+    - You can now use VPC endpoint associations to create multiple firewall endpoints for a single firewall.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Enable the option to automatically delete underlying Amazon EBS snapshots when deregistering Amazon Machine Images (AMIs)
+
+## __Amazon EventBridge__
+  - ### Features
+    - Allow for more than 2 characters for location codes in EventBridge ARNs
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release allows customers to modify their preferred commitment term and payment options.
+
+## __Synthetics__
+  - ### Features
+    - Add support to change ephemeral storage. Add a new field "TestResult" under CanaryRunStatus.
+
+# __2.31.51__ __2025-05-27__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - This release introduces Cost Comparison feature (GetCostAndUsageComparisons, GetCostComparisonDrivers) allowing you find cost variations across multiple dimensions and identify key drivers of spending changes.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud service-managed fleets now support storage profiles. With storage profiles, you can map file paths between a workstation and the worker hosts running the job.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds three features - option to store AWS Site-to-Site VPN pre-shared keys in AWS Secrets Manager, GetActiveVpnTunnelStatus API to check the in-use VPN algorithms, and SampleType option in GetVpnConnectionDeviceSampleConfiguration API to get recommended sample configs for VPN devices.
+
 # __2.31.50__ __2025-05-23__
 ## __AWS SDK for Java v2__
   - ### Features
