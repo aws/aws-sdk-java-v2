@@ -23,6 +23,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
@@ -46,7 +47,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetSessionTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetSessionTokenCredentialsProvider.Builder, StsGetSessionTokenCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsGetSessionTokenCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
 
     private final GetSessionTokenRequest getSessionTokenRequest;
 

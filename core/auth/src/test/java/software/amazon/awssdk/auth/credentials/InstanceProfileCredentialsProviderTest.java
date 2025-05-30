@@ -63,6 +63,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
@@ -150,7 +151,7 @@ public class InstanceProfileCredentialsProviderTest {
         AwsCredentials credentials = provider.resolveCredentials();
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials.providerName()).isPresent().contains("InstanceProfileCredentialsProvider");
+        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
         verifyImdsCallWithToken();
     }
 
