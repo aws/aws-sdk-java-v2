@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.apache5.internal.conn;
 
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.core5.io.CloseMode;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.core5.util.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,13 +43,13 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class IdleConnectionReaperTest {
     private static final long SLEEP_PERIOD = 250;
 
-    private final Map<HttpClientConnectionManager, Long> connectionManagers = new HashMap<>();
+    private final Map<PoolingHttpClientConnectionManager, Long> connectionManagers = new HashMap<>();
 
     @Mock
     public ExecutorService executorService;
 
     @Mock
-    public HttpClientConnectionManager connectionManager;
+    public PoolingHttpClientConnectionManager connectionManager;
 
     private IdleConnectionReaper idleConnectionReaper;
 
@@ -88,8 +90,7 @@ public class IdleConnectionReaperTest {
         reaper.registerConnectionManager(connectionManager, idleTime);
         try {
             Thread.sleep(SLEEP_PERIOD * 2);
-            //  TODO : need to validate this in future PR
-            verify(connectionManager, atLeastOnce()).close(CloseMode.GRACEFUL);
+            verify(connectionManager, atLeastOnce()).closeIdle(any(TimeValue.class));
         } finally {
             reaper.deregisterConnectionManager(connectionManager);
         }
