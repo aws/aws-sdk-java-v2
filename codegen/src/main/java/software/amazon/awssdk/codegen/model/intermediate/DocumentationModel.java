@@ -17,6 +17,8 @@ package software.amazon.awssdk.codegen.model.intermediate;
 
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.escapeIllegalCharacters;
 
+import java.util.Objects;
+
 public class DocumentationModel {
 
     protected String documentation;
@@ -27,5 +29,23 @@ public class DocumentationModel {
 
     public void setDocumentation(String documentation) {
         this.documentation = escapeIllegalCharacters(documentation);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DocumentationModel that = (DocumentationModel) o;
+        return Objects.equals(documentation, that.documentation);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(documentation);
     }
 }
