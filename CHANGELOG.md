@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.54__ __2025-05-30__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release new parameter CapacityReservationConfig in ProductionVariant
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability for users to specify an optional Execution IAM policy in the StartJobRun action. The resulting permissions assumed by the job run is the intersection of the permissions in the Execution Role and the specified Execution IAM Policy.
+
 # __2.31.53__ __2025-05-29__
 ## __AWS Amplify__
   - ### Features
