@@ -34,6 +34,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * This extension implements optimistic locking on record writes by means of a 'record version number' that is used
@@ -61,7 +62,18 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
     private static final VersionAttribute VERSION_ATTRIBUTE = new VersionAttribute();
 
-    private VersionedRecordExtension() {
+    private final long startAt;
+    private final long incrementBy;
+
+    private VersionedRecordExtension(Long startAt, Long incrementBy) {
+        Validate.isNotNegativeOrNull(startAt, "startAt");
+
+        if (incrementBy != null && incrementBy < 1) {
+            throw new IllegalArgumentException("incrementBy must be greater than 0.");
+        }
+
+        this.startAt = startAt != null ? startAt : 0L;
+        this.incrementBy = incrementBy != null ? incrementBy : 1L;
     }
 
     public static Builder builder() {
@@ -75,19 +87,47 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         public static StaticAttributeTag versionAttribute() {
             return VERSION_ATTRIBUTE;
         }
+
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy) {
+            return new VersionAttribute(startAt, incrementBy);
+        }
     }
 
-    private static class VersionAttribute implements StaticAttributeTag {
+    private static final class VersionAttribute implements StaticAttributeTag {
+        private static final String START_AT_METADATA_KEY = "VersionedRecordExtension:StartAt";
+        private static final String INCREMENT_BY_METADATA_KEY = "VersionedRecordExtension:IncrementBy";
+
+        private final Long startAt;
+        private final Long incrementBy;
+
+        private VersionAttribute() {
+            this.startAt = null;
+            this.incrementBy = null;
+        }
+
+        private VersionAttribute(Long startAt, Long incrementBy) {
+            this.startAt = startAt;
+            this.incrementBy = incrementBy;
+        }
+
         @Override
         public Consumer<StaticTableMetadata.Builder> modifyMetadata(String attributeName,
                                                                     AttributeValueType attributeValueType) {
             if (attributeValueType != AttributeValueType.N) {
                 throw new IllegalArgumentException(String.format(
                     "Attribute '%s' of type %s is not a suitable type to be used as a version attribute. Only type 'N' " +
-                        "is supported.", attributeName, attributeValueType.name()));
+                    "is supported.", attributeName, attributeValueType.name()));
+            }
+
+            Validate.isNotNegativeOrNull(startAt, "startAt");
+
+            if (incrementBy != null && incrementBy < 1) {
+                throw new IllegalArgumentException("IncrementBy must be greater than 0.");
             }
 
             return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
+                                       .addCustomMetadataObject(START_AT_METADATA_KEY, startAt)
+                                       .addCustomMetadataObject(INCREMENT_BY_METADATA_KEY, incrementBy)
                                        .markAttributeAsKey(attributeName, attributeValueType);
         }
     }
@@ -109,9 +149,18 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         Optional<AttributeValue> existingVersionValue =
             Optional.ofNullable(itemToTransform.get(versionAttributeKey.get()));
 
-        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
-            // First version of the record
-            newVersionValue = AttributeValue.builder().n("1").build();
+        Optional<Long> versionStartAtFromAnnotation = context.tableMetadata()
+                                                             .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY,
+                                                                                   Long.class);
+
+        Optional<Long> versionIncrementByFromAnnotation = context.tableMetadata()
+                                                                 .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
+                                                                                       Long.class);
+        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
+            long startValue = versionStartAtFromAnnotation.orElse(this.startAt);
+            long increment = versionIncrementByFromAnnotation.orElse(this.incrementBy);
+
+            newVersionValue = AttributeValue.builder().n(Long.toString(startValue + increment)).build();
             condition = Expression.builder()
                                   .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
@@ -123,9 +172,12 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                 throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
             }
 
-            int existingVersion = Integer.parseInt(existingVersionValue.get().n());
+            long existingVersion = Long.parseLong(existingVersionValue.get().n());
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
-            newVersionValue = AttributeValue.builder().n(Integer.toString(existingVersion + 1)).build();
+
+            long increment = versionIncrementByFromAnnotation.orElse(this.incrementBy);
+            newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
+
             condition = Expression.builder()
                                   .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
@@ -142,13 +194,55 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
+    private boolean isInitialVersion(Optional<AttributeValue> existingVersionValue, Optional<Long> versionStartAtFromAnnotation) {
+        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
+            return true;
+        }
+
+        AttributeValue value = existingVersionValue.get();
+        if (value.n() != null) {
+            long currentVersion = Long.parseLong(value.n());
+            return (versionStartAtFromAnnotation.isPresent() && currentVersion == versionStartAtFromAnnotation.get())
+                   || currentVersion == this.startAt;
+        }
+
+        return false;
+    }
+
     @NotThreadSafe
     public static final class Builder {
+        private Long startAt;
+        private Long incrementBy;
+
         private Builder() {
         }
 
+        /**
+         * Sets the startAt used to compare if a record is the initial version of a record.
+         * Default value - {@code 0}.
+         *
+         * @param startAt
+         * @return the builder instance
+         */
+        public Builder startAt(Long startAt) {
+            this.startAt = startAt;
+            return this;
+        }
+
+        /**
+         * Sets the amount to increment the version by with each subsequent update.
+         * Default value - {@code 1}.
+         *
+         * @param incrementBy
+         * @return the builder instance
+         */
+        public Builder incrementBy(Long incrementBy) {
+            this.incrementBy = incrementBy;
+            return this;
+        }
+
         public VersionedRecordExtension build() {
-            return new VersionedRecordExtension();
+            return new VersionedRecordExtension(this.startAt, this.incrementBy);
         }
     }
 }
