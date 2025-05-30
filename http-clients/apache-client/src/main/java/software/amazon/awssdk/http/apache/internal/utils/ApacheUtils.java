@@ -149,6 +149,11 @@ public final class ApacheUtils {
             AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
+            try {
+                basicAuth.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=default"));
+            } catch (MalformedChallengeException e) {
+                throw new RuntimeException(e);
+            }
             authCache.put(targetHost, basicAuth);
 
             clientContext.setCredentialsProvider(credsProvider);
