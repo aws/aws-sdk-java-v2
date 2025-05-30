@@ -152,7 +152,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         // Note that it is important we register the original connection manager with the
         // IdleConnectionReaper as it's required for the successful deregistration of managers
         // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        HttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        PoolingHttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
 
         Registry<AuthSchemeFactory> authSchemeRegistry = configuration.authSchemeRegistry ;
         if (authSchemeRegistry != null) {
@@ -689,7 +689,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
     private static class ApacheConnectionManagerFactory {
 
-        public HttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
+        public PoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
                                                   AttributeMap standardOptions) {
             // TODO : Deprecated method needs to be removed with new replacements
             SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
