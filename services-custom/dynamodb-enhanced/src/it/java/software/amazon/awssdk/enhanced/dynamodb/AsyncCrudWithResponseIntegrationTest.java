@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -192,7 +191,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         Record record = new Record().setId("1").setSort(10);
         mappedTable.putItem(record).join();
 
-        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11).setVersion(1);
 
 
         UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord)
@@ -202,6 +201,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         assertThat(response.attributes().getId()).isEqualTo(record.getId());
         assertThat(response.attributes().getSort()).isEqualTo(record.getSort());
         assertThat(response.attributes().getValue()).isEqualTo(null);
+        assertThat(response.attributes().getVersion()).isEqualTo(1);
     }
 
     @Test
@@ -209,7 +209,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         Record record = new Record().setId("1").setSort(10);
         mappedTable.putItem(record).join();
 
-        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11).setVersion(1);
 
 
         UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord)
@@ -219,6 +219,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         assertThat(response.attributes().getId()).isEqualTo(updatedRecord.getId());
         assertThat(response.attributes().getSort()).isEqualTo(updatedRecord.getSort());
         assertThat(response.attributes().getValue()).isEqualTo(updatedRecord.getValue());
+        assertThat(response.attributes().getVersion()).isEqualTo(updatedRecord.getVersion() + 1);
     }
 
     @Test
@@ -226,7 +227,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         Record record = new Record().setId("1").setSort(10);
         mappedTable.putItem(record).join();
 
-        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11);
+        Record updatedRecord = new Record().setId("1").setSort(10).setValue(11).setVersion(1);
 
 
         UpdateItemEnhancedResponse<Record> response = mappedTable.updateItemWithResponse(r -> r.item(updatedRecord))
@@ -235,6 +236,7 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
         assertThat(response.attributes().getId()).isEqualTo(updatedRecord.getId());
         assertThat(response.attributes().getSort()).isEqualTo(updatedRecord.getSort());
         assertThat(response.attributes().getValue()).isEqualTo(updatedRecord.getValue());
+        assertThat(response.attributes().getVersion()).isEqualTo(updatedRecord.getVersion() + 1);
     }
 
     @Test
