@@ -37,4 +37,11 @@ class EndpointProviderCompiledRulesClassSpecTest {
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithOverrideKnowProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-know-prop-override-class.java"));
     }
+
+    @Test
+    void unknownEndpointProperties() {
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-unknown-property-class.java"));
+    }
 }
