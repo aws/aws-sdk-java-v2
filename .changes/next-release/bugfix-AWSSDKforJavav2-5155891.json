@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "DynamoDB Enhanced - Attribute name cleaner now uses a regex pattern instead of a set of defined characters."
+}
