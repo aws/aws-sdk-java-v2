@@ -39,8 +39,32 @@ public interface DownloadFilter extends Predicate<S3Object> {
     boolean test(S3Object s3Object);
 
     /**
-     * A {@link DownloadFilter} that downloads all non-folder objects. A folder is a 0-byte object created when a customer
-     * uses S3 console to create a folder, and it always ends with "/".
+     * Returns a composed filter that performs AND operation
+     */
+    @Override
+    default DownloadFilter and(Predicate<? super S3Object> other) {
+        return s3Object -> test(s3Object) && other.test(s3Object);
+    }
+
+    /**
+     * Returns a composed filter that performs OR operation
+     */
+    @Override
+    default DownloadFilter or(Predicate<? super S3Object> other) {
+        return s3Object -> test(s3Object) || other.test(s3Object);
+    }
+
+    /**
+     * Returns a filter that negates the result
+     */
+    @Override
+    default DownloadFilter negate() {
+        return s3Object -> !test(s3Object);
+    }
+
+    /**
+     * A {@link DownloadFilter} that downloads all non-folder objects. A folder is a 0-byte object created when a customer uses S3
+     * console to create a folder, and it always ends with "/".
      *
      * <p>
      * This is the default behavior if no filter is provided.
