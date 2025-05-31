@@ -66,6 +66,12 @@ public class AuthSchemeSpecTest {
                     .caseName("query")
                     .outputFileSuffix("default-params")
                     .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(PreferredAuthSchemeProviderSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("preferred-provider")
+                    .build(),
             // query-endpoint-auth-params
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
