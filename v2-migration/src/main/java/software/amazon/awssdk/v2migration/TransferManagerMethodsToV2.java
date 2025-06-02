@@ -44,9 +44,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
         v2TmMethodMatcher(String.format("download(%sGetObjectRequest, java.io.File, long)", V2_S3_MODEL_PKG));
 
     private static final MethodMatcher UPLOAD_BUCKET_KEY_FILE = v2TmMethodMatcher("upload(String, String, java.io.File)");
-    private static final MethodMatcher UPLOAD_STREAM_METADATA = v2TmMethodMatcher(String.format("upload(String, String, java.io"
-                                                                                                + ".InputStream, %sHeadObjectResponse)",
-                                                                                                V2_S3_MODEL_PKG));
 
     private static final MethodMatcher COPY_REQUEST =
         v2TmMethodMatcher(String.format("copy(%sCopyObjectRequest)", V2_S3_MODEL_PKG));
@@ -112,10 +109,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
             }
             if (UPLOAD_BUCKET_KEY_FILE.matches(method, false)) {
                 method = transformUploadWithBucketKeyFile(method);
-                return super.visitMethodInvocation(method, executionContext);
-            }
-            if (UPLOAD_STREAM_METADATA.matches(method, false)) {
-                method = transformUploadWithStreamMetadata(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
             if (DOWNLOAD_DIR.matches(method, false)) {
@@ -216,21 +209,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
             String v2Method = "#{any()}.uploadFile(UploadFileRequest.builder()"
                               + ".putObjectRequest(PutObjectRequest.builder().bucket(#{any()}).key(#{any()}).build())"
                               + ".source(#{any()}).build())";
-
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0), method.getArguments().get(1),
-                                        method.getArguments().get(2));
-
-            addTmImport("UploadFileRequest");
-            addS3Import("PutObjectRequest");
-            return method;
-        }
-
-        private J.MethodInvocation transformUploadWithStreamMetadata(J.MethodInvocation method) {
-            String v2Method = "#{any()}.upload(UploadRequest.builder()"
-                              + ".putObjectRequest(PutObjectRequest(#{any()}, #{any()}, #{any()}, #{any()}))"
-                              + ".build())";
 
             method = JavaTemplate.builder(v2Method).build()
                                  .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
