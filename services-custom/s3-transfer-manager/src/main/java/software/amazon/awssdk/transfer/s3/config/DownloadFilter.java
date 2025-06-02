@@ -40,10 +40,11 @@ public interface DownloadFilter extends Predicate<S3Object> {
     boolean test(S3Object s3Object);
 
     /**
-     * Returns a predicate that represents the logical AND of this predicate and another
+     * Returns a composed filter that represents the logical AND of this filter and another.
+     * The composed filter returns true only if both this filter and the other filter return true.
      * @param other a predicate that will be logically-ANDed with this
      *              predicate
-     * @return a composed predicate that performs AND operation
+     * @return a composed filter that represents the logical AND of this filter and the other filter
      * @throws NullPointerException if other is null
      */
     @Override
@@ -53,10 +54,11 @@ public interface DownloadFilter extends Predicate<S3Object> {
     }
 
     /**
-     * Returns a predicate that represents the logical OR of this predicate and another
+     * Returns a composed filter that represents the logical OR of this filter and another.
+     * The composed filter returns true if either this filter or the other filter returns true.
      * @param other a predicate that will be logically-ORed with this
      *              predicate
-     * @return a composed predicate that performs OR operation
+     * @return a composed filter that represents the logical OR of this filter and the other filter
      * @throws NullPointerException if other is null
      */
     @Override
@@ -66,9 +68,9 @@ public interface DownloadFilter extends Predicate<S3Object> {
     }
 
     /**
-     * Returns a predicate that represents the logical negation of this
-     * predicate.
-     * @return a predicate that represents the logical negation of this
+     * Returns a filter that represents the logical negation of this predicate.
+     * The returned filter returns true when this filter returns false, and vice versa.
+     * @return a filter that represents the logical negation of this filter
      * predicate
      */
     @Override
