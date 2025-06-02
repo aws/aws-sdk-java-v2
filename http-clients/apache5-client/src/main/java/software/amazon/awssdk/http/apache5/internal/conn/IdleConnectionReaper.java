@@ -22,8 +22,9 @@ import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.core5.io.CloseMode;
+import org.apache.hc.core5.util.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -38,7 +39,7 @@ public final class IdleConnectionReaper {
 
     private static final IdleConnectionReaper INSTANCE = new IdleConnectionReaper();
 
-    private final Map<HttpClientConnectionManager, Long> connectionManagers;
+    private final Map<PoolingHttpClientConnectionManager, Long> connectionManagers;
 
     private final Supplier<ExecutorService> executorServiceSupplier;
 
@@ -64,7 +65,7 @@ public final class IdleConnectionReaper {
     }
 
     @SdkTestInternalApi
-    IdleConnectionReaper(Map<HttpClientConnectionManager, Long> connectionManagers,
+    IdleConnectionReaper(Map<PoolingHttpClientConnectionManager, Long> connectionManagers,
                          Supplier<ExecutorService> executorServiceSupplier,
                          long sleepPeriod) {
 
@@ -81,7 +82,7 @@ public final class IdleConnectionReaper {
      * @return {@code true} If the connection manager was not previously registered with this reaper, {@code false}
      * otherwise.
      */
-    public synchronized boolean registerConnectionManager(HttpClientConnectionManager manager, long maxIdleTime) {
+    public synchronized boolean registerConnectionManager(PoolingHttpClientConnectionManager manager, long maxIdleTime) {
         boolean notPreviouslyRegistered = connectionManagers.put(manager, maxIdleTime) == null;
         setupExecutorIfNecessary();
         return notPreviouslyRegistered;
@@ -133,12 +134,12 @@ public final class IdleConnectionReaper {
     }
 
     private static final class ReaperTask implements Runnable {
-        private final Map<HttpClientConnectionManager, Long> connectionManagers;
+        private final Map<PoolingHttpClientConnectionManager, Long> connectionManagers;
         private final long sleepPeriod;
 
         private volatile boolean stopping = false;
 
-        private ReaperTask(Map<HttpClientConnectionManager, Long> connectionManagers,
+        private ReaperTask(Map<PoolingHttpClientConnectionManager, Long> connectionManagers,
                            long sleepPeriod) {
             this.connectionManagers = connectionManagers;
             this.sleepPeriod = sleepPeriod;
@@ -150,11 +151,9 @@ public final class IdleConnectionReaper {
                 try {
                     Thread.sleep(sleepPeriod);
 
-                    for (Map.Entry<HttpClientConnectionManager, Long> entry : connectionManagers.entrySet()) {
+                    for (Map.Entry<PoolingHttpClientConnectionManager, Long> entry : connectionManagers.entrySet()) {
                         try {
-                            entry.getKey().close(CloseMode.GRACEFUL);
-                            // Set idle connections
-                            // entry.getKey().closeIdleConnections(entry.getValue(), TimeUnit.MILLISECONDS);
+                            entry.getKey().closeIdle(TimeValue.ofMilliseconds(entry.getValue()));
                         } catch (Exception t) {
                             log.warn("Unable to close idle connections", t);
                         }
