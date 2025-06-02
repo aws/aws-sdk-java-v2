@@ -314,11 +314,6 @@ public final class Expression {
 
     @Override
     public String toString() {
-        // return "Expression{" +
-        //        "expression='" + expression + '\'' +
-        //        ", expressionValues=" + expressionValues +
-        //        ", expressionNames=" + expressionNames +
-        //        '}';
         return ToString.builder("Expression")
                        .add("expression", expression)
                        .add("expressionValues", expressionValues)
