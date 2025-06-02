@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS EntityResolution",
+    "contributor": "",
+    "description": "Add support for generating match IDs in near real-time."
+}
