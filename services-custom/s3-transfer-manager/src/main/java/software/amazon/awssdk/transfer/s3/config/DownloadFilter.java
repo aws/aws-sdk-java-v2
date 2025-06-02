@@ -40,7 +40,7 @@ public interface DownloadFilter extends Predicate<S3Object> {
     boolean test(S3Object s3Object);
 
     /**
-     * Returns a composed filter that performs AND operation
+     * Returns a predicate that represents the logical AND of this predicate and another
      * @param other a predicate that will be logically-ANDed with this
      *              predicate
      * @return a composed predicate that performs AND operation
