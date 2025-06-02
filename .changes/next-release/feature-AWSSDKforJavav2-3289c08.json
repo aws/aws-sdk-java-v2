@@ -1,6 +1,0 @@
-{
-    "category": "AWS SDK for Java v2", 
-    "contributor": "", 
-    "type": "feature", 
-    "description": "Improve the endpoint rules performance by directly passing the needed params instead of using a POJO to keep track of them."
-}
