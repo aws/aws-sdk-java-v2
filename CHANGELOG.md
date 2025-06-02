@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.55__ __2025-06-02__
+## __AWS Backup__
+  - ### Features
+    - You can now subscribe to Amazon SNS notifications and Amazon EventBridge events for backup indexing. You can now receive notifications when a backup index is created, deleted, or fails to create, enhancing your ability to monitor and track your backup operations.
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - This release enables AWS Compute Optimizer to analyze Amazon Aurora database clusters and generate Aurora I/O-Optimized recommendations.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Add support for generating match IDs in near real-time.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Introduces SUSPENDING and SUSPENDED states for clusters, compute node groups, and queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Improve the endpoint rules performance by directly passing the needed params instead of using a POJO to keep track of them.
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds the Agent Lifecycle Paused State feature to Amazon Bedrock agents. By using an agent's alias, you can temporarily suspend agent operations during maintenance, updates, or other situations.
+
+## __Amazon Athena__
+  - ### Features
+    - Add support for the managed query result in the workgroup APIs. The managed query result configuration enables users to store query results to Athena owned storage.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updates Amazon ECS documentation to include note for upcoming default log driver mode change.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for filtering ListInsights API calls on MISCONFIGURATION insight category
+
+## __Cost Optimization Hub__
+  - ### Features
+    - Support recommendations for Aurora instance and Aurora cluster storage.
+
+## __Synthetics__
+  - ### Features
+    - Support for Java runtime handler pattern.
+
 # __2.31.54__ __2025-05-30__
 ## __AWS SDK for Java v2__
   - ### Features
