@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -70,6 +71,19 @@ public class DownloadFilterTest {
             DownloadFilter sizeFilter = obj -> obj.size() > 1000L;
             return folder1.or(folder3).and(sizeFilter);
         };
+        Function<S3Object, DownloadFilter> nullParameterFilter = (s3Object) -> {
+            DownloadFilter baseFilter = obj -> obj.key().startsWith("folder1");
+            return s -> {
+                assertThrows(NullPointerException.class,
+                             () -> baseFilter.or(null),
+                             "or() should throw NullPointerException when other is null");
+                assertThrows(NullPointerException.class,
+                             () -> baseFilter.and(null),
+                             "and() should throw NullPointerException when other is null");
+                return true;  // Return value doesn't matter as we're testing for exceptions
+            };
+        };
+
 
         return Stream.of(
             // OR operation tests
@@ -162,7 +176,15 @@ public class DownloadFilterTest {
                 S3Object.builder().key("folder3/test.txt").size(2000L).build(),
                 complexFilter,
                 true
+            ),
+            // NullPointerException
+            Arguments.of(
+                "NULL: or/and with null parameter should throw NullPointerException",
+                S3Object.builder().key("folder1/test.txt").size(1000L).build(),
+                nullParameterFilter,
+                true
             )
+
         );
     }
 
