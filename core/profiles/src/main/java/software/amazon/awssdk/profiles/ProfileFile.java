@@ -86,6 +86,13 @@ public final class ProfileFile {
     }
 
     /**
+     * Create an empty profile file.
+     */
+    static ProfileFile empty() {
+        return new ProfileFile(Collections.emptyMap());
+    }
+
+    /**
      * Get the default profile file, using the credentials file from "~/.aws/credentials", the config file from "~/.aws/config"
      * and the "default" profile. This default behavior can be customized using the
      * {@link ProfileFileSystemSetting#AWS_SHARED_CREDENTIALS_FILE}, {@link ProfileFileSystemSetting#AWS_CONFIG_FILE} and
@@ -310,8 +317,12 @@ public final class ProfileFile {
 
         @Override
         public ProfileFile build() {
-            InputStream stream = content != null ? content :
-                                 FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
+            InputStream stream = null;
+            if (content != null) {
+                stream = content;
+            } else if (contentLocation != null) {
+                stream = FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
+            }
 
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");
