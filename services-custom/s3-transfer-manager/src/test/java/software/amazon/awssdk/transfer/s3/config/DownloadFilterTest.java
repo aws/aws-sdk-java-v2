@@ -43,35 +43,35 @@ public class DownloadFilterTest {
     }
 
     private static Stream<Arguments> filterOperationTestCases() {
-        Function<S3Object, DownloadFilter> folder1OrFolder3Filter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> folder1OrFolder3Filter = s3Object -> {
             DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
             DownloadFilter folder3 = obj -> obj.key().startsWith("folder3");
             return folder1.or(folder3);
         };
 
-        Function<S3Object, DownloadFilter> txtAndLargeSizeFilter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> txtAndLargeSizeFilter = s3Object -> {
             DownloadFilter txtFilter = obj -> obj.key().endsWith(".txt");
             DownloadFilter sizeFilter = obj -> obj.size() > 1000L;
             return txtFilter.and(sizeFilter);
         };
 
-        Function<S3Object, DownloadFilter> notFolder1Filter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> notFolder1Filter = s3Object -> {
             DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
             return folder1.negate();
         };
 
-        Function<S3Object, DownloadFilter> notLargeSizeFilter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> notLargeSizeFilter = s3Object -> {
             DownloadFilter largeSize = obj -> obj.size() > 1000L;
             return largeSize.negate();
         };
 
-        Function<S3Object, DownloadFilter> complexFilter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> complexFilter = s3Object -> {
             DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
             DownloadFilter folder3 = obj -> obj.key().startsWith("folder3");
             DownloadFilter sizeFilter = obj -> obj.size() > 1000L;
             return folder1.or(folder3).and(sizeFilter);
         };
-        Function<S3Object, DownloadFilter> nullParameterFilter = (s3Object) -> {
+        Function<S3Object, DownloadFilter> nullParameterFilter = s3Object -> {
             DownloadFilter baseFilter = obj -> obj.key().startsWith("folder1");
             return s -> {
                 assertThrows(NullPointerException.class,
