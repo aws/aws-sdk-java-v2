@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Updates Amazon ECS documentation to include note for upcoming default log driver mode change."
+}
