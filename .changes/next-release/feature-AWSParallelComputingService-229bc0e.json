@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Introduces SUSPENDING and SUSPENDED states for clusters, compute node groups, and queues."
+}
