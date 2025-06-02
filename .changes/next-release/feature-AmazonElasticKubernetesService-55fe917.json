@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Kubernetes Service",
+    "contributor": "",
+    "description": "Add support for filtering ListInsights API calls on MISCONFIGURATION insight category"
+}
