@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.config;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -38,24 +39,37 @@ public interface DownloadFilter extends Predicate<S3Object> {
     @Override
     boolean test(S3Object s3Object);
 
-    /**
-     * Returns a composed filter that performs AND operation
+     /*
+      * Returns a composed filter that performs AND operation
+      *
+      * @param other the predicate to AND with this predicate
+      * @return a composed predicate that performs OR operation
+      * @throws NullPointerException if other is null
      */
     @Override
     default DownloadFilter and(Predicate<? super S3Object> other) {
+        Objects.requireNonNull(other, "Other predicate cannot be null");
         return s3Object -> test(s3Object) && other.test(s3Object);
     }
 
-    /**
+    /*
      * Returns a composed filter that performs OR operation
+     *
+     * @param other the predicate to OR with this predicate
+     * @return a composed predicate that performs OR operation
+     * @throws NullPointerException if other is null
      */
     @Override
     default DownloadFilter or(Predicate<? super S3Object> other) {
+        Objects.requireNonNull(other, "Other predicate cannot be null");
         return s3Object -> test(s3Object) || other.test(s3Object);
     }
 
-    /**
-     * Returns a filter that negates the result
+    /*
+     * Returns a predicate that represents the logical negation of this predicate.
+     * If this predicate would download an object, the negated predicate will not download it, and vice versa.
+     *
+     * @return a predicate that represents the logical negation of this predicate
      */
     @Override
     default DownloadFilter negate() {

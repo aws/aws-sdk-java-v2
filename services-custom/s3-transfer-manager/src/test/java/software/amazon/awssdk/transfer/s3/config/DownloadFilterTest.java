@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,159 +41,146 @@ public class DownloadFilterTest {
         assertThat(DownloadFilter.allObjects().test(s3Object)).isEqualTo(result);
     }
 
-    private static Stream<Arguments> basicOrFilterTestCases() {
+    private static Stream<Arguments> filterOperationTestCases() {
+        Function<S3Object, DownloadFilter> folder1OrFolder3Filter = (s3Object) -> {
+            DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
+            DownloadFilter folder3 = obj -> obj.key().startsWith("folder3");
+            return folder1.or(folder3);
+        };
+
+        Function<S3Object, DownloadFilter> txtAndLargeSizeFilter = (s3Object) -> {
+            DownloadFilter txtFilter = obj -> obj.key().endsWith(".txt");
+            DownloadFilter sizeFilter = obj -> obj.size() > 1000L;
+            return txtFilter.and(sizeFilter);
+        };
+
+        Function<S3Object, DownloadFilter> notFolder1Filter = (s3Object) -> {
+            DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
+            return folder1.negate();
+        };
+
+        Function<S3Object, DownloadFilter> notLargeSizeFilter = (s3Object) -> {
+            DownloadFilter largeSize = obj -> obj.size() > 1000L;
+            return largeSize.negate();
+        };
+
+        Function<S3Object, DownloadFilter> complexFilter = (s3Object) -> {
+            DownloadFilter folder1 = obj -> obj.key().startsWith("folder1");
+            DownloadFilter folder3 = obj -> obj.key().startsWith("folder3");
+            DownloadFilter sizeFilter = obj -> obj.size() > 1000L;
+            return folder1.or(folder3).and(sizeFilter);
+        };
+
         return Stream.of(
+            // OR operation tests
             Arguments.of(
-                "File in folder1 - should match",
+                "OR: folder1/test.txt matches (folder1 OR folder3)",
                 S3Object.builder().key("folder1/test.txt").size(2000L).build(),
+                folder1OrFolder3Filter,
                 true
             ),
             Arguments.of(
-                "File in folder3 - should match",
+                "OR: folder3/test.txt matches (folder1 OR folder3)",
                 S3Object.builder().key("folder3/test.txt").size(2000L).build(),
+                folder1OrFolder3Filter,
                 true
             ),
             Arguments.of(
-                "File in folder2 - should not match",
+                "OR: folder2/test.txt does not match (folder1 OR folder3)",
                 S3Object.builder().key("folder2/test.txt").size(2000L).build(),
+                folder1OrFolder3Filter,
                 false
-            )
-        );
-    }
+            ),
 
-    @ParameterizedTest
-    @MethodSource("basicOrFilterTestCases")
-    @DisplayName("Test OR filter combinations")
-    void testBasicOrFilter(String testName, S3Object s3Object, boolean result) {
-        DownloadFilter folder1Filter = s3Obj -> s3Obj.key().startsWith("folder1");
-        DownloadFilter folder3Filter = s3Obj -> s3Obj.key().startsWith("folder3");
-        DownloadFilter combinedFilter = folder1Filter.or(folder3Filter);
-        assertThat(combinedFilter.test(s3Object))
-            .as(testName)
-            .isEqualTo(result);
-    }
-
-    private static Stream<Arguments> basicAndFilterTestCases() {
-        return Stream.of(
+            // AND operation tests
             Arguments.of(
-                "Large text file - should match",
+                "AND: large .txt file matches (.txt AND size > 1000)",
                 S3Object.builder().key("folder1/test.txt").size(2000L).build(),
+                txtAndLargeSizeFilter,
                 true
             ),
             Arguments.of(
-                "Small text file - should not match",
+                "AND: small .txt file does not match (.txt AND size > 1000)",
                 S3Object.builder().key("folder1/test.txt").size(500L).build(),
+                txtAndLargeSizeFilter,
                 false
             ),
             Arguments.of(
-                "Large non-text file - should not match",
+                "AND: large .pdf file does not match (.txt AND size > 1000)",
                 S3Object.builder().key("folder1/test.pdf").size(2000L).build(),
+                txtAndLargeSizeFilter,
                 false
-            )
-        );
-    }
+            ),
 
-    @ParameterizedTest
-    @MethodSource("basicAndFilterTestCases")
-    @DisplayName("Test AND filter combinations")
-    void testBasicAndFilter(String testName, S3Object s3Object, boolean result) {
-        DownloadFilter txtFilter = s3Obj -> s3Obj.key().endsWith(".txt");
-        DownloadFilter sizeFilter = s3Obj -> s3Obj.size() > 1000L;
-        DownloadFilter combinedFilter = txtFilter.and(sizeFilter);
-        assertThat(combinedFilter.test(s3Object))
-            .as(testName)
-            .isEqualTo(result);
-    }
-
-    private static Stream<Arguments> basicNegateFilterTestCases() {
-        return Stream.of(
+            // NEGATE operation tests
             Arguments.of(
-                "File in folder1 - should not match",
-                "FOLDER",
+                "NEGATE: folder1 file does not match NOT(folder1)",
                 S3Object.builder().key("folder1/test.txt").size(1000L).build(),
+                notFolder1Filter,
                 false
             ),
             Arguments.of(
-                "File not in folder1 - should match",
-                "FOLDER",
+                "NEGATE: folder2 file matches NOT(folder1)",
                 S3Object.builder().key("folder2/test.txt").size(1000L).build(),
+                notFolder1Filter,
                 true
             ),
             Arguments.of(
-                "Large file - should not match",
-                "SIZE",
+                "NEGATE: large file does not match NOT(size > 1000)",
                 S3Object.builder().key("test.txt").size(2000L).build(),
+                notLargeSizeFilter,
                 false
             ),
             Arguments.of(
-                "Small file - should match",
-                "SIZE",
+                "NEGATE: small file matches NOT(size > 1000)",
                 S3Object.builder().key("test.txt").size(500L).build(),
+                notLargeSizeFilter,
+                true
+            ),
+
+            // Complex chained operations
+            Arguments.of(
+                "COMPLEX: large file in folder1 matches ((folder1 OR folder3) AND size > 1000)",
+                S3Object.builder().key("folder1/test.txt").size(2000L).build(),
+                complexFilter,
+                true
+            ),
+            Arguments.of(
+                "COMPLEX: small file in folder1 does not match ((folder1 OR folder3) AND size > 1000)",
+                S3Object.builder().key("folder1/test.txt").size(500L).build(),
+                complexFilter,
+                false
+            ),
+            Arguments.of(
+                "COMPLEX: large file in folder2 does not match ((folder1 OR folder3) AND size > 1000)",
+                S3Object.builder().key("folder2/test.txt").size(2000L).build(),
+                complexFilter,
+                false
+            ),
+            Arguments.of(
+                "COMPLEX: large file in folder3 matches ((folder1 OR folder3) AND size > 1000)",
+                S3Object.builder().key("folder3/test.txt").size(2000L).build(),
+                complexFilter,
                 true
             )
         );
     }
 
     @ParameterizedTest
-    @MethodSource("basicNegateFilterTestCases")
-    @DisplayName("Test NEGATE filter operations")
-    void testBasicNegateFilter(String testName, String filterType, S3Object s3Object, boolean result) {
-        DownloadFilter baseFilter;
+    @MethodSource("filterOperationTestCases")
+    @DisplayName("Test DownloadFilter operations (AND, OR, NEGATE)")
+    void testFilterOperations(String scenario, S3Object s3Object,
+                              Function<S3Object, DownloadFilter> filterFactory,
+                              boolean expectedResult) {
+        // Given
+        DownloadFilter filter = filterFactory.apply(s3Object);
 
-        switch (filterType) {
-            case "FOLDER":
-                baseFilter = s3Obj -> s3Obj.key().startsWith("folder1");
-                break;
-            case "SIZE":
-                baseFilter = s3Obj -> s3Obj.size() > 1000L;
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown filter type: " + filterType);
-        }
+        // When
+        boolean actualResult = filter.test(s3Object);
 
-        DownloadFilter negatedFilter = baseFilter.negate();
-        assertThat(negatedFilter.test(s3Object))
-            .as(testName)
-            .isEqualTo(result);
-    }
-
-    private static Stream<Arguments> combinedFilterTestCases() {
-        return Stream.of(
-            Arguments.of(
-                "Large file in folder1 - should match",
-                S3Object.builder().key("folder1/test.txt").size(2000L).build(),
-                true,
-                "folder1 OR folder3 AND size > 1000"
-            ),
-            Arguments.of(
-                "Small file in folder1 - should not match",
-                S3Object.builder().key("folder1/test.txt").size(500L).build(),
-                false,
-                "folder1 OR folder3 AND size > 1000"
-            ),
-            Arguments.of(
-                "Large file in folder2 - should not match",
-                S3Object.builder().key("folder2/test.txt").size(2000L).build(),
-                false,
-                "folder1 OR folder3 AND size > 1000"
-            )
-        );
-    }
-
-    @ParameterizedTest
-    @MethodSource("combinedFilterTestCases")
-    @DisplayName("Test combined filter operations")
-    void testCombinedFilters(String testName, S3Object s3Object, boolean result, String description) {
-        DownloadFilter folder1Filter = s3Obj -> s3Obj.key().startsWith("folder1");
-        DownloadFilter folder3Filter = s3Obj -> s3Obj.key().startsWith("folder3");
-        DownloadFilter sizeFilter = s3Obj -> s3Obj.size() > 1000L;
-
-        DownloadFilter chainedFilter = folder1Filter
-            .or(folder3Filter)
-            .and(sizeFilter);
-
-        assertThat(chainedFilter.test(s3Object))
-            .as("%s: %s", testName, description)
-            .isEqualTo(result);
+        // Then
+        assertThat(actualResult)
+            .as(scenario)
+            .isEqualTo(expectedResult);
     }
 }
