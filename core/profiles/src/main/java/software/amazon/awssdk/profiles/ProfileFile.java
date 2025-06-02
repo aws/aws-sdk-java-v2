@@ -317,12 +317,10 @@ public final class ProfileFile {
 
         @Override
         public ProfileFile build() {
-            InputStream stream = null;
-            if (content != null) {
-                stream = content;
-            } else if (contentLocation != null) {
-                stream = FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
-            }
+            Validate.isTrue(content != null || contentLocation != null,
+                            "content or contentLocation must be set.");
+            InputStream stream = content != null ? content :
+                                  FunctionalUtils.invokeSafely(() -> Files.newInputStream(contentLocation));
 
             Validate.paramNotNull(type, "type");
             Validate.paramNotNull(stream, "content");

@@ -573,7 +573,8 @@ public class ProfileFileTest {
     @Test
     public void builderValidatesContentRequired() {
         assertThatThrownBy(() -> ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION).build())
-            .hasMessageContaining("content must not be null.");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("content or contentLocation must be set.");
 
     }
 
