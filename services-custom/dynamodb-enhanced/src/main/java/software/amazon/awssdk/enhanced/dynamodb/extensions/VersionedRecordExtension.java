@@ -146,43 +146,40 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         String attributeKeyRef = keyRef(versionAttributeKey.get());
         AttributeValue newVersionValue;
         Expression condition;
-        Optional<AttributeValue> existingVersionValue =
-            Optional.ofNullable(itemToTransform.get(versionAttributeKey.get()));
 
-        Optional<Long> versionStartAtFromAnnotation = context.tableMetadata()
+        AttributeValue existingVersionValue = itemToTransform.get(versionAttributeKey.get());
+        Long versionStartAtFromAnnotation = context.tableMetadata()
                                                              .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY,
-                                                                                   Long.class);
-
-        Optional<Long> versionIncrementByFromAnnotation = context.tableMetadata()
+                                                                                   Long.class).orElse(this.startAt);
+        Long versionIncrementByFromAnnotation = context.tableMetadata()
                                                                  .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
-                                                                                       Long.class);
-        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
-            long startValue = versionStartAtFromAnnotation.orElse(this.startAt);
-            long increment = versionIncrementByFromAnnotation.orElse(this.incrementBy);
+                                                                                       Long.class).orElse(this.incrementBy);
 
-            newVersionValue = AttributeValue.builder().n(Long.toString(startValue + increment)).build();
+
+        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
+            newVersionValue = AttributeValue.builder().n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation)).build();
             condition = Expression.builder()
                                   .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .build();
         } else {
             // Existing record, increment version
-            if (existingVersionValue.get().n() == null) {
+            if (existingVersionValue.n() == null) {
                 // In this case a non-null version attribute is present, but it's not an N
                 throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
             }
 
-            long existingVersion = Long.parseLong(existingVersionValue.get().n());
+            long existingVersion = Long.parseLong(existingVersionValue.n());
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
 
-            long increment = versionIncrementByFromAnnotation.orElse(this.incrementBy);
+            long increment = versionIncrementByFromAnnotation;
             newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
 
             condition = Expression.builder()
                                   .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .expressionValues(Collections.singletonMap(existingVersionValueKey,
-                                                                             existingVersionValue.get()))
+                                                                             existingVersionValue))
                                   .build();
         }
 
@@ -194,15 +191,14 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
-    private boolean isInitialVersion(Optional<AttributeValue> existingVersionValue, Optional<Long> versionStartAtFromAnnotation) {
-        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
+    private boolean isInitialVersion(AttributeValue existingVersionValue, Long versionStartAtFromAnnotation) {
+        if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
             return true;
         }
 
-        AttributeValue value = existingVersionValue.get();
-        if (value.n() != null) {
-            long currentVersion = Long.parseLong(value.n());
-            return (versionStartAtFromAnnotation.isPresent() && currentVersion == versionStartAtFromAnnotation.get())
+        if (existingVersionValue.n() != null) {
+            long currentVersion = Long.parseLong(existingVersionValue.n());
+            return (versionStartAtFromAnnotation != null && currentVersion == versionStartAtFromAnnotation)
                    || currentVersion == this.startAt;
         }
 
