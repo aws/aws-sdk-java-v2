@@ -39,12 +39,12 @@ public interface DownloadFilter extends Predicate<S3Object> {
     @Override
     boolean test(S3Object s3Object);
 
-     /*
-      * Returns a composed filter that performs AND operation
-      *
-      * @param other the predicate to AND with this predicate
-      * @return a composed predicate that performs OR operation
-      * @throws NullPointerException if other is null
+    /**
+     * Returns a composed filter that performs AND operation
+     * @param other a predicate that will be logically-ANDed with this
+     *              predicate
+     * @return a composed predicate that performs AND operation
+     * @throws NullPointerException if other is null
      */
     @Override
     default DownloadFilter and(Predicate<? super S3Object> other) {
@@ -52,10 +52,10 @@ public interface DownloadFilter extends Predicate<S3Object> {
         return s3Object -> test(s3Object) && other.test(s3Object);
     }
 
-    /*
-     * Returns a composed filter that performs OR operation
-     *
-     * @param other the predicate to OR with this predicate
+    /**
+     * Returns a predicate that represents the logical OR of this predicate and another
+     * @param other a predicate that will be logically-ORed with this
+     *              predicate
      * @return a composed predicate that performs OR operation
      * @throws NullPointerException if other is null
      */
@@ -65,11 +65,11 @@ public interface DownloadFilter extends Predicate<S3Object> {
         return s3Object -> test(s3Object) || other.test(s3Object);
     }
 
-    /*
-     * Returns a predicate that represents the logical negation of this predicate.
-     * If this predicate would download an object, the negated predicate will not download it, and vice versa.
-     *
-     * @return a predicate that represents the logical negation of this predicate
+    /**
+     * Returns a predicate that represents the logical negation of this
+     * predicate.
+     * @return a predicate that represents the logical negation of this
+     * predicate
      */
     @Override
     default DownloadFilter negate() {
