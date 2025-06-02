@@ -72,7 +72,7 @@ public class AuthSchemePreferenceResolverFunctionalTest {
             builder.putAuthScheme(authScheme("aws.auth#sigv4a", new SkipCrtNoOpSigner()));
 
             if (testCase.clientSetting != null) {
-                builder.authSchemeProvider(MultiauthAuthSchemeProvider.builder().preferredAuthSchemes(testCase.clientSetting).build());
+                builder.authSchemeProvider(MultiauthAuthSchemeProvider.defaultProvider(testCase.clientSetting));
             }
 
             if (testCase.systemPropSetting != null) {

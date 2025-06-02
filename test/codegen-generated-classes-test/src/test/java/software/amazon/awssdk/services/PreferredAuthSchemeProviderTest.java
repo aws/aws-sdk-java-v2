@@ -45,10 +45,7 @@ public class PreferredAuthSchemeProviderTest {
     @ParameterizedTest(name = "{3}")
     @MethodSource("authSchemeTestCases")
     void testAuthSchemePreference(List<String> preferredAuthSchemes, String operation, String expectedFirstScheme, String testName) {
-        MultiauthAuthSchemeProvider provider = MultiauthAuthSchemeProvider
-            .builder()
-            .preferredAuthSchemes(preferredAuthSchemes)
-            .build();
+        MultiauthAuthSchemeProvider provider = MultiauthAuthSchemeProvider.defaultProvider(preferredAuthSchemes);
 
         MultiauthAuthSchemeParams params = MultiauthAuthSchemeParams
             .builder()

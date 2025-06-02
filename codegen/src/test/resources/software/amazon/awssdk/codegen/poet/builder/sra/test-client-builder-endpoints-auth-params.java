@@ -150,7 +150,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
                                                                                                 .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
         List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
         if (!preferences.isEmpty()) {
-            return QueryAuthSchemeProvider.builder().preferredAuthSchemes(preferences).build();
+            return QueryAuthSchemeProvider.defaultProvider(preferences);
         }
         return QueryAuthSchemeProvider.defaultProvider();
     }

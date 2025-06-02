@@ -128,7 +128,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
                                                                                                 .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
         List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
         if (!preferences.isEmpty()) {
-            return DatabaseAuthSchemeProvider.builder().preferredAuthSchemes(preferences).build();
+            return DatabaseAuthSchemeProvider.defaultProvider(preferences);
         }
         return DatabaseAuthSchemeProvider.defaultProvider();
     }

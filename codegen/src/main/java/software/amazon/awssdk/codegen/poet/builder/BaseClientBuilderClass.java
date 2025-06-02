@@ -840,7 +840,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                          .addStatement(".build()")
                          .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
                          .beginControlFlow("if(!preferences.isEmpty())")
-                         .addStatement("return $T.builder().preferredAuthSchemes(preferences).build()",
+                         .addStatement("return $T.defaultProvider(preferences)",
                                        authSchemeSpecUtils.providerInterfaceName())
                          .endControlFlow()
                          .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())

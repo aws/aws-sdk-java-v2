@@ -232,7 +232,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                                                                                                 .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
         List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
         if (!preferences.isEmpty()) {
-            return JsonAuthSchemeProvider.builder().preferredAuthSchemes(preferences).build();
+            return JsonAuthSchemeProvider.defaultProvider(preferences);
         }
         return JsonAuthSchemeProvider.defaultProvider();
     }
