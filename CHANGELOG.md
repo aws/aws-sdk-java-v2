@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.56__ __2025-06-03__
+## __AWS S3 Event Notifications__
+  - ### Bugfixes
+    - Fixed parsing of S3 event notifications to allow eventTime to be null when eventName is not
+        - Contributed by: [@reifiedbeans](https://github.com/reifiedbeans)
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix NPE in `ProfileFileSupplier.defaultSupplier` when both credentials and config files do not exist.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Adds support to set the routing mode for a custom domain name.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Adds support to create routing rules and set the routing mode for a custom domain name.
+
+## __EMR Serverless__
+  - ### Features
+    - AWS EMR Serverless: Adds a new option in the CancelJobRun API in EMR 7.9.0+, to cancel a job with grace period. This feature is enabled by default with a 120-second grace period for streaming jobs and is not enabled by default for batch jobs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@reifiedbeans](https://github.com/reifiedbeans)
 # __2.31.55__ __2025-06-02__
 ## __AWS Backup__
   - ### Features
