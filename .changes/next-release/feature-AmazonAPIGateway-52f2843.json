@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon API Gateway",
-    "contributor": "",
-    "description": "Adds support to set the routing mode for a custom domain name."
-}
