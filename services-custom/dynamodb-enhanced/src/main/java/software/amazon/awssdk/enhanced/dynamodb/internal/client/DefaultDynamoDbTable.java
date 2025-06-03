@@ -30,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableO
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DescribeTableOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DescribeTimeToLiveOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PaginatedTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
@@ -37,10 +38,12 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.QueryOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.ScanOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateTimeToLiveOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTimeToLiveEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
@@ -51,9 +54,14 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.UpdateTimeToLiveEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTimeToLiveRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTimeToLiveResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateTimeToLiveRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateTimeToLiveResponse;
 
 @SdkInternalApi
 public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
@@ -315,6 +323,20 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     public DescribeTableEnhancedResponse describeTable() {
         TableOperation<T, DescribeTableRequest, DescribeTableResponse, DescribeTableEnhancedResponse> operation =
             DescribeTableOperation.create();
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public DescribeTimeToLiveEnhancedResponse describeTimeToLive() {
+        TableOperation<T, DescribeTimeToLiveRequest, DescribeTimeToLiveResponse, DescribeTimeToLiveEnhancedResponse> operation =
+            DescribeTimeToLiveOperation.create();
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
+    }
+
+    @Override
+    public UpdateTimeToLiveEnhancedResponse updateTimeToLive(boolean enabled) {
+        TableOperation<T, UpdateTimeToLiveRequest, UpdateTimeToLiveResponse, UpdateTimeToLiveEnhancedResponse> operation =
+            UpdateTimeToLiveOperation.create(enabled);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
