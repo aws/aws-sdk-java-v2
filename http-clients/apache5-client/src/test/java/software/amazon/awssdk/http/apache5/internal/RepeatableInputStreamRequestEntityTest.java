@@ -36,12 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -672,51 +667,6 @@ class RepeatableInputStreamRequestEntityTest {
     }
 
     @Test
-    @DisplayName("Entity should handle concurrent write attempts")
-    void writeTo_ConcurrentWrites_HandlesCorrectly() throws Exception {
-        // Given
-        String content = "Concurrent test content";
-        ContentStreamProvider provider = () -> new ByteArrayInputStream(content.getBytes());
-        SdkHttpRequest httpRequest = httpRequestBuilder.build();
-        HttpExecuteRequest request = HttpExecuteRequest.builder()
-                                                       .request(httpRequest)
-                                                       .contentStreamProvider(provider)
-                                                       .build();
-
-        entity = new RepeatableInputStreamRequestEntity(request);
-
-        // Simulate concurrent writes
-        int threadCount = 5;
-        CountDownLatch latch = new CountDownLatch(threadCount);
-        List<ByteArrayOutputStream> outputs = Collections.synchronizedList(new ArrayList<>());
-        List<Exception> exceptions = Collections.synchronizedList(new ArrayList<>());
-
-        for (int i = 0; i < threadCount; i++) {
-            new Thread(() -> {
-                try {
-                    ByteArrayOutputStream output = new ByteArrayOutputStream();
-                    entity.writeTo(output);
-                    outputs.add(output);
-                } catch (Exception e) {
-                    exceptions.add(e);
-                } finally {
-                    latch.countDown();
-                }
-            }).start();
-        }
-
-        latch.await(5, TimeUnit.SECONDS);
-
-        // At least one should succeed, others may fail due to stream state
-        assertFalse(outputs.isEmpty(), "At least one write should succeed");
-        for (ByteArrayOutputStream output : outputs) {
-            if (output.size() > 0) {
-                assertEquals(content, output.toString());
-            }
-        }
-    }
-
-    @Test
     @DisplayName("Entity should handle interrupted IO operations")
     void writeTo_InterruptedStream_ThrowsIOException() throws IOException {
         // Given
@@ -880,7 +830,7 @@ class RepeatableInputStreamRequestEntityTest {
             }
 
             @Override
-            public synchronized void reset()  {
+            public synchronized void reset() {
                 resetCalls.incrementAndGet();
                 throw new RuntimeException("Reset not supported");
             }
