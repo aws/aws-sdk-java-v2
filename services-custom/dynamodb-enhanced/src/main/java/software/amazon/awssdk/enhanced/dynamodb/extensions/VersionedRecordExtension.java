@@ -157,7 +157,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
 
         if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
-            newVersionValue = AttributeValue.builder().n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation)).build();
+            newVersionValue = AttributeValue.builder()
+                                            .n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation))
+                                            .build();
             condition = Expression.builder()
                                   .expression(String.format("attribute_not_exists(%s)", attributeKeyRef))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
