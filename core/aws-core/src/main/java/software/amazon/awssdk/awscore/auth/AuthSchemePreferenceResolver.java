@@ -58,7 +58,7 @@ public final class AuthSchemePreferenceResolver {
      */
     public List<String> resolveAuthSchemePreference() {
         List<String> systemSettingList = fromSystemSetting();
-        if (systemSettingList != null && !systemSettingList.isEmpty()) {
+        if (!CollectionUtils.isNullOrEmpty(systemSettingList)) {
             return systemSettingList;
         }
 
