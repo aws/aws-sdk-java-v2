@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayV2",
+    "contributor": "",
+    "description": "Adds support to create routing rules and set the routing mode for a custom domain name."
+}
