@@ -63,7 +63,7 @@ public final class AuthSchemePreferenceResolver {
         }
 
         List<String> profileFilePrefList = fromProfileFile();
-        if (profileFilePrefList != null && !profileFilePrefList.isEmpty()) {
+        if (!CollectionUtils.isNullOrEmpty(profileFilePrefList)) {
             return profileFilePrefList;
         }
 
