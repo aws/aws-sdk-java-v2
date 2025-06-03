@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS S3 Event Notifications",
+    "contributor": "reifiedbeans",
+    "description": "Fixed parsing of S3 event notifications to allow eventTime to be null when eventName is not"
+}
