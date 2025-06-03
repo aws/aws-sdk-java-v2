@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.apache5.internal;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -789,5 +790,167 @@ class RepeatableInputStreamRequestEntityTest {
         assertEquals(isChunked2, isChunked3);
         assertEquals(contentLength1, contentLength2);
         assertEquals(contentLength2, contentLength3);
+    }
+
+    @Test
+    @DisplayName("markSupported should be be called everytime")
+    void markSupported_NotCachedDuringConstruction() {
+        // Given
+        AtomicInteger markSupportedCalls = new AtomicInteger(0);
+        InputStream trackingStream = new ByteArrayInputStream("test".getBytes()) {
+            @Override
+            public boolean markSupported() {
+                markSupportedCalls.incrementAndGet();
+                return true;
+            }
+        };
+
+        entity = createEntity(trackingStream);
+        assertEquals(0, markSupportedCalls.get());
+        // Multiple isRepeatable calls  trigger new markSupported calls
+        assertTrue(entity.isRepeatable());
+        assertTrue(entity.isRepeatable());
+        assertEquals(2, markSupportedCalls.get());
+    }
+
+    @Test
+    @DisplayName("ContentStreamProvider.newStream() should only be called once")
+    void contentStreamProvider_NewStreamCalledOnce() {
+        // Given
+        AtomicInteger newStreamCalls = new AtomicInteger(0);
+        ContentStreamProvider provider = () -> {
+            if (newStreamCalls.incrementAndGet() > 1) {
+                throw new RuntimeException("Could not create new stream: Already created");
+            }
+            return new ByteArrayInputStream("test".getBytes());
+        };
+        entity = createEntity(provider);
+        assertEquals(1, newStreamCalls.get());
+        assertTrue(entity.isRepeatable());
+        assertFalse(entity.isChunked());
+    }
+
+    @Test
+    @DisplayName("writeTo should use cached markSupported for reset decision")
+    void writeTo_UsesCachedMarkSupported() throws IOException {
+        // Given - Stream that changes markSupported behavior
+        AtomicInteger markSupportedCalls = new AtomicInteger(0);
+        ByteArrayInputStream baseStream = new ByteArrayInputStream("test".getBytes());
+        InputStream stream = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                return baseStream.read();
+            }
+
+            @Override
+            public boolean markSupported() {
+                return markSupportedCalls.incrementAndGet() == 1; // Only first call returns true
+            }
+
+            @Override
+            public synchronized void reset() throws IOException {
+                baseStream.reset();
+            }
+        };
+
+        entity = createEntity(stream);
+
+        // When - Write twice
+        ByteArrayOutputStream output1 = new ByteArrayOutputStream();
+        entity.writeTo(output1);
+
+        ByteArrayOutputStream output2 = new ByteArrayOutputStream();
+        entity.writeTo(output2);
+
+        // Then - Both writes succeed using cached markSupported value
+        assertEquals("test", output1.toString());
+        assertEquals("test", output2.toString());
+        assertEquals(1, markSupportedCalls.get());
+    }
+
+    @Test
+    @DisplayName("Non-repeatable stream should not attempt reset")
+    void nonRepeatableStream_NoResetAttempt() throws IOException {
+        // Given
+        AtomicInteger resetCalls = new AtomicInteger(0);
+        InputStream nonRepeatableStream = new ByteArrayInputStream("test".getBytes()) {
+            @Override
+            public boolean markSupported() {
+                return false;
+            }
+
+            @Override
+            public synchronized void reset()  {
+                resetCalls.incrementAndGet();
+                throw new RuntimeException("Reset not supported");
+            }
+        };
+
+        entity = createEntity(nonRepeatableStream);
+        assertFalse(entity.isRepeatable());
+
+        // Write twice
+        entity.writeTo(new ByteArrayOutputStream());
+        entity.writeTo(new ByteArrayOutputStream());
+
+        // Reset never called
+        assertEquals(0, resetCalls.get());
+    }
+
+    @Test
+    @DisplayName("Stream should not be read during construction")
+    void constructor_DoesNotReadStream() {
+
+        InputStream nonReadableStream = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("Stream should not be read during construction");
+            }
+
+            @Override
+            public boolean markSupported() {
+                return true;
+            }
+        };
+
+        // Should not throw exception
+        assertDoesNotThrow(() -> entity = createEntity(nonReadableStream));
+        assertTrue(entity.isRepeatable());
+    }
+
+    @Test
+    @DisplayName("getContent should reuse existing stream")
+    void getContent_ReusesExistingStream() throws IOException {
+        InputStream originalStream = new ByteArrayInputStream("content".getBytes());
+        entity = createEntity(originalStream);
+
+        InputStream content1 = entity.getContent();
+        InputStream content2 = entity.getContent();
+
+        assertSame(content1, content2);
+    }
+
+    @Test
+    @DisplayName("Empty stream should be repeatable")
+    void emptyStream_IsRepeatable() {
+        // Given - No content provider
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(httpRequestBuilder.build())
+                                                       .build();
+        entity = new RepeatableInputStreamRequestEntity(request);
+        assertTrue(entity.isRepeatable());
+    }
+
+    // Helper methods
+    private RepeatableInputStreamRequestEntity createEntity(InputStream stream) {
+        return createEntity(() -> stream);
+    }
+
+    private RepeatableInputStreamRequestEntity createEntity(ContentStreamProvider provider) {
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(httpRequestBuilder.build())
+                                                       .contentStreamProvider(provider)
+                                                       .build();
+        return new RepeatableInputStreamRequestEntity(request);
     }
 }
