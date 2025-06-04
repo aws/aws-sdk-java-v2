@@ -77,7 +77,7 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedWithinJitterPeriod_doesNotReloadProfileFile() {
+    void refreshIfStale_profileModifiedWithinStalePeriod_doesNotReloadProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
@@ -85,7 +85,7 @@ public class ProfileFileRefresherTest {
             .profileFile(() -> profileFile(credentialsFilePath))
             .profileFilePath(credentialsFilePath)
             .build();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
+        Duration intervalWithinJitter = Duration.ofMillis(90);
 
         ProfileFile file1 = refresher.refreshIfStale();
 
@@ -99,7 +99,7 @@ public class ProfileFileRefresherTest {
     }
 
     @Test
-    void refreshIfStale_profileModifiedOutsideJitterPeriod_reloadsProfileFile() {
+    void refreshIfStale_profileModifiedOutsideStalePeriod_reloadsProfileFile() {
         Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
         AdjustableClock clock = new AdjustableClock();
