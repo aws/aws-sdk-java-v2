@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.57__ __2025-06-04__
+## __AWS Amplify__
+  - ### Features
+    - Update documentation for cacheConfig in CreateApp API
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for embedding and signing C2PA content credentials in MP4 outputs.
+
+## __AWS Invoicing__
+  - ### Features
+    - Added new Invoicing ListInvoiceSummaries API Operation
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release updates the DescribeFlow API to show peer IP addresses. You can now identify the peer IP addresses of devices connected to your sources and outputs. This helps you to verify and troubleshoot your flow's active connections.
+
+## __AWS Network Firewall__
+  - ### Features
+    - You can now monitor flow and alert log metrics from the Network Firewall console.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon Elastic VMware Service (Amazon EVS) allows you to run VMware Cloud Foundation (VCF) directly within your Amazon VPC including simplified self-managed migration experience with guided workflow in AWS console or via AWS CLI, get full access to their VCF deployment and VCF license portability.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for p6-b200 instance type in SageMaker Training Jobs and Training Plans.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - AWS Healthscribe now supports new templates for the clinical note summary: BIRP, SIRP, DAP, BEHAVIORAL_SOAP, and PHYSICAL_SOAP
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS Healthscribe now supports new templates for the clinical note summary: BIRP, SIRP, DAP, BEHAVIORAL_SOAP, and PHYSICAL_SOAP
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - DownloadFilter type incompatability methods overriden from extended interface
+        - Contributed by: [@jencymaryjoseph](https://github.com/jencymaryjoseph)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jencymaryjoseph](https://github.com/jencymaryjoseph)
 # __2.31.56__ __2025-06-03__
 ## __AWS S3 Event Notifications__
   - ### Bugfixes
