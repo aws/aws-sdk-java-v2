@@ -39,7 +39,7 @@ public final class ProfileFileRefresher {
     private static final ProfileFileRefreshRecord EMPTY_REFRESH_RECORD = ProfileFileRefreshRecord.builder()
                                                                                                  .refreshTime(Instant.MIN)
                                                                                                  .build();
-    private static final long STALE_TIME_MS = 100;
+    private static final long STALE_TIME_MS = 1000;
     private final CachedSupplier<ProfileFileRefreshRecord> profileFileCache;
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
     private final Supplier<ProfileFile> profileFile;
