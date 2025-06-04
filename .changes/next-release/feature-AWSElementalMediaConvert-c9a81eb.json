@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release includes support for embedding and signing C2PA content credentials in MP4 outputs."
+}
