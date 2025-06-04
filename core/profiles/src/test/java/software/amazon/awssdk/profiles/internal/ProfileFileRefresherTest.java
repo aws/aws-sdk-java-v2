@@ -85,7 +85,7 @@ public class ProfileFileRefresherTest {
             .profileFile(() -> profileFile(credentialsFilePath))
             .profileFilePath(credentialsFilePath)
             .build();
-        Duration intervalWithinJitter = Duration.ofMillis(90);
+        Duration intervalWithinJitter = Duration.ofMillis(100);
 
         ProfileFile file1 = refresher.refreshIfStale();
 
