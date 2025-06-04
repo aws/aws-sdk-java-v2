@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fix expiration in past warning from ProfileFileRefresher."
+    "description": "Fix expiration in past warning during profile credential loading."
 }
