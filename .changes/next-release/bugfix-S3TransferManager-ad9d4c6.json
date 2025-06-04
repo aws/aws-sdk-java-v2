@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "jencymaryjoseph",
-    "description": "DownloadFilter type incompatability methods overriden from extended interface"
-}

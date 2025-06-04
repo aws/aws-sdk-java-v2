@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Firewall",
-    "contributor": "",
-    "description": "You can now monitor flow and alert log metrics from the Network Firewall console."
-}
