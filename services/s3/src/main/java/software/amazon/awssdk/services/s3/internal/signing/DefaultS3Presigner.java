@@ -166,16 +166,16 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
         super(b);
 
         S3Configuration serviceConfiguration = b.serviceConfiguration != null ? b.serviceConfiguration :
-                                               S3Configuration.builder()
-                                                              .profileFile(profileFileSupplier())
-                                                              .profileName(profileName())
-                                                              .checksumValidationEnabled(false)
-                                                              .build();
+                                                S3Configuration.builder()
+                                                               .profileFile(profileFileSupplier())
+                                                               .profileName(profileName())
+                                                               .checksumValidationEnabled(false)
+                                                               .build();
         S3Configuration.Builder serviceConfigBuilder = serviceConfiguration.toBuilder();
 
         if (serviceConfiguration.checksumValidationEnabled()) {
             log.debug(() -> "The provided S3Configuration has ChecksumValidationEnabled set to true. Please note that "
-                            + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
+                           + "the pre-signed request can't be executed using a web browser if checksum validation is enabled.");
         }
 
         if (dualstackEnabled() != null && serviceConfigBuilder.dualstackEnabled() != null) {
@@ -609,7 +609,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
      * Presign the provided HTTP request using SRA HttpSigner
      */
     private SdkHttpFullRequest sraPresignRequest(ExecutionContext execCtx, SdkHttpFullRequest request,
-                                                 Clock signingClock, Duration expirationDuration) {
+                                              Clock signingClock, Duration expirationDuration) {
         SelectedAuthScheme selectedAuthScheme = execCtx.executionAttributes().getAttribute(SELECTED_AUTH_SCHEME);
         return doSraPresign(request, selectedAuthScheme, signingClock, expirationDuration);
     }
@@ -693,7 +693,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         params.put(S3ClientContextParams.USE_ARN_REGION, serviceConfiguration.useArnRegionEnabled());
         params.put(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS,
-                   !serviceConfiguration.multiRegionEnabled());
+                                !serviceConfiguration.multiRegionEnabled());
         params.put(S3ClientContextParams.FORCE_PATH_STYLE, serviceConfiguration.pathStyleAccessEnabled());
         params.put(S3ClientContextParams.ACCELERATE, serviceConfiguration.accelerateModeEnabled());
         params.put(S3ClientContextParams.DISABLE_S3_EXPRESS_SESSION_AUTH, resolvedDisableS3ExpressSessionAuth);
@@ -706,10 +706,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                      .get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT);
 
         SdkClientConfiguration config = clientConfiguration.toBuilder()
-                                                           .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
-                                                           .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier())
-                                                           .option(SdkClientOption.PROFILE_NAME, profileName())
-                                                           .build();
+            .option(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT, legacyOption)
+            .option(SdkClientOption.PROFILE_FILE_SUPPLIER, profileFileSupplier())
+            .option(SdkClientOption.PROFILE_NAME, profileName())
+            .build();
 
         return new UseGlobalEndpointResolver(config);
     }
