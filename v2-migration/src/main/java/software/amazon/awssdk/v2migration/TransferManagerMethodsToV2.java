@@ -28,6 +28,7 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -51,12 +52,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
         v2TmMethodMatcher("copy(String, String, String, String");
 
     private static final MethodMatcher DOWNLOAD_DIR = v2TmMethodMatcher("downloadDirectory(String, String, java.io.File)");
-
-    private static final MethodMatcher RESUME_DOWNLOAD = v2TmMethodMatcher("resumeDownload(..)");
-    private static final MethodMatcher RESUME_UPLOAD = v2TmMethodMatcher("resumeUpload(..)");
-    private static final MethodMatcher SHUT_DOWN_NOW = v2TmMethodMatcher("shutdownNow()");
-
-
 
     private static final Pattern S3_TM_CREDENTIAL = Pattern.compile(V2_TM_CLIENT);
     private static final Pattern V2_AWSCREDENTAIL = Pattern.compile("software.amazon.awssdk.auth.credentials.AwsCredentials");
@@ -115,18 +110,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
                 method = transformDownloadDirectory(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
-            if (RESUME_DOWNLOAD.matches(method, false)) {
-                method = transformResumeDownload(method);
-                return super.visitMethodInvocation(method, executionContext);
-            }
-            if (RESUME_UPLOAD.matches(method, false)) {
-                method = transformResumeUpload(method);
-                return super.visitMethodInvocation(method, executionContext);
-            }
-            if (SHUT_DOWN_NOW.matches(method, false)) {
-                method = transformShutDownNow(method);
-                return super.visitMethodInvocation(method, executionContext);
-            }
 
             return super.visitMethodInvocation(method, executionContext);
         }
@@ -137,10 +120,12 @@ public class TransferManagerMethodsToV2 extends Recipe {
             if (!(type instanceof JavaType.FullyQualified)) {
                 return newClass;
             }
+
             if (type.isAssignableFrom(S3_TM_CREDENTIAL) &&
                 newClass.getArguments().size() == 1 &&
                 newClass.getArguments().get(0).getType() != null) {
-                if (newClass.getArguments().get(0).getType().isAssignableFrom(V2_AWSCREDENTAIL)) {
+                Expression arg = newClass.getArguments().get(0);
+                if (arg.getType().isAssignableFrom(V2_AWSCREDENTAIL)) {
                     addS3AsyncClientImport();
                     addStaticCredentialsProviderImport();
 
@@ -151,9 +136,9 @@ public class TransferManagerMethodsToV2 extends Recipe {
                                  ".build())" +
                                  ".build()")
                         .build()
-                        .apply(getCursor(), newClass.getCoordinates().replace(), newClass.getArguments().get(0));
+                        .apply(getCursor(), newClass.getCoordinates().replace(), arg);
                 }
-                if (newClass.getArguments().get(0).getType().isAssignableFrom(V2_CREDENTIAL_PROVIDER)) {
+                if (arg.getType().isAssignableFrom(V2_CREDENTIAL_PROVIDER)) {
                     addS3AsyncClientImport();
 
                     return JavaTemplate
@@ -163,32 +148,12 @@ public class TransferManagerMethodsToV2 extends Recipe {
                                  ".build())" +
                                  ".build()")
                         .build()
-                        .apply(getCursor(), newClass.getCoordinates().replace(), newClass.getArguments().get(0));
-
+                        .apply(getCursor(), newClass.getCoordinates().replace(), arg);
                 }
             }
 
             return super.visitNewClass(newClass, executionContext);
         }
-
-        private J.MethodInvocation transformResumeDownload(J.MethodInvocation method) {
-            String v2Method = "#{any()}.resumeDownloadFile(#{any()})";
-
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0));
-            return method;
-        }
-
-        private J.MethodInvocation transformResumeUpload(J.MethodInvocation method) {
-            String v2Method = "#{any()}.resumeUploadFile(#{any()})";
-
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
-                                        method.getArguments().get(0));
-            return method;
-        }
-
 
         private J.MethodInvocation transformDownloadDirectory(J.MethodInvocation method) {
             String v2Method = "#{any()}.downloadDirectory(DownloadDirectoryRequest.builder()"
@@ -306,13 +271,6 @@ public class TransferManagerMethodsToV2 extends Recipe {
             addS3Import("GetObjectRequest");
             addRequestOverrideConfigImport();
             addDurationImport();
-            return method;
-        }
-
-        private J.MethodInvocation transformShutDownNow(J.MethodInvocation method) {
-            String v2Method = "#{any()}.close()";
-            method = JavaTemplate.builder(v2Method).build()
-                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect());
             return method;
         }
 
