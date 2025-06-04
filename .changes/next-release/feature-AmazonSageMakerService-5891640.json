@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Added support for p6-b200 instance type in SageMaker Training Jobs and Training Plans."
+}
