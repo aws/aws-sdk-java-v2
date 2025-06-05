@@ -49,18 +49,11 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
     /**
      * True if the "Transfer-Encoding:chunked" header is present
      */
-    private boolean isChunked;
-
+    private final boolean isChunked;
     /**
-     * The underlying InputStreamEntity being delegated to
+     * The underlying reference of content
      */
-    private InputStreamEntity inputStreamRequestEntity;
-
-    /**
-     * The InputStream containing the content to write out
-     */
-    private InputStream content;
-
+    private final InputStream content;
     /**
      * Record the original exception if we do attempt a retry, so that if the
      * retry fails, we can report the original exception. Otherwise, we're most
@@ -70,18 +63,36 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
     private IOException originalException;
 
     /**
-     * Creates a new RepeatableInputStreamRequestEntity using the information
-     * from the specified request. If the input stream containing the request's
-     * contents is repeatable, then this RequestEntity will report as being
-     * repeatable.
-     *
-     * @param request The details of the request being written out (content type,
-     *                content length, and content).
+     * Helper class to capture both the created entity and the original content stream reference.
+     * <p>
+     * We store the content stream reference to avoid calling {@code getContent()} on the wrapped
+     * entity multiple times, which could potentially create new stream instances or perform
+     * unnecessary operations. This ensures we consistently use the same stream instance for
+     * {@code markSupported()} checks and {@code reset()} operations throughout the entity's lifecycle.
      */
-    public RepeatableInputStreamRequestEntity(HttpExecuteRequest request) {
-        super(createInputStreamEntity(request));
 
-        isChunked = request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
+    private static class EntityCreationResult {
+        final InputStreamEntity entity;
+        final InputStream content;
+
+        EntityCreationResult(InputStreamEntity entity, InputStream content) {
+            this.entity = entity;
+            this.content = content;
+        }
+    }
+
+    public RepeatableInputStreamRequestEntity(HttpExecuteRequest request) {
+        this(createInputStreamEntityWithMetadata(request), request);
+    }
+
+    private RepeatableInputStreamRequestEntity(EntityCreationResult result, HttpExecuteRequest request) {
+        super(result.entity);
+        this.content = result.content;
+        this.isChunked = request.httpRequest().matchingHeaders(TRANSFER_ENCODING).contains(CHUNKED);
+    }
+
+    private static EntityCreationResult createInputStreamEntityWithMetadata(HttpExecuteRequest request) {
+        InputStream content = getContent(request.contentStreamProvider());
 
         /*
          * If we don't specify a content length when we instantiate our
@@ -93,35 +104,14 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
                                     .map(RepeatableInputStreamRequestEntity::parseContentLength)
                                     .orElse(-1L);
 
-        content = getContent(request.contentStreamProvider());
-
-        // Create InputStreamEntity with proper ContentType handling for HttpClient 5.x
         ContentType contentType = request.httpRequest().firstMatchingHeader("Content-Type")
                                          .map(RepeatableInputStreamRequestEntity::parseContentType)
                                          .orElse(null);
 
-        if (contentLength >= 0) {
-            inputStreamRequestEntity = new InputStreamEntity(content, contentLength, contentType);
-        } else {
-            inputStreamRequestEntity = new InputStreamEntity(content, contentType);
-        }
-    }
-
-    private static InputStreamEntity createInputStreamEntity(HttpExecuteRequest request) {
-        InputStream content = getContent(request.contentStreamProvider());
-
-        long contentLength = request.httpRequest().firstMatchingHeader("Content-Length")
-                                    .map(RepeatableInputStreamRequestEntity::parseContentLength)
-                                    .orElse(-1L);
-
-        ContentType contentType = request.httpRequest().firstMatchingHeader("Content-Type")
-                                         .map(RepeatableInputStreamRequestEntity::parseContentType)
-                                         .orElse(null);
-
-        if (contentLength >= 0) {
-            return new InputStreamEntity(content, contentLength, contentType);
-        }
-        return new InputStreamEntity(content, contentType);
+        InputStreamEntity entity = contentLength >= 0
+                                   ? new InputStreamEntity(content, contentLength, contentType)
+                                   : new InputStreamEntity(content, contentType);
+        return new EntityCreationResult(entity, content);
     }
 
     private static long parseContentLength(String contentLength) {
@@ -164,12 +154,8 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
      */
     @Override
     public boolean isRepeatable() {
-        boolean markSupported = content.markSupported();
-        boolean entityRepeatable = inputStreamRequestEntity.isRepeatable();
-        boolean result = markSupported || entityRepeatable;
-        return result;
+        return content.markSupported() || super.isRepeatable();
     }
-
 
     /**
      * Resets the underlying InputStream if this isn't the first attempt to
@@ -189,7 +175,7 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
             }
 
             firstAttempt = false;
-            inputStreamRequestEntity.writeTo(output);
+            super.writeTo(output);
         } catch (IOException ioe) {
             if (originalException == null) {
                 originalException = ioe;
@@ -200,12 +186,8 @@ public class RepeatableInputStreamRequestEntity extends HttpEntityWrapper {
 
     @Override
     public void close() throws IOException {
-        try {
-            if (content != null) {
-                content.close();
-            }
-        } finally {
-            super.close();
-        }
+        // The InputStreamEntity handles closing the stream when it's closed
+        // We don't need to close our reference separately to avoid double-closing
+        super.close();
     }
 }
