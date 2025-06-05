@@ -18,6 +18,12 @@ name: software.amazon.awssdk.v2migration.ChangeTransferManagerTypes
 displayName: Change SDK TransferManager types from v1 to v2
 description: Change SDK TransferManager types from v1 to v2.
 recipeList:
+  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+      methodPattern: com.amazonaws.services.s3.transfer.TransferManager resumeDownload(..)
+      newReturnType: software.amazon.awssdk.transfer.s3.model.FileDownload
+  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+      methodPattern: com.amazonaws.services.s3.transfer.TransferManager resumeUpload(..)
+      newReturnType: software.amazon.awssdk.transfer.s3.model.FileUpload
   - org.openrewrite.java.ChangeType:
       oldFullyQualifiedTypeName: com.amazonaws.services.s3.transfer.TransferManager
       newFullyQualifiedTypeName: software.amazon.awssdk.transfer.s3.S3TransferManager

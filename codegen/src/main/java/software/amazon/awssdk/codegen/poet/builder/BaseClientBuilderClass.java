@@ -335,8 +335,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             .beginControlFlow("if (tokenFromEnv.isPresent() && config.option($T.AUTH_SCHEME_PROVIDER) == null && config.option($T"
                               + ".TOKEN_IDENTITY_PROVIDER) == null)",
                               SdkClientOption.class, AwsClientOption.class)
-            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.builder()"
-                          + ".withPreferredAuthSchemes($T.singletonList($S)).build())",
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
                           SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
                           "httpBearerAuth")
             .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
