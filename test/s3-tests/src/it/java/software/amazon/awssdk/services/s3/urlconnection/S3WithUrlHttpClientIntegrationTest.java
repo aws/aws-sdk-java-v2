@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.urlconnection;
+package software.amazon.awssdk.services.s3.urlconnection;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpHeaders;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 public class S3WithUrlHttpClientIntegrationTest {
 
@@ -67,7 +68,7 @@ public class S3WithUrlHttpClientIntegrationTest {
         S3ClientBuilder s3ClientBuilder = S3Client.builder()
                                                   .region(REGION)
                                                   .httpClient(UrlConnectionHttpClient.builder().build())
-                                                  .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                                  .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
                                                   .overrideConfiguration(o -> o.addExecutionInterceptor(new UserAgentVerifyingInterceptor())
                                                                                .addExecutionInterceptor(capturingInterceptor));
         s3 = s3ClientBuilder.build();

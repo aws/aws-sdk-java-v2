@@ -13,11 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.urlconnection;
+package software.amazon.awssdk.services.s3.urlconnection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,9 +30,10 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 
 public class HeadObjectIntegrationTest extends UrlHttpConnectionS3IntegrationTestBase {
-    private static final String BUCKET = temporaryBucketName(HeadObjectIntegrationTest.class);
+    private static final String BUCKET = S3BucketUtils.temporaryBucketName(HeadObjectIntegrationTest.class);
 
     private static final String GZIPPED_KEY = "some-key";
 
