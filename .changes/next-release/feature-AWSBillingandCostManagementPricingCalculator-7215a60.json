@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Billing and Cost Management Pricing Calculator",
+    "contributor": "",
+    "description": "Updating the minimum for List APIs to be 1 (instead of 0)"
+}
