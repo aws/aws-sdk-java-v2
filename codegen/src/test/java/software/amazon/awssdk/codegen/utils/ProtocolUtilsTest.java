@@ -46,12 +46,21 @@ public class ProtocolUtilsTest {
     }
 
     @Test
-    public void protocolsWithJson_protocolCbor_selectsJson() {
+    public void protocolsWithJson_protocolCborV2_selectsJson() {
         ServiceMetadata serviceMetadata = new ServiceMetadata();
         serviceMetadata.setProtocols(Collections.singletonList("json"));
         serviceMetadata.setProtocol("smithy-rpc-v2-cbor");
         String selectedProtocol = ProtocolUtils.resolveProtocol(serviceMetadata);
         assertThat(selectedProtocol).isEqualTo("json");
+    }
+
+    @Test
+    public void protocolsWithCborV1_protocolJson_selectsCborV1() {
+        ServiceMetadata serviceMetadata = new ServiceMetadata();
+        serviceMetadata.setProtocols(Collections.singletonList("cbor"));
+        serviceMetadata.setProtocol("json");
+        String selectedProtocol = ProtocolUtils.resolveProtocol(serviceMetadata);
+        assertThat(selectedProtocol).isEqualTo("cbor");
     }
 
     private static Stream<Arguments> protocolsValues() {
