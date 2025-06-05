@@ -16,8 +16,8 @@
 package software.amazon.awssdk.codegen.lite.regions.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.List;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
