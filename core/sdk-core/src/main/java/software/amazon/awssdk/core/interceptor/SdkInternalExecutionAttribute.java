@@ -190,18 +190,18 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         "ResponseChecksumValidation");
 
     /**
+     * The response checksum validation setting.
+     */
+    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
+        "TokenConfiguredFromEnv");
+
+    /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.
      * This holds the real ChecksumSpecs value, and is used to map to the ChecksumAlgorithm signer property
      * in the SELECTED_AUTH_SCHEME execution attribute.
      */
     static final ExecutionAttribute<ChecksumSpecs> INTERNAL_RESOLVED_CHECKSUM_SPECS =
         new ExecutionAttribute<>("InternalResolvedChecksumSpecs");
-
-    /**
-     * The response checksum validation setting.
-     */
-    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
-        "TokenConfiguredFromEnv");
 
     private SdkInternalExecutionAttribute() {
     }
