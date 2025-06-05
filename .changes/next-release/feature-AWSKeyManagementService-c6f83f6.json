@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Key Management Service",
+    "contributor": "",
+    "description": "AWS KMS announces the support for on-demand rotation of symmetric-encryption KMS keys with imported key material (EXTERNAL origin)."
+}
