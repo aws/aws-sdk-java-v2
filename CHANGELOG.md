@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.58__ __2025-06-05__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Updating the minimum for List APIs to be 1 (instead of 0)
+
+## __AWS CloudFormation__
+  - ### Features
+    - Add new warning type 'EXCLUDED_PROPERTIES'
+
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS announces the support for on-demand rotation of symmetric-encryption KMS keys with imported key material (EXTERNAL origin).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added ability to configure preferred authentication schemes when multiple auth options are available.
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF adds support for ASN-based traffic filtering and support for ASN-based rate limiting.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DynamoDbEnhancedClient DefaultDynamoDbAsyncTable::createTable() to create secondary indices that are defined on annotations of the POJO class, similar to DefaultDynamoDbTable::createTable().
+
 # __2.31.57__ __2025-06-04__
 ## __AWS Amplify__
   - ### Features
