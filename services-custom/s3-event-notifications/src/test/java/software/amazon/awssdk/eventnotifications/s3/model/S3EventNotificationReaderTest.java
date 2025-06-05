@@ -443,6 +443,53 @@ class S3EventNotificationReaderTest {
     }
 
     @Test
+    void eventTimeIsNullWhenEventNamePresent_shouldSucceed() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      // missing eventTime
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"userIdentity\" : {\n"
+                      + "      \"principalId\" : \"AIDAJDPLRKLG7UEXAMUID\"\n"
+                      + "    },\n"
+                      + "    \"requestParameters\" : {\n"
+                      + "      \"sourceIPAddress\" : \"127.1.2.3\"\n"
+                      + "    },\n"
+                      + "    \"responseElements\":{\n"
+                      + "      \"x-amz-request-id\":\"C3D13FE58DE4C810\",\n"
+                      + "      \"x-amz-id-2\":\"FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD\"\n"
+                      + "    },\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket-test\",\n"
+                      + "        \"ownerIdentity\" : {\n"
+                      + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                      + "        },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\"\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace-test.jpg\",\n"
+                      + "        \"size\" : 2048,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8etag\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6vid\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD9028SEQ\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        S3EventNotificationRecord rec = event.getRecords().get(0);
+        assertThat(rec).isNotNull();
+        assertThat(rec.getEventName()).isEqualTo("ObjectCreated:Put");
+        assertThat(rec.getEventTime()).isNull();
+    }
+
+    @Test
     void extraFields_areIgnored() {
         String json = "{\"Records\":[], \"toto\":123}";
         S3EventNotification event = S3EventNotification.fromJson(json);

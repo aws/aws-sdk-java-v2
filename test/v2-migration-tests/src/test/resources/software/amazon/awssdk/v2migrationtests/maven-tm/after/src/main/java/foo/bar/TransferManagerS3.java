@@ -15,16 +15,25 @@
 
 package foo.bar;
 
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
+import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
+import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
@@ -35,11 +44,13 @@ public class TransferManagerS3 {
 
     File file = new File("path/to/file.txt");
 
-    void tmConstructor() {
+    void tmConstructor(AwsCredentials credentials, AwsCredentialsProvider credentialsProvider) {
         S3TransferManager tm = S3TransferManager.builder()
                 .build();
         S3TransferManager tmBuilderDefault = S3TransferManager.create();
         S3TransferManager tmBuilderWithS3 = S3TransferManager.builder().build();
+        S3TransferManager tmConstructorWithCred = S3TransferManager.builder().s3Client(S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(credentials)).build()).build();
+        S3TransferManager tmConstructorWithCredProvider = S3TransferManager.builder().s3Client(S3AsyncClient.builder().credentialsProvider(credentialsProvider).build()).build();
     }
 
     void download(S3TransferManager tm, String bucket, String key) {
@@ -75,5 +86,15 @@ public class TransferManagerS3 {
         CopyObjectRequest copyRequest = CopyObjectRequest.builder().sourceBucket(sourceBucket).sourceKey(sourceKey).destinationBucket(destinationBucket).destinationKey(destinationKey)
                 .build();
         Copy copy2 = tm.copy(CopyRequest.builder().copyObjectRequest(copyRequest).build());
+    }
+
+    void downloadDirectory(S3TransferManager tm, File destination) {
+        DirectoryDownload fileDownload = tm.downloadDirectory(DownloadDirectoryRequest.builder().bucket("bucket").listObjectsV2RequestTransformer(builder -> builder.prefix("key")).destination(destination.toPath()).build());
+        tm.close();
+    }
+
+    void resume(S3TransferManager tm, ResumableFileDownload persistableDownload, ResumableFileUpload persistableUpload) {
+        FileDownload download = tm.resumeDownloadFile(persistableDownload);
+        FileUpload upload = tm.resumeUploadFile(persistableUpload);
     }
 }

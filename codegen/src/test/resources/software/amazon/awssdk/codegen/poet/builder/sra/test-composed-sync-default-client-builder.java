@@ -10,6 +10,7 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
@@ -66,14 +67,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> c
-                .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())
-                .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
-                .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+            .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+            .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+            .option(SdkClientOption.SERVICE_CONFIGURATION, ServiceConfiguration.builder().build())
+            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-                .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
+            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider()));
     }
 
     @Override
@@ -84,17 +85,17 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-                .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
         ServiceConfiguration.Builder serviceConfigBuilder = ((ServiceConfiguration) config
-                .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
+            .option(SdkClientOption.SERVICE_CONFIGURATION)).toBuilder();
         serviceConfigBuilder.profileFile(serviceConfigBuilder.profileFileSupplier() != null ? serviceConfigBuilder
-                .profileFileSupplier() : config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
+            .profileFileSupplier() : config.option(SdkClientOption.PROFILE_FILE_SUPPLIER));
         serviceConfigBuilder.profileName(serviceConfigBuilder.profileName() != null ? serviceConfigBuilder.profileName() : config
-                .option(SdkClientOption.PROFILE_NAME));
+            .option(SdkClientOption.PROFILE_NAME));
         ServiceConfiguration finalServiceConfig = serviceConfigBuilder.build();
         SdkClientConfiguration.Builder builder = config.toBuilder();
         builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
@@ -112,21 +113,21 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.option(SdkClientOption.SERVICE_CONFIGURATION, finalServiceConfig);
         builder.lazyOptionIfAbsent(
-                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                c -> AwsClientEndpointProvider
-                        .builder()
-                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
-                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
-                        .serviceProfileProperty("json_service")
-                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                        .defaultProtocol("https")
-                        .region(c.get(AwsClientOption.AWS_REGION))
-                        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                        .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                        .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                        .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                        .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson")
+                .serviceProfileProperty("json_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         SdkClientConfiguration clientConfig = config;
         builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
@@ -148,7 +149,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return thisBuilder();
     }
 
-    private JsonAuthSchemeProvider defaultAuthSchemeProvider() {
+    private JsonAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
+                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (!preferences.isEmpty()) {
+            return JsonAuthSchemeProvider.defaultProvider(preferences);
+        }
         return JsonAuthSchemeProvider.defaultProvider();
     }
 
@@ -246,9 +254,9 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         RequestChecksumCalculation configuredChecksumCalculation = config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION);
         if (configuredChecksumCalculation == null) {
             configuredChecksumCalculation = RequestChecksumCalculationResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                    .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
+                                                                              .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                              .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                              .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
         }
         return configuredChecksumCalculation;
     }
@@ -257,15 +265,15 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         ResponseChecksumValidation configuredChecksumValidation = config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION);
         if (configuredChecksumValidation == null) {
             configuredChecksumValidation = ResponseChecksumValidationResolver.create()
-                    .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                    .profileName(config.option(SdkClientOption.PROFILE_NAME))
-                    .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
+                                                                             .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                             .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                             .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
         }
         return configuredChecksumValidation;
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
-                "The 'tokenProvider' must be configured in the client builder.");
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }
