@@ -42,7 +42,7 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuilder<B, C>, C> extends
-        AwsDefaultClientBuilder<B, C> {
+                                                                                              AwsDefaultClientBuilder<B, C> {
     @Override
     protected final String serviceEndpointPrefix() {
         return "database-service-endpoint";
@@ -55,14 +55,15 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c
-            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-            .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
-                        p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-            .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+             .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner());
+        });
     }
 
     @Override
@@ -92,21 +93,21 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.lazyOptionIfAbsent(
-                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-                c -> AwsClientEndpointProvider
-                        .builder()
-                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
-                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
-                        .serviceProfileProperty("database_service")
-                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                        .defaultProtocol("https")
-                        .region(c.get(AwsClientOption.AWS_REGION))
-                        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                        .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                        .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                        .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                        .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+            c -> AwsClientEndpointProvider
+                .builder()
+                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
+                .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
+                .serviceProfileProperty("database_service")
+                .serviceEndpointPrefix(serviceEndpointPrefix())
+                .defaultProtocol("https")
+                .region(c.get(AwsClientOption.AWS_REGION))
+                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(c.get(SdkClientOption.PROFILE_NAME))
+                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
+                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
+                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
         builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         return builder.build();
     }
@@ -142,7 +143,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         SdkClientConfiguration.Builder configuration = config.toBuilder();
         DatabaseServiceClientConfigurationBuilder serviceConfigBuilder = new DatabaseServiceClientConfigurationBuilder(
-                configuration);
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
