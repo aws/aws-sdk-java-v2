@@ -13,52 +13,58 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.awscore.internal.auth;
+package software.amazon.awssdk.awscore.auth;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
-import software.amazon.awssdk.utils.Lazy;
+import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
-@SdkInternalApi
-public class AuthSchemePreferenceProvider {
+/**
+ * A resolver for the default value of auth scheme preference. This checks environment variables,
+ * system properties and the profile file for the relevant configuration options when
+ * {@link #resolveAuthSchemePreference()} is invoked.
+ */
+@SdkProtectedApi
+public final class AuthSchemePreferenceResolver {
     private final Supplier<ProfileFile> profileFile;
     private final String profileName;
 
-    private AuthSchemePreferenceProvider(Builder builder) {
-        if (builder.profileFile != null) {
-            this.profileFile = builder.profileFile;
-        } else {
-           this.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
-        }
-
-        if (builder.profileName != null) {
-            this.profileName = builder.profileName;
-        } else {
-            this.profileName = ProfileFileSystemSetting.AWS_PROFILE.getStringValueOrThrow();
-        }
+    private AuthSchemePreferenceResolver(Builder builder) {
+        this.profileFile = Validate.getOrDefault(builder.profileFile, () -> ProfileFile::defaultProfileFile);
+        this.profileName = Validate.getOrDefault(builder.profileName,
+                                                 ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
     }
 
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Resolve the auth scheme preference based on the following order of precedence:
+     * 1. System settings (jvm and then environment).
+     * 2. Profile file
+     *
+     * @return The resolved, ordered list of auth scheme preferences or an empty list if no values are found.
+     */
     public List<String> resolveAuthSchemePreference() {
         List<String> systemSettingList = fromSystemSetting();
-        if (systemSettingList != null && !systemSettingList.isEmpty()) {
+        if (!CollectionUtils.isNullOrEmpty(systemSettingList)) {
             return systemSettingList;
         }
 
         List<String> profileFilePrefList = fromProfileFile();
-        if (profileFilePrefList != null && !profileFilePrefList.isEmpty()) {
+        if (!CollectionUtils.isNullOrEmpty(profileFilePrefList)) {
             return profileFilePrefList;
         }
 
@@ -92,29 +98,26 @@ public class AuthSchemePreferenceProvider {
         private Supplier<ProfileFile> profileFile;
         private String profileName;
 
-        public AuthSchemePreferenceProvider.Builder profileFile(Supplier<ProfileFile> profileFile) {
+        public AuthSchemePreferenceResolver.Builder profileFile(Supplier<ProfileFile> profileFile) {
             this.profileFile = profileFile;
             return this;
         }
 
-        public AuthSchemePreferenceProvider.Builder profileName(String profileName) {
+        public AuthSchemePreferenceResolver.Builder profileName(String profileName) {
             this.profileName = profileName;
             return this;
         }
 
-        public AuthSchemePreferenceProvider build() {
-            return new AuthSchemePreferenceProvider(this);
+        public AuthSchemePreferenceResolver build() {
+            return new AuthSchemePreferenceResolver(this);
         }
     }
 
     private static List<String> parseAuthSchemeList(String unformattedList) {
-        if (unformattedList == null) {
+        if (StringUtils.isEmpty(unformattedList)) {
             return Collections.emptyList();
         }
 
-        unformattedList = unformattedList.replaceAll("\\s+", "");
-        String[] splitByTabs = unformattedList.split("\t");
-        String finalFormat = String.join("", splitByTabs);
-        return Arrays.asList(finalFormat.split(","));
+        return Arrays.asList(unformattedList.replaceAll("\\s+", "").split(","));
     }
 }

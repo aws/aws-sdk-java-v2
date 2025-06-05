@@ -1,10 +1,8 @@
 package software.amazon.awssdk.services.query.auth.scheme;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -40,38 +38,9 @@ public interface QueryAuthSchemeProvider extends AuthSchemeProvider {
     }
 
     /**
-     * Create a builder for the auth scheme provider.
+     * Get the default auth scheme provider the preferred auth schemes in order of preference.
      */
-    static Builder builder() {
-        return new QueryAuthSchemeProviderBuilder();
-    }
-
-    interface Builder {
-        /**
-         * Returns a {@link QueryAuthSchemeProvider} object that is created from the properties that have been set on
-         * the builder.
-         */
-        QueryAuthSchemeProvider build();
-
-        /**
-         * Set the preferred auth schemes in order of preference.
-         */
-        Builder withPreferredAuthSchemes(List<String> authSchemePreference);
-    }
-
-    @SdkInternalApi
-    final class QueryAuthSchemeProviderBuilder implements Builder {
-        private List<String> authSchemePreference;
-
-        @Override
-        public Builder withPreferredAuthSchemes(List<String> authSchemePreference) {
-            this.authSchemePreference = new ArrayList<>(authSchemePreference);
-            return this;
-        }
-
-        @Override
-        public QueryAuthSchemeProvider build() {
-            return new PreferredQueryAuthSchemeProvider(defaultProvider(), authSchemePreference);
-        }
+    static QueryAuthSchemeProvider defaultProvider(List<String> authSchemePreference) {
+        return new PreferredQueryAuthSchemeProvider(defaultProvider(), authSchemePreference);
     }
 }
