@@ -62,61 +62,17 @@ public final class Partition {
      */
     private Endpoint defaults;
 
-    /**
-     * The partition id.
-     */
-    private String id;
-
-    /**
-     * Configuration outputs for the partition.
-     */
-    private PartitionOutputs outputs;
-
     public Partition() {
     }
 
     public Partition(@JsonProperty(value = "partition") String partition,
                      @JsonProperty(value = "regions") Map<String, PartitionRegion>
-                             regions,
+                         regions,
                      @JsonProperty(value = "services") Map<String,
-                             Service> services,
-                     @JsonProperty(value = "id") String id,
-                     @JsonProperty(value = "outputs") PartitionOutputs outputs,
-                     @JsonProperty(value = "regionRegex") String regionRegex) {
+                         Service> services) {
         this.partition = Validate.paramNotNull(partition, "Partition");
         this.regions = regions;
         this.services = services;
-        this.id = id;
-        this.outputs = outputs;
-        this.regionRegex = regionRegex;
-    }
-
-    /**
-     * Returns the partition ID.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Sets the partition id.
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Returns the configuration outputs for the partition.
-     */
-    public PartitionOutputs getOutputs() {
-        return outputs;
-    }
-
-    /**
-     * Sets the configuration outputs for the partition.
-     */
-    public void setOutputs(PartitionOutputs outputs) {
-        this.outputs = outputs;
     }
 
     /**
@@ -219,82 +175,6 @@ public final class Partition {
     private boolean matchesRegionRegex(String region) {
         Pattern p = Pattern.compile(regionRegex);
         return p.matcher(region).matches();
-    }
-
-    public static class PartitionOutputs {
-        private String dnsSuffix;
-        private String dualStackDnsSuffix;
-        private String implicitGlobalRegion;
-        private String name;
-        private boolean supportsDualStack;
-        private boolean supportsFIPS;
-
-        @JsonProperty("dnsSuffix")
-        public String getDnsSuffix() {
-            return dnsSuffix;
-        }
-
-        public void setDnsSuffix(String dnsSuffix) {
-            this.dnsSuffix = dnsSuffix;
-        }
-
-        @JsonProperty("dualStackDnsSuffix")
-        public String getDualStackDnsSuffix() {
-            return dualStackDnsSuffix;
-        }
-
-        public void setDualStackDnsSuffix(String dualStackDnsSuffix) {
-            this.dualStackDnsSuffix = dualStackDnsSuffix;
-        }
-
-        @JsonProperty("implicitGlobalRegion")
-        public String getImplicitGlobalRegion() {
-            return implicitGlobalRegion;
-        }
-
-        public void setImplicitGlobalRegion(String implicitGlobalRegion) {
-            this.implicitGlobalRegion = implicitGlobalRegion;
-        }
-
-        @JsonProperty("name")
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        @JsonProperty("supportsDualStack")
-        public boolean getSupportsDualStack() {
-            return supportsDualStack;
-        }
-
-        public void setSupportsDualStack(boolean supportsDualStack) {
-            this.supportsDualStack = supportsDualStack;
-        }
-
-        @JsonProperty("supportsFIPS")
-        public boolean getSupportsFIPS() {
-            return supportsFIPS;
-        }
-
-        public void setSupportsFIPS(boolean supportsFIPS) {
-            this.supportsFIPS = supportsFIPS;
-        }
-    }
-
-    public static class Region {
-        private String description;
-
-        @JsonProperty("description")
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
     }
 
     @Deprecated

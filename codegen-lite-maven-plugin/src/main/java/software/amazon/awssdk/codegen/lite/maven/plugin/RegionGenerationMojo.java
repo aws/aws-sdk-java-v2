@@ -36,6 +36,8 @@ import software.amazon.awssdk.codegen.lite.regions.RegionMetadataProviderGenerat
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.PartitionsMetadataLoader;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -59,9 +61,9 @@ public class RegionGenerationMojo extends AbstractMojo {
         "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/endpoints.json")
     private File endpoints;
 
-    @Parameter(property = "partitionsjson", defaultValue =
-        "${basedir}/src/main/resources/software/amazon/awssdk/regions/internal/region/partitions.json.resource")
-    private File partitionsjson;
+    @Parameter(property = "partitionsJson", defaultValue =
+        "${basedir}/../../codegen/src/main/resources/software/amazon/awssdk/codegen/rules/partitions.json.resource")
+    private File partitionsJson;
 
     @Override
     public void execute() throws MojoExecutionException {
@@ -69,14 +71,14 @@ public class RegionGenerationMojo extends AbstractMojo {
         Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         Partitions partitions = RegionMetadataLoader.build(endpoints);
-        Partitions regionpartitions = RegionMetadataLoader.build(partitionsjson);
+        PartitionsMetadata regionPartitions = PartitionsMetadataLoader.build(partitionsJson);
 
         generatePartitionMetadataClass(baseSourcesDirectory, partitions);
-        generateRegionClass(baseSourcesDirectory, regionpartitions);
+        generateRegionClass(baseSourcesDirectory, regionPartitions);
         generateServiceMetadata(baseSourcesDirectory, partitions);
-        generateRegions(baseSourcesDirectory, regionpartitions);
+        generateRegions(baseSourcesDirectory, regionPartitions);
         generatePartitionProvider(baseSourcesDirectory, partitions);
-        generateRegionProvider(baseSourcesDirectory, regionpartitions);
+        generateRegionProvider(baseSourcesDirectory, regionPartitions);
         generateServiceProvider(baseSourcesDirectory, partitions);
         generateEndpointTags(baseSourcesDirectory, partitions);
 
@@ -93,7 +95,7 @@ public class RegionGenerationMojo extends AbstractMojo {
                                                                                  REGION_BASE)).generate());
     }
 
-    public void generateRegionClass(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateRegionClass(Path baseSourcesDirectory, PartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionGenerator(partitions, REGION_BASE)).generate();
     }
@@ -110,7 +112,7 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate());
     }
 
-    public void generateRegions(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateRegions(Path baseSourcesDirectory, PartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_METADATA_BASE, ".", "/"));
         partitions.getPartitions()
                   .forEach(p -> p.getRegions().forEach((k, v) ->
@@ -131,7 +133,7 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate();
     }
 
-    public void generateRegionProvider(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateRegionProvider(Path baseSourcesDirectory, PartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionMetadataProviderGenerator(partitions,
                                                                                            REGION_METADATA_BASE,
