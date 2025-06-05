@@ -15,22 +15,17 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
-import static java.util.Collections.emptyList;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.IndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.TableIndices;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
@@ -46,8 +41,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
-import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
-import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
@@ -61,7 +54,6 @@ import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
-import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 
 @SdkInternalApi
 public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
@@ -126,50 +118,12 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public void createTable() {
-        Map<IndexType, List<IndexMetadata>> indexGroups = splitSecondaryIndicesToLocalAndGlobalOnes();
+        TableIndices indices = new TableIndices(new ArrayList<>(tableSchema.tableMetadata().indices()));
+
         createTable(CreateTableEnhancedRequest.builder()
-                                              .localSecondaryIndices(extractLocalSecondaryIndices(indexGroups))
-                                              .globalSecondaryIndices(extractGlobalSecondaryIndices(indexGroups))
+                                              .localSecondaryIndices(indices.localSecondaryIndices())
+                                              .globalSecondaryIndices(indices.globalSecondaryIndices())
                                               .build());
-    }
-
-    private Map<IndexType, List<IndexMetadata>> splitSecondaryIndicesToLocalAndGlobalOnes() {
-        Collection<IndexMetadata> indices = tableSchema.tableMetadata().indices();
-        return indices.stream()
-                      .filter(index -> !TableMetadata.primaryIndexName().equals(index.name()))
-                      .collect(Collectors.groupingBy(metadata -> {
-                          String partitionKeyName = metadata.partitionKey().map(KeyAttributeMetadata::name).orElse(null);
-                          if (partitionKeyName == null) {
-                              return IndexType.LSI;
-                          }
-                          return IndexType.GSI;
-                      }));
-    }
-
-    private List<EnhancedLocalSecondaryIndex> extractLocalSecondaryIndices(Map<IndexType, List<IndexMetadata>> indicesGroups) {
-        return indicesGroups.getOrDefault(IndexType.LSI, emptyList()).stream()
-                            .map(this::mapIndexMetadataToEnhancedLocalSecondaryIndex)
-                            .collect(Collectors.toList());
-    }
-
-    private EnhancedLocalSecondaryIndex mapIndexMetadataToEnhancedLocalSecondaryIndex(IndexMetadata indexMetadata) {
-        return EnhancedLocalSecondaryIndex.builder()
-                                          .indexName(indexMetadata.name())
-                                          .projection(pb -> pb.projectionType(ProjectionType.ALL))
-                                          .build();
-    }
-
-    private List<EnhancedGlobalSecondaryIndex> extractGlobalSecondaryIndices(Map<IndexType, List<IndexMetadata>> indicesGroups) {
-        return indicesGroups.getOrDefault(IndexType.GSI, emptyList()).stream()
-                            .map(this::mapIndexMetadataToEnhancedGlobalSecondaryIndex)
-                            .collect(Collectors.toList());
-    }
-
-    private EnhancedGlobalSecondaryIndex mapIndexMetadataToEnhancedGlobalSecondaryIndex(IndexMetadata indexMetadata) {
-        return EnhancedGlobalSecondaryIndex.builder()
-                                           .indexName(indexMetadata.name())
-                                           .projection(pb -> pb.projectionType(ProjectionType.ALL))
-                                           .build();
     }
 
     @Override
