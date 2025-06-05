@@ -146,41 +146,49 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
      *
      * @param arn - A string containing an Arn.
      * @return {@link Arn} - A modeled Arn.
+     * @throws IllegalArgumentException if {@code arn} cannot be parsed
+     * @throws NullPointerException if {@code arn} is {@code null}
      */
     public static Arn fromString(String arn) {
+        Validate.paramNotBlank(arn, "arn");
+        try {
+            return parseString(arn);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("Malformed ARN: %s - %s", arn, e.getMessage()));
+        }
+    }
+
+    private static Arn parseString(String arn) {
         int arnColonIndex = arn.indexOf(':');
         if (arnColonIndex < 0 || !"arn".equals(arn.substring(0, arnColonIndex))) {
-            throw new IllegalArgumentException("Malformed ARN - doesn't start with 'arn:'");
+            throw new IllegalArgumentException("Does not start with 'arn:'");
         }
 
         int partitionColonIndex = arn.indexOf(':', arnColonIndex + 1);
         if (partitionColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS partition specified");
+            throw new IllegalArgumentException("No AWS partition specified");
         }
         String partition = arn.substring(arnColonIndex + 1, partitionColonIndex);
 
         int serviceColonIndex = arn.indexOf(':', partitionColonIndex + 1);
         if (serviceColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no service specified");
+            throw new IllegalArgumentException("No service specified");
         }
         String service = arn.substring(partitionColonIndex + 1, serviceColonIndex);
 
         int regionColonIndex = arn.indexOf(':', serviceColonIndex + 1);
         if (regionColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS region partition specified");
+            throw new IllegalArgumentException("No AWS region specified");
         }
         String region = arn.substring(serviceColonIndex + 1, regionColonIndex);
 
         int accountColonIndex = arn.indexOf(':', regionColonIndex + 1);
         if (accountColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS account specified");
+            throw new IllegalArgumentException("No AWS account specified");
         }
         String accountId = arn.substring(regionColonIndex + 1, accountColonIndex);
 
         String resource = arn.substring(accountColonIndex + 1);
-        if (resource.isEmpty()) {
-            throw new IllegalArgumentException("Malformed ARN - no resource specified");
-        }
 
         return Arn.builder()
                   .partition(partition)
