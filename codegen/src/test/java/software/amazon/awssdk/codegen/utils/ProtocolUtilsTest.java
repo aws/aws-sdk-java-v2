@@ -46,7 +46,7 @@ public class ProtocolUtilsTest {
     }
 
     @Test
-    public void protocolsWithJson_ProtocolCbor_selectsJson() {
+    public void protocolsWithJson_protocolCbor_selectsJson() {
         ServiceMetadata serviceMetadata = new ServiceMetadata();
         serviceMetadata.setProtocols(Collections.singletonList("json"));
         serviceMetadata.setProtocol("smithy-rpc-v2-cbor");
