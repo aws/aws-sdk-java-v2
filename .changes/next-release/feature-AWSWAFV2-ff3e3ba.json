@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "AWS WAF adds support for ASN-based traffic filtering and support for ASN-based rate limiting."
+}
