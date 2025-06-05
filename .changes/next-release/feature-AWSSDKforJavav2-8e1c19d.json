@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Added ability to configure preferred authentication schemes when multiple auth options are available."
-}

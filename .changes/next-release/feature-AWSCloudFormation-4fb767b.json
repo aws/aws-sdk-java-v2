@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "contributor": "",
-    "description": "Add new warning type 'EXCLUDED_PROPERTIES'"
-}
