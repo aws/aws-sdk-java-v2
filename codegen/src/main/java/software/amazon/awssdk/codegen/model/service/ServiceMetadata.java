@@ -114,6 +114,10 @@ public class ServiceMetadata {
         return protocol;
     }
 
+    /**
+     * {@code protocol} superseded by {@code protocols} field, resolved in {@link ProtocolUtils#resolveProtocol(ServiceMetadata)}
+     */
+    @Deprecated
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }

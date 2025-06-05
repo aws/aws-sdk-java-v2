@@ -43,9 +43,13 @@ public final class ProtocolUtils {
         List<String> protocols = serviceMetadata.getProtocols();
         String protocol = serviceMetadata.getProtocol();
 
-        // Kinesis uses customization.config customServiceMetadata to set cbor
-        if ("cbor".equals(protocol) || protocols == null || protocols.isEmpty()) {
+        if (protocols == null || protocols.isEmpty()) {
             return protocol;
+        }
+
+        // Kinesis uses customization.config customServiceMetadata to set cbor
+        if ("cbor".equals(protocols.get(0))) {
+            return "cbor";
         }
 
         for (String supportedProtocol : SUPPORTED_PROTOCOLS) {
