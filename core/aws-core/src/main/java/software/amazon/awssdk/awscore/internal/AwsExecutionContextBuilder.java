@@ -68,7 +68,7 @@ public final class AwsExecutionContextBuilder {
      * Used by both sync and async clients to create the execution context, and run initial interceptors.
      */
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
-    invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
+        invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
                                                 SdkClientConfiguration clientConfig) {
         // Note: This is currently copied to DefaultS3Presigner and other presigners.
         // Don't edit this without considering those
