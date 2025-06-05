@@ -36,6 +36,8 @@ public class ServiceMetadata {
 
     private String protocol;
 
+    private List<String> protocols;
+
     private String jsonVersion;
 
     private Map<String, String> awsQueryCompatible;
@@ -109,6 +111,14 @@ public class ServiceMetadata {
 
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    public List<String> getProtocols() {
+        return protocols;
+    }
+
+    public void setProtocols(List<String> protocols) {
+        this.protocols = protocols;
     }
 
     public String getJsonVersion() {
