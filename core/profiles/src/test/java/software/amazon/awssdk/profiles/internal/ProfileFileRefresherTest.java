@@ -29,11 +29,13 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalAmount;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 public class ProfileFileRefresherTest {
 
@@ -63,14 +65,14 @@ public class ProfileFileRefresherTest {
         ProfileFileRefresher refresher = refresherWithClock(clock)
             .profileFile(() -> profileFile(credentialsFilePath))
             .build();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
+        Duration intervalWithinStale = Duration.ofMillis(100);
 
         ProfileFile file1 = refresher.refreshIfStale();
 
         generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
         updateModificationTime(credentialsFilePath, clock.instant().plusMillis(1));
 
-        clock.tickForward(intervalWithinJitter);
+        clock.tickForward(intervalWithinStale);
         ProfileFile file2 = refresher.refreshIfStale();
 
         Assertions.assertThat(file2).isSameAs(file1);
@@ -78,24 +80,28 @@ public class ProfileFileRefresherTest {
 
     @Test
     void refreshIfStale_profileModifiedWithinStalePeriod_doesNotReloadProfileFile() {
-        Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            Path credentialsFilePath = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
 
-        AdjustableClock clock = new AdjustableClock();
-        ProfileFileRefresher refresher = refresherWithClock(clock)
-            .profileFile(() -> profileFile(credentialsFilePath))
-            .profileFilePath(credentialsFilePath)
-            .build();
-        Duration intervalWithinJitter = Duration.ofMillis(100);
+            AdjustableClock clock = new AdjustableClock();
+            ProfileFileRefresher refresher = refresherWithClock(clock)
+                .profileFile(() -> profileFile(credentialsFilePath))
+                .profileFilePath(credentialsFilePath)
+                .build();
+            Duration intervalWithinStale = Duration.ofMillis(100);
 
-        ProfileFile file1 = refresher.refreshIfStale();
+            ProfileFile file1 = refresher.refreshIfStale();
 
-        clock.tickForward(intervalWithinJitter);
-        generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
-        updateModificationTime(credentialsFilePath, clock.instant());
+            clock.tickForward(intervalWithinStale);
+            generateTestCredentialsFile("modifiedAccessKey", "modifiedSecretAccessKey");
+            updateModificationTime(credentialsFilePath, clock.instant());
 
-        ProfileFile file2 = refresher.refreshIfStale();
+            ProfileFile file2 = refresher.refreshIfStale();
 
-        Assertions.assertThat(file2).isSameAs(file1);
+            Assertions.assertThat(file2).isSameAs(file1);
+
+            Assertions.assertThat(logCaptor.loggedEvents()).isEmpty();
+        }
     }
 
     @Test
