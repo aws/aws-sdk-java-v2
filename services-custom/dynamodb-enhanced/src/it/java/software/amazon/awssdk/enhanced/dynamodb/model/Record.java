@@ -16,7 +16,10 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 
+@DynamoDbBean
 public class Record {
 
     private String id;
@@ -26,6 +29,7 @@ public class Record {
     private Integer gsiSort;
 
     private String stringAttribute;
+    private Integer version;
 
     public String getId() {
         return id;
@@ -81,6 +85,16 @@ public class Record {
         return this;
     }
 
+    @DynamoDbVersionAttribute
+    public Integer getVersion() {
+        return version;
+    }
+
+    public Record setVersion(Integer version) {
+        this.version = version;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -91,11 +105,12 @@ public class Record {
                Objects.equals(value, record.value) &&
                Objects.equals(gsiId, record.gsiId) &&
                Objects.equals(stringAttribute, record.stringAttribute) &&
-               Objects.equals(gsiSort, record.gsiSort);
+               Objects.equals(gsiSort, record.gsiSort) &&
+               Objects.equals(version, record.version);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, sort, value, gsiId, gsiSort, stringAttribute);
+        return Objects.hash(id, sort, value, gsiId, gsiSort, stringAttribute, version);
     }
 }
