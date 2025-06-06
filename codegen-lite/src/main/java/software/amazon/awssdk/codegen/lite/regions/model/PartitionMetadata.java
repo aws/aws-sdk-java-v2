@@ -16,8 +16,8 @@
 package software.amazon.awssdk.codegen.lite.regions.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * This class models a single partition from partitions.json.
@@ -33,9 +33,9 @@ public final class PartitionMetadata {
     }
 
     public PartitionMetadata(@JsonProperty(value = "id") String id,
-                            @JsonProperty(value = "outputs") PartitionOutputs outputs,
-                            @JsonProperty(value = "regionRegex") String regionRegex,
-                            @JsonProperty(value = "regions") Map<String, RegionMetadata> regions) {
+                             @JsonProperty(value = "outputs") PartitionOutputs outputs,
+                             @JsonProperty(value = "regionRegex") String regionRegex,
+                             @JsonProperty(value = "regions") Map<String, RegionMetadata> regions) {
         this.id = id;
         this.outputs = outputs;
         this.regionRegex = regionRegex;
