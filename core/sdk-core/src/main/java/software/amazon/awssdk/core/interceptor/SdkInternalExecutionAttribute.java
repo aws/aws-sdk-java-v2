@@ -190,7 +190,8 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         "ResponseChecksumValidation");
 
     /**
-     * The response checksum validation setting.
+     * The token configured from the environment or system properties, used to determine if the BEARER_SERVICE_ENV_VARS
+     * business metric should be set.
      */
     public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
         "TokenConfiguredFromEnv");
