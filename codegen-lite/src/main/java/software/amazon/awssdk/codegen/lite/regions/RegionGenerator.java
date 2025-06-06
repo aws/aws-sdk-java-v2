@@ -38,16 +38,16 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
-import software.amazon.awssdk.codegen.lite.regions.model.PartitionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionsMetadata;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class RegionGenerator implements PoetClass {
 
-    private final PartitionsMetadata partitions;
+    private final RegionPartitionsMetadata partitions;
     private final String basePackage;
 
-    public RegionGenerator(PartitionsMetadata partitions,
+    public RegionGenerator(RegionPartitionsMetadata partitions,
                            String basePackage) {
         this.partitions = partitions;
         this.basePackage = basePackage;

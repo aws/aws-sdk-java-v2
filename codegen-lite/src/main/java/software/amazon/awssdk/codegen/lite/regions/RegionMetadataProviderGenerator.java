@@ -36,16 +36,16 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.PartitionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionsMetadata;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class RegionMetadataProviderGenerator implements PoetClass {
 
-    private final PartitionsMetadata partitions;
+    private final RegionPartitionsMetadata partitions;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public RegionMetadataProviderGenerator(PartitionsMetadata partitions,
+    public RegionMetadataProviderGenerator(RegionPartitionsMetadata partitions,
                                            String basePackage,
                                            String regionBasePackage) {
         this.partitions = partitions;
@@ -79,7 +79,7 @@ public class RegionMetadataProviderGenerator implements PoetClass {
         return ClassName.get(regionBasePackage, "GeneratedRegionMetadataProvider");
     }
 
-    private CodeBlock regions(PartitionsMetadata partitions) {
+    private CodeBlock regions(RegionPartitionsMetadata partitions) {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<Region, RegionMetadata>builder()", ImmutableMap.class);
 
         partitions.getPartitions()

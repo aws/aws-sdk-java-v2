@@ -29,7 +29,7 @@ import software.amazon.awssdk.codegen.lite.CodeGenerator;
 import software.amazon.awssdk.codegen.lite.regions.EndpointTagGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataProviderGenerator;
-import software.amazon.awssdk.codegen.lite.regions.PartitionsMetadataLoader;
+import software.amazon.awssdk.codegen.lite.regions.RegionPartitionsMetadataLoader;
 import software.amazon.awssdk.codegen.lite.regions.RegionGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionMetadataLoader;
@@ -37,7 +37,7 @@ import software.amazon.awssdk.codegen.lite.regions.RegionMetadataProviderGenerat
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
-import software.amazon.awssdk.codegen.lite.regions.model.PartitionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionsMetadata;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -71,7 +71,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         Partitions partitions = RegionMetadataLoader.build(endpoints);
-        PartitionsMetadata regionPartitions = PartitionsMetadataLoader.build(partitionsJson);
+        RegionPartitionsMetadata regionPartitions = RegionPartitionsMetadataLoader.build(partitionsJson);
 
         generatePartitionMetadataClass(baseSourcesDirectory, partitions);
         generateRegionClass(baseSourcesDirectory, regionPartitions);
@@ -95,7 +95,7 @@ public class RegionGenerationMojo extends AbstractMojo {
                                                                                  REGION_BASE)).generate());
     }
 
-    public void generateRegionClass(Path baseSourcesDirectory, PartitionsMetadata partitions) {
+    public void generateRegionClass(Path baseSourcesDirectory, RegionPartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionGenerator(partitions, REGION_BASE)).generate();
     }
@@ -112,7 +112,7 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate());
     }
 
-    public void generateRegions(Path baseSourcesDirectory, PartitionsMetadata partitions) {
+    public void generateRegions(Path baseSourcesDirectory, RegionPartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_METADATA_BASE, ".", "/"));
         partitions.getPartitions()
                   .forEach(p -> p.getRegions().forEach((k, v) ->
@@ -133,7 +133,7 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate();
     }
 
-    public void generateRegionProvider(Path baseSourcesDirectory, PartitionsMetadata partitions) {
+    public void generateRegionProvider(Path baseSourcesDirectory, RegionPartitionsMetadata partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new RegionMetadataProviderGenerator(partitions,
                                                                                            REGION_METADATA_BASE,

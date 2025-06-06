@@ -24,24 +24,24 @@ import software.amazon.awssdk.utils.Validate;
  * This class models the AWS partitions metadata from partitions.json.
  */
 @SdkInternalApi
-public final class PartitionsMetadata {
-    private List<PartitionMetadata> partitions;
+public final class RegionPartitionsMetadata {
+    private List<RegionPartitionMetadata> partitions;
     private String version;
 
-    public PartitionsMetadata() {
+    public RegionPartitionsMetadata() {
     }
 
-    public PartitionsMetadata(@JsonProperty(value = "partitions") List<PartitionMetadata> partitions,
-                             @JsonProperty(value = "version") String version) {
+    public RegionPartitionsMetadata(@JsonProperty(value = "partitions") List<RegionPartitionMetadata> partitions,
+                                    @JsonProperty(value = "version") String version) {
         this.partitions = Validate.paramNotNull(partitions, "partitions");
         this.version = Validate.paramNotNull(version, "version");
     }
 
-    public List<PartitionMetadata> getPartitions() {
+    public List<RegionPartitionMetadata> getPartitions() {
         return partitions;
     }
 
-    public void setPartitions(List<PartitionMetadata> partitions) {
+    public void setPartitions(List<RegionPartitionMetadata> partitions) {
         this.partitions = partitions;
     }
 
