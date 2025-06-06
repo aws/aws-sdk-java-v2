@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.lite.CodeGenerator;
 import software.amazon.awssdk.codegen.lite.regions.EndpointTagGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.PartitionMetadataProviderGenerator;
+import software.amazon.awssdk.codegen.lite.regions.PartitionsMetadataLoader;
 import software.amazon.awssdk.codegen.lite.regions.RegionGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.RegionMetadataLoader;
@@ -37,7 +38,6 @@ import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataGenerator;
 import software.amazon.awssdk.codegen.lite.regions.ServiceMetadataProviderGenerator;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 import software.amazon.awssdk.codegen.lite.regions.model.PartitionsMetadata;
-import software.amazon.awssdk.codegen.lite.regions.PartitionsMetadataLoader;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
