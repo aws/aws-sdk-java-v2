@@ -139,6 +139,71 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
     }
 
     /**
+     * Attempts to parse the given string into an {@link Arn}. If the input string is not a valid ARN,
+     * this method returns {@link Optional#empty()} instead of throwing an exception.
+     * <p>
+     * Returns an empty Optional if the input string is not a valid ARN.
+     * When successful, the resource is accessible entirely as a string through
+     * {@link #resourceAsString()}. Where correctly formatted, a parsed resource
+     * containing resource type, resource and qualifier is available through
+     * {@link #resource()}.
+     *
+     * @param arn A string containing an ARN to parse.
+     * @return An {@link Optional} containing the parsed {@link Arn} if valid, or empty if invalid.
+     */
+    public static Optional<Arn> tryFromString(String arn) {
+        if (arn == null) {
+            return Optional.empty();
+        }
+
+        int arnColonIndex = arn.indexOf(':');
+        if (arnColonIndex < 0 || !"arn".equals(arn.substring(0, arnColonIndex))) {
+            return Optional.empty();
+        }
+
+        int partitionColonIndex = arn.indexOf(':', arnColonIndex + 1);
+        if (partitionColonIndex < 0) {
+            return Optional.empty();
+        }
+
+        String partition = arn.substring(arnColonIndex + 1, partitionColonIndex);
+
+        int serviceColonIndex = arn.indexOf(':', partitionColonIndex + 1);
+        if (serviceColonIndex < 0) {
+            return Optional.empty();
+        }
+        String service = arn.substring(partitionColonIndex + 1, serviceColonIndex);
+
+        int regionColonIndex = arn.indexOf(':', serviceColonIndex + 1);
+        if (regionColonIndex < 0) {
+            return Optional.empty();
+        }
+        String region = arn.substring(serviceColonIndex + 1, regionColonIndex);
+
+        int accountColonIndex = arn.indexOf(':', regionColonIndex + 1);
+        if (accountColonIndex < 0) {
+            return Optional.empty();
+        }
+        String accountId = arn.substring(regionColonIndex + 1, accountColonIndex);
+
+        String resource = arn.substring(accountColonIndex + 1);
+        if (resource.isEmpty()) {
+            return Optional.empty();
+        }
+
+
+        Arn resultArn = builder()
+                  .partition(partition)
+                  .service(service)
+                  .region(region)
+                  .accountId(accountId)
+                  .resource(resource)
+                  .build();
+
+        return Optional.of(resultArn);
+    }
+
+    /**
      * Parses a given string into an {@link Arn}. The resource is accessible entirely as a
      * string through {@link #resourceAsString()}. Where correctly formatted, a parsed
      * resource containing resource type, resource and qualifier is available through
