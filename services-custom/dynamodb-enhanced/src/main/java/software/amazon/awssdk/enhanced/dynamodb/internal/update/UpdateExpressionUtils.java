@@ -90,16 +90,17 @@ public final class UpdateExpressionUtils {
             if (key.contains(NESTED_OBJECT_UPDATE)) {
                 TableSchema currentSchema = tableSchema;
                 List<String> pathFieldNames = Arrays.asList(PATTERN.split(key));
-                String attributeName = pathFieldNames.get(pathFieldNames.size()-1);
+                String attributeName = pathFieldNames.get(pathFieldNames.size() - 1);
 
-                for(int i = 0; i < pathFieldNames.size() - 1; i++ ) {
+                for (int i = 0; i < pathFieldNames.size() - 1; i++) {
                     Optional<? extends TableSchema<?>> nestedSchema = getNestedSchema(currentSchema, pathFieldNames.get(i));
                     if (nestedSchema.isPresent()) {
                         currentSchema = nestedSchema.get();
                     }
                 }
 
-                actions.add(setValue(key, value, UpdateBehaviorTag.resolveForAttribute(attributeName, currentSchema.tableMetadata())));
+                actions.add(setValue(key, value,
+                                     UpdateBehaviorTag.resolveForAttribute(attributeName, currentSchema.tableMetadata())));
             } else {
                 actions.add(setValue(key, value, UpdateBehaviorTag.resolveForAttribute(key, tableSchema.tableMetadata())));
             }
