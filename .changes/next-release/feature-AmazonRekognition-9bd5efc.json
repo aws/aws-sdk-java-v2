@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Rekognition",
-    "contributor": "",
-    "description": "Adds support for defining an ordered preference list of different Rekognition Face Liveness challenge types when calling CreateFaceLivenessSession."
-}

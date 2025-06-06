@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.59__ __2025-06-06__
+## __AWS Key Management Service__
+  - ### Features
+    - Remove unpopulated KeyMaterialId from Encrypt Response
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for protocols field in service model
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix expiration in past warning during profile credential loading.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release introduces the `PromptCreationConfigurations` input parameter, which includes fields to control prompt population for `InvokeAgent` or `InvokeInlineAgent` requests.
+
+## __Amazon Rekognition__
+  - ### Features
+    - Adds support for defining an ordered preference list of different Rekognition Face Liveness challenge types when calling CreateFaceLivenessSession.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Include Global Cluster Identifier in DBCluster if the DBCluster is a Global Cluster Member.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (Taipei) Region (ap-east-2) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports getting details about a table via its table ARN.
+
 # __2.31.58__ __2025-06-05__
 ## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features
