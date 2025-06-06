@@ -32,17 +32,17 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 
 public class RegionMetadataGenerator implements PoetClass {
 
-    private final RegionPartitionMetadata partition;
+    private final PartitionRegionsMetadata partition;
     private final String region;
     private final String regionDescription;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public RegionMetadataGenerator(RegionPartitionMetadata partition,
+    public RegionMetadataGenerator(PartitionRegionsMetadata partition,
                                    String region,
                                    String regionDescription,
                                    String basePackage,

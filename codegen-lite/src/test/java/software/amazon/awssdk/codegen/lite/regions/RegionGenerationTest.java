@@ -22,8 +22,8 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
-import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionsMetadata;
-import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsRegionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 
 public class RegionGenerationTest {
 
@@ -37,7 +37,7 @@ public class RegionGenerationTest {
     private File endpoints;
     private File partitionsFile;
     private Partitions partitions;
-    private RegionPartitionsMetadata partitionsRegions;
+    private PartitionsRegionsMetadata partitionsRegions;
 
 
     @BeforeEach
@@ -45,7 +45,7 @@ public class RegionGenerationTest {
         this.endpoints = Paths.get(getClass().getResource(ENDPOINTS).toURI()).toFile();
         this.partitionsFile = Paths.get(getClass().getResource(PARTITIONS).toURI()).toFile();
         this.partitions = RegionMetadataLoader.build(endpoints);
-        this.partitionsRegions = RegionPartitionsMetadataLoader.build(partitionsFile);
+        this.partitionsRegions = PartitionsRegionsMetadataLoader.build(partitionsFile);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class RegionGenerationTest {
 
     @Test
     public void regionMetadataClass()  {
-        RegionPartitionMetadata partition = partitionsRegions.getPartitions().get(0);
+        PartitionRegionsMetadata partition = partitionsRegions.getPartitions().get(0);
         RegionMetadataGenerator metadataGenerator = new RegionMetadataGenerator(partition,
                                                                                 "us-east-1",
                                                                                 "US East (N. Virginia)",

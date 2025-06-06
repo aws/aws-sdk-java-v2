@@ -23,19 +23,19 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * This class models a single partition from partitions.json.
  */
 @SdkInternalApi
-public final class RegionPartitionMetadata {
+public final class PartitionRegionsMetadata {
     private String id;
     private PartitionOutputs outputs;
     private String regionRegex;
     private Map<String, RegionMetadata> regions;
 
-    public RegionPartitionMetadata() {
+    public PartitionRegionsMetadata() {
     }
 
-    public RegionPartitionMetadata(@JsonProperty(value = "id") String id,
-                                   @JsonProperty(value = "outputs") PartitionOutputs outputs,
-                                   @JsonProperty(value = "regionRegex") String regionRegex,
-                                   @JsonProperty(value = "regions") Map<String, RegionMetadata> regions) {
+    public PartitionRegionsMetadata(@JsonProperty(value = "id") String id,
+                                    @JsonProperty(value = "outputs") PartitionOutputs outputs,
+                                    @JsonProperty(value = "regionRegex") String regionRegex,
+                                    @JsonProperty(value = "regions") Map<String, RegionMetadata> regions) {
         this.id = id;
         this.outputs = outputs;
         this.regionRegex = regionRegex;

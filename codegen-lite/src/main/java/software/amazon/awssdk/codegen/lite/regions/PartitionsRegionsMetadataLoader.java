@@ -19,26 +19,26 @@ import com.fasterxml.jackson.jr.ob.JSON;
 import java.io.File;
 import java.io.IOException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.codegen.lite.regions.model.RegionPartitionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsRegionsMetadata;
 
 /**
- * Loads and parses the partitions.json file into {@link RegionPartitionsMetadata}.
+ * Loads and parses the partitions.json file into {@link PartitionsRegionsMetadata}.
  */
 @SdkInternalApi
-public final class RegionPartitionsMetadataLoader {
+public final class PartitionsRegionsMetadataLoader {
 
-    private RegionPartitionsMetadataLoader() {
+    private PartitionsRegionsMetadataLoader() {
     }
 
-    public static RegionPartitionsMetadata build(File path) {
+    public static PartitionsRegionsMetadata build(File path) {
         return loadPartitionFromStream(path, path.toString());
     }
 
-    private static RegionPartitionsMetadata loadPartitionFromStream(File stream, String location) {
+    private static PartitionsRegionsMetadata loadPartitionFromStream(File stream, String location) {
 
         try {
             return JSON.std.with(JSON.Feature.USE_IS_GETTERS)
-                           .beanFrom(RegionPartitionsMetadata.class, stream);
+                           .beanFrom(PartitionsRegionsMetadata.class, stream);
 
         } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Error while loading partitions file from " + location, e);
