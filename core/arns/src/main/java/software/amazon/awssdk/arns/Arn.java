@@ -142,7 +142,6 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
      * Attempts to parse the given string into an {@link Arn}. If the input string is not a valid ARN,
      * this method returns {@link Optional#empty()} instead of throwing an exception.
      * <p>
-     * Returns an empty Optional if the input string is not a valid ARN.
      * When successful, the resource is accessible entirely as a string through
      * {@link #resourceAsString()}. Where correctly formatted, a parsed resource
      * containing resource type, resource and qualifier is available through
