@@ -69,7 +69,7 @@ public final class AwsExecutionContextBuilder {
      */
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
-                                                    SdkClientConfiguration clientConfig) {
+                                                SdkClientConfiguration clientConfig) {
         // Note: This is currently copied to DefaultS3Presigner and other presigners.
         // Don't edit this without considering those
 
@@ -134,13 +134,13 @@ public final class AwsExecutionContextBuilder {
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
         ExecutionInterceptorChain executionInterceptorChain =
-                new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+            new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
 
         InterceptorContext interceptorContext = InterceptorContext.builder()
-                                                     .request(originalRequest)
-                                                     .asyncRequestBody(executionParams.getAsyncRequestBody())
-                                                     .requestBody(executionParams.getRequestBody())
-                                                     .build();
+                                                                  .request(originalRequest)
+                                                                  .asyncRequestBody(executionParams.getAsyncRequestBody())
+                                                                  .requestBody(executionParams.getRequestBody())
+                                                                  .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         SdkRequest modifiedRequests = interceptorContext.request();
@@ -217,9 +217,6 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
-    // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
-    //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
-    //  tokenIdentityProvider. When adding that support this method will need to be updated.
     private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
                                                               SdkClientConfiguration clientConfig) {
         IdentityProviders identityProviders =
@@ -232,13 +229,17 @@ public final class AwsExecutionContextBuilder {
             return null;
         }
 
-        return originalRequest.overrideConfiguration()
-                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                              .map(c -> (AwsRequestOverrideConfiguration) c)
-                              .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                              .map(identityProvider ->
-                                       identityProviders.copy(b -> b.putIdentityProvider(identityProvider)))
-                              .orElse(identityProviders);
+        return originalRequest
+            .overrideConfiguration()
+            .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+            .map(c -> (AwsRequestOverrideConfiguration) c)
+            .map(c -> {
+                return identityProviders.copy(b -> {
+                    c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
+                    c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
+                });
+            })
+            .orElse(identityProviders);
     }
 
     /**
@@ -277,12 +278,13 @@ public final class AwsExecutionContextBuilder {
     }
 
     /**
-     * Resolves the endpoint provider, with the request override configuration taking precedence over the
-     * provided default client clientConfig.
+     * Resolves the endpoint provider, with the request override configuration taking precedence over the provided client
+     * configuration.
+     *
      * @return The endpoint provider that will be used by the SDK to resolve endpoints.
      */
     private static EndpointProvider resolveEndpointProvider(SdkRequest request,
-                                                           SdkClientConfiguration clientConfig) {
+                                                            SdkClientConfiguration clientConfig) {
         return request.overrideConfiguration()
                       .flatMap(RequestOverrideConfiguration::endpointProvider)
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));

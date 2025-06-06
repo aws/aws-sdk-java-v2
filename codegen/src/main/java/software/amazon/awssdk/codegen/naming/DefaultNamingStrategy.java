@@ -433,6 +433,22 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getSigningName() {
+        return Optional.ofNullable(serviceModel.getMetadata().getSigningName())
+                       .orElseGet(() -> serviceModel.getMetadata().getEndpointPrefix());
+    }
+
+    @Override
+    public String getSigningNameForEnvironmentVariables() {
+        return screamCase(getSigningName());
+    }
+
+    @Override
+    public String getSigningNameForSystemProperties() {
+        return pascalCase(getSigningName());
+    }
+
+    @Override
     public void validateCustomerVisibleNaming(IntermediateModel trimmedModel) {
         Metadata metadata = trimmedModel.getMetadata();
         validateCustomerVisibleName(metadata.getSyncInterface(), "metadata-derived interface name");

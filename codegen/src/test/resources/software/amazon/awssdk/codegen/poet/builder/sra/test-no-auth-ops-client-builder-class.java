@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
@@ -26,6 +28,7 @@ import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -36,6 +39,7 @@ import software.amazon.awssdk.services.database.endpoints.internal.DatabaseReque
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal base class for {@link DefaultDatabaseClientBuilder} and {@link DefaultDatabaseAsyncClientBuilder}.
@@ -58,10 +62,15 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
-                                  .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider());
+        });
     }
 
     @Override
@@ -80,6 +89,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         SdkClientConfiguration.Builder builder = config.toBuilder();
         builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
             IdentityProviders.Builder result = IdentityProviders.builder();
+            IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+            if (tokenIdentityProvider != null) {
+                result.putIdentityProvider(tokenIdentityProvider);
+            }
             IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
             if (credentialsIdentityProvider != null) {
                 result.putIdentityProvider(credentialsIdentityProvider);
@@ -150,6 +163,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         return schemes;
     }
 
+    private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
+        return DefaultAwsTokenProvider.create();
+    }
+
     @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
         List<SdkPlugin> internalPlugins = internalPlugins(config);
@@ -196,5 +213,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
+        Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }
