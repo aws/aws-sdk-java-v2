@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Key Management Service",
+    "contributor": "",
+    "description": "Remove unpopulated KeyMaterialId from Encrypt Response"
+}
