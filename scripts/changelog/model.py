@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 class ReleaseChanges(object):
     def __init__(self, version, date, entries):
         self.version = version
@@ -33,3 +34,4 @@ class Version(object):
             prerelease_version = self.prerelease[preview_prefix_len:]
             if prerelease_version != "":
                 return int(prerelease_version)
+        return None

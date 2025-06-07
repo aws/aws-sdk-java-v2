@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from changelog.git import stage_file
 from changelog.util import load_all_released_changes, load_unreleased_changes, version_cmp
 from functools import cmp_to_key
@@ -69,9 +70,6 @@ class ChangelogWriter(object):
 
     def get_sorted_categories(self):
         return sorted(list(self.categories))
-
-    def is_service_category(self,s):
-        return s.lower() not in NON_SERVICE_CATEGORIES
 
     def write_header(self):
         version_string = self.current_changes.version
