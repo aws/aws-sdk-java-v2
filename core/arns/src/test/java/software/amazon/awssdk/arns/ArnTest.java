@@ -17,8 +17,14 @@ package software.amazon.awssdk.arns;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class ArnTest {
 
@@ -311,4 +317,78 @@ public class ArnTest {
         String arnString = "arn:aws:s3:us-east-1:";
         assertThatThrownBy(() -> Arn.fromString(arnString)).hasMessageContaining("Malformed ARN");
     }
+
+    private static Stream<Arguments> validArnTestCases() {
+        return Stream.of(
+            Arguments.of("Basic resource", "arn:aws:s3:us-east-1:12345678910:myresource"),
+            Arguments.of("Minimal requirements", "arn:aws:foobar:::myresource"),
+            Arguments.of("Qualified resource", "arn:aws:s3:us-east-1:12345678910:myresource:foobar:1"),
+            Arguments.of("Minimal resources", "arn:aws:s3:::bucket"),
+            Arguments.of("Without region", "arn:aws:iam::123456789012:root"),
+            Arguments.of("Resource type and resource", "arn:aws:s3:us-east-1:12345678910:bucket:foobar"),
+            Arguments.of("Resource type And resource and qualifier",
+                         "arn:aws:s3:us-east-1:12345678910:bucket:foobar:1"),
+            Arguments.of("Resource type And resource with slash", "arn:aws:s3:us-east-1:12345678910:bucket/foobar"),
+            Arguments.of("Resource type and resource and qualifier slash",
+                         "arn:aws:s3:us-east-1:12345678910:bucket/foobar/1"),
+            Arguments.of("Without region", "arn:aws:s3::123456789012:myresource"),
+            Arguments.of("Without accountId", "arn:aws:s3:us-east-1::myresource"),
+            Arguments.of("Resource with dots", "arn:aws:s3:us-east-1:12345678910:myresource:foobar.1")
+        );
+    }
+
+    private static Stream<Arguments> invalidArnTestCases() {
+        return Stream.of(
+            Arguments.of("Without resource", "arn:aws:s3:us-east-1:12345678910:"),
+            Arguments.of("Invalid arn", "arn:aws:"),
+            Arguments.of("Doesn't start with arn", "fakearn:aws:"),
+            Arguments.of("Invalid without partition", "arn:"),
+            Arguments.of("Invalid without service", "arn:aws:"),
+            Arguments.of("Invalid without region", "arn:aws:s3:"),
+            Arguments.of("Invalid without accountId", "arn:aws:s3:us-east-1:"),
+            Arguments.of("Null Arn", null)
+        );
+    }
+
+    private static Stream<Arguments> exceptionThrowingArnTestCases() {
+        return Stream.of(
+            Arguments.of("Valid without partition", "arn::s3:us-east-1:12345678910:myresource"),
+            Arguments.of("Valid without service", "arn:aws::us-east-1:12345678910:myresource")
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("validArnTestCases")
+    public void optionalArnFromString_ValidArns_ReturnsPopulatedOptional(String testName, String arnString) {
+        Optional<Arn> optionalArn = Arn.tryFromString(arnString);
+
+        assertThat(optionalArn).isPresent();
+
+        Arn expectedArn = Arn.fromString(arnString);
+        Arn actualArn = optionalArn.get();
+
+        assertThat(actualArn.partition()).isEqualTo(expectedArn.partition());
+        assertThat(actualArn.service()).isEqualTo(expectedArn.service());
+        assertThat(actualArn.region()).isEqualTo(expectedArn.region());
+        assertThat(actualArn.accountId()).isEqualTo(expectedArn.accountId());
+        assertThat(actualArn.resourceAsString()).isEqualTo(expectedArn.resourceAsString());
+
+        assertThat(actualArn.toString()).isEqualTo(arnString);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidArnTestCases")
+    public void optionalArnFromString_InvalidArns_ReturnsEmptyOptional(String testName, String arnString) {
+        Optional<Arn> optionalArn = Arn.tryFromString(arnString);
+        assertThat(optionalArn).isEmpty();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("exceptionThrowingArnTestCases")
+    public void tryFromString_InvalidArns_ShouldThrowExceptions(String testName, String arnString) {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Arn.tryFromString(arnString);
+        });
+    }
+
 }
