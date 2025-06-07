@@ -13,11 +13,12 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.urlconnection;
+package software.amazon.awssdk.services.s3.urlconnection;
 
 import java.util.Iterator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;

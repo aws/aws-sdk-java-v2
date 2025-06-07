@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.urlconnection;
+package software.amazon.awssdk.services.s3.urlconnection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.AwsTestBase.CREDENTIALS_PROVIDER_CHAIN;
@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpHeaders;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
