@@ -47,11 +47,15 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadBucketPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -328,13 +332,30 @@ public interface S3Presigner extends SdkPresigner {
      * <p />
      * This is a shorter method of invoking {@link #presignGetObject(GetObjectPresignRequest)} without needing
      * to call {@code GetObjectPresignRequest.builder()} or {@code .build()}.
-     * 
+     *
      * @see #presignGetObject(GetObjectPresignRequest)
      */
     default PresignedGetObjectRequest presignGetObject(Consumer<GetObjectPresignRequest.Builder> request) {
         GetObjectPresignRequest.Builder builder = GetObjectPresignRequest.builder();
         request.accept(builder);
         return presignGetObject(builder.build());
+    }
+
+    PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request);
+
+    default PresignedHeadObjectRequest presignHeadObject(Consumer<HeadObjectPresignRequest.Builder> request) {
+        HeadObjectPresignRequest.Builder builder = HeadObjectPresignRequest.builder();
+        request.accept(builder);
+        return presignHeadObject(builder.build());
+    }
+
+
+    PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request);
+
+    default PresignedHeadBucketRequest presignHeadBucket(Consumer<HeadBucketPresignRequest.Builder> request) {
+        HeadBucketPresignRequest.Builder builder = HeadBucketPresignRequest.builder();
+        request.accept(builder);
+        return presignHeadBucket(builder.build());
     }
 
     /**
