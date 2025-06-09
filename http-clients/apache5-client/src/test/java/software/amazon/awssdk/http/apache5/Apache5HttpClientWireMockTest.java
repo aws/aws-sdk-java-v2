@@ -153,12 +153,6 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
         mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
     }
 
-
-    @Override
-    public void connectionPoolingWorks() throws Exception {
-        // TODO : future PR will handle this.
-    }
-
     @Test
     public void overrideDnsResolver_WithDnsMatchingResolver_successful() throws Exception {
         overrideDnsResolver("magic.local.host");
