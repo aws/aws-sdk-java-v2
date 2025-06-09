@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "contributor": "",
-    "description": "Added support for Internet Protocol Version 6 (IPv6) on EFS Service APIs and mount targets."
-}

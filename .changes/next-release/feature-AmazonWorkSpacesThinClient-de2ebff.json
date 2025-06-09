@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces Thin Client",
-    "contributor": "",
-    "description": "Add ConflictException to UpdateEnvironment API"
-}
