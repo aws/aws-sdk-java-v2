@@ -138,7 +138,7 @@ public final class SharedModelsValidator implements ModelValidator {
                && m1.isEventHeader() == m2.isEventHeader()
                && m1.isEndpointDiscoveryId() == m2.isEndpointDiscoveryId()
                && m1.isSensitive() == m2.isSensitive()
-               && m1.isXmlAttribute() == m2.isSensitive()
+               && m1.isXmlAttribute() == m2.isXmlAttribute()
                && m1.ignoreDataTypeConversionFailures() == m2.ignoreDataTypeConversionFailures()
                && Objects.equals(m1.getName(), m2.getName())
                && Objects.equals(m1.getC2jName(), m2.getC2jName())
