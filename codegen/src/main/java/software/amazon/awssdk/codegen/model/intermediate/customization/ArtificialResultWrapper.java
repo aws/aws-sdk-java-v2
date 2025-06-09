@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate.customization;
 
+import java.util.Objects;
+
 public class ArtificialResultWrapper {
     private String wrappedMemberName;
     private String wrappedMemberSimpleType;
@@ -33,5 +35,26 @@ public class ArtificialResultWrapper {
 
     public void setWrappedMemberSimpleType(String wrappedMemberSimpleType) {
         this.wrappedMemberSimpleType = wrappedMemberSimpleType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ArtificialResultWrapper that = (ArtificialResultWrapper) o;
+        return Objects.equals(wrappedMemberName, that.wrappedMemberName)
+               && Objects.equals(wrappedMemberSimpleType, that.wrappedMemberSimpleType);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(wrappedMemberName);
+        result = 31 * result + Objects.hashCode(wrappedMemberSimpleType);
+        return result;
     }
 }

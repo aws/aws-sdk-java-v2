@@ -32,6 +32,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.validation.ModelValidationContext;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
 
@@ -39,8 +40,9 @@ public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);
     private static final String MODEL_DIR_NAME = "models";
 
-    // TODO: add validators
-    private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Collections.emptyList();
+    private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Collections.singletonList(
+        new SharedModelsValidator()
+    );
 
     private final C2jModels c2jModels;
 
