@@ -1,4 +1,39 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.60__ __2025-06-09__
+## __AWS AppSync__
+  - ### Features
+    - Deprecate `atRestEncryptionEnabled` and `transitEncryptionEnabled` attributes in `CreateApiCache` action. Encryption is always enabled for new caches.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Support dual-stack endpoints for ce api
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - The ListEntities API now supports the EntityID, LastModifiedDate, ProductTitle, and Visibility filters for machine learning products. You can also sort using all of those filters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds support for configuring bearer auth using a token sourced from the environment for services with the `enableEnvironmentBearerToken` customization flag.
+    - Updated Region class generation to use Partitions.json instead of the Endpoints.json and removed the hardcoded global regions.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces capability of Profile Explorer, using correct ingestion timestamp & using historical data for computing calculated attributes, and new standard objects for T&H as part of Amazon Connect Customer Profiles service.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to support Elastic VMware Service (Amazon EVS) Subnet and Amazon EVS Network Interface Types.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Added support for Internet Protocol Version 6 (IPv6) on EFS Service APIs and mount targets.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Add ConflictException to UpdateEnvironment API
+
 # __2.31.59__ __2025-06-06__
 ## __AWS Key Management Service__
   - ### Features
