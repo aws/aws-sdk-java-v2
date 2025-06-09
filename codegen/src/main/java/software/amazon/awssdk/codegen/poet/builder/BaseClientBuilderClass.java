@@ -43,6 +43,7 @@ import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
@@ -277,7 +278,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
 
         if (authSchemeSpecUtils.useSraAuth()) {
-            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider())", SdkClientOption.class);
+            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class);
             builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
         } else {
             if (defaultAwsAuthSignerMethod().isPresent()) {
@@ -442,7 +443,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             // serviceConfigBuilder; the service configuration classes (e.g. S3Configuration) return primitive booleans that
             // have a default when not present.
             builder.addStatement("builder.option($T.DUALSTACK_ENDPOINT_ENABLED, serviceConfigBuilder.dualstackEnabled())",
-                            AwsClientOption.class);
+                                 AwsClientOption.class);
         }
 
         if (model.getCustomizationConfig().getServiceConfig().hasFipsProperty()) {
@@ -452,14 +453,14 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (model.getEndpointOperation().isPresent()) {
             builder.addStatement("builder.option($T.ENDPOINT_DISCOVERY_ENABLED, endpointDiscoveryEnabled)\n",
-                            SdkClientOption.class);
+                                 SdkClientOption.class);
         }
 
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryStrategy())) {
             builder.addStatement("builder.option($1T.RETRY_STRATEGY, $2T.resolveRetryStrategy(config))",
-                            SdkClientOption.class,
-                            PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
+                                 SdkClientOption.class,
+                                 PoetUtils.classNameFromFqcn(model.getCustomizationConfig().getCustomRetryStrategy()));
         }
 
         if (StringUtils.isNotBlank(model.getCustomizationConfig().getCustomRetryPolicy())) {
@@ -485,7 +486,7 @@ public class BaseClientBuilderClass implements ClassSpec {
 
         if (endpointParamsKnowledgeIndex.hasAccountIdEndpointModeBuiltIn()) {
             builder.addStatement("builder.option($T.$L, resolveAccountIdEndpointMode(config))",
-                            AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
+                                 AwsClientOption.class, model.getNamingStrategy().getEnumValueName("accountIdEndpointMode"));
         }
 
         String serviceNameForEnvVar = model.getNamingStrategy().getServiceNameForEnvironmentVariables();
@@ -829,7 +830,19 @@ public class BaseClientBuilderClass implements ClassSpec {
     private MethodSpec defaultAuthSchemeProviderMethod() {
         return MethodSpec.methodBuilder("defaultAuthSchemeProvider")
                          .addModifiers(PRIVATE)
+                         .addParameter(SdkClientConfiguration.class, "config")
                          .returns(authSchemeSpecUtils.providerInterfaceName())
+                         .addCode("$T authSchemePreferenceProvider = "
+                                  + "$T.builder()",
+                                  AuthSchemePreferenceResolver.class, AuthSchemePreferenceResolver.class)
+                         .addCode(".profileFile(config.option($T.PROFILE_FILE_SUPPLIER))", SdkClientOption.class)
+                         .addCode(".profileName(config.option($T.PROFILE_NAME))", SdkClientOption.class)
+                         .addStatement(".build()")
+                         .addStatement("List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference()")
+                         .beginControlFlow("if(!preferences.isEmpty())")
+                         .addStatement("return $T.defaultProvider(preferences)",
+                                       authSchemeSpecUtils.providerInterfaceName())
+                         .endControlFlow()
                          .addStatement("return $T.defaultProvider()", authSchemeSpecUtils.providerInterfaceName())
                          .build();
     }
@@ -965,10 +978,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         List<String> internalPlugins = model.getCustomizationConfig().getInternalPlugins();
         if (internalPlugins.isEmpty()) {
             return builder.addStatement("return $T.emptyList()", Collections.class)
-                .build();
+                          .build();
         }
 
-        builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName,  ArrayList.class);
+        builder.addStatement("$T internalPlugins = new $T<>()", parameterizedTypeName, ArrayList.class);
 
         for (String internalPlugin : internalPlugins) {
             String arguments = internalPluginNewArguments(internalPlugin);

@@ -1,4 +1,106 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.58__ __2025-06-05__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Updating the minimum for List APIs to be 1 (instead of 0)
+
+## __AWS CloudFormation__
+  - ### Features
+    - Add new warning type 'EXCLUDED_PROPERTIES'
+
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS announces the support for on-demand rotation of symmetric-encryption KMS keys with imported key material (EXTERNAL origin).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added ability to configure preferred authentication schemes when multiple auth options are available.
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF adds support for ASN-based traffic filtering and support for ASN-based rate limiting.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DynamoDbEnhancedClient DefaultDynamoDbAsyncTable::createTable() to create secondary indices that are defined on annotations of the POJO class, similar to DefaultDynamoDbTable::createTable().
+
+# __2.31.57__ __2025-06-04__
+## __AWS Amplify__
+  - ### Features
+    - Update documentation for cacheConfig in CreateApp API
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release includes support for embedding and signing C2PA content credentials in MP4 outputs.
+
+## __AWS Invoicing__
+  - ### Features
+    - Added new Invoicing ListInvoiceSummaries API Operation
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release updates the DescribeFlow API to show peer IP addresses. You can now identify the peer IP addresses of devices connected to your sources and outputs. This helps you to verify and troubleshoot your flow's active connections.
+
+## __AWS Network Firewall__
+  - ### Features
+    - You can now monitor flow and alert log metrics from the Network Firewall console.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon Elastic VMware Service (Amazon EVS) allows you to run VMware Cloud Foundation (VCF) directly within your Amazon VPC including simplified self-managed migration experience with guided workflow in AWS console or via AWS CLI, get full access to their VCF deployment and VCF license portability.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for p6-b200 instance type in SageMaker Training Jobs and Training Plans.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - AWS Healthscribe now supports new templates for the clinical note summary: BIRP, SIRP, DAP, BEHAVIORAL_SOAP, and PHYSICAL_SOAP
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS Healthscribe now supports new templates for the clinical note summary: BIRP, SIRP, DAP, BEHAVIORAL_SOAP, and PHYSICAL_SOAP
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - DownloadFilter type incompatability methods overriden from extended interface
+        - Contributed by: [@jencymaryjoseph](https://github.com/jencymaryjoseph)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jencymaryjoseph](https://github.com/jencymaryjoseph)
+# __2.31.56__ __2025-06-03__
+## __AWS S3 Event Notifications__
+  - ### Bugfixes
+    - Fixed parsing of S3 event notifications to allow eventTime to be null when eventName is not
+        - Contributed by: [@reifiedbeans](https://github.com/reifiedbeans)
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix NPE in `ProfileFileSupplier.defaultSupplier` when both credentials and config files do not exist.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Adds support to set the routing mode for a custom domain name.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Adds support to create routing rules and set the routing mode for a custom domain name.
+
+## __EMR Serverless__
+  - ### Features
+    - AWS EMR Serverless: Adds a new option in the CancelJobRun API in EMR 7.9.0+, to cancel a job with grace period. This feature is enabled by default with a 120-second grace period for streaming jobs and is not enabled by default for batch jobs.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@reifiedbeans](https://github.com/reifiedbeans)
 # __2.31.55__ __2025-06-02__
 ## __AWS Backup__
   - ### Features
