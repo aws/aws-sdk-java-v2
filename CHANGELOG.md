@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.61__ __2025-06-10__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Documentation updates for Amazon GameLift Streams to address formatting errors, correct resource ID examples, and update links to other guides
+
 # __2.31.60__ __2025-06-09__
 ## __AWS AppSync__
   - ### Features
