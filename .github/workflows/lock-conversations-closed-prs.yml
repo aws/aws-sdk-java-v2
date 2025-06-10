@@ -6,7 +6,7 @@ on:
 
 jobs:
   lock-conversation-closed-prs:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    if: github.repository == 'davidh44/aws-sdk-java-v2'
     name: Lock PR Conversation on Close
     runs-on: ubuntu-latest
     permissions:
