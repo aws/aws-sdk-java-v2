@@ -10,7 +10,6 @@ jobs:
     name: Lock PR Conversation on Close
     runs-on: ubuntu-latest
     permissions:
-      issues: write
       pull-requests: write
     steps:
       - name: Lock PR conversation on Close
@@ -25,7 +24,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: "This pull request has been closed and the conversation has been locked. If you need more assistance, please open a new issue that references this one."
+              body: "This pull request has been closed and the conversation has been locked. Comments on closed PRs are hard for our team to see. If you need more assistance, please open a new issue that references this one."
             });
             
             await github.rest.issues.lock({
