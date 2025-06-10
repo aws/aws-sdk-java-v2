@@ -40,6 +40,8 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.AbortMultipartUploadPresignRequest;
@@ -341,17 +343,118 @@ public interface S3Presigner extends SdkPresigner {
         return presignGetObject(builder.build());
     }
 
+    /**
+     * Presign a {@link HeadObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a HeadObjectRequest to be pre-signed
+     *     HeadObjectRequest headObjectRequest =
+     *         HeadObjectRequest.builder()
+     *                          .bucket("my-bucket")
+     *                          .key("my-key")
+     *                          .build();
+     *
+     *     // Create a HeadObjectPresignRequest to specify the signature duration
+     *     HeadObjectPresignRequest headObjectPresignRequest =
+     *         HeadObjectPresignRequest.builder()
+     *                                .signatureDuration(Duration.ofMinutes(10))
+     *                                .headObjectRequest(headObjectRequest)
+     *                                .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedHeadObjectRequest presignedHeadObjectRequest =
+     *         presigner.presignHeadObject(headObjectPresignRequest);
+     *
+     *     // The presigned URL can be used with an HTTP client to retrieve object metadata
+     *     SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+     *     HttpExecuteRequest request = HttpExecuteRequest.builder()
+     *                                                   .request(presignedHeadObjectRequest.httpRequest())
+     *                                                   .build();
+     *     HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+     *
+     *     // Extract metadata from response headers
+     *     String contentLength = response.httpResponse().firstMatchingHeader("Content-Length").orElse("0");
+     * }
+     * </pre>
+     */
     PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request);
 
+    /**
+     * Presign a {@link HeadObjectRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p />
+     * This is a shorter method of invoking {@link #presignHeadObject(HeadObjectPresignRequest)} without needing
+     * to call {@code HeadObjectPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignHeadObject(HeadObjectPresignRequest)
+     */
     default PresignedHeadObjectRequest presignHeadObject(Consumer<HeadObjectPresignRequest.Builder> request) {
         HeadObjectPresignRequest.Builder builder = HeadObjectPresignRequest.builder();
         request.accept(builder);
         return presignHeadObject(builder.build());
     }
 
-
+    /**
+     * Presign a {@link HeadBucketRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p/>
+     *
+     * <b>Example Usage</b>
+     * <p/>
+     *
+     * <pre>
+     * {@code
+     *     S3Presigner presigner = ...;
+     *
+     *     // Create a HeadBucketRequest to be pre-signed
+     *     HeadBucketRequest headBucketRequest =
+     *         HeadBucketRequest.builder()
+     *                          .bucket("my-bucket")
+     *                          .build();
+     *
+     *     // Create a HeadBucketPresignRequest to specify the signature duration
+     *     HeadBucketPresignRequest headBucketPresignRequest =
+     *         HeadBucketPresignRequest.builder()
+     *                                .signatureDuration(Duration.ofMinutes(10))
+     *                                .headBucketRequest(headBucketRequest)
+     *                                .build();
+     *
+     *     // Generate the presigned request
+     *     PresignedHeadBucketRequest presignedHeadBucketRequest =
+     *         presigner.presignHeadBucket(headBucketPresignRequest);
+     *
+     *     // The presigned URL can be used with an HTTP client to check bucket existence and access
+     *     SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+     *     HttpExecuteRequest request = HttpExecuteRequest.builder()
+     *                                                   .request(presignedHeadBucketRequest.httpRequest())
+     *                                                   .build();
+     *     HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+     *
+     *     // Check if bucket exists and is accessible
+     *     boolean bucketExists = response.httpResponse().isSuccessful();
+     *     String region = response.httpResponse().firstMatchingHeader("x-amz-bucket-region").orElse("");
+     * }
+     * </pre>
+     */
     PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request);
 
+    /**
+     * Presign a {@link HeadBucketRequest} so that it can be executed at a later time without requiring additional
+     * signing or authentication.
+     * <p>
+     * This is a shorter method of invoking {@link #presignHeadBucket(HeadBucketPresignRequest)} without needing
+     * to call {@code HeadBucketPresignRequest.builder()} or {@code .build()}.
+     *
+     * @see #presignHeadBucket(HeadBucketPresignRequest)
+     */
     default PresignedHeadBucketRequest presignHeadBucket(Consumer<HeadBucketPresignRequest.Builder> request) {
         HeadBucketPresignRequest.Builder builder = HeadBucketPresignRequest.builder();
         request.accept(builder);
