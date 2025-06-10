@@ -76,6 +76,10 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
             this.listener = Validate.notNull(listener, "listener");
         }
 
+        public AsyncResponseTransformer<ResponseT, ResultT> getDelegate() {
+            return delegate;
+        }
+
         @Override
         public CompletableFuture<ResultT> prepare() {
             return delegate.prepare();

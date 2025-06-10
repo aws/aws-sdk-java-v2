@@ -38,6 +38,8 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -59,6 +61,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -180,33 +183,42 @@ public final class AwsExecutionContextBuilder {
         if (executionParams.getRequestBody() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "RequestBody",
-                executionParams.getRequestBody().contentStreamProvider().getClass().getSimpleName()
+                uaImplementationName(executionParams.getRequestBody().contentStreamProvider().getClass())
             ));
         }
 
         if (executionParams.getAsyncRequestBody() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "AsyncRequestBody",
-                executionParams.getAsyncRequestBody().getClass().getSimpleName()
+                uaImplementationName(executionParams.getAsyncRequestBody().getClass())
             ));
         }
 
         if (executionParams.getResponseTransformer() != null) {
-            Class klass = executionParams.getResponseTransformer().getClass();
             userAgentMetadata.add(new UserAgentMetadata(
                 "ResponseTransformer",
-                executionParams.getResponseTransformer().getClass().getSimpleName()
+                uaImplementationName(executionParams.getResponseTransformer().getClass())
             ));
         }
 
         if (executionParams.getAsyncResponseTransformer() != null) {
+            AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer = executionParams.getAsyncResponseTransformer();
+            if (asyncResponseTransformer instanceof AsyncResponseTransformerListener.NotifyingAsyncResponseTransformer) {
+                asyncResponseTransformer =
+                    ((AsyncResponseTransformerListener.NotifyingAsyncResponseTransformer<OutputT, ?>) asyncResponseTransformer)
+                        .getDelegate();
+            }
             userAgentMetadata.add(new UserAgentMetadata(
                 "AsyncResponseTransformer",
-                executionParams.getAsyncResponseTransformer().getClass().getSimpleName()
+                uaImplementationName(asyncResponseTransformer.getClass())
             ));
         }
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);
+    }
+
+    private static String uaImplementationName(Class klass) {
+        return StringUtils.isEmpty(klass.getSimpleName()) ? "Unknown" : klass.getSimpleName();
     }
 
     /**

@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.useragent.UserAgentConstant;
 
 @SdkProtectedApi
-public class UserAgentMetadata {
+public final class UserAgentMetadata {
 
     private final String name;
     private final String value;
