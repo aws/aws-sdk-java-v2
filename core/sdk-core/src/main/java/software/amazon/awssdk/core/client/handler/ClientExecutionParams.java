@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 /**
@@ -49,6 +51,8 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private HttpResponseHandler<OutputT> responseHandler;
     private HttpResponseHandler<? extends SdkException> errorResponseHandler;
     private HttpResponseHandler<Response<OutputT>> combinedResponseHandler;
+    private ResponseTransformer<OutputT, ?> responseTransformer;
+    private AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer;
     private boolean fullDuplex;
     private boolean hasInitialRequestEvent;
     private String hostPrefixExpression;
@@ -130,6 +134,24 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public ClientExecutionParams<InputT, OutputT> withAsyncRequestBody(AsyncRequestBody asyncRequestBody) {
         this.asyncRequestBody = asyncRequestBody;
+        return this;
+    }
+
+    public ResponseTransformer<OutputT, ?> getResponseTransformer() {
+        return responseTransformer;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withResponseTransformer(ResponseTransformer<OutputT, ?> responseTransformer) {
+        this.responseTransformer = responseTransformer;
+        return this;
+    }
+
+    public AsyncResponseTransformer<OutputT, ?> getAsyncResponseTransformer() {
+        return asyncResponseTransformer;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withAsyncResponseTransformer(AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer) {
+        this.asyncResponseTransformer = asyncResponseTransformer;
         return this;
     }
 

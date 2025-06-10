@@ -42,6 +42,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.UserAgentMetadata;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -109,6 +110,13 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
 
         javaUserAgent.append(clientUserAgent);
+
+        //add useragent metadata from execution context
+        List<UserAgentMetadata> userAgentMetadata =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA);
+        if (userAgentMetadata != null) {
+            userAgentMetadata.forEach(s -> javaUserAgent.append(SPACE).append(s));
+        }
 
         //add remaining SDK user agent properties
         identityProviderName(context.executionAttributes()).ifPresent(

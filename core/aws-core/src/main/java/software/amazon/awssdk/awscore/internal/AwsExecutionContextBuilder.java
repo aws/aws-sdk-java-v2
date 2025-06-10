@@ -21,6 +21,8 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_ST
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils.resolveRetryMode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -50,6 +52,7 @@ import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.UserAgentMetadata;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -159,6 +162,8 @@ public final class AwsExecutionContextBuilder {
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
+        putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
+
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
@@ -166,6 +171,42 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(ExecutionAttributes executionAttributes, ClientExecutionParams<InputT,OutputT> executionParams) {
+        List<UserAgentMetadata> userAgentMetadata = new ArrayList<>();
+
+        // TODO: Mapping class to convert names and handle known anon/lambda classes.
+        if (executionParams.getRequestBody() != null) {
+            userAgentMetadata.add(new UserAgentMetadata(
+                "RequestBody",
+                executionParams.getRequestBody().contentStreamProvider().getClass().getSimpleName()
+            ));
+        }
+
+        if (executionParams.getAsyncRequestBody() != null) {
+            userAgentMetadata.add(new UserAgentMetadata(
+                "AsyncRequestBody",
+                executionParams.getAsyncRequestBody().getClass().getSimpleName()
+            ));
+        }
+
+        if (executionParams.getResponseTransformer() != null) {
+            Class klass = executionParams.getResponseTransformer().getClass();
+            userAgentMetadata.add(new UserAgentMetadata(
+                "ResponseTransformer",
+                executionParams.getResponseTransformer().getClass().getSimpleName()
+            ));
+        }
+
+        if (executionParams.getAsyncResponseTransformer() != null) {
+            userAgentMetadata.add(new UserAgentMetadata(
+                "AsyncResponseTransformer",
+                executionParams.getAsyncResponseTransformer().getClass().getSimpleName()
+            ));
+        }
+
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);
     }
 
     /**
