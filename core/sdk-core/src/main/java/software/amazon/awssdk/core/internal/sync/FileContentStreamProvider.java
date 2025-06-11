@@ -44,7 +44,7 @@ public final class FileContentStreamProvider implements ContentStreamProvider {
 
     @Override
     public String name() {
-        return "File";
+        return ProviderType.FILE.getName();
     }
 
     private void closeCurrentStream() {

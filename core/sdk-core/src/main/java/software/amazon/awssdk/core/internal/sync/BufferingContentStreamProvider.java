@@ -63,7 +63,7 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
 
     @Override
     public String name() {
-        return "Buffering";
+        return ProviderType.STREAM.getName();
     }
 
     class ByteArrayStream extends ByteArrayInputStream {

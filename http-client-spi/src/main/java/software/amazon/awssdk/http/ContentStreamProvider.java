@@ -22,11 +22,15 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Provides the content stream of a request.
@@ -66,7 +70,7 @@ public interface ContentStreamProvider {
 
             @Override
             public String name() {
-                return "ByteArray";
+                return ProviderType.BYTES.getName();
             }
         };
     }
@@ -85,7 +89,7 @@ public interface ContentStreamProvider {
 
             @Override
             public String name() {
-                return "String";
+                return ProviderType.STRING.getName();
             }
         };
     }
@@ -128,7 +132,7 @@ public interface ContentStreamProvider {
 
             @Override
             public String name() {
-                return "InputStream";
+                return ProviderType.STREAM.getName();
             }
         };
     }
@@ -153,7 +157,7 @@ public interface ContentStreamProvider {
 
             @Override
             public String name() {
-                return "InputStreamSupplier";
+                return ProviderType.STREAM.getName();
             }
         };
     }
@@ -170,6 +174,38 @@ public interface ContentStreamProvider {
      * @return String containing the identifying name of this ContentStreamProvider implementation.
      */
     default String name() {
-        return "UNKNOWN";
+        return ProviderType.UNKNOWN.getName();
+    }
+
+    @SdkProtectedApi
+    enum ProviderType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STRING("String", "c"),
+        STREAM("Stream", "s"),
+        UNKNOWN("Unknown", "u");
+
+        private final String name;
+        private final String shortValue;
+
+        private static final Map<String, ProviderType> VALUE_MAP =
+            EnumUtils.uniqueIndex(ProviderType.class, ProviderType::getName);
+
+        ProviderType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

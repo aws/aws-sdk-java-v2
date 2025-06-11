@@ -148,7 +148,7 @@ public class RequestBody {
 
             @Override
             public String name() {
-                return "Stream";
+                return ProviderType.STREAM.getName();
             }
         };
         return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);

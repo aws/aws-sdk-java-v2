@@ -54,6 +54,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -178,15 +179,19 @@ public final class AwsExecutionContextBuilder {
         List<AdditionalMetadata> userAgentMetadata = new ArrayList<>();
 
         if (executionParams.getRequestBody() != null) {
-            userAgentMetadata.add(AdditionalMetadata
-                                      .builder()
-                                      .name("rb")
-                                      .value(executionParams.getRequestBody().contentStreamProvider().name())
-                                      .build());
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rb")
+                    .value(ContentStreamProvider.ProviderType.shortValueFromName(
+                        executionParams.getRequestBody().contentStreamProvider().name())
+                    )
+                    .build());
         }
 
         if (executionParams.getAsyncRequestBody() != null) {
-            userAgentMetadata.add(AdditionalMetadata
+            userAgentMetadata.add(
+                AdditionalMetadata
                                       .builder()
                                       .name("rb")
                                       .value(executionParams.getAsyncRequestBody().body())
