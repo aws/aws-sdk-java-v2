@@ -52,7 +52,6 @@ with open(brazil_import_config_path) as f:
 
 modules_path=sys.argv[1]
 
-service_modules = set()
 core_modules = set()
 
 with open(modules_path) as f:
@@ -60,9 +59,7 @@ with open(modules_path) as f:
     l = l.strip()
     module_path = Path(l)
     name = module_path.name
-    if module_path.parent.name == 'services':
-      service_modules.add(name)
-    else:
+    if module_path.parent.name != 'services':
       core_modules.add(name)
 
 # Ensure all 'core' modules are mapped. For the purposes of this validation, we
