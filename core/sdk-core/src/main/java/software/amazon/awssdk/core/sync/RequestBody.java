@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -149,7 +148,7 @@ public class RequestBody {
 
             @Override
             public String streamName() {
-                return "InputStream";
+                return "Stream";
             }
         };
         return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);

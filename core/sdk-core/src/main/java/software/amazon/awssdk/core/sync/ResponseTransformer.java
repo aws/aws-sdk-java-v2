@@ -239,7 +239,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
         return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
             @Override
-            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
+            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
                 return new ResponseInputStream<>(response, inputStream);
             }
 

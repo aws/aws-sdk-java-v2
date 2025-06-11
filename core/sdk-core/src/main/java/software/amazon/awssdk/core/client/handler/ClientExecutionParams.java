@@ -150,7 +150,8 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return asyncResponseTransformer;
     }
 
-    public ClientExecutionParams<InputT, OutputT> withAsyncResponseTransformer(AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer) {
+    public ClientExecutionParams<InputT, OutputT> withAsyncResponseTransformer(
+        AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer) {
         this.asyncResponseTransformer = asyncResponseTransformer;
         return this;
     }

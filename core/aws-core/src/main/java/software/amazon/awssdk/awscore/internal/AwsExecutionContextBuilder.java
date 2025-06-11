@@ -38,8 +38,6 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -61,7 +59,6 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.metrics.MetricCollector;
-import software.amazon.awssdk.utils.StringUtils;
 
 @SdkInternalApi
 public final class AwsExecutionContextBuilder {
@@ -176,10 +173,10 @@ public final class AwsExecutionContextBuilder {
                                .build();
     }
 
-    private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(ExecutionAttributes executionAttributes, ClientExecutionParams<InputT,OutputT> executionParams) {
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(
+        ExecutionAttributes executionAttributes, ClientExecutionParams<InputT, OutputT> executionParams) {
         List<UserAgentMetadata> userAgentMetadata = new ArrayList<>();
 
-        // TODO: Mapping class to convert names and handle known anon/lambda classes.
         if (executionParams.getRequestBody() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "RequestBody",
