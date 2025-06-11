@@ -119,7 +119,7 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public String bodyName() {
+    public String body() {
         return "Bytes";
     }
 

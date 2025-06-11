@@ -99,7 +99,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      *
      * @return String containing the identifying name of this RequestTransformer.
      */
-    default String transformerName() {
+    default String name() {
         return "UNKNOWN";
     }
 
@@ -146,7 +146,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             }
 
             @Override
-            public String transformerName() {
+            public String name() {
                 return "File";
             }
         };
@@ -193,7 +193,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             }
 
             @Override
-            public String transformerName() {
+            public String name() {
                 return "Stream";
             }
         };
@@ -219,7 +219,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             }
 
             @Override
-            public String transformerName() {
+            public String name() {
                 return "Bytes";
             }
         };
@@ -244,7 +244,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             }
 
             @Override
-            public String transformerName() {
+            public String name() {
                 return "Stream";
             }
         });
@@ -274,8 +274,8 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             }
 
             @Override
-            public String transformerName() {
-                return transformer.transformerName();
+            public String name() {
+                return transformer.name();
             }
         };
 

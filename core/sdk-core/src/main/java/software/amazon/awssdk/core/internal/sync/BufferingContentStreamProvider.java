@@ -62,7 +62,7 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
     }
 
     @Override
-    public String streamName() {
+    public String name() {
         return "Buffering";
     }
 

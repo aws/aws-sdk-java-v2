@@ -147,7 +147,7 @@ public class RequestBody {
             }
 
             @Override
-            public String streamName() {
+            public String name() {
                 return "Stream";
             }
         };

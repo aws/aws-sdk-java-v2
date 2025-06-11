@@ -121,7 +121,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
     }
 
     @Override
-    public String bodyName() {
+    public String body() {
         return "Stream";
     }
 

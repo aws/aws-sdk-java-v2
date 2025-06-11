@@ -93,7 +93,7 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
     }
 
     @Override
-    public String bodyName() {
+    public String body() {
         return "Stream";
     }
 

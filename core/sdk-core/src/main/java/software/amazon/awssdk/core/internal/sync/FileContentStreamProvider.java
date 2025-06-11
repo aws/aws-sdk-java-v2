@@ -43,7 +43,7 @@ public final class FileContentStreamProvider implements ContentStreamProvider {
     }
 
     @Override
-    public String streamName() {
+    public String name() {
         return "File";
     }
 

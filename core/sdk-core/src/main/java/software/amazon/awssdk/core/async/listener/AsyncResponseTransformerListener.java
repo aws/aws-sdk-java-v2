@@ -104,8 +104,8 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
         }
 
         @Override
-        public String transformerName() {
-            return delegate.transformerName();
+        public String name() {
+            return delegate.name();
         }
 
         static void invoke(Runnable runnable, String callbackName) {

@@ -80,7 +80,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * @return String containing the identifying name of this AsyncRequestBody implementation.
      */
-    default String bodyName() {
+    default String body() {
         return "UNKNOWN";
     }
 
@@ -108,7 +108,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
             }
 
             @Override
-            public String bodyName() {
+            public String body() {
                 return "Publisher";
             }
         };

@@ -29,8 +29,8 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
-import software.amazon.awssdk.core.useragent.UserAgentMetadata;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
@@ -57,7 +57,10 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<BusinessMetricCollection> BUSINESS_METRICS =
         new ExecutionAttribute<>("BusinessMetricsCollection");
 
-    public static final ExecutionAttribute<List<UserAgentMetadata>> USER_AGENT_METADATA =
+    /**
+     * A collection of metadata to be added to the UserAgent.
+     */
+    public static final ExecutionAttribute<List<AdditionalMetadata>> USER_AGENT_METADATA =
         new ExecutionAttribute<>("UserAgentMetadata");
 
     /**

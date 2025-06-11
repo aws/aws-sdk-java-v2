@@ -170,7 +170,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     @Override
-    public String transformerName() {
+    public String name() {
         return "File";
     }
 

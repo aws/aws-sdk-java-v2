@@ -66,7 +66,7 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     }
 
     @Override
-    public String transformerName() {
+    public String name() {
         return "Bytes";
     }
 

@@ -59,7 +59,7 @@ public final class PublisherAsyncResponseTransformer<ResponseT extends SdkRespon
     }
 
     @Override
-    public String transformerName() {
+    public String name() {
         return "Publisher";
     }
 }

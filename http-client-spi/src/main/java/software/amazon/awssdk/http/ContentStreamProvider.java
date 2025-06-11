@@ -65,7 +65,7 @@ public interface ContentStreamProvider {
             }
 
             @Override
-            public String streamName() {
+            public String name() {
                 return "ByteArray";
             }
         };
@@ -84,7 +84,7 @@ public interface ContentStreamProvider {
             }
 
             @Override
-            public String streamName() {
+            public String name() {
                 return "String";
             }
         };
@@ -127,7 +127,7 @@ public interface ContentStreamProvider {
             }
 
             @Override
-            public String streamName() {
+            public String name() {
                 return "InputStream";
             }
         };
@@ -152,7 +152,7 @@ public interface ContentStreamProvider {
             }
 
             @Override
-            public String streamName() {
+            public String name() {
                 return "InputStreamSupplier";
             }
         };
@@ -169,7 +169,7 @@ public interface ContentStreamProvider {
      *
      * @return String containing the identifying name of this ContentStreamProvider implementation.
      */
-    default String streamName() {
+    default String name() {
         return "UNKNOWN";
     }
 }

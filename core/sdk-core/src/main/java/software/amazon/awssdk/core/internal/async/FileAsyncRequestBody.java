@@ -142,7 +142,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public String bodyName() {
+    public String body() {
         return "File";
     }
 

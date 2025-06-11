@@ -164,7 +164,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      *
      * @return String containing the identifying name of this AsyncRequestTransformer.
      */
-    default String transformerName() {
+    default String name() {
         return "UNKNOWN";
     }
 
