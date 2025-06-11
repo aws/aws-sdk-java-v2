@@ -55,7 +55,8 @@ public class CodingConventionWithSuppressionTest {
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
             ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
-            ArchUtils.classNameToPattern(ResponseTransformer.class)));
+            Pattern.compile(ArchUtils.classNameToPattern(ResponseTransformer.class)
+                                     .pattern().replace("class", ".*"))));
 
     @Test
     void shouldNotAbuseWarnLog() {
