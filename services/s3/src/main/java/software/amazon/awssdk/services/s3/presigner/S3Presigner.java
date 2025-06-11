@@ -385,7 +385,9 @@ public interface S3Presigner extends SdkPresigner {
      * }
      * </pre>
      */
-    PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request);
+    default PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Presign a {@link HeadObjectRequest} so that it can be executed at a later time without requiring additional
@@ -444,7 +446,9 @@ public interface S3Presigner extends SdkPresigner {
      * }
      * </pre>
      */
-    PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request);
+    default PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Presign a {@link HeadBucketRequest} so that it can be executed at a later time without requiring additional
