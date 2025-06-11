@@ -62,6 +62,6 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
 
     @Override
     public String name() {
-        return "Stream";
+        return TransformerType.STREAM.getName();
     }
 }

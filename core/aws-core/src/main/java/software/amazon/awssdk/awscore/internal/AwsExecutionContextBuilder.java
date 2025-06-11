@@ -38,6 +38,8 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -51,6 +53,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -192,27 +195,34 @@ public final class AwsExecutionContextBuilder {
         if (executionParams.getAsyncRequestBody() != null) {
             userAgentMetadata.add(
                 AdditionalMetadata
-                                      .builder()
-                                      .name("rb")
-                                      .value(executionParams.getAsyncRequestBody().body())
-                                      .build());
+                    .builder()
+                    .name("rb")
+                    .value(AsyncRequestBody.BodyType.shortValueFromName(
+                        executionParams.getAsyncRequestBody().body())
+                    )
+                    .build());
         }
 
         if (executionParams.getResponseTransformer() != null) {
-            userAgentMetadata.add(AdditionalMetadata
-                                      .builder()
-                                      .name("rt")
-                                      .value(executionParams.getResponseTransformer().name())
-                                      .build());
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rt")
+                    .value(ResponseTransformer.TransformerType.shortValueFromName(
+                        executionParams.getResponseTransformer().name())
+                    )
+                    .build());
         }
 
         if (executionParams.getAsyncResponseTransformer() != null) {
-            userAgentMetadata.add(AdditionalMetadata
-                                      .builder()
-                                      .name("rt")
-                                      .value(executionParams.getAsyncResponseTransformer().name())
-                                      .build());
-
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rt")
+                    .value(AsyncResponseTransformer.TransformerType.shortValueFromName(
+                        executionParams.getAsyncResponseTransformer().name())
+                    )
+                    .build());
         }
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);

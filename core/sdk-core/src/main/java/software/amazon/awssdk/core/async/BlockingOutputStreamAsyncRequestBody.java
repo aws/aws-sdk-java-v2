@@ -94,7 +94,7 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
 
     @Override
     public String body() {
-        return "Stream";
+        return BodyType.STREAM.getName();
     }
 
     private void waitForSubscriptionIfNeeded() {

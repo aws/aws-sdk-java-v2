@@ -67,7 +67,7 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
     @Override
     public String name() {
-        return "Bytes";
+        return TransformerType.BYTES.getName();
     }
 
     static class BaosSubscriber implements Subscriber<ByteBuffer> {

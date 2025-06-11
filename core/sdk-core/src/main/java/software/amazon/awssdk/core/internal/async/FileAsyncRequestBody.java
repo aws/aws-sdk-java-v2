@@ -143,7 +143,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     @Override
     public String body() {
-        return "File";
+        return BodyType.FILE.getName();
     }
 
     /**

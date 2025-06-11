@@ -26,6 +26,8 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -35,8 +37,10 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Interface for processing a streaming response from a service in a synchronous fashion. This interfaces gives
@@ -147,7 +151,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
             @Override
             public String name() {
-                return "File";
+                return TransformerType.FILE.getName();
             }
         };
     }
@@ -194,7 +198,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
             @Override
             public String name() {
-                return "Stream";
+                return TransformerType.STREAM.getName();
             }
         };
     }
@@ -220,7 +224,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
             @Override
             public String name() {
-                return "Bytes";
+                return TransformerType.BYTES.getName();
             }
         };
     }
@@ -245,7 +249,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
             @Override
             public String name() {
-                return "Stream";
+                return TransformerType.STREAM.getName();
             }
         });
     }
@@ -278,6 +282,36 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                 return transformer.name();
             }
         };
+    }
 
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        UNKNOWN("Unknown", "u");
+
+        private final String name;
+        private final String shortValue;
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

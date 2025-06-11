@@ -23,11 +23,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
@@ -35,8 +37,10 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where this interface is
@@ -81,7 +85,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return String containing the identifying name of this AsyncRequestBody implementation.
      */
     default String body() {
-        return "UNKNOWN";
+        return BodyType.UNKNOWN.getName();
     }
 
     /**
@@ -109,7 +113,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
             @Override
             public String body() {
-                return "Publisher";
+                return BodyType.PUBLISHER.getName();
             }
         };
     }
@@ -527,5 +531,37 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    @SdkProtectedApi
+    enum BodyType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private final String name;
+        private final String shortValue;
+
+        private static final Map<String, BodyType> VALUE_MAP =
+            EnumUtils.uniqueIndex(BodyType.class, BodyType::getName);
+
+        BodyType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

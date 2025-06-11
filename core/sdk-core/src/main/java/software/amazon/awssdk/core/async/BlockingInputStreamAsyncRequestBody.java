@@ -122,7 +122,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
 
     @Override
     public String body() {
-        return "Stream";
+        return BodyType.STREAM.getName();
     }
 
     private void waitForSubscriptionIfNeeded() throws InterruptedException {
