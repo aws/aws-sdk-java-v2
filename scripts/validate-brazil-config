@@ -52,8 +52,6 @@ with open(brazil_import_config_path) as f:
 
 modules_path=sys.argv[1]
 
-p = Path(modules_path)
-
 service_modules = set()
 core_modules = set()
 
