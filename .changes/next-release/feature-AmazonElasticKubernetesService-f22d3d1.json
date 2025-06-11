@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "Release for EKS Pod Identity Cross Account feature and disableSessionTags flag."
-}

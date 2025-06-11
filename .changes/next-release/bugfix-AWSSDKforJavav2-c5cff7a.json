@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "jencymaryjoseph",
-    "description": "Deprecated DefaultCredentialsProvider.create() since it creates Singleton instance"
-}

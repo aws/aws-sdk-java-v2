@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAFV2",
-    "contributor": "",
-    "description": "WAF now provides two DDoS protection options: resource-level monitoring for Application Load Balancers and the AWSManagedRulesAntiDDoSRuleSet managed rule group for CloudFront distributions."
-}
