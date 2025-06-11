@@ -22,11 +22,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.junit.Before;
@@ -44,6 +50,8 @@ import software.amazon.awssdk.awscore.client.http.NoopTestAwsRequest;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -59,6 +67,9 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -71,6 +82,7 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.RegionScope;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AwsExecutionContextBuilderTest {
@@ -435,6 +447,74 @@ public class AwsExecutionContextBuilderTest {
             actualIdentityProviders.identityProvider(TokenIdentity.class);
 
         assertThat(actualTokenProvider).isSameAs(requestTokenProvider);
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withRequestBody_addsUserAgentMetadata() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withRequestBody(RequestBody.fromFile(testFile));
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("rb").value("f").build())
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withResponseTransformer_addsUserAgentMetadata() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withResponseTransformer(ResponseTransformer.toFile(testFile));
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("rt").value("f").build())
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withAsyncRequestBody_addsUserAgentMetadata() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withAsyncRequestBody(AsyncRequestBody.fromFile(testFile));
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("rb").value("f").build())
+        );
+    }
+
+    @Test
+    public void invokeInterceptorsAndCreateExecutionContext_withAsyncResponseTransformer_addsUserAgentMetadata() throws IOException {
+        ClientExecutionParams<SdkRequest, SdkResponse> executionParams = clientExecutionParams();
+        File testFile = File.createTempFile("testFile", UUID.randomUUID().toString());
+        testFile.deleteOnExit();
+        executionParams.withAsyncResponseTransformer(AsyncResponseTransformer.toFile(testFile));
+
+        ExecutionContext executionContext =
+            AwsExecutionContextBuilder.invokeInterceptorsAndCreateExecutionContext(executionParams,
+                                                                                   testClientConfiguration().build());
+
+        ExecutionAttributes executionAttributes = executionContext.executionAttributes();
+        assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA)).isEqualTo(
+            Collections.singletonList(AdditionalMetadata.builder().name("rt").value("f").build())
+        );
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {
