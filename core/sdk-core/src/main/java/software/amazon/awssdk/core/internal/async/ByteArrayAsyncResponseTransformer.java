@@ -65,6 +65,11 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         cf.completeExceptionally(throwable);
     }
 
+    @Override
+    public String transformerName() {
+        return "Bytes";
+    }
+
     static class BaosSubscriber implements Subscriber<ByteBuffer> {
         private final CompletableFuture<byte[]> resultFuture;
 

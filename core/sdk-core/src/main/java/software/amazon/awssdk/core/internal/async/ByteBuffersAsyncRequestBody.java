@@ -118,6 +118,11 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
+    @Override
+    public String bodyName() {
+        return "Bytes";
+    }
+
     public static ByteBuffersAsyncRequestBody of(ByteBuffer... buffers) {
         long length = Arrays.stream(buffers)
                          .mapToLong(ByteBuffer::remaining)

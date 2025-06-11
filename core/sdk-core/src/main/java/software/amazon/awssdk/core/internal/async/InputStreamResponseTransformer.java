@@ -59,4 +59,9 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
     public void exceptionOccurred(Throwable error) {
         future.completeExceptionally(error);
     }
+
+    @Override
+    public String transformerName() {
+        return "Stream";
+    }
 }

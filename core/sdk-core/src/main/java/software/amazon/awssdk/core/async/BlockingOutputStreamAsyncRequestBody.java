@@ -92,6 +92,11 @@ public final class BlockingOutputStreamAsyncRequestBody implements AsyncRequestB
         }
     }
 
+    @Override
+    public String bodyName() {
+        return "Stream";
+    }
+
     private void waitForSubscriptionIfNeeded() {
         try {
             long timeoutSeconds = subscribeTimeout.getSeconds();

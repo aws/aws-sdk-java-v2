@@ -103,6 +103,11 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
             delegate.exceptionOccurred(error);
         }
 
+        @Override
+        public String transformerName() {
+            return delegate.transformerName();
+        }
+
         static void invoke(Runnable runnable, String callbackName) {
             try {
                 runnable.run();

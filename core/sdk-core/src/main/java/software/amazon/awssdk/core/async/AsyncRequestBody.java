@@ -75,6 +75,16 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     }
 
     /**
+     * Each AsyncRequestBody should return a well-formed name that can be used to identify the implementation.
+     * The body name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestBody implementation.
+     */
+    default String bodyName() {
+        return "UNKNOWN";
+    }
+
+    /**
      * Creates an {@link AsyncRequestBody} the produces data from the input ByteBuffer publisher. The data is delivered when the
      * publisher publishes the data.
      *
@@ -95,6 +105,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
                 publisher.subscribe(s);
+            }
+
+            @Override
+            public String bodyName() {
+                return "Publisher";
             }
         };
     }

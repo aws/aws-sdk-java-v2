@@ -183,42 +183,32 @@ public final class AwsExecutionContextBuilder {
         if (executionParams.getRequestBody() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "RequestBody",
-                uaImplementationName(executionParams.getRequestBody().contentStreamProvider().getClass())
+                executionParams.getRequestBody().contentStreamProvider().streamName()
             ));
         }
 
         if (executionParams.getAsyncRequestBody() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "AsyncRequestBody",
-                uaImplementationName(executionParams.getAsyncRequestBody().getClass())
+                executionParams.getAsyncRequestBody().bodyName()
             ));
         }
 
         if (executionParams.getResponseTransformer() != null) {
             userAgentMetadata.add(new UserAgentMetadata(
                 "ResponseTransformer",
-                uaImplementationName(executionParams.getResponseTransformer().getClass())
+                executionParams.getResponseTransformer().transformerName()
             ));
         }
 
         if (executionParams.getAsyncResponseTransformer() != null) {
-            AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer = executionParams.getAsyncResponseTransformer();
-            if (asyncResponseTransformer instanceof AsyncResponseTransformerListener.NotifyingAsyncResponseTransformer) {
-                asyncResponseTransformer =
-                    ((AsyncResponseTransformerListener.NotifyingAsyncResponseTransformer<OutputT, ?>) asyncResponseTransformer)
-                        .getDelegate();
-            }
             userAgentMetadata.add(new UserAgentMetadata(
                 "AsyncResponseTransformer",
-                uaImplementationName(asyncResponseTransformer.getClass())
+                executionParams.getAsyncResponseTransformer().transformerName()
             ));
         }
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);
-    }
-
-    private static String uaImplementationName(Class klass) {
-        return StringUtils.isEmpty(klass.getSimpleName()) ? "Unknown" : klass.getSimpleName();
     }
 
     /**

@@ -159,6 +159,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
+     * Each AsyncResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestTransformer.
+     */
+    default String transformerName() {
+        return "UNKNOWN";
+    }
+
+    /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.

@@ -61,6 +61,11 @@ public final class BufferingContentStreamProvider implements ContentStreamProvid
         return bufferedStream;
     }
 
+    @Override
+    public String streamName() {
+        return "Buffering";
+    }
+
     class ByteArrayStream extends ByteArrayInputStream {
 
         ByteArrayStream(byte[] buf, int offset, int length) {

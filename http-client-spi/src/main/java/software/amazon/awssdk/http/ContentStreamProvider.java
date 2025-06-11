@@ -45,7 +45,7 @@ public interface ContentStreamProvider {
     static ContentStreamProvider fromByteArray(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
         byte[] copy = Arrays.copyOf(bytes, bytes.length);
-        return () -> new ByteArrayInputStream(copy);
+        return fromByteArrayUnsafe(copy);
     }
 
     /**
@@ -58,7 +58,17 @@ public interface ContentStreamProvider {
      */
     static ContentStreamProvider fromByteArrayUnsafe(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
-        return () -> new ByteArrayInputStream(bytes);
+        return new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                return new ByteArrayInputStream(bytes);
+            }
+
+            @Override
+            public String streamName() {
+                return "ByteArray";
+            }
+        };
     }
 
     /**
@@ -67,7 +77,17 @@ public interface ContentStreamProvider {
     static ContentStreamProvider fromString(String string, Charset charset) {
         Validate.paramNotNull(string, "string");
         Validate.paramNotNull(charset, "charset");
-        return () -> new StringInputStream(string, charset);
+        return new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                return new StringInputStream(string, charset);
+            }
+
+            @Override
+            public String streamName() {
+                return "String";
+            }
+        };
     }
 
     /**
@@ -105,6 +125,11 @@ public interface ContentStreamProvider {
                 throw new IllegalStateException("Content input stream does not support mark/reset, "
                                                 + "and was already read once.");
             }
+
+            @Override
+            public String streamName() {
+                return "InputStream";
+            }
         };
     }
 
@@ -125,6 +150,11 @@ public interface ContentStreamProvider {
                 lastStream = inputStreamSupplier.get();
                 return lastStream;
             }
+
+            @Override
+            public String streamName() {
+                return "InputStreamSupplier";
+            }
         };
     }
 
@@ -132,4 +162,14 @@ public interface ContentStreamProvider {
      * @return The content stream.
      */
     InputStream newStream();
+
+    /**
+     * Each ContentStreamProvider should return a well-formed name that can be used to identify the implementation.
+     * The stream name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this ContentStreamProvider implementation.
+     */
+    default String streamName() {
+        return "UNKNOWN";
+    }
 }

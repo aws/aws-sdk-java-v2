@@ -169,6 +169,11 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
     }
 
+    @Override
+    public String transformerName() {
+        return "File";
+    }
+
     /**
      * {@link Subscriber} implementation that writes chunks to a file.
      */
