@@ -391,11 +391,11 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
         PUBLISHER("Publisher", "p"),
         UNKNOWN("Unknown", "u");
 
-        private final String name;
-        private final String shortValue;
-
         private static final Map<String, TransformerType> VALUE_MAP =
             EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
 
         TransformerType(String name, String shortValue) {
             this.name = name;

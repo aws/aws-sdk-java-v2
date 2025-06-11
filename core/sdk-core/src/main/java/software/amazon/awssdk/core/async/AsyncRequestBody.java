@@ -37,7 +37,6 @@ import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.EnumUtils;
@@ -541,11 +540,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
         PUBLISHER("Publisher", "p"),
         UNKNOWN("Unknown", "u");
 
-        private final String name;
-        private final String shortValue;
-
         private static final Map<String, BodyType> VALUE_MAP =
             EnumUtils.uniqueIndex(BodyType.class, BodyType::getName);
+
+        private final String name;
+        private final String shortValue;
 
         BodyType(String name, String shortValue) {
             this.name = name;

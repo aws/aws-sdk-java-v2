@@ -37,7 +37,6 @@ import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
-import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.internal.EnumUtils;
@@ -291,11 +290,12 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
         STREAM("Stream", "s"),
         UNKNOWN("Unknown", "u");
 
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
         private final String name;
         private final String shortValue;
 
-        private static final Map<String, TransformerType> VALUE_MAP =
-            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
 
         TransformerType(String name, String shortValue) {
             this.name = name;

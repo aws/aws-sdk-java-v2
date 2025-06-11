@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.IoUtils;
@@ -185,11 +184,12 @@ public interface ContentStreamProvider {
         STREAM("Stream", "s"),
         UNKNOWN("Unknown", "u");
 
+        private static final Map<String, ProviderType> VALUE_MAP =
+            EnumUtils.uniqueIndex(ProviderType.class, ProviderType::getName);
+
         private final String name;
         private final String shortValue;
 
-        private static final Map<String, ProviderType> VALUE_MAP =
-            EnumUtils.uniqueIndex(ProviderType.class, ProviderType::getName);
 
         ProviderType(String name, String shortValue) {
             this.name = name;
