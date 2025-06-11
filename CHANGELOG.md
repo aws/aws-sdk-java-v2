@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.62__ __2025-06-11__
+## __AWS Control Catalog__
+  - ### Features
+    - Introduced ListControlMappings API that retrieves control mappings. Added control aliases and governed resources fields in GetControl and ListControls APIs. New filtering capability in ListControls API, with implementation identifiers and implementation types.
+
+## __AWS Network Manager__
+  - ### Features
+    - Add support for public DNS hostname resolution to private IP addresses across Cloud WAN-managed VPCs. Add support for security group referencing across Cloud WAN-managed VPCs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Deprecated DefaultCredentialsProvider.create() since it creates Singleton instance
+        - Contributed by: [@jencymaryjoseph](https://github.com/jencymaryjoseph)
+
+## __AWS WAFV2__
+  - ### Features
+    - WAF now provides two DDoS protection options: resource-level monitoring for Application Load Balancers and the AWSManagedRulesAntiDDoSRuleSet managed rule group for CloudFront distributions.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Release for EKS Pod Identity Cross Account feature and disableSessionTags flag.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Add support for the Assisted NLU feature to improve bot performance
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Amazon RDS for Db2 cross-Region replicas in standby mode.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@jencymaryjoseph](https://github.com/jencymaryjoseph)
 # __2.31.61__ __2025-06-10__
 ## __AWS SDK for Java v2__
   - ### Features
