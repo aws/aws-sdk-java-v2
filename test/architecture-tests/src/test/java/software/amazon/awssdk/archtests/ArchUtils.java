@@ -27,7 +27,8 @@ public final class ArchUtils {
     }
 
     public static Pattern classWithInnerClassesToPattern(Class<?> clazz) {
-        return Pattern.compile(".*/" + clazz.getCanonicalName().replace('.', '/') + ".*");
+        // inner or inline/anonymous classes have $ followed by a name or number eg "$Inner" or "$1"
+        return Pattern.compile(".*/" + clazz.getCanonicalName().replace('.', '/') + "(\\$.*)?.class");
     }
 
     public static Pattern classNameToPattern(String className) {
