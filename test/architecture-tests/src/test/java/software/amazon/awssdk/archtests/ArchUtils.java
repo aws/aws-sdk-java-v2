@@ -26,6 +26,10 @@ public final class ArchUtils {
         return Pattern.compile(".*/" + clazz.getCanonicalName().replace('.', '/') + ".class");
     }
 
+    public static Pattern classWithInnerClassesToPattern(Class<?> clazz) {
+        return Pattern.compile(".*/" + clazz.getCanonicalName().replace('.', '/') + ".*");
+    }
+
     public static Pattern classNameToPattern(String className) {
         return Pattern.compile(".*/" + className.replace('.', '/') + ".class");
     }
