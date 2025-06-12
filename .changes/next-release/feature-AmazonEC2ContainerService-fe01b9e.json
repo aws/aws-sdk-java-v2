@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "This Amazon ECS release supports updating the capacityProviderStrategy parameter in update-service."
+}
