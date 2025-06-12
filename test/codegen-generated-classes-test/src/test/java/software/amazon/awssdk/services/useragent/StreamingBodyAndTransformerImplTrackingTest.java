@@ -18,14 +18,12 @@ package software.amazon.awssdk.services.useragent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -101,11 +99,11 @@ public class StreamingBodyAndTransformerImplTrackingTest {
     }
 
     @Test
-    public void streamingOutputOperation_syncClient_stream_recordsMetadata() throws IOException {
+    public void streamingOutputOperation_syncClient_stream_recordsMetadata() {
         callStreamingOutputOperation(syncClient(), ResponseTransformer.toOutputStream(new OutputStream() {
             @Override
-            public void write(int b) throws IOException {
-
+            public void write(int b) {
+                // no-op
             }
         }));
         assertThat(interceptor.userAgent()).contains("md/rt#s");
@@ -175,12 +173,10 @@ public class StreamingBodyAndTransformerImplTrackingTest {
 
     public static class CapturingInterceptor implements ExecutionInterceptor {
         private Context.BeforeTransmission context;
-        private ExecutionAttributes executionAttributes;
 
         @Override
         public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             this.context = context;
-            this.executionAttributes = executionAttributes;
             throw new RuntimeException("stop");
         }
 
