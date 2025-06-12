@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EMR Serverless",
+    "contributor": "",
+    "description": "This release adds support for retrieval of the optional executionIamPolicy field in the GetJobRun API response."
+}
