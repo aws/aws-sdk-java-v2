@@ -18,13 +18,16 @@ package software.amazon.awssdk.services.useragent;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -97,6 +100,37 @@ public class StreamingBodyAndTransformerImplTrackingTest {
         assertThat(interceptor.userAgent()).contains("md/rt#f");
     }
 
+    @Test
+    public void streamingOutputOperation_syncClient_stream_recordsMetadata() throws IOException {
+        callStreamingOutputOperation(syncClient(), ResponseTransformer.toOutputStream(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+
+            }
+        }));
+        assertThat(interceptor.userAgent()).contains("md/rt#s");
+    }
+
+    @Test
+    public void streamingOutputOperation_asyncClient_bytes_recordsMetadata() {
+        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toBytes());
+        assertThat(interceptor.userAgent()).contains("md/rt#b");
+    }
+
+    @Test
+    public void streamingOutputOperation_asyncClient_file_recordsMetadata() throws IOException {
+        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toFile(new RandomTempFile(0)));
+        assertThat(interceptor.userAgent()).contains("md/rt#f");
+    }
+
+    @Test
+    public void streamingOutputOperation_asyncClient_publisher_recordsMetadata() {
+        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toPublisher());
+        assertThat(interceptor.userAgent()).contains("md/rt#p");
+    }
+
+
+
     private ProtocolRestJsonWithConfigClient syncClient() {
         return ProtocolRestJsonWithConfigClient
             .builder()
@@ -131,6 +165,12 @@ public class StreamingBodyAndTransformerImplTrackingTest {
                 },
                 requestBody).join();
         }).hasMessageContaining("stop");
+    }
+
+    private void callStreamingOutputOperation(
+        ProtocolRestJsonWithConfigAsyncClient client, AsyncResponseTransformer<StreamingOutputOperationResponse, ?> transformer) {
+        assertThatThrownBy(() -> client.streamingOutputOperation(r -> {}, transformer).join())
+            .hasMessageContaining("stop");
     }
 
     public static class CapturingInterceptor implements ExecutionInterceptor {
