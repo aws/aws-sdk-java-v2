@@ -37,12 +37,14 @@ import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointP
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -70,9 +72,19 @@ public final class InstanceProfileCredentialsProvider
     private static final String PROVIDER_NAME = "InstanceProfileCredentialsProvider";
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
+    private static final String SECURITY_CREDENTIALS_EXTENDED_RESOURCE = "/latest/meta-data/iam/security-credentials-extended/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
+
+    private enum ApiVersion {
+        UNKNOWN,
+        LEGACY,
+        EXTENDED
+    }
+
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
+    private Lazy<ApiVersion> apiVersion = new Lazy<>(() -> ApiVersion.UNKNOWN);
+    private Lazy<String> resolvedProfile = new Lazy<>(() -> null);
 
     private final Clock clock;
     private final String endpoint;
@@ -157,6 +169,11 @@ public final class InstanceProfileCredentialsProvider
 
         try {
             LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
+            ApiVersion currentVersion = apiVersion.getValue();
+            if (currentVersion == ApiVersion.UNKNOWN) {
+                apiVersion = Lazy.withValue(ApiVersion.EXTENDED);
+            }
+
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
@@ -164,7 +181,15 @@ public final class InstanceProfileCredentialsProvider
                                 .staleTime(staleTime(expiration))
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
+        } catch (Ec2MetadataClientException e) {
+            if (apiVersion.getValue() == ApiVersion.UNKNOWN) {
+                apiVersion = Lazy.withValue(ApiVersion.LEGACY);
+                resolvedProfile = new Lazy<>(() -> null);
+                return refreshCredentials();
+            }
+            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         } catch (RuntimeException e) {
+            resolvedProfile = new Lazy<>(() -> null);
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
     }
@@ -207,14 +232,20 @@ public final class InstanceProfileCredentialsProvider
         return ToString.create(PROVIDER_NAME);
     }
 
+    private String getSecurityCredentialsResource() {
+        return apiVersion.getValue() == ApiVersion.LEGACY ?
+               SECURITY_CREDENTIALS_RESOURCE :
+               SECURITY_CREDENTIALS_EXTENDED_RESOURCE;
+    }
+
     private ResourcesEndpointProvider createEndpointProvider() {
         String imdsHostname = getImdsEndpoint();
         String token = getToken(imdsHostname);
         String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
-
+        String urlBase = getSecurityCredentialsResource();
+        
         return StaticResourcesEndpointProvider.builder()
-                                              .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE
-                                                                   + securityCredentials[0]))
+                                              .endpoint(URI.create(imdsHostname + urlBase + securityCredentials[0]))
                                               .headers(getTokenHeaders(token))
                                               .connectionTimeout(Duration.ofMillis(
                                                   this.configProvider.serviceTimeout()))
@@ -285,21 +316,41 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
+        if (resolvedProfile.hasValue()) {
+            return new String[]{resolvedProfile.getValue()};
+        }
+
+        String urlBase = getSecurityCredentialsResource();
         ResourcesEndpointProvider securityCredentialsEndpoint =
             StaticResourcesEndpointProvider.builder()
-                                           .endpoint(URI.create(imdsHostname + SECURITY_CREDENTIALS_RESOURCE))
+                                           .endpoint(URI.create(imdsHostname + urlBase))
                                            .headers(getTokenHeaders(metadataToken))
-                .connectionTimeout(Duration.ofMillis(this.configProvider.serviceTimeout()))
+                                           .connectionTimeout(Duration.ofMillis(this.configProvider.serviceTimeout()))
                                            .build();
 
-        String securityCredentialsList =
-            invokeSafely(() -> HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint));
-        String[] securityCredentials = securityCredentialsList.trim().split("\n");
+        try {
+            String securityCredentialsList =
+                invokeSafely(() -> HttpResourcesUtils.instance().readResource(securityCredentialsEndpoint));
+            String[] securityCredentials = securityCredentialsList.trim().split("\n");
 
-        if (securityCredentials.length == 0) {
-            throw SdkClientException.builder().message("Unable to load credentials path").build();
+            if (securityCredentials.length == 0) {
+                throw SdkClientException.builder().message("Unable to load credentials path").build();
+            }
+
+            ApiVersion currentVersion = apiVersion.getValue();
+            if (currentVersion == ApiVersion.UNKNOWN) {
+                apiVersion = Lazy.withValue(ApiVersion.EXTENDED);
+            }
+            resolvedProfile = new Lazy<>(() -> securityCredentials[0]);
+            return securityCredentials;
+
+        } catch (Ec2MetadataClientException e) {
+            if (apiVersion.getValue() == ApiVersion.UNKNOWN) {
+                apiVersion = Lazy.withValue(ApiVersion.LEGACY);
+                return getSecurityCredentials(imdsHostname, metadataToken);
+            }
+            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
-        return securityCredentials;
     }
 
     private Map<String, String> getTokenHeaders(String metadataToken) {
