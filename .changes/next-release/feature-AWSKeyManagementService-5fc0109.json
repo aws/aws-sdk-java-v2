@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "AWS KMS announces the support of ML-DSA key pairs that creates post-quantum safe digital signatures."
-}

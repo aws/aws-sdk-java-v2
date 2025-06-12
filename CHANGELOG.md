@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.63__ __2025-06-12__
+## __AWS IoT FleetWise__
+  - ### Features
+    - Add new status READY_FOR_CHECKIN used for vehicle synchronisation
+
+## __AWS Key Management Service__
+  - ### Features
+    - AWS KMS announces the support of ML-DSA key pairs that creates post-quantum safe digital signatures.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Fixed regex patterns for ARN fields.
+
+## __Amazon API Gateway__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This Amazon ECS release supports updating the capacityProviderStrategy parameter in update-service.
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Documentation updates for Amazon API Gateway
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - Added PutInstanceCommunicationLimits and GetInstanceCommunicationLimits APIs
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for retrieval of the optional executionIamPolicy field in the GetJobRun API response.
+
 # __2.31.62__ __2025-06-11__
 ## __AWS Control Catalog__
   - ### Features

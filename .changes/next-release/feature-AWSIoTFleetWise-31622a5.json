@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT FleetWise",
-    "contributor": "",
-    "description": "Add new status READY_FOR_CHECKIN used for vehicle synchronisation"
-}
