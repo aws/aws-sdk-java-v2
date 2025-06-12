@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationContext;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
@@ -131,6 +132,13 @@ public class CodeGenerator {
 
         } catch (Exception e) {
             log.error(() -> "Failed to generate code. ", e);
+
+            if (e instanceof ModelInvalidException && emitValidationReport) {
+                ModelInvalidException invalidException = (ModelInvalidException) e;
+                report.setValidationEntries(invalidException.validationEntries());
+                writeValidationReport(report);
+            }
+
             throw new RuntimeException(
                     "Failed to generate code. Exception message : " + e.getMessage(), e);
         }
