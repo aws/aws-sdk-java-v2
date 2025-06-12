@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Fixed regex patterns for ARN fields."
+}
