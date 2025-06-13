@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.validation;
 
+import software.amazon.awssdk.utils.ToString;
+
 public final class ValidationEntry {
     private ValidationErrorId errorId;
     private ValidationErrorSeverity severity;
@@ -57,5 +59,14 @@ public final class ValidationEntry {
     public ValidationEntry withDetailMessage(String detailMessage) {
         setDetailMessage(detailMessage);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("ValidationEntry")
+            .add("errorId", errorId)
+            .add("severity", severity)
+            .add("detailMessage", detailMessage)
+            .build();
     }
 }

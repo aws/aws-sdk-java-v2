@@ -22,7 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
@@ -37,9 +39,13 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
 
 public class CodeGeneratorTest {
     private static final String VALIDATION_REPORT_NAME = "validation-report.json";
@@ -125,6 +131,30 @@ public class CodeGeneratorTest {
         }
     }
 
+    @Test
+    void execute_endpointsTestReferencesUnknownOperationMember_throwsValidationError() throws IOException {
+        ModelValidator mockValidator = mock(ModelValidator.class);
+        when(mockValidator.validateModels(any())).thenReturn(Collections.emptyList());
+
+        C2jModels referenceModels = ClientTestModels.awsJsonServiceC2jModels();
+
+        C2jModels c2jModelsWithBadTest =
+            C2jModels.builder()
+                     .endpointTestSuiteModel(getBrokenEndpointTestSuiteModel())
+                     .customizationConfig(referenceModels.customizationConfig())
+                     .serviceModel(referenceModels.serviceModel())
+                     .paginatorsModel(referenceModels.paginatorsModel())
+                     .build();
+
+        assertThatThrownBy(() -> generateCodeFromC2jModels(c2jModelsWithBadTest, outputDir, true,
+                                                           Collections.singletonList(mockValidator)))
+            .hasCauseInstanceOf(ModelInvalidException.class)
+            .matches(e -> {
+                ModelInvalidException exception = (ModelInvalidException) e.getCause();
+                return exception.validationEntries().get(0).getErrorId() == ValidationErrorId.UNKNOWN_SHAPE_MEMBER;
+            });
+    }
+
     private void generateCodeFromC2jModels(C2jModels c2jModels, Path outputDir) {
         generateCodeFromC2jModels(c2jModels, outputDir, false, null);
     }
@@ -168,6 +198,18 @@ public class CodeGeneratorTest {
 
     private static Path validationReportPath(Path root) {
         return root.resolve(Paths.get("generated-sources", "sdk", "models", VALIDATION_REPORT_NAME));
+    }
+
+    private EndpointTestSuiteModel getBrokenEndpointTestSuiteModel() throws IOException {
+        InputStream resourceAsStream = getClass().getResourceAsStream("incorrect-endpoint-tests.json");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int read;
+        while ((read = resourceAsStream.read(buffer)) != -1) {
+            baos.write(buffer, 0, read);
+        }
+        String json = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(baos.toByteArray())).toString();
+        return Jackson.load(EndpointTestSuiteModel.class, json);
     }
 
     private static void deleteDirectory(Path dir) throws IOException {
