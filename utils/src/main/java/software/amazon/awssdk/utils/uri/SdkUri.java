@@ -21,7 +21,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.cache.lru.LruCache;
+import software.amazon.awssdk.utils.cache.bounded.BoundedCache;
 import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
 
 /**
@@ -37,19 +37,19 @@ public final class SdkUri {
     private static final int MAX_INT_DIGITS_BASE_10 = 10;
 
     /*
-     * The default LRUCache size is 100, but for a single service call we cache at least 3 different URIs so the cache size is
+     * The default BoundedCache size is 100, but for a single service call we cache at least 3 different URIs so the cache size is
      * increased a bit to account for the different URIs.
      */
     private static final int CACHE_SIZE = 150;
 
     private static final Lazy<SdkUri> INSTANCE = new Lazy<>(SdkUri::new);
 
-    private final LruCache<UriConstructorArgs, URI> cache;
+    private final BoundedCache<UriConstructorArgs, URI> cache;
 
     private SdkUri() {
-        this.cache = LruCache.builder(UriConstructorArgs::newInstance)
-                            .maxSize(CACHE_SIZE)
-                            .build();
+        this.cache = BoundedCache.builder(UriConstructorArgs::newInstance)
+                                 .maxSize(CACHE_SIZE)
+                                 .build();
     }
 
     public static SdkUri getInstance() {
@@ -62,9 +62,7 @@ public final class SdkUri {
             return URI.create(s);
         }
         StringConstructorArgs key = new StringConstructorArgs(s);
-        boolean containsK = cache.containsKey(key);
         URI uri = cache.get(key);
-        logCacheUsage(containsK, uri);
         return uri;
     }
 
@@ -75,9 +73,7 @@ public final class SdkUri {
         }
         try {
             StringConstructorArgs key = new StringConstructorArgs(s);
-            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
-            logCacheUsage(containsK, uri);
             return uri;
         } catch (IllegalArgumentException e) {
             // URI.create() wraps the URISyntaxException thrown by new URI in a IllegalArgumentException, we need to unwrap it
@@ -97,9 +93,7 @@ public final class SdkUri {
         }
         try {
             HostConstructorArgs key = new HostConstructorArgs(scheme, userInfo, host, port, path, query, fragment);
-            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
-            logCacheUsage(containsK, uri);
             return uri;
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof URISyntaxException) {
@@ -118,9 +112,7 @@ public final class SdkUri {
         }
         try {
             AuthorityConstructorArgs key = new AuthorityConstructorArgs(scheme, authority, path, query, fragment);
-            boolean containsK = cache.containsKey(key);
             URI uri = cache.get(key);
-            logCacheUsage(containsK, uri);
             return uri;
         } catch (IllegalArgumentException e) {
             if (e.getCause() instanceof URISyntaxException) {
@@ -151,15 +143,6 @@ public final class SdkUri {
                    && Character.isDigit(s.charAt(firstCharAfterScheme + MAX_INT_DIGITS_BASE_10));
         }
         return false;
-    }
-
-    private void logCacheUsage(boolean containsKey, URI uri) {
-        log.trace(() -> "URI cache size: " + cache.size());
-        if (containsKey) {
-            log.trace(() -> "Using cached uri for " + uri.toString());
-        } else {
-            log.trace(() -> "Cache empty for " + uri.toString());
-        }
     }
 
     private static final class StringConstructorArgs implements UriConstructorArgs {

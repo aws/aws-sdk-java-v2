@@ -29,7 +29,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 import org.opentest4j.AssertionFailedError;
-import software.amazon.awssdk.utils.cache.lru.LruCache;
+import software.amazon.awssdk.utils.cache.bounded.BoundedCache;
 import software.amazon.awssdk.utils.uri.SdkUri;
 import software.amazon.awssdk.utils.uri.internal.UriConstructorArgs;
 
@@ -39,9 +39,9 @@ class SdkUriTest {
     void resetCache() throws IllegalAccessException {
         Field cacheField = getCacheField();
         cacheField.setAccessible(true);
-        cacheField.set(SdkUri.getInstance(), LruCache.builder(UriConstructorArgs::newInstance)
-                                                     .maxSize(100)
-                                                     .build());
+        cacheField.set(SdkUri.getInstance(), BoundedCache.builder(UriConstructorArgs::newInstance)
+                                                         .maxSize(100)
+                                                         .build());
     }
 
     @ParameterizedTest
@@ -276,11 +276,11 @@ class SdkUriTest {
     }
 
 
-    private LruCache<UriConstructorArgs, URI> getCache() {
+    private BoundedCache<UriConstructorArgs, URI> getCache() {
         Field field = getCacheField();
         field.setAccessible(true);
         try {
-            return (LruCache<UriConstructorArgs, URI>) field.get(SdkUri.getInstance());
+            return (BoundedCache<UriConstructorArgs, URI>) field.get(SdkUri.getInstance());
         } catch (IllegalAccessException e) {
             fail(e);
             return null;
