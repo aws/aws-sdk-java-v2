@@ -45,7 +45,7 @@ import java.time.Instant;
  * Tests verifying IMDS credential resolution with account ID support.
  */
 @WireMockTest
-public class InstanceProfileCredentialsProviderAccountIDTest {
+public class InstanceProfileCredentialsProviderExtendedApiTest {
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String CREDENTIALS_RESOURCE_PATH = "/latest/meta-data/iam/security-credentials/";
     private static final String CREDENTIALS_EXTENDED_RESOURCE_PATH = "/latest/meta-data/iam/security-credentials-extended/";
