@@ -44,7 +44,6 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -83,8 +82,8 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
-    private Lazy<ApiVersion> apiVersion = new Lazy<>(() -> ApiVersion.UNKNOWN);
-    private Lazy<String> resolvedProfile = new Lazy<>(() -> null);
+    private ApiVersion apiVersion = ApiVersion.UNKNOWN;
+    private String resolvedProfile = null;
 
     private final Clock clock;
     private final String endpoint;
@@ -169,9 +168,8 @@ public final class InstanceProfileCredentialsProvider
 
         try {
             LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
-            ApiVersion currentVersion = apiVersion.getValue();
-            if (currentVersion == ApiVersion.UNKNOWN) {
-                apiVersion = Lazy.withValue(ApiVersion.EXTENDED);
+            if (apiVersion == ApiVersion.UNKNOWN) {
+                apiVersion = ApiVersion.EXTENDED;
             }
 
             Instant expiration = credentials.getExpiration().orElse(null);
@@ -182,14 +180,13 @@ public final class InstanceProfileCredentialsProvider
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
         } catch (Ec2MetadataClientException e) {
-            if (apiVersion.getValue() == ApiVersion.UNKNOWN) {
-                apiVersion = Lazy.withValue(ApiVersion.LEGACY);
-                resolvedProfile = new Lazy<>(() -> null);
+            if (apiVersion == ApiVersion.UNKNOWN) {
+                apiVersion = ApiVersion.LEGACY;
+                resolvedProfile = null;
                 return refreshCredentials();
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         } catch (RuntimeException e) {
-            resolvedProfile = new Lazy<>(() -> null);
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
     }
@@ -233,7 +230,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String getSecurityCredentialsResource() {
-        return apiVersion.getValue() == ApiVersion.LEGACY ?
+        return apiVersion == ApiVersion.LEGACY ?
                SECURITY_CREDENTIALS_RESOURCE :
                SECURITY_CREDENTIALS_EXTENDED_RESOURCE;
     }
@@ -316,8 +313,8 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
-        if (resolvedProfile.hasValue()) {
-            return new String[]{resolvedProfile.getValue()};
+        if (resolvedProfile != null) {
+            return new String[]{resolvedProfile};
         }
 
         String urlBase = getSecurityCredentialsResource();
@@ -337,16 +334,15 @@ public final class InstanceProfileCredentialsProvider
                 throw SdkClientException.builder().message("Unable to load credentials path").build();
             }
 
-            ApiVersion currentVersion = apiVersion.getValue();
-            if (currentVersion == ApiVersion.UNKNOWN) {
-                apiVersion = Lazy.withValue(ApiVersion.EXTENDED);
+            if (apiVersion == ApiVersion.UNKNOWN) {
+                apiVersion = ApiVersion.EXTENDED;
             }
-            resolvedProfile = new Lazy<>(() -> securityCredentials[0]);
+            resolvedProfile = securityCredentials[0];
             return securityCredentials;
 
         } catch (Ec2MetadataClientException e) {
-            if (apiVersion.getValue() == ApiVersion.UNKNOWN) {
-                apiVersion = Lazy.withValue(ApiVersion.LEGACY);
+            if (apiVersion == ApiVersion.UNKNOWN) {
+                apiVersion = ApiVersion.LEGACY;
                 return getSecurityCredentials(imdsHostname, metadataToken);
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);

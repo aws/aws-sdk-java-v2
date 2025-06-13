@@ -25,6 +25,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.DateUtils;
 
@@ -115,6 +117,134 @@ public class InstanceProfileCredentialsProviderAccountIDTest {
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(((AwsSessionCredentials)credentials).sessionToken()).isEqualTo("SESSION_TOKEN");
         verifyImdsCallWithToken(false);
+    }
+
+    @Test
+    void resolveCredentials_withImdsDisabled_returnsNoCredentials() {
+        environmentVariableHelper.set(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.environmentVariable(), "true");
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("IMDS credentials have been disabled");
+
+        verify(0, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+    }
+
+
+    @Test
+    void resolveCredentials_withInvalidProfile_throwsException() {
+        String invalidProfile = "my-profile-0004";
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(invalidProfile)));
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(invalidProfile)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfile))
+            .willReturn(aResponse().withStatus(404)));
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfile))
+            .willReturn(aResponse().withStatus(404)));
+
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to load credentials from IMDS.");
+    }
+
+    @Test
+    void resolveCredentials_withUnstableProfile_noAccountId_refreshesCredentials() {
+        String firstCredentials = String.format(
+            "{\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
+            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
+            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw\"," +
+            "\"Expiration\":\"%s\"," +
+            "\"Code\":\"Success\"," +
+            "\"Type\":\"AWS-HMAC\"," +
+            "\"LastUpdated\":\"2025-03-18T20:53:17.832308Z\"," +
+            "\"UnexpectedElement7\":{\"Name\":\"ignore-me-7\"}}",
+            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
+        );
+
+        String secondCredentials = String.format(
+            "{\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
+            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
+            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw\"," +
+            "\"Expiration\":\"%s\"," +
+            "\"Code\":\"Success\"," +
+            "\"Type\":\"AWS-HMAC\"," +
+            "\"LastUpdated\":\"2025-03-18T20:53:17.832308Z\"," +
+            "\"UnexpectedElement7\":{\"Name\":\"ignore-me-7\"}}",
+            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
+        );
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .inScenario("Profile Change No AccountId")
+            .whenScenarioStateIs("Started")
+            .willReturn(aResponse().withBody("my-profile-0007"))
+            .willSetStateTo("First Profile"));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007"))
+            .inScenario("Profile Change No AccountId")
+            .whenScenarioStateIs("First Profile")
+            .willReturn(aResponse().withBody(firstCredentials))
+            .willSetStateTo("First Profile Done"));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007"))
+            .inScenario("Profile Change No AccountId")
+            .whenScenarioStateIs("First Profile Done")
+            .willReturn(aResponse().withStatus(404))
+            .willSetStateTo("Profile Changed"));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .inScenario("Profile Change No AccountId")
+            .whenScenarioStateIs("Profile Changed")
+            .willReturn(aResponse().withBody("my-profile-0007-b")));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007-b"))
+            .willReturn(aResponse().withBody(secondCredentials)));
+
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials creds1 = provider.resolveCredentials();
+        assertThat(creds1.accountId()).isEmpty();
+        assertThat(creds1.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+
+        AwsCredentials creds2 = provider.resolveCredentials();
+        assertThat(creds2.accountId()).isEmpty();
+        assertThat(creds2.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+    }
+
+    @Test
+    void resolveCredentials_withDiscoveredInvalidProfile_noAccountId_throwsException() {
+        String invalidProfile = "my-profile-0008";
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(invalidProfile)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfile))
+            .willReturn(aResponse().withStatus(404)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfile))
+            .willReturn(aResponse().withStatus(404)));
+
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to load credentials from IMDS");
     }
 
     @Test
