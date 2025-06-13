@@ -136,7 +136,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     /**
      * Get a builder for creating a custom {@link SsoCredentialsProvider}.
      */
-    public static BuilderImpl builder() {
+    public static Builder builder() {
         return new BuilderImpl();
     }
 
