@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
+import software.amazon.awssdk.arns.ArnResource.ArnResourceFormat;
+
 public class ArnResourceTest {
 
     @Test
@@ -64,4 +66,72 @@ public class ArnResourceTest {
         assertThat(arnResource.equals(anotherResource)).isTrue();
         assertThat(arnResource.hashCode()).isEqualTo(anotherResource.hashCode());
     }
+
+    @Test
+    public void toString_resourceIdOnly() {
+        ArnResource arnResource = ArnResource.builder().resourceId("resource").build();
+        assertThat("null:resource:null").isEqualTo(arnResource.toString());
+    }
+
+    @Test
+    public void toString_resourceType_resourceId() {
+        ArnResource arnResource = ArnResource.builder()
+                .resourceType("type")
+                .resourceId("resource")
+                .build();
+        assertThat("type:resource:null").isEqualTo(arnResource.toString());
+    }
+
+    @Test
+    public void toFormattedString_resourceType_resourceId_qualfiier() {
+        ArnResource arnResource = ArnResource.builder()
+                .resourceType("type")
+                .resourceId("resource")
+                .qualifier("qualifier")
+                .build();
+        assertThat("type:resource:qualifier").isEqualTo(arnResource.toStringFormatted());
+    }
+
+    @Test
+    public void toFormattedString_slash__resourceType_resourceId_qualfiier() {
+        ArnResource arnResource = ArnResource.builder()
+                .resourceType("type")
+                .resourceId("resource")
+                .qualifier("qualifier")
+                .resourceFormat(ArnResourceFormat.RESOURCE_WITH_SLASH)
+                .build();
+        assertThat("type/resource:qualifier").isEqualTo(arnResource.toStringFormatted());
+    }
+
+    @Test
+    public void toStringFormatted_resourceType_resourceId_parse_slash_seperator() {
+        ArnResource arnResource = ArnResource.builder()
+                .resourceType("vpc")
+                .resourceFormat(ArnResourceFormat.RESOURCE_WITH_SLASH)
+                .resourceId("vpc-0e9801d129EXAMPLE")
+                .build();
+        assertThat("vpc/vpc-0e9801d129EXAMPLE").isEqualTo(arnResource.toStringFormatted());
+    }
+
+    @Test
+    public void toStringFormatted_resourceType_resourceId_slash_seperator() {
+        ArnResource arnResource = ArnResource.fromString("vpc/vpc-0e9801d129EXAMPLE");
+        assertThat("vpc/vpc-0e9801d129EXAMPLE").isEqualTo(arnResource.toStringFormatted());
+        assertThat(arnResource.resourceType()).isEqualTo(Optional.of("vpc"));
+        assertThat(arnResource.resourceId()).isEqualTo("vpc-0e9801d129EXAMPLE");
+        assertThat(arnResource.qualifier()).isEqualTo(Optional.empty());
+    }
+
+    @Test
+    public void toStringFormatted_arn_resource() {
+        ArnResource arnResource = ArnResource.fromString("vpc/vpc-0e9801d129EXAMPLE:qualifier");
+        ArnResource arnResourceCpy = ArnResource.builder()
+                .arnResource(arnResource)
+                .build();
+        assertThat("vpc/vpc-0e9801d129EXAMPLE:qualifier").isEqualTo(arnResourceCpy.toStringFormatted());
+        assertThat(arnResourceCpy.resourceType()).isEqualTo(Optional.of("vpc"));
+        assertThat(arnResourceCpy.resourceId()).isEqualTo("vpc-0e9801d129EXAMPLE");
+        assertThat(arnResourceCpy.qualifier()).isEqualTo(Optional.of("qualifier"));
+    }
+
 }

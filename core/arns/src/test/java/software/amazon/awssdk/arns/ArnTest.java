@@ -18,6 +18,8 @@ package software.amazon.awssdk.arns;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 public class ArnTest {
@@ -31,7 +33,6 @@ public class ArnTest {
         assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.accountId()).hasValue("12345678910");
         assertThat(arn.resourceAsString()).isEqualTo("myresource");
-        System.out.println(arn.resource());
     }
 
     @Test
@@ -126,8 +127,7 @@ public class ArnTest {
         assertThat(arn.service()).isEqualTo("s3");
         assertThat(arn.region()).hasValue("us-east-1");
         assertThat(arn.resourceAsString()).isEqualTo("bucket/foobar/1");
-        verifyArnResource(arn.resource());
-        assertThat(arn.resource().qualifier().get()).isEqualTo("1");
+        assertThat(arn.resource().qualifier()).isEqualTo(Optional.empty());
     }
 
     @Test
