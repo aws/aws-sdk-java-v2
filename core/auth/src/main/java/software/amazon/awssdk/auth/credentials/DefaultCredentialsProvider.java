@@ -40,8 +40,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  *
  * @see SystemPropertyCredentialsProvider
  * @see EnvironmentVariableCredentialsProvider
- * @see ProfileCredentialsProvider
  * @see WebIdentityTokenFileCredentialsProvider
+ * @see ProfileCredentialsProvider
  * @see ContainerCredentialsProvider
  * @see InstanceProfileCredentialsProvider
  */
