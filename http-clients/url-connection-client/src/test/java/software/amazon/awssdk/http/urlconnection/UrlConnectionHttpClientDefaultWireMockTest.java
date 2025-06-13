@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.http.urlconnection;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.net.ProtocolException;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocketFactory;
+import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientDefaultTestSuite;
+import software.amazon.awssdk.http.SdkHttpMethod;
 
 public class UrlConnectionHttpClientDefaultWireMockTest extends SdkHttpClientDefaultTestSuite {
 
@@ -31,5 +36,30 @@ public class UrlConnectionHttpClientDefaultWireMockTest extends SdkHttpClientDef
     @AfterEach
     public void reset() {
         HttpsURLConnection.setDefaultSSLSocketFactory((SSLSocketFactory) SSLSocketFactory.getDefault());
+    }
+
+    @Test
+    @Override
+    public void supportsGetRequestWithRequestBody() throws Exception {
+        // HttpURLConnection is hard-coded to switch GET requests with a body to POST requests, in #getOutputStream0.
+        testForResponseCode(200, SdkHttpMethod.GET, SdkHttpMethod.POST, true);
+    }
+
+    @Test
+    @Override
+    public void supportsPatchRequestWithoutRequestBody() {
+        // HttpURLConnection does not support PATCH requests.
+        assertThatThrownBy(super::supportsPatchRequestWithoutRequestBody)
+            .hasRootCauseInstanceOf(ProtocolException.class)
+            .hasRootCauseMessage("Invalid HTTP method: PATCH");
+    }
+
+    @Test
+    @Override
+    public void supportsPatchRequestWithRequestBody() {
+        // HttpURLConnection does not support PATCH requests.
+        assertThatThrownBy(super::supportsPatchRequestWithRequestBody)
+            .hasRootCauseInstanceOf(ProtocolException.class)
+            .hasRootCauseMessage("Invalid HTTP method: PATCH");
     }
 }
