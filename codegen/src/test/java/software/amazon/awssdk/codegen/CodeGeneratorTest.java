@@ -40,8 +40,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.internal.Jackson;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidator;
@@ -155,6 +157,19 @@ public class CodeGeneratorTest {
             });
     }
 
+    @Test
+    void execute_operationHasNoRequestUri_throwsValidationError() throws IOException {
+        C2jModels models = C2jModels.builder()
+                                    .customizationConfig(CustomizationConfig.create())
+                                    .serviceModel(getMissingRequestUriServiceModel())
+                                    .build();
+
+        assertThatThrownBy(() -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
+                          == ValidationErrorId.REQUEST_URI_NOT_FOUND);
+    }
+
     private void generateCodeFromC2jModels(C2jModels c2jModels, Path outputDir) {
         generateCodeFromC2jModels(c2jModels, outputDir, false, null);
     }
@@ -201,15 +216,26 @@ public class CodeGeneratorTest {
     }
 
     private EndpointTestSuiteModel getBrokenEndpointTestSuiteModel() throws IOException {
-        InputStream resourceAsStream = getClass().getResourceAsStream("incorrect-endpoint-tests.json");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int read;
-        while ((read = resourceAsStream.read(buffer)) != -1) {
-            baos.write(buffer, 0, read);
-        }
-        String json = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(baos.toByteArray())).toString();
+        String json = resourceAsString("incorrect-endpoint-tests.json");
         return Jackson.load(EndpointTestSuiteModel.class, json);
+    }
+
+    private ServiceModel getMissingRequestUriServiceModel() throws IOException {
+        String json = resourceAsString("no-request-uri-operation-service.json");
+        return Jackson.load(ServiceModel.class, json);
+    }
+
+    private String resourceAsString(String name) throws IOException {
+        ByteArrayOutputStream baos;
+        try (InputStream resourceAsStream = getClass().getResourceAsStream(name)) {
+            baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = resourceAsStream.read(buffer)) != -1) {
+                baos.write(buffer, 0, read);
+            }
+        }
+        return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(baos.toByteArray())).toString();
     }
 
     private static void deleteDirectory(Path dir) throws IOException {
