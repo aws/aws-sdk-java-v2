@@ -103,7 +103,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return String containing the identifying name of this RequestTransformer.
      */
     default String name() {
-        return "UNKNOWN";
+        return TransformerType.UNKNOWN.name();
     }
 
     /**
