@@ -235,6 +235,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
+        if (opModel.hasStreamingOutput()) {
+            codeBlock.add(".withResponseTransformer(responseTransformer)");
+        }
+
         if (opModel.hasStreamingInput()) {
             codeBlock.add(".withRequestBody(requestBody)")
                      .add(".withMarshaller($L)", syncStreamingMarshaller(model, opModel, marshaller));
@@ -308,6 +312,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         if (!useSraAuth) {
             builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
+        if (opModel.hasStreamingOutput()) {
+            builder.add(".withAsyncResponseTransformer(asyncResponseTransformer)");
         }
 
         builder.add(RequestCompressionTrait.create(opModel, model))

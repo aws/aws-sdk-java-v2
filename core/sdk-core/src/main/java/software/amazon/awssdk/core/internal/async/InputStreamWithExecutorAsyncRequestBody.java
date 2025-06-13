@@ -86,6 +86,11 @@ public class InputStreamWithExecutorAsyncRequestBody implements AsyncRequestBody
         }
     }
 
+    @Override
+    public String body() {
+        return BodyType.STREAM.getName();
+    }
+
     private void tryReset(InputStream inputStream) {
         try {
             inputStream.reset();

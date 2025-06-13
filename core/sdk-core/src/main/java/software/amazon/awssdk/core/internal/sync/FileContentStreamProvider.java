@@ -42,6 +42,11 @@ public final class FileContentStreamProvider implements ContentStreamProvider {
         return currentStream;
     }
 
+    @Override
+    public String name() {
+        return ProviderType.FILE.getName();
+    }
+
     private void closeCurrentStream() {
         if (currentStream != null) {
             invokeSafely(currentStream::close);
