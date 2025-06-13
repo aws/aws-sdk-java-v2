@@ -44,7 +44,9 @@ import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -82,8 +84,12 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
-    private ApiVersion apiVersion = ApiVersion.UNKNOWN;
-    private String resolvedProfile = null;
+
+    private Lazy<Pair<String, ApiVersion>> profileNameAndVersion = new Lazy<>(() -> {
+        String imdsHostname = getImdsEndpoint();
+        String token = getToken(imdsHostname);
+        return getSecurityCredentialsProfile(imdsHostname, token, ApiVersion.EXTENDED);
+    });
 
     private final Clock clock;
     private final String endpoint;
@@ -168,9 +174,6 @@ public final class InstanceProfileCredentialsProvider
 
         try {
             LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.EXTENDED;
-            }
 
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
@@ -179,13 +182,6 @@ public final class InstanceProfileCredentialsProvider
                                 .staleTime(staleTime(expiration))
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
-        } catch (Ec2MetadataClientException e) {
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.LEGACY;
-                resolvedProfile = null;
-                return refreshCredentials();
-            }
-            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         } catch (RuntimeException e) {
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
@@ -229,7 +225,7 @@ public final class InstanceProfileCredentialsProvider
         return ToString.create(PROVIDER_NAME);
     }
 
-    private String getSecurityCredentialsResource() {
+    private String getSecurityCredentialsResource(ApiVersion apiVersion) {
         return apiVersion == ApiVersion.LEGACY ?
                SECURITY_CREDENTIALS_RESOURCE :
                SECURITY_CREDENTIALS_EXTENDED_RESOURCE;
@@ -238,11 +234,12 @@ public final class InstanceProfileCredentialsProvider
     private ResourcesEndpointProvider createEndpointProvider() {
         String imdsHostname = getImdsEndpoint();
         String token = getToken(imdsHostname);
-        String[] securityCredentials = getSecurityCredentials(imdsHostname, token);
-        String urlBase = getSecurityCredentialsResource();
+        String securityCredentialsProfile = profileNameAndVersion.getValue().left();
+        ApiVersion apiVersion = profileNameAndVersion.getValue().right();
+        String urlBase = getSecurityCredentialsResource(apiVersion);
         
         return StaticResourcesEndpointProvider.builder()
-                                              .endpoint(URI.create(imdsHostname + urlBase + securityCredentials[0]))
+                                              .endpoint(URI.create(imdsHostname + urlBase + securityCredentialsProfile))
                                               .headers(getTokenHeaders(token))
                                               .connectionTimeout(Duration.ofMillis(
                                                   this.configProvider.serviceTimeout()))
@@ -312,12 +309,9 @@ public final class InstanceProfileCredentialsProvider
         return configProvider.isMetadataV1Disabled();
     }
 
-    private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
-        if (resolvedProfile != null) {
-            return new String[]{resolvedProfile};
-        }
-
-        String urlBase = getSecurityCredentialsResource();
+    private Pair<String, ApiVersion> getSecurityCredentialsProfile(String imdsHostname, String metadataToken,
+                                                                   ApiVersion apiVersion) {
+        String urlBase = getSecurityCredentialsResource(apiVersion);
         ResourcesEndpointProvider securityCredentialsEndpoint =
             StaticResourcesEndpointProvider.builder()
                                            .endpoint(URI.create(imdsHostname + urlBase))
@@ -334,16 +328,11 @@ public final class InstanceProfileCredentialsProvider
                 throw SdkClientException.builder().message("Unable to load credentials path").build();
             }
 
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.EXTENDED;
-            }
-            resolvedProfile = securityCredentials[0];
-            return securityCredentials;
+            return Pair.of(securityCredentials[0], apiVersion);
 
         } catch (Ec2MetadataClientException e) {
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.LEGACY;
-                return getSecurityCredentials(imdsHostname, metadataToken);
+            if (e.statusCode() == 404) {
+                return getSecurityCredentialsProfile(imdsHostname, metadataToken, ApiVersion.LEGACY);
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
         }
