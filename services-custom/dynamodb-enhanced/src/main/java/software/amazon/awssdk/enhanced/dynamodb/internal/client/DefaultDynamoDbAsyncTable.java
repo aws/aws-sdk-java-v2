@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
+import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.TableIndices;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
@@ -114,7 +116,12 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<Void> createTable() {
-        return createTable(CreateTableEnhancedRequest.builder().build());
+        TableIndices indices = new TableIndices(new ArrayList<>(tableSchema.tableMetadata().indices()));
+
+        return createTable(CreateTableEnhancedRequest.builder()
+                                                     .localSecondaryIndices(indices.localSecondaryIndices())
+                                                     .globalSecondaryIndices(indices.globalSecondaryIndices())
+                                                     .build());
     }
 
     @Override
