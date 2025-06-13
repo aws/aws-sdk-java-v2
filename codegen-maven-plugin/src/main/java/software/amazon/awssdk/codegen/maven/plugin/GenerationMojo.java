@@ -16,8 +16,9 @@
 package software.amazon.awssdk.codegen.maven.plugin;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -236,7 +237,8 @@ public class GenerationMojo extends AbstractMojo {
     private void emitValidationReport(ModelValidationReport report) {
         Path modelsDir = sourcesDirectory.resolve("models");
         try {
-            FileWriter writer = new FileWriter(modelsDir.resolve("validation-report.json").toFile());
+            Writer writer = Files.newBufferedWriter(modelsDir.resolve("validation-report.json"),
+                                                    StandardCharsets.UTF_8);
             Jackson.writeWithObjectMapper(report, writer);
         } catch (IOException e) {
             getLog().warn("Failed to write validation report to " + modelsDir, e);
