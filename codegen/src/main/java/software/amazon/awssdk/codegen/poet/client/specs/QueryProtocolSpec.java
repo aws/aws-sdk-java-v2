@@ -128,7 +128,9 @@ public class QueryProtocolSpec implements ProtocolSpec {
         }
 
         codeBlock.add(RequestCompressionTrait.create(opModel, intermediateModel));
-
+        if (opModel.hasStreamingOutput()) {
+            codeBlock.add(".withResponseTransformer(responseTransformer)");
+        }
         if (opModel.hasStreamingInput()) {
             return codeBlock.add(".withRequestBody(requestBody)")
                             .add(".withMarshaller($L));", syncStreamingMarshaller(intermediateModel, opModel, marshaller))
@@ -169,6 +171,10 @@ public class QueryProtocolSpec implements ProtocolSpec {
         }
 
         builder.add(RequestCompressionTrait.create(opModel, intermediateModel));
+
+        if (opModel.hasStreamingOutput()) {
+            builder.add(".withAsyncResponseTransformer(asyncResponseTransformer)");
+        }
 
         builder.add(hostPrefixExpression(opModel) + asyncRequestBody + ".withInput($L)$L);",
                     opModel.getInput().getVariableName(),

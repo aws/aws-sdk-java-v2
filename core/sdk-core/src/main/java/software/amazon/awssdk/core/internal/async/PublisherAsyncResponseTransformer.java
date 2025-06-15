@@ -57,4 +57,9 @@ public final class PublisherAsyncResponseTransformer<ResponseT extends SdkRespon
     public void exceptionOccurred(Throwable error) {
         future.completeExceptionally(error);
     }
+
+    @Override
+    public String name() {
+        return TransformerType.PUBLISHER.getName();
+    }
 }
