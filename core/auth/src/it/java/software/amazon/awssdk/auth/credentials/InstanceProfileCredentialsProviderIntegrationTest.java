@@ -35,7 +35,7 @@ public class InstanceProfileCredentialsProviderIntegrationTest {
     /** Starts up the mock EC2 Instance Metadata Service. */
     @Before
     public void setUp() throws Exception {
-        mockServer = new EC2MetadataServiceMock("/latest/meta-data/iam/security-credentials/");
+        mockServer = new EC2MetadataServiceMock("/latest/meta-data/iam/security-credentials-extended/");
         mockServer.start();
     }
 
