@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.64__ __2025-06-16__
+## __AWS Network Firewall__
+  - ### Features
+    - You can now create firewalls using a Transit Gateway instead of a VPC, resulting in a TGW attachment.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add tracking of RequestBody/ResponseTransfromer implementations used in UserAgent.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release of the SDK has the API and documentation for the createcustommodel API. This feature lets you copy a Amazon SageMaker trained Amazon Nova model into Amazon Bedrock for inference.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - The `DescribeImageScanning` API now includes `lastInUseAt` and `InUseCount` fields that can be used to prioritize vulnerability remediation for images that are actively being used.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release 1) adds a new S3DataType Converse for SageMaker training 2)adds C8g R7gd M8g C6in P6 P6e instance type for SageMaker endpoint 3) adds m7i, r7i, c7i instance type for SageMaker Training and Processing.
+
 # __2.31.63__ __2025-06-12__
 ## __AWS IoT FleetWise__
   - ### Features
