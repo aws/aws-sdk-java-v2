@@ -79,7 +79,7 @@ public final class DefaultCredentialsProvider
      * create a new instance, use {@link #builder()} instead.
      *
      * @deprecated The create() method that returns a singleton instance which can cause issues if one client closes the provider
-     * while others are still using it. Use {@link #builder().build()} to create independent instances, which is the
+     * while others are still using it. Use {@code builder().build()} to create independent instances, which is the
      * safer approach and recommended for most use cases.
      */
     @Deprecated

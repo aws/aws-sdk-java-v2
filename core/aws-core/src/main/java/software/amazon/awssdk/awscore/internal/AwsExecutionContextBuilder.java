@@ -21,6 +21,8 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_ST
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils.resolveRetryMode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -36,6 +38,8 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -49,8 +53,11 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -159,6 +166,8 @@ public final class AwsExecutionContextBuilder {
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
+        putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
+
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
@@ -166,6 +175,57 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(
+        ExecutionAttributes executionAttributes, ClientExecutionParams<InputT, OutputT> executionParams) {
+        List<AdditionalMetadata> userAgentMetadata = new ArrayList<>();
+
+        if (executionParams.getRequestBody() != null) {
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rb")
+                    .value(ContentStreamProvider.ProviderType.shortValueFromName(
+                        executionParams.getRequestBody().contentStreamProvider().name())
+                    )
+                    .build());
+        }
+
+        if (executionParams.getAsyncRequestBody() != null) {
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rb")
+                    .value(AsyncRequestBody.BodyType.shortValueFromName(
+                        executionParams.getAsyncRequestBody().body())
+                    )
+                    .build());
+        }
+
+        if (executionParams.getResponseTransformer() != null) {
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rt")
+                    .value(ResponseTransformer.TransformerType.shortValueFromName(
+                        executionParams.getResponseTransformer().name())
+                    )
+                    .build());
+        }
+
+        if (executionParams.getAsyncResponseTransformer() != null) {
+            userAgentMetadata.add(
+                AdditionalMetadata
+                    .builder()
+                    .name("rt")
+                    .value(AsyncResponseTransformer.TransformerType.shortValueFromName(
+                        executionParams.getAsyncResponseTransformer().name())
+                    )
+                    .build());
+        }
+
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, userAgentMetadata);
     }
 
     /**
