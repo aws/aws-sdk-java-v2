@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add tracking of RequestBody/ResponseTransfromer implementations used in UserAgent."
+}
