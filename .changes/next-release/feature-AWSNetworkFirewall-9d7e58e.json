@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Firewall",
+    "contributor": "",
+    "description": "You can now create firewalls using a Transit Gateway instead of a VPC, resulting in a TGW attachment."
+}
