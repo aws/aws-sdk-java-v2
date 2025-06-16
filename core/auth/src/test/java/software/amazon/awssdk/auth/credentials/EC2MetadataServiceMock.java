@@ -42,6 +42,7 @@ public class EC2MetadataServiceMock {
                                                  "Content-Type: text/html\r\n" +
                                                  "Content-Length: ";
     private static final String OUTPUT_END_OF_HEADERS = "\r\n\r\n";
+    private static final String EXTENDED_PATH = "/latest/meta-data/iam/security-credentials-extended/";
     private final String securityCredentialsResource;
     private EC2MockMetadataServiceListenerThread hosmMockServerThread;
 
@@ -140,6 +141,15 @@ public class EC2MetadataServiceMock {
                     String[] strings = requestLine.split(" ");
                     String resourcePath = strings[1];
 
+                    // Return 404 for extended path when in legacy mode
+                    if (!credentialsResource.equals(EXTENDED_PATH) && 
+                        (resourcePath.equals(EXTENDED_PATH) || resourcePath.startsWith(EXTENDED_PATH))) {
+                        String notFound = "HTTP/1.1 404 Not Found\r\n" +
+                                        "Content-Length: 0\r\n" +
+                                        "\r\n";
+                        outputStream.write(notFound.getBytes());
+                        continue;
+                    }
 
                     String httpResponse = null;
 

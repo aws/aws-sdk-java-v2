@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "AWS EC2",
+    "category": "AWS SDK for Java v2",
     "contributor": "",
     "description": "EC2 IMDS Changes to Support Account ID"
 }

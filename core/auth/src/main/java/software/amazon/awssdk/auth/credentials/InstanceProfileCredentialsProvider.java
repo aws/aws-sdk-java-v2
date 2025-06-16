@@ -168,10 +168,6 @@ public final class InstanceProfileCredentialsProvider
 
         try {
             LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.EXTENDED;
-            }
-
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
@@ -180,7 +176,7 @@ public final class InstanceProfileCredentialsProvider
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
         } catch (Ec2MetadataClientException e) {
-            if (apiVersion == ApiVersion.UNKNOWN) {
+            if (e.statusCode() == 404 && apiVersion == ApiVersion.EXTENDED) {
                 apiVersion = ApiVersion.LEGACY;
                 resolvedProfile = null;
                 return refreshCredentials();

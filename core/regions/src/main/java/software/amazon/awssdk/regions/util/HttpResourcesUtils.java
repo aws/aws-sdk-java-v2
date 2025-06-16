@@ -120,6 +120,7 @@ public final class HttpResourcesUtils {
                 } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                     // This is to preserve existing behavior of EC2 Instance metadata service.
                     throw Ec2MetadataClientException.builder()
+                                                    .statusCode(404)
                                                     .message("The requested metadata is not found at " + connection.getURL())
                                                     .build();
                 } else {
