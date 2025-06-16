@@ -63,6 +63,11 @@ public final class ConstructorCache {
                 return Optional.empty();
             }
         });
+        // if the WeakReference to the class has been garbage collected, remove it from the cache and try again
+        if (classRef.isPresent() && classRef.get().get() == null) {
+            classesByClassLoader.remove(classLoader);
+            return getClass(className);
+        }
         return classRef.map(WeakReference::get);
     }
 
