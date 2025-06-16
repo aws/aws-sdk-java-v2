@@ -82,7 +82,7 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
-    private ApiVersion apiVersion = ApiVersion.UNKNOWN;
+    private volatile ApiVersion apiVersion = ApiVersion.UNKNOWN;
     private String resolvedProfile = null;
 
     private final Clock clock;
