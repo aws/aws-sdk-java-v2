@@ -17,6 +17,8 @@ package software.amazon.awssdk.codegen.maven.plugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,6 +37,7 @@ import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.IntermediateModelBuilder;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -44,6 +47,8 @@ import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
@@ -84,7 +89,18 @@ public class GenerationMojo extends AbstractMojo {
         this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
-        List<GenerationParams> generationParams = initGenerationParams();
+        List<GenerationParams> generationParams;
+
+        try {
+            generationParams = initGenerationParams();
+        } catch (ModelInvalidException e) {
+            if (writeValidationReport) {
+                ModelValidationReport report = new ModelValidationReport();
+                report.setValidationEntries(e.validationEntries());
+                emitValidationReport(report);
+            }
+            throw e;
+        }
 
         Map<String, IntermediateModel> serviceNameToModelMap = new HashMap<>();
 
@@ -136,6 +152,8 @@ public class GenerationMojo extends AbstractMojo {
                                          .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
         }).collect(Collectors.toList());
     }
+
+
 
     private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
         try {
@@ -214,6 +232,17 @@ public class GenerationMojo extends AbstractMojo {
      */
     private <T> Optional<T> loadOptionalModel(Class<T> clzz, Path location) {
         return ModelLoaderUtils.loadOptionalModel(clzz, location.toFile());
+    }
+
+    private void emitValidationReport(ModelValidationReport report) {
+        Path modelsDir = sourcesDirectory.resolve("models");
+        try {
+            Writer writer = Files.newBufferedWriter(modelsDir.resolve("validation-report.json"),
+                                                    StandardCharsets.UTF_8);
+            Jackson.writeWithObjectMapper(report, writer);
+        } catch (IOException e) {
+            getLog().warn("Failed to write validation report to " + modelsDir, e);
+        }
     }
 
     private static class ModelRoot {
