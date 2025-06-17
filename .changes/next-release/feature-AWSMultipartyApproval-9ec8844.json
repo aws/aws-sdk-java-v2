@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Multi-party Approval",
+    "contributor": "",
+    "description": "This release enables customers to create Multi-party approval teams and approval requests to protect supported operations."
+}
