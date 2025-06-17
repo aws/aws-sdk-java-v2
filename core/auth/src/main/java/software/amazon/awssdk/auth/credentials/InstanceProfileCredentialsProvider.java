@@ -177,8 +177,8 @@ public final class InstanceProfileCredentialsProvider
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
         } catch (Ec2MetadataClientException e) {
-            if (e.statusCode() == 404 && apiVersion.compareAndSet(ApiVersion.EXTENDED, ApiVersion.LEGACY)) {
-                log.debug(() -> "Unable to load credential path from extended API. Falling back to legacy API.");
+            if (e.statusCode() == 404) {
+                log.debug(() -> "Resolved profile is no longer available. Resetting it and trying again.");
                 resolvedProfile.set(null);
                 return refreshCredentials();
             }
@@ -338,7 +338,7 @@ public final class InstanceProfileCredentialsProvider
 
         } catch (Ec2MetadataClientException e) {
             if (e.statusCode() == 404 && apiVersion.compareAndSet(ApiVersion.UNKNOWN, ApiVersion.LEGACY)) {
-                log.debug(() -> "Unable to load credential path from extended API. Falling back to legacy API.");
+                log.debug(() -> "Instance does not support IMDS extended API. Falling back to legacy API.");
                 return getSecurityCredentials(imdsHostname, metadataToken);
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);

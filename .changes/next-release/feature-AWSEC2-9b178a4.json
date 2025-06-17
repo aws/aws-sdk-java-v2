@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "EC2 IMDS Changes to Support Account ID"
+    "description": "Include the account ID associated with the credentials retrieved from IMDS when available."
 }
