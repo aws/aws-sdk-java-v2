@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS WAFV2",
+    "contributor": "",
+    "description": "AWS WAF can now suggest protection packs for you based on the application information you provide when you create a webACL."
+}
