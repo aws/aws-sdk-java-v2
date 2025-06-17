@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SecurityHub",
+    "contributor": "",
+    "description": "Adds operations, structures, and exceptions required for public preview release of Security Hub V2."
+}
