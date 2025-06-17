@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Certificate Manager",
+    "contributor": "",
+    "description": "Adds support for Exportable Public Certificates"
+}
