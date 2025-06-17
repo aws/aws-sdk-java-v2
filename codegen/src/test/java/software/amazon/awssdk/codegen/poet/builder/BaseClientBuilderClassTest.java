@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.builder;
 
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.bearerAuthServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.composedClientJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.envBearerTokenServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.internalConfigModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.operationWithNoAuth;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
@@ -85,6 +86,13 @@ public class BaseClientBuilderClassTest {
     @Test
     void baseClientBuilderClassWithBearerAuth_sra() {
         validateBaseClientBuilderClassGeneration(bearerAuthServiceModels(), "test-bearer-auth-client-builder-class.java", true);
+    }
+
+    @Test
+    void baseClientBuilderClassWithEnvBearerToken_sra() {
+        validateBaseClientBuilderClassGeneration(envBearerTokenServiceModels(),
+                                                 "test-env-bearer-token-client-builder-class.java",
+                                                 true);
     }
 
     @Test

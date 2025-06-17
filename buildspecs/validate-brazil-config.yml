@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: "$JAVA_RUNTIME"
+      python: 3.13
+
+  build:
+    commands:
+      - mvn clean install -P quick -T0.4C
+      - mvn exec:exec -Dexec.executable=pwd -pl !:aws-sdk-java-pom,!:sdk-benchmarks,!:module-path-tests -q 2>&1 > modules.txt
+      - mvn dependency:list -DexcludeTransitive=true -DincludeScope=runtime 2>&1 > deps.txt
+      - scripts/validate-brazil-config modules.txt deps.txt

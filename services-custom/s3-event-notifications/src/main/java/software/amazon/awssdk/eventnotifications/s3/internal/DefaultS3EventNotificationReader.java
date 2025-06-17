@@ -101,7 +101,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         eventNotificationRecord.setEventSource(eventSource);
 
         String eventTime = expectStringOrNull(recordNode, "eventTime");
-        eventNotificationRecord.setEventTime(eventName != null ? Instant.parse(eventTime) : null);
+        eventNotificationRecord.setEventTime(eventTime != null ? Instant.parse(eventTime) : null);
 
         RequestParameters requestParameters = readRequestParameters(recordNode.get("requestParameters"));
         eventNotificationRecord.setRequestParameters(requestParameters);

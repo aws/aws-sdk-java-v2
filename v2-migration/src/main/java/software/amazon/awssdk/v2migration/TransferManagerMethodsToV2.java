@@ -16,17 +16,21 @@
 package software.amazon.awssdk.v2migration;
 
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_CLIENT;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
 
+import java.util.regex.Pattern;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddImport;
-import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -47,6 +51,13 @@ public class TransferManagerMethodsToV2 extends Recipe {
     private static final MethodMatcher COPY_BUCKET_KEY =
         v2TmMethodMatcher("copy(String, String, String, String");
 
+    private static final MethodMatcher DOWNLOAD_DIR = v2TmMethodMatcher("downloadDirectory(String, String, java.io.File)");
+
+    private static final Pattern S3_TM_CREDENTIAL = Pattern.compile(V2_TM_CLIENT);
+    private static final Pattern V2_AWSCREDENTAIL = Pattern.compile("software.amazon.awssdk.auth.credentials.AwsCredentials");
+    private static final Pattern V2_CREDENTIAL_PROVIDER = Pattern.compile("software.amazon.awssdk.auth.credentials"
+                                                                          + ".AwsCredentialsProvider");
+
     @Override
     public String getDisplayName() {
         return "Transfer Manager Methods to V2";
@@ -62,10 +73,10 @@ public class TransferManagerMethodsToV2 extends Recipe {
         return new Visitor();
     }
 
-    private static final class Visitor extends JavaIsoVisitor<ExecutionContext> {
+    private static final class Visitor extends JavaVisitor<ExecutionContext> {
 
         @Override
-        public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
+        public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext executionContext) {
 
             if (DOWNLOAD_BUCKET_KEY_FILE.matches(method, false)) {
                 method = transformDownloadWithBucketKeyFile(method);
@@ -95,8 +106,68 @@ public class TransferManagerMethodsToV2 extends Recipe {
                 method = transformUploadWithBucketKeyFile(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
+            if (DOWNLOAD_DIR.matches(method, false)) {
+                method = transformDownloadDirectory(method);
+                return super.visitMethodInvocation(method, executionContext);
+            }
 
             return super.visitMethodInvocation(method, executionContext);
+        }
+
+        @Override
+        public J visitNewClass(J.NewClass newClass, ExecutionContext executionContext) {
+            JavaType type = newClass.getType();
+            if (!(type instanceof JavaType.FullyQualified)) {
+                return newClass;
+            }
+
+            if (type.isAssignableFrom(S3_TM_CREDENTIAL) &&
+                newClass.getArguments().size() == 1 &&
+                newClass.getArguments().get(0).getType() != null) {
+                Expression arg = newClass.getArguments().get(0);
+                if (arg.getType().isAssignableFrom(V2_AWSCREDENTAIL)) {
+                    addS3AsyncClientImport();
+                    addStaticCredentialsProviderImport();
+
+                    return JavaTemplate
+                        .builder("S3TransferManager.builder()" +
+                                 ".s3Client(S3AsyncClient.builder()" +
+                                 ".credentialsProvider(StaticCredentialsProvider.create(#{any()}))" +
+                                 ".build())" +
+                                 ".build()")
+                        .build()
+                        .apply(getCursor(), newClass.getCoordinates().replace(), arg);
+                }
+                if (arg.getType().isAssignableFrom(V2_CREDENTIAL_PROVIDER)) {
+                    addS3AsyncClientImport();
+
+                    return JavaTemplate
+                        .builder("S3TransferManager.builder()" +
+                                 ".s3Client(S3AsyncClient.builder()" +
+                                 ".credentialsProvider(#{any()})" +
+                                 ".build())" +
+                                 ".build()")
+                        .build()
+                        .apply(getCursor(), newClass.getCoordinates().replace(), arg);
+                }
+            }
+
+            return super.visitNewClass(newClass, executionContext);
+        }
+
+        private J.MethodInvocation transformDownloadDirectory(J.MethodInvocation method) {
+            String v2Method = "#{any()}.downloadDirectory(DownloadDirectoryRequest.builder()"
+                              + ".bucket(#{any()}).listObjectsV2RequestTransformer(builder -> builder.prefix(#{any()}))"
+                              + ".destination(#{any()}.toPath()).build())";
+
+            method = JavaTemplate.builder(v2Method).build()
+                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                        method.getArguments().get(0), method.getArguments().get(1),
+                                        method.getArguments().get(2));
+
+            addTmImport("DirectoryDownload");
+            addTmImport("DownloadDirectoryRequest");
+            return method;
         }
 
         private J.MethodInvocation transformUploadWithBucketKeyFile(J.MethodInvocation method) {
@@ -219,6 +290,14 @@ public class TransferManagerMethodsToV2 extends Recipe {
 
         private void addRequestOverrideConfigImport() {
             doAfterVisit(new AddImport<>("software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration", null, false));
+        }
+
+        private void addS3AsyncClientImport() {
+            doAfterVisit(new AddImport<>("software.amazon.awssdk.services.s3.S3AsyncClient", null, false));
+        }
+
+        private void addStaticCredentialsProviderImport() {
+            doAfterVisit(new AddImport<>("software.amazon.awssdk.auth.credentials.StaticCredentialsProvider", null, false));
         }
     }
 }

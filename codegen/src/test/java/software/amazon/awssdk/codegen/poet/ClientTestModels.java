@@ -97,6 +97,22 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel envBearerTokenServiceModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource(
+            "client/c2j/json-bearer-auth/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource(
+            "client/c2j/json-bearer-auth/customization-env-bearer-token.config").getFile());
+        File paginatorsModel = new File(ClientTestModels.class.getResource(
+            "client/c2j/json-bearer-auth/paginators.json").getFile());
+        C2jModels models = C2jModels.builder()
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(getCustomizationConfig(customizationModel))
+                                    .paginatorsModel(getPaginatorsModel(paginatorsModel))
+                                    .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel restJsonServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/rest-json/customization.config").getFile());

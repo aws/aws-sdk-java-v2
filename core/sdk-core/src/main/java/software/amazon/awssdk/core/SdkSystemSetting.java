@@ -256,8 +256,14 @@ public enum SdkSystemSetting implements SystemSetting {
      * Configure the SIGV4A signing region set.
      * This is a non-empty, comma-delimited list of AWS region names used during signing.
      */
-    AWS_SIGV4A_SIGNING_REGION_SET("aws.sigv4a.signing.region.set", null)
-    ;
+    AWS_SIGV4A_SIGNING_REGION_SET("aws.sigv4a.signing.region.set", null),
+
+
+    /**
+     * Configure the preferred auth scheme to use.
+     * This is a comma-delimited list of AWS auth scheme names used during signing.
+     */
+    AWS_AUTH_SCHEME_PREFERENCE("aws.authSchemePreference", null);
 
     private final String systemProperty;
     private final String defaultValue;
