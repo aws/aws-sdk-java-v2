@@ -443,7 +443,7 @@ public class S3ArnConverterTest {
     @Test
     public void parseArn_objectLambda_noName_slash() {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("resource must not be blank or empty");
+        exception.expectMessage("Malformed ARN: arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/ - resource must not be blank or empty.");
 
         S3_ARN_PARSER.convertArn(Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint/"));
     }
@@ -451,7 +451,7 @@ public class S3ArnConverterTest {
     @Test
     public void parseArn_objectLambda_noName_colon() {
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("resource must not be blank or empty");
+        exception.expectMessage("Malformed ARN: arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint: - resource must not be blank or empty.");
 
         S3_ARN_PARSER.convertArn(Arn.fromString("arn:aws:s3-object-lambda:us-west-2:123456789012:accesspoint:"));
     }
