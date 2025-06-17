@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Database Migration Service",
+    "contributor": "",
+    "description": "Add \"Virtual\" field to Data Provider as well as \"S3Path\" and \"S3AccessRoleArn\" fields to DataProvider settings"
+}
