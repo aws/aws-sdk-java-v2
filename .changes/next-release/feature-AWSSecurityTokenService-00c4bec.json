@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Security Token Service",
-    "contributor": "",
-    "description": "The AWS Security Token Service APIs AssumeRoleWithSAML and AssumeRoleWithWebIdentity can now be invoked without pre-configured AWS credentials in the SDK configuration."
-}

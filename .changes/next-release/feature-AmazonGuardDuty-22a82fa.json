@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Adding support for extended threat detection for EKS Audit Logs and EKS Runtime Monitoring."
-}

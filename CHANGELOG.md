@@ -1,4 +1,61 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.65__ __2025-06-17__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup is adding support for integration of its logically air-gapped vaults with the AWS Organizations Multi-party approval capability.
+
+## __AWS Certificate Manager__
+  - ### Features
+    - Adds support for Exportable Public Certificates
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Add "Virtual" field to Data Provider as well as "S3Path" and "S3AccessRoleArn" fields to DataProvider settings
+
+## __AWS Multi-party Approval__
+  - ### Features
+    - This release enables customers to create Multi-party approval teams and approval requests to protect supported operations.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Release of Active Threat Defense in Network Firewall
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the SECURITYHUB_POLICY policy type.
+
+## __AWS SDK for Java V2__
+  - ### Bugfixes
+    - Fix a bug in ConstructorCache when classes are GC'ed but not removed from cache
+
+## __AWS Security Token Service__
+  - ### Features
+    - The AWS Security Token Service APIs AssumeRoleWithSAML and AssumeRoleWithWebIdentity can now be invoked without pre-configured AWS credentials in the SDK configuration.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adds operations, structures, and exceptions required for public preview release of Security Hub V2.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF can now suggest protection packs for you based on the application information you provide when you create a webACL.
+
+## __Access Analyzer__
+  - ### Features
+    - We are launching a new analyzer type, internal access analyzer. The new analyzer will generate internal access findings, which help customers understand who within their AWS organization or AWS Account has access to their critical AWS resources.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release of the SDK has the API and documentation for the createcustommodel API. This feature lets you copy a trained model into Amazon Bedrock for inference.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for extended threat detection for EKS Audit Logs and EKS Runtime Monitoring.
+
+## __Inspector2__
+  - ### Features
+    - Add Code Repository Scanning as part of AWS InspectorV2
+
 # __2.31.64__ __2025-06-16__
 ## __AWS Network Firewall__
   - ### Features
