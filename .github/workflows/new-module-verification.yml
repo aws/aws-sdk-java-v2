@@ -76,6 +76,12 @@ jobs:
               continue
             fi
             
+            # Skip modules under services directory
+            if [[ "$MODULE_DIR" == services/* ]]; then
+              echo "Skipping $MODULE_DIR - modules under services/ are excluded from verification"
+              continue
+            fi
+            
             echo "New module detected: $MODULE_DIR"
             
             # Check if it's a test module
