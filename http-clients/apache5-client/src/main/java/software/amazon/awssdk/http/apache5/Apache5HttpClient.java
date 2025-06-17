@@ -166,7 +166,9 @@ public final class Apache5HttpClient implements SdkHttpClient {
                .setUserAgent("") // SDK will set the user agent header in the pipeline. Don't let Apache waste time
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm))
                //This is done to keep backward compatibility with Apache 4.x
-               .disableRedirectHandling();
+               .disableRedirectHandling()
+               // SDK handle retries , this we do not need the http clients to handle the reties by itself
+               .disableAutomaticRetries();
 
         addProxyConfig(builder, configuration);
 
