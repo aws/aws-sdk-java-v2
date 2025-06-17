@@ -20,6 +20,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -59,6 +61,7 @@ public abstract class SdkHttpClientTestSuite {
     private static final Logger LOG = Logger.loggerFor(SdkHttpClientTestSuite.class);
 
     private static final ConnectionCountingTrafficListener CONNECTION_COUNTER = new ConnectionCountingTrafficListener();
+    private static final int HTTP_TOO_MANY_REQUESTS = 429;
 
     @Rule
     public WireMockRule mockServer = createWireMockRule();
@@ -217,6 +220,47 @@ public abstract class SdkHttpClientTestSuite {
 
         assertThatThrownBy(() -> createSdkHttpClient(httpClientOptions)).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    public void doesNotRetryOn429StatusCode() throws Exception {
+        SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
+        httpClientOptions.trustAll(true);
+        try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
+            stubForMockRequest(HTTP_TOO_MANY_REQUESTS);
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+            HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                   .request(req)
+                                                                                   .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                                                   .build())
+                                                 .call();
+            // Drain the response body if present
+            response.responseBody().ifPresent(IoUtils::drainInputStream);
+
+            // Verify the response has 429 status code
+            assertThat(response.httpResponse().statusCode()).isEqualTo(429);
+
+            // Verify that the request was made exactly once (no retries)
+            mockServer.verify(1, postRequestedFor(urlEqualTo("/"))
+                .withHeader("Host", containing("localhost")));
+
+            // Reset and make another request to ensure it's not a connection issue
+            mockServer.resetAll();
+            stubForMockRequest(200);
+            HttpExecuteResponse successResponse = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                          .request(req)
+                                                                                          .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                                                          .build())
+                                                        .call();
+            successResponse.responseBody().ifPresent(IoUtils::drainInputStream);
+
+            // Verify the second request succeeded
+            assertThat(successResponse.httpResponse().statusCode()).isEqualTo(200);
+
+            // Verify only one request was made for each call (no retries)
+            mockServer.verify(1, postRequestedFor(urlEqualTo("/")));
+        }
+    }
+
 
     protected void testForResponseCode(int returnCode) throws Exception {
         testForResponseCode(returnCode, SdkHttpMethod.POST);
