@@ -694,16 +694,17 @@ public final class Apache5HttpClient implements SdkHttpClient {
             // TODO : Deprecated method needs to be removed with new replacements
             SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
 
-            PoolingHttpClientConnectionManager cm =
+            PoolingHttpClientConnectionManagerBuilder builder =
                 PoolingHttpClientConnectionManagerBuilder.create()
                                                          .setSSLSocketFactory(sslsf)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
-                                                         .setDnsResolver(configuration.dnsResolver)
-                                                         .setConnectionTimeToLive(
-                                                             TimeValue.of(standardOptions.get(
-                                                                 SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
-                                                                          TimeUnit.MILLISECONDS))
-                                                         .build();
+                                                         .setDnsResolver(configuration.dnsResolver);
+            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
+            if (!connectionTtl.isZero()) {
+                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+                builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
+            }
+            PoolingHttpClientConnectionManager cm = builder.build();
 
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
