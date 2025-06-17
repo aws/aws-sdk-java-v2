@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.31.59-SNAPSHOT</version>
+        <version>2.31.65-SNAPSHOT</version>
     </parent>
     <artifactId>s3</artifactId>
     <name>AWS Java SDK :: Services :: Amazon S3</name>
@@ -109,6 +109,12 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>checksums-spi</artifactId>
             <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>url-connection-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk.crt</groupId>

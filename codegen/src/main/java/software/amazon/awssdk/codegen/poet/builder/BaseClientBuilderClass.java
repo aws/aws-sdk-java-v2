@@ -41,6 +41,7 @@ import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.token.credentials.StaticTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
 import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
 import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.ModelAuthSchemeClassesKnowledgeIndex;
@@ -71,7 +73,9 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.endpointdiscovery.providers.DefaultEndpointDiscoveryProviderChain;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.Protocol;
@@ -102,6 +106,8 @@ public class BaseClientBuilderClass implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final ServiceClientConfigurationUtils configurationUtils;
     private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
+    private final PoetExtension poetExtensions;
+
 
     public BaseClientBuilderClass(IntermediateModel model) {
         this.model = model;
@@ -112,6 +118,7 @@ public class BaseClientBuilderClass implements ClassSpec {
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
         this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
+        this.poetExtensions = new PoetExtension(model);
     }
 
     @Override
@@ -266,24 +273,24 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private MethodSpec mergeServiceDefaultsMethod() {
-        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
-
         MethodSpec.Builder builder = MethodSpec.methodBuilder("mergeServiceDefaults")
                                                .addAnnotation(Override.class)
                                                .addModifiers(PROTECTED, FINAL)
                                                .returns(SdkClientConfiguration.class)
-                                               .addParameter(SdkClientConfiguration.class, "config")
-                                               .addCode("return config.merge(c -> c");
+                                               .addParameter(SdkClientConfiguration.class, "config");
 
-        builder.addCode(".option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
+        boolean crc32FromCompressedDataEnabled = model.getCustomizationConfig().isCalculateCrc32FromCompressedData();
+
+        builder.beginControlFlow("return config.merge(c -> ");
+        builder.addCode("c.option($T.ENDPOINT_PROVIDER, defaultEndpointProvider())", SdkClientOption.class);
 
         if (authSchemeSpecUtils.useSraAuth()) {
-            builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class);
-            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
-        } else {
-            if (defaultAwsAuthSignerMethod().isPresent()) {
-                builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
+            if (!model.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+                builder.addCode(".option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class);
             }
+            builder.addCode(".option($T.AUTH_SCHEMES, authSchemes())", SdkClientOption.class);
+        } else if (defaultAwsAuthSignerMethod().isPresent()) {
+            builder.addCode(".option($T.SIGNER, defaultSigner())\n", SdkAdvancedClientOption.class);
         }
         builder.addCode(".option($T.CRC32_FROM_COMPRESSED_DATA_ENABLED, $L)\n",
                         SdkClientOption.class, crc32FromCompressedDataEnabled);
@@ -302,9 +309,45 @@ public class BaseClientBuilderClass implements ClassSpec {
                 builder.addCode(".option($T.TOKEN_SIGNER, defaultTokenSigner())", SdkAdvancedClientOption.class);
             }
         }
+        builder.addStatement("");
 
-        builder.addCode(");");
+        if (model.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            configureEnvironmentBearerToken(builder);
+        }
+        builder.endControlFlow(")");
         return builder.build();
+    }
+
+    private void configureEnvironmentBearerToken(MethodSpec.Builder builder) {
+        if (!authSchemeSpecUtils.useSraAuth()) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires SRA Auth.");
+        }
+        if (!AuthUtils.usesBearerAuth(model)) {
+            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires the service to model and "
+                                            + "support smithy.api#httpBearerAuth.");
+        }
+
+        builder.addStatement("$T tokenFromEnv = new $T().getStringValue()",
+                             ParameterizedTypeName.get(Optional.class, String.class),
+                             poetExtensions.getEnvironmentTokenSystemSettingsClass());
+
+        builder
+            .beginControlFlow("if (tokenFromEnv.isPresent() && config.option($T.AUTH_SCHEME_PROVIDER) == null && config.option($T"
+                              + ".TOKEN_IDENTITY_PROVIDER) == null)",
+                              SdkClientOption.class, AwsClientOption.class)
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, $T.defaultProvider($T.singletonList($S)))",
+                          SdkClientOption.class, authSchemeSpecUtils.providerInterfaceName(), Collections.class,
+                          "httpBearerAuth")
+            .addStatement("c.option($T.TOKEN_IDENTITY_PROVIDER, $T.create(tokenFromEnv::get))",
+                          AwsClientOption.class, StaticTokenProvider.class)
+            .addStatement("c.option($T.EXECUTION_ATTRIBUTES, "
+                           + "$T.builder().put($T.TOKEN_CONFIGURED_FROM_ENV, tokenFromEnv.get()).build())",
+                          SdkClientOption.class, ExecutionAttributes.class, SdkInternalExecutionAttribute.class)
+            .endControlFlow()
+            .beginControlFlow("else")
+            .addStatement("c.option($T.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))", SdkClientOption.class)
+            .endControlFlow();
+
     }
 
     private Optional<MethodSpec> mergeInternalDefaultsMethod() {

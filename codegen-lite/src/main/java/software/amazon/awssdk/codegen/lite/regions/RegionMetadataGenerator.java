@@ -32,17 +32,17 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.Partition;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 
 public class RegionMetadataGenerator implements PoetClass {
 
-    private final Partition partition;
+    private final PartitionRegionsMetadata partition;
     private final String region;
     private final String regionDescription;
     private final String basePackage;
     private final String regionBasePackage;
 
-    public RegionMetadataGenerator(Partition partition,
+    public RegionMetadataGenerator(PartitionRegionsMetadata partition,
                                    String region,
                                    String regionDescription,
                                    String basePackage,
@@ -65,9 +65,9 @@ public class RegionMetadataGenerator implements PoetClass {
                        .addModifiers(FINAL)
                        .addSuperinterface(ClassName.get(regionBasePackage, "RegionMetadata"))
                        .addField(staticFinalField("ID", region))
-                       .addField(staticFinalField("DOMAIN", partition.getDnsSuffix()))
+                       .addField(staticFinalField("DOMAIN", partition.getOutputs().getDnsSuffix()))
                        .addField(staticFinalField("DESCRIPTION", regionDescription))
-                       .addField(staticFinalField("PARTITION_ID", partition.getPartition()))
+                       .addField(staticFinalField("PARTITION_ID", partition.getId()))
                        .addMethod(getter("id", "ID"))
                        .addMethod(getter("domain", "DOMAIN"))
                        .addMethod(getter("description", "DESCRIPTION"))

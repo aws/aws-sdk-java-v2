@@ -225,42 +225,43 @@ public abstract class SdkHttpClientTestSuite {
     public void doesNotRetryOn429StatusCode() throws Exception {
         SdkHttpClientOptions httpClientOptions = new SdkHttpClientOptions();
         httpClientOptions.trustAll(true);
+
         try (SdkHttpClient client = createSdkHttpClient(httpClientOptions)) {
-            stubForMockRequest(HTTP_TOO_MANY_REQUESTS);
-            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
-            HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                                   .request(req)
-                                                                                   .contentStreamProvider(req.contentStreamProvider().orElse(null))
-                                                                                   .build())
-                                                 .call();
-            // Drain the response body if present
-            response.responseBody().ifPresent(IoUtils::drainInputStream);
+            // Test 429 with no retry
+            validateStatusCodeWithRetryCheck(client, HTTP_TOO_MANY_REQUESTS, 1);
 
-            // Verify the response has 429 status code
-            assertThat(response.httpResponse().statusCode()).isEqualTo(429);
-
-            // Verify that the request was made exactly once (no retries)
-            mockServer.verify(1, postRequestedFor(urlEqualTo("/"))
-                .withHeader("Host", containing("localhost")));
-
-            // Reset and make another request to ensure it's not a connection issue
+            // Reset and test normal request works
             mockServer.resetAll();
-            stubForMockRequest(200);
-            HttpExecuteResponse successResponse = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                                          .request(req)
-                                                                                          .contentStreamProvider(req.contentStreamProvider().orElse(null))
-                                                                                          .build())
-                                                        .call();
-            successResponse.responseBody().ifPresent(IoUtils::drainInputStream);
-
-            // Verify the second request succeeded
-            assertThat(successResponse.httpResponse().statusCode()).isEqualTo(200);
-
-            // Verify only one request was made for each call (no retries)
-            mockServer.verify(1, postRequestedFor(urlEqualTo("/")));
+            validateStatusCodeWithRetryCheck(client, HttpURLConnection.HTTP_OK, 1);
         }
     }
 
+    private void validateStatusCodeWithRetryCheck(SdkHttpClient client,
+                                                  int expectedStatusCode,
+                                                  int expectedRequestCount) throws IOException {
+        stubForMockRequest(expectedStatusCode);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+        HttpExecuteResponse response = client.prepareRequest(
+                                                 HttpExecuteRequest.builder()
+                                                                   .request(request)
+                                                                   .contentStreamProvider(request.contentStreamProvider()
+                                                                                                 .orElse(null))
+                                                                   .build())
+                                             .call();
+        validateResponseStatusCode(response, expectedStatusCode);
+        verifyRequestCount(expectedRequestCount);
+    }
+
+    private void verifyRequestCount(int expectedCount) {
+        mockServer.verify(expectedCount,
+                          postRequestedFor(urlEqualTo("/"))
+                              .withHeader("Host", containing("localhost")));
+    }
+
+    private void validateResponseStatusCode(HttpExecuteResponse response, int expectedStatusCode) throws IOException {
+        response.responseBody().ifPresent(IoUtils::drainInputStream);
+        assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatusCode);
+    }
 
     protected void testForResponseCode(int returnCode) throws Exception {
         testForResponseCode(returnCode, SdkHttpMethod.POST);
