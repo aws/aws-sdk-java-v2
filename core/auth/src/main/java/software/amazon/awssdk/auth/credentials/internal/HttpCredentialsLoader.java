@@ -70,11 +70,11 @@ public final class HttpCredentialsLoader {
             Validate.notNull(secretKey, "Failed to load secret key from metadata service.");
 
             return new LoadedCredentials(accessKey.text(),
-                                       secretKey.text(),
-                                       token != null ? token.text() : null,
-                                       expiration != null ? expiration.text() : null,
-                                       accountId != null ? accountId.text() : null,
-                                       providerName);
+                                         secretKey.text(),
+                                         token != null ? token.text() : null,
+                                         expiration != null ? expiration.text() : null,
+                                         accountId != null ? accountId.text() : null,
+                                         providerName);
         } catch (SdkClientException e) {
             throw e;
         } catch (RuntimeException | IOException e) {

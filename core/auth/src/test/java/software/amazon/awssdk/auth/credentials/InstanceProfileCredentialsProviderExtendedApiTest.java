@@ -105,7 +105,7 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
             "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
             "\"Token\":\"SESSION_TOKEN\"," +
             "\"Expiration\":\"%s\"," +
-            "\"Code\":\"Success\"}",  // No AccountId field at all
+            "\"Code\":\"Success\"}",
             DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
         );
 
@@ -159,95 +159,6 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
     }
 
     @Test
-    void resolveCredentials_withUnstableProfile_noAccountId_refreshesCredentials() {
-        String firstCredentials = String.format(
-            "{\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
-            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
-            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw\"," +
-            "\"Expiration\":\"%s\"," +
-            "\"Code\":\"Success\"," +
-            "\"Type\":\"AWS-HMAC\"," +
-            "\"LastUpdated\":\"2025-03-18T20:53:17.832308Z\"," +
-            "\"UnexpectedElement7\":{\"Name\":\"ignore-me-7\"}}",
-            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
-        );
-
-        String secondCredentials = String.format(
-            "{\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
-            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
-            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw\"," +
-            "\"Expiration\":\"%s\"," +
-            "\"Code\":\"Success\"," +
-            "\"Type\":\"AWS-HMAC\"," +
-            "\"LastUpdated\":\"2025-03-18T20:53:17.832308Z\"," +
-            "\"UnexpectedElement7\":{\"Name\":\"ignore-me-7\"}}",
-            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
-        );
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
-            .inScenario("Profile Change No AccountId")
-            .whenScenarioStateIs("Started")
-            .willReturn(aResponse().withBody("my-profile-0007"))
-            .willSetStateTo("First Profile"));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007"))
-            .inScenario("Profile Change No AccountId")
-            .whenScenarioStateIs("First Profile")
-            .willReturn(aResponse().withBody(firstCredentials))
-            .willSetStateTo("First Profile Done"));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007"))
-            .inScenario("Profile Change No AccountId")
-            .whenScenarioStateIs("First Profile Done")
-            .willReturn(aResponse().withStatus(404))
-            .willSetStateTo("Profile Changed"));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
-            .inScenario("Profile Change No AccountId")
-            .whenScenarioStateIs("Profile Changed")
-            .willReturn(aResponse().withBody("my-profile-0007-b")));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + "my-profile-0007-b"))
-            .willReturn(aResponse().withBody(secondCredentials)));
-
-        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(TOKEN_STUB)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        AwsCredentials creds1 = provider.resolveCredentials();
-        assertThat(creds1.accountId()).isEmpty();
-        assertThat(creds1.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
-
-        AwsCredentials creds2 = provider.resolveCredentials();
-        assertThat(creds2.accountId()).isEmpty();
-        assertThat(creds2.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
-    }
-
-    @Test
-    void resolveCredentials_withDiscoveredInvalidProfile_noAccountId_throwsException() {
-        String invalidProfile = "my-profile-0008";
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(invalidProfile)));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfile))
-            .willReturn(aResponse().withStatus(404)));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfile))
-            .willReturn(aResponse().withStatus(404)));
-
-        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(TOKEN_STUB)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        assertThatThrownBy(() -> provider.resolveCredentials())
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Failed to load credentials from IMDS");
-    }
-
-    @Test
     void resolveCredentials_cachesProfile_maintainsAccountId() {
         String credentialsWithAccountId = String.format(
             "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
@@ -272,6 +183,58 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
 
         // Verify profile discovery only called once
         verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+    }
+
+    @Test
+    void resolveCredentials_withNon404Error_doesNotFallbackToLegacy() {
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(PROFILE_NAME)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + PROFILE_NAME))
+            .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
+
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to load credentials from IMDS");
+
+        // Verify extended endpoint was called
+        verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + PROFILE_NAME)));
+
+        // Verify legacy endpoint was NOT called
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)));
+    }
+    
+    @Test
+    void resolveCredentials_withNon404ErrorOnProfileDiscovery_doesNotFallbackToLegacy() {
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .willReturn(aResponse().withStatus(403).withBody("Forbidden")));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to load credentials from IMDS");
+
+        // Verify extended endpoint was called
+        verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        
+        // Verify profile-specific endpoint was NOT called
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + PROFILE_NAME)));
+
+        // Verify legacy endpoint was NOT called
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)));
     }
 
     private void stubSecureCredentialsResponse(com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder responseDefinitionBuilder, boolean useExtended) {

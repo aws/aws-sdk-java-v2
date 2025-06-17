@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -82,8 +83,8 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
-    private volatile ApiVersion apiVersion = ApiVersion.UNKNOWN;
-    private String resolvedProfile = null;
+    private final AtomicReference<ApiVersion> apiVersion = new AtomicReference<>(ApiVersion.UNKNOWN);
+    private final AtomicReference<String> resolvedProfile = new AtomicReference<>();
 
     private final Clock clock;
     private final String endpoint;
@@ -176,9 +177,9 @@ public final class InstanceProfileCredentialsProvider
                                 .prefetchTime(prefetchTime(expiration))
                                 .build();
         } catch (Ec2MetadataClientException e) {
-            if (e.statusCode() == 404 && apiVersion == ApiVersion.EXTENDED) {
-                apiVersion = ApiVersion.LEGACY;
-                resolvedProfile = null;
+            if (e.statusCode() == 404 && apiVersion.compareAndSet(ApiVersion.EXTENDED, ApiVersion.LEGACY)) {
+                log.debug(() -> "Unable to load credential path from extended API. Falling back to legacy API.");
+                resolvedProfile.set(null);
                 return refreshCredentials();
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
@@ -226,7 +227,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String getSecurityCredentialsResource() {
-        return apiVersion == ApiVersion.LEGACY ?
+        return apiVersion.get() == ApiVersion.LEGACY ?
                SECURITY_CREDENTIALS_RESOURCE :
                SECURITY_CREDENTIALS_EXTENDED_RESOURCE;
     }
@@ -309,8 +310,9 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
-        if (resolvedProfile != null) {
-            return new String[]{resolvedProfile};
+        String profile = resolvedProfile.get();
+        if (profile != null) {
+            return new String[]{profile};
         }
 
         String urlBase = getSecurityCredentialsResource();
@@ -330,15 +332,13 @@ public final class InstanceProfileCredentialsProvider
                 throw SdkClientException.builder().message("Unable to load credentials path").build();
             }
 
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.EXTENDED;
-            }
-            resolvedProfile = securityCredentials[0];
+            apiVersion.compareAndSet(ApiVersion.UNKNOWN, ApiVersion.EXTENDED);
+            resolvedProfile.set(securityCredentials[0]);
             return securityCredentials;
 
         } catch (Ec2MetadataClientException e) {
-            if (apiVersion == ApiVersion.UNKNOWN) {
-                apiVersion = ApiVersion.LEGACY;
+            if (e.statusCode() == 404 && apiVersion.compareAndSet(ApiVersion.UNKNOWN, ApiVersion.LEGACY)) {
+                log.debug(() -> "Unable to load credential path from extended API. Falling back to legacy API.");
                 return getSecurityCredentials(imdsHostname, metadataToken);
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
