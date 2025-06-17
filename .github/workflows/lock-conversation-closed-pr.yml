@@ -1,0 +1,35 @@
+name: Lock PR Conversation on Close
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  lock-conversation-closed-prs:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    name: Lock PR Conversation on Close
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Lock PR conversation on Close
+        uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: "This pull request has been closed and the conversation has been locked. Comments on closed PRs are hard for our team to see. If you need more assistance, please open a new issue that references this one."
+            });
+            
+            await github.rest.issues.lock({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              lock_reason: "resolved"
+            });

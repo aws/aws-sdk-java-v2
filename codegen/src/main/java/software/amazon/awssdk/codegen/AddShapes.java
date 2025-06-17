@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.codegen.validation.ValidationErrorId;
@@ -479,6 +480,6 @@ abstract class AddShapes {
     }
 
     protected String getProtocol() {
-        return getServiceModel().getMetadata().getProtocol();
+        return ProtocolUtils.resolveProtocol(getServiceModel().getMetadata());
     }
 }

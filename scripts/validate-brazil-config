@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import json
+import sys
+import re
+
+# This script validates that:
+#  - All SDK modules are mapped or skipped for internal import
+#  - All non-SDK dependencies of imported modules are mapped to internal
+#    packages
+#
+# Usage: validate-brazil-config [module-paths-file] [dependencies-file]
+
+# Generating module-paths-file:
+#   mvn exec:exec -Dexec.executable=pwd -pl \!:aws-sdk-java-pom,\!:sdk-benchmarks,\!:module-path-tests -q 2>&1 > modules.txt
+#
+#   Generates contents similar to:
+#     /workspace/aws-sdk-java-v2/build-tools
+#     /workspace/aws-sdk-java-v2/core
+#     /workspace/aws-sdk-java-v2/core/annotations
+#     /workspace/aws-sdk-java-v2/utils
+#     /workspace/aws-sdk-java-v2/test/test-utils
+#     /workspace/aws-sdk-java-v2/core/metrics-spi
+#     /workspace/aws-sdk-java-v2/http-client-spi
+#     /workspace/aws-sdk-java-v2/core/endpoints-spi
+#     /workspace/aws-sdk-java-v2/core/identity-spi
+#     /workspace/aws-sdk-java-v2/core/http-auth-spi
+#     ...
+
+# Generating dependencies-file:
+#   mvn dependency:list -DexcludeTransitive=true -DincludeScope=runtime 2>&1 > deps.txt
+#
+#   Generates content similar to:
+#
+#   [INFO] -----------------< software.amazon.awssdk:test-utils >------------------
+#   [INFO] Building AWS Java SDK :: Test :: Test Utils 2.31.61-SNAPSHOT     [6/493]
+#   [INFO]   from test/test-utils/pom.xml
+#   [INFO] --------------------------------[ jar ]---------------------------------
+#   [INFO]
+#   [INFO] --- dependency:3.1.1:list (default-cli) @ test-utils ---
+#   [INFO]
+#   [INFO] The following files have been resolved:
+#   [INFO]    org.slf4j:slf4j-api:jar:1.7.36:compile -- module org.slf4j [auto]
+#   [INFO]    org.junit.jupiter:junit-jupiter:jar:5.10.0:compile -- module org.junit.jupiter
+#   [INFO]    com.fasterxml.jackson.core:jackson-core:jar:2.15.2:compile -- module com.fasterxml.jackson.core
+#   ...
+
+brazil_import_config_path=".brazil.json"
+
+with open(brazil_import_config_path) as f:
+  brazil_import_config = json.loads(f.read())
+
+modules_path=sys.argv[1]
+
+core_modules = set()
+
+with open(modules_path) as f:
+  for l in f.readlines():
+    l = l.strip()
+    module_path = Path(l)
+    name = module_path.name
+    if module_path.parent.name != 'services':
+      core_modules.add(name)
+
+# Ensure all 'core' modules are mapped. For the purposes of this validation, we
+# don't care if we map to a package name or skip import.
+config_modules = brazil_import_config['modules']
+for core_module in core_modules:
+  if core_module not in config_modules:
+   raise Exception(f"The module {core_module} is not mapped!")
+
+
+# Ensure all dependencies are mapped.
+current_module_pattern = re.compile(r"\[INFO\] --- .*:list \(default-cli\) @ (.*) ---")
+dependency_pattern = re.compile(r"\[INFO\]    ([^: ]+:[^: ]+):jar:[^: ]+:(compile|runtime)")
+
+deps_path=sys.argv[2]
+config_dependencies = brazil_import_config['dependencies']
+with open(deps_path) as f:
+  for l in f.readlines():
+    # Match a line that gives the name of the current module
+    match = current_module_pattern.match(l)
+    if match is not None:
+      # Unless explicitly skipped, all modules are imported
+      skipping_import = False
+      current_module = match.group(1)
+
+      if current_module in config_modules:
+        module_import = config_modules[current_module]
+
+        if 'skipImport' in module_import and module_import['skipImport']:
+          print(f"Module import skipped for {current_module}")
+          skipping_import = True
+
+      continue
+
+    # Match a line that gives a dependency of a given module
+    match = dependency_pattern.match(l)
+    if match is not None and \
+       not skipping_import and \
+       not match.group(1).startswith("software.amazon.awssdk:"):
+      # The current module is being imported, and this dependency is not an SDK
+      # module. Ensure that it's mapped
+      dependency_name = match.group(1)
+      if dependency_name not in config_dependencies:
+        raise Exception(f"The dependency {dependency_name} is not mapped!")
