@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -138,12 +137,21 @@ public class RequestBody {
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        return fromContentProvider(() -> {
-            if (nonCloseable.markSupported()) {
-                invokeSafely(nonCloseable::reset);
+        ContentStreamProvider provider = new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                if (nonCloseable.markSupported()) {
+                    invokeSafely(nonCloseable::reset);
+                }
+                return nonCloseable;
             }
-            return nonCloseable;
-        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+
+            @Override
+            public String name() {
+                return ProviderType.STREAM.getName();
+            }
+        };
+        return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -268,7 +276,7 @@ public class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
-        return new RequestBody(() -> new ByteArrayInputStream(bytes), (long) bytes.length, mimetype);
+        return new RequestBody(ContentStreamProvider.fromByteArrayUnsafe(bytes), (long) bytes.length, mimetype);
     }
 
     private static InputStream nonCloseableInputStream(InputStream inputStream) {

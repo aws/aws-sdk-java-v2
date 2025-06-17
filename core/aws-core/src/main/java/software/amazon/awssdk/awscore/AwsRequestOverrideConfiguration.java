@@ -23,6 +23,7 @@ import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 /**
@@ -31,10 +32,12 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 @SdkPublicApi
 public final class AwsRequestOverrideConfiguration extends RequestOverrideConfiguration {
     private final IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider;
+    private final IdentityProvider<? extends TokenIdentity> tokenIdentityProvider;
 
     private AwsRequestOverrideConfiguration(BuilderImpl builder) {
         super(builder);
         this.credentialsProvider = builder.awsCredentialsProvider;
+        this.tokenIdentityProvider = builder.tokenIdentityProvider;
     }
 
     /**
@@ -75,6 +78,16 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         return Optional.ofNullable(credentialsProvider);
     }
 
+    /**
+     * The optional {@link IdentityProvider<? extends TokenIdentity>} that will provide a token identity to be used to
+     * authenticate this request.
+     *
+     * @return The optional {@link IdentityProvider<? extends  TokenIdentity >}.
+     */
+    public Optional<IdentityProvider<? extends TokenIdentity>> tokenIdentityProvider() {
+        return Optional.ofNullable(tokenIdentityProvider);
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -97,7 +110,8 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
             return false;
         }
         AwsRequestOverrideConfiguration that = (AwsRequestOverrideConfiguration) o;
-        return Objects.equals(credentialsProvider, that.credentialsProvider);
+        return Objects.equals(credentialsProvider, that.credentialsProvider) &&
+               Objects.equals(tokenIdentityProvider, that.tokenIdentityProvider);
     }
 
     @Override
@@ -105,6 +119,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         int hashCode = 1;
         hashCode = 31 * hashCode + super.hashCode();
         hashCode = 31 * hashCode + Objects.hashCode(credentialsProvider);
+        hashCode = 31 * hashCode + Objects.hashCode(tokenIdentityProvider);
         return hashCode;
     }
 
@@ -139,6 +154,17 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
          */
         AwsCredentialsProvider credentialsProvider();
 
+        /**
+         * Set the optional {@link IdentityProvider<? extends TokenIdentity>} that will provide a token identity to be used
+         * to authenticate this request.
+         *
+         * @param tokenIdentityProvider The {@link IdentityProvider<? extends TokenIdentity>}.
+         * @return This object for chaining.
+         */
+        default Builder tokenIdentityProvider(IdentityProvider<? extends TokenIdentity> tokenIdentityProvider) {
+            throw new UnsupportedOperationException();
+        }
+
         @Override
         AwsRequestOverrideConfiguration build();
     }
@@ -146,6 +172,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
     private static final class BuilderImpl extends RequestOverrideConfiguration.BuilderImpl<Builder> implements Builder {
 
         private IdentityProvider<? extends AwsCredentialsIdentity> awsCredentialsProvider;
+        private IdentityProvider<? extends TokenIdentity> tokenIdentityProvider;
 
         private BuilderImpl() {
         }
@@ -157,6 +184,7 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         private BuilderImpl(AwsRequestOverrideConfiguration awsRequestOverrideConfig) {
             super(awsRequestOverrideConfig);
             this.awsCredentialsProvider = awsRequestOverrideConfig.credentialsProvider;
+            this.tokenIdentityProvider = awsRequestOverrideConfig.tokenIdentityProvider;
         }
 
         @Override
@@ -168,6 +196,12 @@ public final class AwsRequestOverrideConfiguration extends RequestOverrideConfig
         @Override
         public AwsCredentialsProvider credentialsProvider() {
             return CredentialUtils.toCredentialsProvider(awsCredentialsProvider);
+        }
+
+        @Override
+        public Builder tokenIdentityProvider(IdentityProvider<? extends TokenIdentity> tokenIdentityProvider) {
+            this.tokenIdentityProvider = tokenIdentityProvider;
+            return this;
         }
 
         @Override
