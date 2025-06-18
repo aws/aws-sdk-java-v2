@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Added the support to flatten a Map into top level attributes of the object"
+}
