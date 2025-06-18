@@ -79,8 +79,8 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     static void init() throws Exception {
         tempDirPath = createTempDir("DownloadStreamingIntegrationTesting");
         smallObject = uploadObjectSmall(); // 16 KiB
-        largeObject = uploadObjectLarge(); // 80 MiB
-        largeObjectMulti = uploadMultiPartObject(); // 80 MiB, default multipart config
+        largeObject = uploadObjectLarge(); // 60 MiB
+        largeObjectMulti = uploadMultiPartObject(); // 60 MiB, default multipart config
     }
 
     @AfterAll
@@ -179,13 +179,13 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
         return new ObjectWithCRC(name, crc32);
     }
 
-    // 80 MiB
+    // 60 MiB
     static ObjectWithCRC uploadObjectLarge() throws IOException {
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
         LOG.info(() -> "test setup - uploading large test object: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024 * 1024];
-        for (int i = 0; i < 80; i++) {
+        for (int i = 0; i < 60; i++) {
             new Random().nextBytes(rand);
             os.write(rand);
         }
@@ -204,12 +204,12 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
         return new ObjectWithCRC(name, crc32);
     }
 
-    // 80MiB, multipart default config
+    // 60MiB, multipart default config
     static ObjectWithCRC uploadMultiPartObject() throws Exception {
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
         LOG.info(() -> "test setup - uploading large test object - multipart: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        byte[] rand = new byte[8 * 1024 * 1024];
+        byte[] rand = new byte[6 * 1024 * 1024];
         for (int i = 0; i < 10; i++) {
             new Random().nextBytes(rand);
             os.write(rand);

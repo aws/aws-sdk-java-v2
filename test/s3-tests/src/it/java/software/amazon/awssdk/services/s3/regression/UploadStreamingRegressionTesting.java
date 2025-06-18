@@ -93,7 +93,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     @BeforeAll
     static void setupClass() throws IOException {
         testFileSmall = S3ChecksumsTestUtils.createRandomFile16KB();
-        testFileLarge = S3ChecksumsTestUtils.createRandomFile80MB();
+        testFileLarge = S3ChecksumsTestUtils.createRandomFile60MB();
 
         // used in RequestBody.*buffers(...) API
         // we calculate crc32 once to try to accelerate test execution

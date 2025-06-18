@@ -924,9 +924,9 @@
                                 </goals>
                                 <configuration>
                                     <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
-                                    <argLine>-Xmx12g -Xms4g -XX:+AllowRedefinitionToAddDeleteMethods</argLine>
+                                    <argLine>-Xmx12g -Xms4g</argLine>
                                     <includes>
-                                        <include>**/*RegressionTesting.java</include>
+                                        <include>**/*${regression.test}.java</include>
                                     </includes>
                                     <trimStackTrace>false</trimStackTrace>
                                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>

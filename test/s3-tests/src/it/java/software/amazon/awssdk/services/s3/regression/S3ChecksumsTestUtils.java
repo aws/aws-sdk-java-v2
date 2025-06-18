@@ -333,12 +333,12 @@ public final class S3ChecksumsTestUtils {
         return tmp;
     }
 
-    public static Path createRandomFile80MB() throws IOException {
+    public static Path createRandomFile60MB() throws IOException {
         Path tmp = Files.createTempFile(null, null);
         byte[] randomBytes = new byte[1024 * 1024];
         new Random().nextBytes(randomBytes);
         try (OutputStream os = Files.newOutputStream(tmp)) {
-            for (int i = 0; i < 80; ++i) {
+            for (int i = 0; i < 60; ++i) {
                 os.write(randomBytes);
             }
         }
