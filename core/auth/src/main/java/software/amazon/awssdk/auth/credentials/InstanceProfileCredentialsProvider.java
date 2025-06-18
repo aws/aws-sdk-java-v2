@@ -176,6 +176,7 @@ public final class InstanceProfileCredentialsProvider
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
+            // Reset profile retry count after successful credential fetch
             profileRetryCount = 0;
 
             return RefreshResult.builder(credentials.getAwsCredentials())
@@ -194,7 +195,7 @@ public final class InstanceProfileCredentialsProvider
 
                 profileRetryCount++;
                 if (profileRetryCount <= MAX_PROFILE_RETRIES) {
-                    log.debug(() -> "Retrying fetching the profile name again");
+                    log.debug(() -> "Profile name not found, retrying fetching the profile name again.");
                     return refreshCredentials();
                 }
                 throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
