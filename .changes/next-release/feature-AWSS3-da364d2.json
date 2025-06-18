@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3",
-    "contributor": "tmccombs",
-    "description": "Adds the ability to presign HeadObject and HeadBucket requests with the S3 Presigner"
-}

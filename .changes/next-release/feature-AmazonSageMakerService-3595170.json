@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "Add support for p6-b200 instance type for SageMaker Hyperpod"
-}

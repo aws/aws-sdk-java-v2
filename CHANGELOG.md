@@ -1,4 +1,39 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.66__ __2025-06-18__
+## __AWS AI Ops__
+  - ### Features
+    - This is the initial SDK release for Amazon AI Operations (AIOps). AIOps is a generative AI-powered assistant that helps you respond to incidents in your system by scanning your system's telemetry and quickly surface suggestions that might be related to your issue.
+
+## __AWS S3__
+  - ### Features
+    - Adds the ability to presign HeadObject and HeadBucket requests with the S3 Presigner
+        - Contributed by: [@tmccombs](https://github.com/tmccombs)
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding a new method of constructing ARNs without exceptions as control flow
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added CloudWatch Logs Transformer support for converting CloudTrail, VPC Flow, EKS Audit, AWS WAF and Route53 Resolver logs to OCSF v1.1 format.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for p6-b200 instance type for SageMaker Hyperpod
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for renaming objects within the same bucket using the new RenameObject API.
+
+## __Auto Scaling__
+  - ### Features
+    - Add IncludeInstances parameter to DescribeAutoScalingGroups API
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@tmccombs](https://github.com/tmccombs)
 # __2.31.65__ __2025-06-17__
 ## __AWS Backup__
   - ### Features

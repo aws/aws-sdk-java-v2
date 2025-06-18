@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Auto Scaling",
-    "contributor": "",
-    "description": "Add IncludeInstances parameter to DescribeAutoScalingGroups API"
-}
