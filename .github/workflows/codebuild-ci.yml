@@ -170,6 +170,8 @@ jobs:
   s3-regression-tests-upload:
     if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadStreamingRegressionTesting
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -180,10 +182,13 @@ jobs:
       - name: Run migration test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
-          project-name: aws-sdk-java-v2-s3-regression-tests-ul
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-download:
     if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: DownloadStreamingRegressionTesting
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -194,10 +199,13 @@ jobs:
       - name: Run migration test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
-          project-name: aws-sdk-java-v2-s3-regression-tests-dl
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-control-plane:
     if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: ControlPlaneOperationRegressionTesting
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -208,4 +216,5 @@ jobs:
       - name: Run migration test
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
-          project-name: aws-sdk-java-v2-s3-regression-tests-cp
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
