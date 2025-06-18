@@ -285,8 +285,8 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Failed to load credentials from IMDS.");
 
-        verify(4, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
-        verify(4, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profile)));
+        verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profile)));
     }
 
     private void stubSecureCredentialsResponse(com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder responseDefinitionBuilder, boolean useExtended) {

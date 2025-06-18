@@ -73,6 +73,7 @@ public final class InstanceProfileCredentialsProvider
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String SECURITY_CREDENTIALS_EXTENDED_RESOURCE = "/latest/meta-data/iam/security-credentials-extended/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
+    private static final String FAILED_TO_LOAD_CREDENTIALS_ERROR = "Failed to load credentials from IMDS.";
 
     private enum ApiVersion {
         UNKNOWN,
@@ -82,7 +83,7 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
-    private static final int MAX_PROFILE_RETRIES = 3;
+    private static final int MAX_PROFILE_RETRIES = 1;
     
     // These fields are accessed from methods called by CachedSupplier which provides thread safety through its ReentrantLock
     private ApiVersion apiVersion = ApiVersion.UNKNOWN;
@@ -185,15 +186,22 @@ public final class InstanceProfileCredentialsProvider
             if (e.statusCode() == 404) {
                 log.debug(() -> "Resolved profile is no longer available. Resetting it and trying again.");
                 resolvedProfile = null;
-                profileRetryCount++;
-                if (profileRetryCount > MAX_PROFILE_RETRIES) {
-                    throw SdkClientException.create("Failed to load credentials from IMDS.", e);
+
+                if (apiVersion == ApiVersion.UNKNOWN) {
+                    apiVersion = ApiVersion.LEGACY;
+                    return refreshCredentials();
                 }
-                return refreshCredentials();
+
+                profileRetryCount++;
+                if (profileRetryCount <= MAX_PROFILE_RETRIES) {
+                    log.debug(() -> "Retrying fetching the profile name again");
+                    return refreshCredentials();
+                }
+                throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
             }
-            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
+            throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
         } catch (RuntimeException e) {
-            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
+            throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
         }
     }
 
@@ -352,7 +360,7 @@ public final class InstanceProfileCredentialsProvider
                 log.debug(() -> "Instance does not support IMDS extended API. Falling back to legacy API.");
                 return getSecurityCredentials(imdsHostname, metadataToken);
             }
-            throw SdkClientException.create("Failed to load credentials from IMDS.", e);
+            throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
         }
     }
 
