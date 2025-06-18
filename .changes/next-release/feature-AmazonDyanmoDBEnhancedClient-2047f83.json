@@ -1,0 +1,6 @@
+{
+    "category": "Amazon DyanmoDB Enhanced Client", 
+    "contributor": "kiesler", 
+    "type": "feature", 
+    "description": "DynamoDB Enhanced Client Versioned Record can start at 0"
+}
