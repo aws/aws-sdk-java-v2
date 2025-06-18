@@ -179,7 +179,7 @@ jobs:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
           role-duration-seconds: 7200
-      - name: Run migration test
+      - name: Run s3 regression tests for uploads
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-s3-regression-tests
@@ -196,7 +196,7 @@ jobs:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
           role-duration-seconds: 7200
-      - name: Run migration test
+      - name: Run s3 regression tests for downloads
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-s3-regression-tests
@@ -213,7 +213,7 @@ jobs:
           role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
           aws-region: us-west-2
           role-duration-seconds: 7200
-      - name: Run migration test
+      - name: Run s3 regression tests for control plane
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-s3-regression-tests
