@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adding a new method of constructing ARNs without exceptions as control flow"
+}
