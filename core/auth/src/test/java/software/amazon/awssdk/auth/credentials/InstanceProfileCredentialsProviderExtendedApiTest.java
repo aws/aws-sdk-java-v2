@@ -26,6 +26,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -210,6 +211,82 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
         // Verify legacy endpoint was NOT called
         verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
         verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)));
+    }
+
+    @Test
+    void resolveCredentials_withUnstableProfile_ReturnsCredentials() {
+        String initialProfile = "my-profile-0007";
+        String newProfile = "my-profile-0007-b";
+        String credentialsJson = String.format(
+            "{\"Code\":\"Success\"," +
+            "\"LastUpdated\":\"2025-03-18T20:53:17.832308Z\"," +
+            "\"Type\":\"AWS-HMAC\"," +
+            "\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
+            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
+            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw...\"," +
+            "\"Expiration\":\"2025-03-18T21:53:17.832308Z\"," +
+            "\"UnexpectedElement7\":{\"Name\":\"ignore-me-7\"}}");
+
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .inScenario("unstable-profile")
+            .whenScenarioStateIs("Started")
+            .willReturn(aResponse().withBody(initialProfile))
+            .willSetStateTo("initial-profile-discovered"));
+
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + initialProfile))
+            .inScenario("unstable-profile")
+            .whenScenarioStateIs("initial-profile-discovered")
+            .willReturn(aResponse().withStatus(404))
+            .willSetStateTo("profile-not-found"));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .inScenario("unstable-profile")
+            .whenScenarioStateIs("profile-not-found")
+            .willReturn(aResponse().withBody(newProfile))
+            .willSetStateTo("new-profile-discovered"));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + newProfile))
+            .inScenario("unstable-profile")
+            .whenScenarioStateIs("new-profile-discovered")
+            .willReturn(aResponse().withBody(credentialsJson)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials creds1 = provider.resolveCredentials();
+        assertThat(creds1.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+
+        AwsCredentials creds2 = assertDoesNotThrow(() -> provider.resolveCredentials());
+        assertThat(creds2.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+
+        verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + initialProfile)));
+        verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + newProfile)));
+    }
+
+    @Test
+    void resolveCredentials_withTooManyProfileFailures_throwsException() {
+        String profile = "unstable-profile";
+
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(profile)));
+
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profile))
+            .willReturn(aResponse().withStatus(404)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Failed to load credentials from IMDS.");
+
+        verify(4, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        verify(4, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profile)));
     }
 
     private void stubSecureCredentialsResponse(com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder responseDefinitionBuilder, boolean useExtended) {

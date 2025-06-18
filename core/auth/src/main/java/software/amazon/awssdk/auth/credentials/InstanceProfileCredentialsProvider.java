@@ -82,10 +82,12 @@ public final class InstanceProfileCredentialsProvider
 
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
+    private static final int MAX_PROFILE_RETRIES = 3;
     
     // These fields are accessed from methods called by CachedSupplier which provides thread safety through its ReentrantLock
     private ApiVersion apiVersion = ApiVersion.UNKNOWN;
     private String resolvedProfile = null;
+    private int profileRetryCount = 0;
 
     private final Clock clock;
     private final String endpoint;
@@ -173,6 +175,8 @@ public final class InstanceProfileCredentialsProvider
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
+            profileRetryCount = 0;
+
             return RefreshResult.builder(credentials.getAwsCredentials())
                                 .staleTime(staleTime(expiration))
                                 .prefetchTime(prefetchTime(expiration))
@@ -181,6 +185,10 @@ public final class InstanceProfileCredentialsProvider
             if (e.statusCode() == 404) {
                 log.debug(() -> "Resolved profile is no longer available. Resetting it and trying again.");
                 resolvedProfile = null;
+                profileRetryCount++;
+                if (profileRetryCount > MAX_PROFILE_RETRIES) {
+                    throw SdkClientException.create("Failed to load credentials from IMDS.", e);
+                }
                 return refreshCredentials();
             }
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);
