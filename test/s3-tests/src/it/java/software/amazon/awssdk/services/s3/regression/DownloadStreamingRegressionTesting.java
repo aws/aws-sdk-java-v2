@@ -235,7 +235,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
         List<CompletedPart> completedParts = new ArrayList<>();
         int partAmount = 10;
-        int partSize = 8 * 1024 * 1024;
+        int partSize = 6 * 1024 * 1024;
         for (int i = 0; i < partAmount; i++) {
             final int partNumber = i + 1;
             int startIndex = partSize * i;
