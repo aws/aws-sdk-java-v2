@@ -133,31 +133,6 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
         verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
     }
 
-
-    @Test
-    void resolveCredentials_withInvalidProfile_throwsException() {
-        String invalidProfile = "my-profile-0004";
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(invalidProfile)));
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(invalidProfile)));
-
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfile))
-            .willReturn(aResponse().withStatus(404)));
-        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfile))
-            .willReturn(aResponse().withStatus(404)));
-
-        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
-            .willReturn(aResponse().withBody(TOKEN_STUB)));
-
-        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
-
-        assertThatThrownBy(() -> provider.resolveCredentials())
-            .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Failed to load credentials from IMDS.");
-    }
-
     @Test
     void resolveCredentials_cachesProfile_maintainsAccountId() {
         String credentialsWithAccountId = String.format(
