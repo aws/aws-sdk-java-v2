@@ -59,7 +59,7 @@ public final class S3ChecksumsTestUtils {
     }
 
     public static String createBucket(S3Client s3, String name, Logger log) {
-        log.debug(() -> "Creating bucket: " + name);
+        log.info(() -> "Creating bucket: " + name);
         createBucket(s3, name, 3, log);
         return name;
     }
@@ -75,14 +75,14 @@ public final class S3ChecksumsTestUtils {
                                                                 .build())
                                    .build());
         } catch (S3Exception e) {
-            log.debug(() -> "Error attempting to create bucket: " + bucketName);
+            log.info(() -> "Error attempting to create bucket: " + bucketName);
             if ("BucketAlreadyOwnedByYou".equals(e.awsErrorDetails().errorCode())) {
-                log.debug(() -> String.format("%s bucket already exists, likely leaked by a previous run%n", bucketName));
+                log.info(() -> String.format("%s bucket already exists, likely leaked by a previous run%n", bucketName));
             } else if ("TooManyBuckets".equals(e.awsErrorDetails().errorCode())) {
-                log.debug(() -> "Printing all buckets for debug:");
-                s3.listBuckets().buckets().forEach(l -> log.debug(l::toString));
+                log.info(() -> "Printing all buckets for debug:");
+                s3.listBuckets().buckets().forEach(l -> log.info(l::toString));
                 if (retryCount < 2) {
-                    log.debug(() -> "Retrying...");
+                    log.info(() -> "Retrying...");
                     createBucket(s3, bucketName, retryCount + 1, log);
                 } else {
                     throw e;
@@ -101,7 +101,7 @@ public final class S3ChecksumsTestUtils {
 
     public static String createEozBucket(S3Client s3, String bucketName, Logger log) {
         String eozBucketName = bucketName;
-        log.debug(() -> "Creating EOZ bucket: " + eozBucketName);
+        log.info(() -> "Creating EOZ bucket: " + eozBucketName);
         CreateBucketConfiguration cfg =
             CreateBucketConfiguration.builder()
                                      .bucket(info -> info.dataRedundancy(DataRedundancy.SINGLE_AVAILABILITY_ZONE)
@@ -160,7 +160,7 @@ public final class S3ChecksumsTestUtils {
             }
             GetMultiRegionAccessPointResponse response =
                 s3Control.getMultiRegionAccessPoint(r -> r.accountId(accountId).name(mrapName));
-            log.debug(() -> "Wait response: " + response);
+            log.info(() -> "Wait response: " + response);
             getMrapResponse = response;
         } while (MultiRegionAccessPointStatus.READY != getMrapResponse.accessPoint().status()
                  && Duration.between(Instant.now(), waitStart).compareTo(Duration.ofMinutes(5)) < 0);

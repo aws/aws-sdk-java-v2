@@ -48,7 +48,7 @@ public class ControlPlaneOperationRegressionTesting extends BaseS3RegressionTest
     void deleteObject(TestConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 
-        LOG.debug(() -> "Running deleteObject with config: " + config.toString());
+        LOG.info(() -> "Running deleteObject with config: " + config.toString());
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomObject(config.getBucketType());
@@ -81,7 +81,7 @@ public class ControlPlaneOperationRegressionTesting extends BaseS3RegressionTest
         Assumptions.assumeFalse(config.getBucketType() == BucketType.EOZ,
                                 "Restore is not supported for S3 Express");
 
-        LOG.debug(() -> "Running restoreObject with config: " + config);
+        LOG.info(() -> "Running restoreObject with config: " + config);
 
         String bucket = bucketForType(config.getBucketType());
         String key = putRandomArchivedObject(config.getBucketType());

@@ -141,7 +141,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
             "Async Java based support unknown content length");
 
-        LOG.debug(() -> "Running putObject with config: " + config);
+        LOG.info(() -> "Running putObject with config: " + config);
 
         BucketType bucketType = config.getBaseConfig().getBucketType();
 

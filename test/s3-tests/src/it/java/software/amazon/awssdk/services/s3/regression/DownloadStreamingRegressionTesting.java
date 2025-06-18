@@ -104,7 +104,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
             try {
                 Files.delete(p);
             } catch (Exception e) {
-                LOG.error(() -> String.format("Unable to delete file %s", p.toString()), e);
+                LOG.info(() -> String.format("Unable to delete file %s", p.toString()), e);
             }
         });
     }
@@ -114,7 +114,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     void downloadObject(DownloadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config.baseConfig());
 
-        LOG.debug(() -> "Running downloadObject with config: " + config);
+        LOG.info(() -> "Running downloadObject with config: " + config);
 
         String key = config.contentSize().s3Object().key();
         GetObjectRequest.Builder b = GetObjectRequest.builder()
@@ -158,7 +158,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     // 16 KiB
     static ObjectWithCRC uploadObjectSmall() throws IOException {
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
-        LOG.debug(() -> "test setup - uploading small test object: " + name);
+        LOG.info(() -> "test setup - uploading small test object: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024];
         for (int i = 0; i < 16; i++) {
@@ -182,7 +182,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     // 80 MiB
     static ObjectWithCRC uploadObjectLarge() throws IOException {
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
-        LOG.debug(() -> "test setup - uploading large test object: " + name);
+        LOG.info(() -> "test setup - uploading large test object: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[1024 * 1024];
         for (int i = 0; i < 80; i++) {
@@ -207,7 +207,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
     // 80MiB, multipart default config
     static ObjectWithCRC uploadMultiPartObject() throws Exception {
         String name = String.format("%s-%s.dat", System.currentTimeMillis(), UUID.randomUUID());
-        LOG.debug(() -> "test setup - uploading large test object - multipart: " + name);
+        LOG.info(() -> "test setup - uploading large test object - multipart: " + name);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         byte[] rand = new byte[8 * 1024 * 1024];
         for (int i = 0; i < 10; i++) {
@@ -224,7 +224,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     static void doMultipartUpload(BucketType bucketType, String objectName, byte[] content) {
         String bucket = bucketForType(bucketType);
-        LOG.debug(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket));
+        LOG.info(() -> String.format("Uploading multipart object for bucket type: %s - %s", bucketType, bucket));
         CreateMultipartUploadRequest createMulti = CreateMultipartUploadRequest.builder()
                                                                                .bucket(bucket)
                                                                                .key(objectName)
@@ -241,7 +241,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
             int startIndex = partSize * i;
             int endIndex = startIndex + partSize;
             byte[] partContent = Arrays.copyOfRange(content, startIndex, endIndex);
-            LOG.debug(() -> "Uploading part: " + partNumber);
+            LOG.info(() -> "Uploading part: " + partNumber);
             UploadPartResponse partResponse = s3.uploadPart(req -> req.partNumber(partNumber)
                                                                       .uploadId(uploadId)
                                                                       .key(objectName)
@@ -251,10 +251,10 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
                                             .eTag(partResponse.eTag())
                                             .partNumber(partNumber)
                                             .build());
-            LOG.debug(() -> String.format("done part %s - etag: %s: ", partNumber, partResponse.eTag()));
+            LOG.info(() -> String.format("done part %s - etag: %s: ", partNumber, partResponse.eTag()));
         }
 
-        LOG.debug(() -> "Finishing MPU, completed parts: " + completedParts);
+        LOG.info(() -> "Finishing MPU, completed parts: " + completedParts);
 
         s3.completeMultipartUpload(req -> req.multipartUpload(u -> u.parts(completedParts))
                                              .bucket(bucket)
@@ -475,7 +475,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
         try {
             return Files.createDirectories(Paths.get(path));
         } catch (Exception e) {
-            LOG.error(() -> "Unable to create directory", e);
+            LOG.info(() -> "Unable to create directory", e);
             throw new RuntimeException(e);
         }
     }

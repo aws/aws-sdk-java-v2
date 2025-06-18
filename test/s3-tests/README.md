@@ -25,7 +25,7 @@ mvn clean install -P s3-regression-tests -pl :stability-tests
 - The tests are built using [JUnit 5](https://junit.org/junit5/). Make sure you are using the correct APIs and mixing of
   Junit 4 and Junit 5 APIs on the same test can have unexpected results.
 
-- All tests should have the suffix of `RegressionTesting`, eg: ``
+- All tests should have the suffix of `RegressionTesting`, eg: `DownloadStreamingRegressionTesting`
 
 
 
