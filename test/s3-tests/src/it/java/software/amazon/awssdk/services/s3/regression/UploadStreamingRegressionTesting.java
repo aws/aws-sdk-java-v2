@@ -354,11 +354,6 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             }
             case BUFFERS:
             case BUFFERS_REMAINING:
-            case BUFFERS_UNSAFE:
-            case BUFFERS_REMAINING_UNSAFE:
-            case BYTES_UNSAFE:
-            case BYTE_BUFFER_UNSAFE:
-            case REMAINING_BYTE_BUFFER_UNSAFE:
             case BLOCKING_INPUT_STREAM:
             case BLOCKING_OUTPUT_STREAM:
             case INPUTSTREAM_NO_LENGTH:
@@ -426,25 +421,6 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
                 return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
             }
-            case BYTES_UNSAFE: {
-                byte[] content = contentSize.byteContent();
-                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromBytesUnsafe(content);
-                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
-            }
-            case BYTE_BUFFER_UNSAFE: {
-                byte[] content = contentSize.byteContent();
-                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBufferUnsafe(ByteBuffer.wrap(content));
-                return new TestAsyncBody(asyncRequestBody, content.length, contentSize.precalculatedCrc32(), bodyType);
-            }
-            case REMAINING_BYTE_BUFFER_UNSAFE: {
-                byte[] content = contentSize.byteContent();
-                ByteBuffer buff = ByteBuffer.wrap(content);
-                int offset = 2;
-                buff.position(offset);
-                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBufferUnsafe(buff);
-                byte[] crcArray = Arrays.copyOfRange(content, offset, content.length);
-                return new TestAsyncBody(asyncRequestBody, content.length - offset, crc32(crcArray), bodyType);
-            }
             case BUFFERS: {
                 byte[] content1 = contentSize.byteContent();
                 byte[] content2 = contentSize.byteContent();
@@ -460,32 +436,6 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 byte[] content2 = contentSize.byteContent();
                 AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffers(ByteBuffer.wrap(content1),
                                                                                               ByteBuffer.wrap(content2));
-                byte[] crcArray = new byte[content2.length + content2.length];
-                System.arraycopy(content1, 0, crcArray, 0, content1.length);
-                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
-                return new TestAsyncBody(asyncRequestBody,
-                                         content1.length + content2.length,
-                                         contentSize.precalculatedCrc32forBuffersAPI(),
-                                         bodyType);
-            }
-            case BUFFERS_UNSAFE: {
-                byte[] content1 = contentSize.byteContent();
-                byte[] content2 = contentSize.byteContent();
-                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromByteBuffersUnsafe(ByteBuffer.wrap(content1),
-                                                                                           ByteBuffer.wrap(content2));
-                byte[] crcArray = new byte[content2.length + content2.length];
-                System.arraycopy(content1, 0, crcArray, 0, content1.length);
-                System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
-                return new TestAsyncBody(asyncRequestBody,
-                                         content1.length + content2.length,
-                                         contentSize.precalculatedCrc32forBuffersAPI(),
-                                         bodyType);
-            }
-            case BUFFERS_REMAINING_UNSAFE: {
-                byte[] content1 = contentSize.byteContent();
-                byte[] content2 = contentSize.byteContent();
-                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromRemainingByteBuffersUnsafe(ByteBuffer.wrap(content1),
-                                                                                                    ByteBuffer.wrap(content2));
                 byte[] crcArray = new byte[content2.length + content2.length];
                 System.arraycopy(content1, 0, crcArray, 0, content1.length);
                 System.arraycopy(content2, 0, crcArray, content1.length, content2.length);
@@ -629,14 +579,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         BYTE_BUFFER,
         REMAINING_BYTE_BUFFER,
 
-        BYTES_UNSAFE,
-        BYTE_BUFFER_UNSAFE,
-        REMAINING_BYTE_BUFFER_UNSAFE,
-
         BUFFERS,
         BUFFERS_REMAINING,
-        BUFFERS_UNSAFE,
-        BUFFERS_REMAINING_UNSAFE,
 
         BLOCKING_INPUT_STREAM,
         BLOCKING_OUTPUT_STREAM
