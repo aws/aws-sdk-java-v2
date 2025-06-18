@@ -931,6 +931,9 @@
                                     <trimStackTrace>false</trimStackTrace>
                                     <classesDirectory>${project.build.outputDirectory}</classesDirectory>
                                     <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
+                                    <parallel>methods</parallel>
+                                    <threadCount>8</threadCount>
+                                    <perCoreThreadCount>false</perCoreThreadCount>
                                 </configuration>
                             </execution>
                         </executions>
