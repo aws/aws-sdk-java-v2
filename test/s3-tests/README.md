@@ -14,10 +14,10 @@ The tests require valid AWS credentials to be available in the default credentia
 
 - Run from your IDE
 
-- Run from maven command line
+- Run from maven command. Include the class you want to run with the `regression.test` property 
 
 ```
-mvn clean install -P s3-regression-tests -pl :stability-tests
+mvn clean install -P s3-regression-tests -pl :s3-tests -am -T1C -Dregression.test=DownloadStreamingRegressionTesting
 ```
 
 ## Adding New Tests
