@@ -9,6 +9,8 @@ on:
     types: [ opened, synchronize, reopened, labeled, unlabeled ]
     branches:
       - master
+    paths:
+      - '**/*.java'
 
 jobs:
   changelog-verification:
@@ -18,8 +20,17 @@ jobs:
       - name: Check for changelog entry
         if: ${{ !contains(github.event.pull_request.labels.*.name, 'changelog-not-required') }}
         run: |
-          git fetch origin ${{ github.base_ref }} --depth 1 && \
-          git diff remotes/origin/${{ github.base_ref }} --name-only | grep -P "\.changes/next-release/*[a-zA-Z0-9_-]+\.json"
+          git fetch origin ${{ github.base_ref }} --depth 1
+          NON_TEST_FILES=$( git diff remotes/origin/${{ github.base_ref }} --name-only | grep "\.java$" | grep -v -E "(^|/)(test|it)/"  || true)
+          if [ -n "NON_TEST_FILES" ]; then
+            echo "::error::Non-test Java change found:"
+            echo "NON_TEST_FILES" | while read file; do
+              echo "::error::$file"
+            done
+            git diff remotes/origin/${{ github.base_ref }} --name-only | grep -P "\.changes/next-release/*[a-zA-Z0-9_-]+\.json"
+          else
+            echo "No change that may require a changelog entry found."
+          fi
       - name: Error message
         if: ${{ failure() }}
         run: |
