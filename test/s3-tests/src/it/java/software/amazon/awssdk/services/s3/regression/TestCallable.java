@@ -22,7 +22,7 @@ public class TestCallable<ResponseT> {
     private SdkAutoCloseable client;
     private Callable<ResponseT> runnable;
 
-    TestCallable(SdkAutoCloseable client, Callable<ResponseT> runnable) {
+    public TestCallable(SdkAutoCloseable client, Callable<ResponseT> runnable) {
         this.client = client;
         this.runnable = runnable;
     }

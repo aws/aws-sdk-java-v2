@@ -13,15 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.regression;
+package software.amazon.awssdk.services.s3.regression.upload;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeSyncClient;
-import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.MULTIPART_ENABLED;
-import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STANDARD_ASYNC;
 import static software.amazon.awssdk.services.s3.regression.TestConfig.testConfigs;
 
 import io.reactivex.Flowable;
@@ -35,7 +33,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -45,20 +42,16 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.signer.S3SignerExecutionAttribute;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
-import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -66,6 +59,11 @@ import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.regression.BaseS3RegressionTest;
+import software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils;
+import software.amazon.awssdk.services.s3.regression.S3ClientFlavor;
+import software.amazon.awssdk.services.s3.regression.TestCallable;
+import software.amazon.awssdk.services.s3.regression.TestConfig;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -87,8 +85,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     static String smallContentCRC32ForBuffersAPI;
     static String largeContentCRC32ForBuffersAPI;
 
-    private static Path testFileSmall;
-    private static Path testFileLarge;
+    protected static Path testFileSmall;
+    protected static Path testFileLarge;
 
     @BeforeAll
     static void setupClass() throws IOException {
@@ -113,135 +111,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         ASYNC_REQUEST_BODY_EXECUTOR.shutdownNow();
     }
 
-    @ParameterizedTest
-    @MethodSource("uploadConfigs")
-    void putObject(UploadConfig config) throws Exception {
-        assumeNotAccessPointWithPathStyle(config.getBaseConfig());
-
-        // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
-        // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length
-        S3ClientFlavor flavor = config.getBaseConfig().getFlavor();
-        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH
-                                && flavor.isAsync(),
-                                "No way to create AsyncRequestBody by giving both an Publisher and the content length");
-
-        // Payload signing doesn't work correctly for async java based
-        // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
-        Assumptions.assumeFalse(
-            (flavor == STANDARD_ASYNC || flavor == MULTIPART_ENABLED)
-            && (config.payloadSigning()
-                // MRAP requires body signing
-                || config.getBaseConfig().getBucketType() == BucketType.MRAP),
-            "Async payload signing doesn't work with Java based clients");
-
-        // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
-        // Async java based clients don't currently support unknown content-length bodies
-        Assumptions.assumeFalse(
-            flavor == STANDARD_ASYNC
-            && config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
-            "Async Java based support unknown content length");
-
-        LOG.info(() -> "Running putObject with config: " + config);
-
-        BucketType bucketType = config.getBaseConfig().getBucketType();
-
-        String bucket = bucketForType(bucketType);
-        String key = S3ChecksumsTestUtils.randomKey();
-
-        PutObjectRequest request = PutObjectRequest.builder()
-                                                   .bucket(bucket)
-                                                   .key(key)
-                                                   .build();
-
-
-        RequestRecorder recorder = new RequestRecorder();
-
-        ClientOverrideConfiguration.Builder overrideConfiguration =
-            ClientOverrideConfiguration.builder()
-                                       .addExecutionInterceptor(recorder);
-
-        if (config.payloadSigning()) {
-            overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());
-        }
-
-        TestCallable<PutObjectResponse> callable = null;
-        try {
-
-            Long actualContentLength = null;
-            boolean requestBodyHasContentLength = false;
-            String actualCrc32;
-
-            if (!flavor.isAsync()) {
-                TestRequestBody body = getRequestBody(config.getBodyType(), config.getContentSize());
-                callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
-                actualContentLength = body.getActualContentLength();
-                requestBodyHasContentLength = body.optionalContentLength().isPresent();
-                actualCrc32 = body.getChecksum();
-            } else if (flavor == MULTIPART_ENABLED) {
-                TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
-                callable = callTmUpload(request, body, config.getBaseConfig(), overrideConfiguration.build());
-                actualContentLength = body.getActualContentLength();
-                requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
-                actualCrc32 = body.getChecksum();
-            } else {
-                TestAsyncBody body = getAsyncRequestBody(config.getBodyType(), config.contentSize);
-                callable = callPutObject(request, body, config.getBaseConfig(), overrideConfiguration.build());
-                actualContentLength = body.getActualContentLength();
-                requestBodyHasContentLength = body.getAsyncRequestBody().contentLength().isPresent();
-                actualCrc32 = body.getChecksum();
-            }
-
-            PutObjectResponse response = callable.runnable().call();
-
-            recordObjectToCleanup(bucketType, key);
-
-            // mpu not supported
-            if (flavor == MULTIPART_ENABLED) {
-                return;
-            }
-
-            // We only validate when configured to WHEN_SUPPORTED since checksums are optional for PutObject
-            if (config.getBaseConfig().getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED
-                // CRT switches to MPU under the hood which doesn't support checksums
-                && flavor != S3ClientFlavor.CRT_BASED) {
-                assertThat(response.checksumCRC32()).isEqualTo(actualCrc32);
-            }
-
-            // We can't set an execution interceptor when using CRT
-            if (flavor == S3ClientFlavor.CRT_BASED) {
-                return;
-            }
-
-            assertThat(recorder.getRequests()).isNotEmpty();
-
-            for (SdkHttpRequest httpRequest : recorder.getRequests()) {
-                // skip any non-PUT requests, e.g. GetSession for EOZ requests
-                if (httpRequest.method() != SdkHttpMethod.PUT) {
-                    continue;
-                }
-
-                String payloadSha = httpRequest.firstMatchingHeader("x-amz-content-sha256").get();
-                if (payloadSha.startsWith("STREAMING")) {
-                    String decodedContentLength = httpRequest.firstMatchingHeader("x-amz-decoded-content-length").get();
-                    assertThat(Long.parseLong(decodedContentLength)).isEqualTo(actualContentLength);
-                    verifyChecksumResponsePayload(config, key, actualCrc32);
-                } else {
-                    Optional<String> contentLength = httpRequest.firstMatchingHeader("Content-Length");
-                    if (requestBodyHasContentLength) {
-                        assertThat(Long.parseLong(contentLength.get())).isEqualTo(actualContentLength);
-                    }
-                }
-            }
-
-        } finally {
-            if (callable != null) {
-                callable.client().close();
-            }
-        }
-    }
-
-    private void verifyChecksumResponsePayload(UploadConfig config, String key, String expectedCRC32) {
-        String bucket = bucketForType(config.getBaseConfig().getBucketType());
+    protected void verifyChecksumResponsePayload(FlattenUploadConfig config, String key, String expectedCRC32) {
+        String bucket = bucketForType(config.getBucketType());
         ResponseInputStream<GetObjectResponse> response = s3.getObject(req -> req.checksumMode(ChecksumMode.ENABLED)
                                                                                  .key(key)
                                                                                  .bucket(bucket));
@@ -249,9 +120,10 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     }
 
-    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestRequestBody requestBody,
-                                                          TestConfig config,
-                                                          ClientOverrideConfiguration overrideConfiguration) {
+    protected TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request,
+                                                            TestRequestBody requestBody,
+                                                            FlattenUploadConfig config,
+                                                            ClientOverrideConfiguration overrideConfiguration) {
         S3Client s3Client = makeSyncClient(config, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
             try {
@@ -263,9 +135,12 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         return new TestCallable<>(s3Client, callable);
     }
 
-    private TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
+    protected TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request,
+                                                          S3ClientFlavor flavor,
+                                                          TestAsyncBody requestBody,
+                                                          FlattenUploadConfig config,
                                                           ClientOverrideConfiguration overrideConfiguration) {
-        S3AsyncClient s3Client = makeAsyncClient(config, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
+        S3AsyncClient s3Client = makeAsyncClient(config, flavor, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
             try {
                 AsyncRequestBody asyncRequestBody = requestBody.getAsyncRequestBody();
@@ -279,9 +154,12 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         return new TestCallable<>(s3Client, callable);
     }
 
-    private TestCallable<PutObjectResponse> callTmUpload(PutObjectRequest request, TestAsyncBody requestBody, TestConfig config,
+    protected TestCallable<PutObjectResponse> callTmUpload(PutObjectRequest request,
+                                                         S3ClientFlavor flavor,
+                                                         TestAsyncBody requestBody,
+                                                         FlattenUploadConfig config,
                                                          ClientOverrideConfiguration overrideConfiguration) {
-        S3TransferManager transferManager = S3ChecksumsTestUtils.makeTm(config, overrideConfiguration,
+        S3TransferManager transferManager = S3ChecksumsTestUtils.makeTm(config, flavor, overrideConfiguration,
                                                                         REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
             try {
@@ -297,7 +175,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         return new TestCallable<>(transferManager, callable);
     }
 
-    private TestRequestBody getRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
+    protected TestRequestBody getRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
                 String content = contentSize.stringContent();
@@ -363,7 +241,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private TestAsyncBody getAsyncRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
+    protected TestAsyncBody getAsyncRequestBody(BodyType bodyType, ContentSize contentSize) throws IOException {
         switch (bodyType) {
             case STRING: {
                 String content = contentSize.stringContent();
@@ -492,77 +370,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static List<UploadConfig> uploadConfigs() {
-        List<UploadConfig> configs = new ArrayList<>();
-
-        boolean[] payloadSigningEnabled = {true, false};
-        for (BodyType bodyType : BodyType.values()) {
-            for (TestConfig baseConfig : testConfigs()) {
-                for (ContentSize size : ContentSize.values()) {
-                    for (boolean payloadSigning : payloadSigningEnabled) {
-                        UploadConfig config = new UploadConfig();
-                        config.setPayloadSigning(payloadSigning);
-                        config.setBaseConfig(baseConfig);
-                        config.setBodyType(bodyType);
-                        config.setContentSize(size);
-                        configs.add(config);
-                    }
-                }
-            }
-        }
-        return configs;
-    }
-
-    static class UploadConfig {
-        private TestConfig baseConfig;
-        private BodyType bodyType;
-        private ContentSize contentSize;
-        private boolean payloadSigning;
-
-        public void setPayloadSigning(boolean payloadSigning) {
-            this.payloadSigning = payloadSigning;
-        }
-
-        public boolean payloadSigning() {
-            return payloadSigning;
-        }
-
-        public TestConfig getBaseConfig() {
-            return baseConfig;
-        }
-
-        public void setBaseConfig(TestConfig baseConfig) {
-            this.baseConfig = baseConfig;
-        }
-
-        public BodyType getBodyType() {
-            return bodyType;
-        }
-
-        public void setBodyType(BodyType bodyType) {
-            this.bodyType = bodyType;
-        }
-
-        public void setContentSize(ContentSize contentSize) {
-            this.contentSize = contentSize;
-        }
-
-        public ContentSize getContentSize() {
-            return this.contentSize;
-        }
-
-        @Override
-        public String toString() {
-            return "UploadConfig{" +
-                   "baseConfig=" + baseConfig +
-                   ", bodyType=" + bodyType +
-                   ", contentSize=" + contentSize +
-                   '}';
-        }
-
-    }
-
-    enum BodyType {
+    protected enum BodyType {
         INPUTSTREAM_RESETABLE,
         INPUTSTREAM_NOT_RESETABLE,
         INPUTSTREAM_NO_LENGTH,
@@ -586,9 +394,9 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         BLOCKING_OUTPUT_STREAM
     }
 
-    enum ContentSize {
+    protected enum ContentSize {
         SMALL,
-        LARGE; // 200 MiB
+        LARGE;
 
         byte[] byteContent() {
             switch (this) {
@@ -644,18 +452,17 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                     throw new IllegalArgumentException("not supported ContentSize " + this);
             }
         }
-
     }
 
     private static byte[] largeContent() {
-        // 80 MiB
+        // 60 MiB
         Random r = new Random();
-        byte[] b = new byte[80 * 1024 * 1024];
+        byte[] b = new byte[60 * 1024 * 1024];
         r.nextBytes(b);
         return b;
     }
 
-    static class TestRequestBody extends RequestBody {
+    protected static class TestRequestBody extends RequestBody {
         private final long contentLength;
         private final String checksum;
 
@@ -674,7 +481,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class TestAsyncBody {
+    protected static class TestAsyncBody {
         private final AsyncRequestBody asyncRequestBody;
         private final long actualContentLength;
         private final String checksum;
@@ -700,7 +507,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class TestAsyncBodyForBlockingOutputStream extends TestAsyncBody {
+    protected static class TestAsyncBodyForBlockingOutputStream extends TestAsyncBody {
         private final Consumer<CancellableOutputStream> bodyWrite;
 
         private TestAsyncBodyForBlockingOutputStream(AsyncRequestBody asyncRequestBody,
@@ -713,7 +520,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class TestAsyncBodyForBlockingInputStream extends TestAsyncBody {
+    protected static class TestAsyncBodyForBlockingInputStream extends TestAsyncBody {
         private final InputStream inputStream;
 
         private TestAsyncBodyForBlockingInputStream(AsyncRequestBody asyncRequestBody,
@@ -726,7 +533,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class RequestRecorder implements ExecutionInterceptor {
+    protected static class RequestRecorder implements ExecutionInterceptor {
         private final List<SdkHttpRequest> requests = new ArrayList<>();
 
         @Override
@@ -739,7 +546,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class EnablePayloadSigningInterceptor implements ExecutionInterceptor {
+    protected static class EnablePayloadSigningInterceptor implements ExecutionInterceptor {
         @Override
         public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
             executionAttributes.putAttribute(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING, true);
@@ -747,7 +554,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         }
     }
 
-    private static class NonResettableByteStream extends ByteArrayInputStream {
+    protected static class NonResettableByteStream extends ByteArrayInputStream {
         public NonResettableByteStream(byte[] buf) {
             super(buf);
         }

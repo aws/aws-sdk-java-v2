@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.model.DataRedundancy;
 import software.amazon.awssdk.services.s3.model.LocationInfo;
 import software.amazon.awssdk.services.s3.model.LocationType;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.regression.upload.FlattenUploadConfig;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
 import software.amazon.awssdk.services.s3control.model.CreateMultiRegionAccessPointRequest;
 import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPointResponse;
@@ -89,7 +90,7 @@ public final class S3ChecksumsTestUtils {
                 }
             } else if ("OperationAborted".equals(e.awsErrorDetails().errorCode())) {
                 log.warn(() -> e.awsErrorDetails().errorMessage() + " --- Likely another operation is creating the bucket, "
-                                + "just wait for the bucket to be available");
+                               + "just wait for the bucket to be available");
             } else {
                 throw e;
             }
@@ -194,6 +195,12 @@ public final class S3ChecksumsTestUtils {
                                 "Path style doesn't work with ARN type buckets");
     }
 
+    public static void assumeNotAccessPointWithPathStyle(FlattenUploadConfig config) {
+        BucketType bucketType = config.getBucketType();
+        Assumptions.assumeFalse(config.isForcePathStyle() && bucketType.isArnType(),
+                                "Path style doesn't work with ARN type buckets");
+    }
+
     public static String crc32(String s) {
         return crc32(s.getBytes(StandardCharsets.UTF_8));
     }
@@ -266,25 +273,22 @@ public final class S3ChecksumsTestUtils {
         }
     }
 
-    public static S3Client makeSyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
-                                   Region region, AwsCredentialsProvider provider) {
-        switch (config.getFlavor()) {
-            case STANDARD_SYNC:
-                return S3Client.builder()
-                               .overrideConfiguration(overrideConfiguration)
-                               .forcePathStyle(config.isForcePathStyle())
-                               .requestChecksumCalculation(config.getRequestChecksumValidation())
-                               .region(region)
-                               .credentialsProvider(provider)
-                               .build();
-            default:
-                throw new RuntimeException("Unsupported sync flavor: " + config.getFlavor());
-        }
+    public static S3Client makeSyncClient(FlattenUploadConfig config, ClientOverrideConfiguration overrideConfiguration,
+                                          Region region, AwsCredentialsProvider provider) {
+        return S3Client.builder()
+                       .overrideConfiguration(overrideConfiguration)
+                       .forcePathStyle(config.isForcePathStyle())
+                       .requestChecksumCalculation(config.getRequestChecksumValidation())
+                       .region(region)
+                       .credentialsProvider(provider)
+                       .build();
     }
 
-    public static S3AsyncClient makeAsyncClient(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
-                                         Region region, AwsCredentialsProvider provider) {
-        switch (config.getFlavor()) {
+    public static S3AsyncClient makeAsyncClient(FlattenUploadConfig config,
+                                                S3ClientFlavor flavor,
+                                                ClientOverrideConfiguration overrideConfiguration,
+                                                Region region, AwsCredentialsProvider provider) {
+        switch (flavor) {
             case STANDARD_ASYNC:
                 return S3AsyncClient.builder()
                                     .overrideConfiguration(overrideConfiguration)
@@ -311,13 +315,15 @@ public final class S3ChecksumsTestUtils {
                                     .build();
             }
             default:
-                throw new RuntimeException("Unsupported async flavor: " + config.getFlavor());
+                throw new RuntimeException("Unsupported async flavor: " + flavor);
         }
     }
 
-    public static S3TransferManager makeTm(TestConfig config, ClientOverrideConfiguration overrideConfiguration,
-                                            Region region, AwsCredentialsProvider provider) {
-        S3AsyncClient s3AsyncClient = makeAsyncClient(config, overrideConfiguration, region, provider);
+    public static S3TransferManager makeTm(FlattenUploadConfig config,
+                                           S3ClientFlavor flavor,
+                                           ClientOverrideConfiguration overrideConfiguration,
+                                           Region region, AwsCredentialsProvider provider) {
+        S3AsyncClient s3AsyncClient = makeAsyncClient(config, flavor, overrideConfiguration, region, provider);
         return S3TransferManager.builder().s3Client(s3AsyncClient).build();
     }
 
