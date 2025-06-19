@@ -32,31 +32,27 @@ public class FlattenUploadConfig {
     public static List<FlattenUploadConfig> testConfigs() {
         List<FlattenUploadConfig> configs = new ArrayList<>();
 
-        boolean[] forcePathStyle = {true, false};
         boolean[] payloadSign = {true, false};
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
                                                             RequestChecksumCalculation.WHEN_SUPPORTED};
-        for (boolean pathStyle : forcePathStyle) {
-            for (RequestChecksumCalculation checksumValidation : checksumValidations) {
-                for (BucketType bucketType : BucketType.values()) {
-                    for (UploadStreamingRegressionTesting.BodyType bodType : UploadStreamingRegressionTesting.BodyType.values()) {
-                        for (UploadStreamingRegressionTesting.ContentSize cs : UploadStreamingRegressionTesting.ContentSize.values()) {
-                            for (boolean ps : payloadSign) {
-                                FlattenUploadConfig testConfig = new FlattenUploadConfig();
-                                testConfig.setBucketType(bucketType);
-                                testConfig.setForcePathStyle(pathStyle);
-                                testConfig.setRequestChecksumValidation(checksumValidation);
-                                testConfig.setBodyType(bodType);
-                                testConfig.setContentSize(cs);
-                                testConfig.setPayloadSigning(ps);
-                                configs.add(testConfig);
-                            }
+        for (RequestChecksumCalculation checksumValidation : checksumValidations) {
+            for (BucketType bucketType : BucketType.values()) {
+                for (UploadStreamingRegressionTesting.BodyType bodType : UploadStreamingRegressionTesting.BodyType.values()) {
+                    for (UploadStreamingRegressionTesting.ContentSize cs :
+                        UploadStreamingRegressionTesting.ContentSize.values()) {
+                        for (boolean ps : payloadSign) {
+                            FlattenUploadConfig testConfig = new FlattenUploadConfig();
+                            testConfig.setBucketType(bucketType);
+                            testConfig.setRequestChecksumValidation(checksumValidation);
+                            testConfig.setBodyType(bodType);
+                            testConfig.setContentSize(cs);
+                            testConfig.setPayloadSigning(ps);
+                            configs.add(testConfig);
                         }
                     }
                 }
             }
         }
-
         return configs;
     }
 
