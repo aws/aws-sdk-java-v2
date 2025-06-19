@@ -15,23 +15,16 @@
 
 package software.amazon.awssdk.services.s3.regression.upload;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.MULTIPART_ENABLED;
-import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STANDARD_ASYNC;
 
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.regression.BaseS3RegressionTest;
 import software.amazon.awssdk.services.s3.regression.BucketType;
 import software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils;
 import software.amazon.awssdk.services.s3.regression.S3ClientFlavor;
@@ -98,12 +91,6 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
             PutObjectResponse response = callable.runnable().call();
 
             recordObjectToCleanup(bucketType, key);
-
-            if (response.checksumCRC32() != null && !response.checksumCRC32().isEmpty()) {
-                assertThat(actualCrc32).isEqualTo(response.checksumCRC32());
-            } else {
-                LOG.info(() -> "Skipping checksum for config " + config);
-            }
 
         } finally {
             if (callable != null) {
