@@ -46,7 +46,7 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
     }
 
     @ParameterizedTest
-    @MethodSource("uploadConfigs")
+    @MethodSource("testConfigs")
     void putObject(FlattenUploadConfig config) throws Exception {
 
         assumeNotAccessPointWithPathStyle(config);
