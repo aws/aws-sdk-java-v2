@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EMR Serverless",
-    "contributor": "",
-    "description": "This release adds the capability to enable IAM IdentityCenter Trusted Identity Propagation for users running Interactive Sessions on EMR Serverless Applications."
-}

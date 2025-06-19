@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "This release introduces alternative support for utilizing CFN templates from S3 for SageMaker Projects."
-}
