@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.CRT_BASED;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assumptions;
@@ -66,7 +68,8 @@ public class UploadCrtRegressionTesting extends UploadStreamingRegressionTesting
 
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
-                                       .addExecutionInterceptor(recorder);
+                                       .addExecutionInterceptor(recorder)
+                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());

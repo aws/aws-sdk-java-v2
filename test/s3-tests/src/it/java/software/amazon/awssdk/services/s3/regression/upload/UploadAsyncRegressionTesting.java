@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STANDARD_ASYNC;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -60,14 +62,14 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         // Payload signing doesn't work correctly for async java based
         // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
         Assumptions.assumeFalse(config.isPayloadSigning()
-                // MRAP requires body signing
-                || config.getBucketType() == BucketType.MRAP,
-            "Async payload signing doesn't work with Java based clients");
+                                // MRAP requires body signing
+                                || config.getBucketType() == BucketType.MRAP,
+                                "Async payload signing doesn't work with Java based clients");
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
-            "Async Java based support unknown content length");
+                                "Async Java based support unknown content length");
 
         LOG.info(() -> "Running UploadAsyncRegressionTesting putObject with config: " + config);
 
@@ -86,7 +88,8 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
 
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
-                                       .addExecutionInterceptor(recorder);
+                                       .addExecutionInterceptor(recorder)
+                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());
