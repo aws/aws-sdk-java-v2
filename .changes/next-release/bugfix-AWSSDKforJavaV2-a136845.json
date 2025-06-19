@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java V2",
-    "contributor": "",
-    "description": "Fix a bug in ConstructorCache when classes are GC'ed but not removed from cache"
-}
