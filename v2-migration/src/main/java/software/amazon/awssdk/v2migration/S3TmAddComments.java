@@ -40,8 +40,8 @@ public class S3TmAddComments extends Recipe {
 
     private static final MethodMatcher COPY = v2TmMethodMatcher("copy(..)");
     private static final MethodMatcher DOWNLOAD = v2TmMethodMatcher(String.format("download(%sGetObjectRequest, java.io.File, "
-                                                                              + "%sinternal.S3ProgressListener, ..)", V2_S3_MODEL_PKG,
-                                                                                            V1_TM_PKG));
+                                                                                  + "%sinternal.S3ProgressListener, ..)",
+                                                                                  V2_S3_MODEL_PKG, V1_TM_PKG));
     private static final MethodMatcher DOWNLOAD_DIRECTORY = v2TmMethodMatcher("downloadDirectory(..)");
     private static final MethodMatcher UPLOAD = v2TmMethodMatcher("upload(..)");
     private static final MethodMatcher UPLOAD_DIRECTORY = v2TmMethodMatcher("uploadDirectory(..)");
@@ -83,6 +83,11 @@ public class S3TmAddComments extends Recipe {
             if (UPLOAD.matches(method) && method.getArguments().size() == 4) {
                 String comment = "Migration for InputStream and ObjectMetadata as argument for upload is not supported by the "
                                  + "migration tool.";
+                return method.withComments(createComments(comment));
+            }
+            if (UPLOAD.matches(method) && method.getArguments().size() == 2) {
+                String comment = "Migration for S3ProgressListener is not supported by the migration tool. Please manually "
+                                 + "migrate the code using TransferListener in v2";
                 return method.withComments(createComments(comment));
             }
             if (UPLOAD_DIRECTORY.matches(method) && method.getArguments().size() > 4) {
