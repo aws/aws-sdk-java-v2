@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.67__ __2025-06-19__
+## __AWS Lambda__
+  - ### Features
+    - Support Schema Registry feature for Kafka Event Source Mapping. Customers can now configure a Schema Registry to enable schema validation and filtering for Avro, Protobuf, and JSON-formatted events in Lambda for Kafka Event Source.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release of the SDK has the API and documentation for the createcustommodel API. This feature lets you copy a trained model into Amazon Bedrock for inference.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces alternative support for utilizing CFN templates from S3 for SageMaker Projects.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to enable IAM IdentityCenter Trusted Identity Propagation for users running Interactive Sessions on EMR Serverless Applications.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Additional support for managing HMAC keys that adheres to changes documented in X9.143-2021 and provides better interoperability for key import/export
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Additional support for managing HMAC keys that adheres to changes documented in X9.143-2021 and provides better interoperability for key import/export
+
 # __2.31.66__ __2025-06-18__
 ## __AWS AI Ops__
   - ### Features
