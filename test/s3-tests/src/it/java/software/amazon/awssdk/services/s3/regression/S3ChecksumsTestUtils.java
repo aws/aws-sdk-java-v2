@@ -31,6 +31,8 @@ import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.services.s3.model.LocationType;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.regression.upload.FlattenUploadConfig;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
+import software.amazon.awssdk.services.s3control.model.CloudWatchMetrics;
 import software.amazon.awssdk.services.s3control.model.CreateMultiRegionAccessPointRequest;
 import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPointResponse;
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
@@ -277,11 +280,18 @@ public final class S3ChecksumsTestUtils {
                                           Region region, AwsCredentialsProvider provider) {
         return S3Client.builder()
                        .overrideConfiguration(overrideConfiguration)
+                       .httpClient(makeHttpClient())
                        .forcePathStyle(config.isForcePathStyle())
                        .requestChecksumCalculation(config.getRequestChecksumValidation())
                        .region(region)
                        .credentialsProvider(provider)
                        .build();
+    }
+
+    private static SdkHttpClient makeHttpClient() {
+        return ApacheHttpClient.builder()
+            .maxConnections(10_000)
+            .build();
     }
 
     public static S3AsyncClient makeAsyncClient(FlattenUploadConfig config,

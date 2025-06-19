@@ -21,7 +21,11 @@ import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STAND
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.junit.Test;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
@@ -44,6 +48,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
 
     @ParameterizedTest
     @MethodSource("testConfigs")
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
     void putObject(FlattenUploadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 

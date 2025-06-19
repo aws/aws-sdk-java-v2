@@ -40,6 +40,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -111,6 +112,7 @@ public class DownloadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     @ParameterizedTest
     @MethodSource("downloadConfigs")
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
     void downloadObject(DownloadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config.baseConfig());
 

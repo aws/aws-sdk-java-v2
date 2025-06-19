@@ -130,6 +130,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 return s3Client.putObject(request, requestBody);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                s3Client.close();
             }
         };
         return new TestCallable<>(s3Client, callable);
@@ -149,6 +151,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 return CompletableFutureUtils.joinLikeSync(future);
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                s3Client.close();
             }
         };
         return new TestCallable<>(s3Client, callable);
@@ -170,6 +174,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 return completedUpload.response();
             } catch (Exception e) {
                 throw new RuntimeException(e);
+            } finally {
+                transferManager.close();
             }
         };
         return new TestCallable<>(transferManager, callable);
