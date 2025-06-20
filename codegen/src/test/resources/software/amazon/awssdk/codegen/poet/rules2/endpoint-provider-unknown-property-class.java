@@ -1,18 +1,3 @@
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
-
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.net.URI;
@@ -31,7 +16,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams params) {
         try {
-            RuleResult result = endpointRule0(params, new LocalState());
+            RuleResult result = endpointRule0(params);
             if (result.canContinue()) {
                 throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
             }
@@ -48,27 +33,19 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         }
     }
 
-    private static RuleResult endpointRule0(QueryEndpointParams params, LocalState locals) {
-        RuleResult result = endpointRule1(params, locals);
+    private static RuleResult endpointRule0(QueryEndpointParams params) {
+        RuleResult result = endpointRule1(params);
         if (result.isResolved()) {
             return result;
         }
-        return endpointRule3(params, locals);
+        return RuleResult.error("Invalid Configuration: Missing Endpoint");
     }
 
-    private static RuleResult endpointRule1(QueryEndpointParams params, LocalState locals) {
+    private static RuleResult endpointRule1(QueryEndpointParams params) {
         if (params.endpoint() != null) {
-            return endpointRule2(params, locals);
+            return RuleResult.endpoint(Endpoint.builder().url(URI.create(params.endpoint())).build());
         }
         return RuleResult.carryOn();
-    }
-
-    private static RuleResult endpointRule2(QueryEndpointParams params, LocalState locals) {
-        return RuleResult.endpoint(Endpoint.builder().url(URI.create(params.endpoint())).build());
-    }
-
-    private static RuleResult endpointRule3(QueryEndpointParams params, LocalState locals) {
-        return RuleResult.error("Invalid Configuration: Missing Endpoint");
     }
 
     @Override
@@ -79,29 +56,5 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     @Override
     public int hashCode() {
         return getClass().hashCode();
-    }
-
-    private static final class LocalState {
-        LocalState() {
-        }
-
-        LocalState(LocalStateBuilder builder) {
-        }
-
-        public LocalStateBuilder toBuilder() {
-            return new LocalStateBuilder(this);
-        }
-    }
-
-    private static final class LocalStateBuilder {
-        LocalStateBuilder() {
-        }
-
-        LocalStateBuilder(LocalState locals) {
-        }
-
-        LocalState build() {
-            return new LocalState(this);
-        }
     }
 }
