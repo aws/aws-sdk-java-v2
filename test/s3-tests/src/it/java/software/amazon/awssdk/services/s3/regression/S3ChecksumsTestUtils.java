@@ -291,6 +291,7 @@ public final class S3ChecksumsTestUtils {
     private static SdkHttpClient makeHttpClient() {
         return ApacheHttpClient.builder()
             .maxConnections(10_000)
+            .connectionAcquisitionTimeout(Duration.ofMinutes(10))
             .build();
     }
 
