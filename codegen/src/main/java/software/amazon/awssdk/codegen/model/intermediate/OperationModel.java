@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import software.amazon.awssdk.codegen.checksum.HttpChecksum;
 import software.amazon.awssdk.codegen.compression.RequestCompression;
 import software.amazon.awssdk.codegen.docs.ClientType;
@@ -378,5 +379,64 @@ public class OperationModel extends DocumentationModel {
 
     public void setUnsignedPayload(boolean unsignedPayload) {
         this.unsignedPayload = unsignedPayload;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        OperationModel that = (OperationModel) o;
+        return deprecated == that.deprecated && hasBlobMemberAsPayload == that.hasBlobMemberAsPayload
+               && hasStringMemberAsPayload == that.hasStringMemberAsPayload && isAuthenticated == that.isAuthenticated
+               && isPaginated == that.isPaginated && endpointOperation == that.endpointOperation
+               && endpointCacheRequired == that.endpointCacheRequired && httpChecksumRequired == that.httpChecksumRequired
+               && unsignedPayload == that.unsignedPayload && Objects.equals(operationName, that.operationName)
+               && Objects.equals(serviceProtocol, that.serviceProtocol)
+               && Objects.equals(deprecatedMessage, that.deprecatedMessage) && Objects.equals(input, that.input)
+               && Objects.equals(returnType, that.returnType) && Objects.equals(exceptions, that.exceptions)
+               && Objects.equals(simpleMethods, that.simpleMethods) && authType == that.authType
+               && Objects.equals(auth, that.auth) && Objects.equals(endpointDiscovery, that.endpointDiscovery)
+               && Objects.equals(inputShape, that.inputShape) && Objects.equals(outputShape, that.outputShape)
+               && Objects.equals(endpointTrait, that.endpointTrait) && Objects.equals(httpChecksum, that.httpChecksum)
+               && Objects.equals(requestcompression, that.requestcompression)
+               && Objects.equals(staticContextParams, that.staticContextParams)
+               && Objects.equals(operationContextParams, that.operationContextParams);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(operationName);
+        result = 31 * result + Objects.hashCode(serviceProtocol);
+        result = 31 * result + Boolean.hashCode(deprecated);
+        result = 31 * result + Objects.hashCode(deprecatedMessage);
+        result = 31 * result + Objects.hashCode(input);
+        result = 31 * result + Objects.hashCode(returnType);
+        result = 31 * result + Objects.hashCode(exceptions);
+        result = 31 * result + Objects.hashCode(simpleMethods);
+        result = 31 * result + Boolean.hashCode(hasBlobMemberAsPayload);
+        result = 31 * result + Boolean.hashCode(hasStringMemberAsPayload);
+        result = 31 * result + Boolean.hashCode(isAuthenticated);
+        result = 31 * result + Objects.hashCode(authType);
+        result = 31 * result + Objects.hashCode(auth);
+        result = 31 * result + Boolean.hashCode(isPaginated);
+        result = 31 * result + Boolean.hashCode(endpointOperation);
+        result = 31 * result + Boolean.hashCode(endpointCacheRequired);
+        result = 31 * result + Objects.hashCode(endpointDiscovery);
+        result = 31 * result + Objects.hashCode(inputShape);
+        result = 31 * result + Objects.hashCode(outputShape);
+        result = 31 * result + Objects.hashCode(endpointTrait);
+        result = 31 * result + Boolean.hashCode(httpChecksumRequired);
+        result = 31 * result + Objects.hashCode(httpChecksum);
+        result = 31 * result + Objects.hashCode(requestcompression);
+        result = 31 * result + Objects.hashCode(staticContextParams);
+        result = 31 * result + Objects.hashCode(operationContextParams);
+        result = 31 * result + Boolean.hashCode(unsignedPayload);
+        return result;
     }
 }

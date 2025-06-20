@@ -61,6 +61,10 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.rules.testing.AsyncTestCase;
@@ -445,6 +449,20 @@ public class EndpointRulesClientTestSpec implements ClassSpec {
         if (opParams != null) {
             opParams.forEach((n, v) -> {
                 MemberModel memberModel = opModel.getInputShape().getMemberByC2jName(n);
+
+                if (memberModel == null) {
+                    String detailMsg = String.format("Endpoint test definition references member '%s' on the input shape '%s' "
+                                                     + "but no such member is defined.", n, opModel.getInputShape().getC2jName());
+                    ValidationEntry entry =
+                        new ValidationEntry()
+                            .withSeverity(ValidationErrorSeverity.DANGER)
+                            .withErrorId(ValidationErrorId.UNKNOWN_SHAPE_MEMBER)
+                            .withDetailMessage(detailMsg);
+
+                    throw ModelInvalidException.builder()
+                                               .validationEntries(Collections.singletonList(entry))
+                                               .build();
+                }
                 CodeBlock memberValue = createMemberValue(memberModel, v);
                 b.add(".$N($L)", memberModel.getFluentSetterMethodName(), memberValue);
             });

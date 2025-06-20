@@ -29,7 +29,12 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +57,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointRulesSpecUtils {
+    private static final String RULES_ENGINE_RESOURCE_FILES_PREFIX = "software/amazon/awssdk/codegen/rules/";
     private final IntermediateModel intermediateModel;
 
     public EndpointRulesSpecUtils(IntermediateModel intermediateModel) {
@@ -213,11 +219,40 @@ public class EndpointRulesSpecUtils {
 
     public List<String> rulesEngineResourceFiles() {
         URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
+
+        // This would happen if the classes aren't loaded from a JAR, e.g. when unit testing
+        if (!currentJarUrl.toString().endsWith(".jar")) {
+            return rulesEngineFilesFromDirectory(currentJarUrl);
+        }
+
         try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
             return jarFile.stream()
                           .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules/"))
+                          .filter(e -> e.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
                           .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    public List<String> rulesEngineFilesFromDirectory(URL location) {
+        URI locationUri;
+        try {
+            locationUri = location.toURI();
+            if (!"file".equals(locationUri.getScheme())) {
+                throw new RuntimeException("Expected location to be a directory");
+            }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Path directory = Paths.get(locationUri);
+            return Files.walk(directory)
+                        // Remove the root directory if the classes, paths are expected to be relative to this directory
+                        .map(f -> directory.relativize(f).toString())
+                        .filter(f -> f.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
+                        .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
