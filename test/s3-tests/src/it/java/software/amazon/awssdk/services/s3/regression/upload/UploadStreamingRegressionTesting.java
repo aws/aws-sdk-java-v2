@@ -116,8 +116,9 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         ResponseInputStream<GetObjectResponse> response = s3.getObject(req -> req.checksumMode(ChecksumMode.ENABLED)
                                                                                  .key(key)
                                                                                  .bucket(bucket));
-        if (response.response().checksumCRC32() != null) {
-            assertThat(response.response().checksumCRC32()).isEqualTo(expectedCRC32);
+        String crc32 = response.response().checksumCRC32();
+        if (crc32 != null) {
+            assertThat(crc32).isEqualTo(expectedCRC32);
         }
 
     }
