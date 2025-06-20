@@ -90,7 +90,13 @@ public abstract class BaseS3RegressionTest {
     public void methodCleanup() {
         bucketCleanup.forEach((bt, keys) -> {
             String bucket = bucketForType(bt);
-            keys.forEach(k -> s3.deleteObject(r -> r.bucket(bucket).key(k)));
+            keys.forEach(k -> {
+                try {
+                    s3.deleteObject(r -> r.bucket(bucket).key(k));
+                } catch (Exception e) {
+                    LOG.error(() -> String.format("Error in cleaning for bucket %s, key: %s: %s", bucket, k, e.getMessage()));
+                }
+            });
         });
 
         bucketCleanup.clear();
