@@ -64,6 +64,7 @@ public final class HttpCredentialsLoader {
             JsonNode secretKey = node.get("SecretAccessKey");
             JsonNode token = node.get("Token");
             JsonNode expiration = node.get("Expiration");
+            JsonNode accountId = node.get("AccountId");
 
             Validate.notNull(accessKey, "Failed to load access key from metadata service.");
             Validate.notNull(secretKey, "Failed to load secret key from metadata service.");
@@ -72,6 +73,7 @@ public final class HttpCredentialsLoader {
                                          secretKey.text(),
                                          token != null ? token.text() : null,
                                          expiration != null ? expiration.text() : null,
+                                         accountId != null ? accountId.text() : null,
                                          providerName);
         } catch (SdkClientException e) {
             throw e;
@@ -89,12 +91,15 @@ public final class HttpCredentialsLoader {
         private final String token;
         private final Instant expiration;
         private final String providerName;
+        private final String accountId;
 
-        private LoadedCredentials(String accessKeyId, String secretKey, String token, String expiration, String providerName) {
+        private LoadedCredentials(String accessKeyId, String secretKey, String token,
+                                  String expiration, String accountId, String providerName) {
             this.accessKeyId = Validate.paramNotBlank(accessKeyId, "accessKeyId");
             this.secretKey = Validate.paramNotBlank(secretKey, "secretKey");
             this.token = token;
             this.expiration = expiration == null ? null : parseExpiration(expiration);
+            this.accountId = accountId;
             this.providerName = providerName;
         }
 
@@ -105,11 +110,13 @@ public final class HttpCredentialsLoader {
                                         .secretAccessKey(secretKey)
                                         .sessionToken(token)
                                         .providerName(providerName)
+                                        .accountId(accountId)
                                         .build() :
                    AwsBasicCredentials.builder()
                                       .accessKeyId(accessKeyId)
                                       .secretAccessKey(secretKey)
                                       .providerName(providerName)
+                                      .accountId(accountId)
                                       .build();
         }
 

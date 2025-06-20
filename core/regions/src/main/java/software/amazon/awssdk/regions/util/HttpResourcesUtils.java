@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.internal.util.ConnectionUtils;
@@ -118,9 +119,10 @@ public final class HttpResourcesUtils {
                     return IoUtils.toUtf8String(inputStream);
                 } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
                     // This is to preserve existing behavior of EC2 Instance metadata service.
-                    throw SdkClientException.builder()
-                                            .message("The requested metadata is not found at " + connection.getURL())
-                                            .build();
+                    throw Ec2MetadataClientException.builder()
+                                                    .statusCode(404)
+                                                    .message("The requested metadata is not found at " + connection.getURL())
+                                                    .build();
                 } else {
                     if (!endpointProvider.retryPolicy().shouldRetry(retriesAttempted++,
                                                                     ResourcesEndpointRetryParameters.builder()
