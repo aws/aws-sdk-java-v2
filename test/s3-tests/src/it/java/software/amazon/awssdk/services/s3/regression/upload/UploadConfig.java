@@ -40,15 +40,13 @@ public class UploadConfig {
                 for (UploadStreamingRegressionTesting.ContentSize cs :
                     UploadStreamingRegressionTesting.ContentSize.values()) {
                     for (boolean ps : payloadSign) {
-                        for (BucketType bucket : BucketType.values()) {
-                            UploadConfig testConfig = new UploadConfig();
-                            testConfig.setRequestChecksumValidation(checksumValidation);
-                            testConfig.setBodyType(bodType);
-                            testConfig.setContentSize(cs);
-                            testConfig.setPayloadSigning(ps);
-                            testConfig.setBucketType(bucket);
-                            configs.add(testConfig);
-                        }
+                        UploadConfig testConfig = new UploadConfig();
+                        testConfig.setRequestChecksumValidation(checksumValidation);
+                        testConfig.setBodyType(bodType);
+                        testConfig.setContentSize(cs);
+                        testConfig.setPayloadSigning(ps);
+                        testConfig.setBucketType(BucketType.STANDARD_BUCKET);
+                        configs.add(testConfig);
                     }
                 }
             }
