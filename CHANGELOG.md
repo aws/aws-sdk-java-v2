@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.68__ __2025-06-20__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds a new SPECIFIED_OPTIMAL option for handling DDS when using DVB-Sub with high resolution video.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Quality now provides aggregated metrics in evaluation results when publishAggregatedMetrics with row-level results are enabled. These metrics include summary statistics showing total counts of processed, passed, and failed rows and rules in a single view.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for tiers in Content Filters and Denied Topics for Amazon Bedrock Guardrails.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Add ECS support for Windows Server 2025
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Geocode, ReverseGeocode, and GetPlace APIs added Intersections and SecondaryAddresses. To use, add to the AdditionalFeatures list in your request. This provides info about nearby intersections and secondary addresses that are associated with a main address. Also added MainAddress and ParsedQuery.
+
 # __2.31.67__ __2025-06-19__
 ## __AWS Lambda__
   - ### Features
