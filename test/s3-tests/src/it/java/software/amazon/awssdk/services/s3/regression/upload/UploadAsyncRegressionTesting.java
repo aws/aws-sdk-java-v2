@@ -68,7 +68,8 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // Async java based clients don't currently support unknown content-length bodies
-        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH,
+        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH
+                                || config.getBodyType() == BodyType.INPUTSTREAM_NO_LENGTH,
                                 "Async Java based support unknown content length");
 
         LOG.info(() -> "Running UploadAsyncRegressionTesting putObject with config: " + config);
