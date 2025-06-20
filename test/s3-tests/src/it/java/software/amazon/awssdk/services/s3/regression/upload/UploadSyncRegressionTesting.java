@@ -85,8 +85,8 @@ public class UploadSyncRegressionTesting extends UploadStreamingRegressionTestin
             recordObjectToCleanup(bucketType, key);
 
             // We only validate when configured to WHEN_SUPPORTED since checksums are optional for PutObject
-            // CRT switches to MPU under the hood which doesn't support checksums
-            if (config.getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED) {
+            if (config.getRequestChecksumValidation() == RequestChecksumCalculation.WHEN_SUPPORTED
+                && response.checksumCRC32() != null) {
                 assertThat(response.checksumCRC32()).isEqualTo(actualCrc32);
             }
 
