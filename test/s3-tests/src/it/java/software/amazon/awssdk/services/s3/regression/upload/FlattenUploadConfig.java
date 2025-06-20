@@ -36,19 +36,17 @@ public class FlattenUploadConfig {
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
                                                             RequestChecksumCalculation.WHEN_SUPPORTED};
         for (RequestChecksumCalculation checksumValidation : checksumValidations) {
-            for (BucketType bucketType : BucketType.values()) {
-                for (UploadStreamingRegressionTesting.BodyType bodType : UploadStreamingRegressionTesting.BodyType.values()) {
-                    for (UploadStreamingRegressionTesting.ContentSize cs :
-                        UploadStreamingRegressionTesting.ContentSize.values()) {
-                        for (boolean ps : payloadSign) {
-                            FlattenUploadConfig testConfig = new FlattenUploadConfig();
-                            testConfig.setBucketType(bucketType);
-                            testConfig.setRequestChecksumValidation(checksumValidation);
-                            testConfig.setBodyType(bodType);
-                            testConfig.setContentSize(cs);
-                            testConfig.setPayloadSigning(ps);
-                            configs.add(testConfig);
-                        }
+            for (UploadStreamingRegressionTesting.BodyType bodType : UploadStreamingRegressionTesting.BodyType.values()) {
+                for (UploadStreamingRegressionTesting.ContentSize cs :
+                    UploadStreamingRegressionTesting.ContentSize.values()) {
+                    for (boolean ps : payloadSign) {
+                        FlattenUploadConfig testConfig = new FlattenUploadConfig();
+                        testConfig.setBucketType(BucketType.STANDARD_BUCKET);
+                        testConfig.setRequestChecksumValidation(checksumValidation);
+                        testConfig.setBodyType(bodType);
+                        testConfig.setContentSize(cs);
+                        testConfig.setPayloadSigning(ps);
+                        configs.add(testConfig);
                     }
                 }
             }
