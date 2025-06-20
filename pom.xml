@@ -894,6 +894,55 @@
         </profile>
 
         <profile>
+            <id>s3-regression-tests</id>
+            <activation>
+                <property>
+                    <name>doRelease</name>
+                </property>
+            </activation>
+
+            <properties>
+                <checkstyle.skip>true</checkstyle.skip>
+                <spotbugs.skip>true</spotbugs.skip>
+                <skip.unit.tests>true</skip.unit.tests>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${maven-failsafe-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- this test needs a lot of memory, we need to increase java heap size or we get OOM in codebuild -->
+                                    <argLine>-Xmx12g -Xms4g</argLine>
+                                    <includes>
+                                        <include>**/*${regression.test}.java</include>
+                                    </includes>
+                                    <trimStackTrace>false</trimStackTrace>
+                                    <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+                                    <testClassesDirectory>${project.build.testOutputDirectory}</testClassesDirectory>
+                                    <parallel>methods</parallel>
+                                    <threadCount>8</threadCount>
+                                    <perCoreThreadCount>false</perCoreThreadCount>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
             <id>endpoint-tests</id>
             <activation>
                 <property>
