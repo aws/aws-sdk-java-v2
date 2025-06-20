@@ -24,7 +24,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.core.rules.testing.BaseVersionCompatibilityTest;
 
 public class VersionCompatibilityTestSpec implements ClassSpec {
     private final IntermediateModel model;
@@ -36,7 +35,6 @@ public class VersionCompatibilityTestSpec implements ClassSpec {
     @Override
     public TypeSpec poetSpec() {
         return PoetUtils.createClassBuilder(className())
-                        .superclass(BaseVersionCompatibilityTest.class)
                         .addModifiers(Modifier.PUBLIC)
                         .addMethod(compatibilityTest())
                         .build();
@@ -53,11 +51,18 @@ public class VersionCompatibilityTestSpec implements ClassSpec {
             "ServiceVersionInfo"
         );
 
+        ClassName versionInfo = ClassName.get("software.amazon.awssdk.core.util", "VersionInfo");
+        ClassName assertions = ClassName.get("org.assertj.core.api", "Assertions");
+
         return MethodSpec.methodBuilder("checkCompatibility")
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Test.class)
                          .returns(void.class)
-                         .addStatement("verifyVersionCompatibility($T.VERSION)", serviceVersionInfo)
+                         .addStatement("$T.assertThat($T.SDK_VERSION).isEqualTo($T.VERSION)",
+                                       assertions,
+                                       versionInfo,
+                                       serviceVersionInfo)
                          .build();
     }
+
 }
