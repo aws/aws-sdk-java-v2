@@ -20,7 +20,6 @@ import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeAsyncClient;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.makeSyncClient;
-import static software.amazon.awssdk.services.s3.regression.TestConfig.testConfigs;
 
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
@@ -63,7 +62,6 @@ import software.amazon.awssdk.services.s3.regression.BaseS3RegressionTest;
 import software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils;
 import software.amazon.awssdk.services.s3.regression.S3ClientFlavor;
 import software.amazon.awssdk.services.s3.regression.TestCallable;
-import software.amazon.awssdk.services.s3.regression.TestConfig;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -111,7 +109,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         ASYNC_REQUEST_BODY_EXECUTOR.shutdownNow();
     }
 
-    protected void verifyChecksumResponsePayload(FlattenUploadConfig config, String key, String expectedCRC32) {
+    protected void verifyChecksumResponsePayload(UploadConfig config, String key, String expectedCRC32) {
         String bucket = bucketForType(config.getBucketType());
         ResponseInputStream<GetObjectResponse> response = s3.getObject(req -> req.checksumMode(ChecksumMode.ENABLED)
                                                                                  .key(key)
@@ -125,7 +123,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
 
     protected TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request,
                                                             TestRequestBody requestBody,
-                                                            FlattenUploadConfig config,
+                                                            UploadConfig config,
                                                             ClientOverrideConfiguration overrideConfiguration) {
         S3Client s3Client = makeSyncClient(config, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
@@ -143,7 +141,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     protected TestCallable<PutObjectResponse> callPutObject(PutObjectRequest request,
                                                           S3ClientFlavor flavor,
                                                           TestAsyncBody requestBody,
-                                                          FlattenUploadConfig config,
+                                                          UploadConfig config,
                                                           ClientOverrideConfiguration overrideConfiguration) {
         S3AsyncClient s3Client = makeAsyncClient(config, flavor, overrideConfiguration, REGION, CREDENTIALS_PROVIDER_CHAIN);
         Callable<PutObjectResponse> callable = () -> {
@@ -164,7 +162,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     protected TestCallable<PutObjectResponse> callTmUpload(PutObjectRequest request,
                                                          S3ClientFlavor flavor,
                                                          TestAsyncBody requestBody,
-                                                         FlattenUploadConfig config,
+                                                         UploadConfig config,
                                                          ClientOverrideConfiguration overrideConfiguration) {
         S3TransferManager transferManager = S3ChecksumsTestUtils.makeTm(config, flavor, overrideConfiguration,
                                                                         REGION, CREDENTIALS_PROVIDER_CHAIN);

@@ -21,7 +21,7 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.services.s3.regression.BucketType;
 import software.amazon.awssdk.utils.ToString;
 
-public class FlattenUploadConfig {
+public class UploadConfig {
     private BucketType bucketType;
     private boolean forcePathStyle;
     private RequestChecksumCalculation requestChecksumValidation;
@@ -29,8 +29,8 @@ public class FlattenUploadConfig {
     private UploadStreamingRegressionTesting.ContentSize contentSize;
     private boolean payloadSigning;
 
-    public static List<FlattenUploadConfig> testConfigs() {
-        List<FlattenUploadConfig> configs = new ArrayList<>();
+    public static List<UploadConfig> testConfigs() {
+        List<UploadConfig> configs = new ArrayList<>();
 
         boolean[] payloadSign = {true, false};
         RequestChecksumCalculation[] checksumValidations = {RequestChecksumCalculation.WHEN_REQUIRED,
@@ -40,13 +40,15 @@ public class FlattenUploadConfig {
                 for (UploadStreamingRegressionTesting.ContentSize cs :
                     UploadStreamingRegressionTesting.ContentSize.values()) {
                     for (boolean ps : payloadSign) {
-                        FlattenUploadConfig testConfig = new FlattenUploadConfig();
-                        testConfig.setBucketType(BucketType.STANDARD_BUCKET);
-                        testConfig.setRequestChecksumValidation(checksumValidation);
-                        testConfig.setBodyType(bodType);
-                        testConfig.setContentSize(cs);
-                        testConfig.setPayloadSigning(ps);
-                        configs.add(testConfig);
+                        for (BucketType bucket : BucketType.values()) {
+                            UploadConfig testConfig = new UploadConfig();
+                            testConfig.setRequestChecksumValidation(checksumValidation);
+                            testConfig.setBodyType(bodType);
+                            testConfig.setContentSize(cs);
+                            testConfig.setPayloadSigning(ps);
+                            testConfig.setBucketType(bucket);
+                            configs.add(testConfig);
+                        }
                     }
                 }
             }

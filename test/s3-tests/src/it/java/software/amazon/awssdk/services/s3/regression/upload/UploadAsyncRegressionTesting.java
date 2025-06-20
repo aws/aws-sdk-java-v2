@@ -24,9 +24,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
 import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,14 +42,14 @@ import software.amazon.awssdk.utils.Logger;
 public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesting {
     private static final Logger LOG = Logger.loggerFor(UploadAsyncRegressionTesting.class);
 
-    public static List<FlattenUploadConfig> testConfigs() {
-        return FlattenUploadConfig.testConfigs();
+    public static List<UploadConfig> testConfigs() {
+        return UploadConfig.testConfigs();
     }
 
     @ParameterizedTest
     @MethodSource("testConfigs")
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void putObject(FlattenUploadConfig config) throws Exception {
+    void putObject(UploadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients

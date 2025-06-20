@@ -38,14 +38,14 @@ import software.amazon.awssdk.utils.Logger;
 public class UploadCrtRegressionTesting extends UploadStreamingRegressionTesting {
     private static final Logger LOG = Logger.loggerFor(UploadCrtRegressionTesting.class);
 
-    public static List<FlattenUploadConfig> testConfigs() {
-        return FlattenUploadConfig.testConfigs();
+    public static List<UploadConfig> testConfigs() {
+        return UploadConfig.testConfigs();
     }
 
     @ParameterizedTest
     @MethodSource("testConfigs")
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void putObject(FlattenUploadConfig config) throws Exception {
+    void putObject(UploadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH,

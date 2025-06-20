@@ -43,9 +43,8 @@ import software.amazon.awssdk.services.s3.model.DataRedundancy;
 import software.amazon.awssdk.services.s3.model.LocationInfo;
 import software.amazon.awssdk.services.s3.model.LocationType;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.regression.upload.FlattenUploadConfig;
+import software.amazon.awssdk.services.s3.regression.upload.UploadConfig;
 import software.amazon.awssdk.services.s3control.S3ControlClient;
-import software.amazon.awssdk.services.s3control.model.CloudWatchMetrics;
 import software.amazon.awssdk.services.s3control.model.CreateMultiRegionAccessPointRequest;
 import software.amazon.awssdk.services.s3control.model.GetMultiRegionAccessPointResponse;
 import software.amazon.awssdk.services.s3control.model.MultiRegionAccessPointStatus;
@@ -198,7 +197,7 @@ public final class S3ChecksumsTestUtils {
                                 "Path style doesn't work with ARN type buckets");
     }
 
-    public static void assumeNotAccessPointWithPathStyle(FlattenUploadConfig config) {
+    public static void assumeNotAccessPointWithPathStyle(UploadConfig config) {
         BucketType bucketType = config.getBucketType();
         Assumptions.assumeFalse(config.isForcePathStyle() && bucketType.isArnType(),
                                 "Path style doesn't work with ARN type buckets");
@@ -276,7 +275,7 @@ public final class S3ChecksumsTestUtils {
         }
     }
 
-    public static S3Client makeSyncClient(FlattenUploadConfig config, ClientOverrideConfiguration overrideConfiguration,
+    public static S3Client makeSyncClient(UploadConfig config, ClientOverrideConfiguration overrideConfiguration,
                                           Region region, AwsCredentialsProvider provider) {
         return S3Client.builder()
                        .overrideConfiguration(overrideConfiguration)
@@ -295,7 +294,7 @@ public final class S3ChecksumsTestUtils {
             .build();
     }
 
-    public static S3AsyncClient makeAsyncClient(FlattenUploadConfig config,
+    public static S3AsyncClient makeAsyncClient(UploadConfig config,
                                                 S3ClientFlavor flavor,
                                                 ClientOverrideConfiguration overrideConfiguration,
                                                 Region region, AwsCredentialsProvider provider) {
@@ -330,7 +329,7 @@ public final class S3ChecksumsTestUtils {
         }
     }
 
-    public static S3TransferManager makeTm(FlattenUploadConfig config,
+    public static S3TransferManager makeTm(UploadConfig config,
                                            S3ClientFlavor flavor,
                                            ClientOverrideConfiguration overrideConfiguration,
                                            Region region, AwsCredentialsProvider provider) {

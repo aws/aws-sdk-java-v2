@@ -41,14 +41,14 @@ import software.amazon.awssdk.utils.Logger;
 public class UploadSyncRegressionTesting extends UploadStreamingRegressionTesting {
     private static final Logger LOG = Logger.loggerFor(UploadSyncRegressionTesting.class);
 
-    public static List<FlattenUploadConfig> testConfigs() {
-        return FlattenUploadConfig.testConfigs();
+    public static List<UploadConfig> testConfigs() {
+        return UploadConfig.testConfigs();
     }
 
     @ParameterizedTest
     @MethodSource("testConfigs")
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
-    void putObject(FlattenUploadConfig config) throws Exception {
+    void putObject(UploadConfig config) throws Exception {
         assumeNotAccessPointWithPathStyle(config);
 
         // TODO connection acquire timeout when RequestBody.fromRemainingByteBuffer is used with RequestChecksumCalculation
