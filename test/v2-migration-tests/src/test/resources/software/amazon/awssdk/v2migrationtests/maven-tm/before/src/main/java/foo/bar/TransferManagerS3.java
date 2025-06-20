@@ -23,12 +23,17 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.MultipleFileDownload;
+import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.PersistableDownload;
+import com.amazonaws.services.s3.transfer.PersistableTransfer;
 import com.amazonaws.services.s3.transfer.PersistableUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.amazonaws.services.s3.transfer.Upload;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class TransferManagerS3 {
 
@@ -78,8 +83,19 @@ public class TransferManagerS3 {
         tm.shutdownNow();
     }
 
+    void uploadDirectory(TransferManager tm) {
+        MultipleFileUpload fileUpload1 = tm.uploadDirectory("bucket", "prefix", file, true);
+    }
+
     void resume(TransferManager tm, PersistableDownload persistableDownload, PersistableUpload persistableUpload) {
         Download download = tm.resumeDownload(persistableDownload);
         Upload upload = tm.resumeUpload(persistableUpload);
+    }
+
+    void POJO_methods(PersistableTransfer transfer, OutputStream outputStream, TransferProgress progress) throws IOException {
+        String s = transfer.serialize();
+        transfer.serialize(outputStream);
+
+        long bytesTransferred = progress.getBytesTransferred();
     }
 }
