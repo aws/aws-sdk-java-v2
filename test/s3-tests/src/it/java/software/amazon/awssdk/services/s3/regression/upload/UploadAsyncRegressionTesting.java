@@ -138,7 +138,9 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
                     }
                 }
             }
-
+        } catch (Exception e) {
+            LOG.info(() -> String.format("Error while executing %s. Error message: %s", config, e.getMessage()));
+            throw e;
         } finally {
             if (callable != null) {
                 callable.client().close();
