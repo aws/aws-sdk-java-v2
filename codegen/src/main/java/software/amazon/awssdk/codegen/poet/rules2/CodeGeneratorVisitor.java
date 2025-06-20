@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -36,14 +37,17 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private final RuleRuntimeTypeMirror typeMirror;
     private final SymbolTable symbolTable;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
+    private final Map<String, ComputeScopeTree.Scope> ruleIdToScope;
 
     public CodeGeneratorVisitor(RuleRuntimeTypeMirror typeMirror,
                                 SymbolTable symbolTable,
                                 Map<String, KeyTypePair> knownEndpointAttributes,
+                                Map<String, ComputeScopeTree.Scope> ruleIdToScope,
                                 CodeBlock.Builder builder) {
         this.builder = builder;
         this.symbolTable = symbolTable;
         this.knownEndpointAttributes = knownEndpointAttributes;
+        this.ruleIdToScope = ruleIdToScope;
         this.typeMirror = typeMirror;
     }
 
@@ -200,28 +204,14 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
 
     @Override
     public Void visitLetExpression(LetExpression expr) {
-        for (String key : expr.bindings().keySet()) {
-            RuleType type = symbolTable.locals().get(key);
-            builder.addStatement("$T $L = null", type.javaType(), key);
-        }
-
-        int count = 0;
         for (Map.Entry<String, RuleExpression> kvp : expr.bindings().entrySet()) {
             String k = kvp.getKey();
             RuleExpression v = kvp.getValue();
-            builder.add("if (");
-            builder.add("($L = ", k);
+            RuleType type = symbolTable.locals().get(k);
+            builder.add("$T $L = ", type.javaType(), k);
             v.accept(this);
-            builder.add(") != null");
-
-            builder.beginControlFlow(")");
-            builder.addStatement("locals = locals.toBuilder().$1L($1L).build()", k);
-
-            if (++count < expr.bindings().size()) {
-                builder.nextControlFlow("else");
-                builder.addStatement("return RuleResult.carryOn()");
-                builder.endControlFlow();
-            }
+            builder.addStatement("");
+            builder.beginControlFlow("if ($L != null)", k);
         }
         return null;
     }
@@ -239,40 +229,101 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     }
 
     private void conditionsEpilogue(RuleSetExpression expr) {
-        int blocksToClose = expr.conditions().size();
-        for (int idx = 0; idx < blocksToClose; ++idx) {
-            builder.endControlFlow();
+        for (RuleExpression condition : expr.conditions()) {
+            if (condition.kind() == RuleExpression.RuleExpressionKind.LET) {
+                LetExpression let = (LetExpression) condition;
+                for (int x = 0; x < let.bindings().size(); x++) {
+                    builder.endControlFlow();
+                }
+            } else {
+                builder.endControlFlow();
+            }
         }
-        if (!expr.conditions().isEmpty()) {
+        if (needsReturn(expr)) {
             builder.addStatement("return $T.carryOn()", typeMirror.rulesResult().type());
         }
+    }
+
+    private boolean needsReturn(RuleSetExpression expr) {
+        // If the expression can be inlined, then it doesn't live in
+        // its own method, no return at the end required
+        if (canBeInlined(expr)) {
+            return false;
+        }
+        // If the expression has conditions all be be wrapped in
+        // if-blocks, thus at the end of the method we need to return
+        // carryOn()
+        if (!expr.conditions().isEmpty()) {
+            return true;
+        }
+        // If the expression doesn't have any conditions, and doesn't
+        // have any children then we need to return carryOn(). This
+        // case SHOULD NOT happen but we assume below that there are
+        // children, thus adding the test here.
+        if (expr.children().isEmpty()) {
+            return true;
+        }
+        // We have children, check the last one.
+        int size = expr.children().size();
+        RuleSetExpression child = expr.children().get(size - 1);
+        // If a tree then we don't need a return.
+        if (child.isTree()) {
+            return false;
+        }
+        // The child is not a tree, so it was inlined. Check if it
+        // does have any conditions, if it so, its body will be inside
+        // a block already so we need to return after it.
+        return !child.conditions().isEmpty();
     }
 
     private void codegenTreeBody(RuleSetExpression expr) {
         List<RuleSetExpression> children = expr.children();
         int size = children.size();
+        boolean isFirst = true;
         for (int idx = 0; idx < size; ++idx) {
             RuleSetExpression child = children.get(idx);
-            boolean isLast = idx == size - 1;
-            if (isLast) {
-                builder.addStatement("return $L(params, locals)",
-                                     child.ruleId());
+            if (canBeInlined(child)) {
+                child.accept(this);
                 continue;
             }
-            boolean isFirst = idx == 0;
+            boolean isLast = idx == size - 1;
+            if (isLast) {
+                builder.addStatement("return $L($L)",
+                                     child.ruleId(),
+                                     callParams(child.ruleId()));
+                continue;
+            }
+
             if (isFirst) {
-                builder.addStatement("$T result = $L(params, locals)",
+                isFirst = false;
+                builder.addStatement("$T result = $L($L)",
                                      typeMirror.rulesResult().type(),
-                                     child.ruleId());
+                                     child.ruleId(),
+                                     callParams(child.ruleId()));
             } else {
-                builder.addStatement("result = $L(params, locals)",
-                                     child.ruleId());
+                builder.addStatement("result = $L($L)",
+                                     child.ruleId(),
+                                     callParams(child.ruleId()));
             }
             builder.beginControlFlow("if (result.isResolved())")
                    .addStatement("return result")
                    .endControlFlow();
         }
+    }
 
+    private boolean canBeInlined(RuleSetExpression child) {
+        return !child.isTree();
+    }
+
+    private String callParams(String ruleId) {
+        ComputeScopeTree.Scope scope = ruleIdToScope.get(ruleId);
+        String args = scope.usesLocals().stream()
+                           .filter(a -> !scope.defines().contains(a))
+                           .collect(Collectors.joining(", "));
+        if (args.isEmpty()) {
+            return "params";
+        }
+        return "params, " + args;
     }
 
     @Override
@@ -384,7 +435,6 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
         v.accept(this);
         builder.add(")");
     }
-
 
     public CodeBlock.Builder builder() {
         return builder;

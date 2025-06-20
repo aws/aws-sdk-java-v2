@@ -61,14 +61,15 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c
-            .option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-            .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-            .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-            .lazyOption(AwsClientOption.TOKEN_PROVIDER,
-                        p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-            .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-            .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner()));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
+             .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner());
+        });
     }
 
     @Override
