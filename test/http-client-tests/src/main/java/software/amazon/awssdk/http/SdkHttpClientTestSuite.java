@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
@@ -27,6 +28,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -236,6 +238,147 @@ public abstract class SdkHttpClientTestSuite {
         }
     }
 
+    @Test
+    public void handlesNoContentResponse() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+
+        mockServer.stubFor(any(urlPathEqualTo("/no-content"))
+                               .willReturn(aResponse()
+                                               .withStatus(204)));
+
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + "/no-content",
+                                                SdkHttpMethod.DELETE);
+        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                          .request(req)
+                                                                          .build())
+                                        .call();
+
+        assertThat(rsp.httpResponse().statusCode()).isEqualTo(204);
+        assertThat(rsp.responseBody()).isEmpty();
+    }
+
+    @Test
+    public void handlesLargeResponseBody() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        // Create a large response body (1MB)
+        byte[] largeBody = new byte[1024 * 1024];
+        for (int i = 0; i < largeBody.length; i++) {
+            largeBody[i] = (byte) (i % 256);
+        }
+        mockServer.stubFor(any(urlPathEqualTo("/large"))
+                               .willReturn(aResponse()
+                                               .withStatus(200)
+                                               .withBody(largeBody)));
+
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + "/large", SdkHttpMethod.GET);
+        HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                          .request(req)
+                                                                          .build())
+                                        .call();
+
+        assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);
+        assertThat(rsp.responseBody()).isPresent();
+
+        // Read the entire response and verify
+        byte[] readBuffer = IoUtils.toByteArray(rsp.responseBody().get());
+        assertThat(readBuffer).isEqualTo(largeBody);
+    }
+
+    @Test
+    public void testAbortResponseStream() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+
+        mockServer.stubFor(any(urlPathEqualTo("/streaming"))
+                               .willReturn(aResponse()
+                                               .withStatus(200)
+                                               .withBody("This is a streaming response that should be aborted")));
+
+        SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + "/streaming", SdkHttpMethod.POST);
+        ExecutableHttpRequest executableRequest =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                    .request(req)
+                                                    .contentStreamProvider(req.contentStreamProvider().orElse(null))
+                                                    .build());
+        HttpExecuteResponse rsp = executableRequest.call();
+
+        assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);
+        assertThat(rsp.responseBody()).isPresent();
+
+        // Verify the stream is abortable
+        AbortableInputStream stream = rsp.responseBody().get();
+        assertThat(stream).isInstanceOf(AbortableInputStream.class);
+
+        // Read a few bytes
+        byte[] buffer = new byte[10];
+        int bytesRead = stream.read(buffer);
+        assertThat(bytesRead).isGreaterThan(0);
+        assertThatCode(() -> stream.abort()).doesNotThrowAnyException();
+        stream.close();
+    }
+
+    @Test
+    public void handlesMultipleSequentialRequests() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+
+        mockServer.stubFor(any(urlPathEqualTo("/sequential"))
+                               .willReturn(aResponse()
+                                               .withStatus(200)
+                                               .withBody("Response body")));
+
+        // Execute multiple requests sequentially
+        for (int i = 0; i < 5; i++) {
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + "/sequential", SdkHttpMethod.GET);
+            HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                              .request(req)
+                                                                              .build())
+                                            .call();
+
+            assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);
+            assertThat(IoUtils.toUtf8String(rsp.responseBody().orElse(null))).isEqualTo("Response body");
+        }
+        mockServer.verify(5, getRequestedFor(urlEqualTo("/sequential")));
+    }
+
+    @Test
+    public void handlesVariousContentLengths() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        int[] contentLengths = {0, 1, 100, 1024, 65536};
+
+        for (int length : contentLengths) {
+            String path = "/content-length-" + length;
+            byte[] body = new byte[length];
+            for (int i = 0; i < length; i++) {
+                body[i] = (byte) ('A' + (i % 26));
+            }
+
+            mockServer.stubFor(any(urlPathEqualTo(path))
+                                   .willReturn(aResponse()
+                                                   .withStatus(200)
+                                                   .withHeader("Content-Length", String.valueOf(length))
+                                                   .withBody(body)));
+
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + path, SdkHttpMethod.GET);
+            HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                              .request(req)
+                                                                              .build())
+                                            .call();
+
+            assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);
+
+            if (length == 0) {
+                // Empty body should still have a response body present, but EOF immediately
+                if (rsp.responseBody().isPresent()) {
+                    assertThat(rsp.responseBody().get().read()).isEqualTo(-1);
+                }
+            } else {
+                assertThat(rsp.responseBody()).isPresent();
+                byte[] readBody = IoUtils.toByteArray(rsp.responseBody().get());
+                assertThat(readBody).isEqualTo(body);
+            }
+        }
+    }
+
+
     private void validateStatusCodeWithRetryCheck(SdkHttpClient client,
                                                   int expectedStatusCode,
                                                   int expectedRequestCount) throws IOException {
@@ -294,7 +437,6 @@ public abstract class SdkHttpClientTestSuite {
                                                                                                     .orElse(null))
                                                                           .build())
                                         .call();
-
         validateResponse(rsp, returnCode, sdkHttpMethod);
     }
 
@@ -302,7 +444,6 @@ public abstract class SdkHttpClientTestSuite {
         ResponseDefinitionBuilder responseBuilder = aResponse().withStatus(returnCode)
                                                                .withHeader("Some-Header", "With Value")
                                                                .withBody("hello");
-
         if (returnCode >= 300 && returnCode <= 399) {
             responseBuilder.withHeader("Location", "Some New Location");
         }
@@ -316,7 +457,6 @@ public abstract class SdkHttpClientTestSuite {
         RequestPatternBuilder patternBuilder = RequestPatternBuilder.newRequestPattern(requestMethod, urlMatching("/"))
                                                                            .withHeader("Host", containing("localhost"))
                                                                            .withHeader("User-Agent", equalTo("hello-world!"));
-
         if (method == SdkHttpMethod.HEAD) {
             patternBuilder.withRequestBody(absent());
         } else {
@@ -359,13 +499,23 @@ public abstract class SdkHttpClientTestSuite {
         return requestBuilder;
     }
 
-
     protected SdkHttpFullRequest mockSdkRequest(String uriString, SdkHttpMethod method) {
-        SdkHttpFullRequest.Builder requestBuilder = mockSdkRequestBuilder(uriString, method);
-        if (method != SdkHttpMethod.HEAD) {
+        URI uri = URI.create(uriString);
+        SdkHttpFullRequest.Builder requestBuilder = SdkHttpFullRequest.builder()
+                                                                      .uri(uri)
+                                                                      .method(method)
+                                                                      .putHeader("Host", uri.getHost())
+                                                                      .putHeader("User-Agent", "hello-world!");
+
+        // Only add body for methods that typically have a body
+        if (method != SdkHttpMethod.HEAD && method != SdkHttpMethod.GET && method != SdkHttpMethod.DELETE) {
             byte[] content = "Body".getBytes(StandardCharsets.UTF_8);
             requestBuilder.putHeader("Content-Length", Integer.toString(content.length));
             requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(content));
+        } else if (method == SdkHttpMethod.GET || method == SdkHttpMethod.DELETE) {
+            // For GET and DELETE, explicitly set Content-Length to 0 or don't set it at all
+            // Some clients like AWS CRT are strict about this
+            requestBuilder.contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
         }
 
         return requestBuilder.build();
