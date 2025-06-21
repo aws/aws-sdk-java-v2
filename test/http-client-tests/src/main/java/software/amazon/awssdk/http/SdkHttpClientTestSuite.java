@@ -294,10 +294,12 @@ public abstract class SdkHttpClientTestSuite {
                                                .withBody("This is a streaming response that should be aborted")));
 
         SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + "/streaming", SdkHttpMethod.POST);
-        ExecutableHttpRequest executableRequest = client.prepareRequest(HttpExecuteRequest.builder()
-                                                                                          .request(req)
-                                                                                          .contentStreamProvider(req.contentStreamProvider().orElse(null))
-                                                                                          .build());
+        ExecutableHttpRequest executableRequest = client.prepareRequest(
+            HttpExecuteRequest.builder()
+                              .request(req)
+                              .contentStreamProvider(req.contentStreamProvider()
+                                                        .orElse(null))
+                              .build());
         HttpExecuteResponse rsp = executableRequest.call();
 
         assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);

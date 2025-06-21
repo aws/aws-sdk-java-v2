@@ -25,7 +25,6 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -83,7 +82,6 @@ import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
-import software.amazon.awssdk.http.apache5.internal.conn.ConnectionAwareInputStream;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
@@ -94,7 +92,6 @@ import software.amazon.awssdk.http.apache5.internal.utils.Apache5Utils;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
