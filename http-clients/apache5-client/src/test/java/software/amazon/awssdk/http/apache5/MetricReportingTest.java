@@ -64,12 +64,8 @@ public class MetricReportingTest {
     @Before
     public void methodSetup() throws IOException {
 
-        ClassicHttpResponse httpResponse = new BasicClassicHttpResponse(200, "OK");
-        when(mockHttpClient.execute(any(HttpUriRequest.class), any(HttpContext.class), any(HttpClientResponseHandler.class)))
-            .thenAnswer(invocation -> {
-                HttpClientResponseHandler<HttpExecuteResponse> handler = invocation.getArgument(2);
-                return handler.handleResponse(httpResponse);
-            });
+        when(mockHttpClient.execute(any(HttpUriRequest.class), any(HttpContext.class)))
+            .thenReturn(new BasicClassicHttpResponse(200, "OK"));
 
         when(mockHttpClient.getHttpClientConnectionManager()).thenReturn(cm);
 
