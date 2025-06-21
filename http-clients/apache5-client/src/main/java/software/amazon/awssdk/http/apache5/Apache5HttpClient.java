@@ -23,6 +23,7 @@ import static software.amazon.awssdk.http.HttpMetric.PENDING_CONCURRENCY_ACQUIRE
 import static software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionRequestFactory.THREAD_LOCAL_REQUEST_METRIC_COLLECTOR;
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.security.KeyManagementException;
@@ -56,10 +57,11 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.SocketConfig;
-import org.apache.hc.core5.http.io.entity.BufferedHttpEntity;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
@@ -167,7 +169,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
                .setConnectionManager(ClientConnectionManagerFactory.wrap(cm))
                //This is done to keep backward compatibility with Apache 4.x
                .disableRedirectHandling()
-               // SDK handle retries , this we do not need the http clients to handle the reties by itself
+               // SDK handles retries , we do not need additional retries on Http clients.
                .disableAutomaticRetries();
 
         addProxyConfig(builder, configuration);
@@ -262,19 +264,13 @@ public final class Apache5HttpClient implements SdkHttpClient {
         HttpClientContext localRequestContext = Apache5Utils.newClientContext(requestConfig.proxyConfiguration());
         THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
         try {
-            return httpClient.execute(apacheRequest, localRequestContext, response -> {
-
-                // TODO : This is required since Apache5 closes streams immediately, check memory impacts because of this.
-                if (response.getEntity() != null) {
-                    response.setEntity(new BufferedHttpEntity(response.getEntity()));
-                }
-                return createResponse(response, apacheRequest);
-            });
+            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
+            // Create a connection-aware input stream that closes the response when closed
+            return createResponse(httpResponse, apacheRequest);
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
         }
     }
-
 
     private HttpUriRequestBase toApacheRequest(HttpExecuteRequest request) {
         return apacheHttpRequestFactory.create(request, requestConfig);
@@ -288,7 +284,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
      * @throws IOException If there were any problems getting any response information from the
      *                     HttpClient method object.
      */
-    private HttpExecuteResponse createResponse(ClassicHttpResponse apacheHttpResponse,
+    private HttpExecuteResponse createResponse(HttpResponse apacheHttpResponse,
                                                HttpUriRequestBase apacheRequest) throws IOException {
         SdkHttpResponse.Builder responseBuilder =
             SdkHttpResponse.builder()
@@ -302,17 +298,36 @@ public final class Apache5HttpClient implements SdkHttpClient {
             responseBuilder.appendHeader(header.getName(), header.getValue());
 
         }
-
-        AbortableInputStream responseBody = apacheHttpResponse.getEntity() != null ?
-                                            toAbortableInputStream(apacheHttpResponse, apacheRequest) : null;
-
+        AbortableInputStream responseBody = getResponseBody(apacheHttpResponse, apacheRequest);
         return HttpExecuteResponse.builder().response(responseBuilder.build()).responseBody(responseBody).build();
 
     }
 
-    private AbortableInputStream toAbortableInputStream(ClassicHttpResponse apacheHttpResponse,
+    private AbortableInputStream getResponseBody(HttpResponse apacheHttpResponse,
+                                                 HttpUriRequestBase apacheRequest) throws IOException {
+        AbortableInputStream responseBody = null;
+        if (apacheHttpResponse instanceof ClassicHttpResponse) {
+            ClassicHttpResponse classicResponse = (ClassicHttpResponse) apacheHttpResponse;
+            HttpEntity entity = classicResponse.getEntity();
+            if (entity != null) {
+                if (entity.getContentLength() == 0) {
+                    // Close immediately for empty responses
+                    classicResponse.close();
+                    responseBody = AbortableInputStream.create(new ByteArrayInputStream(new byte[0]));
+                } else {
+                    responseBody = toAbortableInputStream(classicResponse, apacheRequest);
+                }
+            } else {
+                // No entity, close the response immediately
+                classicResponse.close();
+            }
+        }
+        return responseBody;
+    }
+
+    private AbortableInputStream toAbortableInputStream(ClassicHttpResponse apacheResponse,
                                                         HttpUriRequestBase apacheRequest) throws IOException {
-        return AbortableInputStream.create(apacheHttpResponse.getEntity().getContent(), apacheRequest::abort);
+        return AbortableInputStream.create(apacheResponse.getEntity().getContent(), apacheRequest::abort);
     }
 
     private Apache5HttpRequestConfig createRequestConfig(DefaultBuilder builder,
@@ -696,16 +711,17 @@ public final class Apache5HttpClient implements SdkHttpClient {
             // TODO : Deprecated method needs to be removed with new replacements
             SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
 
-            PoolingHttpClientConnectionManager cm =
+            PoolingHttpClientConnectionManagerBuilder builder =
                 PoolingHttpClientConnectionManagerBuilder.create()
                                                          .setSSLSocketFactory(sslsf)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
-                                                         .setDnsResolver(configuration.dnsResolver)
-                                                         .setConnectionTimeToLive(
-                                                             TimeValue.of(standardOptions.get(
-                                                                 SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE).toMillis(),
-                                                                          TimeUnit.MILLISECONDS))
-                                                         .build();
+                                                         .setDnsResolver(configuration.dnsResolver);
+            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
+            if (!connectionTtl.isZero()) {
+                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+                builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
+            }
+            PoolingHttpClientConnectionManager cm = builder.build();
 
 
             cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));

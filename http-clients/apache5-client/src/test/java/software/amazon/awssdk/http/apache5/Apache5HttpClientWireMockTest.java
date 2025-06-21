@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
@@ -47,6 +48,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.HttpExecuteRequest;
+import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -54,6 +56,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.impl.ConnectionManagerAwareHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.IoUtils;
 
 @RunWith(MockitoJUnitRunner.class)
 public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
@@ -153,12 +156,6 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
         mockProxyServer.verify(2, RequestPatternBuilder.allRequests());
     }
 
-
-    @Override
-    public void connectionPoolingWorks() throws Exception {
-        // TODO : future PR will handle this.
-    }
-
     @Test
     public void overrideDnsResolver_WithDnsMatchingResolver_successful() throws Exception {
         overrideDnsResolver("magic.local.host");
@@ -177,6 +174,47 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
     @Test
     public void explicitNullDnsResolver_WithLocalhost_successful() throws Exception {
         overrideDnsResolver("localhost", true);
+    }
+
+
+
+    @Test
+    public void handlesVariousContentLengths() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        int[] contentLengths = {0, 1, 100, 1024, 65536};
+
+        for (int length : contentLengths) {
+            String path = "/content-length-" + length;
+            byte[] body = new byte[length];
+            for (int i = 0; i < length; i++) {
+                body[i] = (byte) ('A' + (i % 26));
+            }
+
+            mockServer.stubFor(any(urlPathEqualTo(path))
+                                   .willReturn(aResponse()
+                                                   .withStatus(200)
+                                                   .withHeader("Content-Length", String.valueOf(length))
+                                                   .withBody(body)));
+
+            SdkHttpFullRequest req = mockSdkRequest("http://localhost:" + mockServer.port() + path, SdkHttpMethod.GET);
+            HttpExecuteResponse rsp = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                              .request(req)
+                                                                              .build())
+                                            .call();
+
+            assertThat(rsp.httpResponse().statusCode()).isEqualTo(200);
+
+            if (length == 0) {
+                // Empty body should still have a response body present, but EOF immediately
+                if (rsp.responseBody().isPresent()) {
+                    assertThat(rsp.responseBody().get().read()).isEqualTo(-1);
+                }
+            } else {
+                assertThat(rsp.responseBody()).isPresent();
+                byte[] readBody = IoUtils.toByteArray(rsp.responseBody().get());
+                assertThat(readBody).isEqualTo(body);
+            }
+        }
     }
 
     private void overrideDnsResolver(String hostName) throws IOException {

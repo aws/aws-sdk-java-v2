@@ -53,6 +53,8 @@ public class TransferManagerMethodsToV2 extends Recipe {
 
     private static final MethodMatcher DOWNLOAD_DIR = v2TmMethodMatcher("downloadDirectory(String, String, java.io.File)");
 
+    private static final MethodMatcher UPLOAD_DIR = v2TmMethodMatcher("uploadDirectory(String, String, java.io.File, boolean)");
+
     private static final Pattern S3_TM_CREDENTIAL = Pattern.compile(V2_TM_CLIENT);
     private static final Pattern V2_AWSCREDENTAIL = Pattern.compile("software.amazon.awssdk.auth.credentials.AwsCredentials");
     private static final Pattern V2_CREDENTIAL_PROVIDER = Pattern.compile("software.amazon.awssdk.auth.credentials"
@@ -110,6 +112,10 @@ public class TransferManagerMethodsToV2 extends Recipe {
                 method = transformDownloadDirectory(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
+            if (UPLOAD_DIR.matches(method, false)) {
+                method = transformUploadDirectory(method);
+                return super.visitMethodInvocation(method, executionContext);
+            }
 
             return super.visitMethodInvocation(method, executionContext);
         }
@@ -165,8 +171,21 @@ public class TransferManagerMethodsToV2 extends Recipe {
                                         method.getArguments().get(0), method.getArguments().get(1),
                                         method.getArguments().get(2));
 
-            addTmImport("DirectoryDownload");
             addTmImport("DownloadDirectoryRequest");
+            return method;
+        }
+
+        private J.MethodInvocation transformUploadDirectory(J.MethodInvocation method) {
+            String v2Method = "#{any()}.uploadDirectory(UploadDirectoryRequest.builder()"
+                              + ".bucket(#{any()}).s3Prefix(#{any()}).source(#{any()}.toPath())"
+                              + ".maxDepth(#{any()} ? Integer.MAX_VALUE : 1).build())";
+
+            method = JavaTemplate.builder(v2Method).build()
+                                 .apply(getCursor(), method.getCoordinates().replace(), method.getSelect(),
+                                        method.getArguments().get(0), method.getArguments().get(1),
+                                        method.getArguments().get(2), method.getArguments().get(3));
+
+            addTmImport("UploadDirectoryRequest");
             return method;
         }
 
