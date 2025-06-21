@@ -318,7 +318,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
                     classicResponse.close();
                     responseBody = AbortableInputStream.create(new ByteArrayInputStream(new byte[0]));
                 } else {
-                    responseBody = createConnectionAwareStream(classicResponse, apacheRequest);
+                    responseBody = toAbortableInputStream(classicResponse, apacheRequest);
                 }
             } else {
                 // No entity, close the response immediately
@@ -328,23 +328,9 @@ public final class Apache5HttpClient implements SdkHttpClient {
         return responseBody;
     }
 
-    private AbortableInputStream createConnectionAwareStream(ClassicHttpResponse apacheResponse,
-                                                             HttpUriRequestBase apacheRequest) throws IOException {
-        InputStream entityStream = null;
-        try {
-            entityStream = apacheResponse.getEntity().getContent();
-            return AbortableInputStream.create(
-                new ConnectionAwareInputStream(entityStream, apacheResponse),
-                () -> {
-                    apacheRequest.abort();
-                    IoUtils.closeQuietlyV2(apacheResponse, log);
-                }
-            );
-        } catch (IOException e) {
-            // Ensure response is closed on error
-            IoUtils.closeQuietlyV2(apacheResponse, log);
-            throw e;
-        }
+    private AbortableInputStream toAbortableInputStream(ClassicHttpResponse apacheResponse,
+                                                        HttpUriRequestBase apacheRequest) throws IOException {
+        return AbortableInputStream.create(apacheResponse.getEntity().getContent(), apacheRequest::abort);
     }
 
     private Apache5HttpRequestConfig createRequestConfig(DefaultBuilder builder,
