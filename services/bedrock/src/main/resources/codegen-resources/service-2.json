@@ -51,7 +51,7 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Creates a new custom model in Amazon Bedrock from an existing SageMaker AI-trained Amazon Nova model stored in an Amazon-managed Amazon S3 bucket. After the model is active, you can use it for inference.</p> <p>To use the model for inference, you must purchase Provisioned Throughput for it. You can't use On-demand inference with these custom models. For more information about Provisioned Throughput, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a>.</p> <p>The model appears in <code>ListCustomModels</code> with a <code>customizationType</code> of <code>imported</code>. To track the status of the new model, you use the <code>GetCustomModel</code> API operation. The model can be in the following states:</p> <ul> <li> <p> <code>Creating</code> - Initial state during validation and registration</p> </li> <li> <p> <code>Active</code> - Model is ready for use in inference</p> </li> <li> <p> <code>Failed</code> - Creation process encountered an error</p> </li> </ul> <p>For more information about creating custom models, including specific model requirements, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/create-custom-model-from-existing.html\">Import a SageMaker AI-trained Amazon Nova model</a> in the Amazon Bedrock User Guide. </p> <note> <p>You use the <code>CreateCustomModel</code> API to import only SageMaker AI-trained Amazon Nova models. To import open-source models, you use the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateModelImportJob.html\">CreateModelImportJob</a>. </p> </note> <p> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetCustomModel.html\">GetCustomModel</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_ListCustomModels.html\">ListCustomModels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModel.html\">DeleteCustomModel</a> </p> </li> </ul>"
+      "documentation":"<p>Creates a new custom model in Amazon Bedrock. After the model is active, you can use it for inference.</p> <p>To use the model for inference, you must purchase Provisioned Throughput for it. You can't use On-demand inference with these custom models. For more information about Provisioned Throughput, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a>.</p> <p>The model appears in <code>ListCustomModels</code> with a <code>customizationType</code> of <code>imported</code>. To track the status of the new model, you use the <code>GetCustomModel</code> API operation. The model can be in the following states:</p> <ul> <li> <p> <code>Creating</code> - Initial state during validation and registration</p> </li> <li> <p> <code>Active</code> - Model is ready for use in inference</p> </li> <li> <p> <code>Failed</code> - Creation process encountered an error</p> </li> </ul> <p> <b>Related APIs</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetCustomModel.html\">GetCustomModel</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_ListCustomModels.html\">ListCustomModels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModel.html\">DeleteCustomModel</a> </p> </li> </ul>"
     },
     "CreateEvaluationJob":{
       "name":"CreateEvaluationJob",
@@ -1456,7 +1456,7 @@
         },
         "modelSourceConfig":{
           "shape":"ModelDataSource",
-          "documentation":"<p>The data source for the model. The Amazon S3 URI in the model source must be for the Amazon-managed Amazon S3 bucket containing your model artifacts. SageMaker AI creates this bucket when you run your first SageMaker AI training job.</p>"
+          "documentation":"<p>The data source for the model. The Amazon S3 URI in the model source must be for the Amazon-managed Amazon S3 bucket containing your model artifacts.</p>"
         },
         "modelKmsKeyArn":{
           "shape":"KmsKeyArn",
@@ -2161,7 +2161,7 @@
       "type":"string",
       "max":1011,
       "min":20,
-      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model/(imported|[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2}/[a-z0-9]{12})"
+      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model/(imported|[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2})/[a-z0-9]{12}"
     },
     "CustomModelName":{
       "type":"string",
@@ -4319,12 +4319,46 @@
       "max":6,
       "min":1
     },
+    "GuardrailContentFiltersTier":{
+      "type":"structure",
+      "required":["tierName"],
+      "members":{
+        "tierName":{
+          "shape":"GuardrailContentFiltersTierName",
+          "documentation":"<p>The tier that your guardrail uses for content filters. Valid values include:</p> <ul> <li> <p> <code>CLASSIC</code> tier – Provides established guardrails functionality supporting English, French, and Spanish languages.</p> </li> <li> <p> <code>STANDARD</code> tier – Provides a more robust solution than the <code>CLASSIC</code> tier and has more comprehensive language support. This tier requires that your guardrail use <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-cross-region.html\">cross-Region inference</a>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The tier that your guardrail uses for content filters.</p>"
+    },
+    "GuardrailContentFiltersTierConfig":{
+      "type":"structure",
+      "required":["tierName"],
+      "members":{
+        "tierName":{
+          "shape":"GuardrailContentFiltersTierName",
+          "documentation":"<p>The tier that your guardrail uses for content filters. Valid values include:</p> <ul> <li> <p> <code>CLASSIC</code> tier – Provides established guardrails functionality supporting English, French, and Spanish languages.</p> </li> <li> <p> <code>STANDARD</code> tier – Provides a more robust solution than the <code>CLASSIC</code> tier and has more comprehensive language support. This tier requires that your guardrail use <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-cross-region.html\">cross-Region inference</a>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The tier that your guardrail uses for content filters. Consider using a tier that balances performance, accuracy, and compatibility with your existing generative AI workflows.</p>"
+    },
+    "GuardrailContentFiltersTierName":{
+      "type":"string",
+      "enum":[
+        "CLASSIC",
+        "STANDARD"
+      ],
+      "sensitive":true
+    },
     "GuardrailContentPolicy":{
       "type":"structure",
       "members":{
         "filters":{
           "shape":"GuardrailContentFilters",
           "documentation":"<p>Contains the type of the content filter and how strongly it should apply to prompts and model responses.</p>"
+        },
+        "tier":{
+          "shape":"GuardrailContentFiltersTier",
+          "documentation":"<p>The tier that your guardrail uses for content filters.</p>"
         }
       },
       "documentation":"<p>Contains details about how to handle harmful content.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html#API_GetGuardrail_ResponseSyntax\">GetGuardrail response body</a> </p> </li> </ul>"
@@ -4336,6 +4370,10 @@
         "filtersConfig":{
           "shape":"GuardrailContentFiltersConfig",
           "documentation":"<p>Contains the type of the content filter and how strongly it should apply to prompts and model responses.</p>"
+        },
+        "tierConfig":{
+          "shape":"GuardrailContentFiltersTierConfig",
+          "documentation":"<p>The tier that your guardrail uses for content filters.</p>"
         }
       },
       "documentation":"<p>Contains details about how to handle harmful content.</p>"
@@ -5109,6 +5147,10 @@
         "topics":{
           "shape":"GuardrailTopics",
           "documentation":"<p>A list of policies related to topics that the guardrail should deny.</p>"
+        },
+        "tier":{
+          "shape":"GuardrailTopicsTier",
+          "documentation":"<p>The tier that your guardrail uses for denied topic filters.</p>"
         }
       },
       "documentation":"<p>Contains details about topics that the guardrail should identify and deny.</p> <p>This data type is used in the following API operations:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetGuardrail.html#API_GetGuardrail_ResponseSyntax\">GetGuardrail response body</a> </p> </li> </ul>"
@@ -5120,6 +5162,10 @@
         "topicsConfig":{
           "shape":"GuardrailTopicsConfig",
           "documentation":"<p>A list of policies related to topics that the guardrail should deny.</p>"
+        },
+        "tierConfig":{
+          "shape":"GuardrailTopicsTierConfig",
+          "documentation":"<p>The tier that your guardrail uses for denied topic filters.</p>"
         }
       },
       "documentation":"<p>Contains details about topics that the guardrail should identify and deny.</p>"
@@ -5139,6 +5185,36 @@
       "member":{"shape":"GuardrailTopicConfig"},
       "max":30,
       "min":1
+    },
+    "GuardrailTopicsTier":{
+      "type":"structure",
+      "required":["tierName"],
+      "members":{
+        "tierName":{
+          "shape":"GuardrailTopicsTierName",
+          "documentation":"<p>The tier that your guardrail uses for denied topic filters. Valid values include:</p> <ul> <li> <p> <code>CLASSIC</code> tier – Provides established guardrails functionality supporting English, French, and Spanish languages.</p> </li> <li> <p> <code>STANDARD</code> tier – Provides a more robust solution than the <code>CLASSIC</code> tier and has more comprehensive language support. This tier requires that your guardrail use <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-cross-region.html\">cross-Region inference</a>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The tier that your guardrail uses for denied topic filters.</p>"
+    },
+    "GuardrailTopicsTierConfig":{
+      "type":"structure",
+      "required":["tierName"],
+      "members":{
+        "tierName":{
+          "shape":"GuardrailTopicsTierName",
+          "documentation":"<p>The tier that your guardrail uses for denied topic filters. Valid values include:</p> <ul> <li> <p> <code>CLASSIC</code> tier – Provides established guardrails functionality supporting English, French, and Spanish languages.</p> </li> <li> <p> <code>STANDARD</code> tier – Provides a more robust solution than the <code>CLASSIC</code> tier and has more comprehensive language support. This tier requires that your guardrail use <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-cross-region.html\">cross-Region inference</a>.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The tier that your guardrail uses for denied topic filters. Consider using a tier that balances performance, accuracy, and compatibility with your existing generative AI workflows.</p>"
+    },
+    "GuardrailTopicsTierName":{
+      "type":"string",
+      "enum":[
+        "CLASSIC",
+        "STANDARD"
+      ],
+      "sensitive":true
     },
     "GuardrailVersion":{
       "type":"string",
@@ -7773,7 +7849,7 @@
           "documentation":"<p>The URI of the Amazon S3 data source.</p>"
         }
       },
-      "documentation":"<p>The Amazon S3 data source of the model to import. For the <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModel.html\">CreateCustomModel</a> API operation, you must specify the Amazon S3 URI for the Amazon-managed Amazon S3 bucket containing your model artifacts. SageMaker AI creates this bucket when you run your first SageMaker AI training job.</p>"
+      "documentation":"<p>The Amazon S3 data source of the model to import. </p>"
     },
     "S3InputFormat":{
       "type":"string",

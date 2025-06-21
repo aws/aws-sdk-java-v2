@@ -28,16 +28,22 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
+import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
+import software.amazon.awssdk.transfer.s3.model.ResumableTransfer;
+import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
+import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Duration;
 
 public class TransferManagerS3 {
@@ -93,8 +99,19 @@ public class TransferManagerS3 {
         tm.close();
     }
 
+    void uploadDirectory(S3TransferManager tm) {
+        DirectoryUpload fileUpload1 = tm.uploadDirectory(UploadDirectoryRequest.builder().bucket("bucket").s3Prefix("prefix").source(file.toPath()).maxDepth(true ? Integer.MAX_VALUE : 1).build());
+    }
+
     void resume(S3TransferManager tm, ResumableFileDownload persistableDownload, ResumableFileUpload persistableUpload) {
         FileDownload download = tm.resumeDownloadFile(persistableDownload);
         FileUpload upload = tm.resumeUploadFile(persistableUpload);
+    }
+
+    void POJO_methods(ResumableTransfer transfer, OutputStream outputStream, TransferProgress progress) throws IOException {
+        String s = transfer.serializeToString();
+        transfer.serializeToOutputStream(outputStream);
+
+        long bytesTransferred = progress.snapshot().transferredBytes();
     }
 }
