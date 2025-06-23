@@ -61,8 +61,8 @@ public class VersionCompatibilityTestSpec implements ClassSpec {
                          .addStatement("String coreVersion = $T.SDK_VERSION", versionInfo)
                          .addStatement("String serviceVersion = $T.VERSION", serviceVersionInfo)
                          .addStatement("$T.assertThat(isVersionCompatible(coreVersion, serviceVersion))" +
-                                       ".withFailMessage(\"Core version %s must be equal to or newer than service version %s\", " +
-                                       "coreVersion, serviceVersion).isTrue()",
+                                       ".withFailMessage(\"Core version %s must be equal to or newer than service version %s\", "
+                                       + "coreVersion, serviceVersion).isTrue()",
                                        assertions)
                          .build();
     }
