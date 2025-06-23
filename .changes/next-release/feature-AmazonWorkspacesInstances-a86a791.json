@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Workspaces Instances",
+    "contributor": "",
+    "description": "Added support for Amazon WorkSpaces Instances API"
+}
