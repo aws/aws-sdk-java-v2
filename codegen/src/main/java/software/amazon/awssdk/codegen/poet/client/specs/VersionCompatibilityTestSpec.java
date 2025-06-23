@@ -24,7 +24,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 
-
 public class VersionCompatibilityTestSpec implements ClassSpec {
     private final IntermediateModel model;
 
@@ -37,6 +36,7 @@ public class VersionCompatibilityTestSpec implements ClassSpec {
         return PoetUtils.createClassBuilder(className())
                         .addModifiers(Modifier.PUBLIC)
                         .addMethod(compatibilityTest())
+                        .addMethod(isVersionCompatibleMethod())
                         .build();
     }
 
@@ -58,11 +58,42 @@ public class VersionCompatibilityTestSpec implements ClassSpec {
                          .addModifiers(Modifier.PUBLIC)
                          .addAnnotation(Test.class)
                          .returns(void.class)
-                         .addStatement("$T.assertThat($T.SDK_VERSION).isEqualTo($T.VERSION)",
-                                       assertions,
-                                       versionInfo,
-                                       serviceVersionInfo)
+                         .addStatement("String coreVersion = $T.SDK_VERSION", versionInfo)
+                         .addStatement("String serviceVersion = $T.VERSION", serviceVersionInfo)
+                         .addStatement("$T.assertThat(isVersionCompatible(coreVersion, serviceVersion))" +
+                                       ".withFailMessage(\"Core version %s must be equal to or newer than service version %s\", " +
+                                       "coreVersion, serviceVersion).isTrue()",
+                                       assertions)
                          .build();
     }
 
+    private MethodSpec isVersionCompatibleMethod() {
+        return MethodSpec.methodBuilder("isVersionCompatible")
+                         .addModifiers(Modifier.PRIVATE)
+                         .returns(boolean.class)
+                         .addParameter(String.class, "coreVersion")
+                         .addParameter(String.class, "serviceVersion")
+                         .addStatement("String normalizedCore = coreVersion.replace(\"-SNAPSHOT\", \"\")")
+                         .addStatement("String normalizedService = serviceVersion.replace(\"-SNAPSHOT\", \"\")")
+                         .addStatement("String[] coreParts = normalizedCore.split(\"\\\\.\")")
+                         .addStatement("String[] serviceParts = normalizedService.split(\"\\\\.\")")
+                         .addCode("\n")
+                         .addStatement("int coreMajor = Integer.parseInt(coreParts[0])")
+                         .addStatement("int serviceMajor = Integer.parseInt(serviceParts[0])")
+                         .beginControlFlow("if (coreMajor != serviceMajor)")
+                         .addStatement("return coreMajor >= serviceMajor")
+                         .endControlFlow()
+                         .addCode("\n")
+                         .addStatement("int coreMinor = Integer.parseInt(coreParts[1])")
+                         .addStatement("int serviceMinor = Integer.parseInt(serviceParts[1])")
+                         .beginControlFlow("if (coreMinor != serviceMinor)")
+                         .addStatement("return coreMinor >= serviceMinor")
+                         .endControlFlow()
+                         .addCode("\n")
+                         .addStatement("int corePatch = Integer.parseInt(coreParts[2])")
+                         .addStatement("int servicePatch = Integer.parseInt(serviceParts[2])")
+                         .addStatement("return corePatch >= servicePatch")
+                         .build();
+    }
 }
+
