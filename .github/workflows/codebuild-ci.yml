@@ -167,3 +167,106 @@ jobs:
         uses: aws-actions/aws-codebuild-run-build@v1
         with:
           project-name: aws-sdk-java-v2-migration-test
+
+  s3-regression-tests-download:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: DownloadStreamingRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for downloads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
+  s3-regression-tests-control-plane:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: ControlPlaneOperationRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for control plane
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
+  s3-regression-tests-upload-sync:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadSyncRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
+  s3-regression-tests-upload-async:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadAsyncRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
+  s3-regression-tests-upload-crt:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadCrtRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
+  s3-regression-tests-upload-multi:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadTransferManagerRegressionTesting
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST
