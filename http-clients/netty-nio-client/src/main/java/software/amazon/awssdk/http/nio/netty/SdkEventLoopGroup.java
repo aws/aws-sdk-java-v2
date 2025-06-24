@@ -18,7 +18,8 @@ package software.amazon.awssdk.http.nio.netty;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -142,7 +143,7 @@ public final class SdkEventLoopGroup {
                                               .orElseGet(() -> new ThreadFactoryBuilder()
                                                   .threadNamePrefix("aws-java-sdk-NettyEventLoop")
                                                   .build());
-        return new NioEventLoopGroup(numThreads, threadFactory);
+        return new MultiThreadIoEventLoopGroup(numThreads, threadFactory, NioIoHandler.newFactory());
         /*
         Need to investigate why epoll is raising channel inactive after successful response that causes
         problems with retries.

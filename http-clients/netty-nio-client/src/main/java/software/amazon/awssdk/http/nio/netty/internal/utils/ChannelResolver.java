@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -67,7 +68,7 @@ public final class ChannelResolver {
             return resolveSocketChannelFactory(((DelegatingEventLoopGroup) eventLoopGroup).getDelegate());
         }
 
-        if (eventLoopGroup instanceof NioEventLoopGroup) {
+        if (isNioGroup(eventLoopGroup)) {
             return NioSocketChannel::new;
         }
         if (eventLoopGroup instanceof EpollEventLoopGroup) {
@@ -95,7 +96,7 @@ public final class ChannelResolver {
             return resolveDatagramChannelFactory(((DelegatingEventLoopGroup) eventLoopGroup).getDelegate());
         }
 
-        if (eventLoopGroup instanceof NioEventLoopGroup) {
+        if (isNioGroup(eventLoopGroup)) {
             return NioDatagramChannel::new;
         }
         if (eventLoopGroup instanceof EpollEventLoopGroup) {
@@ -109,4 +110,10 @@ public final class ChannelResolver {
 
         return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(datagramFqcn)));
     }
+
+    private static boolean isNioGroup(EventLoopGroup group) {
+        return group instanceof NioEventLoopGroup ||
+               group instanceof MultiThreadIoEventLoopGroup;
+    }
+
 }
