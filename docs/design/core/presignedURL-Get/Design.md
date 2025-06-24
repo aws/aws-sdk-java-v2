@@ -65,7 +65,6 @@ GetObjectResponse response = presignManager.getObject(request);
  * Presigned URL Manager class that implements presigned URL features for an async client.
  */
 @SdkPublicApi
-@Generated("software.amazon.awssdk:codegen")
 public interface AsyncPresignedUrlManager {
 
     /**
@@ -99,7 +98,6 @@ public interface AsyncPresignedUrlManager {
  * Presigned URL Manager class that implements presigned URL features for a sync client.
  */
 @SdkPublicApi
-@Generated("software.amazon.awssdk:codegen")
 public interface PresignedUrlManager {
 
     /**
