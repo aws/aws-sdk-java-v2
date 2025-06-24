@@ -236,9 +236,9 @@ public class GenerationMojo extends AbstractMojo {
 
     private void emitValidationReport(ModelValidationReport report) {
         Path modelsDir = sourcesDirectory.resolve("models");
-        try {
-            Writer writer = Files.newBufferedWriter(modelsDir.resolve("validation-report.json"),
-                                                    StandardCharsets.UTF_8);
+        try (Writer writer = Files.newBufferedWriter(modelsDir.resolve("validation-report.json"),
+                                                     StandardCharsets.UTF_8);) {
+
             Jackson.writeWithObjectMapper(report, writer);
         } catch (IOException e) {
             getLog().warn("Failed to write validation report to " + modelsDir, e);
