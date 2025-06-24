@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "This release allows you to create and register AMIs while maintaining their underlying EBS snapshots within Local Zones."
-}

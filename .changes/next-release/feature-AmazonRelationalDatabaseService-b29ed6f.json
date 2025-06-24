@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adding support for RDS on Dedicated Local Zones, including local backup target, snapshot availability zone and snapshot target"
-}
