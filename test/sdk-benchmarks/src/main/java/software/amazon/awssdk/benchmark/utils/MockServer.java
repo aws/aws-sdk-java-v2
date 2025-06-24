@@ -59,7 +59,7 @@ public class MockServer extends BaseMockServer {
         server.setConnectors(new Connector[] {connector, sslConnector});
 
         ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
-        context.addServlet(new ServletHolder(new AlwaysSuccessServlet()), "/*");
+        context.addServlet(new ServletHolder(new StreamingMockServlet()), "/*");
         server.setHandler(context);
     }
 

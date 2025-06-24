@@ -21,6 +21,8 @@ import java.util.Optional;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricLevel;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -67,12 +69,13 @@ public class S3BenchmarkRunner {
 
         S3Client s3Client = S3BenchmarkTestUtils.s3ClientBuilder(region)
                                                 .credentialsProvider(credentialsProvider)
+                                                .httpClient(ApacheHttpClient.create())
                                                 .overrideConfiguration(o -> o.addMetricPublisher(
                                                     metricPublisher(cloudwatchClient,
                                                                     namespacePrefix + "/SmallObject/Apache")))
                                                 .build();
 
-        LOGGER.info(() -> "Running small objects benchmark, 64Kb data, 5 buckets, 200 iterations");
+        LOGGER.info(() -> "Running small objects benchmark with Apache4 Http Client, 64Kb data, 5 buckets, 200 iterations");
         BenchmarkConfig smallObjectSyncConfig = BenchmarkConfig.builder()
                                                                .region(region)
                                                                .credentialsProvider(credentialsProvider)
@@ -93,7 +96,7 @@ public class S3BenchmarkRunner {
                                                                     namespacePrefix + "/MediumObject/Apache")))
                                                 .build();
 
-        LOGGER.info(() -> "Running medium objects benchmark, 1024Kb data, 5 buckets, 200 iterations");
+        LOGGER.info(() -> "Running medium objects benchmark with Apache4 Http Client, 1024Kb data, 5 buckets, 200 iterations");
         BenchmarkConfig largeObjectSyncConfig = BenchmarkConfig.builder()
                                                                .region(region)
                                                                .credentialsProvider(credentialsProvider)
@@ -107,6 +110,33 @@ public class S3BenchmarkRunner {
         syncBenchmark.run();
 
         s3Client.close();
+
+        s3Client = S3BenchmarkTestUtils.s3ClientBuilder(region)
+                                       .credentialsProvider(credentialsProvider)
+                                       .httpClient(Apache5HttpClient.create())
+                                       .overrideConfiguration(o -> o.addMetricPublisher(
+                                           metricPublisher(cloudwatchClient,
+                                                           namespacePrefix + "/SmallObject/Apache")))
+                                       .build();
+
+        LOGGER.info(() -> "Running small objects benchmark with Apache5 Http Client, 64Kb data, 5 buckets, 200 iterations");
+        syncBenchmark = new S3PutGetDeleteSyncBenchmark(smallObjectSyncConfig, s3Client);
+        syncBenchmark.run();
+        s3Client.close();
+
+        s3Client = S3BenchmarkTestUtils.s3ClientBuilder(region)
+                                       .credentialsProvider(credentialsProvider)
+                                       .httpClient(Apache5HttpClient.create())
+                                       .overrideConfiguration(o -> o.addMetricPublisher(
+                                           metricPublisher(cloudwatchClient,
+                                                           namespacePrefix + "/MediumObject/Apache5")))
+                                       .build();
+
+        LOGGER.info(() -> "Running medium objects benchmark with Apache5 Http Client, 1024Kb data, 5 buckets, 200 iterations");
+        syncBenchmark = new S3PutGetDeleteSyncBenchmark(largeObjectSyncConfig, s3Client);
+        syncBenchmark.run();
+        s3Client.close();
+
 
         S3AsyncClient s3AsyncClient = S3BenchmarkTestUtils.s3AsyncClientBuilder(region)
                                                           .credentialsProvider(credentialsProvider)
