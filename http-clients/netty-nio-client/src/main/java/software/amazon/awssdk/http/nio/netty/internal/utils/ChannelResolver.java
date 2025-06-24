@@ -68,11 +68,11 @@ public final class ChannelResolver {
             return resolveSocketChannelFactory(((DelegatingEventLoopGroup) eventLoopGroup).getDelegate());
         }
 
-        if (isNioGroup(eventLoopGroup)) {
-            return NioSocketChannel::new;
-        }
         if (eventLoopGroup instanceof EpollEventLoopGroup) {
             return EpollSocketChannel::new;
+        }
+        if (eventLoopGroup instanceof MultiThreadIoEventLoopGroup) {
+            return NioSocketChannel::new;
         }
 
         String socketFqcn = KNOWN_EL_GROUPS_SOCKET_CHANNELS.get(eventLoopGroup.getClass().getName());
@@ -96,11 +96,11 @@ public final class ChannelResolver {
             return resolveDatagramChannelFactory(((DelegatingEventLoopGroup) eventLoopGroup).getDelegate());
         }
 
-        if (isNioGroup(eventLoopGroup)) {
-            return NioDatagramChannel::new;
-        }
         if (eventLoopGroup instanceof EpollEventLoopGroup) {
             return EpollDatagramChannel::new;
+        }
+        if (eventLoopGroup instanceof MultiThreadIoEventLoopGroup) {
+            return NioDatagramChannel::new;
         }
 
         String datagramFqcn = KNOWN_EL_GROUPS_DATAGRAM_CHANNELS.get(eventLoopGroup.getClass().getName());
@@ -110,10 +110,4 @@ public final class ChannelResolver {
 
         return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(datagramFqcn)));
     }
-
-    private static boolean isNioGroup(EventLoopGroup group) {
-        return group instanceof NioEventLoopGroup ||
-               group instanceof MultiThreadIoEventLoopGroup;
-    }
-
 }

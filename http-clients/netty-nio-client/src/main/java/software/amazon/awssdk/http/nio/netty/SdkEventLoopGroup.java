@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.IoHandlerFactory;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramChannel;
@@ -125,6 +126,10 @@ public final class SdkEventLoopGroup {
      * <p>
      * {@link ChannelFactory} will be resolved based on the type of {@link EventLoopGroup} provided. IllegalArgumentException will
      * be thrown for any unknown EventLoopGroup type.
+     * <p>
+     * If {@link MultiThreadIoEventLoopGroup} is passed in, {@link NioSocketChannel} and {@link NioDatagramChannel} will be
+     * resolved, regardless of the transport {@link IoHandlerFactory} passed in. This is because it is not possible to
+     * determine the type of transport factory from a given {@link MultiThreadIoEventLoopGroup}.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
      * @return a new instance of SdkEventLoopGroup
