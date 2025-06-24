@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adding 'disable_ec2_metadata' in the profile property, this can be used to disable IMDS credential fetching."
+}
