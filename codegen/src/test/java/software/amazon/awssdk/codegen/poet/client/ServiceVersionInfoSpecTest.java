@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
@@ -38,16 +39,11 @@ public class ServiceVersionInfoSpecTest {
         ClassSpec serviceVersionInfoSpec = new ServiceVersionInfoSpec(ClientTestModels.restJsonServiceModels());
 
         String expectedContent = loadFixtureFile("test-service-version-info-class.java");
-        String[] parts = expectedContent.split("public static final String VERSION = \"");
-        if (parts.length == 2) {
-            String privateConstructor = parts[1].substring(parts[1].indexOf("\""));
-            expectedContent = parts[0] + "public static final String VERSION = \"" + currVersion
-                              + privateConstructor;
-        }
+        expectedContent = expectedContent.replace("{{VERSION}}", currVersion);
 
         String actualContent = generateContent(serviceVersionInfoSpec);
 
-        assertThat(actualContent).isEqualTo(expectedContent);
+        assertThat(actualContent).isEqualToIgnoringWhitespace(expectedContent);
     }
 
     private String loadFixtureFile(String filename) {
