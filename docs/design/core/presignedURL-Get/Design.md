@@ -11,7 +11,7 @@ The need for a different GetObject implementation stems from the architectural d
 
 ## 3. Scope
 
-This design focuses on implementing pre-signed URL download functionality for Client level API - S3AsyncClient in AWS SDK Java v2. Implementation details for synchronous S3Client is covered in Appendix A: S3Client Implementation Details. The implementation will support the primary GetObject functionality (including byte range requests), and existing v2 client configurations (retry, metrics). The solution also aligns with existing v2 streaming API patterns.
+This design focuses on implementing pre-signed URL download functionality for Client level API - S3AsyncClient in AWS SDK Java v2. Implementation details for synchronous S3Client is covered in Appendix: S3Client Implementation Details. The implementation will support the primary GetObject functionality (including byte range requests), and existing v2 client configurations (retry, metrics). The solution also aligns with existing v2 streaming API patterns.
 
 TransferManager-based pre-signed URL downloads including S3Multipart client used by Transfer manager and parallel range GET capabilities are out of scope for this design and will need to be addressed in a separate design.
 
@@ -233,122 +233,6 @@ Creates a manager PresignedUrlManager for pre-signed URL operations, separate fr
 - **Pros:** Logical extension, reuses existing objects
 - **Cons:** Breaks current S3Presigner patterns, circular dependency issues
 
-## FAQ
-
-**Q: Why doesn't PresignedUrlGetObjectRequest extend S3Request/SdkRequest?**
-
-A: To avoid exposing incompatible configurations (credentials, signers) that conflict with presigned URL execution. We use a standalone request with essential parameters (presignedUrl, rangeStart, rangeEnd), then convert internally to S3Request for ClientHandler compatibility.
-
-```java
-// Internal conversion in DefaultPresignedUrlManager
-InternalPresignedUrlGetObjectRequest internalRequest = 
-    InternalPresignedUrlGetObjectRequest.builder()
-        .url(request.presignedUrl())
-        .rangeStart(request.rangeStart())
-        .rangeEnd(request.rangeEnd())
-        .build();
-```
-
-**Q: How does this handle SDK features like retries and metrics?**
-
-A: PresignedUrlManager leverages the same underlying SDK infrastructure as S3Client, including ClientHandler, retry policies, and metrics collection. Users get all SDK benefits while maintaining specialized behavior for presigned URLs.
-
-**Q: Can we use EndpointProvider instead of execution attributes?**
-
-A: No, because S3RequestSetEndpointInterceptor overwrites the path based on endpoint resolution. Using presigned URLs directly via marshaller avoids unnecessary URL parsing and encoding complexities.
-
-## Appendix A: S3Client Implementation
-
-Same design applies to synchronous S3Client operations:
-
-```java
-@SdkPublicApi
-public interface PresignedUrlManager {
-    GetObjectResponse getObject(PresignedUrlGetObjectRequest request);
-    <T> T getObject(PresignedUrlGetObjectRequest request, 
-                   ResponseTransformer<GetObjectResponse, T> responseTransformer);
-}
-
-public interface S3Client extends AwsClient {
-    PresignedUrlManager presignedManager();
-}
-```
-
-## References
-
-**Issues:**
-- [GitHub Issue #2731](https://github.com/aws/aws-sdk-java-v2/issues/2731)
-- [GitHub Issue #181](https://github.com/aws/aws-sdk-java-v2/issues/181)
-
-**Documentation:**
-- [AWS S3 Pre-signed URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/PresignedUrlUploadObject.html)
-
-**Codegen Logic**
-
-```java
-if (customizationConfig.getPresignedUrlManagerSupported()) {
-    generatePresignedUrlManager(serviceModel);
-}
-```
-
-## 6. Design Approaches Explored
-
-### Approach 1: Dedicated PresignedUrlManager (Selected)
-**Pros**: 
-Clean separation, preserves SDK benefits, extensible, no core modifications
-
-**Cons**: 
-New API surface, additional learning curve
-
-### Approach 2: S3Client Integration
-**Pros**: Familiar interface, direct migration path
-
-**Cons**: Complex code generation changes, potential side effects
-
-### Approach 3: S3Presigner Extension
-**Pros**: Logical extension, reuses existing objects
-**Cons**: Breaks current patterns, circular dependencies
-## Decision Log
-
-### Review Meeting: 06/17
-**Attendees:** Alban, John, Zoe, Dongie, Bole, Ran, Saranya
-
-**Closed Decisions:**
-
-1. **Response Type:** Create a new PresignedUrlGetObjectResponse specifically for pre-signed URLs, or use the existing GetObjectResponse?
-   - Decided to use the existing GetObjectResponse for pre-signed URL operations as the HTTP response from a pre-signed URL GET is same as a standard S3 GetObject response.
-
-2. **Exception Handling:** Use the existing SDK and S3 exceptions or implement specialized exceptions for validation errors like expired URLs?
-   - Decided to utilize existing SDK exceptions rather than creating specialized ones for pre-signed URL operations.
-
-3. **Validation Strategy:** Provide additional client-side validation with server-side validation as fallback or just rely entirely on server-side validation from S3?
-   - No additional client-side validation will be implemented for pre-signed URLs.
-
-**Discussions Addressed:**
-
-1. **Credential Signing Bypass:** Are there alternative methods to skip signing, such as using NoOpSigner(), instead of setting additional Execution attributes?
-   - Added the use of NoOpSigner() in the design doc.
-
-2. **Checksum Support:** Does the S3 response include a checksum? If so, should checksum-related support be implemented in this project, or deferred until after Transfer Manager support is added?
-   - S3 Response doesn't include checksum.
-
-3. **Helper API Naming:** What should we name the Helper API?
-   - Options include PresignedURLManager or PresignedUrlExtension.
-   - Will be addressed in the Surface API Review.
-
-### Review Meeting: 06/23
-**Attendees:** John, Zoe, Dongie, Bole, Ran, Saranya, Alex, David
-
-**Discussion Addressed:**
-
-1. **Request Design Pattern:** Should PresignedUrlGetObjectRequest extend S3Request/SdkRequest?
-   - Decided to use a standalone request class with minimal parameters (presignedUrl, rangeStart, rangeEnd) to avoid exposing incompatible configurations like credentials and signers. Internally convert to S3Request for ClientHandler compatibility.
-
-2. **Endpoint Resolution Bypass:** Replace IS_DISCOVERED_ENDPOINT execution attribute with a more semantically appropriate solution.
-   - Decided to introduce new SKIP_ENDPOINT_RESOLUTION execution attribute specifically for presigned URL scenarios where endpoint resolution should be bypassed, as IS_DISCOVERED_ENDPOINT is tied to deprecated endpoint discovery feature.
-
-3. **Range Parameter Design:** Use separate rangeStart/rangeEnd fields vs single range string parameter.
-   - Decided to use separate rangeStart and rangeEnd Long fields for better user experience, as start/end is more intuitive than string parsing.
 
 ## FAQ
 
@@ -392,7 +276,7 @@ A: The PresignedUrlManager leverages the same underlying SDK infrastructure as S
 
 ## Appendix
 
-### Appendix A: S3Client Implementation Details
+### Appendix: S3Client Implementation Details
 
 The same design applies to S3Client with synchronous operations. We would need two PresignedUrlManagers- PresignedUrlManager for S3Client (synchronous) and AsyncPresignedUrlManager for S3AsyncClient (asynchronous).
 
