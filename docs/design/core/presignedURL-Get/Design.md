@@ -62,19 +62,10 @@ GetObjectResponse response = presignManager.getObject(request);
 
 ```java
 /**
- * Presigned URL Manager class that implements presigned URL features for an async client.
+ * Interface for presigned URL operations used by Async clients.
  */
 @SdkPublicApi
 public interface AsyncPresignedUrlManager {
-
-    /**
-     * Downloads S3 objects using pre-signed URLs. Bypasses normal authentication
-     * and endpoint resolution while maintaining SDK benefits like retries and metrics.
-     *
-     * @param request the presigned URL request containing URL and optional range parameters.
-     * @return a CompletableFuture of the corresponding GetObjectResponse.
-     */
-    CompletableFuture<GetObjectResponse> getObject(PresignedUrlGetObjectRequest request);
     
     /**
      * Downloads S3 objects using pre-signed URLs with custom response transformation.
@@ -95,7 +86,7 @@ public interface AsyncPresignedUrlManager {
 
 ```java
 /**
- * Presigned URL Manager class that implements presigned URL features for a sync client.
+ * Interface for presigned URL operations used by Sync clients.
  */
 @SdkPublicApi
 public interface PresignedUrlManager {
@@ -158,7 +149,7 @@ Three approaches were considered:
 
 2. **Direct S3Client Integration**: Add presigned URL methods directly to S3Client
    - **Pros**: Familiar interface, direct migration path from v1
-   - **Cons**: Requires core interceptor changes, complex integration
+   - **Cons**: Requires core interceptor changes, complex integration, could confuse users by mixing presigned URL APIs with standard service-generated APIs
 
 3. **S3Presigner Extension**: Extend existing S3Presigner to execute URLs
    - **Pros**: Logical extension of presigner concept
@@ -168,7 +159,7 @@ Three approaches were considered:
 
 ### Why doesn't PresignedUrlGetObjectRequest extend S3Request?
 
-While extending S3Request would provide access to RequestOverrideConfiguration, many of these configurations (like credentials provider, signers) are not supported with presigned URL execution and could cause conflicts. Instead, we use a standalone request with only essential parameters (presignedUrl, rangeStart, rangeEnd). Internally, this gets wrapped in an encapsulated class that extends S3Request for use with ClientHandler.
+While extending S3Request would provide access to RequestOverrideConfiguration, many of these configurations (like credentials provider, signers) are not supported with presigned URL execution. Instead, we use a standalone request with only essential parameters (presignedUrl, rangeStart, rangeEnd). Internally, this gets wrapped in an encapsulated class that extends S3Request for use with ClientHandler.
 
 
 ## References
