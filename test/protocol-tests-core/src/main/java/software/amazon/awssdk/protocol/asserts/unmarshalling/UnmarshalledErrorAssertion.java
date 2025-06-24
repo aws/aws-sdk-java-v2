@@ -18,6 +18,7 @@ package software.amazon.awssdk.protocol.asserts.unmarshalling;
 
 import static org.junit.Assert.fail;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import java.lang.reflect.Field;
 import org.junit.Assert;

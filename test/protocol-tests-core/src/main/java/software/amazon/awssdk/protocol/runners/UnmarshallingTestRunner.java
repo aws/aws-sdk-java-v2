@@ -32,7 +32,6 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshallingTestContext;
 import software.amazon.awssdk.protocol.model.GivenResponse;
 import software.amazon.awssdk.protocol.model.TestCase;
-import software.amazon.awssdk.protocol.model.WhenAction;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.utils.IoUtils;
