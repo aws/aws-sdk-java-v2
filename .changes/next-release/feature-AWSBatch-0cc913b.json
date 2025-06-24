@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "Add userdataType to LaunchTemplateSpecification and LaunchTemplateSpecificationOverride."
+}
