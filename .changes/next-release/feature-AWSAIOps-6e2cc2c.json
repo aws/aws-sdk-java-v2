@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AI Ops",
+    "contributor": "",
+    "description": "Adds support for cross account investigations for CloudWatch investigations AI Operations (AIOps)."
+}
