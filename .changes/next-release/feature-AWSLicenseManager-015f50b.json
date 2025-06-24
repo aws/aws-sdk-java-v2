@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS License Manager",
+    "contributor": "",
+    "description": "AWS License Manager now supports license type conversions for AWS Marketplace products. Customers can provide Marketplace codes in the source license context or destination license context in the CreateLicenseConversionTaskForResource requests."
+}
