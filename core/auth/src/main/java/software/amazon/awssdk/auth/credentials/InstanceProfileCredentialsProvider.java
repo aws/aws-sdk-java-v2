@@ -55,7 +55,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 /**
  * Credentials provider implementation that loads credentials from the Amazon EC2 Instance Metadata Service.
  * <p>
- * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, it will not try to load
+ * If {@link SdkSystemSetting#AWS_EC2_METADATA_DISABLED} is set to true, or if the configuration file parameter
+ * {@link ProfileProperty#EC2_METADATA_DISABLED} is set to true, it will not try to load
  * credentials from EC2 metadata service and will return null.
  * <p>
  * If {@link SdkSystemSetting#AWS_EC2_METADATA_V1_DISABLED} or {@link ProfileProperty#EC2_METADATA_V1_DISABLED}
@@ -152,7 +153,8 @@ public final class InstanceProfileCredentialsProvider
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
         if (isLocalCredentialLoadingDisabled()) {
-            throw SdkClientException.create("IMDS credentials have been disabled by environment variable or system property.");
+            throw SdkClientException.create("IMDS credentials have been disabled by environment variable, system property, "
+                                           + "or configuration file profile setting.");
         }
 
         try {
@@ -170,7 +172,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private boolean isLocalCredentialLoadingDisabled() {
-        return SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow();
+        return SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow() || configProvider.isMetadataDisabled();
     }
 
     private Instant staleTime(Instant expiration) {

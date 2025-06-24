@@ -45,12 +45,14 @@ public final class Ec2MetadataConfigProvider {
     private final String profileName;
 
     private final Lazy<Boolean> metadataV1Disabled;
+    private final Lazy<Boolean> metadataDisabled;
     private final Lazy<Long> serviceTimeout;
 
     private Ec2MetadataConfigProvider(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
         this.metadataV1Disabled = new Lazy<>(this::resolveMetadataV1Disabled);
+        this.metadataDisabled = new Lazy<>(this::resolveMetadataDisabled);
         this.serviceTimeout = new Lazy<>(this::resolveServiceTimeout);
     }
 
@@ -121,6 +123,14 @@ public final class Ec2MetadataConfigProvider {
     }
 
     /**
+     * Resolves whether EC2 Metadata is disabled.
+     * @return true if EC2 Metadata is disabled, false otherwise.
+     */
+    public boolean isMetadataDisabled() {
+        return metadataDisabled.getValue();
+    }
+
+    /**
      * Resolves the EC2 Metadata Service Timeout in milliseconds.
      * @return the timeout value in milliseconds.
      */
@@ -135,6 +145,12 @@ public final class Ec2MetadataConfigProvider {
                                 () -> fromProfileFileMetadataV1Disabled(profileFile, profileName)
                             )
                             .orElse(false);
+    }
+
+    // Internal resolution logic for Metadata disabled
+    private boolean resolveMetadataDisabled() {
+        return fromProfileFileMetadataDisabled(profileFile, profileName)
+            .orElse(false);
     }
 
     // Internal resolution logic for Service Timeout
@@ -156,6 +172,15 @@ public final class Ec2MetadataConfigProvider {
         return profileFile.get()
                           .profile(profileName)
                           .flatMap(p -> p.booleanProperty(ProfileProperty.EC2_METADATA_V1_DISABLED));
+    }
+
+    // Profile file resolution for Metadata disabled
+    private static Optional<Boolean> fromProfileFileMetadataDisabled(Supplier<ProfileFile> profileFile, String profileName) {
+        Optional<Profile> profile = profileFile.get().profile(profileName);
+        if (profile.isPresent()) {
+            return profile.get().booleanProperty(ProfileProperty.EC2_METADATA_DISABLED);
+        }
+        return Optional.empty();
     }
 
     // System settings resolution for Service Timeout

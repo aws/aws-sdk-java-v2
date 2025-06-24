@@ -319,10 +319,47 @@ public class InstanceProfileCredentialsProviderTest {
         try {
             assertThatThrownBy(() ->  InstanceProfileCredentialsProvider.builder().build().resolveCredentials())
                 .isInstanceOf(SdkClientException.class)
-                .hasMessage("IMDS credentials have been disabled by environment variable or system property.");
+                .hasMessage("IMDS credentials have been disabled by environment variable, system property, or configuration file profile setting.");
         } finally {
             System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.property());
         }
+    }
+
+    @Test
+    void resolveCredentials_metadataDisabledThroughConfig_throwsException() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+        try {
+            InstanceProfileCredentialsProvider.builder()
+                                              .profileFile(configFile("profile test", Pair.of("disable_ec2_metadata", "true")))
+                                              .profileName("test")
+                                              .build()
+                                              .resolveCredentials();
+            ProfileFile config = configFile("profile test", Pair.of("disable_ec2_metadata", "true"));
+            System.out.println("Test config file: " + config.toString());
+        } catch (Exception e) {
+            assertThat(e).isInstanceOf(SdkClientException.class);
+            assertThat(e).hasMessage("IMDS credentials have been disabled by environment variable, system property, or configuration file profile setting.");
+        }
+
+        // Verify that no calls were made to the IMDS endpoints
+        WireMock.verify(0, putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH)));
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+    }
+
+    @Test
+    void resolveCredentials_metadataEnabledThroughConfig_returnsCredentials() {
+        stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .profileFile(configFile("profile test", Pair.of("disable_ec2_metadata", "false")))
+                                                                                        .profileName("test")
+                                                                                        .build();
+
+        AwsCredentials credentials = provider.resolveCredentials();
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        verifyImdsCallWithToken();
     }
 
     @Test
