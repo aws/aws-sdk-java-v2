@@ -18,7 +18,10 @@ package software.amazon.awssdk.http.apache5.internal.utils;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import org.apache.hc.client5.http.auth.AuthCache;
+import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
+import org.apache.hc.client5.http.auth.NTCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -37,8 +40,7 @@ public final class Apache5Utils {
     }
 
     /**
-     * Utility function for creating a new BufferedEntity and wrapping any errors
-     * as a SdkClientException.
+     * Utility function for creating a new BufferedEntity and wrapping any errors as a SdkClientException.
      *
      * @param entity The HTTP entity to wrap with a buffered HTTP entity.
      * @return A new BufferedHttpEntity wrapping the specified entity.
@@ -69,27 +71,29 @@ public final class Apache5Utils {
      */
     public static CredentialsProvider newProxyCredentialsProvider(ProxyConfiguration proxyConfiguration) {
         BasicCredentialsProvider provider = new BasicCredentialsProvider();
-        //  TODO : NTCredentials is deprecated.
-        // provider.setCredentials(newAuthScope(proxyConfiguration), newNtCredentials(proxyConfiguration));
+        provider.setCredentials(newAuthScope(proxyConfiguration), newNtCredentials(proxyConfiguration));
         return provider;
     }
 
-    // /**
-    //  * Returns a new instance of NTCredentials used for proxy authentication.
-    //  */
-    // private static Credentials newNtCredentials(ProxyConfiguration proxyConfiguration) {
-    //     return new NTCredentials(proxyConfiguration.username(),
-    //                              proxyConfiguration.password(),
-    //                              proxyConfiguration.ntlmWorkstation(),
-    //                              proxyConfiguration.ntlmDomain());
-    // }
+    /**
+     * Returns a new instance of NTCredentials used for proxy authentication.
+     */
+    private static Credentials newNtCredentials(ProxyConfiguration proxyConfiguration) {
+        return new NTCredentials(
+            proxyConfiguration.username(),
+            proxyConfiguration.password().toCharArray(),
+            proxyConfiguration.ntlmWorkstation(),
+            proxyConfiguration.ntlmDomain()
+        );
+    }
 
-    // /**
-    //  * Returns a new instance of AuthScope used for proxy authentication.
-    //  */
-    // private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration) {
-    //     return new AuthScope(proxyConfiguration.host(), proxyConfiguration.port());
-    // }
+    /**
+     * Returns a new instance of AuthScope used for proxy authentication.
+     */
+    private static AuthScope newAuthScope(ProxyConfiguration proxyConfiguration) {
+        return new AuthScope(proxyConfiguration.host(), proxyConfiguration.port());
+    }
+
 
     private static void addPreemptiveAuthenticationProxy(HttpClientContext clientContext,
                                                          ProxyConfiguration proxyConfiguration) {
@@ -107,5 +111,4 @@ public final class Apache5Utils {
             clientContext.setAuthCache(authCache);
         }
     }
-
 }
