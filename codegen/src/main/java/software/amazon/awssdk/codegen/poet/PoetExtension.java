@@ -79,6 +79,10 @@ public class PoetExtension {
         return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "UserAgentUtils");
     }
 
+    public ClassName getServiceVersionInfoClass() {
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "ServiceVersionInfo");
+    }
+
     public ClassName getEnvironmentTokenSystemSettingsClass() {
         return ClassName.get(model.getMetadata().getFullClientInternalPackageName(), "EnvironmentTokenSystemSettings");
     }
