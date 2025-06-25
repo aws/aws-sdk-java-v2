@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Script to update versions for migration to JReleaser
+# Updates main pom.xml version and all parent references
+
+NEW_VERSION="3.5.5"
+OLD_VERSION="2.31.68-SNAPSHOT"
+echo "Setting versions to $NEW_VERSION"
+
+# Update main pom.xml version
+echo "Updating main pom.xml version"
+sed -i '' "s|<version>$OLD_VERSION</version>|<version>$NEW_VERSION</version>|g" pom.xml
+
+# Update awsjavasdk.version property
+echo "Updating awsjavasdk.version property"
+sed -i '' "s|<awsjavasdk.version>.*</awsjavasdk.version>|<awsjavasdk.version>$NEW_VERSION</awsjavasdk.version>|g" pom.xml
+
+# Update parent references in all pom.xml 

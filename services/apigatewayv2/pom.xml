@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>3.5.5</version>
+        <version>3.5.6</version>
     </parent>
     <artifactId>apigatewayv2</artifactId>
     <name>AWS Java SDK :: Services :: ApiGatewayV2</name>
