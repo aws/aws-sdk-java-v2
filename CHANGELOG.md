@@ -1,4 +1,62 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.70__ __2025-06-24__
+## __AWS AI Ops__
+  - ### Features
+    - Adds support for cross account investigations for CloudWatch investigations AI Operations (AIOps).
+
+## __AWS Batch__
+  - ### Features
+    - Add userdataType to LaunchTemplateSpecification and LaunchTemplateSpecificationOverride.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports license type conversions for AWS Marketplace products. Customers can provide Marketplace codes in the source license context or destination license context in the CreateLicenseConversionTaskForResource requests.
+
+## __Amazon Bedrock__
+  - ### Features
+    - We are making ListFoundationModelAgreementOffers, DeleteFoundationModelAgreement, CreateFoundationModelAgreement, GetFoundationModelAvailability, PutUseCaseForModelAccess and GetUseCaseForModelAccess APIs public, previously they were console.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows you to create and register AMIs while maintaining their underlying EBS snapshots within Local Zones.
+
+## __Amazon GameLift__
+  - ### Features
+    - Add support for UDP ping beacons to ListLocations API, including new PingBeacon and UDPEndpoint data types within its Locations return value. Use UDP ping beacon endpoints to help measure real-time network latency for multiplayer games.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS on Dedicated Local Zones, including local backup target, snapshot availability zone and snapshot target
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add support for iterative DNS queries through the new INBOUND_DELEGATION endpoint. Add delegation support through the Outbound Endpoints with DELEGATE rules.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This Feature Adds Support for the "et-EE" Locale for Batch Operations
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add Paginator for DescribeAccountLimits, and fix Paginators for DescribeTrustStoreAssociations, DescribeTrustStoreRevocations, and DescribeTrustStores
+
+# __2.31.69__ __2025-06-23__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports sort and z-order strategy for managed automated compaction for Iceberg tables in addition to binpack.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Ignore unknown properties on endpoints in endpoint rules.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports sort and z-order compaction strategies for Iceberg tables in addition to binpack.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Added support for Amazon WorkSpaces Instances API
+
 # __2.31.68__ __2025-06-20__
 ## __AWS Elemental MediaConvert__
   - ### Features
