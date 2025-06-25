@@ -30,9 +30,9 @@ import software.amazon.awssdk.core.util.VersionInfo;
 
 public class ServiceVersionInfoSpecTest {
 
-    // a fixture test that dynamically updates the generated fixture with the current version
-    // this is needed because every time codegen runs, the version will change.
-    // we need a way to generate the fixture, and then edit it in place with the current version and only then make the assertion.
+    // Fixture test that compares generated ServiceVersionInfo class against expected output.
+    // The fixture file uses {{VERSION}} as a placeholder which gets replaced with the current
+    // SDK version at test time, since the generated code injects the actual version at build time.
     @Test
     void testServiceVersionInfoClass() {
         String currVersion = VersionInfo.SDK_VERSION;
