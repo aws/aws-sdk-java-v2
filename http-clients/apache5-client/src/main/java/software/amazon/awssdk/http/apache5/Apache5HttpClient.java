@@ -25,7 +25,6 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -338,7 +337,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                        .connectionAcquireTimeout(
                                           resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT))
                                        .proxyConfiguration(builder.proxyConfiguration)
-                                       .localAddress(Optional.ofNullable(builder.localAddress).orElse(null))
                                        .expectContinueEnabled(Optional.ofNullable(builder.expectContinueEnabled)
                                                                      .orElse(DefaultConfiguration.EXPECT_CONTINUE_ENABLED))
                                        .build();
@@ -405,11 +403,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * Configuration that defines how to communicate via an HTTP proxy.
          */
         Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
-
-        /**
-         * Configure the local address that the HTTP client should use for communication.
-         */
-        Builder localAddress(InetAddress localAddress);
 
         /**
          * Configure whether the client should send an HTTP expect-continue handshake before each request.
@@ -498,7 +491,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private Registry<AuthSchemeFactory> authSchemeRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
-        private InetAddress localAddress;
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
@@ -562,16 +554,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         public void setProxyConfiguration(ProxyConfiguration proxyConfiguration) {
             proxyConfiguration(proxyConfiguration);
-        }
-
-        @Override
-        public Builder localAddress(InetAddress localAddress) {
-            this.localAddress = localAddress;
-            return this;
-        }
-
-        public void setLocalAddress(InetAddress localAddress) {
-            localAddress(localAddress);
         }
 
         @Override

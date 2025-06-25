@@ -98,7 +98,6 @@ public class Apache5HttpRequestFactory {
             .setConnectionRequestTimeout(connectAcquireTimeout, TimeUnit.MILLISECONDS)
             .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
             .setResponseTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()), TimeUnit.MILLISECONDS);
-        //    TODO as part of removed API :   .setLocalAddress(requestConfig.localAddress());
 
         /*
          * Enable 100-continue support for PUT operations, since this is
