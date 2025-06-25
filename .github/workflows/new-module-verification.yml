@@ -6,9 +6,6 @@ on:
     branches:
       - master
       - feature/master/*
-    paths:
-      - '**/*.xml'
-      - '.brazil.json'
 
 permissions:
   contents: read
