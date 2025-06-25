@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Adding ec2InstanceProfileName configuration to specify IMDS instance profile for retrieving credentials."
+}
