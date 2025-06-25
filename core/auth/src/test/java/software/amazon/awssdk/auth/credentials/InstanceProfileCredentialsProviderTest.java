@@ -326,6 +326,110 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
+    void resolveCredentials_withExplicitInstanceProfileName_skipsProfileDiscovery() {
+        String explicitProfileName = "explicit-profile-name";
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + explicitProfileName)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(explicitProfileName)
+                                                                                        .build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        
+        // Verify token was requested
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+        
+        // Verify credentials were requested with the explicit profile name
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + explicitProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+        
+        // Verify profile discovery was NOT called
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+    }
+    
+    @Test
+    void resolveCredentials_withSystemPropertyInstanceProfileName_skipsProfileDiscovery() {
+        String systemPropertyProfileName = "system-property-profile";
+        System.setProperty(SdkSystemSetting.AWS_EC2_INSTANCE_PROFILE_NAME.property(), systemPropertyProfileName);
+        
+        try {
+            stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+            stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + systemPropertyProfileName)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+            AwsCredentials credentials = provider.resolveCredentials();
+
+            assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+            assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+            
+        // Verify token was requested
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                       .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+            
+        // Verify credentials were requested with the system property profile name
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + systemPropertyProfileName))
+                       .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+            
+        // Verify profile discovery was NOT called
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        } finally {
+            System.clearProperty(SdkSystemSetting.AWS_EC2_INSTANCE_PROFILE_NAME.property());
+        }
+    }
+    
+    @Test
+    void resolveCredentials_withConfigFileInstanceProfileName_skipsProfileDiscovery() {
+        String configFileProfileName = "config-file-profile";
+        
+        ProfileFile config = configFile("profile test",
+                                        Pair.of(ProfileProperty.EC2_INSTANCE_PROFILE_NAME, configFileProfileName));
+        
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+        stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + configFileProfileName)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .profileFile(config)
+                                                                                        .profileName("test")
+                                                                                        .build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        
+        // Verify token was requested
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+        
+        // Verify credentials were requested with the config file profile name
+        WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + configFileProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+        
+        // Verify profile discovery was NOT called
+        WireMock.verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+    }
+    
+    @Test
+    void resolveCredentials_withBlankInstanceProfileName_throwsException() {
+        assertThatThrownBy(() -> InstanceProfileCredentialsProvider.builder()
+                                                                  .ec2InstanceProfileName("")
+                                                                  .build())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("ec2InstanceProfileName cannot be blank");
+    }
+    @Test
+    void resolveCredentials_withBlankInstanceProfileName1_throwsException() {
+        assertThatThrownBy(() -> InstanceProfileCredentialsProvider.builder()
+                                                                   .ec2InstanceProfileName(" ")
+                                                                   .build())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("ec2InstanceProfileName cannot be blank");
+    }
+    
+    @Test
     void resolveCredentials_customProfileFileAndName_usesCorrectEndpoint() {
         WireMockServer mockMetadataEndpoint_2 = new WireMockServer(WireMockConfiguration.options().dynamicPort());
         mockMetadataEndpoint_2.start();

@@ -46,12 +46,14 @@ public final class Ec2MetadataConfigProvider {
 
     private final Lazy<Boolean> metadataV1Disabled;
     private final Lazy<Long> serviceTimeout;
+    private final Lazy<String> ec2InstanceProfileName;
 
     private Ec2MetadataConfigProvider(Builder builder) {
         this.profileFile = builder.profileFile;
         this.profileName = builder.profileName;
         this.metadataV1Disabled = new Lazy<>(this::resolveMetadataV1Disabled);
         this.serviceTimeout = new Lazy<>(this::resolveServiceTimeout);
+        this.ec2InstanceProfileName = new Lazy<>(this::resolveEc2InstanceProfileName);
     }
 
     public enum EndpointMode {
@@ -127,6 +129,14 @@ public final class Ec2MetadataConfigProvider {
     public long serviceTimeout() {
         return serviceTimeout.getValue();
     }
+    
+    /**
+     * Resolves the EC2 Instance Profile Name to use.
+     * @return the EC2 Instance Profile Name or null if not specified.
+     */
+    public String ec2InstanceProfileName() {
+        return ec2InstanceProfileName.getValue();
+    }
 
     // Internal resolution logic for Metadata V1 disabled
     private boolean resolveMetadataV1Disabled() {
@@ -144,6 +154,14 @@ public final class Ec2MetadataConfigProvider {
                                 () -> fromProfileFileServiceTimeout(profileFile, profileName)
                             )
                             .orElseGet(() -> parseTimeoutValue(SdkSystemSetting.AWS_METADATA_SERVICE_TIMEOUT.defaultValue()));
+    }
+
+    private String resolveEc2InstanceProfileName() {
+        return OptionalUtils.firstPresent(
+                                fromSystemSettingsEc2InstanceProfileName(),
+                                () -> fromProfileFileEc2InstanceProfileName(profileFile, profileName)
+                            )
+                            .orElse(null);
     }
 
     // System settings resolution for Metadata V1 disabled
@@ -170,6 +188,22 @@ public final class Ec2MetadataConfigProvider {
                           .profile(profileName)
                           .flatMap(p -> p.property(ProfileProperty.METADATA_SERVICE_TIMEOUT))
                           .map(Ec2MetadataConfigProvider::parseTimeoutValue);
+    }
+    
+    // System settings resolution for EC2 Instance Profile Name
+    private static Optional<String> fromSystemSettingsEc2InstanceProfileName() {
+        return SdkSystemSetting.AWS_EC2_INSTANCE_PROFILE_NAME.getNonDefaultStringValue();
+    }
+    
+    // Profile file resolution for EC2 Instance Profile Name
+    private static Optional<String> fromProfileFileEc2InstanceProfileName(Supplier<ProfileFile> profileFile, String profileName) {
+        try {
+            return profileFile.get()
+                              .profile(profileName)
+                              .flatMap(p -> p.property(ProfileProperty.EC2_INSTANCE_PROFILE_NAME));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     // Parses a timeout value from a string to milliseconds

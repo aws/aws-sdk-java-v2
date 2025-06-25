@@ -212,6 +212,188 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
         verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
         verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + PROFILE_NAME)));
     }
+    
+    @Test
+    void resolveCredentials_withExplicitInstanceProfileName_usesExtendedEndpoint() {
+        String explicitProfileName = "explicit-profile-name";
+        String credentialsWithAccountId = String.format(
+            "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
+            "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
+            "\"Token\":\"SESSION_TOKEN\"," +
+            "\"Expiration\":\"%s\"," +
+            "\"AccountId\":\"%s\"}",
+            DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1))),
+            ACCOUNT_ID
+        );
+        
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+        
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + explicitProfileName))
+            .willReturn(aResponse().withStatus(200).withBody(credentialsWithAccountId)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(explicitProfileName)
+                                                                                        .build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(((AwsSessionCredentials)credentials).sessionToken()).isEqualTo("SESSION_TOKEN");
+        assertThat(credentials.accountId()).hasValue(ACCOUNT_ID);
+
+        verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + explicitProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+    }
+    
+    @Test
+    void resolveCredentials_withInvalidProfileName_throwsError() {
+        String invalidProfileName = "my-profile-0004";
+        
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+        
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfileName))
+            .willReturn(aResponse().withStatus(404)));
+            
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfileName))
+            .willReturn(aResponse().withStatus(404)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(invalidProfileName)
+                                                                                        .build();
+        
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid profile name");
+
+        verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+    }
+    
+    @Test
+    void resolveCredentials_withValidProfileNameNoAccountId_returnsCredentials() {
+        String profileName = "my-profile-0006";
+        String credentialsWithoutAccountId = String.format(
+            "{\"Code\":\"Success\"," +
+            "\"LastUpdated\":\"2025-03-17T20:53:17.832308Z\"," +
+            "\"Type\":\"AWS-HMAC\"," +
+            "\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
+            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
+            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw...\"," +
+            "\"Expiration\":\"2025-03-17T21:53:17.832308Z\"," +
+            "\"UnexpectedElement6\":{\"Name\":\"ignore-me-6\"}}");
+        
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+        
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profileName))
+            .willReturn(aResponse().withStatus(200).withBody(credentialsWithoutAccountId)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(profileName)
+                                                                                        .build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+        assertThat(credentials.secretAccessKey()).isEqualTo("wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+        assertThat(((AwsSessionCredentials)credentials).sessionToken()).isEqualTo("AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw...");
+        assertThat(credentials.accountId()).isEmpty();
+
+        verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+    }
+    
+    @Test
+    void resolveCredentials_withValidProfileNameAgainstLegacyApi_returnsCredentials() {
+        String profileName = "my-profile-0010";
+        String credentialsJson = String.format(
+            "{\"Code\":\"Success\"," +
+            "\"LastUpdated\":\"2025-03-21T20:53:17.832308Z\"," +
+            "\"Type\":\"AWS-HMAC\"," +
+            "\"AccessKeyId\":\"ASIAIOSFODNN7EXAMPLE\"," +
+            "\"SecretAccessKey\":\"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\"," +
+            "\"Token\":\"AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw...\"," +
+            "\"Expiration\":\"2025-03-21T21:53:17.832308Z\"}");
+        
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+        
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profileName))
+            .willReturn(aResponse().withStatus(404)));
+            
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + profileName))
+            .willReturn(aResponse().withStatus(200).withBody(credentialsJson)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(profileName)
+                                                                                        .build();
+        AwsCredentials credentials = provider.resolveCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ASIAIOSFODNN7EXAMPLE");
+        assertThat(credentials.secretAccessKey()).isEqualTo("wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY");
+        assertThat(((AwsSessionCredentials)credentials).sessionToken()).isEqualTo("AQoEXAMPLEH4aoAH0gNCAPyJxz4BlCFFxWNE1OPTgk5TthT+FvwqnKw...");
+
+        verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + profileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + profileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH)));
+        verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+    }
+    
+    @Test
+    void resolveCredentials_withInvalidProfileNameAgainstLegacyApi_throwsError() {
+        String invalidProfileName = "my-profile-0012";
+        
+        wireMockServer.stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+            .willReturn(aResponse().withBody(TOKEN_STUB)));
+        
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfileName))
+            .willReturn(aResponse().withStatus(404)));
+            
+        wireMockServer.stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfileName))
+            .willReturn(aResponse().withStatus(404)));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                        .ec2InstanceProfileName(invalidProfileName)
+                                                                                        .build();
+        
+        assertThatThrownBy(() -> provider.resolveCredentials())
+            .isInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid profile name");
+
+        verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                   .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_EXTENDED_RESOURCE_PATH + invalidProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+        verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + invalidProfileName))
+                   .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+    }
 
     @Test
     void resolveCredentials_withUnstableProfile_ReturnsCredentials() {

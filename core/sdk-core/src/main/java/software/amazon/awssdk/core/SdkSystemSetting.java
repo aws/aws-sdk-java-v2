@@ -99,6 +99,14 @@ public enum SdkSystemSetting implements SystemSetting {
      * metadata service in environments with varying network conditions.
      */
     AWS_METADATA_SERVICE_TIMEOUT("aws.ec2MetadataServiceTimeout", "1"),
+    
+    /**
+     * The EC2 instance profile name to use for retrieving credentials.
+     * 
+     * When this is set, the provider will skip fetching the list of available instance profiles
+     * and use this name directly.
+     */
+    AWS_EC2_INSTANCE_PROFILE_NAME("aws.ec2InstanceProfileName", null),
 
     /**
      * The elastic container metadata service endpoint that should be called by the ContainerCredentialsProvider

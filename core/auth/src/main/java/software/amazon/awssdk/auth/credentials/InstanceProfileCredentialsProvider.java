@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static software.amazon.awssdk.utils.ComparableUtils.maximum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
+import static software.amazon.awssdk.utils.StringUtils.isBlank;
 import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.net.URI;
@@ -103,6 +104,8 @@ public final class InstanceProfileCredentialsProvider
     private final Supplier<ProfileFile> profileFile;
 
     private final String profileName;
+    
+    private final String ec2InstanceProfileName;
 
     private final Duration staleTime;
 
@@ -118,6 +121,13 @@ public final class InstanceProfileCredentialsProvider
                                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
+        this.ec2InstanceProfileName = builder.ec2InstanceProfileName;
+        
+        if (isBlank(ec2InstanceProfileName) && ec2InstanceProfileName != null) {
+            throw SdkClientException.builder()
+                                    .message("ec2InstanceProfileName cannot be blank")
+                                    .build();
+        }
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
         this.configProvider =
@@ -173,6 +183,11 @@ public final class InstanceProfileCredentialsProvider
 
         try {
             LoadedCredentials credentials = httpCredentialsLoader.loadCredentials(createEndpointProvider());
+
+            if (apiVersion == ApiVersion.UNKNOWN) {
+                apiVersion = ApiVersion.EXTENDED;
+            }
+            
             Instant expiration = credentials.getExpiration().orElse(null);
             log.debug(() -> "Loaded credentials from IMDS with expiration time of " + expiration);
 
@@ -186,19 +201,25 @@ public final class InstanceProfileCredentialsProvider
         } catch (Ec2MetadataClientException e) {
             if (e.statusCode() == 404) {
                 log.debug(() -> "Resolved profile is no longer available. Resetting it and trying again.");
-                resolvedProfile = null;
 
                 if (apiVersion == ApiVersion.UNKNOWN) {
                     apiVersion = ApiVersion.LEGACY;
                     return refreshCredentials();
+                } else if (ec2InstanceProfileName == null && configProvider.ec2InstanceProfileName() == null) {
+                    // Resolved profile name is invalid, reset it and try again
+                    resolvedProfile = null;
+                    
+                    profileRetryCount++;
+                    if (profileRetryCount <= MAX_PROFILE_RETRIES) {
+                        log.debug(() -> "Profile name not found, retrying fetching the profile name again.");
+                        return refreshCredentials();
+                    }
+                } else {
+                    throw SdkClientException.builder()
+                                           .message("Invalid profile name")
+                                           .cause(e)
+                                           .build();
                 }
-
-                profileRetryCount++;
-                if (profileRetryCount <= MAX_PROFILE_RETRIES) {
-                    log.debug(() -> "Profile name not found, retrying fetching the profile name again.");
-                    return refreshCredentials();
-                }
-                throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
             }
             throw SdkClientException.create(FAILED_TO_LOAD_CREDENTIALS_ERROR, e);
         } catch (RuntimeException e) {
@@ -328,6 +349,15 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
+        if (ec2InstanceProfileName != null) {
+            return new String[]{ec2InstanceProfileName};
+        }
+
+        String configuredProfileName = this.configProvider.ec2InstanceProfileName();
+        if (configuredProfileName != null) {
+            return new String[]{configuredProfileName};
+        }
+
         if (resolvedProfile != null) {
             return new String[]{resolvedProfile};
         }
@@ -384,6 +414,19 @@ public final class InstanceProfileCredentialsProvider
     public interface Builder extends HttpCredentialsProvider.Builder<InstanceProfileCredentialsProvider, Builder>,
                                      CopyableBuilder<Builder, InstanceProfileCredentialsProvider> {
         /**
+         * Configure the EC2 instance profile name to use for retrieving credentials.
+         * 
+         * <p>When this is set, the provider will skip fetching the list of available instance profiles
+         * and use this name directly. This can improve performance by reducing the number of calls to IMDS.
+         * 
+         * <p>By default, this is not set and the provider will discover the instance profile name from IMDS.
+         * 
+         * @param ec2InstanceProfileName The EC2 instance profile name to use
+         * @return This builder for method chaining
+         */
+        Builder ec2InstanceProfileName(String ec2InstanceProfileName);
+        
+        /**
          * Configure the profile file used for loading IMDS-related configuration, like the endpoint mode (IPv4 vs IPv6).
          *
          * <p>By default, {@link ProfileFile#defaultProfileFile()} is used.
@@ -434,6 +477,7 @@ public final class InstanceProfileCredentialsProvider
         private String asyncThreadName;
         private Supplier<ProfileFile> profileFile;
         private String profileName;
+        private String ec2InstanceProfileName;
         private Duration staleTime;
 
         private BuilderImpl() {
@@ -447,6 +491,7 @@ public final class InstanceProfileCredentialsProvider
             this.asyncThreadName = provider.asyncThreadName;
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
+            this.ec2InstanceProfileName = provider.ec2InstanceProfileName;
             this.staleTime = provider.staleTime;
         }
 
@@ -515,6 +560,17 @@ public final class InstanceProfileCredentialsProvider
         public void setProfileName(String profileName) {
             profileName(profileName);
         }
+        
+        @Override
+        public Builder ec2InstanceProfileName(String ec2InstanceProfileName) {
+            this.ec2InstanceProfileName = ec2InstanceProfileName;
+            return this;
+        }
+        
+        public void setEc2InstanceProfileName(String ec2InstanceProfileName) {
+            ec2InstanceProfileName(ec2InstanceProfileName);
+        }
+
 
         @Override
         public Builder staleTime(Duration duration) {

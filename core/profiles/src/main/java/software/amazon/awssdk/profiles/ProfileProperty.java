@@ -162,6 +162,12 @@ public final class ProfileProperty {
     public static final String EC2_METADATA_V1_DISABLED = "ec2_metadata_v1_disabled";
 
     public static final String METADATA_SERVICE_TIMEOUT = "metadata_service_timeout";
+    
+    /**
+     * Property name for specifying an IAM instance profile by name.
+     * When this is set, the provider will skip fetching a list of available instance profiles.
+     */
+    public static final String EC2_INSTANCE_PROFILE_NAME = "ec2_instance_profile_name";
 
     /**
      * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
