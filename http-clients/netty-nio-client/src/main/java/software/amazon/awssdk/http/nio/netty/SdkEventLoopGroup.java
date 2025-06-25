@@ -34,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Provides {@link EventLoopGroup} and {@link ChannelFactory} for {@link NettyNioAsyncHttpClient}.
  * <p>
- * There are three ways to create a new instance.
+ * There are four ways to create a new instance.
  *
  * <ul>
  * <li>using {@link #builder()} to provide custom configuration of {@link EventLoopGroup}.
@@ -49,6 +49,9 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
  * {@link ChannelFactory}
+ *
+ * <li>Using {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)} to provide a custom {@link EventLoopGroup}, and
+ * socket and datagram {@link ChannelFactory}'s.
  * </ul>
  *
  * <p>
@@ -76,6 +79,16 @@ public final class SdkEventLoopGroup {
         this.eventLoopGroup = eventLoopGroup;
         this.channelFactory = channelFactory;
         this.datagramChannelFactory = ChannelResolver.resolveDatagramChannelFactory(eventLoopGroup);
+    }
+
+    SdkEventLoopGroup(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> socketChannelFactory,
+                      ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+        Validate.paramNotNull(eventLoopGroup, "eventLoopGroup");
+        Validate.paramNotNull(socketChannelFactory, "socketChannelFactory");
+        Validate.paramNotNull(datagramChannelFactory, "datagramChannelFactory");
+        this.eventLoopGroup = eventLoopGroup;
+        this.channelFactory = socketChannelFactory;
+        this.datagramChannelFactory = datagramChannelFactory;
     }
 
     /**
@@ -109,15 +122,30 @@ public final class SdkEventLoopGroup {
     }
 
     /**
-     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup} and {@link ChannelFactory}
+     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup} and socket {@link ChannelFactory}
      * to be used with {@link NettyNioAsyncHttpClient}.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
-     * @param channelFactory the channel factor to be used
+     * @param socketChannelFactory the socket channel factory to be used
      * @return a new instance of SdkEventLoopGroup
      */
-    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> channelFactory) {
-        return new SdkEventLoopGroup(eventLoopGroup, channelFactory);
+    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup,
+                                           ChannelFactory<? extends Channel> socketChannelFactory) {
+        return new SdkEventLoopGroup(eventLoopGroup, socketChannelFactory);
+    }
+
+    /**
+     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup}, and socket and datagram
+     * {@link ChannelFactory}'s to be used with {@link NettyNioAsyncHttpClient}.
+     *
+     * @param eventLoopGroup the EventLoopGroup to be used
+     * @param socketChannelFactory the socket channel factory to be used
+     * @param datagramChannelFactory the datagram channel factory to be used
+     * @return a new instance of SdkEventLoopGroup
+     */
+    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> socketChannelFactory,
+                                           ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+        return new SdkEventLoopGroup(eventLoopGroup, socketChannelFactory, datagramChannelFactory);
     }
 
     /**
@@ -128,8 +156,11 @@ public final class SdkEventLoopGroup {
      * be thrown for any unknown EventLoopGroup type.
      * <p>
      * If {@link MultiThreadIoEventLoopGroup} is passed in, {@link NioSocketChannel} and {@link NioDatagramChannel} will be
-     * resolved, regardless of the transport {@link IoHandlerFactory} passed in. This is because it is not possible to
-     * determine the type of transport factory from a given {@link MultiThreadIoEventLoopGroup}.
+     * resolved, regardless of the transport {@link IoHandlerFactory} set on the {@link MultiThreadIoEventLoopGroup}. This is
+     * because it is not possible to determine the type of transport factory from a given {@link MultiThreadIoEventLoopGroup}.
+     * <p>
+     * To use a {@link MultiThreadIoEventLoopGroup} with a non-Nio transport factory, use
+     * {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)}, specifying the socket and datagram channels.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
      * @return a new instance of SdkEventLoopGroup
