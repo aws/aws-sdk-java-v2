@@ -52,7 +52,7 @@ class SdkUserAgentBuilderTest {
                            Arrays.asList("Kotlin", "Scala"));
 
         SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null, null);
-        SdkClientUserAgentProperties maximalProperties = sdkProperties("arbitrary", "async", "Netty", "someAppId", null);
+        SdkClientUserAgentProperties maximalProperties = sdkProperties("arbitrary", "async", "Netty", "someAppId", "DynamoDB#2.26.22-SNAPSHOT");
 
 
         return Stream.of(
@@ -91,13 +91,9 @@ class SdkUserAgentBuilderTest {
                          "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT os/Mac_OS_X#14.6.1 lang/java#21.0.2 md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/en_US",
                          sdkProperties(null, null, null, null, "DynamoDB#2.26.22-SNAPSHOT"),
                          standardValuesSysAgent),
-            Arguments.of("all properties",
-                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 api/API_Gateway#2.26.22-SNAPSHOT os/Mac_OS_X#14.6.1 lang/java#21.0.2 md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda app/someAppId",
-                         sdkProperties("arbitrary", "async", "Netty", "someAppId", "API_Gateway#2.26.22-SNAPSHOT"),
-                         maximalSysAgent),
             Arguments.of("standard sysagent, request values - maximal",
-                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 os/Mac_OS_X#14.6.1 "
-                         + "lang/java#21.0.2 "
+                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT"
+                         + " os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda app/someAppId",
                          maximalProperties,
