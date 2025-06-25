@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS S3 Control",
+    "contributor": "",
+    "description": "Add support for the ability to use Amazon S3 Access Points with Amazon FSx for OpenZFS file systems."
+}
