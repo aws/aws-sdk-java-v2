@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces Thin Client",
-    "contributor": "",
-    "description": "Remove Tags field from Get API responses"
-}

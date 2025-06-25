@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "Updates for change to Amazon ECS default log driver mode from blocking to non-blocking"
-}
