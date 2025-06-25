@@ -201,7 +201,12 @@ public class SyncClientClass extends SyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".build()", SdkClientOption.class);
+                                      + ".option($T.API_METADATA, $T.USER_AGENT)"
+                                      + ".build()",
+                                      SdkClientOption.class,
+                                      SdkClientOption.class,
+                                      ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                       "ServiceVersionUserAgent"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
