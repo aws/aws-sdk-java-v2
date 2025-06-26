@@ -271,7 +271,7 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
         
         assertThatThrownBy(() -> provider.resolveCredentials())
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Invalid profile name");
+            .hasMessageContaining("Invalid EC2 instance profile name");
 
         verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
@@ -383,7 +383,7 @@ public class InstanceProfileCredentialsProviderExtendedApiTest {
         
         assertThatThrownBy(() -> provider.resolveCredentials())
             .isInstanceOf(SdkClientException.class)
-            .hasMessageContaining("Invalid profile name");
+            .hasMessageContaining("Invalid EC2 instance profile name");
 
         verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));

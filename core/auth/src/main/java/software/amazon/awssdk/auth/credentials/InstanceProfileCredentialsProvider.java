@@ -215,8 +215,12 @@ public final class InstanceProfileCredentialsProvider
                         return refreshCredentials();
                     }
                 } else {
+                    String profileName = resolveProfileName();
                     throw SdkClientException.builder()
-                                           .message("Invalid profile name")
+                                           .message(String.format("Invalid EC2 instance profile name: '%s'. " +
+                                                                 "Verify that the profile exists and that your instance " +
+                                                                 "has permission to access it. ",
+                                                                 profileName))
                                            .cause(e)
                                            .build();
                 }
