@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -41,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.RepeatableInputStreamRequestEntity;
 
-public class ApacheHttpRequestFactoryTest {
+class ApacheHttpRequestFactoryTest {
 
     private Apache5HttpRequestConfig requestConfig;
     private Apache5HttpRequestFactory instance;
@@ -52,7 +51,6 @@ public class ApacheHttpRequestFactoryTest {
         requestConfig = Apache5HttpRequestConfig.builder()
                                                 .connectionAcquireTimeout(Duration.ZERO)
                                                 .connectionTimeout(Duration.ZERO)
-                                                .localAddress(InetAddress.getLoopbackAddress())
                                                 .socketTimeout(Duration.ZERO)
                                                 .build();
     }

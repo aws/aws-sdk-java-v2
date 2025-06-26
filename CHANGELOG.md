@@ -1,4 +1,95 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.71__ __2025-06-25__
+## __AWS S3 Control__
+  - ### Features
+    - Add support for the ability to use Amazon S3 Access Points with Amazon FSx for OpenZFS file systems.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding constant to each SDK module to represent its version
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds IPv6 support to the Storage Gateway APIs. APIs that previously only accept or return IPv4 address will now accept or return both IPv4 and IPv6 addresses.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updates for change to Amazon ECS default log driver mode from blocking to non-blocking
+
+## __Amazon FSx__
+  - ### Features
+    - Add support for the ability to create Amazon S3 Access Points for Amazon FSx for OpenZFS file systems.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for additional server-side encryption mode and storage class values for accessing Amazon FSx data from Amazon S3 using S3 Access Points
+
+## __Amazon Textract__
+  - ### Features
+    - Add RotationAngle field to Geometry of WORD blocks for Textract AnalyzeDocument API
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Remove Tags field from Get API responses
+
+# __2.31.70__ __2025-06-24__
+## __AWS AI Ops__
+  - ### Features
+    - Adds support for cross account investigations for CloudWatch investigations AI Operations (AIOps).
+
+## __AWS Batch__
+  - ### Features
+    - Add userdataType to LaunchTemplateSpecification and LaunchTemplateSpecificationOverride.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports license type conversions for AWS Marketplace products. Customers can provide Marketplace codes in the source license context or destination license context in the CreateLicenseConversionTaskForResource requests.
+
+## __Amazon Bedrock__
+  - ### Features
+    - We are making ListFoundationModelAgreementOffers, DeleteFoundationModelAgreement, CreateFoundationModelAgreement, GetFoundationModelAvailability, PutUseCaseForModelAccess and GetUseCaseForModelAccess APIs public, previously they were console.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows you to create and register AMIs while maintaining their underlying EBS snapshots within Local Zones.
+
+## __Amazon GameLift__
+  - ### Features
+    - Add support for UDP ping beacons to ListLocations API, including new PingBeacon and UDPEndpoint data types within its Locations return value. Use UDP ping beacon endpoints to help measure real-time network latency for multiplayer games.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS on Dedicated Local Zones, including local backup target, snapshot availability zone and snapshot target
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add support for iterative DNS queries through the new INBOUND_DELEGATION endpoint. Add delegation support through the Outbound Endpoints with DELEGATE rules.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This Feature Adds Support for the "et-EE" Locale for Batch Operations
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add Paginator for DescribeAccountLimits, and fix Paginators for DescribeTrustStoreAssociations, DescribeTrustStoreRevocations, and DescribeTrustStores
+
+# __2.31.69__ __2025-06-23__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports sort and z-order strategy for managed automated compaction for Iceberg tables in addition to binpack.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Ignore unknown properties on endpoints in endpoint rules.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports sort and z-order compaction strategies for Iceberg tables in addition to binpack.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Added support for Amazon WorkSpaces Instances API
+
 # __2.31.68__ __2025-06-20__
 ## __AWS Elemental MediaConvert__
   - ### Features

@@ -663,5 +663,76 @@
         "then": {
             "deserializedAs": {}
         }
+    },
+    {
+        "description": "Parses simple RpcV2 Cbor errors.",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4LnNtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNJbnZhbGlkR3JlZXRpbmdnTWVzc2FnZWJIaf8="
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "InvalidGreeting"
+        },
+        "then": {
+            "deserializedAs": {
+                "Message": "Hi"
+            }
+        }
+    },
+    {
+        "description": "Parses a complex error with no message member",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3JoVG9wTGV2ZWxpVG9wIGxldmVsZk5lc3RlZL9jRm9vY2Jhcv//"
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "ComplexError"
+        },
+        "then": {
+            "deserializedAs": {
+                "TopLevel": "Top level",
+                "Nested": {
+                    "Foo": "bar"
+                }
+            }
+        }
+    },
+    {
+        "description": "Parses an empty complex error",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3L/"
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "ComplexError"
+        },
+        "then": {
+            "deserializedAs": {
+            }
+        }
     }
 ]

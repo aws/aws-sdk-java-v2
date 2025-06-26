@@ -9,8 +9,6 @@ on:
     types: [ opened, synchronize, reopened, labeled, unlabeled ]
     branches:
       - master
-    paths:
-      - '**/*.java'   
 
 jobs:
   api-surface-area-review-verification:

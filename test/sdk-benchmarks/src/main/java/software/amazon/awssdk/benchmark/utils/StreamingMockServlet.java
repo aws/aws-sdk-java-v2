@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.benchmark.utils;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class StreamingMockServlet extends HttpServlet {
     private static final byte[] STREAMING_RESPONSE_DATA = new byte[1024 * 1024]; // 1MB response
@@ -35,25 +34,21 @@ public class StreamingMockServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleRequest(request, response);
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         handleRequest(request, response);
     }
 
     @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    protected void doPut(HttpServletRequest request, HttpServletResponse response) throws  IOException {
         handleRequest(request, response);
     }
 
-    private void handleRequest(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    private void handleRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
         // Check if this should be a streaming response
         if (isStreamingOperation(request)) {
             handleStreamingRequest(request, response);
@@ -72,8 +67,7 @@ public class StreamingMockServlet extends HttpServlet {
                "application/octet-stream".equals(contentType);
     }
 
-    private void handleStreamingRequest(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    private void handleStreamingRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         // Consume input stream if present
         try (InputStream inputStream = request.getInputStream()) {
@@ -95,8 +89,7 @@ public class StreamingMockServlet extends HttpServlet {
         }
     }
 
-    private void handleJsonRequest(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
+    private void handleJsonRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");

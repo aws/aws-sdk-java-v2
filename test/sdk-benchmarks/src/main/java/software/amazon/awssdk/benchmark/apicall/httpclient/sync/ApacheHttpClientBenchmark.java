@@ -80,7 +80,7 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
         }
     }
 
-    @Param( {"apache4", "apache5"})
+    @Param({"apache4", "apache5"})
     private String clientType;
 
     private MockServer mockServer;
@@ -180,8 +180,8 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
         StreamingOutputOperationRequest request = StreamingOutputOperationRequest.builder()
                                                                                  .build();
 
-        ResponseBytes<StreamingOutputOperationResponse> responseBytes = client.streamingOutputOperation(request,
-                                                                                                        ResponseTransformer.toBytes());
+        ResponseBytes<StreamingOutputOperationResponse> responseBytes =
+            client.streamingOutputOperation(request, ResponseTransformer.toBytes());
 
         blackhole.consume(responseBytes.asByteArray());
     }
@@ -197,8 +197,8 @@ public class ApacheHttpClientBenchmark implements SdkHttpClientBenchmark {
                 StreamingOutputOperationRequest request = StreamingOutputOperationRequest.builder()
                                                                                          .build();
 
-                ResponseBytes<StreamingOutputOperationResponse> responseBytes = client.streamingOutputOperation(request,
-                                                                                                                ResponseTransformer.toBytes());
+                ResponseBytes<StreamingOutputOperationResponse> responseBytes =
+                    client.streamingOutputOperation(request, ResponseTransformer.toBytes());
 
                 blackhole.consume(responseBytes.asByteArray());
             }, executorService);
