@@ -116,7 +116,7 @@ public class S3BenchmarkRunner {
                                        .httpClient(Apache5HttpClient.create())
                                        .overrideConfiguration(o -> o.addMetricPublisher(
                                            metricPublisher(cloudwatchClient,
-                                                           namespacePrefix + "/SmallObject/Apache")))
+                                                           namespacePrefix + "/SmallObject/Apache5")))
                                        .build();
 
         LOGGER.info(() -> "Running small objects benchmark with Apache5 Http Client, 64Kb data, 5 buckets, 200 iterations");
