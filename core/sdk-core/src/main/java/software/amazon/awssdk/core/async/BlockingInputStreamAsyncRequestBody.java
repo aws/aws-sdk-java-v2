@@ -120,6 +120,11 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
         }
     }
 
+    @Override
+    public String body() {
+        return BodyType.STREAM.getName();
+    }
+
     private void waitForSubscriptionIfNeeded() throws InterruptedException {
         long timeoutSeconds = subscribeTimeout.getSeconds();
         if (!subscribedLatch.await(timeoutSeconds, TimeUnit.SECONDS)) {
