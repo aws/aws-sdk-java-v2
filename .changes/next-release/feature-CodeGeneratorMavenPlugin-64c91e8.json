@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Code Generator Maven Plugin",
+    "contributor": "",
+    "description": "Update the generator plugin to support model validation during code generation. In addition, this adds the `writeValidationReport` flag to support writing the validation report to disk."
+}
