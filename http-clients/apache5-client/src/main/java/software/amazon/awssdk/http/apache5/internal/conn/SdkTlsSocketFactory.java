@@ -27,9 +27,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.apache5.internal.net.InputShutdownCheckingSslSocket;
 import software.amazon.awssdk.http.apache5.internal.net.SdkSocket;
-import software.amazon.awssdk.http.apache5.internal.net.SdkSslSocket;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
@@ -62,9 +60,6 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         log.trace(() -> String.format("Connecting to %s:%s", remoteAddress.getAddress(), remoteAddress.getPort()));
 
         Socket connectSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
-        if (connectSocket instanceof SSLSocket) {
-            return new InputShutdownCheckingSslSocket(new SdkSslSocket((SSLSocket) connectSocket));
-        }
         return new SdkSocket(connectSocket);
     }
 }
