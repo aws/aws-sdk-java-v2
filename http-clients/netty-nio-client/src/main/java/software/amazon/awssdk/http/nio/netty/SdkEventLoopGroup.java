@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.nio.netty;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.IoHandlerFactory;
 import io.netty.channel.MultiThreadIoEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -154,13 +154,17 @@ public final class SdkEventLoopGroup {
      * <p>
      * {@link ChannelFactory} will be resolved based on the type of {@link EventLoopGroup} provided. IllegalArgumentException will
      * be thrown for any unknown EventLoopGroup type.
+     *
      * <p>
-     * If {@link MultiThreadIoEventLoopGroup} is passed in, {@link NioSocketChannel} and {@link NioDatagramChannel} will be
-     * resolved, regardless of the transport {@link IoHandlerFactory} set on the {@link MultiThreadIoEventLoopGroup}. This is
-     * because it is not possible to determine the type of transport factory from a given {@link MultiThreadIoEventLoopGroup}.
+     * <b>Special handling for {@link MultiThreadIoEventLoopGroup}:</b>
+     * When a {@link MultiThreadIoEventLoopGroup} is provided (not the deprecated transport-specific event loop groups like
+     * {@link NioEventLoopGroup}) the SDK cannot determine which transport type was configured and will default to using
+     * {@link NioSocketChannel} and {@link NioDatagramChannel}.
+     *
      * <p>
-     * To use a {@link MultiThreadIoEventLoopGroup} with a non-Nio transport factory, use
-     * {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)}, specifying the socket and datagram channels.
+     * To use {@link MultiThreadIoEventLoopGroup} with non-NIO transports (such as Epoll or KQueue),
+     * use {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)} and explicitly specify
+     * the desired socket and datagram channel factories.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
      * @return a new instance of SdkEventLoopGroup
