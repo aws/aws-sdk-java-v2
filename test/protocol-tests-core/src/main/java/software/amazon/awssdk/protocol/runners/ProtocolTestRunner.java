@@ -72,6 +72,7 @@ public final class ProtocolTestRunner {
                 marshallingTestRunner.runTest(testCase);
                 break;
             case UNMARSHALL:
+            case ERROR_UNMARSHALL:
                 unmarshallingTestRunner.runTest(testCase);
                 break;
             default:

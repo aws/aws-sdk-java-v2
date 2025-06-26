@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Base64;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -52,6 +53,21 @@ class UnmarshallingTestRunner {
 
     void runTest(TestCase testCase) throws Exception {
         resetWireMock(testCase.getGiven().getResponse());
+
+        switch (testCase.getWhen().getAction()) {
+            case UNMARSHALL:
+                runUnmarshallTest(testCase);
+                break;
+            case ERROR_UNMARSHALL:
+                runErrorUnmarshallTest(testCase);
+                break;
+            default:
+                throw new IllegalArgumentException("UnmarshallingTestRunner unable to run test case for action "
+                                                   + testCase.getWhen().getAction());
+        }
+    }
+
+    private void runUnmarshallTest(TestCase testCase) throws Exception {
         String operationName = testCase.getWhen().getOperationName();
         ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
         if (!hasStreamingMember(operationName)) {
@@ -60,10 +76,30 @@ class UnmarshallingTestRunner {
         } else {
             CapturingResponseTransformer responseHandler = new CapturingResponseTransformer();
             Object actualResult = clientReflector
-                    .invokeStreamingMethod(testCase, shapeModelReflector.createShapeObject(), responseHandler);
+                .invokeStreamingMethod(testCase, shapeModelReflector.createShapeObject(), responseHandler);
             testCase.getThen().getUnmarshallingAssertion()
                     .assertMatches(createContext(operationName, responseHandler.captured), actualResult);
         }
+    }
+
+    private void runErrorUnmarshallTest(TestCase testCase) throws Exception {
+        String operationName = testCase.getWhen().getOperationName();
+        ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
+        try {
+            clientReflector.invokeMethod(testCase, shapeModelReflector.createShapeObject());
+            throw new IllegalStateException("Test case expected client to throw error");
+        } catch (InvocationTargetException t) {
+            String errorName = testCase.getWhen().getErrorName();
+            testCase.getThen().getErrorUnmarshallingAssertion().assertMatches(
+                createErrorContext(operationName, errorName), t.getCause());
+        }
+    }
+
+    private UnmarshallingTestContext createErrorContext(String operationName, String errorName) {
+        return new UnmarshallingTestContext()
+            .withModel(model)
+            .withOperationName(operationName)
+            .withErrorName(errorName);
     }
 
     /**

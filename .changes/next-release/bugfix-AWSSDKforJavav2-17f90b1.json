@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "EmfMetricLoggingPublisher",
+    "contributor": "",
+    "description": "Fixed the bug that EmfMetricLoggingPublisher not properly publishing Long type metrics"
+}
