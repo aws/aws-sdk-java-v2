@@ -205,7 +205,7 @@ public final class InstanceProfileCredentialsProvider
                 if (apiVersion == ApiVersion.UNKNOWN) {
                     apiVersion = ApiVersion.LEGACY;
                     return refreshCredentials();
-                } else if (ec2InstanceProfileName == null && configProvider.ec2InstanceProfileName() == null) {
+                } else if (resolveProfileName() == null) {
                     // Resolved profile name is invalid, reset it and try again
                     resolvedProfile = null;
                     
@@ -348,14 +348,16 @@ public final class InstanceProfileCredentialsProvider
         return configProvider.isMetadataV1Disabled();
     }
 
-    private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
-        if (ec2InstanceProfileName != null) {
-            return new String[]{ec2InstanceProfileName};
-        }
+    private String resolveProfileName() {
+        return ec2InstanceProfileName != null ? 
+               ec2InstanceProfileName : 
+               configProvider.ec2InstanceProfileName();
+    }
 
-        String configuredProfileName = this.configProvider.ec2InstanceProfileName();
-        if (configuredProfileName != null) {
-            return new String[]{configuredProfileName};
+    private String[] getSecurityCredentials(String imdsHostname, String metadataToken) {
+        String profileName = resolveProfileName();
+        if (profileName != null) {
+            return new String[]{profileName};
         }
 
         if (resolvedProfile != null) {
@@ -417,12 +419,9 @@ public final class InstanceProfileCredentialsProvider
          * Configure the EC2 instance profile name to use for retrieving credentials.
          * 
          * <p>When this is set, the provider will skip fetching the list of available instance profiles
-         * and use this name directly. This can improve performance by reducing the number of calls to IMDS.
-         * 
-         * <p>By default, this is not set and the provider will discover the instance profile name from IMDS.
+         * and use this name directly.
          * 
          * @param ec2InstanceProfileName The EC2 instance profile name to use
-         * @return This builder for method chaining
          */
         Builder ec2InstanceProfileName(String ec2InstanceProfileName);
         

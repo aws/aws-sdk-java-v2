@@ -413,6 +413,34 @@ public class InstanceProfileCredentialsProviderTest {
     }
     
     @Test
+    void resolveCredentials_withEnvironmentVariableInstanceProfileName_skipsProfileDiscovery() {
+        String envVarProfileName = "env-var-profile";
+        
+        try {
+            environmentVariableHelper.set(SdkSystemSetting.AWS_EC2_INSTANCE_PROFILE_NAME.environmentVariable(), envVarProfileName);
+            
+            stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(aResponse().withBody(TOKEN_STUB)));
+            stubFor(get(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + envVarProfileName)).willReturn(aResponse().withBody(STUB_CREDENTIALS)));
+
+            InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+            AwsCredentials credentials = provider.resolveCredentials();
+
+            assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+            assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+            WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                       .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, equalTo("21600")));
+
+            WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH + envVarProfileName))
+                       .withHeader(TOKEN_HEADER, equalTo(TOKEN_STUB)));
+
+            WireMock.verify(0, getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH)));
+        } finally {
+            environmentVariableHelper.reset();
+        }
+    }
+    
+    @Test
     void resolveCredentials_withBlankInstanceProfileName_throwsException() {
         assertThatThrownBy(() -> InstanceProfileCredentialsProvider.builder()
                                                                   .ec2InstanceProfileName("")
