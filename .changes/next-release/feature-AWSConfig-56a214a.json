@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "Added important considerations to the PutConformancePack and PutOrganizationConformancPack APIs."
+}
