@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.apache5;
 
 import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpService;
 
@@ -23,6 +24,7 @@ import software.amazon.awssdk.http.SdkHttpService;
  * Service binding for the Apache5 implementation.
  */
 @SdkPreviewApi
+@SdkPublicApi
 public class Apache5SdkHttpService implements SdkHttpService {
     @Override
     public SdkHttpClient.Builder createHttpClientBuilder() {

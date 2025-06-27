@@ -66,6 +66,7 @@ import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -104,6 +105,7 @@ import software.amazon.awssdk.utils.Validate;
  * <p>This can be created via {@link #builder()}</p>
  */
 @SdkPreviewApi
+@SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
     public static final String CLIENT_NAME = "Apache5";
