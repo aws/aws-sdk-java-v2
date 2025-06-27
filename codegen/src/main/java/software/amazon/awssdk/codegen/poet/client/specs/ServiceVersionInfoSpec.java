@@ -22,6 +22,7 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -29,9 +30,11 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class ServiceVersionInfoSpec implements ClassSpec {
     private final PoetExtension poetExtension;
+    private final IntermediateModel model;
 
     public ServiceVersionInfoSpec(IntermediateModel model) {
         this.poetExtension = new PoetExtension(model);
+        this.model = model;
     }
 
     @Override
@@ -39,6 +42,7 @@ public class ServiceVersionInfoSpec implements ClassSpec {
         TypeSpec.Builder builder = TypeSpec.classBuilder("ServiceVersionInfo")
                                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                            .addAnnotation(PoetUtils.generatedAnnotation())
+                                           .addAnnotation(SdkInternalApi.class)
                                            .addField(FieldSpec.builder(
                                                String.class, "VERSION", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                               .initializer("$S", SDK_VERSION)

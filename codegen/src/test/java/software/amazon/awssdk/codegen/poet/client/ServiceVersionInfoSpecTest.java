@@ -31,15 +31,17 @@ import software.amazon.awssdk.core.util.VersionInfo;
 public class ServiceVersionInfoSpecTest {
 
     // Fixture test that compares generated ServiceVersionInfo class against expected output.
-    // The fixture file uses {{VERSION}} as a placeholder which gets replaced with the current
-    // SDK version at test time, since the generated code injects the actual version at build time.
+    // The fixture file uses {{VERSION}} as a placeholder for the SDK version. The placeholder get
+    // replaced with actual value at test time, since the generated code injects the actual
+    // version at build time.
     @Test
     void testServiceVersionInfoClass() {
         String currVersion = VersionInfo.SDK_VERSION;
         ClassSpec serviceVersionInfoSpec = new ServiceVersionInfoSpec(ClientTestModels.restJsonServiceModels());
 
         String expectedContent = loadFixtureFile("test-service-version-info-class.java");
-        expectedContent = expectedContent.replace("{{VERSION}}", currVersion);
+        expectedContent = expectedContent
+            .replace("{{VERSION}}", currVersion);
 
         String actualContent = generateContent(serviceVersionInfoSpec);
 
