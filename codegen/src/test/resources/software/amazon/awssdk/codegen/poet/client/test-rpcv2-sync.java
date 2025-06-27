@@ -33,7 +33,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.services.smithyrpcv2protocol.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.smithyrpcv2protocol.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.smithyrpcv2protocol.internal.SmithyRpcV2ProtocolServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.ComplexErrorException;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.EmptyInputOutputRequest;
@@ -102,7 +102,7 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
     protected DefaultSmithyRpcV2ProtocolClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(SmithyRpcV2CborProtocolFactory.builder()).build();
     }
 

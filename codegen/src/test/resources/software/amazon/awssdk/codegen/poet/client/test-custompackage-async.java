@@ -3,7 +3,7 @@ package foo.bar.helloworld;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import foo.bar.helloworld.internal.ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder;
-import foo.bar.helloworld.internal.ServiceVersionUserAgent;
+import foo.bar.helloworld.internal.ServiceVersionInfo;
 import foo.bar.helloworld.model.OneOperationRequest;
 import foo.bar.helloworld.model.OneOperationResponse;
 import foo.bar.helloworld.model.ProtocolRestJsonWithCustomPackageException;
@@ -67,7 +67,7 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
     protected DefaultProtocolRestJsonWithCustomPackageAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

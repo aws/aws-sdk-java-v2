@@ -38,7 +38,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.querytojsoncompatible.internal.QueryToJsonCompatibleServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.querytojsoncompatible.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.querytojsoncompatible.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationRequest;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationResponse;
 import software.amazon.awssdk.services.querytojsoncompatible.model.InvalidInputException;
@@ -69,7 +69,7 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     protected DefaultQueryToJsonCompatibleAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

@@ -38,7 +38,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationRequest;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationResponse;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.ProtocolRestJsonWithCustomContentTypeException;
@@ -67,7 +67,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

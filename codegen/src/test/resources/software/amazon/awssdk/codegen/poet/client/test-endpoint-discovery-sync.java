@@ -41,7 +41,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.endpointdiscoverytest.internal.EndpointDiscoveryTestServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.endpointdiscoverytest.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.endpointdiscoverytest.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsRequest;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.DescribeEndpointsResponse;
 import software.amazon.awssdk.services.endpointdiscoverytest.model.EndpointDiscoveryTestException;
@@ -82,7 +82,7 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
     protected DefaultEndpointDiscoveryTestClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         if (clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED)) {
             this.endpointDiscoveryCache = EndpointDiscoveryRefreshCache.create(EndpointDiscoveryTestEndpointDiscoveryCacheLoader

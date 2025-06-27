@@ -206,7 +206,7 @@ public class SyncClientClass extends SyncClientInterface {
                                       SdkClientOption.class,
                                       SdkClientOption.class,
                                       ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                       "ServiceVersionUserAgent"));
+                                       "ServiceVersionInfo"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {

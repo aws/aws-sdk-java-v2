@@ -23,7 +23,6 @@ import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.poet.client.EnvironmentTokenSystemSettingsClass;
 import software.amazon.awssdk.codegen.poet.client.SdkClientOptions;
 import software.amazon.awssdk.codegen.poet.client.specs.ServiceVersionInfoSpec;
-import software.amazon.awssdk.codegen.poet.client.specs.ServiceVersionUserAgentSpec;
 import software.amazon.awssdk.codegen.poet.common.UserAgentUtilsSpec;
 
 public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
@@ -43,7 +42,6 @@ public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
             tasks.add(createEnvironmentTokenSystemSettingTask());
         }
         tasks.add(createServiceVersionInfoTask());
-        tasks.add(createServiceVersionUserAgentTask());
         return tasks;
     }
 
@@ -65,11 +63,6 @@ public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
     private GeneratorTask createServiceVersionInfoTask() {
         return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
                                      new ServiceVersionInfoSpec(params.getModel()));
-    }
-
-    private GeneratorTask createServiceVersionUserAgentTask() {
-        return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
-                                     new ServiceVersionUserAgentSpec(params.getModel()));
     }
 
     private String clientOptionsDir() {

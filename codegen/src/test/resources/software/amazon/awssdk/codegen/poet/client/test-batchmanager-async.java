@@ -40,7 +40,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.batchmanagertest.batchmanager.BatchManagerTestAsyncBatchManager;
 import software.amazon.awssdk.services.batchmanagertest.internal.BatchManagerTestServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.batchmanagertest.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.batchmanagertest.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.batchmanagertest.model.BatchManagerTestException;
 import software.amazon.awssdk.services.batchmanagertest.model.SendRequestRequest;
 import software.amazon.awssdk.services.batchmanagertest.model.SendRequestResponse;
@@ -71,7 +71,7 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }

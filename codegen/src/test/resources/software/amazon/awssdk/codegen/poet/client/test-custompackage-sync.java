@@ -1,7 +1,7 @@
 package foo.bar.helloworld;
 
 import foo.bar.helloworld.internal.ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder;
-import foo.bar.helloworld.internal.ServiceVersionUserAgent;
+import foo.bar.helloworld.internal.ServiceVersionInfo;
 import foo.bar.helloworld.model.OneOperationRequest;
 import foo.bar.helloworld.model.OneOperationResponse;
 import foo.bar.helloworld.model.ProtocolRestJsonWithCustomPackageException;
@@ -63,7 +63,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     protected DefaultProtocolRestJsonWithCustomPackageClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

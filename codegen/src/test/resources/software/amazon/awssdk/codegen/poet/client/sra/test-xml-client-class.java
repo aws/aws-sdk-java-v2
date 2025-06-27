@@ -39,7 +39,7 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.services.xml.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.xml.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.xml.internal.XmlServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
@@ -97,7 +97,7 @@ final class DefaultXmlClient implements XmlClient {
     protected DefaultXmlClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init();
     }
 

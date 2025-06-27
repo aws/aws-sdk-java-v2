@@ -31,15 +31,21 @@ import software.amazon.awssdk.core.util.VersionInfo;
 public class ServiceVersionInfoSpecTest {
 
     // Fixture test that compares generated ServiceVersionInfo class against expected output.
-    // The fixture file uses {{VERSION}} as a placeholder which gets replaced with the current
-    // SDK version at test time, since the generated code injects the actual version at build time.
+    // The fixture file uses {{VERSION}} as a placeholder for the SDK version and {{USER_AGENT}}
+    // as a placeholder for the service-specific user agent metadata. Both placeholders get
+    // replaced with actual values at test time, since the generated code injects the actual
+    // version and transformed service ID at build time.
     @Test
     void testServiceVersionInfoClass() {
         String currVersion = VersionInfo.SDK_VERSION;
+        String currUserAgent =
+            transformServiceId(ClientTestModels.restJsonServiceModels().getMetadata().getServiceId()) + "#" + currVersion;
         ClassSpec serviceVersionInfoSpec = new ServiceVersionInfoSpec(ClientTestModels.restJsonServiceModels());
 
         String expectedContent = loadFixtureFile("test-service-version-info-class.java");
-        expectedContent = expectedContent.replace("{{VERSION}}", currVersion);
+        expectedContent = expectedContent
+            .replace("{{VERSION}}", currVersion)
+            .replace("{{USER_AGENT}}", currUserAgent);
 
         String actualContent = generateContent(serviceVersionInfoSpec);
 
@@ -55,5 +61,9 @@ public class ServiceVersionInfoSpecTest {
         TypeSpec typeSpec = spec.poetSpec();
         JavaFile javaFile = JavaFile.builder(spec.className().packageName(), typeSpec).build();
         return javaFile.toString();
+    }
+
+    private String transformServiceId(String serviceId) {
+        return serviceId.replace(" ", "_");
     }
 }

@@ -36,7 +36,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.database.internal.ServiceVersionUserAgent;
+import software.amazon.awssdk.services.database.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.database.model.DatabaseException;
 import software.amazon.awssdk.services.database.model.DeleteRowRequest;
 import software.amazon.awssdk.services.database.model.DeleteRowResponse;
@@ -96,7 +96,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
     protected DefaultDatabaseClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionUserAgent.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

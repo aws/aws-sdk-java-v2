@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Adding the version of the used service to the useragent"
+    "description": "Add the sdk service client version to the useragent"
 }
