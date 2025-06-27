@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "AWS Glue now supports schema, partition and sort management of Apache Iceberg tables using Glue SDK"
-}

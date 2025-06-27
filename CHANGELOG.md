@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.73__ __2025-06-27__
+## __AWS Config__
+  - ### Features
+    - Added important considerations to the PutConformancePack and PutOrganizationConformancPack APIs.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports schema, partition and sort management of Apache Iceberg tables using Glue SDK
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following value to an InitiateAs enum: COMPLETED
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Update JSON target for Kubernetes workload resource type.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adding UnauthorizedException to public SDK
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - StartDBCluster and StopDBCluster can now throw InvalidDBShardGroupStateFault.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added support for new SES regions
+
 # __2.31.72__ __2025-06-26__
 ## __AWS Key Management Service__
   - ### Features

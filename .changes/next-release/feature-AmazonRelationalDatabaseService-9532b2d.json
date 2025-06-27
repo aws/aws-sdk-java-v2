@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "StartDBCluster and StopDBCluster can now throw InvalidDBShardGroupStateFault."
-}
