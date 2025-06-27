@@ -19,6 +19,7 @@
   <groupId>software.amazon.awssdk</groupId>
   <artifactId>bom-internal</artifactId>
   <version>3.5.6</version>
+  <name>AWS Java SDK :: Bill of Materials Internal</name>
   <description>The Amazon Web Services SDK for Java provides Java APIs
         for building software on AWS' cost-effective, scalable, and reliable
         infrastructure products. The AWS Java SDK allows developers to code

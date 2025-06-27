@@ -23,7 +23,7 @@
         <version>3.5.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
+    <name>AWS Java SDK :: Archetypes :: Archetype Tools</name>
     <artifactId>archetype-tools</artifactId>
 
     <dependencies>
