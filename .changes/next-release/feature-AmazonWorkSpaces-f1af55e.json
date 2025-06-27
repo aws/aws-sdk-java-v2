@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces",
+    "contributor": "",
+    "description": "Updated modifyStreamingProperties to support PrivateLink VPC endpoints for directories"
+}
