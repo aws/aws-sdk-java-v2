@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Key Management Service",
-    "contributor": "",
-    "description": "This release updates AWS CLI examples for KMS APIs."
-}
