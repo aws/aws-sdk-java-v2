@@ -1,0 +1,67 @@
+{
+    "version": "2.0",
+    "metadata": {
+        "apiVersion": "2025-06-20",
+        "auth": [
+            "aws.auth#sigv4"
+        ],
+        "awsQueryCompatible": {},
+        "endpointPrefix": "query-compatible-rpcv2",
+        "protocol": "smithy-rpc-v2-cbor",
+        "protocols": [
+            "smithy-rpc-v2-cbor"
+        ],
+        "serviceFullName": "Query Compatible RpcV2 Protocol Service",
+        "serviceId": "Query Compatible RpcV2 Protocol",
+        "signatureVersion": "v4",
+        "signingName": "query-compatible-rpcv2",
+        "targetPrefix": "QueryCompatibleRpcV2Protocol",
+        "uid": "query-compatible-rpcv2-protocol-2025-06-20"
+    },
+    "operations": {
+        "QueryCompatibleOperation": {
+            "name": "QueryCompatibleOperation",
+            "http": {
+                "method": "POST",
+                "requestUri": "/"
+            },
+            "errors": [
+                {
+                    "shape": "NoCustomCodeError"
+                },
+                {
+                    "shape": "CustomCodeError"
+                }
+            ],
+            "idempotent": true
+        }
+    },
+    "shapes": {
+        "CustomCodeError": {
+            "type": "structure",
+            "members": {
+                "message": {
+                    "shape": "String"
+                }
+            },
+            "error": {
+                "code": "Customized",
+                "httpStatusCode": 402,
+                "senderFault": true
+            },
+            "exception": true
+        },
+        "NoCustomCodeError": {
+            "type": "structure",
+            "members": {
+                "message": {
+                    "shape": "String"
+                }
+            },
+            "exception": true
+        },
+        "String": {
+            "type": "string"
+        }
+    }
+}
