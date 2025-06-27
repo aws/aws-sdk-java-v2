@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Q Connect",
+    "contributor": "",
+    "description": "Adding UnauthorizedException to public SDK"
+}
