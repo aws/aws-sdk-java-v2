@@ -13,19 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.apache5;
+package software.amazon.awssdk.http.apache;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
+
+import org.junit.jupiter.api.DisplayName;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpService;
+import software.amazon.awssdk.http.SdkHttpClientUriSanitizationTestSuite;
 
-/**
- * Service binding for the Apache5 implementation.
- */
-@SdkPreviewApi
-public class Apache5SdkHttpService implements SdkHttpService {
+@DisplayName("Apache HTTP Client - URI Sanitization Tests")
+class ApacheHttpClientUriSanitizationTest extends SdkHttpClientUriSanitizationTestSuite {
+
     @Override
-    public SdkHttpClient.Builder createHttpClientBuilder() {
-        return Apache5HttpClient.builder();
+    protected SdkHttpClient createHttpClient() {
+        return ApacheHttpClient.create();
     }
 }
