@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Don't generate the unused files for the service endpoint provider when compiled endpoint rules are enabled (the default behavior). This lowers the overall size of the built JAR."
+}
