@@ -268,22 +268,17 @@ public class ApacheHttpClientWireMockTest extends SdkHttpClientTestSuite {
         mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
     }
 
-
     @Test
     public void closeReleasesResources() throws Exception {
         SdkHttpClient client = createSdkHttpClient();
-
         // Make a successful request first
         stubForMockRequest(200);
         SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
         HttpExecuteResponse response = client.prepareRequest(
             HttpExecuteRequest.builder().request(request).build()).call();
         response.responseBody().ifPresent(IoUtils::drainInputStream);
-
         // Close the client
         client.close();
-
-
         // Verify subsequent requests fail
         assertThatThrownBy(() -> {
             client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call();
