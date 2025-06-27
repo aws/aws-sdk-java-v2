@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Update JSON target for Kubernetes workload resource type."
+}
