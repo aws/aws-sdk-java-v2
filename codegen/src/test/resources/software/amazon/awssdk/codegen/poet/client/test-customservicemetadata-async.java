@@ -67,7 +67,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
     protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "AmazonProtocolRestJsonWithCustomContentType" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

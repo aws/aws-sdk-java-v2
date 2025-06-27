@@ -151,7 +151,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "Json_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsCborProtocolFactory.builder()).build();
         this.jsonProtocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);

@@ -71,7 +71,7 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "BatchManagerTest" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }

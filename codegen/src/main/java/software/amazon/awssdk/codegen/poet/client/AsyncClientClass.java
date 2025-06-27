@@ -229,12 +229,13 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".option($T.API_METADATA, $T.USER_AGENT)"
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
                                       + ".build()",
                                       SdkClientOption.class,
                                       SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
                                       ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                        "ServiceVersionInfo"));
+                                                    "ServiceVersionInfo"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
@@ -287,6 +288,11 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     private boolean hasOperationWithEventStreamOutput() {
         return model.getOperations().values().stream().anyMatch(OperationModel::hasEventStreamOutput);
+    }
+
+    private String transformServiceId(String serviceId) {
+        // According to User Agent 2.0 spec, replace spaces with underscores
+        return serviceId.replace(" ", "_");
     }
 
     private MethodSpec nameMethod() {

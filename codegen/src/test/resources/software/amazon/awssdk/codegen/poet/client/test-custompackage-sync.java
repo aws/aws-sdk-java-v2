@@ -63,7 +63,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
     protected DefaultProtocolRestJsonWithCustomPackageClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "AmazonProtocolRestJsonWithCustomPackage" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 

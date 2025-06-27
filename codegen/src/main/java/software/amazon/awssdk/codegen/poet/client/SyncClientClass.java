@@ -201,12 +201,13 @@ public class SyncClientClass extends SyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".option($T.API_METADATA, $T.USER_AGENT)"
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
                                       + ".build()",
                                       SdkClientOption.class,
                                       SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
                                       ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
-                                       "ServiceVersionInfo"));
+                                                    "ServiceVersionInfo"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
@@ -252,6 +253,11 @@ public class SyncClientClass extends SyncClientInterface {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
         return methods.stream();
+    }
+
+    private String transformServiceId(String serviceId) {
+        // According to User Agent 2.0 spec, replace spaces with underscores
+        return serviceId.replace(" ", "_");
     }
 
     private MethodSpec traditionalMethod(OperationModel opModel) {

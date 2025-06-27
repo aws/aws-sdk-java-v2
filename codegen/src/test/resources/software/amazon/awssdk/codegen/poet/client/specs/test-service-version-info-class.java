@@ -12,12 +12,6 @@ public final class ServiceVersionInfo {
    */
   public static final String VERSION = "{{VERSION}}";
 
-  /**
-   * Returns a user agent containing the service and version info
-   */
-  @SdkInternalApi
-  public static final String USER_AGENT = "{{USER_AGENT}}";
-
   private ServiceVersionInfo() {
   }
 }

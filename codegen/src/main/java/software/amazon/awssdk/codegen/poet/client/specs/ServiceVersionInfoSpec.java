@@ -49,7 +49,6 @@ public class ServiceVersionInfoSpec implements ClassSpec {
                                                               .addJavadoc("Returns the current version for the AWS SDK in which"
                                                                           + " this class is running.")
                                                               .build())
-                                           .addField(userAgentField())
                                            .addMethod(privateConstructor());
 
         return builder.build();
@@ -59,20 +58,6 @@ public class ServiceVersionInfoSpec implements ClassSpec {
         return MethodSpec.constructorBuilder()
                          .addModifiers(Modifier.PRIVATE)
                          .build();
-    }
-
-    private FieldSpec userAgentField() {
-        return FieldSpec.builder(String.class, "USER_AGENT", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                        .initializer("$S", transformServiceId(model.getMetadata().getServiceId()) + "#" + SDK_VERSION)
-                        .addAnnotation(SdkInternalApi.class)
-                        .addJavadoc("Returns a user agent containing the service and "
-                                    + "version info")
-                        .build();
-    }
-
-    private String transformServiceId(String serviceId) {
-        // According to User Agent 2.0 spec, replace spaces with underscores
-        return serviceId.replace(" ", "_");
     }
 
     @Override

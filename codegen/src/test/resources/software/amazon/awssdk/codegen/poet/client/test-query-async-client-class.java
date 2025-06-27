@@ -129,7 +129,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "Query_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }

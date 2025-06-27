@@ -101,7 +101,7 @@ final class DefaultXmlClient implements XmlClient {
     protected DefaultXmlClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "Xml_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init();
     }
 

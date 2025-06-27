@@ -119,7 +119,7 @@ final class DefaultQueryClient implements QueryClient {
     protected DefaultQueryClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "Query_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init();
     }
 

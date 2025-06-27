@@ -102,7 +102,7 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
     protected DefaultSmithyRpcV2ProtocolClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "SmithyRpcV2Protocol" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(SmithyRpcV2CborProtocolFactory.builder()).build();
     }
 

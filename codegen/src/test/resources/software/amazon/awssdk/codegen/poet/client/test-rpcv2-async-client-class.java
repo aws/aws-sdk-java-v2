@@ -106,7 +106,7 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
     protected DefaultSmithyRpcV2ProtocolAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, ServiceVersionInfo.USER_AGENT).build();
+                                                      .option(SdkClientOption.API_METADATA, "SmithyRpcV2Protocol" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(SmithyRpcV2CborProtocolFactory.builder()).build();
     }
 
