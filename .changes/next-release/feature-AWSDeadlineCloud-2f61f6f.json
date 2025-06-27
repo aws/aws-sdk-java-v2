@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSDeadlineCloud",
+    "contributor": "",
+    "description": "Added fields to track cumulative task retry attempts for steps and jobs"
+}
