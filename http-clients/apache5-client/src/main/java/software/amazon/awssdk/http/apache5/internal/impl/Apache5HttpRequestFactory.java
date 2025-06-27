@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
- * Responsible for creating Apache HttpClient 4 request objects.
+ * Responsible for creating Apache HttpClient 5 request objects.
  */
 @SdkInternalApi
 public class Apache5HttpRequestFactory {
@@ -59,7 +59,6 @@ public class Apache5HttpRequestFactory {
         return base;
     }
 
-    //TODO : check if this is still valid
     /**
      *
      * The Apache HTTP client doesn't allow consecutive slashes in the URI. For S3

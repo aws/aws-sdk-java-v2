@@ -15,19 +15,16 @@
 
 package software.amazon.awssdk.http.apache5;
 
-import software.amazon.awssdk.annotations.SdkPreviewApi;
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.SdkHttpService;
 
-/**
- * Service binding for the Apache5 implementation.
- */
-@SdkPreviewApi
-@SdkPublicApi
-public class Apache5SdkHttpService implements SdkHttpService {
+import org.junit.jupiter.api.DisplayName;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientUriSanitizationTestSuite;
+
+@DisplayName("Apache5 HTTP Client - URI Sanitization Tests")
+class Apache5HttpClientUriSanitizationTest extends SdkHttpClientUriSanitizationTestSuite {
+
     @Override
-    public SdkHttpClient.Builder createHttpClientBuilder() {
-        return Apache5HttpClient.builder();
+    protected SdkHttpClient createHttpClient() {
+        return Apache5HttpClient.create();
     }
 }

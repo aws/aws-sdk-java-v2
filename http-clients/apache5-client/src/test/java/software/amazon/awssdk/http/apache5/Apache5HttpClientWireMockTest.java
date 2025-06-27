@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
@@ -41,7 +42,6 @@ import org.apache.hc.client5.http.impl.auth.CredentialsProviderBuilder;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.io.CloseMode;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -259,5 +259,24 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
               .call();
 
         mockProxyServer.verify(1, RequestPatternBuilder.allRequests());
+    }
+
+    @Test
+    public void closeReleasesResources() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        // Make a successful request first
+        stubForMockRequest(200);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+        HttpExecuteResponse response = client.prepareRequest(
+            HttpExecuteRequest.builder().request(request).build()).call();
+        response.responseBody().ifPresent(IoUtils::drainInputStream);
+        // Close the client
+        client.close();
+        // Verify subsequent requests fail
+        assertThatThrownBy(() -> {
+            client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call();
+        }).isInstanceOfAny(
+            IllegalStateException.class
+        ).hasMessageContaining("Connection pool shut down");
     }
 }
