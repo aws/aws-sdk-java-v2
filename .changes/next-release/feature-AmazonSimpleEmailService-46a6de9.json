@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "Added support for new SES regions"
+}
