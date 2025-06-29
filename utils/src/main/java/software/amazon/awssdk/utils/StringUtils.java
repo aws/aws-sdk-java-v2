@@ -302,7 +302,7 @@ public final class StringUtils {
      * references are considered to be equal. The comparison is case sensitive.</p>
      *
      * <pre>
-     * StringUtils.equals(null, null)   = true
+     * StringUtils.equals(null, null)   = false
      * StringUtils.equals(null, "abc")  = false
      * StringUtils.equals("abc", null)  = false
      * StringUtils.equals("abc", "abc") = true
