@@ -44,7 +44,6 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
      * </p>
      * <b>Note:</b> Presigned URLs have a limited lifetime and will expire after the
      * specified duration. Ensure the URL is used before expiration.
-     * </p>
      *
      * @return The presigned URL for the S3 object
      */
@@ -58,11 +57,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
      * <a href="https://www.rfc-editor.org/rfc/rfc9110.html#name-range">
      * https://www.rfc-editor.org/rfc/rfc9110.html#name-range</a>.
      * </p>
-     * <note>
-     * <p>
-     * Note: Amazon S3 doesn't support retrieving multiple ranges of data per <code>GET</code> request.
-     * </p>
-     * </note>
+     * <b>Note:</b>  Amazon S3 doesn't support retrieving multiple ranges of data per <code>GET</code> request.
      *
      * @return The HTTP Range header value, or null if not specified.
      */
@@ -144,6 +139,9 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
 
         @Override
         public PresignedUrlGetObjectRequest build() {
+            if (presignedUrl == null) {
+                throw new IllegalArgumentException("presignedUrl is required");
+            }
             return new PresignedUrlGetObjectRequest(this);
         }
     }
