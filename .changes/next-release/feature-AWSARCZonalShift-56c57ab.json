@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS ARC - Zonal Shift",
+    "contributor": "",
+    "description": "Added support for on-demand practice runs and balanced capacity checks in ARC autoshift practice."
+}
