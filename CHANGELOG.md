@@ -1,4 +1,85 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.73__ __2025-06-27__
+## __AWS Config__
+  - ### Features
+    - Added important considerations to the PutConformancePack and PutOrganizationConformancPack APIs.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports schema, partition and sort management of Apache Iceberg tables using Glue SDK
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following value to an InitiateAs enum: COMPLETED
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Update JSON target for Kubernetes workload resource type.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adding UnauthorizedException to public SDK
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - StartDBCluster and StopDBCluster can now throw InvalidDBShardGroupStateFault.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added support for new SES regions
+
+# __2.31.72__ __2025-06-26__
+## __AWS Key Management Service__
+  - ### Features
+    - This release updates AWS CLI examples for KMS APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add code generation validation for missing request URI on an operation.
+    - Add support for defining service model validators and generating valdiation reports during code generation.
+    - Add support for validating that shared models between two services are identical.
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Added fields to track cumulative task retry attempts for steps and jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for OdbNetworkArn as a target in VPC Route Tables
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release provides change data capture (CDC) streams support through updates to the Amazon Keyspaces API.
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - This release adds change data capture (CDC) streams support through the new Amazon Keyspaces Streams API.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated modifyStreamingProperties to support PrivateLink VPC endpoints for directories
+
+## __Code Generator Maven Plugin__
+  - ### Features
+    - Update the generator plugin to support model validation during code generation. In addition, this adds the `writeValidationReport` flag to support writing the validation report to disk.
+
+## __EmfMetricLoggingPublisher__
+  - ### Bugfixes
+    - Fixed the bug that EmfMetricLoggingPublisher not properly publishing Long type metrics
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adding managed integrations APIs for IoT Device Management to onboard and control devices across different manufacturers, connectivity protocols and third party vendor clouds. APIs include managed thing operations, provisioning profile management, and cloud connector operations.
+
+## __QBusiness__
+  - ### Features
+    - Added support for App level authentication for QBusiness DataAccessor using AWS IAM Identity center Trusted Token issuer
+
 # __2.31.71__ __2025-06-25__
 ## __AWS S3 Control__
   - ### Features

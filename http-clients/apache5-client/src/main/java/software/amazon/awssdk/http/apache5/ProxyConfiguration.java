@@ -22,6 +22,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  * Configuration that defines how to communicate via an HTTP or HTTPS proxy.
  */
+@SdkPreviewApi
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
     private final URI endpoint;
@@ -437,7 +439,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return this;
         }
 
-        public void setuseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
+        public void setUseEnvironmentVariableValues(Boolean useEnvironmentVariableValues) {
             useEnvironmentVariableValues(useEnvironmentVariableValues);
         }
 
