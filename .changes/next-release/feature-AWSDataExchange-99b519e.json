@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Data Exchange",
-    "contributor": "",
-    "description": "This release updates resource Id with alphanumeric constraint, including Asset id, Revision id, Data Set id, Job id, and Event Action id."
-}

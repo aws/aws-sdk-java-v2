@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Parallel Computing Service",
-    "contributor": "",
-    "description": "Fixed the validation pattern for an instance profile Amazon Resource Name (ARN) in AWS PCS."
-}

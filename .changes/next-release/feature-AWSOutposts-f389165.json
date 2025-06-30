@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "Make ContactName and ContactPhoneNumber required fields when creating and updating Outpost Site Addresses."
-}

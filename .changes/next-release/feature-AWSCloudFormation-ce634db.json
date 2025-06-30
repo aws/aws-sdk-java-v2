@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "contributor": "",
-    "description": "Added support for UNKNOWN drift status."
-}

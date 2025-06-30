@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Systems Manager (SSM)",
-    "contributor": "",
-    "description": "Introduces AccessType, a new filter value for the DescribeSessions API."
-}

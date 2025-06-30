@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS B2B Data Interchange",
-    "contributor": "",
-    "description": "Updated APIs to support inbound EDI split capabilities and additional Partnership-level configurations of generated EDI files' contents and format."
-}
