@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon QuickSight",
+    "contributor": "",
+    "description": "Introduced custom permission capabilities for reporting content. Added menu option in exploration to preserve configuration data when textbox menu option is used. Added support for Athena trusted identity propagation."
+}
