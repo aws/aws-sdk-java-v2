@@ -41,7 +41,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.conn.DnsResolver;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
-import org.apache.http.impl.conn.ConnectionShutdownException;
 import org.apache.http.impl.conn.SystemDefaultDnsResolver;
 import org.junit.Rule;
 import org.junit.Test;
