@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock",
+    "contributor": "",
+    "description": "Add support for API Keys, Re-Ranker, implicit filter for RAG / KB evaluation for Bedrock APIs."
+}
