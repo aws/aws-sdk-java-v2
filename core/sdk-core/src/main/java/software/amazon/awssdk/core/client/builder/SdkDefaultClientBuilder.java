@@ -292,7 +292,6 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
                                                   .option(USER_AGENT_PREFIX, "")
                                                   .option(USER_AGENT_SUFFIX, "")
                                                   .option(CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-                                                  .option(API_METADATA, "")
                                                   .option(CONFIGURED_COMPRESSION_CONFIGURATION,
                                                           CompressionConfiguration.builder().build()));
         return configuration;
