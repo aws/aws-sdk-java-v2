@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Network Flow Monitor",
+    "contributor": "",
+    "description": "Add ConflictExceptions to UpdateScope and DeleteScope operations for scopes being mutated."
+}
