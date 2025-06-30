@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.presignedurl.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.net.URL;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
@@ -32,10 +33,10 @@ class PresignedUrlGetObjectRequestTest {
     void builder_shouldCreateRequestWithAllFields() throws Exception {
         URL url = new URL("https://example.com");
         PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(url)
-            .range("bytes=0-100")
-            .build();
-        
+                                                                           .presignedUrl(url)
+                                                                           .range("bytes=0-100")
+                                                                           .build();
+
         assertThat(request.presignedUrl()).isEqualTo(url);
         assertThat(request.range()).isEqualTo("bytes=0-100");
     }
@@ -44,9 +45,9 @@ class PresignedUrlGetObjectRequestTest {
     void builder_shouldCreateRequestWithOnlyRequiredFields() throws Exception {
         URL url = new URL("https://example.com");
         PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(url)
-            .build();
-        
+                                                                           .presignedUrl(url)
+                                                                           .build();
+
         assertThat(request.presignedUrl()).isEqualTo(url);
         assertThat(request.range()).isNull();
     }
@@ -55,12 +56,12 @@ class PresignedUrlGetObjectRequestTest {
     void toBuilder_shouldCreateBuilderFromExistingRequest() throws Exception {
         URL url = new URL("https://example.com");
         PresignedUrlGetObjectRequest original = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(url)
-            .range("bytes=0-100")
-            .build();
-        
+                                                                            .presignedUrl(url)
+                                                                            .range("bytes=0-100")
+                                                                            .build();
+
         PresignedUrlGetObjectRequest copy = original.toBuilder().build();
-        
+
         assertThat(copy.presignedUrl()).isEqualTo(original.presignedUrl());
         assertThat(copy.range()).isEqualTo(original.range());
     }
@@ -70,15 +71,15 @@ class PresignedUrlGetObjectRequestTest {
         URL url1 = new URL("https://example.com");
         URL url2 = new URL("https://other.com");
         PresignedUrlGetObjectRequest original = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(url1)
-            .range("bytes=0-100")
-            .build();
-        
+                                                                            .presignedUrl(url1)
+                                                                            .range("bytes=0-100")
+                                                                            .build();
+
         PresignedUrlGetObjectRequest modified = original.toBuilder()
-            .presignedUrl(url2)
-            .range("bytes=200-300")
-            .build();
-        
+                                                        .presignedUrl(url2)
+                                                        .range("bytes=200-300")
+                                                        .build();
+
         assertThat(modified.presignedUrl()).isEqualTo(url2);
         assertThat(modified.range()).isEqualTo("bytes=200-300");
         // Original unchanged
@@ -90,14 +91,14 @@ class PresignedUrlGetObjectRequestTest {
     void toString_shouldContainActualFieldValues() throws Exception {
         URL url = new URL("https://example.com");
         String range = "bytes=0-100";
-        
+
         PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(url)
-            .range(range)
-            .build();
-        
+                                                                           .presignedUrl(url)
+                                                                           .range(range)
+                                                                           .build();
+
         String result = request.toString();
-        
+
         assertThat(result).isNotNull();
         assertThat(result).isNotEmpty();
         assertThat(result).contains(request.presignedUrl().toString());
