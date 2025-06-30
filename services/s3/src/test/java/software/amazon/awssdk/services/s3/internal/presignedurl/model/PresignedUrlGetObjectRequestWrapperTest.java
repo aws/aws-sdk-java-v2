@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.presignedurl.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -28,9 +29,9 @@ class PresignedUrlGetObjectRequestWrapperTest {
     @Test
     void basicProperties_shouldWork() throws Exception {
         PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
-                                                                                          .url(new URL("https://example.com"))
-                                                                                          .range("bytes=0-100")
-                                                                                          .build();
+                                                                                         .url(new URL("https://example.com"))
+                                                                                         .range("bytes=0-100")
+                                                                                         .build();
 
         assertThat(request.url()).isEqualTo(new URL("https://example.com"));
         assertThat(request.range()).isEqualTo("bytes=0-100");
@@ -39,9 +40,9 @@ class PresignedUrlGetObjectRequestWrapperTest {
     @Test
     void sdkFields_shouldReturnExpectedFields() throws Exception {
         PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
-                                                                                          .url(new URL("https://example.com"))
-                                                                                          .range("bytes=0-100")
-                                                                                          .build();
+                                                                                         .url(new URL("https://example.com"))
+                                                                                         .range("bytes=0-100")
+                                                                                         .build();
 
         List<SdkField<?>> fields = request.sdkFields();
 
@@ -54,8 +55,8 @@ class PresignedUrlGetObjectRequestWrapperTest {
     @Test
     void sdkFieldNameToField_shouldReturnExpectedMapping() throws Exception {
         PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
-                                                                                          .url(new URL("https://example.com"))
-                                                                                          .build();
+                                                                                         .url(new URL("https://example.com"))
+                                                                                         .build();
 
         Map<String, SdkField<?>> fieldMap = request.sdkFieldNameToField();
 
@@ -67,9 +68,9 @@ class PresignedUrlGetObjectRequestWrapperTest {
     @Test
     void rangeField_shouldMarshalCorrectly() throws Exception {
         PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
-                                                                                          .url(new URL("https://example.com"))
-                                                                                          .range("bytes=0-1023")
-                                                                                          .build();
+                                                                                         .url(new URL("https://example.com"))
+                                                                                         .range("bytes=0-1023")
+                                                                                         .build();
 
         // Test that the SdkField can extract the range value
         SdkField<?> rangeField = request.sdkFields().get(0);
