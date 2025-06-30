@@ -26,6 +26,13 @@
 
     <artifactId>apache5-client</artifactId>
     <name>AWS Java SDK :: HTTP Clients :: Apache5</name>
+    <version>${awsjavasdk.version}-PREVIEW</version>
+
+    <properties>
+        <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
+        <jre.version>1.8</jre.version>
+    </properties>
+
 
 <dependencies>
     <dependency>
