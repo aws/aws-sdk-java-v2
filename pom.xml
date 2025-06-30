@@ -657,7 +657,6 @@
                             <includeModule>sdk-core</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
-                            <includeModule>apache5-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
                             <includeModule>url-connection-client</includeModule>
                             <includeModule>cloudwatch-metric-publisher</includeModule>
@@ -824,7 +823,7 @@
                 <spotbugs.skip>true</spotbugs.skip>
                 <skip.unit.tests>true</skip.unit.tests>
                 <mdep.analyze.skip>true</mdep.analyze.skip>
-                <japicmp.skip>true</japicmp.skip>
+                <japicmp.skip>false</japicmp.skip>
                 <maven.javadoc.skip>true</maven.javadoc.skip>
             </properties>
         </profile>
