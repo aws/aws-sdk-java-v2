@@ -15,23 +15,21 @@
 
 package software.amazon.awssdk.services.s3.presignedurl.model;
 
+import java.net.URL;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Request object for performing GetObject operations using a presigned URL.
- * <p>
- * Request model used for downloading S3 objects using a pre-signed URL, without requiring AWS credentials at request time. The
- * pre-signed URL contains all necessary authentication information and enables direct object retrieval from S3.
- * </p>
  */
 @SdkPublicApi
 public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<PresignedUrlGetObjectRequest.Builder,
     PresignedUrlGetObjectRequest> {
-    private final String presignedUrl;
+    private final URL presignedUrl;
     private final String range;
 
     private PresignedUrlGetObjectRequest(BuilderImpl builder) {
@@ -44,26 +42,13 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
      * The presigned URL for the S3 object. This URL contains all necessary authentication information and can be used to download
      * the object without additional credentials.
      * </p>
-     * <p>
-     * The presigned URL is generated using AWS credentials and includes the following components:
-     * </p>
-     * <ul>
-     * <li><code>X-Amz-Algorithm</code> - The signing algorithm used (e.g., AWS4-HMAC-SHA256)</li>
-     * <li><code>X-Amz-Credential</code> - The credential scope for the request</li>
-     * <li><code>X-Amz-Date</code> - The date and time the URL was signed</li>
-     * <li><code>X-Amz-Expires</code> - The duration for which the URL is valid</li>
-     * <li><code>X-Amz-SignedHeaders</code> - The headers that were signed</li>
-     * <li><code>X-Amz-Signature</code> - The calculated signature for authentication</li>
-     * <li><code>X-Amz-Security-Token</code> - The session token (if using temporary credentials)</li>
-     * </ul>
-     * <p>
      * <b>Note:</b> Presigned URLs have a limited lifetime and will expire after the
      * specified duration. Ensure the URL is used before expiration.
      * </p>
      *
      * @return The presigned URL for the S3 object
      */
-    public String presignedUrl() {
+    public URL presignedUrl() {
         return presignedUrl;
     }
 
@@ -128,25 +113,25 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     public interface Builder extends CopyableBuilder<Builder, PresignedUrlGetObjectRequest> {
-        Builder presignedUrl(String presignedUrl);
+        Builder presignedUrl(URL presignedUrl);
 
         Builder range(String range);
     }
 
     static final class BuilderImpl implements Builder {
-        private String presignedUrl;
+        private URL presignedUrl;
         private String range;
 
         private BuilderImpl() {
         }
 
-        private BuilderImpl(PresignedUrlGetObjectRequest model) {
-            presignedUrl(model.presignedUrl);
-            range(model.range);
+        private BuilderImpl(PresignedUrlGetObjectRequest presignedUrlGetObjectRequest) {
+            presignedUrl(presignedUrlGetObjectRequest.presignedUrl());
+            range(presignedUrlGetObjectRequest.range());
         }
 
         @Override
-        public Builder presignedUrl(String presignedUrl) {
+        public Builder presignedUrl(URL presignedUrl) {
             this.presignedUrl = presignedUrl;
             return this;
         }

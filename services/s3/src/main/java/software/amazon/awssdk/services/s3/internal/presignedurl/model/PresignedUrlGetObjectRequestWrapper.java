@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.services.s3.internal.presignedurl.model;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
@@ -38,7 +39,6 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObje
  * </p>
  * <b>Note:</b> This is an internal implementation class and should not be used
  * directly. Use {@code PresignedUrlGetObjectRequest} for public API interactions.
- * </p>
  */
 @SdkInternalApi
 public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
@@ -54,20 +54,16 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
-    private final String url;
+    private final URL url;
     private final String range;
 
-    /**
-     * Creates an internal request from a public presigned URL request.
-     *
-     * @param presignedUrlGetObjectRequest The public presigned URL request
-     */
-    public PresignedUrlGetObjectRequestWrapper(PresignedUrlGetObjectRequest presignedUrlGetObjectRequest) {
-        this.url = presignedUrlGetObjectRequest.presignedUrl();
-        this.range = presignedUrlGetObjectRequest.range();
+    private PresignedUrlGetObjectRequestWrapper(Builder builder) {
+        super(builder);
+        this.url = builder.url;
+        this.range = builder.range;
     }
 
-    public String url() {
+    public URL url() {
         return url;
     }
 
@@ -85,11 +81,6 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         return SDK_NAME_TO_FIELD;
     }
 
-    @Override
-    public Builder toBuilder() {
-        return null;
-    }
-
     private static <T> Function<Object, T> getter(Function<PresignedUrlGetObjectRequestWrapper, T> g) {
         return obj -> g.apply((PresignedUrlGetObjectRequestWrapper) obj);
     }
@@ -98,5 +89,42 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         Map<String, SdkField<?>> map = new HashMap<>();
         map.put("Range", RANGE_FIELD);
         return Collections.unmodifiableMap(map);
+    }
+
+    @Override
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder extends S3Request.BuilderImpl {
+        private URL url;
+        private String range;
+
+        public Builder() {}
+
+        Builder(PresignedUrlGetObjectRequestWrapper request) {
+            super(request);
+            this.url = request.url();
+            this.range = request.range();
+        }
+
+        public Builder url(URL url) {
+            this.url = url;
+            return this;
+        }
+
+        public Builder range(String range) {
+            this.range = range;
+            return this;
+        }
+
+        @Override
+        public PresignedUrlGetObjectRequestWrapper build() {
+            return new PresignedUrlGetObjectRequestWrapper(this);
+        }
     }
 }
