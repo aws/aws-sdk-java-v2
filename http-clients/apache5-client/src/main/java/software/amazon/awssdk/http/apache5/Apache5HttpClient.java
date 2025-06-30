@@ -65,6 +65,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
+import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -94,7 +95,6 @@ import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
-// TODO: All the Java Doc will be updated to consider the reference of Apache4.x if required
 /**
  * An implementation of {@link SdkHttpClient} that uses Apache5 HTTP client to communicate with the service. This is the most
  * powerful synchronous client that adds an extra dependency and additional startup latency in exchange for more functionality,
@@ -104,6 +104,7 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>This can be created via {@link #builder()}</p>
  */
+@SdkPreviewApi
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
@@ -255,7 +256,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
     public void close() {
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
         IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
-        // TODO : need to add test cases for this
         cm.close(CloseMode.IMMEDIATE);
     }
 
@@ -409,8 +409,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
 
+
         /**
          * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency.
+         *
+         * <p>Note: A duration of 0 is treated as infinite to maintain backward compatibility with Apache 4.x behavior.
+         * The SDK handles this internally by not setting the TTL when the value is 0.</p>
          */
         Builder connectionTimeToLive(Duration connectionTimeToLive);
 
