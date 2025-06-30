@@ -16,6 +16,7 @@ phases:
       - SDK_SIGNING_GPG_PASSPHRASE_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sdk-signing-gpg-passphrase-A0H1Kq"
       - SONATYPE_PASSWORD_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sonatype-password-I2V6Y0"
       - SONATYPE_USERNAME_ARN="arn:aws:secretsmanager:us-east-1:103431983078:secret:sonatype-username-HphNZQ"
+      - MODULES_TO_SKIP="protocol-tests,protocol-tests-core,codegen-generated-classes-test,sdk-benchmarks,module-path-tests,tests-coverage-reporting,stability-tests,sdk-native-image-test,auth-tests,s3-benchmarks,region-testing,old-client-version-compatibility-test,crt-unavailable-tests,bundle-shading-tests,v2-migration-tests,architecture-tests,s3-tests"
 
   build:
     commands:
@@ -37,7 +38,10 @@ phases:
             awk 'BEGIN { var=ENVIRON["SDK_SIGNING_GPG_KEYNAME"] } { gsub("\\$SDK_SIGNING_GPG_KEYNAME", var, $0); print }' > \
             $SETTINGS_XML
 
-          mvn clean deploy -B -s $SETTINGS_XML -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl !:protocol-tests,!:protocol-tests-core,!:codegen-generated-classes-test,!:sdk-benchmarks,!:module-path-tests,!:tests-coverage-reporting,!:stability-tests,!:sdk-native-image-test,!:auth-tests,!:s3-benchmarks,!:region-testing,!:old-client-version-compatibility-test,!:crt-unavailable-tests,!:bundle-shading-tests,!:v2-migration-tests,!:architecture-tests,!:s3-tests -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true
+          # Convert comma-separated list to space-separated list with !: prefix for each module
+          MODULES_TO_SKIP_FORMATTED=$(echo $MODULES_TO_SKIP | sed 's/,/,!:/g' | sed 's/^/!:/')
+          
+          mvn clean deploy -B -s $SETTINGS_XML -Ppublishing -DperformRelease -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -pl $MODULES_TO_SKIP_FORMATTED -DautoReleaseAfterClose=true -DstagingProgressTimeoutMinutes=30 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true
         else
           echo "This version was already released."
         fi

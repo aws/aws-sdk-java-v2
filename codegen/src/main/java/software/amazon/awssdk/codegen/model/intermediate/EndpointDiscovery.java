@@ -26,4 +26,22 @@ public class EndpointDiscovery {
     public void setRequired(boolean required) {
         this.required = required;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        EndpointDiscovery that = (EndpointDiscovery) o;
+        return required == that.required;
+    }
+
+    @Override
+    public int hashCode() {
+        return Boolean.hashCode(required);
+    }
 }

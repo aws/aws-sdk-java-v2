@@ -1,0 +1,46 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.ChangeTransferManagerSimpleMethods
+displayName: Change TransferManager simple methods to v2.
+description: Change TransferManager simple methods to v2.
+recipeList:
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.S3TransferManager resumeDownload(..)
+      newMethodName: resumeDownloadFile
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.S3TransferManager resumeUpload(..)
+      newMethodName: resumeUploadFile
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.S3TransferManager shutdownNow()
+      newMethodName: close
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.Transfer getProgress()
+      newMethodName: progress
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.ResumableTransfer serialize()
+      newMethodName: serializeToString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.ResumableTransfer serialize(java.io.OutputStream)
+      newMethodName: serializeToOutputStream
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getBytesTransferred()
+      newMethodName: snapshot().transferredBytes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getTotalBytesToTransfer()
+      newMethodName: snapshot().totalBytes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getPercentTransferred()
+      newMethodName: snapshot().ratioTransferred

@@ -123,8 +123,6 @@ public class EndpointProviderSpec2 implements ClassSpec {
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
                                             .addAnnotation(SdkInternalApi.class);
 
-        builder.addType(codegenLocalState());
-        builder.addType(codegenLocalStateBuilder());
         builder.addMethod(resolveEndpointMethod());
         List<MethodSpec.Builder> methods = new ArrayList<>();
         createRuleMethod(utils.root(), methods);
@@ -154,11 +152,11 @@ public class EndpointProviderSpec2 implements ClassSpec {
         builder.beginControlFlow("try");
         String regionParamName = utils.regionParamName();
         if (regionParamName != null) {
-            builder.addStatement("$T result = $L(params, new $T(params.$L()))", ruleResult(), utils.root().ruleId(),
-                                 ClassName.bestGuess("LocalState"), regionParamName);
+            builder.addStatement("$T region = params.$L()", Region.class, regionParamName);
+            builder.addStatement("$T regionId = region == null ? null : region.id()", String.class);
+            builder.addStatement("$T result = $L(params, regionId)", ruleResult(), utils.root().ruleId());
         } else {
-            builder.addStatement("$T result = $L(params, new $T())", ruleResult(), utils.root().ruleId(),
-                                 ClassName.bestGuess("LocalState"));
+            builder.addStatement("$T result = $L(params)", ruleResult(), utils.root().ruleId());
         }
         builder.beginControlFlow("if (result.canContinue())")
                .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
@@ -206,7 +204,9 @@ public class EndpointProviderSpec2 implements ClassSpec {
         builder.addCode(block.build());
         if (expr.isTree()) {
             for (RuleSetExpression child : expr.children()) {
-                createRuleMethod(child, methods);
+                if (child.isTree()) {
+                    createRuleMethod(child, methods);
+                }
             }
         }
     }
@@ -215,112 +215,28 @@ public class EndpointProviderSpec2 implements ClassSpec {
         MethodSpec.Builder builder =
             MethodSpec.methodBuilder(expr.ruleId())
                       .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                      .returns(ruleResult())
-                      .addParameter(endpointRulesSpecUtils.parametersClassName(), "params");
-        builder.addParameter(ClassName.bestGuess("LocalState"), "locals");
+                      .returns(ruleResult());
+        ComputeScopeTree.Scope scope = utils.scopesByName().get(expr.ruleId());
+        builder.addParameter(endpointRulesSpecUtils.parametersClassName(), "params");
+        for (String param : scope.usesLocals()) {
+            if (scope.defines().contains(param)) {
+                continue;
+            }
+            RuleType type = utils.symbolTable().localType(param);
+            builder.addParameter(type.javaType(), param);
+        }
         return builder;
     }
 
-    private void codegenExpr(RuleExpression expr, CodeBlock.Builder builder) {
+    private void codegenExpr(RuleSetExpression expr, CodeBlock.Builder builder) {
         boolean useEndpointCaching = intermediateModel.getCustomizationConfig().getEnableEndpointProviderUriCaching();
         CodeGeneratorVisitor visitor = new CodeGeneratorVisitor(typeMirror,
                                                                 utils.symbolTable(),
                                                                 knownEndpointAttributes,
-                                                                builder,
-                                                                useEndpointCaching);
+                                                                utils.scopesByName(),
+                                                                useEndpointCaching,
+                                                                builder);
         expr.accept(visitor);
-    }
-
-    private TypeSpec codegenLocalState() {
-        TypeSpec.Builder b = TypeSpec.classBuilder("LocalState")
-                                     .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-        Map<String, RuleType> locals = utils.locals();
-        locals.forEach((k, v) -> {
-            b.addField(v.javaType(), k, Modifier.PRIVATE, Modifier.FINAL);
-        });
-        MethodSpec.Builder emptyCtor = MethodSpec.constructorBuilder();
-        locals.forEach((k, v) -> {
-            emptyCtor.addStatement("this.$1L = null", k);
-        });
-        b.addMethod(emptyCtor.build());
-        String regionParamName = utils.regionParamName();
-        if (regionParamName != null) {
-            MethodSpec.Builder regionCtor = MethodSpec.constructorBuilder()
-                                                      .addParameter(Region.class, "region");
-            locals.forEach((k, v) -> {
-                if (k.equals(regionParamName)) {
-                    regionCtor.beginControlFlow("if (region != null)")
-                              .addStatement("this.$L = region.id()", regionParamName)
-                              .nextControlFlow("else")
-                              .addStatement("this.$L = null", regionParamName)
-                              .endControlFlow();
-                } else {
-                    regionCtor.addStatement("this.$1L = null", k);
-                }
-            });
-            b.addMethod(regionCtor.build());
-
-        }
-        ClassName localStateBuilder = ClassName.bestGuess("LocalStateBuilder");
-        MethodSpec.Builder builderCtor = MethodSpec
-            .constructorBuilder()
-            .addParameter(localStateBuilder, "builder");
-
-        locals.forEach((k, v) -> {
-            builderCtor.addStatement("this.$1L = builder.$1L", k);
-        });
-
-        b.addMethod(builderCtor.build());
-        locals.forEach((k, v) -> {
-            b.addMethod(MethodSpec.methodBuilder(k)
-                                  .addModifiers(Modifier.PUBLIC)
-                                  .returns(v.javaType())
-                                  .addStatement("return this.$L", k)
-                                  .build());
-        });
-        b.addMethod(MethodSpec.methodBuilder("toBuilder")
-                              .addModifiers(Modifier.PUBLIC)
-                              .returns(localStateBuilder)
-                              .addStatement("return new $T(this)", localStateBuilder)
-                              .build());
-        return b.build();
-    }
-
-    private TypeSpec codegenLocalStateBuilder() {
-        ClassName localStateClass = ClassName.bestGuess("LocalState");
-        ClassName builderClass = ClassName.bestGuess("LocalStateBuilder");
-        TypeSpec.Builder b = TypeSpec.classBuilder("LocalStateBuilder")
-                                     .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-        Map<String, RuleType> locals = utils.locals();
-        locals.forEach((k, v) -> {
-            b.addField(v.javaType(), k, Modifier.PRIVATE);
-        });
-        MethodSpec.Builder emptyCtor = MethodSpec.constructorBuilder();
-        locals.forEach((k, v) -> {
-            emptyCtor.addStatement("this.$1L = null", k);
-        });
-        b.addMethod(emptyCtor.build());
-        MethodSpec.Builder stateCtor = MethodSpec
-            .constructorBuilder()
-            .addParameter(localStateClass, "locals");
-        locals.forEach((k, v) -> {
-            stateCtor.addStatement("this.$1L = locals.$1L", k);
-        });
-        b.addMethod(stateCtor.build());
-        locals.forEach((k, v) -> {
-            b.addMethod(MethodSpec.methodBuilder(k)
-                                  .addModifiers(Modifier.PUBLIC)
-                                  .returns(builderClass)
-                                  .addParameter(v.javaType(), "value")
-                                  .addStatement("this.$L = value", k)
-                                  .addStatement("return this")
-                                  .build());
-        });
-        b.addMethod(MethodSpec.methodBuilder("build")
-                              .returns(localStateClass)
-                              .addStatement("return new $T(this)", localStateClass)
-                              .build());
-        return b.build();
     }
 
     private TypeName ruleResult() {
