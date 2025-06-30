@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Health Imaging",
+    "contributor": "",
+    "description": "Added new fields to support the concept of primary image sets within the storage hierarchy."
+}
