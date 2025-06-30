@@ -1,4 +1,89 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.74__ __2025-06-30__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Added support for on-demand practice runs and balanced capacity checks in ARC autoshift practice.
+
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Updated APIs to support inbound EDI split capabilities and additional Partnership-level configurations of generated EDI files' contents and format.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added support for UNKNOWN drift status.
+
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config as of June 2025
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release updates resource Id with alphanumeric constraint, including Asset id, Revision id, Data Set id, Job id, and Event Action id.
+
+## __AWS Glue__
+  - ### Features
+    - releasing source processing properties to support source properties for ODB integrations
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added new fields to support the concept of primary image sets within the storage hierarchy.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updated IAM ServiceSpecificCredential support to include expiration, API Key output format instead of username and password for services that will support API keys, and the ability to list credentials for all users in the account for a given service configuration.
+
+## __AWS Outposts__
+  - ### Features
+    - Make ContactName and ContactPhoneNumber required fields when creating and updating Outpost Site Addresses.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Fixed the validation pattern for an instance profile Amazon Resource Name (ARN) in AWS PCS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added support for dual-stack (IPv4 and IPv6) endpoints for SFTP public endpoints and VPC-internal endpoints (SFTP, FTPS, FTP, and AS2), enabling customers to configure new servers with IPv4 or dual-stack mode, convert existing servers to dual-stack, and use IPv6 with service APIs.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for API Keys, Re-Ranker, implicit filter for RAG / KB evaluation for Bedrock APIs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add API Key and document citations support for Bedrock Runtime APIs
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Increase minimum length of queryId parameter to 1 character.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces ChatMetrics to the model, providing comprehensive analytics insights for Amazon Connect chat conversations. Users can access these detailed metrics through the AWS Connect API by using the DescribeContact operation with their specific instance and contact IDs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change adds support for witnesses in global tables. It also adds a new table status, REPLICATION_NOT_AUTHORIZED. This status will indicate scenarios where global replicas table can't be utilized for data plane operations.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Added support for EventBridge Dualstack endpoints in AWS GovCloud (US) regions (us-gov-east-1 and us-gov-west-1). The dualstack endpoints are identical for both FIPS and non-FIPS configurations, following the format: events.{region}.api.aws
+
+## __Amazon QuickSight__
+  - ### Features
+    - Introduced custom permission capabilities for reporting content. Added menu option in exploration to preserve configuration data when textbox menu option is used. Added support for Athena trusted identity propagation.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Introduces AccessType, a new filter value for the DescribeSessions API.
+
+## __Network Flow Monitor__
+  - ### Features
+    - Add ConflictExceptions to UpdateScope and DeleteScope operations for scopes being mutated.
+
 # __2.31.73__ __2025-06-27__
 ## __AWS Config__
   - ### Features
