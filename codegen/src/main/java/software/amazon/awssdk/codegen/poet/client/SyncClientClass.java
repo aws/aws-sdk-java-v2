@@ -23,6 +23,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -253,11 +254,6 @@ public class SyncClientClass extends SyncClientInterface {
         List<MethodSpec> methods = new ArrayList<>();
         methods.add(traditionalMethod(opModel));
         return methods.stream();
-    }
-
-    private String transformServiceId(String serviceId) {
-        // According to User Agent 2.0 spec, replace spaces with underscores
-        return serviceId.replace(" ", "_");
     }
 
     private MethodSpec traditionalMethod(OperationModel opModel) {

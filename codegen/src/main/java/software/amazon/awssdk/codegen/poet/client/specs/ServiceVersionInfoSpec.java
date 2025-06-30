@@ -30,11 +30,9 @@ import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class ServiceVersionInfoSpec implements ClassSpec {
     private final PoetExtension poetExtension;
-    private final IntermediateModel model;
 
     public ServiceVersionInfoSpec(IntermediateModel model) {
         this.poetExtension = new PoetExtension(model);
-        this.model = model;
     }
 
     @Override

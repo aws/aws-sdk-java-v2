@@ -26,6 +26,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -288,11 +289,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     private boolean hasOperationWithEventStreamOutput() {
         return model.getOperations().values().stream().anyMatch(OperationModel::hasEventStreamOutput);
-    }
-
-    private String transformServiceId(String serviceId) {
-        // According to User Agent 2.0 spec, replace spaces with underscores
-        return serviceId.replace(" ", "_");
     }
 
     private MethodSpec nameMethod() {
