@@ -104,7 +104,8 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         private URL url;
         private String range;
 
-        public Builder() {}
+        public Builder() {
+        }
 
         Builder(PresignedUrlGetObjectRequestWrapper request) {
             super(request);
