@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.40-SNAPSHOT</version>
+        <version>2.31.74-SNAPSHOT</version>
         <relativePath>../..</relativePath>
     </parent>
 
@@ -161,6 +161,17 @@
                 <configuration>
                     <!-- Skipping maven dependencies analysis to speed up the build -->
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Separate Codebuild for migration tests -->
+                    <skipTests>${v2.migration.tests.skip}</skipTests>
+                    <!-- Sets the VM argument line used when migration tests are run. -->
+                    <argLine>${argLine}</argLine>
+                    <trimStackTrace>false</trimStackTrace>
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
                 </configuration>
             </plugin>
         </plugins>

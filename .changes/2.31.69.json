@@ -1,0 +1,30 @@
+{
+    "version": "2.31.69",
+    "date": "2025-06-23",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Ignore unknown properties on endpoints in endpoint rules."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue now supports sort and z-order strategy for managed automated compaction for Iceberg tables in addition to binpack."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "S3 Tables now supports sort and z-order compaction strategies for Iceberg tables in addition to binpack."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Workspaces Instances",
+            "contributor": "",
+            "description": "Added support for Amazon WorkSpaces Instances API"
+        }
+    ]
+}

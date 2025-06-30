@@ -110,6 +110,14 @@ public class ShapeModelReflector {
         Iterator<String> fieldNames = input.fieldNames();
         while (fieldNames.hasNext()) {
             String memberName = fieldNames.next();
+            // error structures have special case handling of "message"
+            if (structureShape.getErrorCode() != null && memberName.equalsIgnoreCase("message")) {
+                Method setter = shapeObject.getClass().getMethod("message", String.class);
+                setter.setAccessible(true);
+                setter.invoke(shapeObject, input.get(memberName).asText());
+                continue;
+            }
+
             MemberModel memberModel = structureShape.getMemberByC2jName(memberName);
             if (memberModel == null) {
                 throw new IllegalArgumentException("Member " + memberName + " was not found in the " +

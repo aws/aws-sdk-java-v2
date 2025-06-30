@@ -1,5 +1,9 @@
 name: Changelog verification
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   pull_request:
     types: [ opened, synchronize, reopened, labeled, unlabeled ]
@@ -12,14 +16,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check for changelog entry
-        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-changelog') }}
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'changelog-not-required') }}
         run: |
-          git fetch origin ${{ github.base_ref }} --depth 1 && \
-          git diff remotes/origin/${{ github.base_ref }} --name-only | grep -P "\.changes/next-release/*[a-zA-Z0-9_-]+\.json"
+          git fetch origin ${{ github.base_ref }} --depth 1
+          NON_TEST_FILES=$(git diff remotes/origin/${{ github.base_ref }} --name-only | grep "\.java$" | grep -v -E "(^|/)(test|it)/" || true)
+          if [ -n "$NON_TEST_FILES" ]; then
+            echo "::notice::Non-test Java changes found:"
+            echo "$NON_TEST_FILES" | while read file; do
+              echo "::notice::$file"
+            done
+            echo "Checking for changelog entry..."
+            CHANGELOG_FILES=$(git diff remotes/origin/${{ github.base_ref }} --name-only | grep -P "\.changes/next-release/.*[a-zA-Z0-9_-]+\.json" || true)
+            if [ -z "$CHANGELOG_FILES" ]; then
+              echo "::error::No changelog entry found for Java changes"
+              exit 1
+            else
+              echo "::notice::Changelog entry found: $CHANGELOG_FILES"
+            fi
+          else
+            echo "::notice::No non-test Java changes found. Changelog verification skipped."
+          fi
       - name: Error message
         if: ${{ failure() }}
         run: |
-          echo "::error ::No new/updated changelog entry found in /.changes/next-release directory. Please either:"
-          echo "::error ::* Add a changelog entry (see CONTRIBUTING.md for instructions) –or–"
-          echo "::error ::* Add the 'no-changelog' label to this PR (in rare cases not warranting a changelog entry)"
+          echo "::error::No new/updated changelog entry found in /.changes/next-release directory. Please either:"
+          echo "::error::* Add a changelog entry (see CONTRIBUTING.md for instructions) –or–"
+          echo "::error::* Add the 'changelog-not-required' label to this PR (in rare cases not warranting a changelog entry)"
           exit 1

@@ -1,0 +1,54 @@
+{
+    "version": "2.31.71",
+    "date": "2025-06-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Add support for the ability to use Amazon S3 Access Points with Amazon FSx for OpenZFS file systems."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adding constant to each SDK module to represent its version"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "This release adds IPv6 support to the Storage Gateway APIs. APIs that previously only accept or return IPv4 address will now accept or return both IPv4 and IPv6 addresses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Updates for change to Amazon ECS default log driver mode from blocking to non-blocking"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Add support for the ability to create Amazon S3 Access Points for Amazon FSx for OpenZFS file systems."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Adds support for additional server-side encryption mode and storage class values for accessing Amazon FSx data from Amazon S3 using S3 Access Points"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "Add RotationAngle field to Geometry of WORD blocks for Textract AnalyzeDocument API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Remove Tags field from Get API responses"
+        }
+    ]
+}

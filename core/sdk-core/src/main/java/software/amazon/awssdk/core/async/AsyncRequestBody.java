@@ -23,11 +23,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where this interface is
@@ -75,6 +78,16 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     }
 
     /**
+     * Each AsyncRequestBody should return a well-formed name that can be used to identify the implementation.
+     * The body name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestBody implementation.
+     */
+    default String body() {
+        return BodyType.UNKNOWN.getName();
+    }
+
+    /**
      * Creates an {@link AsyncRequestBody} the produces data from the input ByteBuffer publisher. The data is delivered when the
      * publisher publishes the data.
      *
@@ -95,6 +108,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
                 publisher.subscribe(s);
+            }
+
+            @Override
+            public String body() {
+                return BodyType.PUBLISHER.getName();
             }
         };
     }
@@ -403,8 +421,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
      *
      *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
-     *     InputStream streamToSend = new ByteArrayInputStream();
-     *     long streamToSendLength = dataToSend.length();
+     *     InputStream streamToSend = new ByteArrayInputStream(dataToSend);
+     *     long streamToSendLength = dataToSend.length;
      *
      *     // Start the operation
      *     BlockingInputStreamAsyncRequestBody body =
@@ -512,5 +530,37 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    @SdkProtectedApi
+    enum BodyType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, BodyType> VALUE_MAP =
+            EnumUtils.uniqueIndex(BodyType.class, BodyType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        BodyType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

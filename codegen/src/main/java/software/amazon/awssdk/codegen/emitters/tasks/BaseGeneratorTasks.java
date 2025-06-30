@@ -71,6 +71,8 @@ public abstract class BaseGeneratorTasks extends GeneratorTask {
                 ForkJoinTask.invokeAll(createTasks());
                 log.info("  Completed " + taskName + ".");
             }
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
