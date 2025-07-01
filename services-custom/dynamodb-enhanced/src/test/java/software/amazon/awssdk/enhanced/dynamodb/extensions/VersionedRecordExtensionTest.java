@@ -113,6 +113,33 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test
+    public void beforeWrite_initialVersionDueToExplicitZero_expressionAndTransformedItemIsCorrect() {
+        FakeItem fakeItem = createUniqueFakeItem();
+
+        Map<String, AttributeValue> inputMap =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        inputMap.put("version", AttributeValue.builder().n("0").build());
+
+        Map<String, AttributeValue> fakeItemWithInitialVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        fakeItemWithInitialVersion.put("version", AttributeValue.builder().n("1").build());
+
+        WriteModification result =
+            versionedRecordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                     .builder()
+                                                     .items(inputMap)
+                                                     .tableMetadata(FakeItem.getTableMetadata())
+                                                     .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("attribute_not_exists(#AMZN_MAPPED_version)")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .build()));
+    }
+
+    @Test
     public void beforeWrite_existingVersion_expressionIsCorrect() {
         FakeItem fakeItem = createUniqueFakeItem();
         fakeItem.setVersion(13);
