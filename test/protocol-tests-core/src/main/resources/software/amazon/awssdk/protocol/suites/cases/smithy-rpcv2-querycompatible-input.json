@@ -1,53 +1,32 @@
 [
   {
-    "description": "Test cases for QueryCompatibleOperation operation",
-    "metadata": {
-      "apiVersion": "2025-06-20",
-      "auth": [
-        "aws.auth#sigv4"
-      ],
-      "awsQueryCompatible": {},
-      "endpointPrefix": "querycompatiblerpcv2protocol",
-      "protocol": "smithy-rpc-v2-cbor",
-      "protocols": [
-        "smithy-rpc-v2-cbor"
-      ],
-      "serviceFullName": "QueryCompatibleRpcV2Protocol",
-      "serviceId": "Query Compatible RpcV2 Protocol",
-      "signatureVersion": "v4",
-      "signingName": "QueryCompatibleRpcV2Protocol",
-      "targetPrefix": "QueryCompatibleRpcV2Protocol",
-      "uid": "query-compatible-rpcv2-protocol-2025-06-20"
+    "description": "Clients for query-compatible services MUST send the x-amzn-query-mode header.",
+    "given": {
+      "input": {}
     },
-    "shapes": {},
-    "cases": [
-      {
-        "id": "QueryCompatibleRpcV2CborSendsQueryModeHeader",
-        "given": {
-          "name": "QueryCompatibleOperation",
-          "http": {
-            "method": "POST",
-            "requestUri": "/"
-          },
-          "idempotent": true
-        },
-        "description": "Clients for query-compatible services MUST send the x-amzn-query-mode header.",
-        "params": {},
-        "serialized": {
-          "method": "POST",
-          "uri": "/service/QueryCompatibleRpcV2Protocol/operation/QueryCompatibleOperation",
-          "body": "",
-          "headers": {
-            "Accept": "application/cbor",
+    "when": {
+      "action": "marshall",
+      "operation": "QueryCompatibleOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "method": "POST",
+        "headers": {
+          "contains": {
             "smithy-protocol": "rpc-v2-cbor",
+            "Accept": "application/cbor",
             "x-amzn-query-mode": "true"
           },
-          "forbidHeaders": [
+          "doesNotContain": [
             "Content-Type",
             "X-Amz-Target"
           ]
-        }
+        },
+        "body": {
+          "encodedEquals": ""
+        },
+        "uri": "/service/QueryCompatibleRpcV2Protocol/operation/QueryCompatibleOperation"
       }
-    ]
+    }
   }
 ]
