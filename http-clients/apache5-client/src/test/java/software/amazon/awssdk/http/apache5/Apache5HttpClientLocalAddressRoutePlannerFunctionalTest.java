@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientLocalAddressFunctionalTestSuite;
 
 @DisplayName("Apache5 HTTP Client - Local Address Functional Tests")
-class Apache5HttpClientLocalAddressFunctionalTest extends SdkHttpClientLocalAddressFunctionalTestSuite {
+class Apache5HttpClientLocalAddressRoutePlannerFunctionalTest extends SdkHttpClientLocalAddressFunctionalTestSuite {
 
     @Override
     protected SdkHttpClient createHttpClient(InetAddress localAddress, Duration connectionTimeout) {
