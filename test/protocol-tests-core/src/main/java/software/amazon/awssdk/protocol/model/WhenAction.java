@@ -17,7 +17,8 @@ package software.amazon.awssdk.protocol.model;
 
 public enum WhenAction {
     MARSHALL("marshall"),
-    UNMARSHALL("unmarshall");
+    UNMARSHALL("unmarshall"),
+    ERROR_UNMARSHALL("errorUnmarshall");
 
     private final String action;
 
@@ -31,6 +32,8 @@ public enum WhenAction {
                 return MARSHALL;
             case "unmarshall":
                 return UNMARSHALL;
+            case "errorUnmarshall":
+                return ERROR_UNMARSHALL;
             default:
                 throw new IllegalArgumentException("Unsupported test action " + action);
         }

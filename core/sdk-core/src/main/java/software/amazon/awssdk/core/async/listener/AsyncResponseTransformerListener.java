@@ -76,6 +76,10 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
             this.listener = Validate.notNull(listener, "listener");
         }
 
+        public AsyncResponseTransformer<ResponseT, ResultT> getDelegate() {
+            return delegate;
+        }
+
         @Override
         public CompletableFuture<ResultT> prepare() {
             return delegate.prepare();
@@ -97,6 +101,11 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
         public void exceptionOccurred(Throwable error) {
             invoke(() -> listener.transformerExceptionOccurred(error), "transformerExceptionOccurred");
             delegate.exceptionOccurred(error);
+        }
+
+        @Override
+        public String name() {
+            return delegate.name();
         }
 
         static void invoke(Runnable runnable, String callbackName) {

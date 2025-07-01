@@ -58,6 +58,7 @@ Resources:
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-sonar
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-endpoints-test
                   - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-migration-test
+                  - !Sub arn:aws:codebuild:${ AWS::Region }:${ AWS::AccountId }:project/aws-sdk-java-v2-s3-regression-tests
               - Effect: Allow
                 Action:
                   - logs:GetLogEvents
@@ -71,6 +72,7 @@ Resources:
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-sonar:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-endpoints-test:*
                   - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-migration-test:*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/aws-sdk-java-v2-s3-regression-tests:*
 
   GithubOidc:
     Type: AWS::IAM::OIDCProvider
