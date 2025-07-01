@@ -4,7 +4,7 @@
     "modules": {
         "annotations": { "packageName": "AwsJavaSdk-Core-Annotations" },
         "apache-client": { "packageName": "AwsJavaSdk-HttpClient-ApacheClient" },
-        "apache5-client": { "packageName": "AwsJavaSdk-HttpClient-Apache5Client-preview" },
+        "apache5-client": { "packageName": "AwsJavaSdk-HttpClient-Apache5Client-Preview" },
         "arns": { "packageName": "AwsJavaSdk-Core-Arns" },
         "auth": { "packageName": "AwsJavaSdk-Core-Auth" },
         "auth-crt": { "packageName": "AwsJavaSdk-Core-AuthCrt" },
