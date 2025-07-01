@@ -20,6 +20,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.junit.Assert.assertThat;
+import static software.amazon.awssdk.protocol.asserts.marshalling.QueryUtils.parseQueryParams;
+import static software.amazon.awssdk.protocol.asserts.marshalling.QueryUtils.parseQueryParamsFromBody;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.net.URI;
@@ -40,6 +42,7 @@ public class QueryParamsAssertion extends MarshallingAssertion {
     private Map<String, List<String>> contains;
     private Map<String, List<String>> containsOnly;
     private List<String> doesNotContain;
+    private List<String> mustContain;
 
     public void setContains(Map<String, List<String>> contains) {
         this.contains = contains;
@@ -51,6 +54,10 @@ public class QueryParamsAssertion extends MarshallingAssertion {
 
     public void setDoesNotContain(List<String> doesNotContain) {
         this.doesNotContain = doesNotContain;
+    }
+
+    public void setMustContain(List<String> mustContain) {
+        this.mustContain = mustContain;
     }
 
     @Override
@@ -79,31 +86,12 @@ public class QueryParamsAssertion extends MarshallingAssertion {
         if (containsOnly != null) {
             assertContainsOnly(actualParams);
         }
-    }
 
-    private Map<String, List<String>> parseQueryParamsFromBody(String body) {
-        return toQueryParamMap(URLEncodedUtils.parse(body, StandardCharsets.UTF_8));
-    }
-
-    private Map<String, List<String>> parseQueryParams(LoggedRequest actual) {
-        return toQueryParamMap(parseNameValuePairsFromQuery(actual));
-    }
-
-    /**
-     * Group the list of {@link NameValuePair} by parameter name.
-     */
-    private Map<String, List<String>> toQueryParamMap(List<NameValuePair> queryParams) {
-        return queryParams.stream().collect(Collectors.groupingBy(NameValuePair::getName, Collectors
-                .mapping(NameValuePair::getValue, Collectors.toList())));
-    }
-
-    private List<NameValuePair> parseNameValuePairsFromQuery(LoggedRequest actual) {
-        String queryParams = URI.create(actual.getUrl()).getQuery();
-        if (StringUtils.isEmpty(queryParams)) {
-            return Collections.emptyList();
+        if (mustContain != null) {
+            assertMustContain(actualParams);
         }
-        return URLEncodedUtils.parse(queryParams, StandardCharsets.UTF_8);
     }
+
 
     private void assertContains(Map<String, List<String>> actualParams) {
         contains.entrySet().forEach(e -> assertThat(actualParams.get(e.getKey()), containsInAnyOrder(e.getValue().toArray())));
@@ -111,6 +99,10 @@ public class QueryParamsAssertion extends MarshallingAssertion {
 
     private void assertDoesNotContain(Map<String, List<String>> actualParams) {
         doesNotContain.forEach(key -> assertThat(actualParams, not(hasKey(key))));
+    }
+
+    private void assertMustContain(Map<String, List<String>> actualParams) {
+        doesNotContain.forEach(key -> assertThat(actualParams, hasKey(key)));
     }
 
     private void assertContainsOnly(Map<String, List<String>> actualParams) {

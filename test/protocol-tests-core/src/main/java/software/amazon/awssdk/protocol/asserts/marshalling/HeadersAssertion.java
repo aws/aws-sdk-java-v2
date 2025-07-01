@@ -32,6 +32,7 @@ public class HeadersAssertion extends MarshallingAssertion {
     private Map<String, List<String>> contains;
 
     private List<String> doesNotContain;
+    private List<String> mustContain;
 
     public void setContains(Map<String, List<String>> contains) {
         this.contains = contains;
@@ -41,6 +42,10 @@ public class HeadersAssertion extends MarshallingAssertion {
         this.doesNotContain = doesNotContain;
     }
 
+    public void setMustContain(List<String> mustContain) {
+        this.mustContain = mustContain;
+    }
+
     @Override
     protected void doAssert(LoggedRequest actual) throws Exception {
         if (contains != null) {
@@ -48,6 +53,9 @@ public class HeadersAssertion extends MarshallingAssertion {
         }
         if (doesNotContain != null) {
             assertDoesNotContainHeaders(actual.getHeaders());
+        }
+        if (mustContain != null) {
+            assertMustContainHeaders(actual.getHeaders());
         }
     }
 
@@ -63,6 +71,13 @@ public class HeadersAssertion extends MarshallingAssertion {
     private void assertDoesNotContainHeaders(HttpHeaders actual) {
         doesNotContain.forEach(headerName -> {
             assertFalse(String.format("Header '%s' was expected to be absent", headerName),
+                        actual.getHeader(headerName).isPresent());
+        });
+    }
+
+    private void assertMustContainHeaders(HttpHeaders actual) {
+        doesNotContain.forEach(headerName -> {
+            assertTrue(String.format("Header '%s' was expected to be present", headerName),
                         actual.getHeader(headerName).isPresent());
         });
     }
