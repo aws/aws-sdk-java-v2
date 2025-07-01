@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "Add support for the new optional domain-unit-id parameter in the UpdateProject API."
+}
