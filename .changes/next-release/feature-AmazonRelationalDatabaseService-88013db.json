@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Amazon RDS Custom for Oracle now supports multi-AZ database instances."
-}
