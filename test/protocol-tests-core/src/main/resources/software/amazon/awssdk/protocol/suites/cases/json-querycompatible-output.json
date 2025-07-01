@@ -13,14 +13,12 @@
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryCompatibleOperation"
+      "operation": "QueryCompatibleOperation",
+      "error": "NoCustomCodeError"
     },
     "then": {
-      "errorDeserializedAs": {
-        "errorCode": "NoCustomCodeError",
-        "error": {
-          "message": "Hi"
-        }
+      "deserializedAs": {
+        "message": "Hi"
       }
     }
   },
@@ -39,14 +37,12 @@
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryCompatibleOperation"
+      "operation": "QueryCompatibleOperation",
+      "error": "Customized"
     },
     "then": {
-      "errorDeserializedAs": {
-        "errorCode": "Customized",
-        "error": {
-          "message": "Hi"
-        }
+      "deserializedAs": {
+        "message": "Hi"
       }
     }
   }

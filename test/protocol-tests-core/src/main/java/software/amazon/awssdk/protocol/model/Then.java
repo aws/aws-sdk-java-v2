@@ -32,11 +32,10 @@ public class Then {
 
     @JsonCreator
     public Then(@JsonProperty("serializedAs") SerializedAs serializedAs,
-                @JsonProperty("deserializedAs") JsonNode deserializedAs,
-                @JsonProperty("errorDeserializedAs") JsonNode errorDeserializedAs) {
+                @JsonProperty("deserializedAs") JsonNode deserializedAs) {
         this.serializedAs = serializedAs;
         this.deserializedAs = new UnmarshalledResultAssertion(deserializedAs);
-        this.errorDeserializedAs = new UnmarshalledErrorAssertion(errorDeserializedAs);
+        this.errorDeserializedAs = new UnmarshalledErrorAssertion(deserializedAs);
     }
 
     /**
