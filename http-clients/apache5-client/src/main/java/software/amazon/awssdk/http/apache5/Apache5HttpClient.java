@@ -25,6 +25,7 @@ import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -48,6 +49,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
@@ -57,10 +59,13 @@ import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.impl.io.HttpRequestExecutor;
 import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
@@ -108,7 +113,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
-    public static final String CLIENT_NAME = "Apache5";
+    public static final String CLIENT_NAME = "Apache5Preview";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
@@ -206,7 +211,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         if (routePlanner != null) {
+            if (configuration.localAddress != null) {
+                log.debug(() -> "localAddress configuration was ignored since Route planner was explicitly provided");
+            }
             builder.setRoutePlanner(routePlanner);
+        } else if (configuration.localAddress != null) {
+            builder.setRoutePlanner(new LocalAddressRoutePlanner(configuration.localAddress));
         }
 
         if (credentialsProvider != null) {
@@ -405,6 +415,11 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder proxyConfiguration(ProxyConfiguration proxyConfiguration);
 
         /**
+         * Configure the local address that the HTTP client should use for communication.
+         */
+        Builder localAddress(InetAddress localAddress);
+
+        /**
          * Configure whether the client should send an HTTP expect-continue handshake before each request.
          */
         Builder expectContinueEnabled(Boolean expectContinueEnabled);
@@ -495,6 +510,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private final AttributeMap.Builder standardOptions = AttributeMap.builder();
         private Registry<AuthSchemeFactory> authSchemeRegistry;
         private ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder().build();
+        private InetAddress localAddress;
         private Boolean expectContinueEnabled;
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
@@ -558,6 +574,16 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         public void setProxyConfiguration(ProxyConfiguration proxyConfiguration) {
             proxyConfiguration(proxyConfiguration);
+        }
+
+        @Override
+        public Builder localAddress(InetAddress localAddress) {
+            this.localAddress = localAddress;
+            return this;
+        }
+
+        public void setLocalAddress(InetAddress localAddress) {
+            localAddress(localAddress);
         }
 
         @Override
@@ -793,5 +819,19 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                .build();
         }
 
+    }
+
+    private static class LocalAddressRoutePlanner extends DefaultRoutePlanner {
+        private final InetAddress localAddress;
+
+        LocalAddressRoutePlanner(InetAddress localAddress) {
+            super(DefaultSchemePortResolver.INSTANCE);
+            this.localAddress = localAddress;
+        }
+
+        @Override
+        protected InetAddress determineLocalAddress(HttpHost firstHop, HttpContext context) throws HttpException {
+            return localAddress;
+        }
     }
 }
