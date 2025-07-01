@@ -21,15 +21,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.core.protocol.MarshallingType;
 import software.amazon.awssdk.core.traits.LocationTrait;
 import software.amazon.awssdk.services.s3.model.S3Request;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
 
 /**
  * Internal request object for presigned URL GetObject operations.
@@ -98,6 +97,29 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        PresignedUrlGetObjectRequestWrapper that = (PresignedUrlGetObjectRequestWrapper) obj;
+        return Objects.equals(url, that.url) && Objects.equals(range, that.range);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(super.hashCode());
+        result = 31 * result + Objects.hashCode(url);
+        result = 31 * result + Objects.hashCode(range);
+        return result;
     }
 
     public static final class Builder extends S3Request.BuilderImpl {

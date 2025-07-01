@@ -72,8 +72,11 @@ public interface PresignedUrlManager {
      *                                                                              instance of this type.
      */
     default <ReturnT> ReturnT getObject(PresignedUrlGetObjectRequest request,
-                                        ResponseTransformer<GetObjectResponse, ReturnT> responseTransformer) throws NoSuchKeyException,
-                                                                                                                    InvalidObjectStateException, SdkClientException, S3Exception {
+                                        ResponseTransformer<GetObjectResponse,
+                                            ReturnT> responseTransformer) throws NoSuchKeyException,
+                                                                                 InvalidObjectStateException,
+                                                                                 SdkClientException,
+                                                                                 S3Exception {
         throw new UnsupportedOperationException();
     }
 

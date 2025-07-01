@@ -20,12 +20,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 
 class PresignedUrlGetObjectRequestWrapperTest {
+    @Test
+    void equalsAndHashCode_shouldFollowContract() {
+        EqualsVerifier.forClass(PresignedUrlGetObjectRequestWrapper.class)
+                      .withRedefinedSuperclass()
+                      .verify();
+    }
+
     @Test
     void basicProperties_shouldWork() throws Exception {
         PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
@@ -60,8 +68,9 @@ class PresignedUrlGetObjectRequestWrapperTest {
 
         Map<String, SdkField<?>> fieldMap = request.sdkFieldNameToField();
 
-        assertThat(fieldMap).hasSize(1);
-        assertThat(fieldMap).containsKey("Range");
+        assertThat(fieldMap)
+            .hasSize(1)
+            .containsKey("Range");
         assertThat(fieldMap.get("Range").memberName()).isEqualTo("Range");
     }
 

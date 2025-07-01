@@ -99,10 +99,12 @@ class PresignedUrlGetObjectRequestTest {
 
         String result = request.toString();
 
-        assertThat(result).isNotNull();
-        assertThat(result).isNotEmpty();
-        assertThat(result).contains(request.presignedUrl().toString());
-        assertThat(result).contains(request.range());
+        assertThat(result)
+            .isNotNull()
+            .isNotEmpty()
+            .contains(request.presignedUrl().toString())
+            .contains(request.range());
+
     }
 
     @Test

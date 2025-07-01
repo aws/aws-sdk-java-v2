@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 import java.net.URL;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -79,7 +78,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(presignedUrl());
         hashCode = 31 * hashCode + Objects.hashCode(range());
@@ -87,7 +86,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     @Override
-    public final boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
@@ -100,7 +99,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return ToString.builder("PresignedUrlGetObjectRequest")
                        .add("PresignedUrl", presignedUrl())
                        .add("Range", range())
