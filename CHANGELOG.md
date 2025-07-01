@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.75__ __2025-07-01__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - This release introduces support for incremental training and distributed training for custom models in AWS Clean Rooms ML.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the sdk service client version to the useragent
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support for the new optional domain-unit-id parameter in the UpdateProject API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Context to GetInstanceTypesFromInstanceRequirements API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS Custom for Oracle now supports multi-AZ database instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Updated field validation requirements for InstanceGroups.
+
+## __QBusiness__
+  - ### Features
+    - New ChatResponseConfiguration to Customize Q Business chat responses for specific use cases and communication needs. Updated Boosting capability allowing admins to provide preference on date attributes for recency and/or provide a preferred data source.
+
+## __odb__
+  - ### Features
+    - This release adds API operations for Oracle Database@AWS. You can use the APIs to create Exadata infrastructure, ODB networks, and Exadata and Autonomous VM clusters inside AWS data centers. The infrastructure is managed by OCI. You can integrate these resources with AWS services.
+
 # __2.31.74__ __2025-06-30__
 ## __AWS ARC - Zonal Shift__
   - ### Features
