@@ -1,12 +1,13 @@
 [
   {
+    "id": "NonQueryCompatibleRpcV2CborForbidsQueryModeHeader",
     "description": "The query mode header MUST NOT be set on non-query-compatible services.",
     "given": {
       "input": {}
     },
     "when": {
       "action": "marshall",
-      "operation": "NonQueryCompatibleOperation"
+      "operation": "QueryIncompatibleOperation"
     },
     "then": {
       "serializedAs": {

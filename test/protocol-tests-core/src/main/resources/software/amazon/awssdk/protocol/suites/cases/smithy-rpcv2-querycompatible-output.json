@@ -1,5 +1,6 @@
 [
   {
+    "id": "QueryCompatibleAwsJson10CborNoCustomCodeError",
     "description": "Parses simple RpcV2 CBOR errors with no query error code",
     "given": {
       "response": {
@@ -25,6 +26,7 @@
     }
   },
   {
+    "id": "QueryCompatibleAwsJson10CustomCodeError",
     "description": "Parses simple RpcV2 CBOR errors with query error code",
     "given": {
       "response": {
