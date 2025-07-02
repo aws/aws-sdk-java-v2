@@ -327,7 +327,7 @@ public class BaseClientBuilderClass implements ClassSpec {
             ValidationEntry entry = ValidationEntry.create(ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
                                                            ValidationErrorSeverity.DANGER,
                                                            "The enableEnvironmentBearerToken customization requires"
-                                                           + " the SRA Auth customization.");
+                                                           + " the useSraAuth customization but it is disabled.");
 
             throw ModelInvalidException.fromEntry(entry);
         }
