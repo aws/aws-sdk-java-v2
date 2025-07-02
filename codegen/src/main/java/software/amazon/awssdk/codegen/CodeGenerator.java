@@ -19,6 +19,9 @@ import com.squareup.javapoet.ClassName;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ForkJoinTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
@@ -26,13 +29,26 @@ import software.amazon.awssdk.codegen.emitters.tasks.AwsGeneratorTasks;
 import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ModelValidationContext;
+import software.amazon.awssdk.codegen.validation.ModelValidationReport;
+import software.amazon.awssdk.codegen.validation.ModelValidator;
+import software.amazon.awssdk.codegen.validation.SharedModelsValidator;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
 import software.amazon.awssdk.utils.Logger;
 
 public class CodeGenerator {
     private static final Logger log = Logger.loggerFor(CodeGenerator.class);
     private static final String MODEL_DIR_NAME = "models";
 
-    private final C2jModels models;
+    private static final List<ModelValidator> DEFAULT_MODEL_VALIDATORS = Collections.singletonList(
+        new SharedModelsValidator()
+    );
+
+    private final C2jModels c2jModels;
+
+    private final IntermediateModel intermediateModel;
+    private final IntermediateModel shareModelsTarget;
     private final String sourcesDirectory;
     private final String resourcesDirectory;
     private final String testsDirectory;
@@ -42,6 +58,9 @@ public class CodeGenerator {
      */
     private final String fileNamePrefix;
 
+    private final List<ModelValidator> modelValidators;
+    private final boolean emitValidationReport;
+
     static {
         // Make sure ClassName is statically initialized before we do anything in parallel.
         // Parallel static initialization of ClassName and TypeName can result in a deadlock:
@@ -50,12 +69,21 @@ public class CodeGenerator {
     }
 
     public CodeGenerator(Builder builder) {
-        this.models = builder.models;
+        this.c2jModels = builder.models;
+        this.intermediateModel = builder.intermediateModel;
+
+        if (this.c2jModels != null && this.intermediateModel != null) {
+            throw new IllegalArgumentException("Only one of c2jModels and intermediateModel must be specified");
+        }
+
+        this.shareModelsTarget = builder.shareModelsTarget;
         this.sourcesDirectory = builder.sourcesDirectory;
         this.testsDirectory = builder.testsDirectory;
         this.resourcesDirectory = builder.resourcesDirectory != null ? builder.resourcesDirectory
                                                                      : builder.sourcesDirectory;
         this.fileNamePrefix = builder.fileNamePrefix;
+        this.modelValidators = builder.modelValidators == null ? DEFAULT_MODEL_VALIDATORS : builder.modelValidators;
+        this.emitValidationReport = builder.emitValidationReport;
     }
 
     public static File getModelDirectory(String outputDirectory) {
@@ -76,22 +104,72 @@ public class CodeGenerator {
      * code.
      */
     public void execute() {
-        try {
-            IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
+        ModelValidationReport report = new ModelValidationReport();
 
+        IntermediateModel modelToGenerate;
+        if (c2jModels != null) {
+            modelToGenerate = new IntermediateModelBuilder(c2jModels).build();
+        } else {
+            modelToGenerate = intermediateModel;
+        }
+
+        List<ValidationEntry> validatorEntries = runModelValidators(modelToGenerate);
+        report.setValidationEntries(validatorEntries);
+
+        if (emitValidationReport) {
+            writeValidationReport(report);
+        }
+
+        if (!validatorEntries.isEmpty()) {
+            throw new RuntimeException("Validation failed. See validation report for details.");
+        }
+
+        try {
             if (fileNamePrefix != null) {
-                writeIntermediateModel(intermediateModel);
+                writeIntermediateModel(modelToGenerate);
             }
-            emitCode(intermediateModel);
+            emitCode(modelToGenerate);
 
         } catch (Exception e) {
             log.error(() -> "Failed to generate code. ", e);
+
+            if (e instanceof ModelInvalidException && emitValidationReport) {
+                ModelInvalidException invalidException = (ModelInvalidException) e;
+                report.setValidationEntries(invalidException.validationEntries());
+                writeValidationReport(report);
+            }
+
             throw new RuntimeException(
                     "Failed to generate code. Exception message : " + e.getMessage(), e);
         }
     }
 
+    private List<ValidationEntry> runModelValidators(IntermediateModel intermediateModel) {
+        ModelValidationContext ctx = ModelValidationContext.builder()
+                                                           .intermediateModel(intermediateModel)
+                                                           .shareModelsTarget(shareModelsTarget)
+                                                           .build();
+
+        List<ValidationEntry> validationEntries = new ArrayList<>();
+
+        modelValidators.forEach(v -> validationEntries.addAll(v.validateModels(ctx)));
+
+        return validationEntries;
+    }
+
+    private void writeValidationReport(ModelValidationReport report) {
+        try {
+            writeModel(report, "validation-report.json");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void writeIntermediateModel(IntermediateModel model) throws IOException {
+        writeModel(model, fileNamePrefix + "-intermediate.json");
+    }
+
+    private void writeModel(Object model, String name) throws IOException {
         File modelDir = getModelDirectory(sourcesDirectory);
         PrintWriter writer = null;
         try {
@@ -100,7 +178,7 @@ public class CodeGenerator {
                 throw new RuntimeException("Failed to create " + outDir.getAbsolutePath());
             }
 
-            File outputFile = new File(modelDir, fileNamePrefix + "-intermediate.json");
+            File outputFile = new File(modelDir, name);
 
             if (!outputFile.exists() && !outputFile.createNewFile()) {
                 throw new RuntimeException("Error creating file " + outputFile.getAbsolutePath());
@@ -134,16 +212,30 @@ public class CodeGenerator {
     public static final class Builder {
 
         private C2jModels models;
+        private IntermediateModel intermediateModel;
+        private IntermediateModel shareModelsTarget;
         private String sourcesDirectory;
         private String resourcesDirectory;
         private String testsDirectory;
         private String fileNamePrefix;
+        private List<ModelValidator> modelValidators;
+        private boolean emitValidationReport;
 
         private Builder() {
         }
 
         public Builder models(C2jModels models) {
             this.models = models;
+            return this;
+        }
+
+        public Builder intermediateModel(IntermediateModel intermediateModel) {
+            this.intermediateModel = intermediateModel;
+            return this;
+        }
+
+        public Builder shareModelsTarget(IntermediateModel shareModelsTarget) {
+            this.shareModelsTarget = shareModelsTarget;
             return this;
         }
 
@@ -164,6 +256,16 @@ public class CodeGenerator {
 
         public Builder intermediateModelFileNamePrefix(String fileNamePrefix) {
             this.fileNamePrefix = fileNamePrefix;
+            return this;
+        }
+
+        public Builder modelValidators(List<ModelValidator> modelValidators) {
+            this.modelValidators = modelValidators;
+            return this;
+        }
+
+        public Builder emitValidationReport(boolean emitValidationReport) {
+            this.emitValidationReport = emitValidationReport;
             return this;
         }
 
