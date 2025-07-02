@@ -47,6 +47,7 @@ import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersAsyncClient;
@@ -180,5 +181,21 @@ class BusinessMetricsUserAgentTest {
         public ExecutionAttributes executionAttributes() {
             return executionAttributes;
         }
+    }
+
+    @Test
+    void validate_serviceUserAgent_format() {
+        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
+
+        ProtocolRestJsonAsyncClient client = clientBuilder
+            .region(Region.US_WEST_2)
+            .credentialsProvider(CREDENTIALS_PROVIDER)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
+            .build();
+
+        client.headOperation();
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).contains("AmazonProtocolRestJson#" + ServiceVersionInfo.VERSION);
     }
 }

@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.A
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.INTERNAL_METADATA_MARKER;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.IO;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.API_METADATA;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -50,8 +51,9 @@ class SdkUserAgentBuilderTest {
                            "OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS", "vendor#Amazon.com_Inc.", "en_US",
                            Arrays.asList("Kotlin", "Scala"));
 
-        SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null);
-        SdkClientUserAgentProperties maximalProperties = sdkProperties( "arbitrary", "async", "Netty", "someAppId");
+        SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null, null);
+        SdkClientUserAgentProperties maximalProperties = sdkProperties("arbitrary", "async", "Netty", "someAppId", "DynamoDB#2.26.22-SNAPSHOT");
+
 
         return Stream.of(
             Arguments.of("default sysagent, empty requestvalues",
@@ -61,33 +63,37 @@ class SdkUserAgentBuilderTest {
             Arguments.of("standard sysagent, request values - internalMarker",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/internal ua/2.1 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties( "arbitrary", null, null, null),
+                         sdkProperties( "arbitrary", null, null, null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - io",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/io#async ua/2.1 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties( null, "async", null, null),
+                         sdkProperties( null, "async", null, null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - http",
                          "aws-sdk-java/2.26.22-SNAPSHOT md/http#Apache ua/2.1 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala exec-env/lambda",
-                         sdkProperties(null, null, "Apache", null),
+                         sdkProperties(null, null, "Apache", null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - authSource",
                          "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda",
-                         sdkProperties( null, null, null, null),
+                         sdkProperties( null, null, null, null, null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - appId",
                          "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda app/someAppId",
-                         sdkProperties( null, null, null, "someAppId"),
+                         sdkProperties( null, null, null, "someAppId", null),
                          maximalSysAgent),
+            Arguments.of("standard sysagent, request values - apiMetadata",
+                         "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT os/Mac_OS_X#14.6.1 lang/java#21.0.2 md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/en_US",
+                         sdkProperties(null, null, null, null, "DynamoDB#2.26.22-SNAPSHOT"),
+                         standardValuesSysAgent),
             Arguments.of("standard sysagent, request values - maximal",
-                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 os/Mac_OS_X#14.6.1 "
-                         + "lang/java#21.0.2 "
+                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT"
+                         + " os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda app/someAppId",
                          maximalProperties,
@@ -95,7 +101,8 @@ class SdkUserAgentBuilderTest {
             );
     }
 
-    private static SdkClientUserAgentProperties sdkProperties(String internalMarker, String io, String http, String appId) {
+    private static SdkClientUserAgentProperties sdkProperties(String internalMarker, String io, String http, String appId,
+                                                              String apiMetadata) {
         SdkClientUserAgentProperties properties = new SdkClientUserAgentProperties();
 
         if (internalMarker != null) {
@@ -112,6 +119,10 @@ class SdkUserAgentBuilderTest {
 
         if (appId != null) {
             properties.putProperty(APP_ID, appId);
+        }
+
+        if (apiMetadata != null) {
+            properties.putProperty(API_METADATA, apiMetadata);
         }
 
         return properties;

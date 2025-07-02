@@ -236,7 +236,7 @@ public class EndpointProviderSpec2 implements ClassSpec {
                                                                 utils.scopesByName(),
                                                                 useEndpointCaching,
                                                                 builder);
-        expr.accept(visitor);
+        visitor.visitRuleSetExpression(expr);
     }
 
     private TypeName ruleResult() {
