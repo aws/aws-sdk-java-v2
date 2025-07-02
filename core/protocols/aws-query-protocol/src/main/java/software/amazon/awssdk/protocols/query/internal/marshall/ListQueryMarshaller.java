@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.query.internal.marshall;
 
 import java.util.List;
+import java.util.Locale;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.ListTrait;
@@ -31,7 +32,8 @@ public class ListQueryMarshaller implements QueryMarshaller<List<?>> {
         listTrait.isFlattened() ?
         String.format("%s.%d", path, i + 1) :
         String.format("%s.%s.%d", path, listTrait.memberFieldInfo().locationName(), i + 1);
-    private static final PathResolver EC2_QUERY_PATH_RESOLVER = (path, i, listTrait) -> String.format("%s.%d", path, i + 1);
+    private static final PathResolver EC2_QUERY_PATH_RESOLVER = (path, i, listTrait) -> String.format(Locale.ROOT, "%s.%d", path
+        , i + 1);
 
     private static final EmptyListMarshaller AWS_QUERY_EMPTY_LIST_MARSHALLER =
         (context, path) -> context.request().putRawQueryParameter(path, "");
