@@ -41,7 +41,7 @@ public class JsonQueryCompatibleProtocolTest extends ProtocolTestBase {
 
     @BeforeClass
     public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/query-compatible-jsonrpc10-2020-07-14-intermediate.json");
+        testRunner = new ProtocolTestRunner("/models/querycompatiblejsonrpc10-2020-07-14-intermediate.json");
     }
 
     @Test

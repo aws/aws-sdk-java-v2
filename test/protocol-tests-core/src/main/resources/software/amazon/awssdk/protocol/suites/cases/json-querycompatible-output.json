@@ -43,7 +43,8 @@
     "then": {
       "deserializedAs": {
         "message": "Hi"
-      }
+      },
+      "errorCode": "Customized"
     }
   }
 ]

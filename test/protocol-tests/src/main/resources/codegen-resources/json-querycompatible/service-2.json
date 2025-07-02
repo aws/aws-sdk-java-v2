@@ -6,16 +6,16 @@
             "aws.auth#sigv4"
         ],
         "awsQueryCompatible": {},
-        "endpointPrefix": "query-compatible-jsonrpc10",
+        "endpointPrefix": "querycompatiblejsonrpc10",
         "jsonVersion": "1.0",
         "protocol": "json",
         "protocols": [
             "json"
         ],
-        "serviceFullName": "Query Compatible Json 1.0 Protocol Service",
+        "serviceFullName": "QueryCompatibleJsonRpc10",
         "serviceId": "Query Compatible JSON RPC 10",
         "signatureVersion": "v4",
-        "signingName": "query-compatible-jsonrpc10",
+        "signingName": "QueryCompatibleJsonRpc10",
         "targetPrefix": "QueryCompatibleJsonRpc10",
         "uid": "query-compatible-json-rpc-10-2020-07-14"
     },

@@ -29,13 +29,16 @@ public class Then {
     private final MarshallingAssertion serializedAs;
     private final UnmarshallingAssertion deserializedAs;
     private final UnmarshallingAssertion errorDeserializedAs;
+    private final String errorCode;
 
     @JsonCreator
     public Then(@JsonProperty("serializedAs") SerializedAs serializedAs,
-                @JsonProperty("deserializedAs") JsonNode deserializedAs) {
+                @JsonProperty("deserializedAs") JsonNode deserializedAs,
+                @JsonProperty("errorCode") String errorCode) {
         this.serializedAs = serializedAs;
         this.deserializedAs = new UnmarshalledResultAssertion(deserializedAs);
         this.errorDeserializedAs = new UnmarshalledErrorAssertion(deserializedAs);
+        this.errorCode = errorCode;
     }
 
     /**
@@ -58,5 +61,13 @@ public class Then {
      */
     public UnmarshallingAssertion getErrorUnmarshallingAssertion() {
         return errorDeserializedAs;
+    }
+
+    /**
+     *
+     * @return The errorCode String to use for error unmarshalling tests
+     */
+    public String getErrorCode() {
+        return errorCode;
     }
 }
