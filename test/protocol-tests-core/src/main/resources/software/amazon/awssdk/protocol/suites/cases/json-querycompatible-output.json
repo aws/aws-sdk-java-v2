@@ -12,7 +12,7 @@
       }
     },
     "when": {
-      "action": "unmarshall",
+      "action": "errorUnmarshall",
       "operation": "QueryCompatibleOperation",
       "error": "NoCustomCodeError"
     },
@@ -36,9 +36,9 @@
       }
     },
     "when": {
-      "action": "unmarshall",
+      "action": "errorUnmarshall",
       "operation": "QueryCompatibleOperation",
-      "error": "Customized"
+      "error": "CustomCodeError"
     },
     "then": {
       "deserializedAs": {
