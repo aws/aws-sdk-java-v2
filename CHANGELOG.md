@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.76__ __2025-07-02__
+## __AWS S3 Control__
+  - ### Features
+    - Added TagResource, UntagResource, and ListTagsForResource support for directory bucket
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds DeleteCase and DeleteRelatedItem APIs, which enable deleting cases and comments, undoing contact association, and removing service level agreements (SLAs) from cases. Contact center admins can use these APIs to delete cases when requested by customers and correct agent errors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports IPv6 addresses on outer tunnel IPs, making it easier for customers to build or transition to IPv6-only networks.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for directory bucket creation with tags and bucket ARN retrieval in CreateBucket, ListDirectoryBuckets, and HeadBucket operations
+
 # __2.31.75__ __2025-07-01__
 ## __AWS Clean Rooms ML__
   - ### Features
