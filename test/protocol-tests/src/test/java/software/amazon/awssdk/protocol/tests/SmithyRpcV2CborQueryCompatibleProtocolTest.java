@@ -41,7 +41,7 @@ public class SmithyRpcV2CborQueryCompatibleProtocolTest extends ProtocolTestBase
 
     @BeforeClass
     public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/query-compatible-rpcv2-2025-06-20-intermediate.json");
+        testRunner = new ProtocolTestRunner("/models/querycompatiblerpcv2protocol-2025-06-20-intermediate.json");
     }
 
     @Test

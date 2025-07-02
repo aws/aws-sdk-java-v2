@@ -41,7 +41,7 @@ public class SmithyRpcV2CborNonQueryCompatibleProtocolTest extends ProtocolTestB
 
     @BeforeClass
     public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/non-query-compatible-rpcv2-2025-06-20-intermediate.json");
+        testRunner = new ProtocolTestRunner("/models/nonquerycompatiblerpcv2protocol-2025-06-20-intermediate.json");
     }
 
     @Test

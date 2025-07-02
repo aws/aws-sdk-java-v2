@@ -6,15 +6,15 @@
             "aws.auth#sigv4"
         ],
         "awsQueryCompatible": {},
-        "endpointPrefix": "query-compatible-rpcv2",
+        "endpointPrefix": "querycompatiblerpcv2protocol",
         "protocol": "smithy-rpc-v2-cbor",
         "protocols": [
             "smithy-rpc-v2-cbor"
         ],
-        "serviceFullName": "Query Compatible RpcV2 Protocol Service",
+        "serviceFullName": "QueryCompatibleRpcV2Protocol",
         "serviceId": "Query Compatible RpcV2 Protocol",
         "signatureVersion": "v4",
-        "signingName": "query-compatible-rpcv2",
+        "signingName": "QueryCompatibleRpcV2Protocol",
         "targetPrefix": "QueryCompatibleRpcV2Protocol",
         "uid": "query-compatible-rpcv2-protocol-2025-06-20"
     },

@@ -7,7 +7,7 @@
     },
     "when": {
       "action": "marshall",
-      "operation": "QueryIncompatibleOperation"
+      "operation": "NonQueryCompatibleOperation"
     },
     "then": {
       "serializedAs": {
@@ -24,7 +24,7 @@
         "body": {
           "encodedEquals": ""
         },
-        "uri": "/service/NonQueryCompatibleRpcV2Protocol/operation/QueryIncompatibleOperation"
+        "uri": "/service/NonQueryCompatibleRpcV2Protocol/operation/NonQueryCompatibleOperation"
       }
     }
   }

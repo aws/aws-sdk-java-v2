@@ -5,21 +5,21 @@
         "auth": [
             "aws.auth#sigv4"
         ],
-        "endpointPrefix": "non-query-compatible-rpcv2",
+        "endpointPrefix": "nonquerycompatiblerpcv2protocol",
         "protocol": "smithy-rpc-v2-cbor",
         "protocols": [
             "smithy-rpc-v2-cbor"
         ],
-        "serviceFullName": "Non Query Compatible RpcV2 Protocol Service",
+        "serviceFullName": "NonQueryCompatibleRpcV2Protocol",
         "serviceId": "Non Query Compatible RpcV2 Protocol",
         "signatureVersion": "v4",
-        "signingName": "non-query-compatible-rpcv2",
+        "signingName": "NonQueryCompatibleRpcV2Protocol",
         "targetPrefix": "NonQueryCompatibleRpcV2Protocol",
         "uid": "non-query-compatible-rpcv2-protocol-2025-06-20"
     },
     "operations": {
-        "QueryIncompatibleOperation": {
-            "name": "QueryIncompatibleOperation",
+        "NonQueryCompatibleOperation": {
+            "name": "NonQueryCompatibleOperation",
             "http": {
                 "method": "POST",
                 "requestUri": "/"
@@ -29,3 +29,4 @@
     },
     "shapes": {}
 }
+
