@@ -1,4 +1,312 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.76__ __2025-07-02__
+## __AWS S3 Control__
+  - ### Features
+    - Added TagResource, UntagResource, and ListTagsForResource support for directory bucket
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds DeleteCase and DeleteRelatedItem APIs, which enable deleting cases and comments, undoing contact association, and removing service level agreements (SLAs) from cases. Contact center admins can use these APIs to delete cases when requested by customers and correct agent errors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports IPv6 addresses on outer tunnel IPs, making it easier for customers to build or transition to IPv6-only networks.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for directory bucket creation with tags and bucket ARN retrieval in CreateBucket, ListDirectoryBuckets, and HeadBucket operations
+
+# __2.31.75__ __2025-07-01__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - This release introduces support for incremental training and distributed training for custom models in AWS Clean Rooms ML.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the sdk service client version to the useragent
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support for the new optional domain-unit-id parameter in the UpdateProject API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Context to GetInstanceTypesFromInstanceRequirements API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS Custom for Oracle now supports multi-AZ database instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Updated field validation requirements for InstanceGroups.
+
+## __QBusiness__
+  - ### Features
+    - New ChatResponseConfiguration to Customize Q Business chat responses for specific use cases and communication needs. Updated Boosting capability allowing admins to provide preference on date attributes for recency and/or provide a preferred data source.
+
+## __odb__
+  - ### Features
+    - This release adds API operations for Oracle Database@AWS. You can use the APIs to create Exadata infrastructure, ODB networks, and Exadata and Autonomous VM clusters inside AWS data centers. The infrastructure is managed by OCI. You can integrate these resources with AWS services.
+
+# __2.31.74__ __2025-06-30__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Added support for on-demand practice runs and balanced capacity checks in ARC autoshift practice.
+
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Updated APIs to support inbound EDI split capabilities and additional Partnership-level configurations of generated EDI files' contents and format.
+
+## __AWS CloudFormation__
+  - ### Features
+    - Added support for UNKNOWN drift status.
+
+## __AWS Config__
+  - ### Features
+    - Updated ResourceType enum with new resource types onboarded by AWS Config as of June 2025
+
+## __AWS Data Exchange__
+  - ### Features
+    - This release updates resource Id with alphanumeric constraint, including Asset id, Revision id, Data Set id, Job id, and Event Action id.
+
+## __AWS Glue__
+  - ### Features
+    - releasing source processing properties to support source properties for ODB integrations
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added new fields to support the concept of primary image sets within the storage hierarchy.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updated IAM ServiceSpecificCredential support to include expiration, API Key output format instead of username and password for services that will support API keys, and the ability to list credentials for all users in the account for a given service configuration.
+
+## __AWS Outposts__
+  - ### Features
+    - Make ContactName and ContactPhoneNumber required fields when creating and updating Outpost Site Addresses.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Fixed the validation pattern for an instance profile Amazon Resource Name (ARN) in AWS PCS.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Added support for dual-stack (IPv4 and IPv6) endpoints for SFTP public endpoints and VPC-internal endpoints (SFTP, FTPS, FTP, and AS2), enabling customers to configure new servers with IPv4 or dual-stack mode, convert existing servers to dual-stack, and use IPv6 with service APIs.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support for API Keys, Re-Ranker, implicit filter for RAG / KB evaluation for Bedrock APIs.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add API Key and document citations support for Bedrock Runtime APIs
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Increase minimum length of queryId parameter to 1 character.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release introduces ChatMetrics to the model, providing comprehensive analytics insights for Amazon Connect chat conversations. Users can access these detailed metrics through the AWS Connect API by using the DescribeContact operation with their specific instance and contact IDs
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This change adds support for witnesses in global tables. It also adds a new table status, REPLICATION_NOT_AUTHORIZED. This status will indicate scenarios where global replicas table can't be utilized for data plane operations.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Added support for EventBridge Dualstack endpoints in AWS GovCloud (US) regions (us-gov-east-1 and us-gov-west-1). The dualstack endpoints are identical for both FIPS and non-FIPS configurations, following the format: events.{region}.api.aws
+
+## __Amazon QuickSight__
+  - ### Features
+    - Introduced custom permission capabilities for reporting content. Added menu option in exploration to preserve configuration data when textbox menu option is used. Added support for Athena trusted identity propagation.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Introduces AccessType, a new filter value for the DescribeSessions API.
+
+## __Network Flow Monitor__
+  - ### Features
+    - Add ConflictExceptions to UpdateScope and DeleteScope operations for scopes being mutated.
+
+# __2.31.73__ __2025-06-27__
+## __AWS Config__
+  - ### Features
+    - Added important considerations to the PutConformancePack and PutOrganizationConformancPack APIs.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports schema, partition and sort management of Apache Iceberg tables using Glue SDK
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the following value to an InitiateAs enum: COMPLETED
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Update JSON target for Kubernetes workload resource type.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Adding UnauthorizedException to public SDK
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - StartDBCluster and StopDBCluster can now throw InvalidDBShardGroupStateFault.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added support for new SES regions
+
+# __2.31.72__ __2025-06-26__
+## __AWS Key Management Service__
+  - ### Features
+    - This release updates AWS CLI examples for KMS APIs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add code generation validation for missing request URI on an operation.
+    - Add support for defining service model validators and generating valdiation reports during code generation.
+    - Add support for validating that shared models between two services are identical.
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Added fields to track cumulative task retry attempts for steps and jobs
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for OdbNetworkArn as a target in VPC Route Tables
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release provides change data capture (CDC) streams support through updates to the Amazon Keyspaces API.
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - This release adds change data capture (CDC) streams support through the new Amazon Keyspaces Streams API.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Updated modifyStreamingProperties to support PrivateLink VPC endpoints for directories
+
+## __Code Generator Maven Plugin__
+  - ### Features
+    - Update the generator plugin to support model validation during code generation. In addition, this adds the `writeValidationReport` flag to support writing the validation report to disk.
+
+## __EmfMetricLoggingPublisher__
+  - ### Bugfixes
+    - Fixed the bug that EmfMetricLoggingPublisher not properly publishing Long type metrics
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Adding managed integrations APIs for IoT Device Management to onboard and control devices across different manufacturers, connectivity protocols and third party vendor clouds. APIs include managed thing operations, provisioning profile management, and cloud connector operations.
+
+## __QBusiness__
+  - ### Features
+    - Added support for App level authentication for QBusiness DataAccessor using AWS IAM Identity center Trusted Token issuer
+
+# __2.31.71__ __2025-06-25__
+## __AWS S3 Control__
+  - ### Features
+    - Add support for the ability to use Amazon S3 Access Points with Amazon FSx for OpenZFS file systems.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adding constant to each SDK module to represent its version
+
+## __AWS Storage Gateway__
+  - ### Features
+    - This release adds IPv6 support to the Storage Gateway APIs. APIs that previously only accept or return IPv4 address will now accept or return both IPv4 and IPv6 addresses.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updates for change to Amazon ECS default log driver mode from blocking to non-blocking
+
+## __Amazon FSx__
+  - ### Features
+    - Add support for the ability to create Amazon S3 Access Points for Amazon FSx for OpenZFS file systems.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for additional server-side encryption mode and storage class values for accessing Amazon FSx data from Amazon S3 using S3 Access Points
+
+## __Amazon Textract__
+  - ### Features
+    - Add RotationAngle field to Geometry of WORD blocks for Textract AnalyzeDocument API
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Remove Tags field from Get API responses
+
+# __2.31.70__ __2025-06-24__
+## __AWS AI Ops__
+  - ### Features
+    - Adds support for cross account investigations for CloudWatch investigations AI Operations (AIOps).
+
+## __AWS Batch__
+  - ### Features
+    - Add userdataType to LaunchTemplateSpecification and LaunchTemplateSpecificationOverride.
+
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports license type conversions for AWS Marketplace products. Customers can provide Marketplace codes in the source license context or destination license context in the CreateLicenseConversionTaskForResource requests.
+
+## __Amazon Bedrock__
+  - ### Features
+    - We are making ListFoundationModelAgreementOffers, DeleteFoundationModelAgreement, CreateFoundationModelAgreement, GetFoundationModelAvailability, PutUseCaseForModelAccess and GetUseCaseForModelAccess APIs public, previously they were console.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release allows you to create and register AMIs while maintaining their underlying EBS snapshots within Local Zones.
+
+## __Amazon GameLift__
+  - ### Features
+    - Add support for UDP ping beacons to ListLocations API, including new PingBeacon and UDPEndpoint data types within its Locations return value. Use UDP ping beacon endpoints to help measure real-time network latency for multiplayer games.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for RDS on Dedicated Local Zones, including local backup target, snapshot availability zone and snapshot target
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Add support for iterative DNS queries through the new INBOUND_DELEGATION endpoint. Add delegation support through the Outbound Endpoints with DELEGATE rules.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - This Feature Adds Support for the "et-EE" Locale for Batch Operations
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Add Paginator for DescribeAccountLimits, and fix Paginators for DescribeTrustStoreAssociations, DescribeTrustStoreRevocations, and DescribeTrustStores
+
+# __2.31.69__ __2025-06-23__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports sort and z-order strategy for managed automated compaction for Iceberg tables in addition to binpack.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Ignore unknown properties on endpoints in endpoint rules.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - S3 Tables now supports sort and z-order compaction strategies for Iceberg tables in addition to binpack.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Added support for Amazon WorkSpaces Instances API
+
 # __2.31.68__ __2025-06-20__
 ## __AWS Elemental MediaConvert__
   - ### Features
