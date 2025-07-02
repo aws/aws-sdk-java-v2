@@ -23,6 +23,7 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
@@ -201,7 +202,13 @@ public class SyncClientClass extends SyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", protocolSpec.getClientHandlerClass())
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".build()", SdkClientOption.class);
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
+                                      + ".build()",
+                                      SdkClientOption.class,
+                                      SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
+                                      ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                    "ServiceVersionInfo"));
 
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {

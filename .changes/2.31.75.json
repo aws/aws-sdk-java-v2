@@ -1,0 +1,60 @@
+{
+    "version": "2.31.75",
+    "date": "2025-07-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "This release introduces support for incremental training and distributed training for custom models in AWS Clean Rooms ML."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add the sdk service client version to the useragent"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Add support for the new optional domain-unit-id parameter in the UpdateProject API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add Context to GetInstanceTypesFromInstanceRequirements API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Amazon RDS Custom for Oracle now supports multi-AZ database instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Updated field validation requirements for InstanceGroups."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "New ChatResponseConfiguration to Customize Q Business chat responses for specific use cases and communication needs. Updated Boosting capability allowing admins to provide preference on date attributes for recency and/or provide a preferred data source."
+        },
+        {
+            "type": "feature",
+            "category": "odb",
+            "contributor": "",
+            "description": "This release adds API operations for Oracle Database@AWS. You can use the APIs to create Exadata infrastructure, ODB networks, and Exadata and Autonomous VM clusters inside AWS data centers. The infrastructure is managed by OCI. You can integrate these resources with AWS services."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
