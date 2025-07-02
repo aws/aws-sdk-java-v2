@@ -57,7 +57,11 @@ class PresignedUrlGetObjectRequestWrapperTest {
         assertThat(fields).hasSize(1);
         assertThat(fields.get(0).memberName()).isEqualTo("Range");
         assertThat(fields.get(0).location()).isEqualTo(MarshallLocation.HEADER);
-        assertThat(fields.get(0).locationName()).isEqualTo("Range");
+
+        // Assert that range value is present
+        Object rangeValue = fields.get(0).getValueOrDefault(request);
+        assertThat(rangeValue).isNotNull();
+        assertThat(rangeValue).isEqualTo("bytes=0-100");
     }
 
     @Test

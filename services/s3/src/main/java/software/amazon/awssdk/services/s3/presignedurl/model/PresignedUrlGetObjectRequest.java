@@ -17,8 +17,10 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 
 import java.net.URL;
 import java.util.Objects;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -73,6 +75,16 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         return new BuilderImpl();
     }
 
+    /**
+     * Create a {@code PresignedUrlGetObjectRequest} instance with the given configuration
+     *
+     * @param builderConsumer the consumer that will configure the builder
+     * @return a {@code PresignedUrlGetObjectRequest} instance
+     */
+    public static PresignedUrlGetObjectRequest builder(Consumer<Builder> builderConsumer) {
+        return builder().applyMutation(builderConsumer).build();
+    }
+
     public static Class<? extends Builder> serializableBuilderClass() {
         return BuilderImpl.class;
     }
@@ -107,8 +119,18 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     public interface Builder extends CopyableBuilder<Builder, PresignedUrlGetObjectRequest> {
+        /**
+         * Sets the presigned URL for the S3 object.
+         * @param presignedUrl
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
         Builder presignedUrl(URL presignedUrl);
 
+        /**
+         * Specifies the byte range of an object.
+         * @param range The HTTP Range header value (e.g., "bytes=0-1023")
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
         Builder range(String range);
     }
 
@@ -138,9 +160,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
 
         @Override
         public PresignedUrlGetObjectRequest build() {
-            if (presignedUrl == null) {
-                throw new IllegalArgumentException("presignedUrl is required");
-            }
+            Validate.paramNotNull(presignedUrl, "presignedUrl");
             return new PresignedUrlGetObjectRequest(this);
         }
     }
