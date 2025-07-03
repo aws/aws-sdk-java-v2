@@ -47,6 +47,17 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static C2jModels awsJsonServiceC2jModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/json/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/json/customization.config").getFile());
+        File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/json/paginators.json").getFile());
+        return C2jModels.builder()
+                        .serviceModel(getServiceModel(serviceModel))
+                        .customizationConfig(getCustomizationConfig(customizationModel))
+                        .paginatorsModel(getPaginatorsModel(paginatorsModel))
+                        .build();
+    }
+
     public static IntermediateModel cborServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/json/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/cbor/customization.config").getFile());
