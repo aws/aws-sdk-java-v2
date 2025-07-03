@@ -13,6 +13,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
@@ -180,6 +182,8 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         throw new UnsupportedOperationException();
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, Person> {
         /**
          * Sets the value of the Name property for this object.

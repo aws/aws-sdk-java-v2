@@ -15,7 +15,9 @@
 
 package foo.bar;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AbortMultipartUploadRequest;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.BucketAccelerateConfiguration;
@@ -25,6 +27,7 @@ import com.amazonaws.services.s3.model.BucketLifecycleConfiguration;
 import com.amazonaws.services.s3.model.BucketNotificationConfiguration;
 import com.amazonaws.services.s3.model.BucketReplicationConfiguration;
 import com.amazonaws.services.s3.model.BucketTaggingConfiguration;
+import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
 import com.amazonaws.services.s3.model.BucketWebsiteConfiguration;
 import com.amazonaws.services.s3.model.CORSRule;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
@@ -36,6 +39,7 @@ import com.amazonaws.services.s3.model.DeleteBucketRequest;
 import com.amazonaws.services.s3.model.GetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.GetS3AccountOwnerRequest;
 import com.amazonaws.services.s3.model.HeadBucketRequest;
 import com.amazonaws.services.s3.model.HeadBucketResult;
 import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
@@ -45,11 +49,13 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PartETag;
 import com.amazonaws.services.s3.model.SetBucketCrossOriginConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketLifecycleConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketTaggingConfigurationRequest;
+import com.amazonaws.services.s3.model.SetBucketVersioningConfigurationRequest;
 import com.amazonaws.services.s3.model.SetBucketWebsiteConfigurationRequest;
 import com.amazonaws.services.s3.model.StorageClass;
 import com.amazonaws.services.s3.model.analytics.AnalyticsConfiguration;
@@ -57,7 +63,10 @@ import com.amazonaws.services.s3.model.intelligenttiering.IntelligentTieringConf
 import com.amazonaws.services.s3.model.inventory.InventoryConfiguration;
 import com.amazonaws.services.s3.model.metrics.MetricsConfiguration;
 import com.amazonaws.services.s3.model.ownership.OwnershipControls;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class S3 {
@@ -108,7 +117,10 @@ public class S3 {
 
     private void listObjects(AmazonS3 s3, String bucket) {
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucket);
+        ListObjectsRequest listObjectsRequest2 = new ListObjectsRequest("bucketName","prefix","marker","delimiter", 4);
+
         ObjectListing objectListing = s3.listObjects(listObjectsRequest);
+        ObjectListing objectListing2 = s3.listObjects(listObjectsRequest2);
         System.out.println(objectListing);
     }
 
@@ -220,6 +232,7 @@ public class S3 {
         AbortMultipartUploadRequest abortMultipartUploadRequest = new AbortMultipartUploadRequest(bucket, "key", "versionId");
         SetBucketLifecycleConfigurationRequest lifecycleRequest = new SetBucketLifecycleConfigurationRequest(bucket, new BucketLifecycleConfiguration());
         SetBucketNotificationConfigurationRequest notificationRequest = new SetBucketNotificationConfigurationRequest(bucket, new BucketNotificationConfiguration());
+        SetBucketNotificationConfigurationRequest notificationRequest2 = new SetBucketNotificationConfigurationRequest(new BucketNotificationConfiguration(), bucket);
         SetBucketTaggingConfigurationRequest tagRequest = new SetBucketTaggingConfigurationRequest(bucket, new BucketTaggingConfiguration());
         SetBucketWebsiteConfigurationRequest websiteRequest = new SetBucketWebsiteConfigurationRequest(bucket, new BucketWebsiteConfiguration());
     }
@@ -235,9 +248,47 @@ public class S3 {
         s3.setBucketReplicationConfiguration(bucket, new BucketReplicationConfiguration());
         s3.setBucketTaggingConfiguration(bucket, new BucketTaggingConfiguration());
         s3.setBucketWebsiteConfiguration(bucket, new BucketWebsiteConfiguration());
+        s3.setBucketVersioningConfiguration(new SetBucketVersioningConfigurationRequest(bucket, new BucketVersioningConfiguration()));
     }
 
     private void setBucketNameTest(AmazonS3 s3, String bucket) {
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucket, "key").withBucketName(bucket);
+    }
+
+    private void s3Uri(URI uri, String uriAsString) {
+        AmazonS3URI s3Uri = new AmazonS3URI(uri);
+
+        String versionId = s3Uri.getVersionId();
+        String bucket = s3Uri.getBucket();
+        String key = s3Uri.getKey();
+        String region = s3Uri.getRegion();
+        boolean isPathStyle = s3Uri.isPathStyle();
+
+        AmazonS3URI s3UriFromString = new AmazonS3URI(uriAsString);
+
+        AmazonS3URI s3UriFromStringWithUrlEncodeFalse = new AmazonS3URI(uriAsString, false);
+    }
+
+    private void generatePresignedUrl(AmazonS3 s3, String bucket, String key, Date expiration) {
+        URL urlGet1 = s3.generatePresignedUrl(bucket, key, expiration);
+
+        URL urlPut = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.PUT);
+
+        URL urlGet2 = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.GET);
+
+        URL urlDelete = s3.generatePresignedUrl(bucket, key, expiration, HttpMethod.DELETE);
+    }
+
+    private void getS3AccountOwner(AmazonS3 s3) {
+        Owner owner = s3.getS3AccountOwner();
+
+        Owner owner2 = s3.getS3AccountOwner(new GetS3AccountOwnerRequest());
+
+        GetS3AccountOwnerRequest getS3AccountOwnerRequest = new GetS3AccountOwnerRequest();
+        Owner owner3 = s3.getS3AccountOwner(getS3AccountOwnerRequest);
+    }
+
+    private void getRegionName(AmazonS3 s3) {
+        String region = s3.getRegionName();
     }
 }

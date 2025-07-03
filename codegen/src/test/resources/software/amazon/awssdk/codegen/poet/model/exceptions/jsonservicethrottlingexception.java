@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -65,6 +67,8 @@ public final class JsonServiceThrottlingException extends JsonException implemen
         return Collections.emptyMap();
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, JsonServiceThrottlingException>, JsonException.Builder {
         @Override
         Builder awsErrorDetails(AwsErrorDetails awsErrorDetails);

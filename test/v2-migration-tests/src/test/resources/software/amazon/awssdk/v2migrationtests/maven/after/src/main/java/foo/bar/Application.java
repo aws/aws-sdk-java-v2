@@ -20,10 +20,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.cloudwatch.model.GetMetricStatisticsRequest;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -33,6 +35,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 
 public class Application {
@@ -104,5 +107,24 @@ public class Application {
             .build(), RequestBody.fromString(content));
 
         return result;
+    }
+
+    void dateToInstant(Date start, Date end) {
+        GetMetricStatisticsRequest getMetricStatisticsRequest = GetMetricStatisticsRequest.builder()
+            .startTime(start.toInstant())
+            .endTime(end.toInstant())
+            .build();
+
+        GetMetricStatisticsRequest getMetricStatisticsRequest2 = GetMetricStatisticsRequest.builder()
+            .build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().startTime(start.toInstant()).build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().endTime(end.toInstant()).build();
+    }
+
+    void pojoSettersAfterCreation() {
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+            .build();
+        sendMessageRequest = sendMessageRequest.toBuilder().messageGroupId("groupId").build();
+        sendMessageRequest = sendMessageRequest.toBuilder().queueUrl("queueUrl").build();
     }
 }

@@ -20,7 +20,6 @@ import static software.amazon.awssdk.utils.Validate.isNotNegative;
 import static software.amazon.awssdk.utils.Validate.paramNotNull;
 import static software.amazon.awssdk.utils.Validate.validState;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -128,22 +127,31 @@ public class RequestBody {
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
-     * <p>
-     * <b>Important:</b> If {@code inputStream} does not support mark and reset, the stream will be buffered.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
-     * @param contentLength Content length of data in input stream.
+     * @param contentLength Content length of data in input stream. If a content length smaller than the actual size of the
+     *                      object is set, the client will truncate the stream to the specified content length and only send
+     *                      exactly the number of bytes equal to the content length.
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
         IoUtils.markStreamWithMaxReadLimit(inputStream);
         InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        return fromContentProvider(() -> {
-            if (nonCloseable.markSupported()) {
-                invokeSafely(nonCloseable::reset);
+        ContentStreamProvider provider = new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                if (nonCloseable.markSupported()) {
+                    invokeSafely(nonCloseable::reset);
+                }
+                return nonCloseable;
             }
-            return nonCloseable;
-        }, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+
+            @Override
+            public String name() {
+                return ProviderType.STREAM.getName();
+            }
+        };
+        return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
@@ -221,9 +229,14 @@ public class RequestBody {
      * S3's documentation for
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/s3_example_s3_Scenario_UploadStream_section.html">alternative
      * methods</a>.
+     * <p>
+     * If a content length smaller than the actual size of the object is set, the client will truncate the stream to the
+     * specified content length and only send exactly the number of bytes equal to the content length.
      *
      * @param provider The content provider.
-     * @param contentLength The content length.
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
      * @param mimeType The MIME type of the content.
      *
      * @return The created {@code RequestBody}.
@@ -263,7 +276,7 @@ public class RequestBody {
      * Creates a {@link RequestBody} using the specified bytes (without copying).
      */
     private static RequestBody fromBytesDirect(byte[] bytes, String mimetype) {
-        return new RequestBody(() -> new ByteArrayInputStream(bytes), (long) bytes.length, mimetype);
+        return new RequestBody(ContentStreamProvider.fromByteArrayUnsafe(bytes), (long) bytes.length, mimetype);
     }
 
     private static InputStream nonCloseableInputStream(InputStream inputStream) {

@@ -3,6 +3,7 @@ package foo.bar.helloworld;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import foo.bar.helloworld.internal.ProtocolRestJsonWithCustomPackageServiceClientConfigurationBuilder;
+import foo.bar.helloworld.internal.ServiceVersionInfo;
 import foo.bar.helloworld.model.OneOperationRequest;
 import foo.bar.helloworld.model.OneOperationResponse;
 import foo.bar.helloworld.model.ProtocolRestJsonWithCustomPackageException;
@@ -65,7 +66,8 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
 
     protected DefaultProtocolRestJsonWithCustomPackageAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "AmazonProtocolRestJsonWithCustomPackage" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -104,9 +106,17 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
 
             HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                               OneOperationResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<OneOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
@@ -194,11 +204,6 @@ final class DefaultProtocolRestJsonWithCustomPackageAsyncClient implements Proto
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

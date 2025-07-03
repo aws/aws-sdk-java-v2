@@ -1,0 +1,40 @@
+name: API Surface Area Review Verification
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
+    branches:
+      - master
+
+jobs:
+  api-surface-area-review-verification:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifies updates to protected/public APIs have been reviewed and approved by the team, if any
+        id: api-surface-area-review-verification
+        if: ${{ !contains(github.event.pull_request.labels.*.name, 'no-api-surface-area-change') }}
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth 1
+          FILES=$( git diff remotes/origin/${{ github.base_ref }} --name-only | grep "\.java$" | grep -v -E "(^|/)(internal|test|codegen|v2-migration|it)/"  || true)
+          if [ -n "$FILES" ]; then
+            echo "::error::Changes around protected/public APIs found:"
+            echo "$FILES" | while read file; do
+              echo "::error::$file"
+            done
+            echo "has_matches=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes around protected/public APIs found."
+            echo "has_matches=false" >> $GITHUB_OUTPUT
+          fi
+      - name: Fail if there are changes around protected/public APIs and there's no label
+        if: ${{ steps.api-surface-area-review-verification.outputs.has_matches == 'true' && !contains(github.event.pull_request.labels.*.name, 'api-surface-area-approved-by-team') }}
+        run: |
+          echo "::error ::Change around public/protected APIs has been detected. Please either:"
+          echo "::error ::* Review it with the team and add the 'api-surface-area-reviewed' label to this PR after approval –or–"
+          echo "::error ::* Add the 'no-api-surface-area-change' label to this PR in case this is a false positive"
+          exit 1

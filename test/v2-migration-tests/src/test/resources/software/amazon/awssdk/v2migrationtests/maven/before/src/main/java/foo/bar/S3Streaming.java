@@ -17,20 +17,30 @@ package foo.bar;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.Tag;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class S3Streaming {
 
     AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
 
-    void getObject(String bucket, String key) throws Exception {
+    void getObject(String bucket, String key, File file) throws Exception {
         S3Object s3Object = s3.getObject(bucket, key);
         s3Object.getObjectContent().close();
+
+        ObjectMetadata objectMetadata = s3.getObject(new GetObjectRequest(bucket, key), file);
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -39,6 +49,18 @@ public class S3Streaming {
 
     void putObject_bucketKeyFile(String bucket, String key, File file) {
         s3.putObject(bucket, key, file);
+    }
+
+    void putObject_bucketKeyStreamMetadata(String bucket, String key, InputStream stream) {
+        ObjectMetadata metadataWithLength = new ObjectMetadata();
+        metadataWithLength.setContentLength(22);
+        s3.putObject(bucket, key, stream, metadataWithLength);
+
+
+        ObjectMetadata metadataWithoutLength = new ObjectMetadata();
+        s3.putObject(bucket, key, stream, metadataWithoutLength);
+
+        s3.putObject("bucket", "key", stream, new ObjectMetadata());
     }
 
     /**
@@ -69,7 +91,9 @@ public class S3Streaming {
         request1.setInputStream(inputStream1);
         s3.putObject(request1);
 
-        s3.putObject(new PutObjectRequest(bucket, key, "location").withInputStream(inputStream2));
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(11);
+        s3.putObject(new PutObjectRequest(bucket, key, "location").withInputStream(inputStream2).withMetadata(metadata));
     }
 
     void putObject_requestPojoWithoutPayload(String bucket, String key) {
@@ -79,15 +103,62 @@ public class S3Streaming {
 
 
     void putObjectSetters() {
+        List<Tag> tags = new ArrayList<>();
+        ObjectTagging objectTagging = new ObjectTagging(tags);
+
         PutObjectRequest putObjectRequest =
             new PutObjectRequest("bucket", "key", "location")
-            .withBucketName("bucketName")
-                .withCannedAcl(CannedAccessControlList.AwsExecRead);
+                .withBucketName("bucketName")
+                .withRedirectLocation("redirectLocation")
+                .withTagging(objectTagging);
     }
 
     void putObjectRequesterPaysSetter() {
         PutObjectRequest requestWithTrue = new PutObjectRequest("bucket", "key", "location").withRequesterPays(true);
 
         PutObjectRequest requestWithFalse = new PutObjectRequest("bucket", "key", "location").withRequesterPays(false);
+    }
+
+    void putObjectRequest_setMetadata() {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(66);
+        metadata.setContentType("text/plain");
+        metadata.setContentEncoding("UTF-8");
+
+        PutObjectRequest request = new PutObjectRequest("bucket", "key", "location");
+        request.setMetadata(metadata);
+    }
+
+    void putObjectRequest_withMetadata() {
+        ObjectMetadata metadata = new ObjectMetadata();
+        long contentLen = 66;
+        metadata.setContentLength(contentLen);
+        metadata.setContentType("text/plain");
+        metadata.setContentEncoding("UTF-8");
+        metadata.setContentLanguage("en-US");
+        metadata.setCacheControl("must-revalidate");
+        metadata.setContentDisposition("inline");
+        metadata.setContentMD5("md5Val");
+        metadata.setSSEAlgorithm("sseAlgorithmVal");
+        metadata.setServerSideEncryption("sseEncryptionVal");
+        metadata.setSSECustomerKeyMd5("sseCustomerKeyMd5Val");
+        metadata.setBucketKeyEnabled(true);
+        Date expiry = new Date();
+        metadata.setHttpExpiresDate(expiry);
+
+        Map<String, String> userMetadata = new HashMap<>();
+        userMetadata.put("key", "value");
+        metadata.setUserMetadata(userMetadata);
+
+        PutObjectRequest request = new PutObjectRequest("bucket", "key", "location").withMetadata(metadata);
+    }
+
+    void putObjectRequest_emptyMetadata() {
+        ObjectMetadata emptyMetadata1 = new ObjectMetadata();
+        PutObjectRequest request1 = new PutObjectRequest("bucket", "key", "location").withMetadata(emptyMetadata1);
+
+        ObjectMetadata emptyMetadata2 = new ObjectMetadata();
+        PutObjectRequest request2 = new PutObjectRequest("bucket", "key", "location");
+        request2.setMetadata(emptyMetadata2);
     }
 }

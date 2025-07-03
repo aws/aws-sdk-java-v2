@@ -18,23 +18,33 @@ package foo.bar;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 
 public class S3Streaming {
 
     S3Client s3 = S3Client.create();
 
-    void getObject(String bucket, String key) throws Exception {
+    void getObject(String bucket, String key, File file) throws Exception {
         ResponseInputStream<GetObjectResponse> s3Object = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
             .build());
         s3Object.close();
+
+        GetObjectResponse objectMetadata = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
+                .build(), file.toPath());
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -45,6 +55,20 @@ public class S3Streaming {
     void putObject_bucketKeyFile(String bucket, String key, File file) {
         s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key)
             .build(), RequestBody.fromFile(file));
+    }
+
+    void putObject_bucketKeyStreamMetadata(String bucket, String key, InputStream stream) {
+        HeadObjectResponse metadataWithLength = HeadObjectResponse.builder()
+            .build();
+        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).contentLength(22L)
+            .build(), RequestBody.fromInputStream(stream, 22L));
+
+
+        HeadObjectResponse metadataWithoutLength = HeadObjectResponse.builder()
+            .build();
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If content length must be unknown, we recommend using the CRT-based S3 client - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).build(), RequestBody.fromContentProvider(() -> stream, "application/octet-stream"));
+
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If content length must be unknown, we recommend using the CRT-based S3 client - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html*/s3.putObject(PutObjectRequest.builder().bucket("bucket").key("key").build(), RequestBody.fromContentProvider(() -> stream, "application/octet-stream"));
     }
 
     /**
@@ -76,10 +100,12 @@ public class S3Streaming {
 
         PutObjectRequest request1 = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
             .build();
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "binary/octet-stream"));
+        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If content length must be unknown, we recommend using the CRT-based S3 client - https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html*/s3.putObject(request1, RequestBody.fromContentProvider(() -> inputStream1, "application/octet-stream"));
 
-        /*AWS SDK for Java v2 migration: When using InputStream to upload with S3Client, Content-Length should be specified and used with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory.*/s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
-            .build(), RequestBody.fromContentProvider(() -> inputStream2, "binary/octet-stream"));
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location").contentLength(11L)
+            .build(), RequestBody.fromInputStream(inputStream2, 11L));
     }
 
     void putObject_requestPojoWithoutPayload(String bucket, String key) {
@@ -90,10 +116,15 @@ public class S3Streaming {
 
 
     void putObjectSetters() {
+        List<Tag> tags = new ArrayList<>();
+        Tagging objectTagging = Tagging.builder().tagSet(tags)
+            .build();
+
         PutObjectRequest putObjectRequest =
             PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
                 .bucket("bucketName")
-                .acl(ObjectCannedACL.AWS_EXEC_READ)
+                .websiteRedirectLocation("redirectLocation")
+                .tagging(objectTagging)
             .build();
     }
 
@@ -102,6 +133,55 @@ public class S3Streaming {
             .build();
 
         PutObjectRequest requestWithFalse =PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .build();
+    }
+
+    void putObjectRequest_setMetadata() {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+
+        PutObjectRequest request = PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .build();
+        request = request.toBuilder().contentLength(66L)
+            .contentEncoding("UTF-8")
+            .contentType("text/plain")
+            .build();
+    }
+
+    void putObjectRequest_withMetadata() {
+        HeadObjectResponse metadata = HeadObjectResponse.builder()
+            .build();
+        long contentLen = 66;
+        Date expiry = new Date();
+
+        Map<String, String> userMetadata = new HashMap<>();
+        userMetadata.put("key", "value");
+
+        PutObjectRequest request = PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location").contentLength(contentLen)
+            .contentEncoding("UTF-8")
+            .contentType("text/plain")
+            .contentLanguage("en-US")
+            .cacheControl("must-revalidate")
+            .contentDisposition("inline")
+            .contentMD5("md5Val")
+            .serverSideEncryption("sseEncryptionVal")
+            .serverSideEncryption("sseAlgorithmVal")
+            .sseCustomerKeyMD5("sseCustomerKeyMd5Val")
+            .bucketKeyEnabled(true)
+            .metadata(userMetadata)
+            .expires(expiry.toInstant())
+            .build();
+    }
+
+    void putObjectRequest_emptyMetadata() {
+        HeadObjectResponse emptyMetadata1 = HeadObjectResponse.builder()
+            .build();
+        PutObjectRequest request1 =PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
+            .build();
+
+        HeadObjectResponse emptyMetadata2 = HeadObjectResponse.builder()
+            .build();
+        PutObjectRequest request2 = PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
             .build();
     }
 }

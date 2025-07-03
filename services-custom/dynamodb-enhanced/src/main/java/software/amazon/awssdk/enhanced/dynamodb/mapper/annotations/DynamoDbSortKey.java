@@ -25,10 +25,9 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
 /**
  * Denotes this attribute as being the optional primary sort key of the DynamoDb table. This attribute must map to a
  * DynamoDb scalar type (string, number or binary) to be valid.
- *
+ * <p>
  * Example using {@link DynamoDbSortKey}:
- * <pre>
- * {@code
+ * {@snippet :
  *    @DynamoDbBean
  *    public class Customer {
  *        private String accountId;
@@ -52,7 +51,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
  *        }
  *    }
  * }
- * </pre>
+ *
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

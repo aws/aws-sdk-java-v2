@@ -40,6 +40,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.batchmanagertest.batchmanager.BatchManagerTestAsyncBatchManager;
 import software.amazon.awssdk.services.batchmanagertest.internal.BatchManagerTestServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.batchmanagertest.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.batchmanagertest.model.BatchManagerTestException;
 import software.amazon.awssdk.services.batchmanagertest.model.SendRequestRequest;
 import software.amazon.awssdk.services.batchmanagertest.model.SendRequestResponse;
@@ -69,7 +70,8 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
     protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "BatchManagerTest" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
@@ -109,9 +111,17 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
             HttpResponseHandler<SendRequestResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                              SendRequestResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<SendRequestResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SendRequestRequest, SendRequestResponse>()
@@ -203,11 +213,6 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

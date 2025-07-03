@@ -37,6 +37,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.smithyrpcv2protocol.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.smithyrpcv2protocol.internal.SmithyRpcV2ProtocolServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.ComplexErrorException;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.EmptyInputOutputRequest;
@@ -104,7 +105,8 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
     protected DefaultSmithyRpcV2ProtocolAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "SmithyRpcV2Protocol" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(SmithyRpcV2CborProtocolFactory.builder()).build();
     }
 
@@ -144,9 +146,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<EmptyInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, EmptyInputOutputResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<EmptyInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<EmptyInputOutputRequest, EmptyInputOutputResponse>()
@@ -201,9 +220,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<Float16Response> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                          Float16Response::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<Float16Response> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<Float16Request, Float16Response>().withOperationName("Float16")
@@ -258,9 +294,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<FractionalSecondsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, FractionalSecondsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<FractionalSecondsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<FractionalSecondsRequest, FractionalSecondsResponse>()
@@ -318,9 +371,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<GreetingWithErrorsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, GreetingWithErrorsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<GreetingWithErrorsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GreetingWithErrorsRequest, GreetingWithErrorsResponse>()
@@ -375,9 +445,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<NoInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                                NoInputOutputResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<NoInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<NoInputOutputRequest, NoInputOutputResponse>()
@@ -435,9 +522,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<OperationWithDefaultsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, OperationWithDefaultsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<OperationWithDefaultsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithDefaultsRequest, OperationWithDefaultsResponse>()
@@ -494,9 +598,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<OptionalInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, OptionalInputOutputResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<OptionalInputOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OptionalInputOutputRequest, OptionalInputOutputResponse>()
@@ -552,9 +673,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<RecursiveShapesResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, RecursiveShapesResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<RecursiveShapesResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RecursiveShapesRequest, RecursiveShapesResponse>()
@@ -611,9 +749,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<RpcV2CborDenseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, RpcV2CborDenseMapsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<RpcV2CborDenseMapsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborDenseMapsRequest, RpcV2CborDenseMapsResponse>()
@@ -669,9 +824,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<RpcV2CborListsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, RpcV2CborListsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<RpcV2CborListsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborListsRequest, RpcV2CborListsResponse>()
@@ -729,9 +901,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<RpcV2CborSparseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, RpcV2CborSparseMapsResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<RpcV2CborSparseMapsResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<RpcV2CborSparseMapsRequest, RpcV2CborSparseMapsResponse>()
@@ -788,9 +977,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<SimpleScalarPropertiesResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, SimpleScalarPropertiesResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<SimpleScalarPropertiesResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SimpleScalarPropertiesRequest, SimpleScalarPropertiesResponse>()
@@ -847,9 +1053,26 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
 
             HttpResponseHandler<SparseNullsOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, SparseNullsOperationResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "ValidationException":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                            .exceptionBuilderSupplier(ValidationException::builder).build());
+                    case "InvalidGreeting":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                            .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+                    case "ComplexError":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                            .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
 
             CompletableFuture<SparseNullsOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<SparseNullsOperationRequest, SparseNullsOperationResponse>()
@@ -880,20 +1103,9 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder
-            .clientConfiguration(clientConfiguration)
-            .defaultServiceExceptionSupplier(SmithyRpcV2ProtocolException::builder)
-            .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR)
-            .protocolVersion("1.1")
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("ValidationException")
-                                 .exceptionBuilderSupplier(ValidationException::builder).build())
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                 .exceptionBuilderSupplier(InvalidGreetingException::builder).build())
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("ComplexError")
-                                 .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+        return builder.clientConfiguration(clientConfiguration)
+                      .defaultServiceExceptionSupplier(SmithyRpcV2ProtocolException::builder)
+                      .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR).protocolVersion("1.1");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
@@ -947,11 +1159,6 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

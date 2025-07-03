@@ -38,6 +38,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.querytojsoncompatible.internal.QueryToJsonCompatibleServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.querytojsoncompatible.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationRequest;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationResponse;
 import software.amazon.awssdk.services.querytojsoncompatible.model.InvalidInputException;
@@ -67,7 +68,8 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
 
     protected DefaultQueryToJsonCompatibleAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "QueryToJsonCompatibleService" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -110,9 +112,20 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
 
             HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, APostOperationResponse::builder);
-
+            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+                if (errorCode == null) {
+                    return Optional.empty();
+                }
+                switch (errorCode) {
+                    case "InvalidInput":
+                        return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                            .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                    default:
+                        return Optional.empty();
+                }
+            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata);
+                                                                                                       operationMetadata, exceptionMetadataMapper);
             String hostPrefix = "{StringMember}-foo.";
             HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
                                                         "aPostOperationRequest");
@@ -147,15 +160,9 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder
-            .clientConfiguration(clientConfiguration)
-            .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder)
-            .protocol(AwsJsonProtocol.AWS_JSON)
-            .protocolVersion("1.1")
-            .hasAwsQueryCompatible(true)
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+        return builder.clientConfiguration(clientConfiguration)
+                      .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder).protocol(AwsJsonProtocol.AWS_JSON)
+                      .protocolVersion("1.1").hasAwsQueryCompatible(true);
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
@@ -209,11 +216,6 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
         }
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
-    }
-
-    private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

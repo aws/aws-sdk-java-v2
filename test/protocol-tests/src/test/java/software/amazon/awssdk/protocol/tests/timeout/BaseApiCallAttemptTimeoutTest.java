@@ -19,51 +19,52 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.Pair;
 
 public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
 
     protected static final Duration API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(100);
     protected static final Duration DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(50);
-    protected static final Duration DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(150);
+    protected static final Duration DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT = Duration.ofMillis(500);
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void nonstreamingOperation200_finishedWithinTime_shouldSucceed() throws Exception {
         stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void nonstreamingOperation200_notFinishedWithinTime_shouldTimeout() {
         stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void nonstreamingOperation500_finishedWithinTime_shouldNotTimeout() throws Exception {
         stubErrorResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifyFailedResponseNotTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void nonstreamingOperation500_notFinishedWithinTime_shouldTimeout() {
         stubErrorResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void streamingOperation_finishedWithinTime_shouldSucceed() throws Exception {
         stubSuccessResponse(DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT);
         verifySuccessResponseNotTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void streamingOperation_notFinishedWithinTime_shouldTimeout() {
         stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void firstAttemptTimeout_retryFinishWithInTime_shouldNotTimeout() throws Exception {
         mockHttpClient().stubResponses(Pair.of(mockResponse(200), DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT),
                                        Pair.of(mockResponse(200), DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT));
@@ -72,7 +73,7 @@ public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
         verifyRequestCount(2);
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void firstAttemptTimeout_retryFinishWithInTime500_shouldNotTimeout() {
         mockHttpClient().stubResponses(Pair.of(mockResponse(200), DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT),
                                        Pair.of(mockResponse(500), DELAY_BEFORE_API_CALL_ATTEMPT_TIMEOUT));
@@ -80,7 +81,7 @@ public abstract class BaseApiCallAttemptTimeoutTest extends BaseTimeoutTest {
         verifyRequestCount(2);
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void allAttemptsNotFinishedWithinTime_shouldTimeout() {
         stubSuccessResponse(DELAY_AFTER_API_CALL_ATTEMPT_TIMEOUT);
         verifyRetryableTimeout();

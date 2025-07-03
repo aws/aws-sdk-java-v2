@@ -1,0 +1,90 @@
+{
+    "version": "2.31.72",
+    "date": "2025-06-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "EmfMetricLoggingPublisher",
+            "contributor": "",
+            "description": "Fixed the bug that EmfMetricLoggingPublisher not properly publishing Long type metrics"
+        },
+        {
+            "type": "feature",
+            "category": "AWSDeadlineCloud",
+            "contributor": "",
+            "description": "Added fields to track cumulative task retry attempts for steps and jobs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "This release updates AWS CLI examples for KMS APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add code generation validation for missing request URI on an operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for defining service model validators and generating valdiation reports during code generation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for validating that shared models between two services are identical."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for OdbNetworkArn as a target in VPC Route Tables"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "This release provides change data capture (CDC) streams support through updates to the Amazon Keyspaces API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces Streams",
+            "contributor": "",
+            "description": "This release adds change data capture (CDC) streams support through the new Amazon Keyspaces Streams API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Updated modifyStreamingProperties to support PrivateLink VPC endpoints for directories"
+        },
+        {
+            "type": "feature",
+            "category": "Code Generator Maven Plugin",
+            "contributor": "",
+            "description": "Update the generator plugin to support model validation during code generation. In addition, this adds the `writeValidationReport` flag to support writing the validation report to disk."
+        },
+        {
+            "type": "feature",
+            "category": "Managed integrations for AWS IoT Device Management",
+            "contributor": "",
+            "description": "Adding managed integrations APIs for IoT Device Management to onboard and control devices across different manufacturers, connectivity protocols and third party vendor clouds. APIs include managed thing operations, provisioning profile management, and cloud connector operations."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Added support for App level authentication for QBusiness DataAccessor using AWS IAM Identity center Trusted Token issuer"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

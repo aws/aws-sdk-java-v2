@@ -15,9 +15,17 @@
 
 package foo.bar;
 
+import java.net.URI;
+import java.net.URL;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Uri;
+import software.amazon.awssdk.services.s3.S3Utilities;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.AccelerateConfiguration;
 import software.amazon.awssdk.services.s3.model.AnalyticsConfiguration;
@@ -74,6 +82,7 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.IntelligentTieringConfiguration;
 import software.amazon.awssdk.services.s3.model.InventoryConfiguration;
+import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
@@ -81,6 +90,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.MetricsConfiguration;
 import software.amazon.awssdk.services.s3.model.NotificationConfiguration;
+import software.amazon.awssdk.services.s3.model.Owner;
 import software.amazon.awssdk.services.s3.model.OwnershipControls;
 import software.amazon.awssdk.services.s3.model.Payer;
 import software.amazon.awssdk.services.s3.model.PutBucketAccelerateConfigurationRequest;
@@ -96,6 +106,7 @@ import software.amazon.awssdk.services.s3.model.PutBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketReplicationRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketRequestPaymentRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketTaggingRequest;
+import software.amazon.awssdk.services.s3.model.PutBucketVersioningRequest;
 import software.amazon.awssdk.services.s3.model.PutBucketWebsiteRequest;
 import software.amazon.awssdk.services.s3.model.ReplicationConfiguration;
 import software.amazon.awssdk.services.s3.model.RequestPaymentConfiguration;
@@ -105,7 +116,9 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 import software.amazon.awssdk.services.s3.model.Tagging;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
+import software.amazon.awssdk.services.s3.model.VersioningConfiguration;
 import software.amazon.awssdk.services.s3.model.WebsiteConfiguration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 public class S3 {
 
@@ -164,7 +177,11 @@ public class S3 {
     private void listObjects(S3Client s3, String bucket) {
         ListObjectsRequest listObjectsRequest = ListObjectsRequest.builder().bucket(bucket)
             .build();
+        ListObjectsRequest listObjectsRequest2 = ListObjectsRequest.builder().bucket("bucketName").prefix("prefix").marker("marker").delimiter("delimiter").maxKeys(4)
+            .build();
+
         ListObjectsResponse objectListing = s3.listObjects(listObjectsRequest);
+        ListObjectsResponse objectListing2 = s3.listObjects(listObjectsRequest2);
         System.out.println(objectListing);
     }
 
@@ -236,7 +253,7 @@ public class S3 {
         s3.getBucketPolicy(GetBucketPolicyRequest.builder().bucket(bucket)
             .build());
         s3.getBucketLocation(GetBucketLocationRequest.builder().bucket(bucket)
-            .build());
+            .build()).locationConstraint().toString();
         s3.deleteBucketLifecycle(DeleteBucketLifecycleRequest.builder().bucket(bucket)
             .build());
         s3.deleteBucketReplication(DeleteBucketReplicationRequest.builder().bucket(bucket)
@@ -335,6 +352,9 @@ public class S3 {
         PutBucketNotificationConfigurationRequest notificationRequest = PutBucketNotificationConfigurationRequest.builder().bucket(bucket).notificationConfiguration(NotificationConfiguration.builder()
             .build())
             .build();
+        PutBucketNotificationConfigurationRequest notificationRequest2 = PutBucketNotificationConfigurationRequest.builder().notificationConfiguration(NotificationConfiguration.builder()
+            .build()).bucket(bucket)
+            .build();
         PutBucketTaggingRequest tagRequest = PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
             .build())
             .build();
@@ -353,9 +373,9 @@ public class S3 {
         s3.putBucketInventoryConfiguration(PutBucketInventoryConfigurationRequest.builder().bucket(bucket).inventoryConfiguration(InventoryConfiguration.builder()
             .build())
             .build());
-        s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
-            .build())
-            .build());
+        /*AWS SDK for Java v2 migration: Transform for setBucketLifecycleConfiguration method not supported. Please manually migrate your code by using builder pattern, updating from BucketLifecycleConfiguration.Rule to LifecycleRule, StorageClass to TransitionStorageClass, and adjust imports and names. Please reference https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-setBucketLifecycleConfiguration*/s3.putBucketLifecycleConfiguration(PutBucketLifecycleConfigurationRequest.builder().bucket(bucket).lifecycleConfiguration(BucketLifecycleConfiguration.builder()
+        .build())
+        .build());
         s3.putBucketMetricsConfiguration(PutBucketMetricsConfigurationRequest.builder().bucket(bucket).metricsConfiguration(MetricsConfiguration.builder()
             .build())
             .build());
@@ -368,10 +388,13 @@ public class S3 {
         s3.putBucketReplication(PutBucketReplicationRequest.builder().bucket(bucket).replicationConfiguration(ReplicationConfiguration.builder()
             .build())
             .build());
-        s3.putBucketTagging(PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
+        /*AWS SDK for Java v2 migration: Transform for setBucketTaggingConfiguration method not supported. Please manually migrate your code by using builder pattern, replacing TagSet.setTag() with .tagSet(Arrays.asList(Tag.builder())), and use Tagging instead of BucketTaggingConfiguration, and adjust imports and names. Please reference https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/migration-s3-client.html#V1-setBucketTaggingConfiguration*/s3.putBucketTagging(PutBucketTaggingRequest.builder().bucket(bucket).tagging(Tagging.builder()
+        .build())
+        .build());
+        s3.putBucketWebsite(PutBucketWebsiteRequest.builder().bucket(bucket).websiteConfiguration(WebsiteConfiguration.builder()
             .build())
             .build());
-        s3.putBucketWebsite(PutBucketWebsiteRequest.builder().bucket(bucket).websiteConfiguration(WebsiteConfiguration.builder()
+        s3.putBucketVersioning(PutBucketVersioningRequest.builder().bucket(bucket).versioningConfiguration(VersioningConfiguration.builder()
             .build())
             .build());
     }
@@ -379,5 +402,60 @@ public class S3 {
     private void setBucketNameTest(S3Client s3, String bucket) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key("key").bucket(bucket)
             .build();
+    }
+
+    private void s3Uri(URI uri, String uriAsString) {
+        S3Uri s3Uri = S3Utilities.builder().build().parseUri(uri);
+
+        String versionId = s3Uri.firstMatchingRawQueryParameter("versionId").orElse(null);
+        String bucket = s3Uri.bucket().orElse(null);
+        String key = s3Uri.key().orElse(null);
+        String region = s3Uri.region().map(Region::id).orElse(null);
+        boolean isPathStyle = s3Uri.isPathStyle();
+
+        S3Uri s3UriFromString = /*AWS SDK for Java v2 migration: v2 S3Uri does not URL-encode a String URI. If you relied on this functionality in v1 you must update your code to manually encode the String.*/S3Utilities.builder().build().parseUri(URI.create(uriAsString));
+
+        S3Uri s3UriFromStringWithUrlEncodeFalse = S3Utilities.builder().build().parseUri(URI.create(uriAsString));
+    }
+
+    private void generatePresignedUrl(S3Client s3, String bucket, String key, Date expiration) {
+        URL urlGet1 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
+                .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
+
+        URL urlPut = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
+                .presignPutObject(p -> p.putObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
+
+        URL urlGet2 = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
+                .presignGetObject(p -> p.getObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
+
+        URL urlDelete = /*AWS SDK for Java v2 migration: If generating multiple pre-signed URLs, it is recommended to create a single instance of S3Presigner, since creating a presigner can be expensive. If applicable, please manually refactor the transformed code.*/
+            S3Presigner.builder().s3Client(s3).build()
+                .presignDeleteObject(p -> p.deleteObjectRequest(r -> r.bucket(bucket).key(key))
+                    .signatureDuration(Duration.between(Instant.now(), expiration.toInstant())))
+                .url();
+    }
+
+    private void getS3AccountOwner(S3Client s3) {
+        Owner owner = s3.listBuckets().owner();
+
+        Owner owner2 = s3.listBuckets(ListBucketsRequest.builder()
+            .build()).owner();
+
+        ListBucketsRequest getS3AccountOwnerRequest = ListBucketsRequest.builder()
+            .build();
+        Owner owner3 = s3.listBuckets(getS3AccountOwnerRequest).owner();
+    }
+
+    private void getRegionName(S3Client s3) {
+        String region = s3.serviceClientConfiguration().region().id();
     }
 }

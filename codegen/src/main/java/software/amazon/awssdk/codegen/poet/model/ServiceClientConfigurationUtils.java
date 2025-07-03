@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.codegen.poet.model;
 
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasRequestAlgorithmMember;
+import static software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait.hasResponseAlgorithms;
+
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -33,7 +36,10 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOption;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -43,6 +49,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
@@ -100,7 +107,32 @@ public class ServiceClientConfigurationUtils {
             authSchemeProviderField()
         ));
         fields.addAll(addCustomClientParams(model));
+        fields.addAll(addModeledIdentityProviders(model));
+        fields.addAll(addCustomClientConfigParams(model));
         return fields;
+    }
+
+    private List<Field> addModeledIdentityProviders(IntermediateModel model) {
+        List<Field> identityProviderFields = new ArrayList<>();
+        if (AuthUtils.usesBearerAuth(model)) {
+            identityProviderFields.add(tokenIdentityProviderField());
+        }
+        return identityProviderFields;
+    }
+
+    private Field tokenIdentityProviderField() {
+        TypeName tokenIdentityProviderType =
+            ParameterizedTypeName.get(ClassName.get(IdentityProvider.class),
+                                      WildcardTypeName.subtypeOf(TokenIdentity.class));
+
+        return fieldBuilder("tokenProvider", tokenIdentityProviderType)
+            .doc("token provider")
+            .isInherited(false)
+            .localSetter(basicLocalSetterCode("tokenProvider"))
+            .localGetter(basicLocalGetterCode("tokenProvider"))
+            .configSetter(basicConfigSetterCode(AwsClientOption.TOKEN_IDENTITY_PROVIDER, "tokenProvider"))
+            .configGetter(basicConfigGetterCode(AwsClientOption.TOKEN_IDENTITY_PROVIDER))
+            .build();
     }
 
     private List<Field> addCustomClientParams(IntermediateModel model) {
@@ -552,5 +584,52 @@ public class ServiceClientConfigurationUtils {
         throw new java.util.NoSuchElementException(String.format("cannot find constant %s in class %s",
                                                                  fieldObject,
                                                                  fieldObject.getClass().getName()));
+    }
+
+    private List<Field> addCustomClientConfigParams(IntermediateModel model) {
+        List<Field> customClientParamFields = new ArrayList<>();
+
+        if (hasRequestAlgorithmMember(model) && hasResponseAlgorithms(model)) {
+            customClientParamFields.add(
+                createChecksumConfigField(
+                    "responseChecksumValidation",
+                    ResponseChecksumValidation.class,
+                    "client behavior for response checksum validation",
+                    SdkClientOption.class,
+                    "RESPONSE_CHECKSUM_VALIDATION"
+                )
+            );
+            customClientParamFields.add(
+                createChecksumConfigField(
+                    "requestChecksumCalculation",
+                    RequestChecksumCalculation.class,
+                    "client behavior for request checksum calculation",
+                    SdkClientOption.class,
+                    "REQUEST_CHECKSUM_CALCULATION"
+                )
+            );
+        }
+        return customClientParamFields;
+    }
+
+    private Field createChecksumConfigField(String fieldName, Class<?> fieldType, String docString,
+                                            Class<?> optionClass, String optionName) {
+        return fieldBuilder(fieldName, fieldType)
+            .doc(docString)
+            .isInherited(false)
+            .localSetter(basicLocalSetterCode(fieldName))
+            .localGetter(basicLocalGetterCode(fieldName))
+            .configSetter(
+                CodeBlock.builder()
+                         .addStatement("config.option($1T.$2L, $3L)", optionClass, optionName, fieldName)
+                         .addStatement("return this")
+                         .build()
+            )
+            .configGetter(
+                CodeBlock.builder()
+                         .addStatement("return config.option($1T.$2L)", optionClass, optionName)
+                         .build()
+            )
+            .build();
     }
 }

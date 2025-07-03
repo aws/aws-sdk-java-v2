@@ -2,7 +2,9 @@ package software.amazon.awssdk.services.querytojsoncompatible;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -32,6 +34,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.querytojsoncompatible.internal.QueryToJsonCompatibleServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.querytojsoncompatible.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationRequest;
 import software.amazon.awssdk.services.querytojsoncompatible.model.APostOperationResponse;
 import software.amazon.awssdk.services.querytojsoncompatible.model.InvalidInputException;
@@ -51,7 +54,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     private static final Logger log = Logger.loggerFor(DefaultQueryToJsonCompatibleClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-            .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
+                                                                                   .serviceProtocol(AwsServiceProtocol.AWS_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -61,7 +64,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
     protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "QueryToJsonCompatibleService" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -87,34 +91,45 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-            AwsServiceException, SdkClientException, QueryToJsonCompatibleException {
+                                                                                                     AwsServiceException, SdkClientException, QueryToJsonCompatibleException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                APostOperationResponse::builder);
-
+                                                                                                            APostOperationResponse::builder);
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "QueryToJsonCompatibleService");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
             String hostPrefix = "{StringMember}-foo.";
             HostnameValidator.validateHostnameCompliant(aPostOperationRequest.stringMember(), "StringMember",
-                    "aPostOperationRequest");
+                                                        "aPostOperationRequest");
             String resolvedHostExpression = String.format("%s-foo.", aPostOperationRequest.stringMember());
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                    .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
-                    .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                                             .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -126,7 +141,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -141,8 +156,8 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
@@ -175,7 +190,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
             return configuration.build();
         }
         QueryToJsonCompatibleServiceClientConfigurationBuilder serviceConfigBuilder = new QueryToJsonCompatibleServiceClientConfigurationBuilder(
-                configuration);
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -184,15 +199,9 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder
-                .clientConfiguration(clientConfiguration)
-                .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder)
-                .protocol(AwsJsonProtocol.AWS_JSON)
-                .protocolVersion("1.1")
-                .hasAwsQueryCompatible(true)
-                .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("InvalidInput")
-                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+        return builder.clientConfiguration(clientConfiguration)
+                      .defaultServiceExceptionSupplier(QueryToJsonCompatibleException::builder).protocol(AwsJsonProtocol.AWS_JSON)
+                      .protocolVersion("1.1").hasAwsQueryCompatible(true);
     }
 
     @Override

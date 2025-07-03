@@ -63,6 +63,9 @@ public abstract class PaginatorsClassSpec implements ClassSpec {
         this.poetExtensions = new PoetExtension(model);
         this.typeProvider = new TypeProvider(model);
         this.operationModel = model.getOperation(c2jOperationName);
+        if (operationModel == null) {
+            throw new IllegalArgumentException("The service model does not model an operation '" + c2jOperationName + "'");
+        }
         this.paginationDocs = new PaginationDocs(model, operationModel, paginatorDefinition);
     }
 

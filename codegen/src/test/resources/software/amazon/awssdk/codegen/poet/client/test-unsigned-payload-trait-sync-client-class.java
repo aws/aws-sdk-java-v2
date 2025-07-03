@@ -2,7 +2,9 @@ package software.amazon.awssdk.services.database;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
@@ -34,6 +36,7 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.database.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.database.model.DatabaseException;
 import software.amazon.awssdk.services.database.model.DeleteRowRequest;
 import software.amazon.awssdk.services.database.model.DeleteRowResponse;
@@ -92,7 +95,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
     protected DefaultDatabaseClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "Database_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
@@ -124,9 +128,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<DeleteRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                        DeleteRowResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(deleteRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, deleteRowRequest
             .overrideConfiguration().orElse(null));
@@ -174,9 +189,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<GetRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                     GetRowResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getRowRequest
             .overrideConfiguration().orElse(null));
@@ -224,9 +250,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<PutRowResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                     PutRowResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putRowRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putRowRequest
             .overrideConfiguration().orElse(null));
@@ -276,9 +313,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4AndSigv4AUnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpWithSigv4AndSigv4AUnSignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4AndSigv4AUnSignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -330,9 +378,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4SignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpWithSigv4SignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4SignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4SignedPayloadRequest
@@ -384,9 +443,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4UnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpWithSigv4UnSignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4UnSignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4UnSignedPayloadRequest
@@ -450,9 +520,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4UnSignedPayloadAndStreamingResponse> responseHandler = protocolFactory
             .createResponseHandler(operationMetadata, OpWithSigv4UnSignedPayloadAndStreamingResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4UnSignedPayloadAndStreamingRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -513,9 +594,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4ASignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpWithSigv4ASignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4ASignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4ASignedPayloadRequest
@@ -567,9 +659,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpWithSigv4AUnSignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpWithSigv4AUnSignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opWithSigv4AUnSignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, opWithSigv4AUnSignedPayloadRequest
@@ -622,9 +725,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<OpsWithSigv4AndSigv4ASignedPayloadResponse> responseHandler = protocolFactory.createResponseHandler(
             operationMetadata, OpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(opsWithSigv4AndSigv4ASignedPayloadRequest,
                                                                                   this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -677,9 +791,20 @@ final class DefaultDatabaseClient implements DatabaseClient {
 
         HttpResponseHandler<SecondOpsWithSigv4AndSigv4ASignedPayloadResponse> responseHandler = protocolFactory
             .createResponseHandler(operationMetadata, SecondOpsWithSigv4AndSigv4ASignedPayloadResponse::builder);
-
+        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+            if (errorCode == null) {
+                return Optional.empty();
+            }
+            switch (errorCode) {
+                case "InvalidInput":
+                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInput").httpStatusCode(400)
+                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
+                default:
+                    return Optional.empty();
+            }
+        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(
             secondOpsWithSigv4AndSigv4ASignedPayloadRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
@@ -724,8 +849,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
@@ -767,14 +892,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder
-            .clientConfiguration(clientConfiguration)
-            .defaultServiceExceptionSupplier(DatabaseException::builder)
-            .protocol(AwsJsonProtocol.REST_JSON)
-            .protocolVersion("1.1")
-            .registerModeledException(
-                ExceptionMetadata.builder().errorCode("InvalidInput")
-                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build());
+        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(DatabaseException::builder)
+                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     @Override

@@ -280,4 +280,9 @@ public final class ClientClassUtils {
         builder.addStatement("configuration.option($T.CONFIGURED_RETRY_CONFIGURATOR, null)", SdkClientOption.class);
         return builder.build();
     }
+
+    // According to User Agent 2.0 spec, replace spaces with underscores
+    static String transformServiceId(String serviceId) {
+        return serviceId.replace(" ", "_");
+    }
 }

@@ -15,12 +15,14 @@
 
 package software.amazon.awssdk.codegen.emitters.tasks;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
+import software.amazon.awssdk.codegen.poet.client.EnvironmentTokenSystemSettingsClass;
 import software.amazon.awssdk.codegen.poet.client.SdkClientOptions;
+import software.amazon.awssdk.codegen.poet.client.specs.ServiceVersionInfoSpec;
 import software.amazon.awssdk.codegen.poet.common.UserAgentUtilsSpec;
 
 public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
@@ -33,7 +35,14 @@ public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
 
     @Override
     protected List<GeneratorTask> createTasks() throws Exception {
-        return Arrays.asList(createClientOptionTask(), createUserAgentTask());
+        List<GeneratorTask> tasks = new ArrayList<>();
+        tasks.add(createClientOptionTask());
+        tasks.add(createUserAgentTask());
+        if (params.getModel().getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            tasks.add(createEnvironmentTokenSystemSettingTask());
+        }
+        tasks.add(createServiceVersionInfoTask());
+        return tasks;
     }
 
     private PoetGeneratorTask createClientOptionTask() {
@@ -44,6 +53,16 @@ public class CommonInternalGeneratorTasks extends BaseGeneratorTasks {
     private PoetGeneratorTask createUserAgentTask() {
         return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
                                      new UserAgentUtilsSpec(params.getModel()));
+    }
+
+    private GeneratorTask createEnvironmentTokenSystemSettingTask() {
+        return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
+                                     new EnvironmentTokenSystemSettingsClass(params.getModel()));
+    }
+
+    private GeneratorTask createServiceVersionInfoTask() {
+        return new PoetGeneratorTask(clientOptionsDir(), params.getModel().getFileHeader(),
+                                     new ServiceVersionInfoSpec(params.getModel()));
     }
 
     private String clientOptionsDir() {
