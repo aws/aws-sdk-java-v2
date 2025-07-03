@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Customer Profiles",
-    "contributor": "",
-    "description": "This release introduces capability of create Segments via importing a CSV file directly. This consumes the CSV file and creates/updates corresponding profiles for the particular domain."
-}
