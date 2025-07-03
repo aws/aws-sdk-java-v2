@@ -1,393 +1,973 @@
 [
   {
-    "description": "Tests that simple scalar members are unmarshalled correctly",
+    "id": "AwsQueryDateTimeWithNegativeOffset",
+    "description": "Ensures that clients can correctly parse datetime (timestamps) with offsets",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><stringMember>stringVal</stringMember><integerMember>42</integerMember><floatMember>1.234</floatMember><doubleMember>5.678</doubleMember><longMember>9001</longMember><shortMember>5</shortMember><timestampMember>2015-01-25T08:00:12Z</timestampMember></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<DatetimeOffsetsResponse xmlns=\"https://example.com/\">\n    <DatetimeOffsetsResult>\n        <datetime>2019-12-16T22:48:18-01:00</datetime>\n    </DatetimeOffsetsResult>\n</DatetimeOffsetsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "DatetimeOffsets"
     },
     "then": {
       "deserializedAs": {
-        "stringMember": "stringVal",
-        "integerMember": 42,
-        "floatMember": 1.234,
-        "doubleMember": 5.678,
-        "longMember": 9001,
-        "shortMember": 5,
-        "timestampMember": 1422172812000
+        "datetime": 1576540098
       }
     }
   },
   {
-    "description": "Tests that a boolean member with value false in unmarshalled correctly",
+    "id": "AwsQueryDateTimeWithPositiveOffset",
+    "description": "Ensures that clients can correctly parse datetime (timestamps) with offsets",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><booleanMember>false</booleanMember></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<DatetimeOffsetsResponse xmlns=\"https://example.com/\">\n    <DatetimeOffsetsResult>\n        <datetime>2019-12-17T00:48:18+01:00</datetime>\n    </DatetimeOffsetsResult>\n</DatetimeOffsetsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "DatetimeOffsets"
     },
     "then": {
       "deserializedAs": {
-        "booleanMember": false
+        "datetime": 1576540098
       }
     }
   },
   {
-    "description": "Tests that a boolean member with value true in unmarshalled correctly",
+    "id": "QueryEmptyInputAndEmptyOutput",
+    "description": "Empty output",
     "given": {
       "response": {
-        "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><booleanMember>true</booleanMember></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "status_code": 200
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "EmptyInputAndEmptyOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "QueryQueryFlattenedXmlMap",
+    "description": "Serializes flattened XML maps in responses",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<FlattenedXmlMapResponse xmlns=\"https://example.com/\">\n    <FlattenedXmlMapResult>\n        <myMap>\n            <key>foo</key>\n            <value>Foo</value>\n        </myMap>\n        <myMap>\n            <key>baz</key>\n            <value>Baz</value>\n        </myMap>\n    </FlattenedXmlMapResult>\n</FlattenedXmlMapResponse>"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "FlattenedXmlMap"
     },
     "then": {
       "deserializedAs": {
-        "booleanMember": true
+        "myMap": {
+          "foo": "Foo",
+          "baz": "Baz"
+        }
       }
     }
   },
   {
-    "description": "Tests that a Base64 encoded blob in the payload is unmarshalled and decoded correctly",
+    "id": "QueryQueryFlattenedXmlMapWithXmlName",
+    "description": "Serializes flattened XML maps in responses that have xmlName on members",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><blobArg>dmFsdWU=</blobArg></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<FlattenedXmlMapWithXmlNameResponse xmlns=\"https://example.com/\">\n    <FlattenedXmlMapWithXmlNameResult>\n        <KVP>\n            <K>a</K>\n            <V>A</V>\n        </KVP>\n        <KVP>\n            <K>b</K>\n            <V>B</V>\n        </KVP>\n    </FlattenedXmlMapWithXmlNameResult>\n</FlattenedXmlMapWithXmlNameResponse>"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "FlattenedXmlMapWithXmlName"
     },
     "then": {
       "deserializedAs": {
-        "blobArg": "value"
+        "myMap": {
+          "a": "A",
+          "b": "B"
+        }
       }
     }
   },
   {
-    "description": "Tests that a list of strings in the payload is unmarshalled correctly",
+    "id": "QueryQueryFlattenedXmlMapWithXmlNamespace",
+    "description": "Serializes flattened XML maps in responses that have xmlNamespace and xmlName on members",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><simpleList><member>val1</member><member>val2</member></simpleList></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<FlattenedXmlMapWithXmlNamespaceResponse xmlns=\"https://example.com/\">\n    <FlattenedXmlMapWithXmlNamespaceResult>\n        <KVP xmlns=\"https://the-member.example.com\">\n            <K xmlns=\"https://the-key.example.com\">a</K>\n            <V xmlns=\"https://the-value.example.com\">A</V>\n        </KVP>\n        <KVP xmlns=\"https://the-member.example.com\">\n            <K xmlns=\"https://the-key.example.com\">b</K>\n            <V xmlns=\"https://the-value.example.com\">B</V>\n        </KVP>\n    </FlattenedXmlMapWithXmlNamespaceResult>\n</FlattenedXmlMapWithXmlNamespaceResponse>"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "FlattenedXmlMapWithXmlNamespace"
     },
     "then": {
       "deserializedAs": {
-        "simpleList": [
-          "val1",
-          "val2"
-        ]
+        "myMap": {
+          "a": "A",
+          "b": "B"
+        }
       }
     }
   },
   {
-    "description": "Tests that a list of strings with an non default location name is unmarshalled correctly",
+    "id": "AwsQueryDateTimeWithFractionalSeconds",
+    "description": "Ensures that clients can correctly parse datetime timestamps with fractional seconds",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><NonFlattenedListWithLocation><item>val1</item><item>val2</item></NonFlattenedListWithLocation></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<FractionalSecondsResponse xmlns=\"https://example.com/\">\n    <FractionalSecondsResult>\n        <datetime>2000-01-02T20:34:56.123Z</datetime>\n    </FractionalSecondsResult>\n</FractionalSecondsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryTypes"
+      "operation": "FractionalSeconds"
     },
     "then": {
       "deserializedAs": {
-        "NonFlattenedListWithLocation": [
-          "val1",
-          "val2"
-        ]
+        "datetime": 9.46845296123E8
       }
     }
   },
   {
-    "description": "Tests that a flattened list with default location name is unmarshalled correctly",
+    "id": "QueryGreetingWithErrors",
+    "description": "Ensures that operations with errors successfully know how to deserialize the successful response",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><FlattenedListOfStrings>val1</FlattenedListOfStrings><FlattenedListOfStrings>val2</FlattenedListOfStrings></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<GreetingWithErrorsResponse xmlns=\"https://example.com/\">\n    <GreetingWithErrorsResult>\n        <greeting>Hello</greeting>\n    </GreetingWithErrorsResult>\n</GreetingWithErrorsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryTypes"
+      "operation": "GreetingWithErrors"
     },
     "then": {
       "deserializedAs": {
-        "FlattenedListOfStrings": [
-          "val1",
-          "val2"
-        ]
+        "greeting": "Hello"
       }
     }
   },
   {
-    "description": "Tests that a flattened list with a single element and with default location name is unmarshalled correctly",
+    "id": "QueryInvalidGreetingError",
+    "description": "Parses simple XML errors",
     "given": {
       "response": {
-        "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><FlattenedListOfStrings>val1</FlattenedListOfStrings></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<ErrorResponse>\n   <Error>\n      <Type>Sender</Type>\n      <Code>InvalidGreeting</Code>\n      <Message>Hi</Message>\n   </Error>\n   <RequestId>foo-id</RequestId>\n</ErrorResponse>\n"
       }
     },
     "when": {
-      "action": "unmarshall",
-      "operation": "QueryTypes"
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "InvalidGreeting"
     },
     "then": {
       "deserializedAs": {
-        "FlattenedListOfStrings": [
-          "val1"
-        ]
+        "Message": "Hi"
       }
     }
   },
   {
-    "description": "Tests that a non-flattened list with no element is unmarshalled as empty list",
+    "id": "QueryComplexError",
     "given": {
       "response": {
-        "status_code": 200,
-        "body": "<QueryTypesResponse><QueryTypesResult><NonFlattenedListWithLocation></NonFlattenedListWithLocation></QueryTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></QueryTypesResponse>"
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<ErrorResponse>\n   <Error>\n      <Type>Sender</Type>\n      <Code>ComplexError</Code>\n      <TopLevel>Top level</TopLevel>\n      <Nested>\n          <Foo>bar</Foo>\n      </Nested>\n   </Error>\n   <RequestId>foo-id</RequestId>\n</ErrorResponse>\n"
       }
     },
     "when": {
-      "action": "unmarshall",
-      "operation": "QueryTypes"
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "ComplexError"
     },
     "then": {
       "deserializedAs": {
-        "NonFlattenedListWithLocation": [
-        ]
+        "TopLevel": "Top level",
+        "Nested": {
+          "Foo": "bar"
+        }
       }
     }
   },
   {
-    "description": "Tests that a non-flattened list of structs with no element is unmarshalled as empty list",
+    "id": "QueryCustomizedError",
+    "description": "Parses customized XML errors",
+    "given": {
+      "response": {
+        "status_code": 402,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<ErrorResponse>\n   <Error>\n      <Type>Sender</Type>\n      <Code>Customized</Code>\n      <Message>Hi</Message>\n   </Error>\n   <RequestId>foo-id</RequestId>\n</ErrorResponse>\n"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "CustomCodeError"
+    },
+    "then": {
+      "deserializedAs": {
+        "Message": "Hi"
+      },
+      "errorCode": "Customized"
+    }
+  },
+  {
+    "id": "QueryIgnoresWrappingXmlName",
+    "description": "The xmlName trait on the output structure is ignored in AWS Query",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><listOfStructs/></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<IgnoresWrappingXmlNameResponse xmlns=\"https://example.com/\">\n    <IgnoresWrappingXmlNameResult>\n        <foo>bar</foo>\n    </IgnoresWrappingXmlNameResult>\n</IgnoresWrappingXmlNameResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "IgnoresWrappingXmlName"
     },
     "then": {
       "deserializedAs": {
-        "listOfStructs": [
-        ]
+        "foo": "bar"
       }
     }
   },
   {
-    "description": "Tests that a list of structure types is unmarshalled correctly",
+    "id": "QueryNoInputAndNoOutput",
+    "description": "Empty output. Note that no assertion is made on the output body itself.",
     "given": {
       "response": {
-        "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><listOfStructs><member><StringMember>foo</StringMember></member><member><StringMember>bar</StringMember></member></listOfStructs></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "status_code": 200
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "NoInputAndNoOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "QueryNoInputAndOutput",
+    "description": "Empty output",
+    "given": {
+      "response": {
+        "status_code": 200
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "NoInputAndOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "QueryRecursiveShapes",
+    "description": "Serializes recursive structures",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<RecursiveXmlShapesResponse xmlns=\"https://example.com/\">\n    <RecursiveXmlShapesResult>\n        <nested>\n            <foo>Foo1</foo>\n            <nested>\n                <bar>Bar1</bar>\n                <recursiveMember>\n                    <foo>Foo2</foo>\n                    <nested>\n                        <bar>Bar2</bar>\n                    </nested>\n                </recursiveMember>\n            </nested>\n        </nested>\n    </RecursiveXmlShapesResult>\n</RecursiveXmlShapesResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "RecursiveXmlShapes"
     },
     "then": {
       "deserializedAs": {
-        "listOfStructs": [
+        "nested": {
+          "foo": "Foo1",
+          "nested": {
+            "bar": "Bar1",
+            "recursiveMember": {
+              "foo": "Foo2",
+              "nested": {
+                "bar": "Bar2"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "QuerySimpleScalarProperties",
+    "description": "Serializes simple scalar properties",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<SimpleScalarXmlPropertiesResponse xmlns=\"https://example.com/\">\n    <SimpleScalarXmlPropertiesResult>\n        <stringValue>string</stringValue>\n        <emptyStringValue/>\n        <trueBooleanValue>true</trueBooleanValue>\n        <falseBooleanValue>false</falseBooleanValue>\n        <byteValue>1</byteValue>\n        <shortValue>2</shortValue>\n        <integerValue>3</integerValue>\n        <longValue>4</longValue>\n        <floatValue>5.5</floatValue>\n        <DoubleDribble>6.5</DoubleDribble>\n    </SimpleScalarXmlPropertiesResult>\n</SimpleScalarXmlPropertiesResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarXmlProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringValue": "string",
+        "emptyStringValue": "",
+        "trueBooleanValue": true,
+        "falseBooleanValue": false,
+        "byteValue": 1,
+        "shortValue": 2,
+        "integerValue": 3,
+        "longValue": 4,
+        "floatValue": 5.5,
+        "doubleValue": 6.5
+      }
+    }
+  },
+  {
+    "id": "AwsQuerySupportsNaNFloatOutputs",
+    "description": "Supports handling NaN float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<SimpleScalarXmlPropertiesResponse xmlns=\"https://example.com/\">\n    <SimpleScalarXmlPropertiesResult>\n        <floatValue>NaN</floatValue>\n        <DoubleDribble>NaN</DoubleDribble>\n    </SimpleScalarXmlPropertiesResult>\n</SimpleScalarXmlPropertiesResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarXmlProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "NaN",
+        "doubleValue": "NaN"
+      }
+    }
+  },
+  {
+    "id": "AwsQuerySupportsInfinityFloatOutputs",
+    "description": "Supports handling Infinity float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<SimpleScalarXmlPropertiesResponse xmlns=\"https://example.com/\">\n    <SimpleScalarXmlPropertiesResult>\n        <floatValue>Infinity</floatValue>\n        <DoubleDribble>Infinity</DoubleDribble>\n    </SimpleScalarXmlPropertiesResult>\n</SimpleScalarXmlPropertiesResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarXmlProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "Infinity",
+        "doubleValue": "Infinity"
+      }
+    }
+  },
+  {
+    "id": "AwsQuerySupportsNegativeInfinityFloatOutputs",
+    "description": "Supports handling -Infinity float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<SimpleScalarXmlPropertiesResponse xmlns=\"https://example.com/\">\n    <SimpleScalarXmlPropertiesResult>\n        <floatValue>-Infinity</floatValue>\n        <DoubleDribble>-Infinity</DoubleDribble>\n    </SimpleScalarXmlPropertiesResult>\n</SimpleScalarXmlPropertiesResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarXmlProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "-Infinity",
+        "doubleValue": "-Infinity"
+      }
+    }
+  },
+  {
+    "id": "QueryXmlBlobs",
+    "description": "Blobs are base64 encoded",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlBlobsResponse xmlns=\"https://example.com/\">\n    <XmlBlobsResult>\n        <data>dmFsdWU=</data>\n    </XmlBlobsResult>\n</XmlBlobsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlBlobs"
+    },
+    "then": {
+      "deserializedAs": {
+        "data": "value"
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEmptyBlobs",
+    "description": "Empty blobs are deserialized as empty string",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEmptyBlobsResponse xmlns=\"https://example.com/\">\n    <XmlEmptyBlobsResult>\n        <data></data>\n    </XmlEmptyBlobsResult>\n</XmlEmptyBlobsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEmptyBlobs"
+    },
+    "then": {
+      "deserializedAs": {
+        "data": ""
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEmptySelfClosedBlobs",
+    "description": "Empty self closed blobs are deserialized as empty string",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEmptyBlobsResponse xmlns=\"https://example.com/\">\n    <XmlEmptyBlobsResult>\n        <data/>\n    </XmlEmptyBlobsResult>\n</XmlEmptyBlobsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEmptyBlobs"
+    },
+    "then": {
+      "deserializedAs": {
+        "data": ""
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEmptyLists",
+    "description": "Deserializes empty XML lists",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEmptyListsResponse xmlns=\"https://example.com/\">\n    <XmlEmptyListsResult>\n        <stringList/>\n        <stringSet></stringSet>\n    </XmlEmptyListsResult>\n</XmlEmptyListsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEmptyLists"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringList": [],
+        "stringSet": []
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEmptyMaps",
+    "description": "Deserializes Empty XML maps",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEmptyMapsResponse xmlns=\"https://example.com/\">\n    <XmlEmptyMapsResult>\n        <myMap>\n        </myMap>\n    </XmlEmptyMapsResult>\n</XmlEmptyMapsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEmptyMaps"
+    },
+    "then": {
+      "deserializedAs": {
+        "myMap": {}
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEmptySelfClosedMaps",
+    "description": "Deserializes Self-Closed XML maps",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEmptyMapsResponse xmlns=\"https://example.com/\">\n    <XmlEmptyMapsResult>\n        <myMap/>\n    </XmlEmptyMapsResult>\n</XmlEmptyMapsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEmptyMaps"
+    },
+    "then": {
+      "deserializedAs": {
+        "myMap": {}
+      }
+    }
+  },
+  {
+    "id": "QueryXmlEnums",
+    "description": "Serializes simple scalar properties",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlEnumsResponse xmlns=\"https://example.com/\">\n    <XmlEnumsResult>\n        <fooEnum1>Foo</fooEnum1>\n        <fooEnum2>0</fooEnum2>\n        <fooEnum3>1</fooEnum3>\n        <fooEnumList>\n            <member>Foo</member>\n            <member>0</member>\n        </fooEnumList>\n        <fooEnumSet>\n            <member>Foo</member>\n            <member>0</member>\n        </fooEnumSet>\n        <fooEnumMap>\n            <entry>\n                <key>hi</key>\n                <value>Foo</value>\n            </entry>\n            <entry>\n                <key>zero</key>\n                <value>0</value>\n            </entry>\n        </fooEnumMap>\n    </XmlEnumsResult>\n</XmlEnumsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlEnums"
+    },
+    "then": {
+      "deserializedAs": {
+        "fooEnum1": "Foo",
+        "fooEnum2": "0",
+        "fooEnum3": "1",
+        "fooEnumList": [
+          "Foo",
+          "0"
+        ],
+        "fooEnumSet": [
+          "Foo",
+          "0"
+        ],
+        "fooEnumMap": {
+          "hi": "Foo",
+          "zero": "0"
+        }
+      }
+    }
+  },
+  {
+    "id": "QueryXmlIntEnums",
+    "description": "Serializes simple scalar properties",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlIntEnumsResponse xmlns=\"https://example.com/\">\n    <XmlIntEnumsResult>\n        <intEnum1>1</intEnum1>\n        <intEnum2>2</intEnum2>\n        <intEnum3>3</intEnum3>\n        <intEnumList>\n            <member>1</member>\n            <member>2</member>\n        </intEnumList>\n        <intEnumSet>\n            <member>1</member>\n            <member>2</member>\n        </intEnumSet>\n        <intEnumMap>\n            <entry>\n                <key>a</key>\n                <value>1</value>\n            </entry>\n            <entry>\n                <key>b</key>\n                <value>2</value>\n            </entry>\n        </intEnumMap>\n    </XmlIntEnumsResult>\n</XmlIntEnumsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlIntEnums"
+    },
+    "then": {
+      "deserializedAs": {
+        "intEnum1": 1,
+        "intEnum2": 2,
+        "intEnum3": 3,
+        "intEnumList": [
+          1,
+          2
+        ],
+        "intEnumSet": [
+          1,
+          2
+        ],
+        "intEnumMap": {
+          "a": 1,
+          "b": 2
+        }
+      }
+    }
+  },
+  {
+    "id": "QueryXmlLists",
+    "description": "Tests for XML list serialization",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlListsResponse xmlns=\"https://example.com/\">\n    <XmlListsResult>\n        <stringList>\n            <member>foo</member>\n            <member>bar</member>\n        </stringList>\n        <stringSet>\n            <member>foo</member>\n            <member>bar</member>\n        </stringSet>\n        <integerList>\n            <member>1</member>\n            <member>2</member>\n        </integerList>\n        <booleanList>\n            <member>true</member>\n            <member>false</member>\n        </booleanList>\n        <timestampList>\n            <member>2014-04-29T18:30:38Z</member>\n            <member>2014-04-29T18:30:38Z</member>\n        </timestampList>\n        <enumList>\n            <member>Foo</member>\n            <member>0</member>\n        </enumList>\n        <intEnumList>\n            <member>1</member>\n            <member>2</member>\n        </intEnumList>\n        <nestedStringList>\n            <member>\n                <member>foo</member>\n                <member>bar</member>\n            </member>\n            <member>\n                <member>baz</member>\n                <member>qux</member>\n            </member>\n        </nestedStringList>\n        <renamed>\n            <item>foo</item>\n            <item>bar</item>\n        </renamed>\n        <flattenedList>hi</flattenedList>\n        <flattenedList>bye</flattenedList>\n        <customName>yep</customName>\n        <customName>nope</customName>\n        <flattenedListWithMemberNamespace xmlns=\"https://xml-member.example.com\">a</flattenedListWithMemberNamespace>\n        <flattenedListWithMemberNamespace xmlns=\"https://xml-member.example.com\">b</flattenedListWithMemberNamespace>\n        <flattenedListWithNamespace>a</flattenedListWithNamespace>\n        <flattenedListWithNamespace>b</flattenedListWithNamespace>\n        <myStructureList>\n            <item>\n                <value>1</value>\n                <other>2</other>\n            </item>\n            <item>\n                <value>3</value>\n                <other>4</other>\n            </item>\n        </myStructureList>\n    </XmlListsResult>\n</XmlListsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlLists"
+    },
+    "then": {
+      "deserializedAs": {
+        "stringList": [
+          "foo",
+          "bar"
+        ],
+        "stringSet": [
+          "foo",
+          "bar"
+        ],
+        "integerList": [
+          1,
+          2
+        ],
+        "booleanList": [
+          true,
+          false
+        ],
+        "timestampList": [
+          1398796238,
+          1398796238
+        ],
+        "enumList": [
+          "Foo",
+          "0"
+        ],
+        "intEnumList": [
+          1,
+          2
+        ],
+        "nestedStringList": [
+          [
+            "foo",
+            "bar"
+          ],
+          [
+            "baz",
+            "qux"
+          ]
+        ],
+        "renamedListMembers": [
+          "foo",
+          "bar"
+        ],
+        "flattenedList": [
+          "hi",
+          "bye"
+        ],
+        "flattenedList2": [
+          "yep",
+          "nope"
+        ],
+        "flattenedListWithMemberNamespace": [
+          "a",
+          "b"
+        ],
+        "flattenedListWithNamespace": [
+          "a",
+          "b"
+        ],
+        "structureList": [
           {
-            "StringMember": "foo"
+            "a": "1",
+            "b": "2"
           },
           {
-            "StringMember": "bar"
+            "a": "3",
+            "b": "4"
           }
         ]
       }
     }
   },
   {
-    "description": "Tests that a flattened list of structure types is unmarshalled correctly",
+    "id": "QueryXmlMaps",
+    "description": "Tests for XML map serialization",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><FlattenedListOfStructs><StringMember>foo</StringMember></FlattenedListOfStructs><FlattenedListOfStructs><StringMember>bar</StringMember></FlattenedListOfStructs></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlMapsResponse xmlns=\"https://example.com/\">\n    <XmlMapsResult>\n        <myMap>\n            <entry>\n                <key>foo</key>\n                <value>\n                    <hi>there</hi>\n                </value>\n            </entry>\n            <entry>\n                <key>baz</key>\n                <value>\n                    <hi>bye</hi>\n                </value>\n            </entry>\n        </myMap>\n    </XmlMapsResult>\n</XmlMapsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryTypes"
+      "operation": "XmlMaps"
     },
     "then": {
       "deserializedAs": {
-        "FlattenedListOfStructs": [
-          {
-            "StringMember": "foo"
+        "myMap": {
+          "foo": {
+            "hi": "there"
           },
-          {
-            "StringMember": "bar"
+          "baz": {
+            "hi": "bye"
           }
-        ]
-      }
-    }
-  },
-  {
-    "description": "Tests that a flattened list of strings with non default location name is unmarshalled correctly",
-    "given": {
-      "response": {
-        "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><item>val1</item><item>val2</item></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
-      }
-    },
-    "when": {
-      "action": "unmarshall",
-      "operation": "QueryTypes"
-    },
-    "then": {
-      "deserializedAs": {
-        "FlattenedListWithLocation": [
-          "val1",
-          "val2"
-        ]
-      }
-    }
-  },
-  {
-    "description": "Tests unmarshalling a non-flattened map in the payload",
-    "given": {
-      "response": {
-        "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><mapOfStringToString><entry><key>key1</key><value>val1</value></entry><entry><key>key2</key><value>val2</value></entry></mapOfStringToString></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
-      }
-    },
-    "when": {
-      "action": "unmarshall",
-      "operation": "AllTypes"
-    },
-    "then": {
-      "deserializedAs": {
-        "mapOfStringToString": {
-          "key1": "val1",
-          "key2": "val2"
         }
       }
     }
   },
   {
-    "description": "Tests unmarshalling a non-flattened map with an explicit locationName and locationName's for both key and value",
+    "id": "QueryQueryXmlMapsXmlName",
+    "description": "Serializes XML lists",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><themap><entry><thekey>key1</thekey><thevalue>val1</thevalue></entry><entry><thekey>key2</thekey><thevalue>val2</thevalue></entry></themap></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlMapsXmlNameResponse xmlns=\"https://example.com/\">\n    <XmlMapsXmlNameResult>\n        <myMap>\n            <entry>\n                <Attribute>foo</Attribute>\n                <Setting>\n                    <hi>there</hi>\n                </Setting>\n            </entry>\n            <entry>\n                <Attribute>baz</Attribute>\n                <Setting>\n                    <hi>bye</hi>\n                </Setting>\n            </entry>\n        </myMap>\n    </XmlMapsXmlNameResult>\n</XmlMapsXmlNameResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryTypes"
+      "operation": "XmlMapsXmlName"
     },
     "then": {
       "deserializedAs": {
-        "NonFlattenedMapWithLocation": {
-          "key1": "val1",
-          "key2": "val2"
+        "myMap": {
+          "foo": {
+            "hi": "there"
+          },
+          "baz": {
+            "hi": "bye"
+          }
         }
       }
     }
   },
   {
-    "description": "Tests unmarshalling a flattened map with an explicit locationName and locationName's for both key and value",
+    "id": "QueryXmlNamespaces",
+    "description": "Serializes XML namespaces",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><flatmap><thekey>key1</thekey><thevalue>val1</thevalue></flatmap><flatmap><thekey>key2</thekey><thevalue>val2</thevalue></flatmap></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlNamespacesResponse xmlns=\"https://example.com/\">\n    <XmlNamespacesResult>\n        <nested>\n            <foo xmlns:baz=\"http://baz.com\">Foo</foo>\n            <values xmlns=\"http://qux.com\">\n                <member xmlns=\"http://bux.com\">Bar</member>\n                <member xmlns=\"http://bux.com\">Baz</member>\n            </values>\n        </nested>\n    </XmlNamespacesResult>\n</XmlNamespacesResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "QueryTypes"
+      "operation": "XmlNamespaces"
     },
     "then": {
       "deserializedAs": {
-        "FlattenedMapWithLocation": {
-          "key1": "val1",
-          "key2": "val2"
+        "nested": {
+          "foo": "Foo",
+          "values": [
+            "Bar",
+            "Baz"
+          ]
         }
       }
     }
   },
   {
-    "description": "Tests unmarshalling an empty XML tag as an empty string",
+    "id": "QueryXmlTimestamps",
+    "description": "Tests how normal timestamps are serialized",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><stringMember/></AllTypesResult><ResponseMetadata><RequestId>request-id</RequestId></ResponseMetadata></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <normal>2014-04-29T18:30:38Z</normal>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-      "operation": "AllTypes"
+      "operation": "XmlTimestamps"
     },
     "then": {
       "deserializedAs": {
-        "stringMember": ""
+        "normal": 1398796238
       }
     }
   },
   {
-    "description": "ListOfTimeStamp  with known values unmarshalled correctly",
+    "id": "QueryXmlTimestampsWithDateTimeFormat",
+    "description": "Ensures that the timestampFormat of date-time works like normal timestamps",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><ListOfTimeStamp><item>1398796238.123</item><item>2591234567.123</item></ListOfTimeStamp></AllTypesResult></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <dateTime>2014-04-29T18:30:38Z</dateTime>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-
-      "operation": "AllTypes"
+      "operation": "XmlTimestamps"
     },
     "then": {
       "deserializedAs": {
-        "ListOfTimeStamp": [1398796238123,2591234567123]
+        "dateTime": 1398796238
       }
     }
   },
   {
-    "description": "MapOfTimeStamp with known values unmarshalled correctly",
+    "id": "QueryXmlTimestampsWithDateTimeOnTargetFormat",
+    "description": "Ensures that the timestampFormat of date-time on the target shape works like normal timestamps",
     "given": {
       "response": {
         "status_code": 200,
-        "body": "<AllTypesResponse><AllTypesResult><MapOfTimeStamp><entry><key>test1</key><value>1398796238.123</value></entry><entry><key>test2</key><value>2591234567.123</value></entry></MapOfTimeStamp></AllTypesResult></AllTypesResponse>"
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <dateTimeOnTarget>2014-04-29T18:30:38Z</dateTimeOnTarget>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
       }
     },
     "when": {
       "action": "unmarshall",
-
-      "operation": "AllTypes"
+      "operation": "XmlTimestamps"
     },
     "then": {
       "deserializedAs": {
-        "MapOfTimeStamp": {
-          "test1": "1398796238123",
-          "test2": "2591234567123"
-        }
+        "dateTimeOnTarget": 1398796238
+      }
+    }
+  },
+  {
+    "id": "QueryXmlTimestampsWithEpochSecondsFormat",
+    "description": "Ensures that the timestampFormat of epoch-seconds works",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <epochSeconds>1398796238</epochSeconds>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlTimestamps"
+    },
+    "then": {
+      "deserializedAs": {
+        "epochSeconds": 1398796238
+      }
+    }
+  },
+  {
+    "id": "QueryXmlTimestampsWithEpochSecondsOnTargetFormat",
+    "description": "Ensures that the timestampFormat of epoch-seconds on the target shape works",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <epochSecondsOnTarget>1398796238</epochSecondsOnTarget>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlTimestamps"
+    },
+    "then": {
+      "deserializedAs": {
+        "epochSecondsOnTarget": 1398796238
+      }
+    }
+  },
+  {
+    "id": "QueryXmlTimestampsWithHttpDateFormat",
+    "description": "Ensures that the timestampFormat of http-date works",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <httpDate>Tue, 29 Apr 2014 18:30:38 GMT</httpDate>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlTimestamps"
+    },
+    "then": {
+      "deserializedAs": {
+        "httpDate": 1398796238
+      }
+    }
+  },
+  {
+    "id": "QueryXmlTimestampsWithHttpDateOnTargetFormat",
+    "description": "Ensures that the timestampFormat of http-date on the target shape works",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "text/xml"
+        },
+        "body": "<XmlTimestampsResponse xmlns=\"https://example.com/\">\n    <XmlTimestampsResult>\n        <httpDateOnTarget>Tue, 29 Apr 2014 18:30:38 GMT</httpDateOnTarget>\n    </XmlTimestampsResult>\n</XmlTimestampsResponse>\n"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "XmlTimestamps"
+    },
+    "then": {
+      "deserializedAs": {
+        "httpDateOnTarget": 1398796238
       }
     }
   }

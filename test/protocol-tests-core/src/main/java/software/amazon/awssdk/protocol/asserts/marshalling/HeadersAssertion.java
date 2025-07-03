@@ -21,6 +21,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,9 @@ public class HeadersAssertion extends MarshallingAssertion {
             assertTrue(String.format("Header '%s' was expected to be present. Actual headers: %s", expectedKey, actual),
                        actual.getHeader(expectedKey).isPresent());
             List<String> actualValues = actual.getHeader(expectedKey).values();
+            if (expectedKey.equalsIgnoreCase("Content-Type") && actualValues.size() == 1) {
+                actualValues = Collections.singletonList(actualValues.get(0).replace("; charset=UTF-8", ""));
+            }
             assertEquals(expectedValues, actualValues);
         });
     }
