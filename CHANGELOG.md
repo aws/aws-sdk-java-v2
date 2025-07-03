@@ -1,4 +1,55 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.76__ __2025-07-02__
+## __AWS S3 Control__
+  - ### Features
+    - Added TagResource, UntagResource, and ListTagsForResource support for directory bucket
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds DeleteCase and DeleteRelatedItem APIs, which enable deleting cases and comments, undoing contact association, and removing service level agreements (SLAs) from cases. Contact center admins can use these APIs to delete cases when requested by customers and correct agent errors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports IPv6 addresses on outer tunnel IPs, making it easier for customers to build or transition to IPv6-only networks.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Added support for directory bucket creation with tags and bucket ARN retrieval in CreateBucket, ListDirectoryBuckets, and HeadBucket operations
+
+# __2.31.75__ __2025-07-01__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - This release introduces support for incremental training and distributed training for custom models in AWS Clean Rooms ML.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the sdk service client version to the useragent
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add support for the new optional domain-unit-id parameter in the UpdateProject API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Context to GetInstanceTypesFromInstanceRequirements API
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS Custom for Oracle now supports multi-AZ database instances.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Updated field validation requirements for InstanceGroups.
+
+## __QBusiness__
+  - ### Features
+    - New ChatResponseConfiguration to Customize Q Business chat responses for specific use cases and communication needs. Updated Boosting capability allowing admins to provide preference on date attributes for recency and/or provide a preferred data source.
+
+## __odb__
+  - ### Features
+    - This release adds API operations for Oracle Database@AWS. You can use the APIs to create Exadata infrastructure, ODB networks, and Exadata and Autonomous VM clusters inside AWS data centers. The infrastructure is managed by OCI. You can integrate these resources with AWS services.
+
 # __2.31.74__ __2025-06-30__
 ## __AWS ARC - Zonal Shift__
   - ### Features
