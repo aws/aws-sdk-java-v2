@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
+import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlGetObjectRequestWrapper;
 import software.amazon.awssdk.utils.Validate;
@@ -37,7 +38,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class PresignedUrlGetObjectRequestMarshaller implements Marshaller<PresignedUrlGetObjectRequestWrapper> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
-            .requestUri("/").httpMethod(SdkHttpMethod.GET).hasExplicitPayloadMember(false).hasPayloadMembers(false)
+            .requestUri("").httpMethod(SdkHttpMethod.GET).hasExplicitPayloadMember(false).hasPayloadMembers(false)
             .putAdditionalMetadata(AwsXmlProtocolFactory.ROOT_MARSHALL_LOCATION_ATTRIBUTE, null)
             .putAdditionalMetadata(AwsXmlProtocolFactory.XML_NAMESPACE_ATTRIBUTE, null).build();
 
@@ -58,17 +59,14 @@ public class PresignedUrlGetObjectRequestMarshaller implements Marshaller<Presig
     public SdkHttpFullRequest marshall(PresignedUrlGetObjectRequestWrapper presignedUrlGetObjectRequestWrapper) {
         Validate.paramNotNull(presignedUrlGetObjectRequestWrapper, "presignedUrlGetObjectRequestWrapper");
         try {
-            URI uri = presignedUrlGetObjectRequestWrapper.url().toURI();
-            SdkHttpFullRequest.Builder httpRequestBuilder = SdkHttpFullRequest.builder()
-                    .method(SdkHttpMethod.GET)
-                    .uri(uri);
+            ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
+                .createProtocolMarshaller(SDK_OPERATION_BINDING);
+            URI presignedUri = presignedUrlGetObjectRequestWrapper.url().toURI();
 
-            if (presignedUrlGetObjectRequestWrapper.range() != null && 
-                !presignedUrlGetObjectRequestWrapper.range().isEmpty()) {
-                httpRequestBuilder.putHeader("Range", presignedUrlGetObjectRequestWrapper.range());
-            }
-            
-            return httpRequestBuilder.build();
+            return protocolMarshaller.marshall(presignedUrlGetObjectRequestWrapper)
+                                     .toBuilder()
+                                     .uri(presignedUri)
+                                     .build();
         } catch (Exception e) {
             throw SdkClientException.builder()
                     .message("Unable to marshall pre-signed URL Request: " + e.getMessage())
