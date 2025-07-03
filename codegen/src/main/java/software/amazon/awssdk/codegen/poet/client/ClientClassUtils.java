@@ -190,12 +190,13 @@ public final class ClientClassUtils {
 
         builder.addStatement("$T plugins = request.overrideConfiguration()\n"
                              + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
-                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class));
 
         builder.beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return configuration.build()")
-               .endControlFlow()
+               .addStatement("return clientConfiguration")
+               .endControlFlow();
+
+        builder.addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class)
                .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
                .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
                .addStatement("plugin.configureClient(serviceConfigBuilder)")

@@ -427,7 +427,7 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
-    public static IntermediateModel pluginModels() {
+    public static IntermediateModel serviceWithCustomContextParamsModels() {
         File serviceModel =
             new File(ClientTestModels.class.getResource("client/c2j/service-with-custom-context-params/service-2.json").getFile());
         File customizationModel =
