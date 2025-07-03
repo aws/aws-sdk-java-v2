@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.77__ __2025-07-03__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for Microsoft Smooth Streaming (MSS) and allows users to exclude DRM segment Metadata in MediaPackage v2 Origin Endpoints
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Added fields for output manifest reporting and task chunking parameters
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces capability of create Segments via importing a CSV file directly. This consumes the CSV file and creates/updates corresponding profiles for the particular domain.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds GroupOwnerId as a response member to the DescribeSecurityGroupVpcAssociations API and also adds waiters for SecurityGroupVpcAssociations (SecurityGroupVpcAssociationAssociated and SecurityGroupVpcAssociationDisassociated).
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the iso-e regions for private DNS Amazon VPCs and cloudwatch healthchecks.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Changes include new StartSession API for SageMaker Studio spaces and CreateHubContentPresignedUrls API for SageMaker JumpStart.
+
 # __2.31.76__ __2025-07-02__
 ## __AWS S3 Control__
   - ### Features
