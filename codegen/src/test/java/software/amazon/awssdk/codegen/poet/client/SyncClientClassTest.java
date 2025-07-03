@@ -22,6 +22,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContent
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.pluginModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
@@ -95,6 +96,12 @@ public class SyncClientClassTest {
     public void syncClientClassCbor() {
         ClassSpec syncClientCustomServiceMetaData = createSyncClientClass(cborServiceModels(), true);
         assertThat(syncClientCustomServiceMetaData, generatesTo("test-cbor-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientWithCustomContextParams() {
+        ClassSpec syncClientClass = createSyncClientClass(pluginModels());
+        assertThat(syncClientClass, generatesTo("test-custom-context-params-sync-client-class.java"));
     }
 
     private SyncClientClass createSyncClientClass(IntermediateModel model) {

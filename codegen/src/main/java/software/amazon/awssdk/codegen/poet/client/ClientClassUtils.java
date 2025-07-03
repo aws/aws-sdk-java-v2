@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.poet.client;
 
+import static javax.lang.model.element.Modifier.PRIVATE;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
@@ -24,7 +25,9 @@ import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -38,15 +41,21 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.core.SdkPlugin;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -168,6 +177,57 @@ public final class ClientClassUtils {
             }
         }
 
+        return builder.build();
+    }
+
+    static MethodSpec updateSdkClientConfigurationMethod(
+        TypeName serviceClientConfigurationBuilderClassName, IntermediateModel model) {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
+                                               .addModifiers(PRIVATE)
+                                               .addParameter(SdkRequest.class, "request")
+                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
+                                               .returns(SdkClientConfiguration.class);
+
+        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
+                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
+                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
+               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
+
+        builder.beginControlFlow("if (plugins.isEmpty())")
+               .addStatement("return configuration.build()")
+               .endControlFlow()
+               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
+               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
+               .addStatement("plugin.configureClient(serviceConfigBuilder)")
+               .endControlFlow();
+        EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+
+        if (model.getCustomizationConfig() == null ||
+            CollectionUtils.isNullOrEmpty(model.getCustomizationConfig().getCustomClientContextParams())) {
+            builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
+            builder.addStatement("return configuration.build()");
+            return builder.build();
+        }
+
+        Map<String, ClientContextParam> customClientConfigParams = model.getCustomizationConfig().getCustomClientContextParams();
+
+        builder.addCode("$1T newContextParams = configuration.option($2T.CLIENT_CONTEXT_PARAMS);\n"
+                        + "$1T originalContextParams = clientConfiguration.option($2T.CLIENT_CONTEXT_PARAMS);",
+                        AttributeMap.class, SdkClientOption.class);
+
+        builder.addCode("newContextParams = (newContextParams != null) ? newContextParams : $1T.empty();\n"
+                        + "originalContextParams = originalContextParams != null ? originalContextParams : $1T.empty();",
+                        AttributeMap.class);
+
+        customClientConfigParams.forEach((n, m) -> {
+            String keyName = model.getNamingStrategy().getEnumValueName(n);
+            builder.addStatement("$1T.validState($2T.equals(originalContextParams.get($3T.$4N), newContextParams.get($3T.$4N)),"
+                                 + " $5S)",
+                                 Validate.class, Objects.class, endpointRulesSpecUtils.clientContextParamsName(), keyName,
+                                 keyName + " cannot be modified by request level plugins");
+        });
+        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
+        builder.addStatement("return configuration.build()");
         return builder.build();
     }
 
