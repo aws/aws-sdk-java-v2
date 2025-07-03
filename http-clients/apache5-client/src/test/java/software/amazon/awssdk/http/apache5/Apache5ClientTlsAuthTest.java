@@ -82,6 +82,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
 
         wireMockServer = new WireMockServer(wireMockConfig()
                 .dynamicHttpsPort()
+                .dynamicPort()
                 .needClientAuth(true)
                 .keystorePath(serverKeyStore.toAbsolutePath().toString())
                 .keystorePassword(STORE_PASSWORD)
