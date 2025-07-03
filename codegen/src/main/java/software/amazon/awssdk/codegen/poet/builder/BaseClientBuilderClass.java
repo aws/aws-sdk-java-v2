@@ -63,6 +63,10 @@ import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils
 import software.amazon.awssdk.codegen.poet.rules.EndpointParamsKnowledgeIndex;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.codegen.utils.AuthUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculationResolver;
@@ -320,11 +324,21 @@ public class BaseClientBuilderClass implements ClassSpec {
 
     private void configureEnvironmentBearerToken(MethodSpec.Builder builder) {
         if (!authSchemeSpecUtils.useSraAuth()) {
-            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires SRA Auth.");
+            ValidationEntry entry = ValidationEntry.create(ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                                                           ValidationErrorSeverity.DANGER,
+                                                           "The enableEnvironmentBearerToken customization requires"
+                                                           + " the useSraAuth customization but it is disabled.");
+
+            throw ModelInvalidException.fromEntry(entry);
         }
         if (!AuthUtils.usesBearerAuth(model)) {
-            throw new IllegalStateException("The enableEnvironmentBearerToken customization requires the service to model and "
-                                            + "support smithy.api#httpBearerAuth.");
+            ValidationEntry entry =
+                ValidationEntry.create(ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                                       ValidationErrorSeverity.DANGER,
+                                        "The enableEnvironmentBearerToken customization requires the service to model"
+                                        + " and support smithy.api#httpBearerAuth.");
+
+            throw ModelInvalidException.fromEntry(entry);
         }
 
         builder.addStatement("$T tokenFromEnv = new $T().getStringValue()",
