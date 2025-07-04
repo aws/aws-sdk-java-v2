@@ -1,6 +1,7 @@
 name: New Module Verification
 
 on:
+  merge_group:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
     branches:
