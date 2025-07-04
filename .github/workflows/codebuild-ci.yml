@@ -168,8 +168,32 @@ jobs:
         with:
           project-name: aws-sdk-java-v2-migration-test
 
-  s3-regression-tests-download:
+  # Check if S3, HTTP client, or core modules have changed
+  check-s3-related-changes:
     if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    outputs:
+      has_s3_related_changes: ${{ steps.check-changes.outputs.has_s3_related_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for changes related to s3
+        id: check-changes
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth 1
+          CHANGED_FILES=$(git diff remotes/origin/${{ github.base_ref }} --name-only)
+          if echo "$CHANGED_FILES" | grep -q -E '^core/|^services/s3/|^services-custom/s3-transfer-manager/|^http-client-spi/|^http-clients/'; then
+            echo "Detected changes in S3, HTTP client, or core modules"
+            echo "has_s3_related_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes detected in S3, HTTP client, or core modules"
+            echo "has_s3_related_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+  s3-regression-tests-download:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: DownloadStreamingRegressionTesting
@@ -186,7 +210,8 @@ jobs:
           project-name: aws-sdk-java-v2-s3-regression-tests
           env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-control-plane:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: ControlPlaneOperationRegressionTesting
@@ -203,7 +228,8 @@ jobs:
           project-name: aws-sdk-java-v2-s3-regression-tests
           env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-upload-sync:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadSyncRegressionTesting
@@ -220,7 +246,8 @@ jobs:
           project-name: aws-sdk-java-v2-s3-regression-tests
           env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-upload-async:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadAsyncRegressionTesting
@@ -237,7 +264,8 @@ jobs:
           project-name: aws-sdk-java-v2-s3-regression-tests
           env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-upload-crt:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadCrtRegressionTesting
@@ -254,7 +282,8 @@ jobs:
           project-name: aws-sdk-java-v2-s3-regression-tests
           env-vars-for-codebuild: REGRESSION_TEST
   s3-regression-tests-upload-multi:
-    if: github.repository == 'aws/aws-sdk-java-v2'
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2' && needs.check-s3-related-changes.outputs.has_s3_related_changes == 'true'
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadTransferManagerRegressionTesting
