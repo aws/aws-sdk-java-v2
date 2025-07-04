@@ -75,7 +75,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private volatile String eTag;
 
     /**
-     * The Subscription lock
+     * The Subscription lock.
      */
     private final Object lock = new Object();
 
