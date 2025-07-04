@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Improve performance for SDK service clients that don't use custom client plugins by optimizing plugin resolution logic"
+}

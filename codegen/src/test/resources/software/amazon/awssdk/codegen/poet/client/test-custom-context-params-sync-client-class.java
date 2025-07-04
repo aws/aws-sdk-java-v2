@@ -1,7 +1,8 @@
-package software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype;
+package software.amazon.awssdk.services.foobar;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -33,26 +34,29 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.internal.ServiceVersionInfo;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationRequest;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.OneOperationResponse;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.model.ProtocolRestJsonWithCustomContentTypeException;
-import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.transform.OneOperationRequestMarshaller;
+import software.amazon.awssdk.services.foobar.endpoints.FooBarClientContextParams;
+import software.amazon.awssdk.services.foobar.internal.FooBarServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.foobar.internal.ServiceVersionInfo;
+import software.amazon.awssdk.services.foobar.model.FooBarException;
+import software.amazon.awssdk.services.foobar.model.GetDatabaseVersionRequest;
+import software.amazon.awssdk.services.foobar.model.GetDatabaseVersionResponse;
+import software.amazon.awssdk.services.foobar.transform.GetDatabaseVersionRequestMarshaller;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * Internal implementation of {@link ProtocolRestJsonWithCustomContentTypeClient}.
+ * Internal implementation of {@link FooBarClient}.
  *
- * @see ProtocolRestJsonWithCustomContentTypeClient#builder()
+ * @see FooBarClient#builder()
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-final class DefaultProtocolRestJsonWithCustomContentTypeClient implements ProtocolRestJsonWithCustomContentTypeClient {
-    private static final Logger log = Logger.loggerFor(DefaultProtocolRestJsonWithCustomContentTypeClient.class);
+final class DefaultFooBarClient implements FooBarClient {
+    private static final Logger log = Logger.loggerFor(DefaultFooBarClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -60,66 +64,66 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
 
     private final SdkClientConfiguration clientConfiguration;
 
-    protected DefaultProtocolRestJsonWithCustomContentTypeClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultFooBarClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration
-            .toBuilder()
-            .option(SdkClientOption.SDK_CLIENT, this)
-            .option(SdkClientOption.API_METADATA,
-                    "AmazonProtocolRestJsonWithCustomContentType" + "#" + ServiceVersionInfo.VERSION).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                .option(SdkClientOption.API_METADATA, "Foo_Bar" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
     }
 
     /**
-     * Invokes the OneOperation operation.
+     * <p>
+     * Performs a get database version operation
+     * </p>
      *
-     * @param oneOperationRequest
-     * @return Result of the OneOperation operation returned by the service.
+     * @param getDatabaseVersionRequest
+     * @return Result of the GetDatabaseVersion operation returned by the service.
      * @throws SdkException
      *         Base class for all exceptions that can be thrown by the SDK (both service and client). Can be used for
      *         catch all scenarios.
      * @throws SdkClientException
      *         If any client side error occurs such as an IO related failure, failure to get credentials, etc.
-     * @throws ProtocolRestJsonWithCustomContentTypeException
+     * @throws FooBarException
      *         Base class for all service exceptions. Unknown exceptions will be thrown as an instance of this type.
-     * @sample ProtocolRestJsonWithCustomContentTypeClient.OneOperation
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/restjson-2016-03-11/OneOperation" target="_top">AWS API
-     *      Documentation</a>
+     * @sample FooBarClient.GetDatabaseVersion
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/database-service-2023-06-08/GetDatabaseVersion"
+     *      target="_top">AWS API Documentation</a>
      */
     @Override
-    public OneOperationResponse oneOperation(OneOperationRequest oneOperationRequest) throws AwsServiceException,
-                                                                                             SdkClientException, ProtocolRestJsonWithCustomContentTypeException {
+    public GetDatabaseVersionResponse getDatabaseVersion(GetDatabaseVersionRequest getDatabaseVersionRequest)
+            throws AwsServiceException, SdkClientException, FooBarException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                       .isPayloadJson(true).build();
+                .isPayloadJson(true).build();
 
-        HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                          OneOperationResponse::builder);
+        HttpResponseHandler<GetDatabaseVersionResponse> responseHandler = protocolFactory.createResponseHandler(
+                operationMetadata, GetDatabaseVersionResponse::builder);
         Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
             if (errorCode == null) {
                 return Optional.empty();
             }
             switch (errorCode) {
-                default:
-                    return Optional.empty();
+            default:
+                return Optional.empty();
             }
         };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                   operationMetadata, exceptionMetadataMapper);
-        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(oneOperationRequest, this.clientConfiguration);
-        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, oneOperationRequest
-            .overrideConfiguration().orElse(null));
+                operationMetadata, exceptionMetadataMapper);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getDatabaseVersionRequest,
+                this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getDatabaseVersionRequest
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
-            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "AmazonProtocolRestJsonWithCustomContentType");
-            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OneOperation");
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Foo Bar");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetDatabaseVersion");
 
-            return clientHandler.execute(new ClientExecutionParams<OneOperationRequest, OneOperationResponse>()
-                                             .withOperationName("OneOperation").withProtocolMetadata(protocolMetadata)
-                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                                             .withRequestConfiguration(clientConfiguration).withInput(oneOperationRequest)
-                                             .withMetricCollector(apiCallMetricCollector)
-                                             .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
+            return clientHandler.execute(new ClientExecutionParams<GetDatabaseVersionRequest, GetDatabaseVersionResponse>()
+                    .withOperationName("GetDatabaseVersion").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withInput(getDatabaseVersionRequest)
+                    .withMetricCollector(apiCallMetricCollector)
+                    .withMarshaller(new GetDatabaseVersionRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
         }
@@ -131,7 +135,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -146,7 +150,7 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
@@ -179,25 +183,30 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
             return clientConfiguration;
         }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
-        ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(
-            configuration);
+        FooBarServiceClientConfigurationBuilder serviceConfigBuilder = new FooBarServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
+        AttributeMap newContextParams = configuration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
+        AttributeMap originalContextParams = clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
+        newContextParams = (newContextParams != null) ? newContextParams : AttributeMap.empty();
+        originalContextParams = originalContextParams != null ? originalContextParams : AttributeMap.empty();
+        Validate.validState(
+                Objects.equals(originalContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED),
+                        newContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED)),
+                "CROSS_REGION_ACCESS_ENABLED cannot be modified by request level plugins");
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(ProtocolRestJsonWithCustomContentTypeException::builder)
-                      .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1").contentType("application/json");
+        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(FooBarException::builder)
+                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     @Override
-    public final ProtocolRestJsonWithCustomContentTypeServiceClientConfiguration serviceClientConfiguration() {
-        return new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder())
-            .build();
+    public final FooBarServiceClientConfiguration serviceClientConfiguration() {
+        return new FooBarServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
