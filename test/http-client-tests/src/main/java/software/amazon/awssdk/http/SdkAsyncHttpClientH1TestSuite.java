@@ -172,6 +172,26 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
 
     }
 
+    @Test
+    public void doesNotRetryOn429StatusCode() throws InterruptedException {
+        server.return429OnFirstRequest = true;
+        server.closeConnection = false;
+
+        HttpTestUtils.sendGetRequest(server.port(), client).join();
+        // Wait to ensure no retries happen
+        Thread.sleep(100);
+
+        // Verify only one request was made (no retries)
+        assertThat(server.requestCount).isEqualTo(1);
+
+        // Send second request to verify connection reuse works after 429
+        HttpTestUtils.sendGetRequest(server.port(), client).join();
+
+        // Verify connection was reused and total of 2 requests
+        assertThat(server.channels.size()).isEqualTo(1);
+        assertThat(server.requestCount).isEqualTo(2);
+    }
+
     private static class Server extends ChannelInitializer<Channel> {
         private static final byte[] CONTENT = "helloworld".getBytes(StandardCharsets.UTF_8);
         private ServerBootstrap bootstrap;
@@ -181,6 +201,9 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
         private SslContext sslCtx;
         private boolean return500OnFirstRequest;
         private boolean closeConnection;
+        private boolean return429OnFirstRequest;
+        private volatile int requestCount = 0;
+
 
         public void init() throws Exception {
             SelfSignedCertificate ssc = new SelfSignedCertificate();
@@ -218,10 +241,14 @@ public abstract class SdkAsyncHttpClientH1TestSuite {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                 if (msg instanceof HttpRequest) {
+                    requestCount++;
 
                     HttpResponseStatus status;
                     if (ctx.channel().equals(channels.get(0)) && return500OnFirstRequest) {
                         status = INTERNAL_SERVER_ERROR;
+                    } else if (ctx.channel().equals(channels.get(0)) && return429OnFirstRequest) {
+                        status = HttpResponseStatus.TOO_MANY_REQUESTS;
+                        return429OnFirstRequest = false; // Reset after first use
                     } else {
                         status = OK;
                     }
