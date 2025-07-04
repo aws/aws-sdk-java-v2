@@ -1,0 +1,157 @@
+name: S3 Regression Tests
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '.all-contributorsrc'
+      - 'docs/**'
+
+permissions:
+  id-token: write
+
+jobs:
+  check-s3-related-changes:
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    outputs:
+      has_s3_related_changes: ${{ steps.check-changes.outputs.has_s3_related_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for changes related to s3
+        id: check-changes
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth 1
+          CHANGED_FILES=$(git diff remotes/origin/${{ github.base_ref }} --name-only)
+          if echo "$CHANGED_FILES" | grep -q -E '^core/|^services/s3/|^services-custom/s3-transfer-manager/|^http-client-spi/|^http-clients/'; then
+            echo "Detected changes in S3, HTTP client, or core modules"
+            echo "has_s3_related_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes detected in S3, HTTP client, or core modules"
+            echo "has_s3_related_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+  s3-regression-tests-download:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: DownloadStreamingRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for downloads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES
+          
+  s3-regression-tests-control-plane:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: ControlPlaneOperationRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for control plane
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES
+          
+  s3-regression-tests-upload-sync:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadSyncRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES
+          
+  s3-regression-tests-upload-async:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadAsyncRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES
+          
+  s3-regression-tests-upload-crt:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadCrtRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES
+          
+  s3-regression-tests-upload-multi:
+    needs: check-s3-related-changes
+    if: github.repository == 'aws/aws-sdk-java-v2'
+    runs-on: ubuntu-latest
+    env:
+      REGRESSION_TEST: UploadTransferManagerRegressionTesting
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes }}
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
+          aws-region: us-west-2
+          role-duration-seconds: 7200
+      - name: Run s3 regression tests for uploads
+        uses: aws-actions/aws-codebuild-run-build@v1
+        with:
+          project-name: aws-sdk-java-v2-s3-regression-tests
+          env-vars-for-codebuild: REGRESSION_TEST,HAS_S3_CHANGES

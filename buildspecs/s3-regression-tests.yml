@@ -3,8 +3,13 @@ version: 0.2
 phases:
   build:
     commands:
-      - mvn clean install -P s3-regression-tests -pl :s3-tests -am -T1C -Dregression.test=$REGRESSION_TEST $MAVEN_OPTIONS
-      - echo $MAVEN_OPTIONS
+      - |
+        if [ "$HAS_S3_CHANGES" = "false" ]; then
+          echo "No s3 related changes in the PR, skipping s3 regression tests"
+          exit 0
+        fi
+        mvn clean install -P s3-regression-tests -pl :s3-tests -am -T1C -Dregression.test="$REGRESSION_TEST" $MAVEN_OPTIONS
+        echo $MAVEN_OPTIONS
     finally:
       - mkdir -p codebuild-test-reports
       - find ./ -name 'TEST-*.xml' -type f -exec cp {} codebuild-test-reports/ \;
