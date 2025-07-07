@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Query Protocol",
+    "contributor": "",
+    "description": "Fixed the bug that EC2 DescribeInstances query uses locale-dependent formatting"
+}
