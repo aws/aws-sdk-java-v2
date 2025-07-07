@@ -22,6 +22,9 @@ public enum ValidationErrorId {
     ),
     UNKNOWN_SHAPE_MEMBER("The model references an unknown shape member."),
     REQUEST_URI_NOT_FOUND("The request URI does not exist."),
+
+    INVALID_CODEGEN_CUSTOMIZATION("A customization is enabled for this service that cannot be applied for the given service "
+                                  + "model.")
     ;
 
     private final String description;

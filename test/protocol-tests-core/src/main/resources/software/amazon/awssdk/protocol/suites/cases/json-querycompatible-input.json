@@ -1,0 +1,29 @@
+[
+  {
+    "id": "QueryCompatibleAwsJson10CborSendsQueryModeHeader",
+    "description": "Clients for query-compatible services MUST send the x-amzn-query-mode header.",
+    "given": {
+      "input": {}
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "QueryCompatibleOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "method": "POST",
+        "headers": {
+          "contains": {
+            "X-Amz-Target": "QueryCompatibleJsonRpc10.QueryCompatibleOperation",
+            "x-amzn-query-mode": "true",
+            "Content-Type": "application/x-amz-json-1.0"
+          }
+        },
+        "body": {
+          "jsonEquals": "{}"
+        },
+        "uri": "/"
+      }
+    }
+  }
+]
