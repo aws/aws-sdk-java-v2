@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS Query Protocol",
     "contributor": "",
-    "description": "Fixed the bug that EC2 DescribeInstances query uses locale-dependent formatting"
+    "description": "Fixed EC2 DescribeInstances query failure in non-ASCII digit locales by using ROOT locale when formatting query paths to ensure ASCII digits are always used."
 }
