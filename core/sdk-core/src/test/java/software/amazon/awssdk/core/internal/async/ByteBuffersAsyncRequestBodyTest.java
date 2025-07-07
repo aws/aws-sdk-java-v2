@@ -82,6 +82,16 @@ class ByteBuffersAsyncRequestBodyTest {
     }
 
     @Test
+    public void subscriberIsMarkedAsCompletedWhenNoBufferIsGiven() {
+        AsyncRequestBody requestBody = ByteBuffersAsyncRequestBody.of();
+        TestSubscriber subscriber = new TestSubscriber();
+
+        requestBody.subscribe(subscriber);
+        subscriber.request(1);
+        assertTrue(subscriber.onCompleteCalled);
+    }
+
+    @Test
     public void subscriberIsMarkedAsCompletedWhenARequestIsMadeForMoreBuffersThanAreAvailable() {
         AsyncRequestBody requestBody = ByteBuffersAsyncRequestBody.from("Hello World!".getBytes(StandardCharsets.UTF_8));
 
