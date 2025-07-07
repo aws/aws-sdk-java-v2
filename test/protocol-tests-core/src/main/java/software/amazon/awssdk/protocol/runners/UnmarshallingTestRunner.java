@@ -25,6 +25,9 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Base64;
+import org.junit.Assert;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.protocol.asserts.unmarshalling.UnmarshallingTestContext;
 import software.amazon.awssdk.protocol.model.GivenResponse;
 import software.amazon.awssdk.protocol.model.TestCase;
+import software.amazon.awssdk.protocol.model.Then;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.utils.IoUtils;
@@ -90,9 +94,30 @@ class UnmarshallingTestRunner {
             throw new IllegalStateException("Test case expected client to throw error");
         } catch (InvocationTargetException t) {
             String errorName = testCase.getWhen().getErrorName();
-            testCase.getThen().getErrorUnmarshallingAssertion().assertMatches(
-                createErrorContext(operationName, errorName), t.getCause());
+            Throwable cause = t.getCause();
+            Then then = testCase.getThen();
+
+            then.getErrorUnmarshallingAssertion().assertMatches(
+                createErrorContext(operationName, errorName), cause);
+
+            validateErrorCodeIfPresent(then, cause);
         }
+    }
+
+    private void validateErrorCodeIfPresent(Then then, Throwable cause) {
+        String expectedErrorCode = then.getErrorCode();
+        if (expectedErrorCode != null) {
+            String actualErrorCode = extractErrorCode(cause);
+            Assert.assertEquals(expectedErrorCode, actualErrorCode);
+        }
+    }
+
+    private String extractErrorCode(Throwable cause) {
+        if (!(cause instanceof AwsServiceException)) {
+            return null;
+        }
+        AwsErrorDetails awsErrorDetails = ((AwsServiceException) cause).awsErrorDetails();
+        return awsErrorDetails.errorCode();
     }
 
     private UnmarshallingTestContext createErrorContext(String operationName, String errorName) {
