@@ -86,10 +86,11 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
                         if (n > 0) {
                             int i = index.getAndIncrement();
 
+                            if (buffers.length == 0 && completed.compareAndSet(false, true)) {
+                                s.onComplete();
+                            }
+
                             if (i >= buffers.length) {
-                                if (completed.compareAndSet(false, true)) {
-                                    s.onComplete();
-                                }
                                 return;
                             }
 
