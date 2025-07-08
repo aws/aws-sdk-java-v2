@@ -1,0 +1,31 @@
+[
+  {
+    "id": "NonQueryCompatibleRpcV2CborForbidsQueryModeHeader",
+    "description": "The query mode header MUST NOT be set on non-query-compatible services.",
+    "given": {
+      "input": {}
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "NonQueryCompatibleOperation"
+    },
+    "then": {
+      "serializedAs": {
+        "method": "POST",
+        "headers": {
+          "contains": {
+            "Accept": "application/cbor",
+            "smithy-protocol": "rpc-v2-cbor"
+          },
+          "doesNotContain": [
+            "x-amzn-query-mode"
+          ]
+        },
+        "body": {
+          "encodedEquals": ""
+        },
+        "uri": "/service/NonQueryCompatibleRpcV2Protocol/operation/NonQueryCompatibleOperation"
+      }
+    }
+  }
+]
