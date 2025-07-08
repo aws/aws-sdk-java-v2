@@ -30,6 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -57,7 +58,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -69,7 +69,7 @@ import software.amazon.awssdk.utils.IoUtils;
 /**
  * Tests for {@link DefaultPresignedUrlManager} using MockSyncHttpClient to verify HTTP interactions.
  */
-public class DefaultPresignedUrlManagerTest {
+ class DefaultPresignedUrlManagerTest {
 
     private static final String TEST_CONTENT = "test-content";
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
@@ -211,7 +211,7 @@ public class DefaultPresignedUrlManagerTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("additionalTestCases")
     void given_PresignedUrlManager_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(String testName,
-                                                                                                String testType) throws IOException {
+                                                                                                String testType) {
         switch (testType) {
             case "CUSTOM_TRANSFORMER":
                 mockHttpClient.stubNextResponse(createSuccessResponse());
@@ -261,7 +261,7 @@ public class DefaultPresignedUrlManagerTest {
                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, mockHttpClient)
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, Collections.emptyMap())
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, Collections.emptyList())
-                                     .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
+                                     .option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.doNotRetry())
                                      .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
                                      .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
                                      .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
