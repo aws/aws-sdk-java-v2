@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocols.query.internal.marshall;
 
 import java.util.List;
-import java.util.Locale;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.traits.ListTrait;
