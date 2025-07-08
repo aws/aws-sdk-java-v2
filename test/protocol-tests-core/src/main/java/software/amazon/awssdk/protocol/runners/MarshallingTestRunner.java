@@ -61,7 +61,7 @@ class MarshallingTestRunner {
     void runTest(TestCase testCase) throws Exception {
         resetWireMock();
         ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
-        AwsRequest request = createRequest(testCase, shapeModelReflector);
+        AwsRequest request = createRequest(shapeModelReflector);
 
         if (!model.getShapes().get(testCase.getWhen().getOperationName() + "Request").isHasStreamingMember()) {
             clientReflector.invokeMethod(testCase, request);
@@ -88,16 +88,12 @@ class MarshallingTestRunner {
         stubFor(any(urlMatching(".*")).willReturn(responseDefBuilder));
     }
 
-    private AwsRequest createRequest(TestCase testCase, ShapeModelReflector shapeModelReflector) {
+    private AwsRequest createRequest(ShapeModelReflector shapeModelReflector) {
         return ((AwsRequest) shapeModelReflector.createShapeObject())
                 .toBuilder()
                 .overrideConfiguration(requestConfiguration -> requestConfiguration
                     .addPlugin(config -> {
                         config.overrideConfiguration(c -> c.addExecutionInterceptor(localhostOnlyForWiremockInterceptor));
-
-                        if (StringUtils.isNotBlank(testCase.getGiven().getHost())) {
-                            config.endpointOverride(URI.create("https://" + testCase.getGiven().getHost()));
-                        }
                     }))
                 .build();
     }

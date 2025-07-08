@@ -41,6 +41,7 @@ import software.amazon.awssdk.utils.StringUtils;
  */
 public class ShapeModelReflector {
 
+    public static final long EPOCH_SECONDS_2050 = 2524680000L;
     private final IntermediateModel model;
     private final String shapeName;
     private final JsonNode input;
@@ -250,15 +251,7 @@ public class ShapeModelReflector {
             case "Double":
                 return currentNode.asDouble();
             case "Instant":
-                if (currentNode.isFloatingPointNumber()) {
-                    double fractionalEpoch = currentNode.asDouble();
-                    long seconds = (long) fractionalEpoch;
-                    long nanos = (long) ((fractionalEpoch - seconds) * 1_000_000_000L);
-                    //truncate to ms
-                    return Instant.ofEpochSecond(seconds, (nanos / 1_000_000) * 1_000_000);
-                } else {
-                    return Instant.ofEpochSecond(currentNode.asLong());
-                }
+                return getInstant(currentNode);
             case "SdkBytes":
                 return SdkBytes.fromUtf8String(currentNode.asText());
             case "Float":
@@ -270,6 +263,26 @@ public class ShapeModelReflector {
             default:
                 throw new IllegalArgumentException(
                         "Unsupported fieldType " + memberModel.getVariable().getSimpleType());
+        }
+    }
+
+    private static Instant getInstant(JsonNode currentNode) {
+        if (currentNode.isFloatingPointNumber()) {
+            double fractionalEpoch = currentNode.asDouble();
+            long seconds = (long) fractionalEpoch;
+            long nanos = (long) ((fractionalEpoch - seconds) * 1_000_000_000L);
+            //truncate to ms
+            return Instant.ofEpochSecond(seconds, (nanos / 1_000_000) * 1_000_000);
+        } else {
+            // attempt to infer if this value should be epoch seconds or milliseconds
+            long epoch = currentNode.asLong();
+            // smithy protocol tests occasionally uses small epoch seconds in tests (<10000)
+            // interpret those as seconds.  Additionally, anything that would be past 2050 as seconds,
+            // consider epoch ms.
+            if (epoch < 10000L || epoch > EPOCH_SECONDS_2050) {
+                return Instant.ofEpochMilli(epoch);
+            }
+            return Instant.ofEpochSecond(currentNode.asLong());
         }
     }
 
