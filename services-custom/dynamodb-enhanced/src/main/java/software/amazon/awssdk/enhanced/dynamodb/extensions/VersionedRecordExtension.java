@@ -175,6 +175,17 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
 
             long increment = versionIncrementByFromAnnotation;
+
+            /*
+            since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
+            to happen in a rela life scenario, we should add overflow protection.
+            */
+            if (existingVersion > Long.MAX_VALUE - increment) {
+                throw new IllegalStateException(
+                    String.format("Version overflow detected. Current version %d + increment %d would exceed Long.MAX_VALUE",
+                                  existingVersion, increment));
+            }
+
             newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
 
             condition = Expression.builder()
