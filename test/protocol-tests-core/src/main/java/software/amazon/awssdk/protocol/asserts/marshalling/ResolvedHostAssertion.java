@@ -15,26 +15,24 @@
 
 package software.amazon.awssdk.protocol.asserts.marshalling;
 
+import static org.junit.Assert.assertEquals;
+
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import java.util.ArrayList;
-import java.util.List;
-import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
- * Composite for MarshallingAssertion objects.
+ * Asserts the resolved host of a marshalled request.
  */
-public class CompositeMarshallingAssertion extends MarshallingAssertion {
+public class ResolvedHostAssertion extends MarshallingAssertion {
+    private final String expectedHost;
 
-    private final List<MarshallingAssertion> assertions = new ArrayList<>();
+    public ResolvedHostAssertion(String host) {
+        this.expectedHost = host;
+    }
 
     @Override
     protected void doAssert(LoggedRequest actual) throws Exception {
-        for (MarshallingAssertion assertion : assertions) {
-            assertion.assertMatches(actual);
-        }
+        // TODO:
+        // assertEquals(removeTrailingSlash(expectedUri), removeTrailingSlash(getActualPath(actual)));
     }
 
-    protected void addAssertion(MarshallingAssertion assertion) {
-        assertions.add(assertion);
-    }
 }

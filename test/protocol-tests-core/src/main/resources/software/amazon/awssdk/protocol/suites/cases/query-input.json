@@ -108,7 +108,8 @@
             "StringArg": "baz"
           }
         }
-      }
+      },
+      "host": "example.com"
     },
     "when": {
       "action": "marshall",

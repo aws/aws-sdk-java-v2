@@ -80,7 +80,7 @@ public class HeadersAssertion extends MarshallingAssertion {
     }
 
     private void assertMustContainHeaders(HttpHeaders actual) {
-        doesNotContain.forEach(headerName -> {
+        mustContain.forEach(headerName -> {
             assertTrue(String.format("Header '%s' was expected to be present", headerName),
                         actual.getHeader(headerName).isPresent());
         });

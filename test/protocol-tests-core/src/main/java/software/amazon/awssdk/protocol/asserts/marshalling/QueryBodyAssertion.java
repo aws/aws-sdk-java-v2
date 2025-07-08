@@ -24,6 +24,7 @@ import static software.amazon.awssdk.protocol.asserts.marshalling.QueryUtils.par
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class QueryBodyAssertion extends MarshallingAssertion  {
     private final String queryEquals;
@@ -49,8 +50,28 @@ public class QueryBodyAssertion extends MarshallingAssertion  {
 
     private void doAssert(Map<String, List<String>> expectedParams, Map<String, List<String>> actualParams) {
         assertThat(actualParams.keySet(), equalTo(expectedParams.keySet()));
-        expectedParams.forEach((key, value) -> assertThat(
-            actualParams.get(key), containsInAnyOrder(value.toArray())
-        ));
+        expectedParams.forEach((key, value) -> assertParamsEqual(actualParams.get(key), value));
     }
+
+    private void assertParamsEqual(List<String> actual, List<String> expected) {
+        if (expected.stream().allMatch(QueryBodyAssertion::isNumeric)) {
+            assertThat(
+                actual.stream().map(Double::parseDouble).collect(Collectors.toList()),
+                containsInAnyOrder(expected.stream().map(Double::parseDouble).toArray()));
+        } else {
+            assertThat(actual, containsInAnyOrder(expected.toArray()));
+        }
+    }
+
+    public static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) return false;
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+
 }

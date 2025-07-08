@@ -250,7 +250,15 @@ public class ShapeModelReflector {
             case "Double":
                 return currentNode.asDouble();
             case "Instant":
-                return Instant.ofEpochMilli(currentNode.asLong());
+                if (currentNode.isFloatingPointNumber()) {
+                    double fractionalEpoch = currentNode.asDouble();
+                    long seconds = (long) fractionalEpoch;
+                    long nanos = (long) ((fractionalEpoch - seconds) * 1_000_000_000L);
+                    //truncate to ms
+                    return Instant.ofEpochSecond(seconds, (nanos / 1_000_000) * 1_000_000);
+                } else {
+                    return Instant.ofEpochSecond(currentNode.asLong());
+                }
             case "SdkBytes":
                 return SdkBytes.fromUtf8String(currentNode.asText());
             case "Float":
