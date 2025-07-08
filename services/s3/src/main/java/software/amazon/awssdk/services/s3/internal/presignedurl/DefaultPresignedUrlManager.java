@@ -87,7 +87,7 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
                 .range(presignedUrlGetObjectRequest.range())
                 .build();
 
-        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(internalRequest, this.clientConfiguration);
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(this.clientConfiguration);
         List<MetricPublisher> metricPublishers = Optional.ofNullable(
             clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS))
             .orElse(Collections.emptyList());
@@ -115,12 +115,11 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
         }
     }
     
-    private SdkClientConfiguration updateSdkClientConfiguration(PresignedUrlGetObjectRequestWrapper request,
-                                                                SdkClientConfiguration clientConfiguration) {
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
-        configuration.option(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
-        configuration.option(SIGNER_OVERRIDDEN, true);
-        return configuration.build();
+    private SdkClientConfiguration updateSdkClientConfiguration(SdkClientConfiguration configuration) {
+        SdkClientConfiguration.Builder configBuilder = clientConfiguration.toBuilder();
+        configBuilder.option(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
+        configBuilder.option(SIGNER_OVERRIDDEN, true);
+        return configBuilder.build();
     }
 
 }
