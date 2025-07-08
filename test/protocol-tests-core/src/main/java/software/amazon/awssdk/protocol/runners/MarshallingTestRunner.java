@@ -15,24 +15,27 @@
 
 package software.amazon.awssdk.protocol.runners;
 
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.junit.Assert.assertEquals;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.List;
 import org.junit.Assert;
 import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
@@ -47,44 +50,42 @@ class MarshallingTestRunner {
 
     private final IntermediateModel model;
     private final ClientReflector clientReflector;
-    private final RequestRecordingInterceptor recordingInterceptor;
+    private final LocalhostOnlyForWiremockInterceptor localhostOnlyForWiremockInterceptor;
 
     MarshallingTestRunner(IntermediateModel model, ClientReflector clientReflector) {
         this.model = model;
         this.clientReflector = clientReflector;
-        this.recordingInterceptor = new RequestRecordingInterceptor();
-    }
-
-    /**
-     * @return LoggedRequest that wire mock captured.
-     */
-    private static LoggedRequest getLoggedRequest() {
-        List<LoggedRequest> requests = WireMockUtils.findAllLoggedRequests();
-        assertEquals(1, requests.size());
-        return requests.get(0);
+        this.localhostOnlyForWiremockInterceptor = new LocalhostOnlyForWiremockInterceptor();
     }
 
     void runTest(TestCase testCase) throws Exception {
+        resetWireMock();
         ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
         AwsRequest request = createRequest(testCase, shapeModelReflector);
 
-        try {
-            if (!model.getShapes().get(testCase.getWhen().getOperationName() + "Request").isHasStreamingMember()) {
-                clientReflector.invokeMethod(testCase, request);
-            } else {
-                clientReflector.invokeMethod(testCase,
-                                             request,
-                                             RequestBody.fromString(shapeModelReflector.getStreamingMemberValue()));
-            }
-            Assert.fail("Expected SDK client to intercept and record request before transmission.");
-        } catch (InvocationTargetException e) {
-            if (e.getTargetException() instanceof StopExecutionException) {
-                SdkHttpRequest recordedRequest = recordingInterceptor.getRequest();
-                testCase.getThen().getMarshallingAssertion().assertMatches(getLoggedRequest());
-            } else {
-                throw e;
-            }
+        if (!model.getShapes().get(testCase.getWhen().getOperationName() + "Request").isHasStreamingMember()) {
+            clientReflector.invokeMethod(testCase, request);
+        } else {
+            clientReflector.invokeMethod(testCase,
+                                         request,
+                                         RequestBody.fromString(shapeModelReflector.getStreamingMemberValue()));
         }
+        testCase.getThen().getMarshallingAssertion()
+                .assertMatches(localhostOnlyForWiremockInterceptor.getLoggedRequestWithOriginalHost());
+    }
+
+    /**
+     * Reset wire mock and re-configure stubbing.
+     */
+    private void resetWireMock() {
+        WireMock.reset();
+        // Stub to return 200 for all requests
+        ResponseDefinitionBuilder responseDefBuilder = aResponse().withStatus(200);
+        // XML Unmarshallers expect at least one level in the XML document.
+        if (model.getMetadata().isXmlProtocol()) {
+            responseDefBuilder.withBody("<foo></foo>");
+        }
+        stubFor(any(urlMatching(".*")).willReturn(responseDefBuilder));
     }
 
     private AwsRequest createRequest(TestCase testCase, ShapeModelReflector shapeModelReflector) {
@@ -92,7 +93,7 @@ class MarshallingTestRunner {
                 .toBuilder()
                 .overrideConfiguration(requestConfiguration -> requestConfiguration
                     .addPlugin(config -> {
-                        config.overrideConfiguration(c -> c.addExecutionInterceptor(recordingInterceptor));
+                        config.overrideConfiguration(c -> c.addExecutionInterceptor(localhostOnlyForWiremockInterceptor));
 
                         if (StringUtils.isNotBlank(testCase.getGiven().getHost())) {
                             config.endpointOverride(URI.create("https://" + testCase.getGiven().getHost()));
@@ -115,26 +116,49 @@ class MarshallingTestRunner {
         return operationName + "Request";
     }
 
-    private static final class RequestRecordingInterceptor implements ExecutionInterceptor {
-        private SdkHttpRequest request;
+    /**
+     * Wiremock requires that requests use "localhost" as the host - any prefixes such as "foo.localhost" will
+     * result in a DNS lookup that will fail.  This interceptor modifies the request to ensure this and captures
+     * the original host.
+     */
+    private static final class LocalhostOnlyForWiremockInterceptor implements ExecutionInterceptor {
+        private String originalHost;
+        private String originalProtocol;
+        private int originalPort;
 
         @Override
-        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            request = context.httpRequest();
+        public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+            originalHost = context.httpRequest().host();
+            originalProtocol = context.httpRequest().protocol();
+            originalPort = context.httpRequest().port();
 
-            // Log or record the request here
-            System.out.println("Recording Request:");
-            System.out.println("HTTP Method: " + request.method());
-            System.out.println("Endpoint: " + request.getUri());
-            System.out.println("Headers: " + request.headers());
-
-            throw new StopExecutionException();
+            return context.httpRequest().toBuilder()
+                          .host("localhost")
+                          .port(WireMockUtils.port())
+                          .protocol("http")
+                          .build();
         }
 
-        public SdkHttpRequest getRequest() {
-            return request;
+        /**
+         * @return LoggedRequest that wire mock captured modified with the original host captured by this
+         * interceptor.
+         */
+        public LoggedRequest getLoggedRequestWithOriginalHost() {
+            List<LoggedRequest> requests = WireMockUtils.findAllLoggedRequests();
+            assertEquals(1, requests.size());
+            LoggedRequest loggedRequest = requests.get(0);
+            return new LoggedRequest(
+                loggedRequest.getUrl(),
+                originalProtocol + "://" + originalHost + ":" + originalPort,
+                loggedRequest.getMethod(),
+                loggedRequest.getClientIp(),
+                loggedRequest.getHeaders(),
+                loggedRequest.getCookies(),
+                loggedRequest.isBrowserProxyRequest(),
+                loggedRequest.getLoggedDate(),
+                loggedRequest.getBody(),
+                loggedRequest.getParts()
+            );
         }
     }
-
-    private static class StopExecutionException extends RuntimeException {}
 }

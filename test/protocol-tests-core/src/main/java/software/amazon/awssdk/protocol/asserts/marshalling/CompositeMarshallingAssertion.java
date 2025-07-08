@@ -18,7 +18,6 @@ package software.amazon.awssdk.protocol.asserts.marshalling;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.util.ArrayList;
 import java.util.List;
-import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * Composite for MarshallingAssertion objects.

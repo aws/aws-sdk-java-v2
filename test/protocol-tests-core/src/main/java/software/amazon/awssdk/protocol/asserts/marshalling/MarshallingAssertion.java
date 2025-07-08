@@ -16,7 +16,6 @@
 package software.amazon.awssdk.protocol.asserts.marshalling;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import software.amazon.awssdk.http.SdkHttpRequest;
 
 /**
  * Assertion on the marshalled request.

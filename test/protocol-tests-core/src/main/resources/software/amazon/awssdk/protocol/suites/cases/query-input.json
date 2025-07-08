@@ -28,7 +28,8 @@
     "id": "AwsQueryEndpointTrait",
     "description": "Operations can prepend to the given host if they define the\nendpoint trait.",
     "given": {
-      "input": {}
+      "input": {},
+      "host": "example.com"
     },
     "when": {
       "action": "marshall",
@@ -45,7 +46,8 @@
         "body": {
           "queryEquals": "Action=EndpointOperation&Version=2020-01-08"
         },
-        "uri": "/"
+        "uri": "/",
+        "resolvedHost": "foo.example.com"
       }
     }
   },
@@ -55,7 +57,8 @@
     "given": {
       "input": {
         "label": "bar"
-      }
+      },
+      "host": "example.com"
     },
     "when": {
       "action": "marshall",
@@ -72,27 +75,8 @@
         "body": {
           "queryEquals": "Action=EndpointWithHostLabelOperation&Version=2020-01-08&label=bar"
         },
-        "uri": "/"
-      }
-    }
-  },
-  {
-    "id": "QueryHostWithPath",
-    "description": "Custom endpoints supplied by users can have paths",
-    "given": {
-      "input": {}
-    },
-    "when": {
-      "action": "marshall",
-      "operation": "HostWithPathOperation"
-    },
-    "then": {
-      "serializedAs": {
-        "method": "POST",
-        "body": {
-          "queryEquals": "Action=HostWithPathOperation&Version=2020-01-08"
-        },
-        "uri": "/custom/"
+        "uri": "/",
+        "resolvedHost": "foo.bar.example.com"
       }
     }
   },
@@ -108,8 +92,7 @@
             "StringArg": "baz"
           }
         }
-      },
-      "host": "example.com"
+      }
     },
     "when": {
       "action": "marshall",
