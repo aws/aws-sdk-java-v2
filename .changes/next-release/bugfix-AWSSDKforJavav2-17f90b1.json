@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed AsyncRequestBody.fromByteBuffers() and related methods to properly complete when called with no buffers"
+}
