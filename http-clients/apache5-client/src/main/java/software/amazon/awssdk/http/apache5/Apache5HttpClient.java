@@ -113,7 +113,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
 
-    public static final String CLIENT_NAME = "Apache5Preview";
+    private static final String CLIENT_NAME = "Apache5Preview";
 
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
@@ -733,14 +733,10 @@ public final class Apache5HttpClient implements SdkHttpClient {
                 // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
                 builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
             }
-            PoolingHttpClientConnectionManager cm = builder.build();
-
-
-            cm.setDefaultMaxPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
-            cm.setMaxTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
-            cm.setDefaultSocketConfig(buildSocketConfig(standardOptions));
-
-            return cm;
+            builder.setMaxConnPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
+            builder.setMaxConnTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
+            builder.setDefaultSocketConfig(buildSocketConfig(standardOptions));
+            return builder.build();
         }
 
         private SSLConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,
