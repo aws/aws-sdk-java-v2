@@ -165,7 +165,7 @@ public class DefaultPresignedUrlManagerTest {
         if (expectSuccess) {
             assertSuccessfulGetObject(testRequest);
         } else {
-            assertThatThrownBy(() -> presignedUrlManager.getObject(testRequest))
+            assertThatThrownBy(() -> presignedUrlManager.getObject(testRequest, ResponseTransformer.toInputStream()))
                 .isInstanceOf(expectedExceptionType);
         }
     }
@@ -179,7 +179,7 @@ public class DefaultPresignedUrlManagerTest {
         PresignedUrlGetObjectRequest.Builder builder = PresignedUrlGetObjectRequest.builder();
         requestCustomizer.accept(builder);
         PresignedUrlGetObjectRequest request = builder.build();
-        ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request);
+        ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request, ResponseTransformer.toInputStream());
         assertThat(result).isNotNull();
         String content = IoUtils.toUtf8String(result);
         assertThat(content).isEqualTo(TEST_CONTENT);
@@ -223,7 +223,7 @@ public class DefaultPresignedUrlManagerTest {
                 
             case "ENDPOINT_VERIFICATION":
                 mockHttpClient.stubNextResponse(createSuccessResponse());
-                presignedUrlManager.getObject(testRequest);
+                presignedUrlManager.getObject(testRequest, ResponseTransformer.toInputStream());
                 SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
                 assertThat(lastRequest.getUri().toString()).startsWith(testPresignedUrl.toString().split("\\?")[0]);
                 String presignedUrlQuery = testPresignedUrl.getQuery();
@@ -245,7 +245,7 @@ public class DefaultPresignedUrlManagerTest {
                 DefaultPresignedUrlManager managerWithMetrics = new DefaultPresignedUrlManager(
                     clientHandler, protocolFactory, clientConfigWithMetrics, protocolMetadata);
                 mockHttpClient.stubNextResponse(createSuccessResponse());
-                managerWithMetrics.getObject(testRequest);
+                managerWithMetrics.getObject(testRequest, ResponseTransformer.toInputStream());
                 verify(mockPublisher, atLeastOnce()).publish(any(MetricCollection.class));
                 ArgumentCaptor<MetricCollection> metricsCaptor = ArgumentCaptor.forClass(MetricCollection.class);
                 verify(mockPublisher).publish(metricsCaptor.capture());
@@ -300,7 +300,7 @@ public class DefaultPresignedUrlManagerTest {
 
     private void assertSuccessfulGetObject(PresignedUrlGetObjectRequest request) {
         try {
-            ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request);
+            ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request, ResponseTransformer.toInputStream());
             assertThat(result).isNotNull();
             String content = IoUtils.toUtf8String(result);
             assertThat(content).isEqualTo(TEST_CONTENT);
