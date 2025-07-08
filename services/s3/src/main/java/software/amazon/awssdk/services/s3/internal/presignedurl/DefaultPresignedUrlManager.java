@@ -87,9 +87,9 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
                 .range(presignedUrlGetObjectRequest.range())
                 .build();
 
-        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(this.clientConfiguration);
+        SdkClientConfiguration updatedClientConfiguration = updateSdkClientConfiguration(this.clientConfiguration);
         List<MetricPublisher> metricPublishers = Optional.ofNullable(
-            clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS))
+            updatedClientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS))
             .orElse(Collections.emptyList());
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ?
             NoOpMetricCollector.create() : MetricCollector.create("ApiCall");
@@ -104,7 +104,7 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
                             .withProtocolMetadata(protocolMetadata)
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(clientConfiguration)
+                            .withRequestConfiguration(updatedClientConfiguration)
                             .withInput(internalRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             // TODO: Deprecate IS_DISCOVERED_ENDPOINT, use new SKIP_ENDPOINT_RESOLUTION for better semantics
@@ -115,7 +115,7 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
         }
     }
     
-    private SdkClientConfiguration updateSdkClientConfiguration(SdkClientConfiguration configuration) {
+    private SdkClientConfiguration updateSdkClientConfiguration(SdkClientConfiguration clientConfiguration) {
         SdkClientConfiguration.Builder configBuilder = clientConfiguration.toBuilder();
         configBuilder.option(SdkAdvancedClientOption.SIGNER, new NoOpSigner());
         configBuilder.option(SIGNER_OVERRIDDEN, true);
