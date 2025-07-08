@@ -24,15 +24,8 @@ import static software.amazon.awssdk.protocol.asserts.marshalling.QueryUtils.par
 import static software.amazon.awssdk.protocol.asserts.marshalling.QueryUtils.parseQueryParamsFromBody;
 
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Asserts on the query parameters of the marshalled request.

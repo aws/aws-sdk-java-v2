@@ -31,8 +31,6 @@ public class ResolvedHostAssertion extends MarshallingAssertion {
 
     @Override
     protected void doAssert(LoggedRequest actual) throws Exception {
-        // TODO:
-        // assertEquals(removeTrailingSlash(expectedUri), removeTrailingSlash(getActualPath(actual)));
+        assertEquals(expectedHost, actual.getHost());
     }
-
 }

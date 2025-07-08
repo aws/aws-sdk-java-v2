@@ -26,10 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.List;
-import org.junit.Assert;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -41,7 +38,6 @@ import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
 import software.amazon.awssdk.protocol.wiremock.WireMockUtils;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Test runner for test cases exercising the client marshallers.

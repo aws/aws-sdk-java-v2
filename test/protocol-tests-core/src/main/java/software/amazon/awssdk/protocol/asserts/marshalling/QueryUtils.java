@@ -27,7 +27,8 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
 public final class QueryUtils {
-    private QueryUtils() {}
+    private QueryUtils() {
+    }
 
     public static Map<String, List<String>> parseQueryParamsFromBody(String body) {
         return toQueryParamMap(URLEncodedUtils.parse(body, StandardCharsets.UTF_8));

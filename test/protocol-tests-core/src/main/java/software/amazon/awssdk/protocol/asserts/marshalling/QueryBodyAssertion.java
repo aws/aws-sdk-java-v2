@@ -64,7 +64,9 @@ public class QueryBodyAssertion extends MarshallingAssertion  {
     }
 
     public static boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) return false;
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
         try {
             Double.parseDouble(str);
             return true;
