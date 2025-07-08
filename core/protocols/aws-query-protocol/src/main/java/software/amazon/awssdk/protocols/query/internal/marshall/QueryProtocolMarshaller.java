@@ -51,12 +51,8 @@ public final class QueryProtocolMarshaller
     }
 
     private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
-        String path = "";
-        if (request != null && request.encodedPath() != null && !"/".equals(request.encodedPath())) {
-            path = request.encodedPath();
-        }
         return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
-                            .encodedPath(path)
+                            .encodedPath("")
                             .putRawQueryParameter("Action", operationInfo.operationIdentifier())
                             .putRawQueryParameter("Version", operationInfo.apiVersion());
     }

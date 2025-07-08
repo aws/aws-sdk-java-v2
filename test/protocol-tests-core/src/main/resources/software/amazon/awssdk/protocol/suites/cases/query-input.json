@@ -81,27 +81,6 @@
     }
   },
   {
-    "id": "QueryHostWithPath",
-    "description": "Custom endpoints supplied by users can have paths",
-    "given": {
-      "input": {},
-      "host": "example.com/custom"
-    },
-    "when": {
-      "action": "marshall",
-      "operation": "HostWithPathOperation"
-    },
-    "then": {
-      "serializedAs": {
-        "method": "POST",
-        "body": {
-          "queryEquals": "Action=HostWithPathOperation&Version=2020-01-08"
-        },
-        "uri": "/custom/"
-      }
-    }
-  },
-  {
     "id": "NestedStructures",
     "description": "Serializes nested structures using dots",
     "given": {

@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS Query Protocol",
-    "contributor": "",
-    "description": "Preserve the path set on a custom endpoint configured on the client."
-}
