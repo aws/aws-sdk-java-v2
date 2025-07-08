@@ -37,6 +37,10 @@ public class RequestBodyAssertion extends CompositeMarshallingAssertion {
         addAssertion(new QueryBodyAssertion(queryEquals));
     }
 
+    public void setCborEquals(String cborEquals) {
+        addAssertion(new CborBodyAssertion(cborEquals));
+    }
+
     public void setEquals(String equals) {
         addAssertion(new RawBodyAssertion(equals));
     }
