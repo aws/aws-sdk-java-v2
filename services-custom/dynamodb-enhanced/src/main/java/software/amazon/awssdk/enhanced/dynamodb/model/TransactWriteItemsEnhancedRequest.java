@@ -19,6 +19,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -34,12 +35,14 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOp
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.PutItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableWriteOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
 import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
 /**
@@ -272,16 +275,53 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
-         * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
-         * on the delete action, see the low-level operation description in for instance
-         * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
+         * Adds a primary lookup key for the item to delete, and its associated table, to the transaction.
+         * <p>
+         * This method does not enable optimistic locking: the deletion will proceed regardless of the
+         * item's version, and no version check is applied.
+         * </p>
          *
          * @param mappedTableResource the table where the key is located
-         * @param keyItem             an item that will have its key fields used to match a record to retrieve from the database
+         * @param keyItem             an item whose key fields identify the record to delete
          * @param <T>                 the type of modelled objects in the table
+         *
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {
+            return addDeleteItem(mappedTableResource, keyItem, false);
+        }
+
+        /**
+         * Overload of {@link #addDeleteItem(MappedTableResource, Object)} that adds optional optimistic locking support.
+         * <p>
+         * When {@code useOptimisticLocking} is {@code true}, the delete operation will include a condition
+         * expression to verify the item's version attribute matches the expected value. If the version in
+         * the database differs, a {@link TransactionCanceledException} will be thrown.
+         * Otherwise, this method behaves exactly like the original overload and deletes
+         * the item without any version check.
+         * </p>
+         *
+         * @param mappedTableResource   the table where the key is located
+         * @param keyItem               an item whose key fields identify the record to delete
+         * @param useOptimisticLocking whether to enable optimistic locking (version check) for deletion
+         * @param <T>                   the type of modelled objects in the table
+         *
+         * @throws TransactionCanceledException if {@code useOptimisticLocking} is {@code true} and the
+         *                                      version of the specified object does not match the version
+         *                                      persisted in the database
+         *
+         * @return a builder of this type
+         */
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem, boolean useOptimisticLocking) {
+            if (useOptimisticLocking) {
+                TransactDeleteItemEnhancedRequest request =
+                    TransactDeleteItemEnhancedRequest.builder().key(mappedTableResource.keyFrom(keyItem)).build();
+                itemSupplierList.add(() -> generateTransactDeleteItem(mappedTableResource, DeleteItemOperation.create(request),
+                                                                      mappedTableResource.tableSchema().itemToMap(keyItem,
+                                                                                                                  true)));
+                return this;
+            }
+
             return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
         }
 
@@ -453,6 +493,15 @@ public final class TransactWriteItemsEnhancedRequest {
             return generator.generateTransactWriteItem(mappedTableResource.tableSchema(),
                                                        DefaultOperationContext.create(mappedTableResource.tableName()),
                                                        mappedTableResource.mapperExtension());
+        }
+
+        private <T> TransactWriteItem generateTransactDeleteItem(MappedTableResource<T> mappedTableResource,
+                                                                 DeleteItemOperation<T> generator,
+                                                                 Map<String, AttributeValue> itemMap) {
+            return generator.generateTransactDeleteItem(mappedTableResource.tableSchema(),
+                                                        DefaultOperationContext.create(mappedTableResource.tableName()),
+                                                        mappedTableResource.mapperExtension(),
+                                                        itemMap);
         }
     }
 }
