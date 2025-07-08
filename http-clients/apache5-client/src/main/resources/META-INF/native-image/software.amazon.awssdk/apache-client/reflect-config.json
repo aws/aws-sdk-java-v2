@@ -9,14 +9,6 @@
     ]
   },
   {
-    "name": "org.apache.http.client.config.RequestConfig$Builder",
-    "methods": [
-      {
-        "name": "setNormalizeUri"
-      }
-    ]
-  },
-  {
     "name": "org.apache.commons.logging.LogFactory",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

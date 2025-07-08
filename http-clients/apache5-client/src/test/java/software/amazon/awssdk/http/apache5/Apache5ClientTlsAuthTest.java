@@ -20,8 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.anyOf;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSWORD;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
@@ -37,8 +36,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.NoHttpResponseException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -126,9 +123,8 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
 
     @Test
     public void requestFailsWhenKeyProviderNotConfigured() throws IOException {
-        thrown.expect(anyOf(instanceOf(NoHttpResponseException.class), instanceOf(SSLException.class), instanceOf(SocketException.class)));
         client = Apache5HttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
-        makeRequestWithHttpClient(client);
+        assertThatThrownBy(() -> makeRequestWithHttpClient(client)).isInstanceOfAny(SSLException.class, SocketException.class);
     }
 
     @Test
