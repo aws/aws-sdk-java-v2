@@ -52,7 +52,7 @@ public final class QueryProtocolMarshaller
 
     private SdkHttpFullRequest.Builder fillBasicRequestParams(OperationInfo operationInfo) {
         String path = "";
-        if (request.encodedPath() != null && !"/".equals(request.encodedPath())) {
+        if (request != null && request.encodedPath() != null && !"/".equals(request.encodedPath())) {
             path = request.encodedPath();
         }
         return ProtocolUtils.createSdkHttpRequest(operationInfo, endpoint)
