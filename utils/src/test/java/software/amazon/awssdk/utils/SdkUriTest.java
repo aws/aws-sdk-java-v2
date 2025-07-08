@@ -41,6 +41,7 @@ class SdkUriTest {
         cacheField.setAccessible(true);
         cacheField.set(SdkUri.getInstance(), BoundedCache.builder(UriConstructorArgs::newInstance)
                                                          .maxSize(100)
+                                                         .evictionBatchSize(5)
                                                          .build());
     }
 

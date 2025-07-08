@@ -37,8 +37,8 @@ public final class SdkUri {
     private static final int MAX_INT_DIGITS_BASE_10 = 10;
 
     /*
-     * The default BoundedCache size is 100, but for a single service call we cache at least 3 different URIs so the cache size is
-     * increased a bit to account for the different URIs.
+     * Same value as default BoundedCache size. This contrasts to the default LruCache size of 100, since for a single service
+     * call we cache at least 3 different URIs, so the cache size is increased a bit to account for the different URIs.
      */
     private static final int CACHE_SIZE = 150;
 
