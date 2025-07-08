@@ -582,6 +582,30 @@ public class VersionedRecordExtensionTest {
                                 .build()));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void versionOverflowThrowsException() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .incrementBy(2L)
+                                                                           .build();
+
+        FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
+        item.setId(UUID.randomUUID().toString());
+        item.setVersion(Long.MAX_VALUE - 1);
+
+        TableSchema<FakeVersionedThroughAnnotationItem> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
+
+        Map<String, AttributeValue> inputMap =
+            new HashMap<>(schema.itemToMap(item, true));
+
+        recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                        .builder()
+                                        .items(inputMap)
+                                        .tableMetadata(schema.tableMetadata())
+                                        .operationContext(PRIMARY_CONTEXT)
+                                        .build());
+    }
+
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
         return Stream.of(
             Arguments.of(0L, 1L, 5L, "6"),
