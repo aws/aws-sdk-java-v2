@@ -161,6 +161,12 @@ public final class ProfileProperty {
 
     public static final String EC2_METADATA_V1_DISABLED = "ec2_metadata_v1_disabled";
 
+    /**
+     * Disables the use of the Amazon EC2 instance metadata service (IMDS). When set to "true", SDK will not try to load
+     * credentials from EC2 metadata service and will return null.
+     */
+    public static final String EC2_METADATA_DISABLED = "disable_ec2_metadata";
+
     public static final String METADATA_SERVICE_TIMEOUT = "metadata_service_timeout";
 
     /**
