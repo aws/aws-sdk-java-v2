@@ -45,30 +45,34 @@ public class JsonBodyAssertion extends MarshallingAssertion {
         assertEquals(expected, actualJson);
     }
 
+    /**
+     * We serialize some numbers (in particular epoch timestamps) as doubles such as 123.000.
+     * In protocol tests, these values are parsed as longs.  This conversion insures that
+     * 123.000 will equal 123.
+     */
     public static JsonNode convertWholeNumberDoubleToLong(JsonNode node) {
+        if (node.isDouble()) {
+            double value = node.doubleValue();
+            if (value % 1 == 0) {
+                if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+                    return new IntNode((int) value);
+                }
+                return new LongNode((long) value);
+            }
+        }
         if (node.isObject()) {
             ObjectNode obj = (ObjectNode) node;
             ObjectNode result = obj.objectNode();
-            obj.fieldNames().forEachRemaining(field -> {
-                result.set(field, convertWholeNumberDoubleToLong(obj.get(field)));
-            });
+            obj.fieldNames().forEachRemaining(field -> result.set(field, convertWholeNumberDoubleToLong(obj.get(field))));
             return result;
-        } else if (node.isArray()) {
+        }
+        if (node.isArray()) {
             ArrayNode array = (ArrayNode) node;
             ArrayNode result = array.arrayNode();
             for (JsonNode item : array) {
                 result.add(convertWholeNumberDoubleToLong(item));
             }
             return result;
-        } else if (node.isDouble()) {
-            double value = node.doubleValue();
-            if (value % 1 == 0) {
-                if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
-                    return new IntNode((int) value);
-                } else {
-                    return new LongNode((long) value);
-                }
-            }
         }
         return node;
     }

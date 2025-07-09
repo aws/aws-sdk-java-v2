@@ -45,18 +45,23 @@ public class CborBodyAssertion extends MarshallingAssertion {
         assertEquals(expected, actualJson);
     }
 
+    /**
+     * CBOR allows serializing floating point numbers to different sizes (eg, float16/32/64).
+     * However, in assertEquals float and double nodes will never be equal so we convert them
+     * all to doubles.
+     */
     private JsonNode normalizeToDoubles(JsonNode node) {
         if (node.isFloat() || node.isDouble()) {
             return DoubleNode.valueOf(node.doubleValue());
-        } else if (node.isInt() || node.isLong() || node.isShort() || node.isBigInteger() || node.isBigDecimal()) {
-            return DoubleNode.valueOf(node.doubleValue());
-        } else if (node.isArray()) {
+        }
+        if (node.isArray()) {
             ArrayNode array = MAPPER.createArrayNode();
             for (JsonNode item : node) {
                 array.add(normalizeToDoubles(item));
             }
             return array;
-        } else if (node.isObject()) {
+        }
+        if (node.isObject()) {
             ObjectNode obj = MAPPER.createObjectNode();
             node.fields().forEachRemaining(entry -> obj.set(entry.getKey(), normalizeToDoubles(entry.getValue())));
             return obj;
