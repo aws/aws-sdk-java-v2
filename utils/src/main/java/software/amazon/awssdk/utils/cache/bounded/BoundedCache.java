@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.Validate;
  * A thread-safe cache implementation that returns the value for a specified key, retrieving it by either getting the stored
  * value from the cache or using a supplied function to calculate that value and add it to the cache.
  * <p>
- * When the cache is full, batch eviction of random values will be performed, with a default evictionBatchSize of 10.
+ * When the cache is full, batch eviction of unspecified values will be performed, with a default evictionBatchSize of 10.
  * <p>
  * The user can configure the maximum size of the cache, which is set to a default of 150.
  * <p>
@@ -94,7 +94,7 @@ public final class BoundedCache<K, V>  {
     }
 
     /**
-     * Clean up the cache by batch removing random entries of evictionBatchSize
+     * Clean up the cache by batch removing unspecified entries of evictionBatchSize
      */
     private void cleanup() {
         Iterator<K> iterator = cache.keySet().iterator();

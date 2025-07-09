@@ -1,6 +1,6 @@
 {
     "type": "feature",
-    "category": "Amazon DyanmoDB",
+    "category": "Amazon DynamoDB",
     "contributor": "",
-    "description": "Enable caching calls to URI constructors for account-id based endpoints"
+    "description": "Enable caching results to URI constructors for account-id based endpoints"
 }
