@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS Query Protocol",
-    "contributor": "",
-    "description": "Fixed EC2 DescribeInstances query failure in non-ASCII digit locales by using ROOT locale when formatting query paths to ensure ASCII digits are always used."
-}

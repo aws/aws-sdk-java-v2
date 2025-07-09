@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS OpsWorks CM",
-    "contributor": "",
-    "description": "Removing content that refers to an S3 bucket that is no longer in use."
-}

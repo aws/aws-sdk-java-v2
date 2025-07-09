@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fix an issue where the CRC64NVME class cannot be loaded from CRT in some situations, even if `aws-crt` is correctly included in the application classpath."
-}

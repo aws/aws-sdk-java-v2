@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.31.78__ __2025-07-09__
+## __AWS Free Tier__
+  - ### Features
+    - This release introduces four new APIs: GetAccountPlanState and UpgradeAccountPlan for AWS account plan management; ListAccountActivities and GetAccountActivity that provide activity tracking capabilities.
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - Removing content that refers to an S3 bucket that is no longer in use.
+
+## __AWS Query Protocol__
+  - ### Bugfixes
+    - Fixed EC2 DescribeInstances query failure in non-ASCII digit locales by using ROOT locale when formatting query paths to ensure ASCII digits are always used.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add validation for invalid usages of the `enableEnvironmentBearerToken` codegen customization.
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue where the CRC64NVME class cannot be loaded from CRT in some situations, even if `aws-crt` is correctly included in the application classpath.
+    - Fixed AsyncRequestBody.fromByteBuffers() and related methods to properly complete when called with no buffers
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support to Capacity Blocks for ML for purchasing EC2 P6e-GB200 UltraServers. Customers can now purchase u-p6e-gb200x72 and u-p6e-gb200x36 UltraServers. Adds new DescribeCapacityBlocks andDescribeCapacityBlockStatus APIs. Adds support for CapacityBlockId to DescribeInstanceTopology.
+
 # __2.31.77__ __2025-07-03__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
