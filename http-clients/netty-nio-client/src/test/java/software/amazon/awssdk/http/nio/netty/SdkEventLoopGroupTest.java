@@ -16,18 +16,23 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.oio.OioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.socket.oio.OioDatagramChannel;
 import io.netty.channel.socket.oio.OioSocketChannel;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 public class SdkEventLoopGroupTest {
 
@@ -64,8 +69,42 @@ public class SdkEventLoopGroupTest {
         assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(NioDatagramChannel.class);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
+    public void multiThreadIoEventLoopGroup_nioIoHandler_withoutChannelFactory() {
+        SdkEventLoopGroup sdkEventLoopGroup =
+            SdkEventLoopGroup.create(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()));
+
+        assertThat(sdkEventLoopGroup.channelFactory().newChannel()).isInstanceOf(NioSocketChannel.class);
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(NioDatagramChannel.class);
+    }
+
+    @Test
+    public void multiThreadIoEventLoopGroupWithNonNioIoHandler_withoutChannelFactory_createsNioChannels() {
+        Assumptions.assumeTrue(Epoll.isAvailable());
+
+        SdkEventLoopGroup sdkEventLoopGroup =
+            SdkEventLoopGroup.create(new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory()));
+
+        assertThat(sdkEventLoopGroup.channelFactory().newChannel()).isInstanceOf(NioSocketChannel.class);
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(NioDatagramChannel.class);
+    }
+
+    @Test
+    public void multiThreadIoEventLoopGroupWithNonNioIoHandler_withChannelsFactories_properlySetsChannelTypes() {
+        Assumptions.assumeTrue(Epoll.isAvailable());
+
+        SdkEventLoopGroup sdkEventLoopGroup =
+            SdkEventLoopGroup.create(new MultiThreadIoEventLoopGroup(EpollIoHandler.newFactory()),
+                                     EpollSocketChannel::new,
+                                     EpollDatagramChannel::new);
+        assertThat(sdkEventLoopGroup.channelFactory()).isNotNull();
+        assertThat(sdkEventLoopGroup.channelFactory().newChannel()).isInstanceOf(EpollSocketChannel.class);
+        assertThat(sdkEventLoopGroup.datagramChannelFactory().newChannel()).isInstanceOf(EpollDatagramChannel.class);
+        assertThat(sdkEventLoopGroup.eventLoopGroup()).isNotNull();
+    }
+
+    @Test
     public void notProvidingChannelFactory_unknownEventLoopGroup() {
-        SdkEventLoopGroup.create(new DefaultEventLoopGroup());
+        assertThrows(IllegalArgumentException.class, () -> SdkEventLoopGroup.create(new DefaultEventLoopGroup()));
     }
 }

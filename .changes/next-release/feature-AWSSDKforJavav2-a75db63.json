@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Netty NIO HTTP Client",
+    "contributor": "",
+    "description": "Bump Netty to 4.2.2"
+}

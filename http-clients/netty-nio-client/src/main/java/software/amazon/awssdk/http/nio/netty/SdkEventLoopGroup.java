@@ -18,7 +18,9 @@ package software.amazon.awssdk.http.nio.netty;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -32,7 +34,7 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Provides {@link EventLoopGroup} and {@link ChannelFactory} for {@link NettyNioAsyncHttpClient}.
  * <p>
- * There are three ways to create a new instance.
+ * There are four ways to create a new instance.
  *
  * <ul>
  * <li>using {@link #builder()} to provide custom configuration of {@link EventLoopGroup}.
@@ -47,6 +49,9 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <li>Using {@link #create(EventLoopGroup, ChannelFactory)} to provide a custom {@link EventLoopGroup} and
  * {@link ChannelFactory}
+ *
+ * <li>Using {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)} to provide a custom {@link EventLoopGroup}, and
+ * socket and datagram {@link ChannelFactory}'s.
  * </ul>
  *
  * <p>
@@ -74,6 +79,16 @@ public final class SdkEventLoopGroup {
         this.eventLoopGroup = eventLoopGroup;
         this.channelFactory = channelFactory;
         this.datagramChannelFactory = ChannelResolver.resolveDatagramChannelFactory(eventLoopGroup);
+    }
+
+    SdkEventLoopGroup(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> socketChannelFactory,
+                      ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+        Validate.paramNotNull(eventLoopGroup, "eventLoopGroup");
+        Validate.paramNotNull(socketChannelFactory, "socketChannelFactory");
+        Validate.paramNotNull(datagramChannelFactory, "datagramChannelFactory");
+        this.eventLoopGroup = eventLoopGroup;
+        this.channelFactory = socketChannelFactory;
+        this.datagramChannelFactory = datagramChannelFactory;
     }
 
     /**
@@ -107,15 +122,30 @@ public final class SdkEventLoopGroup {
     }
 
     /**
-     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup} and {@link ChannelFactory}
+     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup} and socket {@link ChannelFactory}
      * to be used with {@link NettyNioAsyncHttpClient}.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
-     * @param channelFactory the channel factor to be used
+     * @param socketChannelFactory the socket channel factory to be used
      * @return a new instance of SdkEventLoopGroup
      */
-    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> channelFactory) {
-        return new SdkEventLoopGroup(eventLoopGroup, channelFactory);
+    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup,
+                                           ChannelFactory<? extends Channel> socketChannelFactory) {
+        return new SdkEventLoopGroup(eventLoopGroup, socketChannelFactory);
+    }
+
+    /**
+     * Creates a new instance of SdkEventLoopGroup with {@link EventLoopGroup}, and socket and datagram
+     * {@link ChannelFactory}'s to be used with {@link NettyNioAsyncHttpClient}.
+     *
+     * @param eventLoopGroup the EventLoopGroup to be used
+     * @param socketChannelFactory the socket channel factory to be used
+     * @param datagramChannelFactory the datagram channel factory to be used
+     * @return a new instance of SdkEventLoopGroup
+     */
+    public static SdkEventLoopGroup create(EventLoopGroup eventLoopGroup, ChannelFactory<? extends Channel> socketChannelFactory,
+                                           ChannelFactory<? extends DatagramChannel> datagramChannelFactory) {
+        return new SdkEventLoopGroup(eventLoopGroup, socketChannelFactory, datagramChannelFactory);
     }
 
     /**
@@ -124,6 +154,17 @@ public final class SdkEventLoopGroup {
      * <p>
      * {@link ChannelFactory} will be resolved based on the type of {@link EventLoopGroup} provided. IllegalArgumentException will
      * be thrown for any unknown EventLoopGroup type.
+     *
+     * <p>
+     * <b>Special handling for {@link MultiThreadIoEventLoopGroup}:</b>
+     * When a {@link MultiThreadIoEventLoopGroup} is provided (not the deprecated transport-specific event loop groups like
+     * {@link NioEventLoopGroup}) the SDK cannot determine which transport type was configured and will default to using
+     * {@link NioSocketChannel} and {@link NioDatagramChannel}.
+     *
+     * <p>
+     * To use {@link MultiThreadIoEventLoopGroup} with non-NIO transports (such as Epoll or KQueue),
+     * use {@link #create(EventLoopGroup, ChannelFactory, ChannelFactory)} and explicitly specify
+     * the desired socket and datagram channel factories.
      *
      * @param eventLoopGroup the EventLoopGroup to be used
      * @return a new instance of SdkEventLoopGroup
@@ -142,7 +183,7 @@ public final class SdkEventLoopGroup {
                                               .orElseGet(() -> new ThreadFactoryBuilder()
                                                   .threadNamePrefix("aws-java-sdk-NettyEventLoop")
                                                   .build());
-        return new NioEventLoopGroup(numThreads, threadFactory);
+        return new MultiThreadIoEventLoopGroup(numThreads, threadFactory, NioIoHandler.newFactory());
         /*
         Need to investigate why epoll is raising channel inactive after successful response that causes
         problems with retries.
