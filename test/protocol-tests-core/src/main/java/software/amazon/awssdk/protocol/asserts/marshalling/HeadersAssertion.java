@@ -65,6 +65,7 @@ public class HeadersAssertion extends MarshallingAssertion {
             assertTrue(String.format("Header '%s' was expected to be present. Actual headers: %s", expectedKey, actual),
                        actual.getHeader(expectedKey).isPresent());
             List<String> actualValues = actual.getHeader(expectedKey).values();
+            // the Java SDK adds charset to content-type.  This is valid but not included in the protocol tests
             if (expectedKey.equalsIgnoreCase("Content-Type") && actualValues.size() == 1) {
                 actualValues = Collections.singletonList(actualValues.get(0).replace("; charset=UTF-8", ""));
             }
