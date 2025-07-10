@@ -61,6 +61,10 @@ public final class ValidationEntry {
         return this;
     }
 
+    public static ValidationEntry create(ValidationErrorId errorId, ValidationErrorSeverity severity, String detailMessage) {
+        return new ValidationEntry().withErrorId(errorId).withSeverity(severity).withDetailMessage(detailMessage);
+    }
+
     @Override
     public String toString() {
         return ToString.builder("ValidationEntry")

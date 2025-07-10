@@ -1,0 +1,417 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2020-07-14",
+    "auth": [
+      "aws.auth#sigv4"
+    ],
+    "endpointPrefix": "jsonrpc10",
+    "jsonVersion": "1.0",
+    "protocol": "json",
+    "protocols": [
+      "json"
+    ],
+    "serviceFullName": "JsonRpc10",
+    "serviceId": "JSON RPC 10",
+    "signatureVersion": "v4",
+    "signingName": "JsonRpc10",
+    "targetPrefix": "JsonRpc10",
+    "uid": "json-rpc-10-2020-07-14"
+  },
+  "operations": {
+    "ContentTypeParameters": {
+      "name": "ContentTypeParameters",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "ContentTypeParametersInput"
+      },
+      "output": {
+        "shape": "ContentTypeParametersOutput"
+      },
+      "documentation": "<p>The example tests how servers must support requests containing a <code>Content-Type</code> header with parameters.</p>"
+    },
+    "EmptyInputAndEmptyOutput": {
+      "name": "EmptyInputAndEmptyOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "EmptyInputAndEmptyOutputInput"
+      },
+      "output": {
+        "shape": "EmptyInputAndEmptyOutputOutput"
+      },
+      "documentation": "<p>The example tests how requests and responses are serialized when there's no request or response payload because the operation has an empty input and empty output structure that reuses the same shape. While this should be rare, code generators must support this.</p>"
+    },
+    "EndpointOperation": {
+      "name": "EndpointOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "endpoint": {
+        "hostPrefix": "foo."
+      }
+    },
+    "EndpointWithHostLabelOperation": {
+      "name": "EndpointWithHostLabelOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "EndpointWithHostLabelOperationInput"
+      },
+      "endpoint": {
+        "hostPrefix": "foo.{label}."
+      }
+    },
+    "GreetingWithErrors": {
+      "name": "GreetingWithErrors",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "GreetingWithErrorsInput"
+      },
+      "output": {
+        "shape": "GreetingWithErrorsOutput"
+      },
+      "errors": [
+        {
+          "shape": "InvalidGreeting"
+        },
+        {
+          "shape": "FooError"
+        },
+        {
+          "shape": "ComplexError"
+        }
+      ],
+      "documentation": "<p>This operation has three possible return values:</p> <ol> <li>A successful response in the form of GreetingWithErrorsOutput</li> <li>An InvalidGreeting error.</li> <li>A ComplexError error.</li> </ol> <p>Implementations must be able to successfully take a response and properly deserialize successful and error responses.</p>",
+      "idempotent": true
+    },
+    "HostWithPathOperation": {
+      "name": "HostWithPathOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      }
+    },
+    "JsonUnions": {
+      "name": "JsonUnions",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "JsonUnionsInput"
+      },
+      "output": {
+        "shape": "JsonUnionsOutput"
+      },
+      "documentation": "<p>This operation uses unions for inputs and outputs.</p>",
+      "idempotent": true
+    },
+    "NoInputAndNoOutput": {
+      "name": "NoInputAndNoOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "documentation": "<p>The example tests how requests and responses are serialized when there's no request or response payload because the operation has no input or output. While this should be rare, code generators must support this.</p>"
+    },
+    "NoInputAndOutput": {
+      "name": "NoInputAndOutput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "output": {
+        "shape": "NoInputAndOutputOutput"
+      },
+      "documentation": "<p>The example tests how requests and responses are serialized when there's no request or response payload because the operation has no input and the output is empty. While this should be rare, code generators must support this.</p>"
+    },
+    "PutWithContentEncoding": {
+      "name": "PutWithContentEncoding",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "PutWithContentEncodingInput"
+      },
+      "requestcompression": {
+        "encodings": [
+          "gzip"
+        ]
+      }
+    },
+    "QueryIncompatibleOperation": {
+      "name": "QueryIncompatibleOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "idempotent": true
+    },
+    "SimpleScalarProperties": {
+      "name": "SimpleScalarProperties",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "SimpleScalarPropertiesInput"
+      },
+      "output": {
+        "shape": "SimpleScalarPropertiesOutput"
+      }
+    }
+  },
+  "shapes": {
+    "Blob": {
+      "type": "blob"
+    },
+    "Boolean": {
+      "type": "boolean",
+      "box": true
+    },
+    "ComplexError": {
+      "type": "structure",
+      "members": {
+        "TopLevel": {
+          "shape": "String"
+        },
+        "Nested": {
+          "shape": "ComplexNestedErrorData"
+        }
+      },
+      "documentation": "<p>This error is thrown when a request is invalid.</p>",
+      "exception": true
+    },
+    "ComplexNestedErrorData": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      }
+    },
+    "ContentTypeParametersInput": {
+      "type": "structure",
+      "members": {
+        "value": {
+          "shape": "Integer"
+        }
+      }
+    },
+    "ContentTypeParametersOutput": {
+      "type": "structure",
+      "members": {}
+    },
+    "Double": {
+      "type": "double",
+      "box": true
+    },
+    "EmptyInputAndEmptyOutputInput": {
+      "type": "structure",
+      "members": {}
+    },
+    "EmptyInputAndEmptyOutputOutput": {
+      "type": "structure",
+      "members": {}
+    },
+    "EndpointWithHostLabelOperationInput": {
+      "type": "structure",
+      "required": [
+        "label"
+      ],
+      "members": {
+        "label": {
+          "shape": "String",
+          "hostLabel": true
+        }
+      }
+    },
+    "Float": {
+      "type": "float",
+      "box": true
+    },
+    "FooEnum": {
+      "type": "string",
+      "enum": [
+        "Foo",
+        "Baz",
+        "Bar",
+        "1",
+        "0"
+      ]
+    },
+    "FooError": {
+      "type": "structure",
+      "members": {},
+      "documentation": "<p>This error has test cases that test some of the dark corners of Amazon service framework history. It should only be implemented by clients.</p>",
+      "exception": true,
+      "fault": true
+    },
+    "GreetingStruct": {
+      "type": "structure",
+      "members": {
+        "hi": {
+          "shape": "String"
+        }
+      }
+    },
+    "GreetingWithErrorsInput": {
+      "type": "structure",
+      "members": {
+        "greeting": {
+          "shape": "String"
+        }
+      }
+    },
+    "GreetingWithErrorsOutput": {
+      "type": "structure",
+      "members": {
+        "greeting": {
+          "shape": "String"
+        }
+      }
+    },
+    "Integer": {
+      "type": "integer",
+      "box": true
+    },
+    "IntegerEnum": {
+      "type": "integer",
+      "box": true
+    },
+    "InvalidGreeting": {
+      "type": "structure",
+      "members": {
+        "Message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>This error is thrown when an invalid greeting value is provided.</p>",
+      "exception": true
+    },
+    "JsonUnionsInput": {
+      "type": "structure",
+      "members": {
+        "contents": {
+          "shape": "MyUnion"
+        }
+      }
+    },
+    "JsonUnionsOutput": {
+      "type": "structure",
+      "members": {
+        "contents": {
+          "shape": "MyUnion"
+        }
+      }
+    },
+    "MyUnion": {
+      "type": "structure",
+      "members": {
+        "stringValue": {
+          "shape": "String"
+        },
+        "booleanValue": {
+          "shape": "Boolean"
+        },
+        "numberValue": {
+          "shape": "Integer"
+        },
+        "blobValue": {
+          "shape": "Blob"
+        },
+        "timestampValue": {
+          "shape": "Timestamp"
+        },
+        "enumValue": {
+          "shape": "FooEnum"
+        },
+        "intEnumValue": {
+          "shape": "IntegerEnum"
+        },
+        "listValue": {
+          "shape": "StringList"
+        },
+        "mapValue": {
+          "shape": "StringMap"
+        },
+        "structureValue": {
+          "shape": "GreetingStruct"
+        }
+      },
+      "documentation": "<p>A union with a representative set of types for members.</p>",
+      "union": true
+    },
+    "NoInputAndOutputOutput": {
+      "type": "structure",
+      "members": {}
+    },
+    "PutWithContentEncodingInput": {
+      "type": "structure",
+      "members": {
+        "encoding": {
+          "shape": "String"
+        },
+        "data": {
+          "shape": "String"
+        }
+      }
+    },
+    "SimpleScalarPropertiesInput": {
+      "type": "structure",
+      "members": {
+        "floatValue": {
+          "shape": "Float"
+        },
+        "doubleValue": {
+          "shape": "Double"
+        }
+      }
+    },
+    "SimpleScalarPropertiesOutput": {
+      "type": "structure",
+      "members": {
+        "floatValue": {
+          "shape": "Float"
+        },
+        "doubleValue": {
+          "shape": "Double"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    },
+    "StringList": {
+      "type": "list",
+      "member": {
+        "shape": "String"
+      }
+    },
+    "StringMap": {
+      "type": "map",
+      "key": {
+        "shape": "String"
+      },
+      "value": {
+        "shape": "String"
+      }
+    },
+    "Timestamp": {
+      "type": "timestamp"
+    }
+  }
+}
