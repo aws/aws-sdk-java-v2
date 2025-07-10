@@ -13,34 +13,24 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.codegen.model.service;
+package software.amazon.awssdk.protocol.asserts.marshalling;
 
-public class XmlNamespace {
+import static org.junit.Assert.assertEquals;
 
-    private String prefix;
-    private String uri;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 
-    public XmlNamespace() {
+/**
+ * Asserts the resolved host of a marshalled request.
+ */
+public class ResolvedHostAssertion extends MarshallingAssertion {
+    private final String expectedHost;
 
+    public ResolvedHostAssertion(String host) {
+        this.expectedHost = host;
     }
 
-    public XmlNamespace(String uri) {
-        this.uri = uri;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
+    @Override
+    protected void doAssert(LoggedRequest actual) throws Exception {
+        assertEquals(expectedHost, actual.getHost());
     }
 }

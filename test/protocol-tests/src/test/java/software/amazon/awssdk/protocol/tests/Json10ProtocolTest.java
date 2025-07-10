@@ -26,7 +26,7 @@ import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.runners.ProtocolTestRunner;
 
 @RunWith(Parameterized.class)
-public class QueryProtocolTest extends ProtocolTestBase {
+public class Json10ProtocolTest extends ProtocolTestBase {
 
     private static final ProtocolTestSuiteLoader testSuiteLoader = new ProtocolTestSuiteLoader();
     private static ProtocolTestRunner testRunner;
@@ -36,12 +36,12 @@ public class QueryProtocolTest extends ProtocolTestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<TestCase> data() throws IOException {
-        return testSuiteLoader.load("query-suite.json");
+        return testSuiteLoader.load("json10-suite.json");
     }
 
     @BeforeClass
     public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/awsquery-2020-01-08-intermediate.json");
+        testRunner = new ProtocolTestRunner("/models/jsonrpc10-2020-07-14-intermediate.json");
     }
 
     @Test
