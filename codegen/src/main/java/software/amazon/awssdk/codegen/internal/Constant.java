@@ -78,6 +78,8 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_BATCHMANAGER_PATTERN = "%s.batchmanager";
 
+    public static final String PACKAGE_NAME_PRESIGNED_URL_MANAGER_PATTERN = "%s.presignedurl";
+
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";
 
     public static final String AUTH_POLICY_ENUM_CLASS_DIR = "software/amazon/awssdk/auth/policy/actions";

@@ -513,4 +513,12 @@ public class SyncClientClass extends SyncClientInterface {
         builder.addStatement("return configuration.build()");
         return builder.build();
     }
+
+    @Override
+    protected MethodSpec.Builder presignedUrlManagerOperationBody(MethodSpec.Builder builder) {
+        ClassName returnType = poetExtensions.getDefaultPresignedUrlManagerClass();
+        return builder.addAnnotation(Override.class)
+                      .addStatement("return new $T(clientHandler, $N, clientConfiguration, protocolMetadata)",
+                                    returnType, protocolSpec.protocolFactory(model).name);
+    }
 }

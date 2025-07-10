@@ -62,6 +62,7 @@ final class AddMetadata {
                 .withDocumentation(serviceModel.getDocumentation())
                 .withServiceAbbreviation(serviceMetadata.getServiceAbbreviation())
                 .withBatchmanagerPackageName(namingStrategy.getBatchManagerPackageName(serviceName))
+                .withPresignedUrlManagerPackageName(namingStrategy.getPresignedUrlManagerPackageName(serviceName))
                 .withServiceFullName(serviceMetadata.getServiceFullName())
                 .withServiceName(serviceName)
                 .withSyncClient(String.format(Constant.SYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))

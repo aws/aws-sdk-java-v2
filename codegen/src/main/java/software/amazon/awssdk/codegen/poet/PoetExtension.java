@@ -209,4 +209,16 @@ public class PoetExtension {
         return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
                              model.getMetadata().getServiceName() + "AsyncBatchManager");
     }
+
+    public ClassName getPresignedUrlManagerInterface() {
+        return ClassName.get(model.getMetadata().getFullPresignedUrlPackageName(),
+                             "PresignedUrlManager");
+    }
+
+    public ClassName getDefaultPresignedUrlManagerClass() {
+        return ClassName.get("software.amazon.awssdk.services." +
+                             model.getMetadata().getServiceId().toLowerCase(java.util.Locale.ENGLISH) +
+                             ".internal.presignedurl",
+                             "DefaultPresignedUrlManager");
+    }
 }

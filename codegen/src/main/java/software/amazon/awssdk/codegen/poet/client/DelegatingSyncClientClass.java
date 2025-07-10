@@ -232,4 +232,20 @@ public class DelegatingSyncClientClass extends SyncClientInterface {
                          .addStatement("return delegate.serviceClientConfiguration()")
                          .build();
     }
+
+    @Override
+    protected void addPresignedUrlManagerMethod(TypeSpec.Builder type) {
+        if (model.getCustomizationConfig().getPresignedUrlManagerSupported()) {
+            ClassName returnType = poetExtensions.getPresignedUrlManagerInterface();
+            MethodSpec method = MethodSpec.methodBuilder("presignedUrlManager")
+                                          .addAnnotation(Override.class)
+                                          .addModifiers(PUBLIC)
+                                          .returns(returnType)
+                                          .addJavadoc("Creates an instance of {@link $T} object with the "
+                                                      + "configuration set on this client.", returnType)
+                                          .addStatement("return delegate.presignedUrlManager()")
+                                          .build();
+            type.addMethod(method);
+        }
+    }
 }

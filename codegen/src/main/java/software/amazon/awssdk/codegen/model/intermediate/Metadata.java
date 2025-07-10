@@ -73,6 +73,8 @@ public class Metadata {
 
     private String batchManagerPackageName;
 
+    private String presignedUrlManagerPackageName;
+
     private String endpointRulesPackageName;
 
     private String authSchemePackageName;
@@ -813,6 +815,23 @@ public class Metadata {
 
     public String getFullBatchManagerPackageName() {
         return joinPackageNames(rootPackageName, getBatchManagerPackageName());
+    }
+
+    public String getPresignedUrlManagerPackageName() {
+        return presignedUrlManagerPackageName;
+    }
+
+    public void setPresignedUrlManagerPackageName(String presignedUrlManagerPackageName) {
+        this.presignedUrlManagerPackageName = presignedUrlManagerPackageName;
+    }
+
+    public Metadata withPresignedUrlManagerPackageName(String presignedUrlManagerPackageName) {
+        setPresignedUrlManagerPackageName(presignedUrlManagerPackageName);
+        return this;
+    }
+
+    public String getFullPresignedUrlPackageName() {
+        return joinPackageNames(rootPackageName, getPresignedUrlManagerPackageName());
     }
 
 }
