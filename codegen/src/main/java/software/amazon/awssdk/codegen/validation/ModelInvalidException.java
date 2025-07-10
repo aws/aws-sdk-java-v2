@@ -38,6 +38,10 @@ public class ModelInvalidException extends RuntimeException {
         return new Builder();
     }
 
+    public static ModelInvalidException fromEntry(ValidationEntry entry) {
+        return builder().validationEntries(Collections.singletonList(entry)).build();
+    }
+
     public static class Builder {
         private List<ValidationEntry> validationEntries;
 
