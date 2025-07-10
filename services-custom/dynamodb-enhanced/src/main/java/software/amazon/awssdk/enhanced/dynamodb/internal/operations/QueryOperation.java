@@ -85,7 +85,8 @@ public class QueryOperation<T> implements PaginatedTableOperation<T, QueryReques
                                                         .exclusiveStartKey(this.request.exclusiveStartKey())
                                                         .consistentRead(this.request.consistentRead())
                                                         .returnConsumedCapacity(this.request.returnConsumedCapacity())
-                                                        .projectionExpression(projectionExpressionAsString);
+                                                        .projectionExpression(projectionExpressionAsString)
+                                                        .overrideConfiguration(this.request.overrideConfiguration());
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             queryRequest = queryRequest.indexName(operationContext.indexName());

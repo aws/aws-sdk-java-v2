@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.Document;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.DefaultDocument;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactGetItemsEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -230,6 +233,25 @@ public class TransactGetItemsOperationTest {
         assertThat(result, contains(DefaultDocument.create(FAKE_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(FAKESORT_ITEM_MAPS.get(0)),
                                     DefaultDocument.create(emptyMap())));
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        TransactGetItemsEnhancedRequest transactGetItemsEnhancedRequest = TransactGetItemsEnhancedRequest.builder()
+                                                                                       .overrideConfiguration(overrideConfiguration)
+                                                                                       .build();
+
+        TransactGetItemsOperation transactGetItemsOperation = TransactGetItemsOperation.create(transactGetItemsEnhancedRequest);
+
+        TransactGetItemsRequest transactGetItemsRequest = transactGetItemsOperation.generateRequest(null);
+
+        assertThat(transactGetItemsRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
     private static TransactGetItemsEnhancedRequest emptyRequest() {

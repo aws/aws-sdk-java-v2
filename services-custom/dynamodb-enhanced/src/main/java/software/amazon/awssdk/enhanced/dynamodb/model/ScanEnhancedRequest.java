@@ -22,10 +22,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
@@ -54,6 +56,7 @@ public final class ScanEnhancedRequest {
     private final Integer segment;
     private final Integer totalSegments;
     private final String returnConsumedCapacity;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private ScanEnhancedRequest(Builder builder) {
         this.exclusiveStartKey = builder.exclusiveStartKey;
@@ -67,6 +70,7 @@ public final class ScanEnhancedRequest {
         this.attributesToProject = builder.attributesToProject != null
                 ? Collections.unmodifiableList(builder.attributesToProject)
                 : null;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -88,7 +92,8 @@ public final class ScanEnhancedRequest {
                         .filterExpression(filterExpression)
                         .select(select)
                         .returnConsumedCapacity(returnConsumedCapacity)
-                        .addNestedAttributesToProject(attributesToProject);
+                        .addNestedAttributesToProject(attributesToProject)
+                        .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -191,6 +196,18 @@ public final class ScanEnhancedRequest {
         return returnConsumedCapacity;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link ScanRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -231,6 +248,11 @@ public final class ScanEnhancedRequest {
             return false;
         }
 
+        if (overrideConfiguration != null
+            ? !overrideConfiguration.equals(scan.overrideConfiguration) : scan.overrideConfiguration != null) {
+            return false;
+        }
+
         return filterExpression != null ? filterExpression.equals(scan.filterExpression) : scan.filterExpression == null;
     }
 
@@ -245,6 +267,7 @@ public final class ScanEnhancedRequest {
         result = 31 * result + (select != null ? select.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -262,6 +285,7 @@ public final class ScanEnhancedRequest {
         private Integer segment;
         private Integer totalSegments;
         private String returnConsumedCapacity;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -517,6 +541,30 @@ public final class ScanEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link ScanRequest}.
+         *
+         * @see ScanRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link ScanRequest}.
+         *
+         * @see ScanRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 

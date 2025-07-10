@@ -21,9 +21,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -41,10 +43,12 @@ public final class BatchGetItemEnhancedRequest {
 
     private final List<ReadBatch> readBatches;
     private final String returnConsumedCapacity;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private BatchGetItemEnhancedRequest(Builder builder) {
         this.readBatches = getListIfExist(builder.readBatches);
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -58,7 +62,9 @@ public final class BatchGetItemEnhancedRequest {
      * Returns a builder initialized with all existing values on the request object.
      */
     public Builder toBuilder() {
-        return new Builder().readBatches(readBatches).returnConsumedCapacity(this.returnConsumedCapacity);
+        return new Builder().readBatches(readBatches)
+                            .returnConsumedCapacity(this.returnConsumedCapacity)
+                            .overrideConfiguration(this.overrideConfiguration);
     }
 
     /**
@@ -87,6 +93,18 @@ public final class BatchGetItemEnhancedRequest {
         return returnConsumedCapacity;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link BatchGetItemRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -99,13 +117,15 @@ public final class BatchGetItemEnhancedRequest {
         BatchGetItemEnhancedRequest that = (BatchGetItemEnhancedRequest) o;
 
         return Objects.equals(this.readBatches, that.readBatches) &&
-               Objects.equals(this.returnConsumedCapacity, that.returnConsumedCapacity);
+               Objects.equals(this.returnConsumedCapacity, that.returnConsumedCapacity) &&
+               Objects.equals(this.overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
     public int hashCode() {
         int hc = readBatches != null ? readBatches.hashCode() : 0;
         hc = 31 * hc + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        hc = 31 * hc + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return hc;
     }
 
@@ -120,6 +140,7 @@ public final class BatchGetItemEnhancedRequest {
     public static final class Builder {
         private List<ReadBatch> readBatches;
         private String returnConsumedCapacity;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -180,6 +201,30 @@ public final class BatchGetItemEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link BatchGetItemRequest}.
+         *
+         * @see BatchGetItemRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration) 
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link BatchGetItemRequest}.
+         *
+         * @see BatchGetItemRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 

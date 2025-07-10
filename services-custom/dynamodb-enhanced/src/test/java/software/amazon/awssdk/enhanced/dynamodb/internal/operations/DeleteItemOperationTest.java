@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -40,6 +41,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -50,10 +52,13 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
@@ -555,5 +560,28 @@ public class DeleteItemOperationTest {
                                                             .build();
         assertThat(actualResult, is(expectedResult));
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        DeleteItemEnhancedRequest deleteItemEnhancedRequest = DeleteItemEnhancedRequest.builder()
+                                                                                          .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                                          .overrideConfiguration(overrideConfiguration)
+                                                                                          .build();
+
+        DeleteItemOperation<FakeItem> deleteItemOperation = DeleteItemOperation.create(deleteItemEnhancedRequest);
+
+        DeleteItemRequest deleteItemRequest = deleteItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                                     PRIMARY_CONTEXT,
+                                                                                     null);
+
+        assertThat(deleteItemRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 }

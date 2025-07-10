@@ -16,12 +16,15 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -39,11 +42,13 @@ public final class TransactPutItemEnhancedRequest<T> {
     private final T item;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private TransactPutItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -63,7 +68,8 @@ public final class TransactPutItemEnhancedRequest<T> {
     public Builder<T> toBuilder() {
         return new Builder<T>().item(item)
                                .conditionExpression(conditionExpression)
-                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailureAsString());
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailureAsString())
+                               .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -108,6 +114,18 @@ public final class TransactPutItemEnhancedRequest<T> {
         return returnValuesOnConditionCheckFailure;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link PutItemRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -125,6 +143,9 @@ public final class TransactPutItemEnhancedRequest<T> {
         if (!Objects.equals(conditionExpression, that.conditionExpression)) {
             return false;
         }
+        if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
+            return false;
+        }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
@@ -133,6 +154,7 @@ public final class TransactPutItemEnhancedRequest<T> {
         int result = Objects.hashCode(item);
         result = 31 * result + Objects.hashCode(conditionExpression);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
+        result = 31 * result + Objects.hashCode(overrideConfiguration);
         return result;
     }
 
@@ -146,6 +168,7 @@ public final class TransactPutItemEnhancedRequest<T> {
         private T item;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -200,6 +223,30 @@ public final class TransactPutItemEnhancedRequest<T> {
          */
         public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link PutItemRequest}.
+         *
+         * @see PutItemRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder<T> overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link PutItemRequest}.
+         *
+         * @see PutItemRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder<T> overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 

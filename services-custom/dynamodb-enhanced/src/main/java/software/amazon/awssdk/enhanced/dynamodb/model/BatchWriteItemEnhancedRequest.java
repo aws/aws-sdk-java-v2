@@ -21,9 +21,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -43,11 +45,13 @@ public final class BatchWriteItemEnhancedRequest {
     private final List<WriteBatch> writeBatches;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private BatchWriteItemEnhancedRequest(Builder builder) {
         this.writeBatches = getListIfExist(builder.writeBatches);
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -63,7 +67,8 @@ public final class BatchWriteItemEnhancedRequest {
     public Builder toBuilder() {
         return builder().writeBatches(writeBatches)
                         .returnConsumedCapacity(returnConsumedCapacity)
-                        .returnItemCollectionMetrics(returnItemCollectionMetrics);
+                        .returnItemCollectionMetrics(returnItemCollectionMetrics)
+                        .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -111,6 +116,18 @@ public final class BatchWriteItemEnhancedRequest {
         return writeBatches;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link BatchWriteItemRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -122,7 +139,8 @@ public final class BatchWriteItemEnhancedRequest {
         BatchWriteItemEnhancedRequest that = (BatchWriteItemEnhancedRequest) o;
         return Objects.equals(writeBatches, that.writeBatches) &&
                Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity) &&
-               Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+               Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics) &&
+               Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
@@ -130,6 +148,7 @@ public final class BatchWriteItemEnhancedRequest {
         int result = writeBatches != null ? writeBatches.hashCode() : 0;
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -145,6 +164,7 @@ public final class BatchWriteItemEnhancedRequest {
         private List<WriteBatch> writeBatches;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -225,6 +245,30 @@ public final class BatchWriteItemEnhancedRequest {
                 writeBatches = new ArrayList<>();
             }
             writeBatches.add(writeBatch);
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link BatchWriteItemRequest}.
+         *
+         * @see BatchWriteItemRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link BatchWriteItemRequest}.
+         *
+         * @see BatchWriteItemRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 

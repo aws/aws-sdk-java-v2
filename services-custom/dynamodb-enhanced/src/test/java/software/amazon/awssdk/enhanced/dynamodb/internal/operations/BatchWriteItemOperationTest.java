@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemW
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteResult;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
@@ -388,6 +391,25 @@ public class BatchWriteItemOperationTest {
         assertThat(results.unprocessedPutItemsForTable(fakeItemMappedTable), is(emptyList()));
     }
 
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest.builder()
+                                                                                             .writeBatches()
+                                                                                             .overrideConfiguration(overrideConfiguration)
+                                                                                             .build();
+
+        BatchWriteItemOperation batchWriteItemOperation = BatchWriteItemOperation.create(batchWriteItemEnhancedRequest);
+
+        BatchWriteItemRequest batchWriteItemRequest = batchWriteItemOperation.generateRequest(null);
+
+        assertThat(batchWriteItemRequest.overrideConfiguration().get(), is(overrideConfiguration));
+    }
 
     private static BatchWriteItemEnhancedRequest emptyRequest() {
         return BatchWriteItemEnhancedRequest.builder().writeBatches().build();

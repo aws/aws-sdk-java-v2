@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,6 +45,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -59,6 +61,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -432,6 +435,28 @@ public class QueryOperationTest {
                                                                       .operationContext(PRIMARY_CONTEXT)
                                                                       .tableSchema(FakeItem.getTableSchema())
                                                                       .items(attributeMap).build()));
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        QueryEnhancedRequest queryEnhancedRequest = QueryEnhancedRequest.builder()
+                                                                        .queryConditional(keyEqualTo(k -> k.partitionValue(keyItem.getId())))
+                                                                        .overrideConfiguration(overrideConfiguration)
+                                                                        .build();
+
+        QueryOperation<FakeItem> queryOperation = QueryOperation.create(queryEnhancedRequest);
+
+        QueryRequest queryRequest = queryOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                   PRIMARY_CONTEXT,
+                                                                   null);
+
+        assertThat(queryRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
     private static QueryResponse generateFakeQueryResults(List<Map<String, AttributeValue>> queryItemMapsPage) {

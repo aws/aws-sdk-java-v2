@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
@@ -107,6 +108,8 @@ public class PutItemOperation<T>
         PutItemRequest.Builder requestBuilder = PutItemRequest.builder()
                                                               .tableName(operationContext.tableName())
                                                               .item(itemMap);
+
+        applyOverrideConfiguration(requestBuilder, request);
 
         if (request.left().isPresent()) {
             requestBuilder = addPlainPutItemParameters(requestBuilder, request.left().get());
@@ -226,6 +229,21 @@ public class PutItemOperation<T>
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
         requestBuilder =
             requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
+        return requestBuilder;
+    }
+
+    private PutItemRequest.Builder applyOverrideConfiguration(PutItemRequest.Builder requestBuilder,
+                                                              Either<PutItemEnhancedRequest<T>,
+                                                                  TransactPutItemEnhancedRequest<T>> req) {
+        AwsRequestOverrideConfiguration overrideConfiguration = null;
+        if (req.left().isPresent()) {
+            overrideConfiguration = req.left().get().overrideConfiguration();
+        } else if (req.right().isPresent()) {
+            overrideConfiguration = req.right().get().overrideConfiguration();
+        }
+        if (overrideConfiguration != null) {
+            requestBuilder.overrideConfiguration(overrideConfiguration);
+        }
         return requestBuilder;
     }
 }

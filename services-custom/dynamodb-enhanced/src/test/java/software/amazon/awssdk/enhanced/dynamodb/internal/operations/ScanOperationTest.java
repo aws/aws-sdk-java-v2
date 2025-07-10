@@ -41,6 +41,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
@@ -55,6 +56,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemW
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -330,6 +332,27 @@ public class ScanOperationTest {
                                                .operationContext(PRIMARY_CONTEXT)
                                                .tableSchema(FakeItem.getTableSchema())
                                                .items(attributeMap).build()));
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder()
+                                                                         .overrideConfiguration(overrideConfiguration)
+                                                                         .build();
+
+        ScanOperation<FakeItem> scanOperation = ScanOperation.create(scanEnhancedRequest);
+
+        ScanRequest scanRequest = scanOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                                  PRIMARY_CONTEXT,
+                                                                                  null);
+
+        assertThat(scanRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
     private static ScanResponse generateFakeScanResults(List<Map<String, AttributeValue>> scanItemMapsPage) {

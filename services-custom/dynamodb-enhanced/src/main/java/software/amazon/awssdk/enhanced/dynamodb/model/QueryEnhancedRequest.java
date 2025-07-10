@@ -22,10 +22,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -59,6 +61,7 @@ public final class QueryEnhancedRequest {
     private final Expression filterExpression;
     private final List<NestedAttributeName> attributesToProject;
     private final String returnConsumedCapacity;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private QueryEnhancedRequest(Builder builder) {
         this.queryConditional = builder.queryConditional;
@@ -72,6 +75,7 @@ public final class QueryEnhancedRequest {
         this.attributesToProject = builder.attributesToProject != null
                                    ? Collections.unmodifiableList(builder.attributesToProject)
                                    : null;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -93,7 +97,8 @@ public final class QueryEnhancedRequest {
                         .consistentRead(consistentRead)
                         .filterExpression(filterExpression)
                         .returnConsumedCapacity(returnConsumedCapacity)
-                        .addNestedAttributesToProject(attributesToProject);
+                        .addNestedAttributesToProject(attributesToProject)
+                        .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -187,6 +192,18 @@ public final class QueryEnhancedRequest {
     }
 
     /**
+     * Returns the override configuration to apply to the low-level {@link QueryRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
+    /**
      * Whether to return the capacity consumed by this operation.
      * <p>
      * Similar to {@link #returnConsumedCapacity()} but return the value as a string. This is useful in situations where the
@@ -239,6 +256,10 @@ public final class QueryEnhancedRequest {
             ? !returnConsumedCapacity.equals(query.returnConsumedCapacity) : query.returnConsumedCapacity != null) {
             return false;
         }
+        if (overrideConfiguration != null
+            ? !overrideConfiguration.equals(query.overrideConfiguration) : query.overrideConfiguration != null) {
+            return false;
+        }
         return filterExpression != null ? filterExpression.equals(query.filterExpression) : query.filterExpression == null;
     }
 
@@ -253,6 +274,7 @@ public final class QueryEnhancedRequest {
         result = 31 * result + (filterExpression != null ? filterExpression.hashCode() : 0);
         result = 31 * result + (attributesToProject != null ? attributesToProject.hashCode() : 0);
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -272,6 +294,7 @@ public final class QueryEnhancedRequest {
         private Expression filterExpression;
         private List<NestedAttributeName> attributesToProject;
         private String returnConsumedCapacity;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -522,6 +545,30 @@ public final class QueryEnhancedRequest {
          */
         public Builder returnConsumedCapacity(String returnConsumedCapacity) {
             this.returnConsumedCapacity = returnConsumedCapacity;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link QueryRequest}.
+         *
+         * @see QueryRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link QueryRequest}.
+         *
+         * @see QueryRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 
