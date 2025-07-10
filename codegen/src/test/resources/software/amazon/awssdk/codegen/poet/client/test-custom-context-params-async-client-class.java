@@ -1,12 +1,12 @@
-package software.amazon.awssdk.services.batchmanagertest;
+package software.amazon.awssdk.services.foobar;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -38,27 +38,29 @@ import software.amazon.awssdk.protocols.json.AwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.services.batchmanagertest.batchmanager.BatchManagerTestAsyncBatchManager;
-import software.amazon.awssdk.services.batchmanagertest.internal.BatchManagerTestServiceClientConfigurationBuilder;
-import software.amazon.awssdk.services.batchmanagertest.internal.ServiceVersionInfo;
-import software.amazon.awssdk.services.batchmanagertest.model.BatchManagerTestException;
-import software.amazon.awssdk.services.batchmanagertest.model.SendRequestRequest;
-import software.amazon.awssdk.services.batchmanagertest.model.SendRequestResponse;
-import software.amazon.awssdk.services.batchmanagertest.transform.SendRequestRequestMarshaller;
+import software.amazon.awssdk.services.foobar.endpoints.FooBarClientContextParams;
+import software.amazon.awssdk.services.foobar.internal.FooBarServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.foobar.internal.ServiceVersionInfo;
+import software.amazon.awssdk.services.foobar.model.FooBarException;
+import software.amazon.awssdk.services.foobar.model.GetDatabaseVersionRequest;
+import software.amazon.awssdk.services.foobar.model.GetDatabaseVersionResponse;
+import software.amazon.awssdk.services.foobar.transform.GetDatabaseVersionRequestMarshaller;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * Internal implementation of {@link BatchManagerTestAsyncClient}.
+ * Internal implementation of {@link FooBarAsyncClient}.
  *
- * @see BatchManagerTestAsyncClient#builder()
+ * @see FooBarAsyncClient#builder()
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncClient {
-    private static final Logger log = LoggerFactory.getLogger(DefaultBatchManagerTestAsyncClient.class);
+final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
+    private static final Logger log = LoggerFactory.getLogger(DefaultFooBarAsyncClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-                                                                                   .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
+            .serviceProtocol(AwsServiceProtocol.REST_JSON).build();
 
     private final AsyncClientHandler clientHandler;
 
@@ -66,21 +68,20 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
     private final SdkClientConfiguration clientConfiguration;
 
-    private final ScheduledExecutorService executorService;
-
-    protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
+    protected DefaultFooBarAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA, "BatchManagerTest" + "#" + ServiceVersionInfo.VERSION).build();
+                .option(SdkClientOption.API_METADATA, "Foo_Bar" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
-        this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
     }
 
     /**
-     * Invokes the SendRequest operation asynchronously.
+     * <p>
+     * Performs a get database version operation
+     * </p>
      *
-     * @param sendRequestRequest
-     * @return A Java Future containing the result of the SendRequest operation returned by the service.<br/>
+     * @param getDatabaseVersionRequest
+     * @return A Java Future containing the result of the GetDatabaseVersion operation returned by the service.<br/>
      *         The CompletableFuture returned by this method can be completed exceptionally with the following
      *         exceptions. The exception returned is wrapped with CompletionException, so you need to invoke
      *         {@link Throwable#getCause} to retrieve the underlying exception.
@@ -89,48 +90,49 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
      *         Can be used for catch all scenarios.</li>
      *         <li>SdkClientException If any client side error occurs such as an IO related failure, failure to get
      *         credentials, etc.</li>
-     *         <li>BatchManagerTestException Base class for all service exceptions. Unknown exceptions will be thrown as
-     *         an instance of this type.</li>
+     *         <li>FooBarException Base class for all service exceptions. Unknown exceptions will be thrown as an
+     *         instance of this type.</li>
      *         </ul>
-     * @sample BatchManagerTestAsyncClient.SendRequest
-     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/batchmanagertest-2016-03-11/SendRequest" target="_top">AWS
-     *      API Documentation</a>
+     * @sample FooBarAsyncClient.GetDatabaseVersion
+     * @see <a href="https://docs.aws.amazon.com/goto/WebAPI/database-service-2023-06-08/GetDatabaseVersion"
+     *      target="_top">AWS API Documentation</a>
      */
     @Override
-    public CompletableFuture<SendRequestResponse> sendRequest(SendRequestRequest sendRequestRequest) {
-        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(sendRequestRequest, this.clientConfiguration);
-        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, sendRequestRequest
-            .overrideConfiguration().orElse(null));
+    public CompletableFuture<GetDatabaseVersionResponse> getDatabaseVersion(GetDatabaseVersionRequest getDatabaseVersionRequest) {
+        SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getDatabaseVersionRequest,
+                this.clientConfiguration);
+        List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getDatabaseVersionRequest
+                .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-            .create("ApiCall");
+                .create("ApiCall");
         try {
-            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "BatchManagerTest");
-            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "SendRequest");
+            apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Foo Bar");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetDatabaseVersion");
             JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                                                                           .isPayloadJson(true).build();
+                    .isPayloadJson(true).build();
 
-            HttpResponseHandler<SendRequestResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                                                                                                             SendRequestResponse::builder);
+            HttpResponseHandler<GetDatabaseVersionResponse> responseHandler = protocolFactory.createResponseHandler(
+                    operationMetadata, GetDatabaseVersionResponse::builder);
             Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
                 if (errorCode == null) {
                     return Optional.empty();
                 }
                 switch (errorCode) {
-                    default:
-                        return Optional.empty();
+                default:
+                    return Optional.empty();
                 }
             };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                                                                                                       operationMetadata, exceptionMetadataMapper);
+                    operationMetadata, exceptionMetadataMapper);
 
-            CompletableFuture<SendRequestResponse> executeFuture = clientHandler
-                .execute(new ClientExecutionParams<SendRequestRequest, SendRequestResponse>()
-                             .withOperationName("SendRequest").withProtocolMetadata(protocolMetadata)
-                             .withMarshaller(new SendRequestRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withInput(sendRequestRequest));
-            CompletableFuture<SendRequestResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
+            CompletableFuture<GetDatabaseVersionResponse> executeFuture = clientHandler
+                    .execute(new ClientExecutionParams<GetDatabaseVersionRequest, GetDatabaseVersionResponse>()
+                            .withOperationName("GetDatabaseVersion").withProtocolMetadata(protocolMetadata)
+                            .withMarshaller(new GetDatabaseVersionRequestMarshaller(protocolFactory))
+                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                            .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                            .withInput(getDatabaseVersionRequest));
+            CompletableFuture<GetDatabaseVersionResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
@@ -142,13 +144,8 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     }
 
     @Override
-    public BatchManagerTestAsyncBatchManager batchManager() {
-        return BatchManagerTestAsyncBatchManager.builder().client(this).scheduledExecutor(executorService).build();
-    }
-
-    @Override
-    public final BatchManagerTestServiceClientConfiguration serviceClientConfiguration() {
-        return new BatchManagerTestServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
+    public final FooBarServiceClientConfiguration serviceClientConfiguration() {
+        return new FooBarServiceClientConfigurationBuilder(this.clientConfiguration.toBuilder()).build();
     }
 
     @Override
@@ -157,13 +154,12 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder.clientConfiguration(clientConfiguration)
-                      .defaultServiceExceptionSupplier(BatchManagerTestException::builder).protocol(AwsJsonProtocol.REST_JSON)
-                      .protocolVersion("1.1");
+        return builder.clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(FooBarException::builder)
+                .protocol(AwsJsonProtocol.REST_JSON).protocolVersion("1.1");
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
+            RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -206,17 +202,24 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
             return clientConfiguration;
         }
         SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
-        BatchManagerTestServiceClientConfigurationBuilder serviceConfigBuilder = new BatchManagerTestServiceClientConfigurationBuilder(
-            configuration);
+        FooBarServiceClientConfigurationBuilder serviceConfigBuilder = new FooBarServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
+        AttributeMap newContextParams = configuration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
+        AttributeMap originalContextParams = clientConfiguration.option(SdkClientOption.CLIENT_CONTEXT_PARAMS);
+        newContextParams = (newContextParams != null) ? newContextParams : AttributeMap.empty();
+        originalContextParams = originalContextParams != null ? originalContextParams : AttributeMap.empty();
+        Validate.validState(
+                Objects.equals(originalContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED),
+                        newContextParams.get(FooBarClientContextParams.CROSS_REGION_ACCESS_ENABLED)),
+                "CROSS_REGION_ACCESS_ENABLED cannot be modified by request level plugins");
         updateRetryStrategyClientConfiguration(configuration);
         return configuration.build();
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+            JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
         return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
