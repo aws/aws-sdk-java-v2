@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.core.metrics.CoreMetric;
@@ -208,6 +209,23 @@ import software.amazon.awssdk.utils.IoUtils;
         );
     }
 
+    private static Stream<Arguments> invalidUrlTestCases() {
+        return Stream.of(
+            Arguments.of(
+                "URL with spaces in path",
+                "https://test-bucket.s3.us-east-1.amazonaws.com/test key with spaces"
+            ),
+            Arguments.of(
+                "URL with invalid characters",
+                "https://test-bucket.s3.us-east-1.amazonaws.com/test<>key"
+            ),
+            Arguments.of(
+                "Malformed URL",
+                "not-a-valid-url"
+            )
+        );
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("additionalTestCases")
     void given_PresignedUrlManager_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(String testName,
@@ -254,6 +272,21 @@ import software.amazon.awssdk.utils.IoUtils;
                 assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("GetObject");
                 break;
         }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidUrlTestCases")
+    void given_PresignedUrlManager_when_GetObjectWithInvalidUrl_then_ShouldThrowException(String testName, String invalidUrlString) {
+        assertThatThrownBy(() -> {
+            URL invalidUrl = new URL(invalidUrlString);
+            PresignedUrlGetObjectRequest invalidRequest = PresignedUrlGetObjectRequest.builder()
+                                                                                     .presignedUrl(invalidUrl)
+                                                                                     .build();
+            presignedUrlManager.getObject(invalidRequest, ResponseTransformer.toInputStream());
+        }).satisfiesAnyOf(
+            ex -> assertThat(ex).isInstanceOf(java.net.MalformedURLException.class),
+            ex -> assertThat(ex).isInstanceOf(SdkClientException.class)
+        );
     }
 
     private SdkClientConfiguration getDefaultSdkConfigs() {

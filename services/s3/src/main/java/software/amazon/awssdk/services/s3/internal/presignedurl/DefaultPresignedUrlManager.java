@@ -67,10 +67,7 @@ public final class DefaultPresignedUrlManager implements PresignedUrlManager {
         this.clientConfiguration = clientConfiguration;
         this.protocolMetadata = protocolMetadata;
     }
-    
-    /**
-     * Downloads an S3 object using a presigned URL.
-     */
+
     @Override
     public <ReturnT> ReturnT getObject(PresignedUrlGetObjectRequest presignedUrlGetObjectRequest,
                                        ResponseTransformer<GetObjectResponse, ReturnT> responseTransformer) 
