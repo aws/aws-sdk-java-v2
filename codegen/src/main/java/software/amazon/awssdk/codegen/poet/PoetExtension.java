@@ -216,9 +216,7 @@ public class PoetExtension {
     }
 
     public ClassName getDefaultPresignedUrlManagerClass() {
-        return ClassName.get("software.amazon.awssdk.services." +
-                             model.getMetadata().getServiceId().toLowerCase(java.util.Locale.ENGLISH) +
-                             ".internal.presignedurl",
+        return ClassName.get(model.getMetadata().getFullClientInternalPackageName() + ".presignedurl",
                              "DefaultPresignedUrlManager");
     }
 }
