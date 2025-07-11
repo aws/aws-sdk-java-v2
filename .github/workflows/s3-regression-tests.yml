@@ -5,10 +5,6 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
 
 permissions:
   id-token: write
