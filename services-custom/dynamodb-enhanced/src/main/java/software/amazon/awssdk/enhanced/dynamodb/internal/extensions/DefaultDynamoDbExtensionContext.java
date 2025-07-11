@@ -32,7 +32,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkInternalApi
 public final class DefaultDynamoDbExtensionContext implements DynamoDbExtensionContext.BeforeWrite,
-                                                              DynamoDbExtensionContext.AfterRead {
+                                                              DynamoDbExtensionContext.AfterRead,
+                                                              DynamoDbExtensionContext.BeforeDelete {
     private final Map<String, AttributeValue> items;
     private final OperationContext operationContext;
     private final TableMetadata tableMetadata;

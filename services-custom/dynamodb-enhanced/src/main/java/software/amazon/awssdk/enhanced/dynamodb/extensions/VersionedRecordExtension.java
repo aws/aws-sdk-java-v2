@@ -142,6 +142,40 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
+    @Override
+    public Expression beforeDelete(DynamoDbExtensionContext.BeforeDelete context) {
+        Optional<String> versionAttributeKey = context.tableMetadata()
+                                                      .customMetadataObject(CUSTOM_METADATA_KEY, String.class);
+
+        if (!versionAttributeKey.isPresent()) {
+            return Expression.builder().build();
+        }
+
+        String attributeKeyRef = keyRef(versionAttributeKey.get());
+        Expression condition;
+        Optional<AttributeValue> existingVersionValue =
+            Optional.ofNullable(context.items().get(versionAttributeKey.get()));
+
+        if (!existingVersionValue.isPresent() || isNullAttributeValue(existingVersionValue.get())) {
+            throw new IllegalArgumentException("Version attribute is null.");
+        } else {
+            if (existingVersionValue.get().n() == null) {
+                // In this case a non-null version attribute is present, but it's not an N
+                throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
+            }
+
+            String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
+            condition = Expression.builder()
+                                  .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
+                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
+                                  .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                             existingVersionValue.get()))
+                                  .build();
+        }
+
+        return condition;
+    }
+
     @NotThreadSafe
     public static final class Builder {
         private Builder() {
