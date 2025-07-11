@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.presignedUrlModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
@@ -27,5 +28,12 @@ public class DelegatingSyncClientClassTest {
         DelegatingSyncClientClass syncClientDecoratorAbstractClass =
             new DelegatingSyncClientClass(restJsonServiceModels());
         assertThat(syncClientDecoratorAbstractClass, generatesTo("test-abstract-sync-client-class.java"));
+    }
+
+    @Test
+    public void delegatingSyncClientClassWithPresignedUrlManager() {
+        DelegatingSyncClientClass syncClientDecoratorAbstractClass =
+            new DelegatingSyncClientClass(presignedUrlModels());
+        assertThat(syncClientDecoratorAbstractClass, generatesTo("test-abstract-sync-client-class-presignedurl.java"));
     }
 }

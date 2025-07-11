@@ -218,6 +218,12 @@ public class DefaultNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getPresignedUrlManagerPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_PRESIGNED_URL_MANAGER_PATTERN);
+    }
+
+    @Override
     public String getSmokeTestPackageName(String serviceName) {
 
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),

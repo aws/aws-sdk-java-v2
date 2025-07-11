@@ -94,6 +94,9 @@ public class SyncClientInterface implements ClassSpec {
         if (model.hasWaiters()) {
             result.addMethod(waiterMethod());
         }
+        if (model.getCustomizationConfig().getPresignedUrlManagerSupported()) {
+            addPresignedUrlManagerMethod(result);
+        }
         addAdditionalMethods(result);
         result.addMethod(serviceClientConfigMethod());
         addCloseMethod(result);
@@ -143,6 +146,16 @@ public class SyncClientInterface implements ClassSpec {
 
         PoetUtils.addJavadoc(type::addJavadoc, getJavadoc());
 
+    }
+
+    protected void addPresignedUrlManagerMethod(TypeSpec.Builder type) {
+        ClassName returnType = poetExtensions.getPresignedUrlManagerInterface();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("presignedUrlManager")
+                                               .addModifiers(PUBLIC)
+                                               .returns(returnType)
+                                               .addJavadoc("Creates an instance of {@link $T} object with the "
+                                                           + "configuration set on this client.", returnType);
+        type.addMethod(presignedUrlManagerOperationBody(builder).build());
     }
 
     @Override
@@ -557,6 +570,11 @@ public class SyncClientInterface implements ClassSpec {
 
     protected MethodSpec.Builder waiterOperationBody(MethodSpec.Builder builder) {
         return builder.addModifiers(DEFAULT, PUBLIC)
+                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+
+    protected MethodSpec.Builder presignedUrlManagerOperationBody(MethodSpec.Builder builder) {
+        return builder.addModifiers(DEFAULT)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
 }

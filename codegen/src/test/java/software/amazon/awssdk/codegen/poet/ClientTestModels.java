@@ -526,6 +526,18 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel presignedUrlModels() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/presignedurl/customization.config").getFile());
+
+        C2jModels models = C2jModels.builder()
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(getCustomizationConfig(customizationModel))
+                                    .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     private static ServiceModel getServiceModel(File file) {
         return ModelLoaderUtils.loadModel(ServiceModel.class, file);
     }

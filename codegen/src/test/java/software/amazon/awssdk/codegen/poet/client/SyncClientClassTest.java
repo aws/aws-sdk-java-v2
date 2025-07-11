@@ -26,6 +26,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceM
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.presignedUrlModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
@@ -110,6 +111,12 @@ public class SyncClientClassTest {
     public void syncClientClassWithUnsignedPayload() {
         SyncClientClass syncClientClass = createSyncClientClass(opsWithSigv4a());
         assertThat(syncClientClass, generatesTo("test-unsigned-payload-trait-sync-client-class.java"));
+    }
+
+    @Test
+    public void syncClientPresignedUrlManager() {
+        ClassSpec syncClientPresignedUrl = createSyncClientClass(presignedUrlModels());
+        assertThat(syncClientPresignedUrl, generatesTo("test-presignedurl-sync.java"));
     }
 
 }

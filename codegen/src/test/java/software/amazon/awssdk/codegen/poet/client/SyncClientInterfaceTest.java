@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.presignedUrlModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.Test;
@@ -27,5 +28,11 @@ public class SyncClientInterfaceTest {
     public void syncClientInterface() {
         ClassSpec syncClientInterface = new SyncClientInterface(restJsonServiceModels());
         assertThat(syncClientInterface, generatesTo("test-json-client-interface.java"));
+    }
+
+    @Test
+    public void syncClientInterfaceWithPresignedUrlManager() {
+        ClassSpec syncClientInterface = new SyncClientInterface(presignedUrlModels());
+        assertThat(syncClientInterface, generatesTo("test-json-sync-client-interface-presignedurl.java"));
     }
 }
