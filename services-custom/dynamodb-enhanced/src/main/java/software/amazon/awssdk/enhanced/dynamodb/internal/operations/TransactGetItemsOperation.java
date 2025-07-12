@@ -52,6 +52,7 @@ public class TransactGetItemsOperation
     public TransactGetItemsRequest generateRequest(DynamoDbEnhancedClientExtension extension) {
         return TransactGetItemsRequest.builder()
                                       .transactItems(this.request.transactGetItems())
+                                      .overrideConfiguration(this.request.overrideConfiguration())
                                       .build();
     }
 
