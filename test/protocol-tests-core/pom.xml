@@ -137,6 +137,10 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
+        </dependency>
     </dependencies>
 
     <!-- Disable spotbugs for this test module to speed up the build. -->
