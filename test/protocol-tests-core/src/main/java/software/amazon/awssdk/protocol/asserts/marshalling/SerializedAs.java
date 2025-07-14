@@ -37,6 +37,10 @@ public class SerializedAs extends CompositeMarshallingAssertion {
         addAssertion(new UriAssertion(uri));
     }
 
+    public void setResolvedHost(String resolvedHost) {
+        addAssertion(new ResolvedHostAssertion(resolvedHost));
+    }
+
     @JsonDeserialize(using = SdkHttpMethodDeserializer.class)
     public void setMethod(SdkHttpMethod method) {
         addAssertion(new HttpMethodAssertion(method));

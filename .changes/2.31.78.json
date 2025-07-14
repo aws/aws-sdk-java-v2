@@ -1,0 +1,54 @@
+{
+    "version": "2.31.78",
+    "date": "2025-07-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS Query Protocol",
+            "contributor": "",
+            "description": "Fixed EC2 DescribeInstances query failure in non-ASCII digit locales by using ROOT locale when formatting query paths to ensure ASCII digits are always used."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed AsyncRequestBody.fromByteBuffers() and related methods to properly complete when called with no buffers"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix an issue where the CRC64NVME class cannot be loaded from CRT in some situations, even if `aws-crt` is correctly included in the application classpath."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Free Tier",
+            "contributor": "",
+            "description": "This release introduces four new APIs: GetAccountPlanState and UpgradeAccountPlan for AWS account plan management; ListAccountActivities and GetAccountActivity that provide activity tracking capabilities."
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "contributor": "",
+            "description": "Removing content that refers to an S3 bucket that is no longer in use."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add validation for invalid usages of the `enableEnvironmentBearerToken` codegen customization."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support to Capacity Blocks for ML for purchasing EC2 P6e-GB200 UltraServers. Customers can now purchase u-p6e-gb200x72 and u-p6e-gb200x36 UltraServers. Adds new DescribeCapacityBlocks andDescribeCapacityBlockStatus APIs. Adds support for CapacityBlockId to DescribeInstanceTopology."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -56,7 +56,6 @@ public class Then {
     }
 
     /**
-     *
      * @return The assertion object to use for error unmarshalling tests
      */
     public UnmarshallingAssertion getErrorUnmarshallingAssertion() {
@@ -64,8 +63,7 @@ public class Then {
     }
 
     /**
-     *
-     * @return The errorCode String to use for error unmarshalling tests
+     * @return The error code to assert.
      */
     public String getErrorCode() {
         return errorCode;

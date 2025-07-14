@@ -302,6 +302,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         // Special cases
         result = result.replace("textORcsv", "TEXT_OR_CSV");
 
+        // leading digits, add a prefix
+        if (result.matches("^\\d.*")) {
+            result = "VALUE_" + result;
+        }
+
         // Split into words
         result = String.join("_", splitOnWordBoundaries(result));
 
