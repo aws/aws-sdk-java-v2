@@ -76,6 +76,9 @@ public class UnifiedBenchmarkRunner {
             }
             logger.info("\nBenchmark complete! CloudWatch metrics published with run ID: " + runId);
 
+            // Print benchmark results summary
+            printBenchmarkSummary(allResults);
+
         } finally {
             publisher.shutdown();
         }
@@ -107,14 +110,12 @@ public class UnifiedBenchmarkRunner {
                                                             RunResult runResult) {
         String fullBenchmarkName = runResult.getPrimaryResult().getLabel();
 
-        // Extract just the method name (everything after the last dot)
-        String benchmarkName = fullBenchmarkName;
-        if (fullBenchmarkName.contains(".")) {
-            benchmarkName = fullBenchmarkName.substring(fullBenchmarkName.lastIndexOf('.') + 1);
-        }
+        // Extract benchmark details including parameters
+        String benchmarkName = extractBenchmarkName(fullBenchmarkName);
+        String parameters = extractParameters(fullBenchmarkName);
 
         // Log for debugging
-        logger.info(String.format("Converting: %s -> %s", fullBenchmarkName, benchmarkName));
+        logger.info(String.format("Converting: %s -> %s %s", fullBenchmarkName, benchmarkName, parameters));
 
         double throughput = runResult.getPrimaryResult().getScore();
         double avgLatency = 1000.0 / throughput;
@@ -122,13 +123,90 @@ public class UnifiedBenchmarkRunner {
 
         int threadCount = benchmarkName.contains("multiThreaded") ? 10 : 1;
 
+        // Include parameters in the benchmark name for uniqueness
+        String fullName = parameters.isEmpty() ? benchmarkName : benchmarkName + " " + parameters;
+
         return new BenchmarkResult(
             clientType,
-            benchmarkName,
+            fullName,
             throughput,
             avgLatency,
             p99Latency,
             threadCount
         );
+    }
+
+    private static String extractBenchmarkName(String fullLabel) {
+        if (fullLabel == null) return "unknown";
+
+        // JMH format: package.ClassName.methodName
+        String methodPart = fullLabel;
+        if (fullLabel.contains(".")) {
+            methodPart = fullLabel.substring(fullLabel.lastIndexOf('.') + 1);
+        }
+
+        // Remove parameter part if exists (after colon)
+        if (methodPart.contains(":")) {
+            methodPart = methodPart.substring(0, methodPart.indexOf(':'));
+        }
+
+        return methodPart;
+    }
+
+    private static String extractParameters(String fullLabel) {
+        if (fullLabel == null || !fullLabel.contains(":")) {
+            return "";
+        }
+
+        // Extract everything after the colon (parameters)
+        String params = fullLabel.substring(fullLabel.indexOf(':') + 1).trim();
+
+        // Format parameters nicely
+        if (params.contains("(") && params.contains(")")) {
+            params = params.substring(params.indexOf('(') + 1, params.lastIndexOf(')'));
+        }
+
+        return "(" + params + ")";
+    }
+
+    private static void printBenchmarkSummary(List<BenchmarkResult> results) {
+        if (results == null || results.isEmpty()) {
+            logger.warning("No benchmark results to display");
+            return;
+        }
+
+        System.out.println("\n" + "=".repeat(140));
+        System.out.println("BENCHMARK RESULTS SUMMARY");
+        System.out.println("=".repeat(140));
+
+        // Print header
+        System.out.printf("%-20s | %-50s | %-15s | %-15s | %-15s | %-10s%n",
+                          "Client Type", "Benchmark", "Throughput", "Avg Latency", "P99 Latency", "Threads");
+        System.out.println("-".repeat(140));
+
+        // Sort results for better readability
+        List<BenchmarkResult> sortedResults = results.stream()
+                                                     .filter(r -> r != null && r.getClientType() != null && r.getBenchmarkName() != null)
+                                                     .sorted((a, b) -> {
+                                                         int clientCompare = a.getClientType().compareTo(b.getClientType());
+                                                         if (clientCompare != 0) return clientCompare;
+                                                         return a.getBenchmarkName().compareTo(b.getBenchmarkName());
+                                                     })
+                                                     .collect(Collectors.toList());
+
+        // Print all results (including parameter variations)
+        for (BenchmarkResult result : sortedResults) {
+            System.out.printf("%-20s | %-50s | %,13.2f/s | %13.2f ms | %13.2f ms | %10d%n",
+                              result.getClientType(),
+                              result.getBenchmarkName(),
+                              result.getThroughput(),
+                              result.getAvgLatency(),
+                              result.getP99Latency(),
+                              result.getThreadCount());
+        }
+
+        System.out.println("=".repeat(140));
+        System.out.printf("Total benchmark results: %d%n", sortedResults.size());
+        System.out.println("=".repeat(140));
     }
 }
