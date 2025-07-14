@@ -18,7 +18,7 @@ mvn clean install -P quick -pl :http-client-benchmarks --am
 java -jar target/benchmarks.jar Apache5Benchmark
 
 # Run all benchmarks: 3 warm up iterations, 3 benchmark iterations, 1 fork
-java -jar target/benchmarks.jar -wi 3 -i 3 -f 1
+java -jar target/http-client-benchmarks.jar -wi 3 -i 3 -f 1
 ```
 
 - Using `mvn exec:exec` commands to invoke `UnifiedBenchmarkRunner` main method
