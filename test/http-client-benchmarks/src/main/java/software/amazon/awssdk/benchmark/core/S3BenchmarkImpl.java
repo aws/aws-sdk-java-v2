@@ -121,25 +121,26 @@ public class S3BenchmarkImpl {
 
     public void cleanup() {
         try {
-            // Delete all objects
-            ListObjectsV2Response listResponse = s3Client.listObjectsV2(
-                ListObjectsV2Request.builder()
-                                    .bucket(bucketName)
-                                    .build()
-            );
-
-            for (S3Object object : listResponse.contents()) {
-                s3Client.deleteObject(DeleteObjectRequest.builder()
-                                                         .bucket(bucketName)
-                                                         .key(object.key())
-                                                         .build());
-            }
-
+            // Delete all objects (handle pagination)
+            ListObjectsV2Request.Builder listRequestBuilder = ListObjectsV2Request.builder();
+            String continuationToken = null;
+            do {
+                if (continuationToken != null) {
+                    listRequestBuilder.continuationToken(continuationToken);
+                }
+                ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequestBuilder.build());
+                for (S3Object object : listResponse.contents()) {
+                    s3Client.deleteObject(DeleteObjectRequest.builder()
+                                                             .bucket(bucketName)
+                                                             .key(object.key())
+                                                             .build());
+                }
+                continuationToken = listResponse.nextContinuationToken();
+            } while (continuationToken != null);
             // Delete bucket
             s3Client.deleteBucket(DeleteBucketRequest.builder()
                                                      .bucket(bucketName)
                                                      .build());
-
             logger.info("Cleaned up bucket: " + bucketName);
 
         } catch (Exception e) {

@@ -16,6 +16,9 @@
 package software.amazon.awssdk.benchmark;
 
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -29,7 +32,6 @@ import software.amazon.awssdk.benchmark.metrics.CloudWatchMetricsPublisher;
 import software.amazon.awssdk.regions.Region;
 
 import java.time.Instant;
-import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -72,10 +74,6 @@ public class UnifiedBenchmarkRunner {
             for (BenchmarkResult result : allResults) {
                 publisher.publishBenchmarkResult(result, runId);
             }
-
-            // Print comparison report
-            printComparisonReport(allResults);
-
             logger.info("\nBenchmark complete! CloudWatch metrics published with run ID: " + runId);
 
         } finally {
@@ -133,61 +131,4 @@ public class UnifiedBenchmarkRunner {
             threadCount
         );
     }
-
-    private static void printComparisonReport(List<BenchmarkResult> results) {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.println("PERFORMANCE COMPARISON REPORT");
-        System.out.println("=".repeat(80) + "\n");
-
-        // Group results by client type
-        Map<String, Map<String, BenchmarkResult>> grouped = results.stream()
-                                                                   .collect(Collectors.groupingBy(
-                                                                       BenchmarkResult::getClientType,
-                                                                       Collectors.toMap(
-                                                                           BenchmarkResult::getBenchmarkName,
-                                                                           r -> r
-                                                                       )
-                                                                   ));
-
-        // Print the structure we actually have , to view it on console
-        System.out.println("Available results structure:");
-        for (Map.Entry<String, Map<String, BenchmarkResult>> entry : grouped.entrySet()) {
-            System.out.println("Client: " + entry.getKey());
-            for (String benchmarkName : entry.getValue().keySet()) {
-                System.out.println("  - " + benchmarkName);
-            }
-        }
-        System.out.println();
-
-        // Get all unique benchmark names across all clients
-        Set<String> allBenchmarkNames = grouped.values().stream()
-                                               .flatMap(map -> map.keySet().stream())
-                                               .collect(Collectors.toSet());
-
-        // Print results table with dynamic columns
-        System.out.printf("%-20s", "Client Type");
-        for (String benchmarkName : allBenchmarkNames) {
-            System.out.printf(" %-15s", benchmarkName);
-        }
-        System.out.println();
-        System.out.println("-".repeat(20 + (allBenchmarkNames.size() * 16)));
-
-        for (String clientType : Arrays.asList("Apache4", "Apache5-Platform", "Apache5-Virtual")) {
-            Map<String, BenchmarkResult> clientResults = grouped.get(clientType);
-            if (clientResults != null) {
-                System.out.printf("%-20s", clientType);
-                for (String benchmarkName : allBenchmarkNames) {
-                    BenchmarkResult result = clientResults.get(benchmarkName);
-                    if (result != null) {
-                        System.out.printf(" %-15.2f", result.getThroughput());
-                    } else {
-                        System.out.printf(" %-15s", "N/A");
-                    }
-                }
-                System.out.println();
-            }
-        }
-
-    }
-
 }

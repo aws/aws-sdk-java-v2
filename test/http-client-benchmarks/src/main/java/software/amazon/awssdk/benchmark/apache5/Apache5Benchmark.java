@@ -35,6 +35,7 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.benchmark.core.CoreBenchmark;
 import software.amazon.awssdk.benchmark.core.S3BenchmarkImpl;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
@@ -47,12 +48,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 @BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 @Fork(value = 1, jvmArgs = {"-Xms2G", "-Xmx2G", "--enable-preview"})
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-public class Apache5Benchmark {
+public class Apache5Benchmark implements CoreBenchmark {
     private static final Logger logger = Logger.getLogger(Apache5Benchmark.class.getName());
 
     @Param({"50","200"})
@@ -112,16 +113,19 @@ public class Apache5Benchmark {
     }
 
     @Benchmark
+    @Override
     public void simpleGet(Blackhole blackhole) throws Exception {
         benchmark.executeGet("medium", blackhole);
     }
 
     @Benchmark
+    @Override
     public void simplePut(Blackhole blackhole) throws Exception {
         benchmark.executePut("medium", blackhole);
     }
 
     @Benchmark
+    @Override
     public void multiThreadedGet(Blackhole blackhole) throws Exception {
         List<Future<?>> futures = new ArrayList<>(threadCount);
 
@@ -142,6 +146,7 @@ public class Apache5Benchmark {
     }
 
     @Benchmark
+    @Override
     public void multiThreadedPut(Blackhole blackhole) throws Exception {
         List<Future<?>> futures = new ArrayList<>(threadCount);
 
