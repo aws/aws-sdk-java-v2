@@ -29,10 +29,6 @@ cd test/http-client-benchmarks
 mvn exec:exec
 ```   
 
-- From IDE
-  
-  You can run the main method within `UnifiedBenchmarkRunner` class from your IDE to execute all benchmark comparisons, or run individual benchmark classes like `Apache4Benchmark` and `Apache5Benchmark`. If you are using Eclipse, you might need to set up build configurations for JMH annotation, please check [JMH]. Note that the benchmark result from IDE might not be as reliable as the above approaches and is generally not recommended.
-
 ## UnifiedBenchmarkRunner
 
 The `UnifiedBenchmarkRunner` provides a comprehensive comparison between different HTTP client implementations:
