@@ -19,6 +19,7 @@ package software.amazon.awssdk.benchmark;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.openjdk.jmh.results.RunResult;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.RunnerException;
@@ -208,5 +209,56 @@ public class UnifiedBenchmarkRunner {
         System.out.println("=".repeat(140));
         System.out.printf("Total benchmark results: %d%n", sortedResults.size());
         System.out.println("=".repeat(140));
+        // Print performance comparison in between Apache clients
+        printApachePerformanceComparison(results);
+
     }
+
+    private static void printApachePerformanceComparison(List<BenchmarkResult> results) {
+        if (results == null || results.isEmpty()) {
+            return;
+        }
+
+        System.out.println("\nPERFORMANCE COMPARISON (Apache5 vs Apache4):");
+        System.out.println("=".repeat(80));
+
+        Map<String, List<BenchmarkResult>> groupedResults = results.stream()
+                                                                   .filter(r -> r != null && r.getBenchmarkName() != null)
+                                                                   .collect(Collectors.groupingBy(BenchmarkResult::getBenchmarkName));
+
+        for (Map.Entry<String, List<BenchmarkResult>> entry : groupedResults.entrySet()) {
+            String benchmarkName = entry.getKey();
+            List<BenchmarkResult> benchmarkResults = entry.getValue();
+
+            // Find Apache4 baseline
+            BenchmarkResult apache4 = benchmarkResults.stream()
+                                                      .filter(r -> r.getClientType() != null && r.getClientType().equals("Apache4"))
+                                                      .findFirst()
+                                                      .orElse(null);
+
+            if (apache4 == null) {
+                continue;
+            }
+
+            System.out.printf("\n%s:%n", benchmarkName);
+            System.out.println("-".repeat(80));
+
+            for (BenchmarkResult result : benchmarkResults) {
+                if (result.getClientType() != null && !result.getClientType().equals("Apache4")) {
+                    double throughputImprovement = ((result.getThroughput() - apache4.getThroughput())
+                                                    / apache4.getThroughput()) * 100;
+                    double latencyImprovement = ((apache4.getAvgLatency() - result.getAvgLatency())
+                                                 / apache4.getAvgLatency()) * 100;
+
+                    System.out.printf("  %-20s: %+.1f%% throughput, %+.1f%% latency improvement%n",
+                                      result.getClientType(),
+                                      throughputImprovement,
+                                      latencyImprovement);
+                }
+            }
+        }
+
+        System.out.println("\n" + "=".repeat(80));
+    }
+
 }

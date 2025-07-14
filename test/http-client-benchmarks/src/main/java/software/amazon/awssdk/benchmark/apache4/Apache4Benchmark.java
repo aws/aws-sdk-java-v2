@@ -56,7 +56,7 @@ import java.util.logging.Logger;
 public class Apache4Benchmark implements CoreBenchmark {
     private static final Logger logger = Logger.getLogger(Apache4Benchmark.class.getName());
 
-    @Param({"50","200"})
+    @Param({"50"})
     private int maxConnections;
 
     @Param({"10"})
