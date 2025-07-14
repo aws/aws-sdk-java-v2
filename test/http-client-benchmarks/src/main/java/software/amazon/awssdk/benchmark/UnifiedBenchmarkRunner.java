@@ -39,10 +39,7 @@ public class UnifiedBenchmarkRunner {
     public static void main(String[] args) throws Exception {
         logger.info("Starting unified benchmark comparison");
 
-        // Generate unique run ID with timestamp
         String runId = Instant.now().toString();
-
-        // Initialize CloudWatch publisher
         CloudWatchMetricsPublisher publisher = new CloudWatchMetricsPublisher(
             Region.US_WEST_2,
             "S3-HTTP-Client-Comparison"
@@ -63,13 +60,20 @@ public class UnifiedBenchmarkRunner {
             logger.info("Running Apache5 with virtual threads...");
             allResults.addAll(runBenchmark("Apache5-Virtual", Apache5Benchmark.class, "virtual"));
 
-            // Publish all results to CloudWatch with synchronized timestamp
+            // Debug: Print all results to understand the structure
+            logger.info("All benchmark results:");
+            for (BenchmarkResult result : allResults) {
+                logger.info(String.format("Client: %s, Benchmark: %s, Throughput: %.2f",
+                                          result.getClientType(), result.getBenchmarkName(), result.getThroughput()));
+            }
+
+            // Publish results to CloudWatch
             logger.info("Publishing results to CloudWatch...");
             for (BenchmarkResult result : allResults) {
                 publisher.publishBenchmarkResult(result, runId);
             }
 
-            // Print comparison report to console
+            // Print comparison report
             printComparisonReport(allResults);
 
             logger.info("\nBenchmark complete! CloudWatch metrics published with run ID: " + runId);
@@ -89,7 +93,6 @@ public class UnifiedBenchmarkRunner {
             .warmupIterations(2)
             .measurementIterations(3);
 
-        // Add executor type parameter for Apache5
         if (executorType != null) {
             optBuilder.param("executorType", executorType);
         }
@@ -105,13 +108,20 @@ public class UnifiedBenchmarkRunner {
     private static BenchmarkResult convertToBenchmarkResult(String clientType,
                                                             RunResult runResult) {
         String fullBenchmarkName = runResult.getPrimaryResult().getLabel();
-        String benchmarkName = fullBenchmarkName.substring(fullBenchmarkName.lastIndexOf('.') + 1);
+
+        // Extract just the method name (everything after the last dot)
+        String benchmarkName = fullBenchmarkName;
+        if (fullBenchmarkName.contains(".")) {
+            benchmarkName = fullBenchmarkName.substring(fullBenchmarkName.lastIndexOf('.') + 1);
+        }
+
+        // Log for debugging
+        logger.info(String.format("Converting: %s -> %s", fullBenchmarkName, benchmarkName));
 
         double throughput = runResult.getPrimaryResult().getScore();
-        double avgLatency = 1000.0 / throughput; // Convert to ms
-        double p99Latency = avgLatency * 1.5; // Estimate
+        double avgLatency = 1000.0 / throughput;
+        double p99Latency = avgLatency * 1.5;
 
-        // Determine thread count from benchmark name
         int threadCount = benchmarkName.contains("multiThreaded") ? 10 : 1;
 
         return new BenchmarkResult(
@@ -139,25 +149,51 @@ public class UnifiedBenchmarkRunner {
                                                                        )
                                                                    ));
 
-        // Print results table
-        System.out.printf("%-20s %-15s %-15s %-15s %-15s%n",
-                          "Client Type", "Simple GET", "Simple PUT", "MT GET (10t)", "MT PUT (10t)");
-        System.out.println("-".repeat(80));
+        // Print the structure we actually have , to view it on console
+        System.out.println("Available results structure:");
+        for (Map.Entry<String, Map<String, BenchmarkResult>> entry : grouped.entrySet()) {
+            System.out.println("Client: " + entry.getKey());
+            for (String benchmarkName : entry.getValue().keySet()) {
+                System.out.println("  - " + benchmarkName);
+            }
+        }
+        System.out.println();
+
+        // Get all unique benchmark names across all clients
+        Set<String> allBenchmarkNames = grouped.values().stream()
+                                               .flatMap(map -> map.keySet().stream())
+                                               .collect(Collectors.toSet());
+
+        // Print results table with dynamic columns
+        System.out.printf("%-20s", "Client Type");
+        for (String benchmarkName : allBenchmarkNames) {
+            System.out.printf(" %-15s", benchmarkName);
+        }
+        System.out.println();
+        System.out.println("-".repeat(20 + (allBenchmarkNames.size() * 16)));
 
         for (String clientType : Arrays.asList("Apache4", "Apache5-Platform", "Apache5-Virtual")) {
             Map<String, BenchmarkResult> clientResults = grouped.get(clientType);
             if (clientResults != null) {
-                System.out.printf("%-20s %-15.2f %-15.2f %-15.2f %-15.2f%n",
-                                  clientType,
-                                  clientResults.get("simpleGet").getThroughput(),
-                                  clientResults.get("simplePut").getThroughput(),
-                                  clientResults.get("multiThreadedGet").getThroughput(),
-                                  clientResults.get("multiThreadedPut").getThroughput()
-                );
+                System.out.printf("%-20s", clientType);
+                for (String benchmarkName : allBenchmarkNames) {
+                    BenchmarkResult result = clientResults.get(benchmarkName);
+                    if (result != null) {
+                        System.out.printf(" %-15.2f", result.getThroughput());
+                    } else {
+                        System.out.printf(" %-15s", "N/A");
+                    }
+                }
+                System.out.println();
             }
         }
 
-        // Print performance improvements
+        // Print performance improvements (only if we have matching benchmarks)
+        printPerformanceImprovements(grouped);
+        System.out.println("\n" + "=".repeat(80));
+    }
+
+    private static void printPerformanceImprovements(Map<String, Map<String, BenchmarkResult>> grouped) {
         System.out.println("\n" + "=".repeat(80));
         System.out.println("PERFORMANCE IMPROVEMENTS");
         System.out.println("=".repeat(80));
@@ -180,17 +216,27 @@ public class UnifiedBenchmarkRunner {
             System.out.println("\nApache5 (Virtual) vs Apache4:");
             printImprovements(apache4, apache5Virtual);
         }
-
-        System.out.println("\n" + "=".repeat(80));
     }
 
     private static void printImprovements(Map<String, BenchmarkResult> baseline,
                                           Map<String, BenchmarkResult> comparison) {
-        for (String op : Arrays.asList("simpleGet", "simplePut",
-                                       "multiThreadedGet", "multiThreadedPut")) {
-            double improvement = (comparison.get(op).getThroughput() /
-                                  baseline.get(op).getThroughput() - 1) * 100;
-            System.out.printf("  %-20s: %+.1f%%%n", op, improvement);
+        // Find common benchmark names
+        Set<String> commonBenchmarks = new HashSet<>(baseline.keySet());
+        commonBenchmarks.retainAll(comparison.keySet());
+
+        if (commonBenchmarks.isEmpty()) {
+            System.out.println("  No common benchmarks found for comparison");
+            return;
+        }
+
+        for (String benchmarkName : commonBenchmarks) {
+            BenchmarkResult baseResult = baseline.get(benchmarkName);
+            BenchmarkResult compResult = comparison.get(benchmarkName);
+
+            if (baseResult != null && compResult != null) {
+                double improvement = (compResult.getThroughput() / baseResult.getThroughput() - 1) * 100;
+                System.out.printf("  %-20s: %+.1f%%%n", benchmarkName, improvement);
+            }
         }
     }
 }
