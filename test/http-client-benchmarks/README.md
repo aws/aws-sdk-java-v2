@@ -37,7 +37,7 @@ The `UnifiedBenchmarkRunner` provides a comprehensive comparison between differe
 - **Apache5-Platform**: Apache HttpClient 5.x with platform threads 
 - **Apache5-Virtual**: Apache HttpClient 5.x with virtual threads
 
-The runner executes all benchmark variations, publishes metrics to CloudWatch, and generates a detailed comparison report showing performance improvements between implementations.
+The runner executes all benchmark variations, prints and publishes metrics to CloudWatch.
 
 ## Benchmark Operations
 

@@ -188,55 +188,6 @@ public class UnifiedBenchmarkRunner {
             }
         }
 
-        // Print performance improvements (only if we have matching benchmarks)
-        printPerformanceImprovements(grouped);
-        System.out.println("\n" + "=".repeat(80));
     }
 
-    private static void printPerformanceImprovements(Map<String, Map<String, BenchmarkResult>> grouped) {
-        System.out.println("\n" + "=".repeat(80));
-        System.out.println("PERFORMANCE IMPROVEMENTS");
-        System.out.println("=".repeat(80));
-
-        Map<String, BenchmarkResult> apache4 = grouped.get("Apache4");
-        Map<String, BenchmarkResult> apache5Platform = grouped.get("Apache5-Platform");
-        Map<String, BenchmarkResult> apache5Virtual = grouped.get("Apache5-Virtual");
-
-        if (apache4 != null && apache5Platform != null) {
-            System.out.println("\nApache5 (Platform) vs Apache4:");
-            printImprovements(apache4, apache5Platform);
-        }
-
-        if (apache5Platform != null && apache5Virtual != null) {
-            System.out.println("\nApache5 (Virtual) vs Apache5 (Platform):");
-            printImprovements(apache5Platform, apache5Virtual);
-        }
-
-        if (apache4 != null && apache5Virtual != null) {
-            System.out.println("\nApache5 (Virtual) vs Apache4:");
-            printImprovements(apache4, apache5Virtual);
-        }
-    }
-
-    private static void printImprovements(Map<String, BenchmarkResult> baseline,
-                                          Map<String, BenchmarkResult> comparison) {
-        // Find common benchmark names
-        Set<String> commonBenchmarks = new HashSet<>(baseline.keySet());
-        commonBenchmarks.retainAll(comparison.keySet());
-
-        if (commonBenchmarks.isEmpty()) {
-            System.out.println("  No common benchmarks found for comparison");
-            return;
-        }
-
-        for (String benchmarkName : commonBenchmarks) {
-            BenchmarkResult baseResult = baseline.get(benchmarkName);
-            BenchmarkResult compResult = comparison.get(benchmarkName);
-
-            if (baseResult != null && compResult != null) {
-                double improvement = (compResult.getThroughput() / baseResult.getThroughput() - 1) * 100;
-                System.out.printf("  %-20s: %+.1f%%%n", benchmarkName, improvement);
-            }
-        }
-    }
 }
