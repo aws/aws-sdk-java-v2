@@ -43,8 +43,7 @@ PresignedUrlManager presignManager = s3Client.presignedManager();
 // Create presigned URL request
 PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
                                                 .presignedUrl(presignedUrl)
-                                                .rangeStart(0L)
-                                                .rangeEnd(1024L)
+                                                .range("range=0-1024")
                                                 .build();
 
 // Async usage
@@ -128,12 +127,11 @@ public final class PresignedUrlGetObjectRequest
         implements ToCopyableBuilder<PresignedUrlGetObjectRequest.Builder, PresignedUrlGetObjectRequest> {
     
     private final String presignedUrl;
-    private final Long rangeStart;
-    private final Long rangeEnd;
+    private final String range;
     
-    // Standard getters: presignedUrl(), rangeStart(), rangeEnd()
+    // Standard getters: presignedUrl(), range()
     // Standard builder methods: builder(), toBuilder()
-    // Standard Builder class with presignedUrl(), rangeStart(), rangeEnd() setter methods
+    // Standard Builder class with presignedUrl(), range() setter methods
 }
 ```
 
@@ -159,7 +157,7 @@ Three approaches were considered:
 
 ### Why doesn't PresignedUrlGetObjectRequest extend S3Request?
 
-While extending S3Request would provide access to RequestOverrideConfiguration, many of these configurations (like credentials provider, signers) are not supported with presigned URL execution. Instead, we use a standalone request with only essential parameters (presignedUrl, rangeStart, rangeEnd). Internally, this gets wrapped in an encapsulated class that extends S3Request for use with ClientHandler.
+While extending S3Request would provide access to RequestOverrideConfiguration, many of these configurations (like credentials provider, signers) are not supported with presigned URL execution. Instead, we use a standalone request with only essential parameters (presignedUrl, range). Internally, this gets wrapped in an encapsulated class that extends S3Request for use with ClientHandler.
 
 
 ## References
