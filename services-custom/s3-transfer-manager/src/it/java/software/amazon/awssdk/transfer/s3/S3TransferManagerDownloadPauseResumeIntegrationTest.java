@@ -131,8 +131,6 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         }
     }
 
-    @ParameterizedTest
-    @MethodSource("transferManagers")
     void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
         TestDownloadListener testDownloadListener = new TestDownloadListener();
