@@ -16,7 +16,23 @@
 package software.amazon.awssdk.benchmark.apache4;
 
 
-import org.openjdk.jmh.annotations.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Fork;
+import org.openjdk.jmh.annotations.Level;
+import org.openjdk.jmh.annotations.Measurement;
+import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OutputTimeUnit;
+import org.openjdk.jmh.annotations.Param;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
+import org.openjdk.jmh.annotations.State;
+import org.openjdk.jmh.annotations.TearDown;
+import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.benchmark.core.CoreBenchmark;
@@ -29,19 +45,18 @@ import software.amazon.awssdk.services.s3.S3Client;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
 import java.util.logging.Logger;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 @Fork(value = 1, jvmArgs = {"-Xms2G", "-Xmx2G"})
-@Warmup(iterations = 2, time = 10, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 3, time = 10, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 public class Apache4Benchmark implements CoreBenchmark {
     private static final Logger logger = Logger.getLogger(Apache4Benchmark.class.getName());
 
-    @Param({"50"})
+    @Param({"50","200"})
     private int maxConnections;
 
     @Param({"10"})
