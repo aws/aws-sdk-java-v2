@@ -168,6 +168,11 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <artifactId>apache5-client</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
+        </dependency>
+        <dependency>
             <artifactId>aws-sdk-java</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>
