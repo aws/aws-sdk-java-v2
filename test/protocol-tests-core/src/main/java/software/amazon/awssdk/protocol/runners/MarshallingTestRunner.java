@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.protocol.runners;
 
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -26,8 +27,13 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.verification.LoggedRequest;
 import java.util.List;
+import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.protocol.model.TestCase;
 import software.amazon.awssdk.protocol.reflect.ClientReflector;
 import software.amazon.awssdk.protocol.reflect.ShapeModelReflector;
@@ -40,33 +46,28 @@ class MarshallingTestRunner {
 
     private final IntermediateModel model;
     private final ClientReflector clientReflector;
+    private final LocalhostOnlyForWiremockInterceptor localhostOnlyForWiremockInterceptor;
 
     MarshallingTestRunner(IntermediateModel model, ClientReflector clientReflector) {
         this.model = model;
         this.clientReflector = clientReflector;
-    }
-
-    /**
-     * @return LoggedRequest that wire mock captured.
-     */
-    private static LoggedRequest getLoggedRequest() {
-        List<LoggedRequest> requests = WireMockUtils.findAllLoggedRequests();
-        assertEquals(1, requests.size());
-        return requests.get(0);
+        this.localhostOnlyForWiremockInterceptor = new LocalhostOnlyForWiremockInterceptor();
     }
 
     void runTest(TestCase testCase) throws Exception {
         resetWireMock();
         ShapeModelReflector shapeModelReflector = createShapeModelReflector(testCase);
+        AwsRequest request = createRequest(shapeModelReflector);
+
         if (!model.getShapes().get(testCase.getWhen().getOperationName() + "Request").isHasStreamingMember()) {
-            clientReflector.invokeMethod(testCase, shapeModelReflector.createShapeObject());
+            clientReflector.invokeMethod(testCase, request);
         } else {
             clientReflector.invokeMethod(testCase,
-                                         shapeModelReflector.createShapeObject(),
+                                         request,
                                          RequestBody.fromString(shapeModelReflector.getStreamingMemberValue()));
         }
-        LoggedRequest actualRequest = getLoggedRequest();
-        testCase.getThen().getMarshallingAssertion().assertMatches(actualRequest);
+        testCase.getThen().getMarshallingAssertion()
+                .assertMatches(localhostOnlyForWiremockInterceptor.getLoggedRequestWithOriginalHost());
     }
 
     /**
@@ -83,6 +84,16 @@ class MarshallingTestRunner {
         stubFor(any(urlMatching(".*")).willReturn(responseDefBuilder));
     }
 
+    private AwsRequest createRequest(ShapeModelReflector shapeModelReflector) {
+        return ((AwsRequest) shapeModelReflector.createShapeObject())
+                .toBuilder()
+                .overrideConfiguration(requestConfiguration -> requestConfiguration
+                    .addPlugin(config -> {
+                        config.overrideConfiguration(c -> c.addExecutionInterceptor(localhostOnlyForWiremockInterceptor));
+                    }))
+                .build();
+    }
+
     private ShapeModelReflector createShapeModelReflector(TestCase testCase) {
         String operationName = testCase.getWhen().getOperationName();
         String requestClassName = getOperationRequestClassName(operationName);
@@ -97,4 +108,49 @@ class MarshallingTestRunner {
         return operationName + "Request";
     }
 
+    /**
+     * Wiremock requires that requests use "localhost" as the host - any prefixes such as "foo.localhost" will
+     * result in a DNS lookup that will fail.  This interceptor modifies the request to ensure this and captures
+     * the original host.
+     */
+    private static final class LocalhostOnlyForWiremockInterceptor implements ExecutionInterceptor {
+        private String originalHost;
+        private String originalProtocol;
+        private int originalPort;
+
+        @Override
+        public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
+            originalHost = context.httpRequest().host();
+            originalProtocol = context.httpRequest().protocol();
+            originalPort = context.httpRequest().port();
+
+            return context.httpRequest().toBuilder()
+                          .host("localhost")
+                          .port(WireMockUtils.port())
+                          .protocol("http")
+                          .build();
+        }
+
+        /**
+         * @return LoggedRequest that wire mock captured modified with the original host captured by this
+         * interceptor.
+         */
+        public LoggedRequest getLoggedRequestWithOriginalHost() {
+            List<LoggedRequest> requests = WireMockUtils.findAllLoggedRequests();
+            assertEquals(1, requests.size());
+            LoggedRequest loggedRequest = requests.get(0);
+            return new LoggedRequest(
+                loggedRequest.getUrl(),
+                originalProtocol + "://" + originalHost + ":" + originalPort,
+                loggedRequest.getMethod(),
+                loggedRequest.getClientIp(),
+                loggedRequest.getHeaders(),
+                loggedRequest.getCookies(),
+                loggedRequest.isBrowserProxyRequest(),
+                loggedRequest.getLoggedDate(),
+                loggedRequest.getBody(),
+                loggedRequest.getParts()
+            );
+        }
+    }
 }
