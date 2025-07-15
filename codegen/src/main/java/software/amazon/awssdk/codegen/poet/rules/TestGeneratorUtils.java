@@ -115,6 +115,8 @@ public final class TestGeneratorUtils {
                                                   Map<String, KeyTypePair> knownEndpointAttributes) {
         if ("authSchemes".equals(attrName)) {
             addAuthSchemesBlock(builder, attrValue);
+        } else if ("metricValues".equals(attrName)) {
+            addMetricValuesBlock(builder, attrValue);
         } else if (knownEndpointAttributes.containsKey(attrName)) {
             addAttributeBlock(builder, attrValue, knownEndpointAttributes.get(attrName));
         } else {
@@ -122,6 +124,29 @@ public final class TestGeneratorUtils {
                               attrName,
                               knownEndpointAttributes);
         }
+    }
+
+    private static void addMetricValuesBlock(CodeBlock.Builder builder, TreeNode attrValue) {
+        CodeBlock keyExpr = CodeBlock.builder()
+                                     .add("$T.METRIC_VALUES", AwsEndpointAttribute.class)
+                                     .build();
+
+        CodeBlock.Builder schemesListExpr = CodeBlock.builder()
+                                                     .add("$T.asList(", Arrays.class);
+
+        JrsArray schemesArray = (JrsArray) attrValue;
+
+        Iterator<JrsValue> elementsIter = schemesArray.elements();
+        while (elementsIter.hasNext()) {
+            schemesListExpr.add("$S", elementsIter.next().asText());
+
+            if (elementsIter.hasNext()) {
+                schemesListExpr.add(",");
+            }
+        }
+        schemesListExpr.add(")");
+
+        builder.add(".putAttribute($L, $L)", keyExpr, schemesListExpr.build());
     }
 
     private static void addAttributeBlock(CodeBlock.Builder builder, TreeNode attrValue, KeyTypePair keyType) {

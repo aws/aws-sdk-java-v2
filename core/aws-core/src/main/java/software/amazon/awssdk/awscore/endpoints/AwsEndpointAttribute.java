@@ -33,6 +33,12 @@ public final class AwsEndpointAttribute {
     public static final EndpointAttributeKey<List<EndpointAuthScheme>> AUTH_SCHEMES =
         EndpointAttributeKey.forList("AuthSchemes");
 
+    /**
+     * Business Metric values for the endpoint.
+     */
+    public static final EndpointAttributeKey<List<String>> METRIC_VALUES =
+        EndpointAttributeKey.forList("MetricValues");
+
     private AwsEndpointAttribute() {
     }
 

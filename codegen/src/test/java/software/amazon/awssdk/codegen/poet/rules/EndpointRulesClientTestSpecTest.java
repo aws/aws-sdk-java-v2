@@ -40,4 +40,10 @@ public class EndpointRulesClientTestSpecTest {
         ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-rules-unknownproperty-test-class.java"));
     }
+
+    @Test
+    public void endpointProviderTestClassWithMetricValues() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-metric-values-test-class.java"));
+    }
 }
