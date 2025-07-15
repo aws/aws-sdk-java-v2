@@ -22,11 +22,14 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.VersionUtils;
 
 public class ServiceVersionInfoSpec implements ClassSpec {
     private final PoetExtension poetExtension;
@@ -37,14 +40,16 @@ public class ServiceVersionInfoSpec implements ClassSpec {
 
     @Override
     public TypeSpec poetSpec() {
+        String majorMinorVersion = VersionUtils.convertToMajorMinorX(SDK_VERSION);
+
         TypeSpec.Builder builder = TypeSpec.classBuilder("ServiceVersionInfo")
                                            .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                            .addAnnotation(PoetUtils.generatedAnnotation())
                                            .addAnnotation(SdkInternalApi.class)
                                            .addField(FieldSpec.builder(
                                                String.class, "VERSION", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                                                              .initializer("$S", SDK_VERSION)
-                                                              .addJavadoc("Returns the current version for the AWS SDK in which"
+                                                              .initializer("$S", majorMinorVersion)
+                                                              .addJavadoc("Returns the current major.minor.x version for the AWS SDK in which"
                                                                           + " this class is running.")
                                                               .build())
                                            .addMethod(privateConstructor());

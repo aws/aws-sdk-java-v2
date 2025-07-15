@@ -52,7 +52,7 @@ class SdkUserAgentBuilderTest {
                            Arrays.asList("Kotlin", "Scala"));
 
         SdkClientUserAgentProperties minimalProperties = sdkProperties(null, null, null, null, null);
-        SdkClientUserAgentProperties maximalProperties = sdkProperties("arbitrary", "async", "Netty", "someAppId", "DynamoDB#2.26.22-SNAPSHOT");
+        SdkClientUserAgentProperties maximalProperties = sdkProperties("arbitrary", "async", "Netty", "someAppId", "DynamoDB#2.26.x-SNAPSHOT");
 
 
         return Stream.of(
@@ -88,11 +88,11 @@ class SdkUserAgentBuilderTest {
                          sdkProperties( null, null, null, "someAppId", null),
                          maximalSysAgent),
             Arguments.of("standard sysagent, request values - apiMetadata",
-                         "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT os/Mac_OS_X#14.6.1 lang/java#21.0.2 md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/en_US",
-                         sdkProperties(null, null, null, null, "DynamoDB#2.26.22-SNAPSHOT"),
+                         "aws-sdk-java/2.26.22-SNAPSHOT ua/2.1 api/DynamoDB#2.26.x-SNAPSHOT os/Mac_OS_X#14.6.1 lang/java#21.0.2 md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/en_US",
+                         sdkProperties(null, null, null, null, "DynamoDB#2.26.x-SNAPSHOT"),
                          standardValuesSysAgent),
             Arguments.of("standard sysagent, request values - maximal",
-                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 api/DynamoDB#2.26.22-SNAPSHOT"
+                         "aws-sdk-java/2.26.22-SNAPSHOT md/io#async md/http#Netty md/internal ua/2.1 api/DynamoDB#2.26.x-SNAPSHOT"
                          + " os/Mac_OS_X#14.6.1 lang/java#21.0.2 "
                          + "md/OpenJDK_64-Bit_Server_VM#21.0.2+13-LTS md/vendor#Amazon.com_Inc. md/en_US md/Kotlin md/Scala "
                          + "exec-env/lambda app/someAppId",
