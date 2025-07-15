@@ -38,7 +38,6 @@ import software.amazon.awssdk.core.io.ReleasableInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Represents the body of an HTTP request. Must be provided for operations that have a streaming input.
@@ -120,13 +119,17 @@ public class RequestBody {
      * Creates a {@link RequestBody} from an input stream. {@value Header#CONTENT_LENGTH} must
      * be provided so that the SDK does not have to make two passes of the data.
      * <p>
-     * The stream will not be closed by the SDK. It is up to to caller of this method to close the stream. The stream
-     * should not be read outside of the SDK (by another thread) as it will change the state of the {@link InputStream} and
+     * The stream will not be closed by the SDK. It is up to caller of this method to close the stream. The stream
+     * should not be read outside the SDK (by another thread) as it will change the state of the {@link InputStream} and
      * could tamper with the sending of the request.
      * <p>
      * To support resetting via {@link ContentStreamProvider}, this uses {@link InputStream#reset()} and uses a read limit of
      * 128 KiB. If you need more control, use {@link #fromContentProvider(ContentStreamProvider, long, String)} or
      * {@link #fromContentProvider(ContentStreamProvider, String)}.
+     *
+     * <p>
+     * It is recommended to provide a stream that supports mark and reset for retry. If the stream does not support mark and
+     * reset, an {@link IllegalStateException} will be thrown during retry.
      *
      * @param inputStream   Input stream to send to the service. The stream will not be closed by the SDK.
      * @param contentLength Content length of data in input stream. If a content length smaller than the actual size of the
@@ -135,23 +138,10 @@ public class RequestBody {
      * @return RequestBody instance.
      */
     public static RequestBody fromInputStream(InputStream inputStream, long contentLength) {
-        IoUtils.markStreamWithMaxReadLimit(inputStream);
-        InputStream nonCloseable = nonCloseableInputStream(inputStream);
-        ContentStreamProvider provider = new ContentStreamProvider() {
-            @Override
-            public InputStream newStream() {
-                if (nonCloseable.markSupported()) {
-                    invokeSafely(nonCloseable::reset);
-                }
-                return nonCloseable;
-            }
-
-            @Override
-            public String name() {
-                return ProviderType.STREAM.getName();
-            }
-        };
-        return fromContentProvider(provider, contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
+        ContentStreamProvider contentStreamProvider = ContentStreamProvider.fromInputStream(
+            nonCloseableInputStream(inputStream));
+        return fromContentProvider(contentStreamProvider,
+                                   contentLength, Mimetype.MIMETYPE_OCTET_STREAM);
     }
 
     /**
