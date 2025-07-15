@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.benchmark.apache5;
 
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -46,29 +45,19 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-/*
- * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License").
- * You may not use this file except in compliance with the License.
- * A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- * or in the "license" file accompanying this file. This file is distributed
- * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- * express or implied. See the License for the specific language governing
- * permissions and limitations under the License.
+import java.lang.reflect.Method;
+import java.lang.reflect.InvocationTargetException;
+/**
+ * Apache5 benchmark using virtual threads. This class requires Java 21+.
  */
-
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @State(Scope.Benchmark)
 @Fork(value = 1, jvmArgs = {"-Xms2G", "-Xmx2G"})
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
-public class Apache5Benchmark implements CoreBenchmark {
-    private static final Logger logger = Logger.getLogger(Apache5Benchmark.class.getName());
+public class Apache5VirtualBenchmark implements CoreBenchmark {
+    private static final Logger logger = Logger.getLogger(Apache5VirtualBenchmark.class.getName());
 
     @Param({"50"})
     private int maxConnections;
@@ -76,16 +65,22 @@ public class Apache5Benchmark implements CoreBenchmark {
     @Param({"10"})
     private int threadCount;
 
-    @Param({"platform"})
-    private String executorType;
-
     private S3Client s3Client;
     private S3BenchmarkImpl benchmark;
     private ExecutorService executorService;
 
     @Setup(Level.Trial)
     public void setup() {
-        logger.info("Setting up Apache5 benchmark with maxConnections=" + maxConnections);
+        // Verify Java version
+        String version = System.getProperty("java.version");
+        logger.info("Running on Java version: " + version);
+
+        if (!isJava21OrHigher()) {
+            throw new UnsupportedOperationException(
+                "Virtual threads require Java 21 or higher. Current version: " + version);
+        }
+
+        logger.info("Setting up Apache5 virtual threads benchmark with maxConnections=" + maxConnections);
 
         // Apache 5 HTTP client
         SdkHttpClient httpClient = Apache5HttpClient.builder()
@@ -109,15 +104,40 @@ public class Apache5Benchmark implements CoreBenchmark {
         benchmark = new S3BenchmarkImpl(s3Client);
         benchmark.setup();
 
-        // Always use platform threads
-        executorService = Executors.newFixedThreadPool(threadCount, r -> {
-            Thread t = new Thread(r);
-            t.setName("apache5-platform-worker-" + t.getId());
-            return t;
-        });
-        logger.info("Using platform thread executor");
+        // Create virtual thread executor
+        executorService = createVirtualThreadExecutor();
+        logger.info("Using virtual thread executor");
 
-        logger.info("Apache5 benchmark setup complete");
+        logger.info("Apache5 virtual threads benchmark setup complete");
+    }
+
+    private boolean isJava21OrHigher() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2);
+        }
+        int dotPos = version.indexOf('.');
+        int majorVersion;
+        if (dotPos != -1) {
+            majorVersion = Integer.parseInt(version.substring(0, dotPos));
+        } else {
+            majorVersion = Integer.parseInt(version);
+        }
+        return majorVersion >= 21;
+    }
+
+    private ExecutorService createVirtualThreadExecutor() {
+        try {
+            // Use reflection to call Executors.newVirtualThreadPerTaskExecutor()
+            Method method = Executors.class.getMethod("newVirtualThreadPerTaskExecutor");
+            return (ExecutorService) method.invoke(null);
+        } catch (NoSuchMethodException e) {
+            throw new UnsupportedOperationException(
+                "Virtual threads are not available in this Java version. " +
+                "This benchmark requires Java 21 or higher.", e);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("Failed to create virtual thread executor", e);
+        }
     }
 
     @Benchmark
@@ -176,7 +196,7 @@ public class Apache5Benchmark implements CoreBenchmark {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Tearing down Apache5 benchmark");
+        logger.info("Tearing down Apache5 virtual threads benchmark");
 
         if (executorService != null) {
             executorService.shutdown();

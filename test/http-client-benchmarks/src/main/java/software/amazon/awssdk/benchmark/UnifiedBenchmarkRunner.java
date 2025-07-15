@@ -31,13 +31,31 @@ import software.amazon.awssdk.benchmark.apache5.Apache5Benchmark;
 import software.amazon.awssdk.benchmark.core.BenchmarkResult;
 import software.amazon.awssdk.benchmark.metrics.CloudWatchMetricsPublisher;
 import software.amazon.awssdk.regions.Region;
-
 import java.time.Instant;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.benchmark.apache5.Apache5VirtualBenchmark;
 
-public class UnifiedBenchmarkRunner {
+public final class UnifiedBenchmarkRunner {
     private static final Logger logger = Logger.getLogger(UnifiedBenchmarkRunner.class.getName());
+
+    private UnifiedBenchmarkRunner() {
+    }
+
+    private static boolean isJava21OrHigher() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2);
+        }
+        int dotPos = version.indexOf('.');
+        int majorVersion;
+        if (dotPos != -1) {
+            majorVersion = Integer.parseInt(version.substring(0, dotPos));
+        } else {
+            majorVersion = Integer.parseInt(version);
+        }
+        return majorVersion >= 21;
+    }
 
     public static void main(String[] args) throws Exception {
         logger.info("Starting unified benchmark comparison");
@@ -56,12 +74,17 @@ public class UnifiedBenchmarkRunner {
             allResults.addAll(runBenchmark("Apache4", Apache4Benchmark.class, null));
 
             // Run Apache5 with platform threads
-            logger.info("Running Apache5 with platform threads...");
-            allResults.addAll(runBenchmark("Apache5-Platform", Apache5Benchmark.class, "platform"));
+            logger.info("Running Apache5...");
+            allResults.addAll(runBenchmark("Apache5", Apache5Benchmark.class, null));
 
-            // Run Apache5 with virtual threads
-            logger.info("Running Apache5 with virtual threads...");
-            allResults.addAll(runBenchmark("Apache5-Virtual", Apache5Benchmark.class, "virtual"));
+            // Only run virtual threads benchmark if Java 21+
+            if (isJava21OrHigher()) {
+                logger.info("Running Apache5 with virtual threads...");
+                allResults.addAll(runBenchmark("Apache5-Virtual", Apache5VirtualBenchmark.class, null));
+            } else {
+                logger.info("Skipping virtual threads benchmark - requires Java 21 or higher (current: " +
+                            System.getProperty("java.version") + ")");
+            }
 
             // Debug: Print all results to understand the structure
             logger.info("All benchmark results:");
@@ -94,10 +117,6 @@ public class UnifiedBenchmarkRunner {
             .forks(1)
             .warmupIterations(2)
             .measurementIterations(3);
-
-        if (executorType != null) {
-            optBuilder.param("executorType", executorType);
-        }
 
         Options opt = optBuilder.build();
         Collection<RunResult> runResults = new Runner(opt).run();
@@ -176,14 +195,14 @@ public class UnifiedBenchmarkRunner {
             return;
         }
 
-        System.out.println("\n" + "=".repeat(140));
+        System.out.println("\n" + repeatString("=", 140));
         System.out.println("BENCHMARK RESULTS SUMMARY");
-        System.out.println("=".repeat(140));
+        System.out.println(repeatString("=", 140));
 
         // Print header
         System.out.printf("%-20s | %-50s | %-15s | %-15s | %-15s | %-10s%n",
                           "Client Type", "Benchmark", "Throughput", "Avg Latency", "P99 Latency", "Threads");
-        System.out.println("-".repeat(140));
+        System.out.println(repeatString("-", 140));
 
         // Sort results for better readability
         List<BenchmarkResult> sortedResults = results.stream()
@@ -206,9 +225,9 @@ public class UnifiedBenchmarkRunner {
                               result.getThreadCount());
         }
 
-        System.out.println("=".repeat(140));
+        System.out.println(repeatString("=", 140));
         System.out.printf("Total benchmark results: %d%n", sortedResults.size());
-        System.out.println("=".repeat(140));
+        System.out.println(repeatString("=", 140));
         // Print performance comparison in between Apache clients
         printApachePerformanceComparison(results);
 
@@ -220,7 +239,7 @@ public class UnifiedBenchmarkRunner {
         }
 
         System.out.println("\nPERFORMANCE COMPARISON (Apache5 vs Apache4):");
-        System.out.println("=".repeat(80));
+        System.out.println(repeatString("=", 80));
 
         Map<String, List<BenchmarkResult>> groupedResults = results.stream()
                                                                    .filter(r -> r != null && r.getBenchmarkName() != null)
@@ -241,7 +260,7 @@ public class UnifiedBenchmarkRunner {
             }
 
             System.out.printf("\n%s:%n", benchmarkName);
-            System.out.println("-".repeat(80));
+            System.out.println(repeatString("-", 80));
 
             for (BenchmarkResult result : benchmarkResults) {
                 if (result.getClientType() != null && !result.getClientType().equals("Apache4")) {
@@ -258,7 +277,14 @@ public class UnifiedBenchmarkRunner {
             }
         }
 
-        System.out.println("\n" + "=".repeat(80));
+        System.out.println("\n" + repeatString("=", 80));
     }
 
+    private static String repeatString(String str, int count) {
+        StringBuilder sb = new StringBuilder(str.length() * count);
+        for (int i = 0; i < count; i++) {
+            sb.append(str);
+        }
+        return sb.toString();
+    }
 }

@@ -32,7 +32,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jmh.version>1.37</jmh.version>
-        <javac.target>21</javac.target>
+        <javac.target>8</javac.target>
         <uberjar.name>http-client-benchmarks</uberjar.name>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
     </properties>

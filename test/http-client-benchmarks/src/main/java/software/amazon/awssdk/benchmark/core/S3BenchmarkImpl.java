@@ -15,19 +15,27 @@
 
 package software.amazon.awssdk.benchmark.core;
 
-
-
-
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Logger;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
  * Shared S3 operations implementation used by all benchmark classes.
@@ -44,8 +52,8 @@ public class S3BenchmarkImpl {
     public S3BenchmarkImpl(S3Client s3Client) {
         this.s3Client = s3Client;
         this.bucketName = "benchmark-bucket-" + UUID.randomUUID().toString().substring(0, 8);
-        // 1MB test data
-        this.testData = new byte[1024 * 1024];
+        // 5MB test data
+        this.testData = new byte[5* 1024 * 1024];
         ThreadLocalRandom.current().nextBytes(testData);
     }
 
@@ -92,10 +100,16 @@ public class S3BenchmarkImpl {
                                                    .key(key)
                                                    .build();
 
-        try (ResponseInputStream<GetObjectResponse> response = s3Client.getObject(request)) {
-            byte[] data = response.readAllBytes();
+        ResponseInputStream<GetObjectResponse> response = null;
+        try {
+            response = s3Client.getObject(request);
+            byte[] data = readAllBytes(response);
             blackhole.consume(data);
             blackhole.consume(response.response());
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 
@@ -122,7 +136,8 @@ public class S3BenchmarkImpl {
     public void cleanup() {
         try {
             // Delete all objects (handle pagination)
-            ListObjectsV2Request.Builder listRequestBuilder = ListObjectsV2Request.builder();
+            ListObjectsV2Request.Builder listRequestBuilder = ListObjectsV2Request.builder()
+                                                                                  .bucket(bucketName);
             String continuationToken = null;
             do {
                 if (continuationToken != null) {
@@ -146,5 +161,15 @@ public class S3BenchmarkImpl {
         } catch (Exception e) {
             logger.warning("Cleanup failed: " + e.getMessage());
         }
+    }
+
+    private byte[] readAllBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] data = new byte[8192];
+        int nRead;
+        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+            buffer.write(data, 0, nRead);
+        }
+        return buffer.toByteArray();
     }
 }

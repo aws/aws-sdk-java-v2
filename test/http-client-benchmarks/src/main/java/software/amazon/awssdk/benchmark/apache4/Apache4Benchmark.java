@@ -59,7 +59,7 @@ public class Apache4Benchmark implements CoreBenchmark {
     @Param({"50"})
     private int maxConnections;
 
-    @Param({"10"})
+    @Param({"20"})
     private int threadCount;
 
     private S3Client s3Client;
