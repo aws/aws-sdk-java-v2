@@ -64,6 +64,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
     private final AsyncClientHandler clientHandler;
     private final AwsS3ProtocolFactory protocolFactory;
     private final SdkClientConfiguration clientConfiguration;
+    private final List<MetricPublisher> metricPublishers;
     private final AwsProtocolMetadata protocolMetadata;
     
     public DefaultAsyncPresignedUrlManager(AsyncClientHandler clientHandler,
@@ -72,8 +73,11 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
                                            AwsProtocolMetadata protocolMetadata) {
         this.clientHandler = clientHandler;
         this.protocolFactory = protocolFactory;
-        this.clientConfiguration = clientConfiguration;
         this.protocolMetadata = protocolMetadata;
+        this.clientConfiguration = updateSdkClientConfiguration(clientConfiguration);
+        this.metricPublishers = Optional.ofNullable(
+            this.clientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS))
+            .orElse(Collections.emptyList());
     }
 
     @Override
@@ -88,13 +92,9 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
                 .range(presignedUrlGetObjectRequest.range())
                 .build();
 
-        SdkClientConfiguration updatedClientConfiguration = updateSdkClientConfiguration(this.clientConfiguration);
-        List<MetricPublisher> metricPublishers = Optional.ofNullable(
-            updatedClientConfiguration.option(SdkClientOption.METRIC_PUBLISHERS))
-            .orElse(Collections.emptyList());
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ?
             NoOpMetricCollector.create() : MetricCollector.create("ApiCall");
-        
+
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "S3");
             //TODO: Discuss if we need to change OPERATION_NAME as part of Surface API Review
@@ -102,7 +102,8 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
 
             Pair<AsyncResponseTransformer<GetObjectResponse, ReturnT>, CompletableFuture<Void>> pair =
                     AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
-            asyncResponseTransformer = pair.left();
+            AsyncResponseTransformer<GetObjectResponse, ReturnT> finalAsyncResponseTransformer = pair.left();
+            asyncResponseTransformer = finalAsyncResponseTransformer;
             CompletableFuture<Void> endOfStreamFuture = pair.right();
 
             HttpResponseHandler<GetObjectResponse> responseHandler = protocolFactory.createResponseHandler(
@@ -116,16 +117,15 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
                             .withProtocolMetadata(protocolMetadata)
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(updatedClientConfiguration)
+                            .withRequestConfiguration(clientConfiguration)
                             .withInput(internalRequest)
                             .withMetricCollector(apiCallMetricCollector)
                             // TODO: Deprecate IS_DISCOVERED_ENDPOINT, use new SKIP_ENDPOINT_RESOLUTION for better semantics
                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true)
                             .withMarshaller(new PresignedUrlGetObjectRequestMarshaller(protocolFactory)),
                                                                                         asyncResponseTransformer);
-            CompletableFuture<ReturnT> whenCompleteFuture = null;
-            AsyncResponseTransformer<GetObjectResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
+            
+            CompletableFuture<ReturnT> whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
                     runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                                    () -> finalAsyncResponseTransformer.exceptionOccurred(e));
