@@ -40,4 +40,39 @@ public interface SdkHttpClientBenchmark {
      */
     default void concurrentApiCall(Blackhole blackhole) {
     }
+
+
+    /**
+     * Benchmark for PUT operations with streaming
+     *
+     * @param blackhole the blackhole
+     */
+    default void streamingPutOperation(Blackhole blackhole) {
+    }
+
+    /**
+     * Benchmark for concurrent PUT operations
+     *
+     * @param blackhole the blackhole
+     */
+    default void concurrentStreamingPutOperation(Blackhole blackhole) {
+    }
+
+    /**
+     * Benchmark for GET operations with streaming response
+     *
+     * @param blackhole the blackhole
+     */
+    default void streamingOutputOperation(Blackhole blackhole) {
+    }
+
+    /**
+     * Benchmark for concurrent GET operations with streaming response
+     *
+     * @param blackhole the blackhole
+     */
+    default void concurrentStreamingOutputOperation(Blackhole blackhole) {
+    }
+
+
 }
