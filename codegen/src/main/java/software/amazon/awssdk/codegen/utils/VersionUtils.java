@@ -22,20 +22,20 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class VersionUtils {
 
-    private VersionUtils() {
+    private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(.*)");
 
+    private VersionUtils() {
     }
 
     /**
-    * Converts a full version string to a major.minor.x format.
+     * Converts a full version string to a major.minor.x format.
      *
      * @param version The full version string to convert (e.g., "2.32.1")
      * @return The version string in major.minor.x format (e.g., "2.32.x"),
      * or the original string if it doesn't match the expected version pattern
      */
     public static String convertToMajorMinorX(String version) {
-        Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(.*)");
-        Matcher matcher = pattern.matcher(version);
+        Matcher matcher = VERSION_PATTERN.matcher(version);
 
         if (matcher.matches()) {
             String major = matcher.group(1);
@@ -47,4 +47,5 @@ public class VersionUtils {
 
         return version;
     }
+
 }
