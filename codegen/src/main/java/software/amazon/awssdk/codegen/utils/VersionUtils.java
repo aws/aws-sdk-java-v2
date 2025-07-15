@@ -28,11 +28,11 @@ public class VersionUtils {
 
     /**
     * Converts a full version string to a major.minor.x format.
-    *
-    * @param version The full version string to convert (e.g., "2.32.1")
-    * @return The version string in major.minor.x format (e.g., "2.32.x"),
-    * or the original string if it doesn't match the expected version pattern
-    */
+     *
+     * @param version The full version string to convert (e.g., "2.32.1")
+     * @return The version string in major.minor.x format (e.g., "2.32.x"),
+     * or the original string if it doesn't match the expected version pattern
+     */
     public static String convertToMajorMinorX(String version) {
         Pattern pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)(.*)");
         Matcher matcher = pattern.matcher(version);
