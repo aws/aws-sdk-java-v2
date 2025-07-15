@@ -106,6 +106,29 @@ public class CrtAsyncRequestExecutorTest {
     }
 
     @Test
+    public void invalidRequest_requestConversionThrowError_shouldInvokeOnError() {
+        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
+                                                               .crtConnPool(connectionManager)
+                                                               .request(AsyncExecuteRequest.builder()
+                                                                                           .responseHandler(responseHandler)
+                                                                                           .build())
+                                                               .build();
+        CompletableFuture<HttpClientConnection> completableFuture = new CompletableFuture<>();
+
+        Mockito.when(connectionManager.acquireConnection()).thenReturn(completableFuture);
+        completableFuture.complete(httpClientConnection);
+
+        CompletableFuture<Void> executeFuture = requestExecutor.execute(context);
+
+        ArgumentCaptor<Exception> argumentCaptor = ArgumentCaptor.forClass(Exception.class);
+        Mockito.verify(responseHandler).onError(argumentCaptor.capture());
+
+        Exception actualException = argumentCaptor.getValue();
+        assertThat(actualException).isInstanceOf(NullPointerException.class);
+        assertThat(executeFuture).hasFailedWithThrowableThat().isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
     public void executeAsyncRequest_CrtRuntimeException_shouldInvokeOnError() {
         CrtRuntimeException exception = new CrtRuntimeException("");
         CrtAsyncRequestContext context = crtAsyncRequestContext();
