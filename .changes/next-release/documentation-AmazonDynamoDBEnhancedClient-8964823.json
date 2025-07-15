@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Add documentation clarifying usage for ddb enhanced client"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Tables",
-    "contributor": "",
-    "description": "Adds table bucket type to ListTableBucket and GetTableBucket API operations"
-}
