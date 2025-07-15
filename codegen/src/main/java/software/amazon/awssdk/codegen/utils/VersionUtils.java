@@ -22,7 +22,9 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public class VersionUtils {
 
-    private VersionUtils() {}
+    private VersionUtils() {
+
+    }
 
     /**
     * Converts a full version string to a major.minor.x format.

@@ -22,8 +22,6 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import javax.lang.model.element.Modifier;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
@@ -49,8 +47,8 @@ public class ServiceVersionInfoSpec implements ClassSpec {
                                            .addField(FieldSpec.builder(
                                                String.class, "VERSION", Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
                                                               .initializer("$S", majorMinorVersion)
-                                                              .addJavadoc("Returns the current major.minor.x version for the AWS SDK in which"
-                                                                          + " this class is running.")
+                                                              .addJavadoc("Returns the current major.minor.x version for the"
+                                                                          + " AWS SDK in which this class is running.")
                                                               .build())
                                            .addMethod(privateConstructor());
 
