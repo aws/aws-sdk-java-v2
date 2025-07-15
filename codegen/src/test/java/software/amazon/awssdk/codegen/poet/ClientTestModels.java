@@ -192,7 +192,7 @@ public class ClientTestModels {
         File endpointRuleSetModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-unknown-properties.json").getFile());
         File endpointTestsModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-unknown-properties.json").getFile());
 
         C2jModels models = C2jModels
             .builder()

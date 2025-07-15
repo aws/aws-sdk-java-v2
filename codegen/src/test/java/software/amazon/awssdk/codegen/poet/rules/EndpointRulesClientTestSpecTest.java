@@ -34,4 +34,10 @@ public class EndpointRulesClientTestSpecTest {
         ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.stringArrayServiceModels());
         assertThat(endpointProviderSpec, generatesTo("endpoint-rules-stringarray-test-class.java"));
     }
+
+    @Test
+    public void endpointProviderTestClassWithUnknownProperties() {
+        ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-unknownproperty-test-class.java"));
+    }
 }

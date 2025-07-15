@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
@@ -45,6 +47,8 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.utils.StringUtils;
 
 public final class TestGeneratorUtils {
+    private static final Logger log = LoggerFactory.getLogger(TestGeneratorUtils.class);
+
     private TestGeneratorUtils() {
     }
 
@@ -114,10 +118,9 @@ public final class TestGeneratorUtils {
         } else if (knownEndpointAttributes.containsKey(attrName)) {
             addAttributeBlock(builder, attrValue, knownEndpointAttributes.get(attrName));
         } else {
-            throw new RuntimeException(
-                String.format("Encountered unknown expected endpoint attribute: %s. Known attributes: %s.",
+            log.warn("Ignoring unknown expected endpoint attribute: {}. Known attributes: {}.",
                               attrName,
-                              knownEndpointAttributes));
+                              knownEndpointAttributes);
         }
     }
 
