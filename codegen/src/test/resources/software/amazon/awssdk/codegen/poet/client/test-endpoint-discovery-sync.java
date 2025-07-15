@@ -413,10 +413,10 @@ final class DefaultEndpointDiscoveryTestClient implements EndpointDiscoveryTestC
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         if (plugins.isEmpty()) {
-            return configuration.build();
+            return clientConfiguration;
         }
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         EndpointDiscoveryTestServiceClientConfigurationBuilder serviceConfigBuilder = new EndpointDiscoveryTestServiceClientConfigurationBuilder(
             configuration);
         for (SdkPlugin plugin : plugins) {

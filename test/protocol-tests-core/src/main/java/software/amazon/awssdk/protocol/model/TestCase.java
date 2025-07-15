@@ -66,7 +66,11 @@ public class TestCase {
 
     @Override
     public String toString() {
-        return id;
+        if (id != null) {
+            return id + ": " + description;
+        } else {
+            return description;
+        }
     }
 
 }

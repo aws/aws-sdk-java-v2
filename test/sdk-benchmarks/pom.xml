@@ -19,7 +19,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.78</version>
+        <version>2.32.0</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -157,6 +157,11 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
             <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache5-client</artifactId>
+            <version>${awsjavasdk.version}-PREVIEW</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

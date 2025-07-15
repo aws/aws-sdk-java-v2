@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.31.78</version>
+    <version>2.32.0</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -101,8 +101,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.31.77</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.31.76</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.31.78</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.31.77</awsjavasdk.previous-previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.17.3</jacksonjr.version>
@@ -183,7 +183,8 @@
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
-
+        <httpcomponents.client5.version>5.5</httpcomponents.client5.version>
+        <httpcomponents.core5.version>5.3.4</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
@@ -684,10 +685,6 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <!-- TODO revert - Temporarily disable because system setting USER_REGION was removed -->
-                            <exclude>software.amazon.awssdk.utils.JavaSystemSetting</exclude>
-                            <!-- TODO remove once S3ObjectSize is change is merged -->
-                            <exclude>software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
