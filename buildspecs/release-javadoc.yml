@@ -13,7 +13,7 @@ phases:
   pre_build:
     commands:
     - DOC_PATH='s3://aws-java-sdk-javadoc/java/api'
-    - MODULES_TO_SKIP="protocol-tests,protocol-tests-core,codegen-generated-classes-test,sdk-benchmarks,s3-benchmarks,module-path-tests,test-utils,http-client-tests,tests-coverage-reporting,sdk-native-image-test,ruleset-testing-core,old-client-version-compatibility-test,crt-unavailable-tests,bundle-shading-tests,v2-migration,v2-migration-tests,architecture-tests,s3-tests"
+    - MODULES_TO_SKIP="protocol-tests,protocol-tests-core,codegen-generated-classes-test,sdk-benchmarks,s3-benchmarks,http-client-benchmarks,module-path-tests,test-utils,http-client-tests,tests-coverage-reporting,sdk-native-image-test,ruleset-testing-core,old-client-version-compatibility-test,crt-unavailable-tests,bundle-shading-tests,v2-migration,v2-migration-tests,architecture-tests,s3-tests"
 
   build:
     commands:

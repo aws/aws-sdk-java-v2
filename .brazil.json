@@ -99,6 +99,7 @@
         "region-testing": { "skipImport": true },
         "release-scripts": { "skipImport": true },
         "s3-benchmarks": { "skipImport": true },
+        "http-client-benchmarks": { "skipImport": true },
         "sdk-benchmarks": { "skipImport": true },
         "sdk-native-image-test": { "skipImport": true },
         "service-test-utils": { "skipImport": true },
