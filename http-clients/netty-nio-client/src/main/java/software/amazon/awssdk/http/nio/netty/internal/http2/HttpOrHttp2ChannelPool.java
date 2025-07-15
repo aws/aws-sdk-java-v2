@@ -194,9 +194,12 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
 
     @Override
     public Future<Void> release(Channel channel, Promise<Void> promise) {
-        doInEventLoop(eventLoop,
-            () -> release0(channel, promise),
-                      promise);
+        // If protocolImpl != null, it’s already visible, so we call protocolImpl.release
+        // directly in the channel event loop. Otherwise — whether unassigned or not yet
+        // visible — we fall back to the safe path. Since protocolImpl is assigned only
+        // once, there's no risk of calling it on an incorrect instance.
+        if (protocolImpl != null) protocolImpl.release(channel, promise);
+        else doInEventLoop(eventLoop, () -> release0(channel, promise), promise);
         return promise;
     }
 
