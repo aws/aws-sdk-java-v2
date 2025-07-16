@@ -51,7 +51,7 @@ public class HttpOrHttp2ChannelPool implements SdkChannelPool {
 
     private boolean protocolImplPromiseInitializationStarted = false;
     private Promise<ChannelPool> protocolImplPromise;
-    private BetterFixedChannelPool protocolImpl;
+    private volatile BetterFixedChannelPool protocolImpl;
     private boolean closed;
 
     public HttpOrHttp2ChannelPool(ChannelPool delegatePool,
