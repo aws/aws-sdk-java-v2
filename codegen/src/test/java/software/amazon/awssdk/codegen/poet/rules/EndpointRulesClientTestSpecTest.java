@@ -38,7 +38,7 @@ public class EndpointRulesClientTestSpecTest {
     @Test
     public void endpointProviderTestClassWithUnknownProperties() {
         ClassSpec endpointProviderSpec = new EndpointProviderTestSpec(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
-        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-unknownproperty-test-class.java"));
+        assertThat(endpointProviderSpec, generatesTo("endpoint-rules-unknown-property-test-class.java"));
     }
 
     @Test

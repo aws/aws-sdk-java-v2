@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -59,16 +60,18 @@ public class EndpointMetricValuesTest {
     void setup() {
         capturingInterceptor = new CapturingInterceptor();
         mockEndpointProvider = mock(RestJsonEndpointProvidersEndpointProvider.class);
-        when(mockEndpointProvider.resolveEndpoint(any(RestJsonEndpointProvidersEndpointParams.class)))
-            .thenReturn(CompletableFuture.completedFuture(
-                Endpoint.builder()
-                        .url(URI.create("https://my-service.com"))
-                        .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O", "K"))
-                        .build()));
     }
 
     @Test
     void endpointMetricValuesAreAddedToUserAgent() {
+        List<String> metricValues = Arrays.asList("O", "K");
+        when(mockEndpointProvider.resolveEndpoint(any(RestJsonEndpointProvidersEndpointParams.class)))
+            .thenReturn(CompletableFuture.completedFuture(
+                Endpoint.builder()
+                        .url(URI.create("https://my-service.com"))
+                        .putAttribute(AwsEndpointAttribute.METRIC_VALUES, metricValues)
+                        .build()));
+
         RestJsonEndpointProvidersClient client =
             RestJsonEndpointProvidersClient.builder()
                                            .endpointProvider(mockEndpointProvider)
@@ -85,7 +88,34 @@ public class EndpointMetricValuesTest {
         assertTrue(businessMetricMatcher.find());
         assertNotNull(businessMetricMatcher.group(1));
         Set<String> metrics = new HashSet<>(Arrays.asList((businessMetricMatcher.group(1).split(","))));
-        assertTrue(metrics.containsAll(Arrays.asList("O", "K")));
+        assertTrue(metrics.containsAll(metricValues));
+    }
+
+    @Test
+    void endpointMetricValuesDoesNotFailOnEmptyList() {
+        List<String> metricValues = Collections.emptyList();
+        when(mockEndpointProvider.resolveEndpoint(any(RestJsonEndpointProvidersEndpointParams.class)))
+            .thenReturn(CompletableFuture.completedFuture(
+                Endpoint.builder()
+                        .url(URI.create("https://my-service.com"))
+                        .putAttribute(AwsEndpointAttribute.METRIC_VALUES, metricValues)
+                        .build()));
+
+        RestJsonEndpointProvidersClient client =
+            RestJsonEndpointProvidersClient.builder()
+                                           .endpointProvider(mockEndpointProvider)
+                                           .region(Region.US_WEST_2)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER)
+                                           .overrideConfiguration(c -> c.addExecutionInterceptor(capturingInterceptor))
+                                           .build();
+
+        assertThatThrownBy(() -> client.operationWithNoInputOrOutput(r -> {
+        })).hasMessageContaining("short-circuit");
+
+        String userAgent = assertAndGetUserAgentString();
+        Matcher businessMetricMatcher = Pattern.compile("m/([^\\s]+)").matcher(userAgent);
+        assertTrue(businessMetricMatcher.find());
+        assertNotNull(businessMetricMatcher.group(1));
     }
 
     private String assertAndGetUserAgentString() {
