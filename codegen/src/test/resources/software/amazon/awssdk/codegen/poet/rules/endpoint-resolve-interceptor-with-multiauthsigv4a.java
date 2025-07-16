@@ -168,7 +168,7 @@ public final class DatabaseResolveEndpointInterceptor implements ExecutionInterc
 
     private void setMetricValues(Endpoint endpoint, ExecutionAttributes executionAttributes) {
         if (endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES) != null) {
-            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(metrics -> endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES).forEach(v -> metrics.addMetric(v))));
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(metrics -> endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES).forEach(v -> metrics.addMetric(v)));
         }
     }
 }

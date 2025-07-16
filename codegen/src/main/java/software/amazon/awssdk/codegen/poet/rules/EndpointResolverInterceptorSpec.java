@@ -918,7 +918,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.beginControlFlow("if (endpoint.attribute($T.METRIC_VALUES) != null)", AwsEndpointAttribute.class);
         b.addStatement("executionAttributes.getOptionalAttribute($T.BUSINESS_METRICS).ifPresent("
-                       + "metrics -> endpoint.attribute($T.METRIC_VALUES).forEach(v -> metrics.addMetric(v))))",
+                       + "metrics -> endpoint.attribute($T.METRIC_VALUES).forEach(v -> metrics.addMetric(v)))",
                        SdkInternalExecutionAttribute.class, AwsEndpointAttribute.class);
         b.endControlFlow();
         return b.build();
