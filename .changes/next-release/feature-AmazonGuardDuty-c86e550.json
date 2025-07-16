@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Add expectedBucketOwner parameter to ThreatIntel and IPSet APIs."
-}

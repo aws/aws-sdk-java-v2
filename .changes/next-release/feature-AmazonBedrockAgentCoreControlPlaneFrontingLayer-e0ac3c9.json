@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
-    "contributor": "",
-    "description": "Initial release of Amazon Bedrock AgentCore SDK including Runtime, Built-In Tools, Memory, Gateway and Identity."
-}

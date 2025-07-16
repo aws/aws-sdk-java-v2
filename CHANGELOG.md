@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.2__ __2025-07-16__
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync now supports IPv6 address inputs and outputs in create, update, and describe operations for NFS, SMB, and Object Storage locations
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for CDN Authentication using Static Headers in MediaPackage v2.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports schema, partition and sort management of Apache Iceberg tables using Glue SDK
+
+## __AWS IoT Wireless__
+  - ### Features
+    - FuotaTaskId is not a valid IdentifierType for EventConfiguration and is being removed from possible IdentifierType values.
+
+## __AWS Step Functions__
+  - ### Features
+    - Doc-only update to introduction, and edits to clarify input parameter and the set of control characters.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release adds support for on-demand custom model inference through CustomModelDeployment APIs for Amazon Bedrock.
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Initial release of Amazon Bedrock AgentCore SDK including Runtime, Built-In Tools, Memory, Gateway and Identity.
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Initial release of Amazon Bedrock AgentCore SDK including Runtime, Built-In Tools, Memory, Gateway and Identity.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - document update to support on demand custom model.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs updates: Added X-Ray tracing for Amazon Bedrock Agent resources. Logs introduced Log Group level resource policies (managed through Put/Delete/Describe Resource Policy APIs). For more information, see CloudWatch Logs API documentation.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add expectedBucketOwner parameter to ThreatIntel and IPSet APIs.
+
+## __Network Flow Monitor__
+  - ### Features
+    - Introducing 2 new scope status types - DEACTIVATING and DEACTIVATED.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Expand length of message data field for Mac generation and validation to 8192 characters.
+
 # __2.32.1__ __2025-07-15__
 ## __AWS CRT Async HTTP Client__
   - ### Bugfixes
