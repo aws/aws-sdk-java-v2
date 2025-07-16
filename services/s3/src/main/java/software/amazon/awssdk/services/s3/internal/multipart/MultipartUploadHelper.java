@@ -25,6 +25,7 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
@@ -123,11 +124,18 @@ public final class MultipartUploadHelper {
                                String uploadId,
                                CompletableFuture<PutObjectResponse> returnFuture,
                                PutObjectRequest putObjectRequest) {
-        genericMultipartHelper.handleException(returnFuture, () -> "Failed to send multipart upload requests", t);
-        if (uploadId != null) {
-            genericMultipartHelper.cleanUpParts(uploadId, toAbortMultipartUploadRequest(putObjectRequest));
+
+        try {
+            genericMultipartHelper.handleException(returnFuture, () -> "Failed to send multipart upload requests", t);
+            if (uploadId != null) {
+                genericMultipartHelper.cleanUpParts(uploadId, toAbortMultipartUploadRequest(putObjectRequest));
+            }
+            cancelingOtherOngoingRequests(futures, t);
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(SdkClientException.create("Unexpected error occurred while handling the upstream "
+                                                                         + "exception.", throwable));
         }
-        cancelingOtherOngoingRequests(futures, t);
+
     }
 
     static void cancelingOtherOngoingRequests(Collection<CompletableFuture<CompletedPart>> futures, Throwable t) {

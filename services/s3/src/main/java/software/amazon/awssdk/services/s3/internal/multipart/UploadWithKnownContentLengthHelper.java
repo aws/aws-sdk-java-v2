@@ -137,6 +137,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                .partSize(partSize)
                                                                .uploadId(uploadId)
                                                                .numPartsCompleted(numPartsCompleted)
+                                                               .expectedNumParts(partCount)
                                                                .build();
 
         splitAndSubscribe(mpuRequestContext, returnFuture);
@@ -170,6 +171,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                    .partSize(resumeToken.partSize())
                                                                    .uploadId(uploadId)
                                                                    .existingParts(existingParts)
+                                                                   .expectedNumParts(Math.toIntExact(resumeToken.totalNumParts()))
                                                                    .numPartsCompleted(resumeToken.numPartsCompleted())
                                                                    .build();
 
