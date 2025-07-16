@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Network Flow Monitor",
+    "contributor": "",
+    "description": "Introducing 2 new scope status types - DEACTIVATING and DEACTIVATED."
+}
