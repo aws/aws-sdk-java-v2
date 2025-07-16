@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Payment Cryptography Data Plane",
+    "contributor": "",
+    "description": "Expand length of message data field for Mac generation and validation to 8192 characters."
+}
