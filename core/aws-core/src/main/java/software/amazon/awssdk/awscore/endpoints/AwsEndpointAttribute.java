@@ -34,7 +34,7 @@ public final class AwsEndpointAttribute {
         EndpointAttributeKey.forList("AuthSchemes");
 
     /**
-     * Business Metric values for the endpoint.
+     * Business Metric values to be added to the user-agent for the endpoint.
      */
     public static final EndpointAttributeKey<List<String>> METRIC_VALUES =
         EndpointAttributeKey.forList("MetricValues");

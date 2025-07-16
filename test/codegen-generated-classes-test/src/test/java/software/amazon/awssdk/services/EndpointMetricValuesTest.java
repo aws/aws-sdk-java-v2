@@ -17,7 +17,6 @@ package software.amazon.awssdk.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,7 +82,7 @@ public class EndpointMetricValuesTest {
 
         String userAgent = assertAndGetUserAgentString();
         Matcher businessMetricMatcher = Pattern.compile("m/([^\\s]+)").matcher(userAgent);
-        assertTrue(businessMetricMatcher.matches());
+        assertTrue(businessMetricMatcher.find());
         assertNotNull(businessMetricMatcher.group(1));
         Set<String> metrics = new HashSet<>(Arrays.asList((businessMetricMatcher.group(1).split(","))));
         assertTrue(metrics.containsAll(Arrays.asList("O", "K")));
