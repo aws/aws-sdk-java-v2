@@ -17,11 +17,31 @@ There are three ways to run benchmarks.
 # Run specific benchmark
 ```
 java -jar target/http-client-benchmarks.jar Apache5Benchmark
+
+# Run with different maxConnections values
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p maxConnections=100
+
+# Run with different threadCount values  
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p threadCount=50
+
+# Run with both parameters changed
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p maxConnections=100 -p threadCount=50
+
 ```
 
 # Run all benchmarks: 3 warm up iterations, 3 benchmark iterations, 1 fork.
 ```
 java -jar target/http-client-benchmarks.jar -wi 3 -i 3 -f 1
+
+# Test multiple connection pool sizes
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p maxConnections=25,50,100,200
+
+# Test multiple thread counts
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p threadCount=10,20,40,80
+
+# Test combinations (Cartesian product)
+java -jar target/http-client-benchmarks.jar Apache4Benchmark -p maxConnections=50,100 -p threadCount=20,40
+
 ```
 
 - Using `mvn exec:exec` commands to invoke `UnifiedBenchmarkRunner` main method

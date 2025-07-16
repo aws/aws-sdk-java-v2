@@ -104,18 +104,21 @@ public class Apache5Benchmark implements CoreBenchmark {
     }
 
     @Benchmark
+    @OutputTimeUnit(TimeUnit.SECONDS)
     @Override
     public void simpleGet(Blackhole blackhole) throws Exception {
         s3Benchmark.executeGet("5MB", blackhole);
     }
 
     @Benchmark
+    @OutputTimeUnit(TimeUnit.SECONDS)
     @Override
     public void simplePut(Blackhole blackhole) {
         s3Benchmark.executePut("5MB", blackhole);
     }
 
     @Benchmark
+    @OutputTimeUnit(TimeUnit.SECONDS)
     @Override
     public void multiThreadedGet(Blackhole blackhole) throws Exception {
         List<Future<?>> futures = new ArrayList<>();
@@ -135,6 +138,7 @@ public class Apache5Benchmark implements CoreBenchmark {
     }
 
     @Benchmark
+    @OutputTimeUnit(TimeUnit.SECONDS)
     @Override
     public void multiThreadedPut(Blackhole blackhole) throws Exception {
         List<Future<?>> futures = new ArrayList<>();

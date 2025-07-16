@@ -118,12 +118,24 @@ public final class UnifiedBenchmarkRunner {
                                  benchmarkName = benchmarkName + " (" + paramInfo + ")";
                              }
 
+                             double avgLatency = 0.0;
+                             double p99Latency = 0.0;
+                             
+                             // Safely get secondary metrics if they exist
+                             if (result.getSecondaryResults().containsKey("avgLatency")) {
+                                 avgLatency = result.getSecondaryResults().get("avgLatency").getScore();
+                             }
+                             
+                             if (result.getSecondaryResults().containsKey("p99Latency")) {
+                                 p99Latency = result.getSecondaryResults().get("p99Latency").getScore();
+                             }
+                             
                              return new BenchmarkResult(
                                  clientType,
                                  benchmarkName,
                                  result.getPrimaryResult().getScore(),
-                                 result.getSecondaryResults().get("avgLatency").getScore(),
-                                 result.getSecondaryResults().get("p99Latency").getScore(),
+                                 avgLatency,
+                                 p99Latency,
                                  result.getParams().getThreads()
                              );
                          })
