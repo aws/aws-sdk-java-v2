@@ -113,7 +113,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                     new ClientExecutionParams<PresignedUrlGetObjectRequestWrapper, GetObjectResponse>()
-                            .withOperationName("PresignedUrlGetObject")
+                            .withOperationName("GetObject")
                             .withProtocolMetadata(protocolMetadata)
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
