@@ -49,13 +49,33 @@ public class BenchmarkResult {
     }
 
     // Getters
-    public String getClientType() { return clientType; }
-    public String getBenchmarkName() { return benchmarkName; }
-    public double getThroughput() { return throughput; }
-    public double getAvgLatency() { return avgLatency; }
-    public double getP99Latency() { return p99Latency; }
-    public int getThreadCount() { return threadCount; }
-    public Instant getTimestamp() { return timestamp; }
+    public String getClientType() { 
+        return clientType; 
+    }
+    
+    public String getBenchmarkName() { 
+        return benchmarkName; 
+    }
+    
+    public double getThroughput() { 
+        return throughput; 
+    }
+    
+    public double getAvgLatency() { 
+        return avgLatency; 
+    }
+    
+    public double getP99Latency() { 
+        return p99Latency; 
+    }
+    
+    public int getThreadCount() { 
+        return threadCount; 
+    }
+    
+    public Instant getTimestamp() { 
+        return timestamp; 
+    }
 
     @Override
     public String toString() {

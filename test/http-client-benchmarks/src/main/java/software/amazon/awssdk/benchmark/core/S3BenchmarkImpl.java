@@ -15,16 +15,15 @@
 
 package software.amazon.awssdk.benchmark.core;
 
-import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.core.ResponseInputStream;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Logger;
+import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -36,24 +35,25 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Shared S3 operations implementation used by all benchmark classes.
  */
 public class S3BenchmarkImpl {
-    private static final Logger logger = Logger.getLogger(S3BenchmarkImpl.class.getName());
+    private static final Logger logger = Logger.loggerFor(S3BenchmarkImpl.class);
+    private static final String TEST_KEY_PREFIX = "benchmark-object-";
+    private static final int OBJECT_COUNT = 100;
 
     private final S3Client s3Client;
     private final String bucketName;
     private final byte[] testData;
-    private static final String TEST_KEY_PREFIX = "benchmark-object-";
-    private static final int OBJECT_COUNT = 100;
 
     public S3BenchmarkImpl(S3Client s3Client) {
         this.s3Client = s3Client;
         this.bucketName = "benchmark-bucket-" + UUID.randomUUID().toString().substring(0, 8);
         // 5MB test data
-        this.testData = new byte[5* 1024 * 1024];
+        this.testData = new byte[5 * 1024 * 1024];
         ThreadLocalRandom.current().nextBytes(testData);
     }
 
@@ -64,7 +64,7 @@ public class S3BenchmarkImpl {
                                                      .bucket(bucketName)
                                                      .build());
 
-            logger.info("Created bucket: " + bucketName);
+            logger.info(() -> "Created bucket: " + bucketName);
 
             // Wait for bucket to be ready
             s3Client.waiter().waitUntilBucketExists(HeadBucketRequest.builder()
@@ -83,10 +83,10 @@ public class S3BenchmarkImpl {
                 );
             }
 
-            logger.info("Uploaded " + OBJECT_COUNT + " test objects");
+            logger.info(() -> "Uploaded " + OBJECT_COUNT + " test objects");
 
         } catch (Exception e) {
-            logger.severe("Setup failed: " + e.getMessage());
+            logger.error(() -> "Setup failed: " + e.getMessage(), e);
             throw new RuntimeException("Failed to setup S3 benchmark", e);
         }
     }
@@ -156,10 +156,10 @@ public class S3BenchmarkImpl {
             s3Client.deleteBucket(DeleteBucketRequest.builder()
                                                      .bucket(bucketName)
                                                      .build());
-            logger.info("Cleaned up bucket: " + bucketName);
+            logger.info(() -> "Cleaned up bucket: " + bucketName);
 
         } catch (Exception e) {
-            logger.warning("Cleanup failed: " + e.getMessage());
+            logger.warn(() -> "Cleanup failed: " + e.getMessage());
         }
     }
 
