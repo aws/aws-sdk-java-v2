@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT Async HTTP Client",
-    "contributor": "",
-    "description": "Fixed potential connection leak issue when SDK failed to convert the SDK request to CRT request"
-}

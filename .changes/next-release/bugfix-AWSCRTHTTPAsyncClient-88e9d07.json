@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT Async HTTP Client",
-    "contributor": "",
-    "description": "Fixed the issue where AWS CRT HTTP client was eagerly buffering data before the underlying CRT component was able to handle it"
-}
