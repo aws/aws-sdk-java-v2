@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.benchmark.apache4;
 
-
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,18 +36,13 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.benchmark.core.CoreBenchmark;
 import software.amazon.awssdk.benchmark.core.S3BenchmarkImpl;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
+import software.amazon.awssdk.utils.Logger;
 
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
@@ -54,7 +51,7 @@ import java.util.logging.Logger;
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 public class Apache4Benchmark implements CoreBenchmark {
-    private static final Logger logger = Logger.getLogger(Apache4Benchmark.class.getName());
+    private static final Logger logger = Logger.loggerFor(Apache4Benchmark.class);
 
     @Param({"50"})
     private int maxConnections;
@@ -68,23 +65,19 @@ public class Apache4Benchmark implements CoreBenchmark {
 
     @Setup(Level.Trial)
     public void setup() {
-        logger.info("Setting up Apache4 benchmark with maxConnections=" + maxConnections);
+        logger.info(() -> "Setting up Apache4 benchmark with maxConnections=" + maxConnections);
 
         // Apache 4 HTTP client
         SdkHttpClient httpClient = ApacheHttpClient.builder()
-                                                   .maxConnections(maxConnections)
                                                    .connectionTimeout(Duration.ofSeconds(10))
                                                    .socketTimeout(Duration.ofSeconds(30))
                                                    .connectionAcquisitionTimeout(Duration.ofSeconds(10))
-                                                   .connectionMaxIdleTime(Duration.ofSeconds(60))
-                                                   .connectionTimeToLive(Duration.ofMinutes(5))
-                                                   .useIdleConnectionReaper(true)
+                                                   .maxConnections(maxConnections)
                                                    .build();
 
         // S3 client
         s3Client = S3Client.builder()
                            .region(Region.US_WEST_2)
-                           .credentialsProvider(DefaultCredentialsProvider.create())
                            .httpClient(httpClient)
                            .build();
 
@@ -99,7 +92,8 @@ public class Apache4Benchmark implements CoreBenchmark {
             return t;
         });
 
-        logger.info("Apache4 benchmark setup complete");
+        // Update logging call to use Supplier pattern
+        logger.info(() -> "Apache4 benchmark setup complete");
     }
 
     @Benchmark
@@ -152,7 +146,7 @@ public class Apache4Benchmark implements CoreBenchmark {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Tearing down Apache4 benchmark");
+        logger.info(() -> "Tearing down Apache4 benchmark");
 
         if (platformThreadPool != null) {
             platformThreadPool.shutdown();

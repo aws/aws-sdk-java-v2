@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.benchmark.apache5;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,13 +45,9 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.utils.JavaSystemSetting;
+import software.amazon.awssdk.utils.Logger;
 
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 /**
  * Apache5 benchmark using virtual threads. This class requires Java 21+.
  */
@@ -57,7 +58,8 @@ import java.lang.reflect.InvocationTargetException;
 @Warmup(iterations = 3, time = 15, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 public class Apache5VirtualBenchmark implements CoreBenchmark {
-    private static final Logger logger = Logger.getLogger(Apache5VirtualBenchmark.class.getName());
+
+    private static final Logger logger = Logger.loggerFor(Apache5VirtualBenchmark.class);
 
     @Param({"50"})
     private int maxConnections;
@@ -72,25 +74,24 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         // Verify Java version
-        String version = System.getProperty("java.version");
-        logger.info("Running on Java version: " + version);
+        String version = JavaSystemSetting.JAVA_VERSION.getStringValueOrThrow();
+        // Update logging call to use Supplier pattern
+        logger.info(() -> "Running on Java version: " + version);
 
         if (!isJava21OrHigher()) {
             throw new UnsupportedOperationException(
                 "Virtual threads require Java 21 or higher. Current version: " + version);
         }
 
-        logger.info("Setting up Apache5 virtual threads benchmark with maxConnections=" + maxConnections);
+        // Update logging call to use Supplier pattern
+        logger.info(() -> "Setting up Apache5 virtual threads benchmark with maxConnections=" + maxConnections);
 
         // Apache 5 HTTP client
         SdkHttpClient httpClient = Apache5HttpClient.builder()
-                                                    .maxConnections(maxConnections)
                                                     .connectionTimeout(Duration.ofSeconds(10))
                                                     .socketTimeout(Duration.ofSeconds(30))
                                                     .connectionAcquisitionTimeout(Duration.ofSeconds(10))
-                                                    .connectionMaxIdleTime(Duration.ofSeconds(60))
-                                                    .connectionTimeToLive(Duration.ofMinutes(5))
-                                                    .useIdleConnectionReaper(true)
+                                                    .maxConnections(maxConnections)
                                                     .build();
 
         // S3 client
@@ -106,13 +107,15 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
 
         // Create virtual thread executor
         executorService = createVirtualThreadExecutor();
-        logger.info("Using virtual thread executor");
+        // Update logging call to use Supplier pattern
+        logger.info(() -> "Using virtual thread executor");
 
-        logger.info("Apache5 virtual threads benchmark setup complete");
+        // Update logging call to use Supplier pattern
+        logger.info(() -> "Apache5 virtual threads benchmark setup complete");
     }
 
     private boolean isJava21OrHigher() {
-        String version = System.getProperty("java.version");
+        String version = JavaSystemSetting.JAVA_VERSION.getStringValueOrThrow();
         if (version.startsWith("1.")) {
             version = version.substring(2);
         }
@@ -196,7 +199,7 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
 
     @TearDown(Level.Trial)
     public void tearDown() {
-        logger.info("Tearing down Apache5 virtual threads benchmark");
+        logger.info(() -> "Tearing down Apache5 virtual threads benchmark");
 
         if (executorService != null) {
             executorService.shutdown();
