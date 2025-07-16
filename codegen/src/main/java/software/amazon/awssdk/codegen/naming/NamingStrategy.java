@@ -93,6 +93,11 @@ public interface NamingStrategy {
      * Retrieve the batchManager package name that should be used based on the service name.
      */
     String getBatchManagerPackageName(String serviceName);
+    
+    /**
+     * Retrieve the presignedUrl package name that should be used based on the service name.
+     */
+    String getPresignedUrlPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.
