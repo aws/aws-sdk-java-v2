@@ -1,0 +1,30 @@
+{
+    "version": "2.32.1",
+    "date": "2025-07-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT Async HTTP Client",
+            "contributor": "",
+            "description": "Fixed potential connection leak issue when SDK failed to convert the SDK request to CRT request"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS CRT Async HTTP Client",
+            "contributor": "",
+            "description": "Fixed the issue where AWS CRT HTTP client was eagerly buffering data before the underlying CRT component was able to handle it"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This release removes hookDetails for the Amazon ECS native blue/green deployments."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -1,4 +1,18 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.1__ __2025-07-15__
+## __AWS CRT Async HTTP Client__
+  - ### Bugfixes
+    - Fixed potential connection leak issue when SDK failed to convert the SDK request to CRT request
+    - Fixed the issue where AWS CRT HTTP client was eagerly buffering data before the underlying CRT component was able to handle it
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release removes hookDetails for the Amazon ECS native blue/green deployments.
+
 # __2.32.0__ __2025-07-15__
 ## __AWS Price List Service__
   - ### Features
