@@ -24,10 +24,7 @@ import org.openjdk.jmh.infra.Blackhole;
  */
 public interface CoreBenchmark {
     void simpleGet(Blackhole blackhole) throws Exception;
-    
     void simplePut(Blackhole blackhole) throws Exception;
-    
     void multiThreadedGet(Blackhole blackhole) throws Exception;
-    
     void multiThreadedPut(Blackhole blackhole) throws Exception;
 }

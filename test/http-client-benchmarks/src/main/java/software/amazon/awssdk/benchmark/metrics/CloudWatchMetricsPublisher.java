@@ -15,25 +15,21 @@
 
 package software.amazon.awssdk.benchmark.metrics;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.benchmark.core.BenchmarkResult;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
-import software.amazon.awssdk.services.cloudwatch.model.Dimension;
-import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
-import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
-import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
-import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.services.cloudwatch.model.*;
+
+import java.time.Instant;
+import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Publishes benchmark results to CloudWatch for visualization and analysis.
  */
 public class CloudWatchMetricsPublisher {
-    private static final Logger logger = Logger.loggerFor(CloudWatchMetricsPublisher.class);
+    private static final Logger logger = Logger.getLogger(CloudWatchMetricsPublisher.class.getName());
 
     private final CloudWatchClient cloudWatch;
     private final String namespace;
@@ -103,11 +99,11 @@ public class CloudWatchMetricsPublisher {
             // Publish metrics in batches (CloudWatch limit is 1000 metrics per request)
             publishMetrics(metrics);
 
-            logger.info(() -> "Published metrics for " + result.getClientType() +
+            logger.info("Published metrics for " + result.getClientType() +
                         "." + result.getBenchmarkName());
 
         } catch (Exception e) {
-            logger.error(() -> "Failed to publish metrics: " + e.getMessage(), e);
+            logger.severe("Failed to publish metrics: " + e.getMessage());
             throw new RuntimeException("CloudWatch publication failed", e);
         }
     }
