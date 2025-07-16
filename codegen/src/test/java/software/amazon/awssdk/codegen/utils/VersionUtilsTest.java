@@ -17,18 +17,26 @@ package software.amazon.awssdk.codegen.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import java.util.stream.Stream;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class VersionUtilsTest {
 
-    @Test
-    public void serviceVersionInfo_redactPatchVersion() {
-        String currentVersion = "2.35.13";
-        String currentSnapshotVersion = "2.35.13-SNAPSHOT";
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("versionsTestCases")
+    public void serviceVersionInfo_redactPatchVersion(String testName, String versionToTruncate, String expectedVersion) {
+        String actualVersion = VersionUtils.convertToMajorMinorX(versionToTruncate);
+        assertThat(actualVersion).isEqualTo(expectedVersion);
+    }
 
-        String actualVersion = VersionUtils.convertToMajorMinorX(currentVersion);
-        String actualSnapshotVersion = VersionUtils.convertToMajorMinorX(currentSnapshotVersion);
-        assertThat(actualVersion).isEqualTo("2.35.x");
-        assertThat(actualSnapshotVersion).isEqualTo("2.35.x-SNAPSHOT");
+    private static Stream<Arguments> versionsTestCases() {
+        return Stream.of(
+            Arguments.of("valid version", "2.35.13", "2.35.x"),
+            Arguments.of("valid snapshot version", "2.35.13-SNAPSHOT", "2.35.x-SNAPSHOT"),
+            Arguments.of("different major version", "3.5.5", "3.5.x"),
+            Arguments.of("invalid version, uses version as-is", "23513", "23513")
+        );
     }
 }
