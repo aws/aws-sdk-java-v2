@@ -606,6 +606,34 @@ public class VersionedRecordExtensionTest {
                                         .build());
     }
 
+    @Test
+    public void isInitialVersion_shouldPrioritizeAnnotationValueOverBuilderValue() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder()
+                                                                           .startAt(5L)
+                                                                           .build();
+
+        // FakeVersionedThroughAnnotationItem value for startAt is 3, which would conflict with builder value of 5.
+        FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
+        item.setId(UUID.randomUUID().toString());
+
+        item.setVersion(5L);
+
+        TableSchema<FakeVersionedThroughAnnotationItem> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(schema.itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(schema.tableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("#AMZN_MAPPED_version = :old_version_value"));
+    }
+
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
         return Stream.of(
             Arguments.of(0L, 1L, 5L, "6"),

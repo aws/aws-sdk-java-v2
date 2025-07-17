@@ -122,7 +122,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             Validate.isNotNegativeOrNull(startAt, "startAt");
 
             if (incrementBy != null && incrementBy < 1) {
-                throw new IllegalArgumentException("IncrementBy must be greater than 0.");
+                throw new IllegalArgumentException("incrementBy must be greater than 0.");
             }
 
             return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
@@ -149,11 +149,11 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         AttributeValue existingVersionValue = itemToTransform.get(versionAttributeKey.get());
         Long versionStartAtFromAnnotation = context.tableMetadata()
-                                                             .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY,
-                                                                                   Long.class).orElse(this.startAt);
+                                                   .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY, Long.class)
+                                                   .orElse(this.startAt);
         Long versionIncrementByFromAnnotation = context.tableMetadata()
-                                                                 .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY,
-                                                                                       Long.class).orElse(this.incrementBy);
+                                                   .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY, Long.class)
+                                                   .orElse(this.incrementBy);
 
 
         if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
@@ -177,8 +177,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             long increment = versionIncrementByFromAnnotation;
 
             /*
-            since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
-            to happen in a rela life scenario, we should add overflow protection.
+            Since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
+            to happen in a real life scenario, we should add overflow protection.
             */
             if (existingVersion > Long.MAX_VALUE - increment) {
                 throw new IllegalStateException(
@@ -211,8 +211,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         if (existingVersionValue.n() != null) {
             long currentVersion = Long.parseLong(existingVersionValue.n());
-            return (versionStartAtFromAnnotation != null && currentVersion == versionStartAtFromAnnotation)
-                   || currentVersion == this.startAt;
+            // If annotation value is present, use it, otherwise fall back to the extension's value
+            Long effectiveStartAt = versionStartAtFromAnnotation != null ? versionStartAtFromAnnotation : this.startAt;
+            return currentVersion == effectiveStartAt;
         }
 
         return false;
@@ -230,7 +231,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
          * Sets the startAt used to compare if a record is the initial version of a record.
          * Default value - {@code 0}.
          *
-         * @param startAt
+         * @param startAt the starting value for version comparison, must not be negative
          * @return the builder instance
          */
         public Builder startAt(Long startAt) {
@@ -242,7 +243,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
          * Sets the amount to increment the version by with each subsequent update.
          * Default value - {@code 1}.
          *
-         * @param incrementBy
+         * @param incrementBy the amount to increment the version by, must be greater than 0
          * @return the builder instance
          */
         public Builder incrementBy(Long incrementBy) {
