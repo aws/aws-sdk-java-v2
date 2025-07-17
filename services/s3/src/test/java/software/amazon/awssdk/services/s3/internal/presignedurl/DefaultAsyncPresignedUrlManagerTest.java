@@ -256,7 +256,7 @@ class DefaultAsyncPresignedUrlManagerTest {
                 verify(mockPublisher).publish(metricsCaptor.capture());
                 MetricCollection capturedMetrics = metricsCaptor.getValue();
                 assertThat(capturedMetrics.metricValues(CoreMetric.SERVICE_ID)).contains("S3");
-                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("GetObject");
+                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("PresignedUrlGetObject");
                 break;
         }
     }

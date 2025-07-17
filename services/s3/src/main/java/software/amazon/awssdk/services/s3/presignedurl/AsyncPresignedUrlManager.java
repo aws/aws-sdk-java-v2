@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.presignedurl;
 
+import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -74,8 +76,79 @@ public interface AsyncPresignedUrlManager {
         throw new UnsupportedOperationException();
     }
 
-    // TODO: Add convenience methods :
-    //   - getObject(Consumer<Builder>, AsyncResponseTransformer) - consumer-based request building
-    //   - getObject(PresignedUrlGetObjectRequest, Path) - direct file download
-    //   - getObject(Consumer<Builder>, Path) - consumer + file download
+    /**
+     * <p>
+     * Downloads an S3 object asynchronously using a presigned URL with a consumer-based request builder.
+     * </p>
+     * <p>
+     * This is a convenience method that creates a {@link PresignedUrlGetObjectRequest} using the provided consumer.
+     * </p>
+     *
+     * @param requestConsumer     Consumer that will be used to configure a {@link PresignedUrlGetObjectRequest.Builder}
+     * @param responseTransformer Transforms the response to the desired return type
+     * @param <ReturnT>           The type of the transformed response
+     * @return A {@link CompletableFuture} containing the transformed result of the AsyncResponseTransformer
+     * @throws NoSuchKeyException          The specified object does not exist
+     * @throws InvalidObjectStateException Object is archived and must be restored before retrieval
+     * @throws SdkClientException          If any client side error occurs such as network failures or invalid presigned URL
+     * @throws S3Exception                 Base class for all S3 service exceptions
+     */
+    default <ReturnT> CompletableFuture<ReturnT> getObject(Consumer<PresignedUrlGetObjectRequest.Builder> requestConsumer,
+                                                           AsyncResponseTransformer<GetObjectResponse,
+                                                               ReturnT> responseTransformer) throws NoSuchKeyException,
+                                                                                                    InvalidObjectStateException,
+                                                                                                    SdkClientException,
+                                                                                                    S3Exception {
+        return getObject(PresignedUrlGetObjectRequest.builder().applyMutation(requestConsumer).build(), responseTransformer);
+    }
+
+    /**
+     * <p>
+     * Downloads an S3 object asynchronously using a presigned URL and saves it to the specified file path.
+     * </p>
+     * <p>
+     * This is a convenience method that uses {@link AsyncResponseTransformer#toFile(Path)} to save the object
+     * directly to a file.
+     * </p>
+     *
+     * @param request         The presigned URL request containing the URL and optional range parameters
+     * @param destinationPath The path where the downloaded object will be saved
+     * @return A {@link CompletableFuture} containing the {@link GetObjectResponse}
+     * @throws NoSuchKeyException          The specified object does not exist
+     * @throws InvalidObjectStateException Object is archived and must be restored before retrieval
+     * @throws SdkClientException          If any client side error occurs such as network failures or invalid presigned URL
+     * @throws S3Exception                 Base class for all S3 service exceptions
+     */
+    default CompletableFuture<GetObjectResponse> getObject(PresignedUrlGetObjectRequest request,
+                                                           Path destinationPath) throws NoSuchKeyException,
+                                                                                        InvalidObjectStateException,
+                                                                                        SdkClientException,
+                                                                                        S3Exception {
+        return getObject(request, AsyncResponseTransformer.toFile(destinationPath));
+    }
+
+    /**
+     * <p>
+     * Downloads an S3 object asynchronously using a presigned URL with a consumer-based request builder
+     * and saves it to the specified file path.
+     * </p>
+     * <p>
+     * This is a convenience method that combines consumer-based request building with file-based response handling.
+     * </p>
+     *
+     * @param requestConsumer Consumer that will be used to configure a {@link PresignedUrlGetObjectRequest.Builder}
+     * @param destinationPath The path whaere the downloaded object will be saved
+     * @return A {@link CompletableFuture} containing the {@link GetObjectResponse}
+     * @throws NoSuchKeyException          The specified object does not exist
+     * @throws InvalidObjectStateException Object is archived and must be restored before retrieval
+     * @throws SdkClientException          If any client side error occurs such as network failures or invalid presigned URL
+     * @throws S3Exception                 Base class for all S3 service exceptions
+     */
+    default CompletableFuture<GetObjectResponse> getObject(Consumer<PresignedUrlGetObjectRequest.Builder> requestConsumer,
+                                                           Path destinationPath) throws NoSuchKeyException,
+                                                                                        InvalidObjectStateException,
+                                                                                        SdkClientException,
+                                                                                        S3Exception {
+        return getObject(PresignedUrlGetObjectRequest.builder().applyMutation(requestConsumer).build(), destinationPath);
+    }
 }
