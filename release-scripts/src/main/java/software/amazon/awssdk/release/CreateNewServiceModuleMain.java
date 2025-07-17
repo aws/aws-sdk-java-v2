@@ -141,7 +141,7 @@ public class CreateNewServiceModuleMain extends Cli {
                 case "ec2": return "aws-query";
                 case "rest-xml": return "aws-xml";
                 case "rest-json": return "aws-json";
-                case "rpc-v2-cbor": return "smithy-rpcv2";
+                case "smithy-rpc-v2-cbor": return "smithy-rpcv2";
                 default: return "aws-" + protocol;
             }
         }
