@@ -216,6 +216,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
     public String getBatchManagerPackageName(String serviceName) {
         return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_BATCHMANAGER_PATTERN);
     }
+    
+    @Override
+    public String getPresignedUrlPackageName(String serviceName) {
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName), Constant.PACKAGE_NAME_PRESIGNEDURL_PATTERN);
+    }
 
     @Override
     public String getSmokeTestPackageName(String serviceName) {

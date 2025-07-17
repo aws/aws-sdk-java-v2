@@ -99,6 +99,9 @@ public class AsyncClientInterface implements ClassSpec {
         if (model.getCustomizationConfig().getBatchManagerSupported()) {
             addBatchManagerMethod(result);
         }
+        if (model.getCustomizationConfig().getPresignedUrlManagerSupported()) {
+            addPresignedUrlManagerMethod(result);
+        }
         result.addMethod(serviceClientConfigMethod());
         addAdditionalMethods(result);
         addCloseMethod(result);
@@ -173,6 +176,16 @@ public class AsyncClientInterface implements ClassSpec {
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
         type.addMethod(batchManagerOperationBody(builder).build());
+    }
+    
+    protected void addPresignedUrlManagerMethod(TypeSpec.Builder type) {
+        ClassName returnType = poetExtensions.getPresignedUrlManagerAsyncInterface();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("presignedUrlManager")
+                                               .addModifiers(PUBLIC)
+                                               .returns(returnType)
+                                               .addJavadoc("Creates an instance of {@link $T} object with the "
+                                                           + "configuration set on this client.", returnType);
+        type.addMethod(presignedUrlManagerOperationBody(builder).build());
     }
 
     @Override
@@ -547,6 +560,11 @@ public class AsyncClientInterface implements ClassSpec {
     }
 
     protected MethodSpec.Builder batchManagerOperationBody(MethodSpec.Builder builder) {
+        return builder.addModifiers(DEFAULT, PUBLIC)
+                      .addStatement("throw new $T()", UnsupportedOperationException.class);
+    }
+    
+    protected MethodSpec.Builder presignedUrlManagerOperationBody(MethodSpec.Builder builder) {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
