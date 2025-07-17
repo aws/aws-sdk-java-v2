@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaConvert",
+    "contributor": "",
+    "description": "This release expands the range of supported audio outputs to include xHE, 192khz FLAC and the deprecation of dual mono for AC3."
+}
