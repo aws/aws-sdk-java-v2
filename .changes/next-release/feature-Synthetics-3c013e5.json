@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Synthetics",
-    "contributor": "",
-    "description": "This feature allows AWS Synthetics customers to provide code dependencies using lambda layer while creating a canary"
-}

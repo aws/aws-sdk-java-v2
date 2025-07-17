@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Clean Rooms ML",
-    "contributor": "",
-    "description": "This release introduces Parquet result format support for ML Input Channel models in AWS Clean Rooms ML."
-}

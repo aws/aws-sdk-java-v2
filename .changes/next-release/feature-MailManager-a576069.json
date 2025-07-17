@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "MailManager",
-    "contributor": "",
-    "description": "Allow underscores in the local part of the input of the \"Email recipients rewrite\" action in rule sets."
-}
