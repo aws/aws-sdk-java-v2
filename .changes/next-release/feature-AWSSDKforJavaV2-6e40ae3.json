@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java V2",
+    "contributor": "",
+    "description": "Add support for tracking business metrics from resolved endpoints."
+}
