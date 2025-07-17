@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.3__ __2025-07-17__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - This release introduces Parquet result format support for ML Input Channel models in AWS Clean Rooms ML.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release expands the range of supported audio outputs to include xHE, 192khz FLAC and the deprecation of dual mono for AC3.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix generation of credentialType(bearer) for non-priority bearer operations
+
+## __AWS Step Functions__
+  - ### Features
+    - Align input with style guidelines.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Doc only update for CloudFront that fixes some customer-reported issues
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Free Tier Version2 Support
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Doc only update for the Amazon Keyspaces Streams API.
+
+## __MailManager__
+  - ### Features
+    - Allow underscores in the local part of the input of the "Email recipients rewrite" action in rule sets.
+
+## __Synthetics__
+  - ### Features
+    - This feature allows AWS Synthetics customers to provide code dependencies using lambda layer while creating a canary
+
 # __2.32.2__ __2025-07-16__
 ## __AWS DataSync__
   - ### Features
