@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.benchmark;
 
+import static software.amazon.awssdk.benchmark.apache5.utility.BenchmarkUtilities.isJava21OrHigher;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,21 +50,7 @@ public final class UnifiedBenchmarkRunner {
         // CHECKSTYLE:ON
     }
 
-    private static boolean isJava21OrHigher() {
 
-        String version = JavaSystemSetting.JAVA_VERSION.getStringValueOrThrow();
-        if (version.startsWith("1.")) {
-            version = version.substring(2);
-        }
-        int dotPos = version.indexOf('.');
-        int majorVersion;
-        if (dotPos != -1) {
-            majorVersion = Integer.parseInt(version.substring(0, dotPos));
-        } else {
-            majorVersion = Integer.parseInt(version);
-        }
-        return majorVersion >= 21;
-    }
 
     public static void main(String[] args) throws Exception {
         // Update logging calls to use Supplier<String> pattern

@@ -56,7 +56,10 @@ public class Apache4Benchmark implements CoreBenchmark {
     @Param({"50"})
     private int maxConnections;
 
-    @Param({"20"})
+    @Param({"5"})
+    private int testDataInMB;
+
+    @Param({"10"})
     private int threadCount;
 
     private S3Client s3Client;
@@ -82,7 +85,7 @@ public class Apache4Benchmark implements CoreBenchmark {
                            .build();
 
         // Initialize benchmark implementation
-        benchmark = new S3BenchmarkImpl(s3Client);
+        benchmark = new S3BenchmarkImpl(s3Client, new byte[testDataInMB * 1024 * 1024]);
         benchmark.setup();
 
         // Platform thread pool for multi-threaded tests

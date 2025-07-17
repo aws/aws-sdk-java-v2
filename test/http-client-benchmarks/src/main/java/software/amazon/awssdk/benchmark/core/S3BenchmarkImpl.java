@@ -49,11 +49,10 @@ public class S3BenchmarkImpl {
     private final String bucketName;
     private final byte[] testData;
 
-    public S3BenchmarkImpl(S3Client s3Client) {
+    public S3BenchmarkImpl(S3Client s3Client, byte[] testData) {
         this.s3Client = s3Client;
         this.bucketName = "benchmark-bucket-" + UUID.randomUUID().toString().substring(0, 8);
-        // 5MB test data
-        this.testData = new byte[5 * 1024 * 1024];
+        this.testData = testData;
         ThreadLocalRandom.current().nextBytes(testData);
     }
 

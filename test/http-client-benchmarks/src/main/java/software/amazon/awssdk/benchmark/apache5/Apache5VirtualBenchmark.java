@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.benchmark.apache5;
 
+import static software.amazon.awssdk.benchmark.apache5.utility.BenchmarkUtilities.isJava21OrHigher;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -64,12 +66,17 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
     @Param({"50"})
     private int maxConnections;
 
+    @Param({"5"})
+    private int testDataInMB;
+
     @Param({"10"})
     private int threadCount;
 
     private S3Client s3Client;
     private S3BenchmarkImpl benchmark;
     private ExecutorService executorService;
+
+
 
     @Setup(Level.Trial)
     public void setup() {
@@ -102,7 +109,7 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
                            .build();
 
         // Initialize benchmark implementation
-        benchmark = new S3BenchmarkImpl(s3Client);
+        benchmark = new S3BenchmarkImpl(s3Client, new byte[this.testDataInMB * 1024 * 1024]);
         benchmark.setup();
 
         // Create virtual thread executor
@@ -112,21 +119,6 @@ public class Apache5VirtualBenchmark implements CoreBenchmark {
 
         // Update logging call to use Supplier pattern
         logger.info(() -> "Apache5 virtual threads benchmark setup complete");
-    }
-
-    private boolean isJava21OrHigher() {
-        String version = JavaSystemSetting.JAVA_VERSION.getStringValueOrThrow();
-        if (version.startsWith("1.")) {
-            version = version.substring(2);
-        }
-        int dotPos = version.indexOf('.');
-        int majorVersion;
-        if (dotPos != -1) {
-            majorVersion = Integer.parseInt(version.substring(0, dotPos));
-        } else {
-            majorVersion = Integer.parseInt(version);
-        }
-        return majorVersion >= 21;
     }
 
     private ExecutorService createVirtualThreadExecutor() {

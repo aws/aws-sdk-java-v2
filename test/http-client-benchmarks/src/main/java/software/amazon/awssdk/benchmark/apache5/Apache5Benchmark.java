@@ -57,6 +57,9 @@ public class Apache5Benchmark implements CoreBenchmark {
     @Param({"50"})
     private int maxConnections;
 
+    @Param({"5"})
+    private int testDataInMB;
+
     @Param({"10"})
     private int threadCount;
 
@@ -87,7 +90,7 @@ public class Apache5Benchmark implements CoreBenchmark {
                            .build();
 
         // Initialize benchmark implementation
-        benchmark = new S3BenchmarkImpl(s3Client);
+        benchmark = new S3BenchmarkImpl(s3Client, new byte[this.testDataInMB * 1024 * 1024]);
         benchmark.setup();
 
         // Always use platform threads
