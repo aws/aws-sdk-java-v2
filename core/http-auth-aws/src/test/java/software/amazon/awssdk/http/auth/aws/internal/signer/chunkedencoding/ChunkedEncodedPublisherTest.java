@@ -49,6 +49,29 @@ public class ChunkedEncodedPublisherTest {
     }
 
     @Test
+    public void subscribe_publisherEmpty_onlyProducesTrailer() {
+        Publisher<ByteBuffer> emptyPublisher = Flowable.empty();
+
+        ChunkedEncodedPublisher build = newChunkedBuilder(emptyPublisher)
+            .addTrailer(() -> Pair.of("foo", Collections.singletonList("1")))
+            .addTrailer(() -> Pair.of("bar", Collections.singletonList("2")))
+            .addEmptyTrailingChunk(true)
+            .build();
+
+        List<ByteBuffer> chunks = getAllElements(build);
+
+        assertThat(chunks.size()).isEqualTo(1);
+
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(0)).toString();
+
+        assertThat(trailerAsString).isEqualTo(
+            "0\r\n" +
+            "foo:1\r\n" +
+            "bar:2\r\n" +
+            "\r\n");
+    }
+
+    @Test
     void subscribe_trailerProviderPresent_trailerPartAdded() {
         TestPublisher upstream = randomPublisherOfLength(8);
 
@@ -121,7 +144,8 @@ public class ChunkedEncodedPublisherTest {
         ByteBuffer last = chunks.get(chunks.size() - 1);
 
         String expected = "0\r\n" +
-                          "foo:bar\r\n";
+                          "foo:bar\r\n" +
+                          "\r\n";
 
         assertThat(chunkAsString(last)).isEqualTo(expected);
     }

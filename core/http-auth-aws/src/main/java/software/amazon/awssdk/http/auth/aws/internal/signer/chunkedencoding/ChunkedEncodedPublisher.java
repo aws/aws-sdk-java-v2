@@ -133,7 +133,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
     private ByteBuffer encodeChunk(ByteBuffer byteBuffer) {
         int contentLen = byteBuffer.remaining();
-        byte[] chunkSizeHex = Integer.toHexString(contentLen).getBytes(StandardCharsets.UTF_8);
+        byte[] chunkSizeHex = Integer.toHexString(byteBuffer.remaining()).getBytes(StandardCharsets.UTF_8);
 
         List<Pair<byte[], byte[]>> chunkExtensions = this.extensions.stream()
                                                                     .map(e -> {
@@ -152,9 +152,17 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
             trailerData = Collections.emptyList();
         }
 
-        int trailerLen = trailerData.stream().mapToInt(t -> t.remaining() + 2).sum();
+        //
+        int trailerLen = trailerData.stream()
+                                    // + 2 for each CRLF that ends the header-field
+                                    .mapToInt(t -> t.remaining() + 2)
+                                    .sum();
 
         int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
+
+        if (isTrailerChunk) {
+            encodedLen += CRLF.length;
+        }
 
         ByteBuffer encoded = ByteBuffer.allocate(encodedLen);
 
@@ -181,6 +189,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                 encoded.put(t);
                 encoded.put(CRLF);
             });
+            encoded.put(CRLF);
         }
 
         encoded.flip();
