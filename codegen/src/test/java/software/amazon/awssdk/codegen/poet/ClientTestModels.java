@@ -192,7 +192,27 @@ public class ClientTestModels {
         File endpointRuleSetModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-unknown-properties.json").getFile());
         File endpointTestsModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-unknown-properties.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel queryServiceModelsWithUnknownEndpointMetricValues() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-metric-values.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-metric-values.json").getFile());
 
         C2jModels models = C2jModels
             .builder()
