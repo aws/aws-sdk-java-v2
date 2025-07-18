@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.ReflectiveChannelFactory;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -75,11 +76,17 @@ public final class ChannelResolver {
         }
 
         String socketFqcn = KNOWN_EL_GROUPS_SOCKET_CHANNELS.get(eventLoopGroup.getClass().getName());
-        if (socketFqcn == null) {
-            throw new IllegalArgumentException("Unknown event loop group : " + eventLoopGroup.getClass());
+        if (socketFqcn != null) {
+            return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(socketFqcn)));
         }
 
-        return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(socketFqcn)));
+        // The old deprecated transport-specific event loop groups all extend MultiThreadIoEventLoopGroup, so we have to do
+        // this check last. It is not possible to determine the type of transport factory so we will default to Nio.
+        if (eventLoopGroup instanceof MultiThreadIoEventLoopGroup) {
+            return NioSocketChannel::new;
+        }
+
+        throw new IllegalArgumentException("Unknown event loop group : " + eventLoopGroup.getClass());
     }
 
     /**
@@ -103,10 +110,16 @@ public final class ChannelResolver {
         }
 
         String datagramFqcn = KNOWN_EL_GROUPS_DATAGRAM_CHANNELS.get(eventLoopGroup.getClass().getName());
-        if (datagramFqcn == null) {
-            throw new IllegalArgumentException("Unknown event loop group : " + eventLoopGroup.getClass());
+        if (datagramFqcn != null) {
+            return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(datagramFqcn)));
         }
 
-        return invokeSafely(() -> new ReflectiveChannelFactory(Class.forName(datagramFqcn)));
+        // The old deprecated transport-specific event loop groups all extend MultiThreadIoEventLoopGroup, so we have to do
+        // this check last. It is not possible to determine the type of transport factory so we will default to Nio.
+        if (eventLoopGroup instanceof MultiThreadIoEventLoopGroup) {
+            return NioDatagramChannel::new;
+        }
+
+        throw new IllegalArgumentException("Unknown event loop group : " + eventLoopGroup.getClass());
     }
 }
