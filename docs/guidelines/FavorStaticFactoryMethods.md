@@ -1,10 +1,10 @@
 **Design:** Convention, **Status:** [Accepted](README.md)
 
-## Favor Static Factory Methods Over Constructors
+# Favor Static Factory Methods Over Constructors
 
 This page describes the structures and conventions used to initialize a class.
 
-### Static Factory Methods vs. Constructors
+## Static Factory Methods vs. Constructors
 Static factory methods are preferable than constructors for the following reasons:
 - Static factory methods provide meaningful names compared with constructors, which improves the readability of the codes by describing the objects being returned.
 ```java
@@ -23,7 +23,7 @@ There are a few disadvantages of static factory methods:
 
 In general, we should favor static factory methods over constructors.
 
-### Example
+## Example
 ```java
 public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
 
@@ -52,7 +52,7 @@ public class DefaultCredentialsProvider implements AwsCredentialsProvider, SdkAu
 DefaultCredentialsProvider defaultCredentialsProvider1 = DefaultCredentialsProvider.create();
 DefaultCredentialsProvider defaultCredentialsProvider2 = DefaultCredentialsProvider.builder().build;
 ```
-### Naming Conventions
+## Naming Conventions
 The naming conventions for the static factory methods:
 - `create()`, `create(params)` when creating a new instance
 eg: `DynamoDBClient.create()`

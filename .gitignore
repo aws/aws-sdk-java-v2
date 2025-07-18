@@ -30,4 +30,5 @@ target/
 
 # VS Code
 .vscode/*
+bin/
 
