@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Outposts",
+    "contributor": "",
+    "description": "Add AWS Outposts API to surface customer billing information"
+}
