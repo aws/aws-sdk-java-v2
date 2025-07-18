@@ -152,7 +152,6 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
             trailerData = Collections.emptyList();
         }
 
-        //
         int trailerLen = trailerData.stream()
                                     // + 2 for each CRLF that ends the header-field
                                     .mapToInt(t -> t.remaining() + 2)
@@ -220,6 +219,11 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
             List<byte[]> values = trailer.right()
                                          .stream().map(v -> v.getBytes(StandardCharsets.UTF_8))
                                          .collect(Collectors.toList());
+
+            if (values.isEmpty()) {
+                throw new RuntimeException(String.format("Trailing header '%s' has no values", trailer.left()));
+            }
+
             int valuesLen = values.stream().mapToInt(v -> v.length).sum();
             // name:value1,value2,..
             int size = key.length
