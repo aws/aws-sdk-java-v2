@@ -42,7 +42,7 @@ class SdkTlsSocketFactoryTest {
         when(socket.getSupportedProtocols()).thenReturn(null);
         when(socket.getEnabledProtocols()).thenReturn(null);
 
-        factory.prepareSocket(socket);
+        factory.initializeSocket(socket);  // Changed from prepareSocket
 
         verify(socket, never()).setEnabledProtocols(any());
     }
@@ -56,7 +56,7 @@ class SdkTlsSocketFactoryTest {
             "TLSv1.2", "TLSv1.1", "TLSv1"
         });
 
-        factory.prepareSocket(socket);
+        factory.initializeSocket(socket);  // Changed from prepareSocket
 
         verify(socket, never()).setEnabledProtocols(any());
     }
@@ -70,7 +70,7 @@ class SdkTlsSocketFactoryTest {
             "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1"
         });
 
-        factory.prepareSocket(socket);
+        factory.initializeSocket(socket);  // Changed from prepareSocket
 
         verify(socket, never()).setEnabledProtocols(any());
     }
@@ -84,7 +84,7 @@ class SdkTlsSocketFactoryTest {
             "TLSv1.3", "TLSv1.2"
         });
 
-        factory.prepareSocket(socket);
+        factory.initializeSocket(socket);  // Changed from prepareSocket
 
         verify(socket, never()).setEnabledProtocols(any());
     }
