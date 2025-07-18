@@ -55,4 +55,15 @@ public interface DynamoDbEnhancedClientExtension {
     default ReadModification afterRead(DynamoDbExtensionContext.AfterRead context) {
         return ReadModification.builder().build();
     }
+
+    /**
+     * This hook is called just before an operation is going to delete data from the database. The extension that
+     * implements this method can add a condition to the delete operation.
+     *
+     * @param context The {@link DynamoDbExtensionContext.BeforeDelete} context containing the state of the execution.
+     * @return A {@link Expression} object that can alter the behavior of the delete operation.
+     */
+    default Expression beforeDelete(DynamoDbExtensionContext.BeforeDelete context) {
+        return Expression.builder().build();
+    }
 }
