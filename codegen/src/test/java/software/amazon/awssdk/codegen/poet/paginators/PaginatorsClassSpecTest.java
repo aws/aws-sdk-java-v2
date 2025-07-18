@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 
 public class PaginatorsClassSpecTest {
     @Test
@@ -30,8 +31,9 @@ public class PaginatorsClassSpecTest {
         assertThatThrownBy(() -> new TestPaginatorSpec(ClientTestModels.awsJsonServiceModels(),
                                                        "~~DoesNotExist",
                                                        new PaginatorDefinition()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("The service model does not model an operation '~~DoesNotExist'");
+            .isInstanceOf(ModelInvalidException.class)
+            .hasMessageContaining("Invalid paginator definition - "
+                                  + "The service model does not model the referenced operation '~~DoesNotExist'");
     }
 
     private static class TestPaginatorSpec extends PaginatorsClassSpec {
