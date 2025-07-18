@@ -51,6 +51,8 @@ import software.amazon.awssdk.utils.internal.MappingSubscriber;
  *     chunk-ext      = *( ";" chunk-ext-name [ "=" chunk-ext-val ] )
  *     chunk-ext-name = token
  *     chunk-ext-val  = token / quoted-string
+ *
+ *     trailer-part   = *( header-field CRLF )
  * </pre>
  *
  * @see ChunkedEncodedInputStream
@@ -60,9 +62,12 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte SEMICOLON = ';';
     private static final byte EQUALS = '=';
+    private static final byte COLON = ':';
+    private static final byte COMMA = ',';
 
     private final Publisher<ByteBuffer> wrapped;
     private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
+    private final List<TrailerProvider> trailers = new ArrayList<>();
     private final int chunkSize;
     private ByteBuffer chunkBuffer;
     private final boolean addEmptyTrailingChunk;
@@ -71,6 +76,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         this.wrapped = b.publisher;
         this.chunkSize = b.chunkSize;
         this.extensions.addAll(b.extensions);
+        this.trailers.addAll(b.trailers);
         this.addEmptyTrailingChunk = b.addEmptyTrailingChunk;
     }
 
@@ -125,10 +131,9 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         return subscriber -> upstream.subscribe(MappingSubscriber.create(subscriber, mapper));
     }
 
-    // TODO: Trailing checksum
     private ByteBuffer encodeChunk(ByteBuffer byteBuffer) {
         int contentLen = byteBuffer.remaining();
-        byte[] chunkSizeHex = Integer.toHexString(contentLen).getBytes(StandardCharsets.UTF_8);
+        byte[] chunkSizeHex = Integer.toHexString(byteBuffer.remaining()).getBytes(StandardCharsets.UTF_8);
 
         List<Pair<byte[], byte[]>> chunkExtensions = this.extensions.stream()
                                                                     .map(e -> {
@@ -138,12 +143,30 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
         int extensionsLength = calculateExtensionsLength(chunkExtensions);
 
-        int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + CRLF.length;
+        boolean isTrailerChunk = contentLen == 0;
+
+        List<ByteBuffer> trailerData;
+        if (isTrailerChunk) {
+            trailerData = getTrailerData();
+        } else {
+            trailerData = Collections.emptyList();
+        }
+
+        int trailerLen = trailerData.stream()
+                                    // + 2 for each CRLF that ends the header-field
+                                    .mapToInt(t -> t.remaining() + 2)
+                                    .sum();
+
+        int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
+
+        if (isTrailerChunk) {
+            encodedLen += CRLF.length;
+        }
 
         ByteBuffer encoded = ByteBuffer.allocate(encodedLen);
-        encoded.put(chunkSizeHex);
 
-        chunkExtensions.forEach(p -> {
+        encoded.put(chunkSizeHex); // chunk-size
+        chunkExtensions.forEach(p -> { // chunk-ext
             encoded.put(SEMICOLON);
             encoded.put(p.left());
             if (p.right() != null && p.right().length > 0) {
@@ -151,10 +174,22 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                 encoded.put(p.right());
             }
         });
+        encoded.put(CRLF);
 
-        encoded.put(CRLF);
-        encoded.put(byteBuffer);
-        encoded.put(CRLF);
+        // chunk-data
+        if (byteBuffer.hasRemaining()) {
+            encoded.put(byteBuffer);
+            encoded.put(CRLF);
+        }
+
+        if (isTrailerChunk) {
+            // trailer-part
+            trailerData.forEach(t -> {
+                encoded.put(t);
+                encoded.put(CRLF);
+            });
+            encoded.put(CRLF);
+        }
 
         encoded.flip();
 
@@ -172,6 +207,46 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                            // ';ext-key
                            return 1 + keyLen;
                        }).sum();
+    }
+
+    private List<ByteBuffer> getTrailerData() {
+        List<ByteBuffer> data = new ArrayList<>();
+
+        for (TrailerProvider provider : trailers) {
+            Pair<String, List<String>> trailer = provider.get();
+
+            byte[] key = trailer.left().getBytes(StandardCharsets.UTF_8);
+            List<byte[]> values = trailer.right()
+                                         .stream().map(v -> v.getBytes(StandardCharsets.UTF_8))
+                                         .collect(Collectors.toList());
+
+            if (values.isEmpty()) {
+                throw new RuntimeException(String.format("Trailing header '%s' has no values", trailer.left()));
+            }
+
+            int valuesLen = values.stream().mapToInt(v -> v.length).sum();
+            // name:value1,value2,..
+            int size = key.length
+                       + 1 // colon
+                       + valuesLen
+                       + values.size() - 1; // commas
+
+            ByteBuffer trailerData = ByteBuffer.allocate(size);
+
+            trailerData.put(key);
+            trailerData.put(COLON);
+
+            for (int i = 0; i < values.size(); ++i) {
+                trailerData.put(values.get(i));
+                if (i + 1 != values.size()) {
+                    trailerData.put(COMMA);
+                }
+            }
+
+            trailerData.flip();
+            data.add(trailerData);
+        }
+        return data;
     }
 
     private class ChunkingSubscriber extends DelegatingSubscriber<ByteBuffer, Iterable<ByteBuffer>> {
@@ -222,6 +297,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         private int chunkSize;
         private boolean addEmptyTrailingChunk;
         private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
+        private final List<TrailerProvider> trailers = new ArrayList<>();
 
         public Builder publisher(Publisher<ByteBuffer> publisher) {
             this.publisher = publisher;
@@ -240,6 +316,11 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
         public Builder addExtension(ChunkExtensionProvider extension) {
             this.extensions.add(extension);
+            return this;
+        }
+
+        public Builder addTrailer(TrailerProvider trailerProvider) {
+            this.trailers.add(trailerProvider);
             return this;
         }
 
