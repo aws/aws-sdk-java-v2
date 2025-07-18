@@ -60,7 +60,6 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ObjectGetterMeth
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticGetterMethod;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
@@ -99,6 +98,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPrese
  *         public Customer build() { ... };
  *     }
  * }
+ * </code>
  * </pre>
  *
  * Creating an {@link ImmutableTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
@@ -161,42 +161,24 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
         return create(ImmutableTableSchemaParams.builder(immutableClass).build());
     }
 
-    private static <T> ImmutableTableSchema<T> create(ImmutableTableSchemaParams<T> params,
-                                                      MetaTableSchemaCache metaTableSchemaCache) {
+    static <T> ImmutableTableSchema<T> create(ImmutableTableSchemaParams<T> params,
+                                              MetaTableSchemaCache metaTableSchemaCache) {
         debugLog(params.immutableClass(), () -> "Creating immutable schema");
 
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
         MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(params.immutableClass());
 
-        ImmutableTableSchema<T> newTableSchema =
-            new ImmutableTableSchema<>(createStaticImmutableTableSchema(params.immutableClass(),
-                                                                        params.lookup(),
-                                                                        metaTableSchemaCache));
+        ImmutableTableSchema<T> newTableSchema = createWithoutUsingCache(params.immutableClass(),
+                                                                         params.lookup(),
+                                                                         metaTableSchemaCache);
         metaTableSchema.initialize(newTableSchema);
         return newTableSchema;
     }
 
-    // Called when creating an immutable TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
-    // recursion
-    static <T> TableSchema<T> recursiveCreate(Class<T> immutableClass, MethodHandles.Lookup lookup,
-                                              MetaTableSchemaCache metaTableSchemaCache) {
-        Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(immutableClass);
-
-        // If we get a cache hit...
-        if (metaTableSchema.isPresent()) {
-            // Either: use the cached concrete TableSchema if we have one
-            if (metaTableSchema.get().isInitialized()) {
-                return metaTableSchema.get().concreteTableSchema();
-            }
-
-            // Or: return the uninitialized MetaTableSchema as this must be a recursive reference and it will be
-            // initialized later as the chain completes
-            return metaTableSchema.get();
-        }
-
-        // Otherwise: cache doesn't know about this class; create a new one from scratch
-        return create(ImmutableTableSchemaParams.builder(immutableClass).lookup(lookup).build(), metaTableSchemaCache);
-
+    static <T> ImmutableTableSchema<T> createWithoutUsingCache(Class<T> immutableClass,
+                                                               MethodHandles.Lookup lookup,
+                                                               MetaTableSchemaCache metaTableSchemaCache) {
+        return new ImmutableTableSchema<>(createStaticImmutableTableSchema(immutableClass, lookup, metaTableSchemaCache));
     }
 
     private static <T> StaticImmutableTableSchema<T, ?> createStaticImmutableTableSchema(
@@ -326,25 +308,15 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             clazz = (Class<?>) type;
         }
 
-        if (clazz != null) {
+        if (clazz != null && TableSchemaFactory.isDynamoDbAnnotatedClass(clazz)) {
             Consumer<EnhancedTypeDocumentConfiguration.Builder> attrConfiguration =
                 b -> b.preserveEmptyObject(attributeConfiguration.preserveEmptyObject())
                       .ignoreNulls(attributeConfiguration.ignoreNulls());
-            if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
-                return EnhancedType.documentOf(
-                    (Class<Object>) clazz,
-                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz,
-                                                                               lookup,
-                                                                               metaTableSchemaCache),
-                    attrConfiguration);
-            } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return EnhancedType.documentOf(
-                    (Class<Object>) clazz,
-                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz,
-                                                                          lookup,
-                                                                          metaTableSchemaCache),
-                    attrConfiguration);
-            }
+
+            return EnhancedType.documentOf(
+                (Class<Object>) clazz,
+                (TableSchema<Object>) TableSchemaFactory.fromClass(clazz, lookup, metaTableSchemaCache),
+                attrConfiguration);
         }
 
         return EnhancedType.of(type);
