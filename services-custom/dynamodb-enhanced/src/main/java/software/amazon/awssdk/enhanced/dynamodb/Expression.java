@@ -26,6 +26,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.ToString;
 
 /**
  * High-level representation of a DynamoDB 'expression' that can be used in various situations where the API requires
@@ -309,6 +310,15 @@ public final class Expression {
         result = 31 * result + (expressionValues != null ? expressionValues.hashCode() : 0);
         result = 31 * result + (expressionNames != null ? expressionNames.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("Expression")
+                       .add("expression", expression)
+                       .add("expressionValues", expressionValues)
+                       .add("expressionNames", expressionNames)
+                       .build();
     }
 
     /**
