@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Audit Manager",
-    "contributor": "",
-    "description": "Updated error handling for RegisterOrganizationAdminAccount API to properly translate TooManyExceptions to HTTP 429 status code. This enhancement improves error handling consistency and provides clearer feedback when request limits are exceeded."
-}

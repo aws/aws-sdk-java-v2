@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.4__ __2025-07-18__
+## __AWS Audit Manager__
+  - ### Features
+    - Updated error handling for RegisterOrganizationAdminAccount API to properly translate TooManyExceptions to HTTP 429 status code. This enhancement improves error handling consistency and provides clearer feedback when request limits are exceeded.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for TAMS server integration with MediaConvert inputs.
+
+## __AWS Outposts__
+  - ### Features
+    - Add AWS Outposts API to surface customer billing information
+
+## __AWS SDK for Java V2__
+  - ### Features
+    - Add support for tracking business metrics from resolved endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Convert codegen exceptions caused by bad customization config or invalid models to ModelInvalidException.
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatchLogs launches GetLogObject API with streaming support for efficient log data retrieval. Logs added support for new AccountPolicy type METRIC_EXTRACTION_POLICY. For more information, see CloudWatch Logs API documentation
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added IP Visibility support for managed dedicated pools. Enhanced GetDedicatedIp and GetDedicatedIps APIs to return managed IP addresses.
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - July 2025 doc-only updates for Systems Manager.
+
 # __2.32.3__ __2025-07-17__
 ## __AWS Clean Rooms ML__
   - ### Features
