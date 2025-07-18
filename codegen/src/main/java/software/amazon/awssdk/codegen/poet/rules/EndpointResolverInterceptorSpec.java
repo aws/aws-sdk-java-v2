@@ -279,7 +279,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
 
         b.addStatement("$T resolvedEndpoint = executionAttributes.getAttribute($T.RESOLVED_ENDPOINT)",
                        Endpoint.class, SdkInternalExecutionAttribute.class);
-        b.beginControlFlow("if (resolvedEndpoint == null || resolvedEndpoint.headers().isEmpty())");
+        b.beginControlFlow("if (resolvedEndpoint == null || $T.isNullOrEmpty(resolvedEndpoint.headers()))", CollectionUtils.class);
         b.addStatement("return context.httpRequest()");
         b.endControlFlow();
 

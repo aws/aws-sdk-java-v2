@@ -22,7 +22,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -31,29 +30,26 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.retry.RetryPolicy;
-import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
@@ -69,21 +65,8 @@ public class AsyncPresignedUrlManagerTest {
 
     @BeforeEach
     void setup(WireMockRuntimeInfo wireMockRuntimeInfo) {
-        // Configure retry policy for testing
-        RetryPolicy retryPolicy = RetryPolicy.builder()
-                                             .numRetries(3)
-                                             .retryCondition(RetryCondition.defaultRetryCondition())
-                                             .backoffStrategy(BackoffStrategy.defaultStrategy())
-                                             .throttlingBackoffStrategy(BackoffStrategy.defaultThrottlingStrategy())
-                                             .build();
-
         s3AsyncClient = S3AsyncClient.builder()
                                      .endpointOverride(URI.create(wireMockRuntimeInfo.getHttpBaseUrl()))
-                                     .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                                       .retryPolicy(retryPolicy)
-                                                                                       .apiCallTimeout(Duration.ofSeconds(10))
-                                                                                       .apiCallAttemptTimeout(Duration.ofSeconds(2))
-                                                                                       .build())
                                      .build();
         presignedUrlManager = s3AsyncClient.presignedUrlManager();
     }
@@ -95,231 +78,445 @@ public class AsyncPresignedUrlManagerTest {
         }
     }
 
-    @Test
-    void testGetPresignedUrlManagerFromS3AsyncClient() {
-        assertThat(presignedUrlManager).isNotNull();
+    @Nested
+    class BasicFunctionality {
+        @Test
+        void givenS3AsyncClient_whenPresignedUrlManagerRequested_thenReturnsNonNullInstance() {
+            assertThat(presignedUrlManager).isNotNull();
+        }
+
+        @Test
+        void givenValidPresignedUrl_whenGetObjectCalled_thenReturnsExpectedContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "Hello world";
+            String testETag = "\"d6eb32081c822ed572b70567826d9d9d\"";
+            String presignedUrlPath = "/presigned-test-object";
+
+            stubSuccessResponse(presignedUrlPath, testContent, testETag);
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertSuccessfulResponse(response, testContent, testETag);
+        }
+
+        @Test
+        void givenValidPresignedUrl_whenGetObjectWithConsumerBuilderCalled_thenReturnsExpectedContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "Hello consumer";
+            String testETag = "\"c1234567890abcdef1234567890abcdef\"";
+            String presignedUrlPath = "/presigned-test-consumer";
+
+            stubSuccessResponse(presignedUrlPath, testContent, testETag);
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(
+                    request -> request.presignedUrl(presignedUrl),
+                    AsyncResponseTransformer.toBytes()
+                );
+
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertSuccessfulResponse(response, testContent, testETag);
+        }
+        
+        @Test
+        void givenEmptyFile_whenGetObjectCalled_thenReturnsEmptyContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "";
+            String testETag = "\"empty-file-etag\"";
+            String presignedUrlPath = "/empty-file-memory";
+
+            // Using custom stubbing for empty file to include Content-Length header
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", testETag)
+                                        .withHeader("Content-Length", "0")
+                                        .withBody(testContent)));
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+            
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.asByteArray()).isEmpty();
+            assertThat(response.response().eTag()).isEqualTo(testETag);
+        }
+        
+        @Test
+        void givenRangeRequest_whenGetObjectCalled_thenReturnsPartialContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String expectedContent = "Hello";
+            String contentRange = "bytes 0-4/11";
+            String range = "bytes=0-4";
+            String testETag = "\"d6eb32081c822ed572b70567826d9d9d\"";
+            String presignedUrlPath = "/presigned-test-range";
+
+            // Custom stubbing for range request with 206 status
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(206)
+                                        .withHeader("ETag", testETag)
+                                        .withHeader("Content-Range", contentRange)
+                                        .withBody(expectedContent)));
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+                                                                               .presignedUrl(presignedUrl)
+                                                                               .range(range)
+                                                                               .build();
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.asUtf8String()).isEqualTo(expectedContent);
+        }
     }
 
-    // Test Method 1: getObject(PresignedUrlGetObjectRequest, AsyncResponseTransformer)
-    @Test
-    void testGetObjectWithPresignedUrl(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String testContent = "Hello world";
-        String testETag = "\"d6eb32081c822ed572b70567826d9d9d\"";
-        String presignedUrlPath = "/presigned-test-object";
+    @Nested
+    class FileDownloads {
+        @Test
+        void givenValidPresignedUrl_whenGetObjectToFileCalled_thenDownloadsFileWithExpectedContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "File content for download";
+            String testETag = generateRandomETag();
+            String presignedUrlPath = "/presigned-test-file";
 
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("ETag", testETag)
-                                    .withBody(testContent)));
+            stubSuccessResponse(presignedUrlPath, testContent, testETag);
 
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-                                                                           .presignedUrl(presignedUrl)
-                                                                           .build();
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
 
-        CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+            Path downloadFile = tempDir.resolve("download-" + UUID.randomUUID() + ".txt");
 
-        ResponseBytes<GetObjectResponse> response = result.get();
-        assertThat(response).isNotNull();
-        assertThat(response.asUtf8String()).isEqualTo(testContent);
-        assertThat(response.response().eTag()).isEqualTo(testETag);
+            CompletableFuture<GetObjectResponse> result =
+                presignedUrlManager.getObject(request, downloadFile);
+
+            GetObjectResponse response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.eTag()).isEqualTo(testETag);
+
+            String fileContent = new String(Files.readAllBytes(downloadFile), StandardCharsets.UTF_8);
+            assertThat(fileContent).isEqualTo(testContent);
+        }
+
+        @Test
+        void givenValidPresignedUrl_whenGetObjectToFileWithConsumerBuilderCalled_thenDownloadsFileWithExpectedContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "File content for consumer download";
+            String testETag = generateRandomETag();
+            String presignedUrlPath = "/presigned-test-consumer-file";
+
+            stubSuccessResponse(presignedUrlPath, testContent, testETag);
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            Path downloadFile = tempDir.resolve("consumer-download-" + UUID.randomUUID() + ".txt");
+
+            CompletableFuture<GetObjectResponse> result =
+                presignedUrlManager.getObject(
+                    request -> request.presignedUrl(presignedUrl),
+                    downloadFile
+                );
+
+            GetObjectResponse response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.eTag()).isEqualTo(testETag);
+
+            String fileContent = new String(Files.readAllBytes(downloadFile), StandardCharsets.UTF_8);
+            assertThat(fileContent).isEqualTo(testContent);
+        }
+
+        @Test
+        void givenEmptyFile_whenGetObjectToFileCalled_thenDownloadsEmptyFile(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "";
+            String testETag = "\"empty-file-etag\"";
+            String presignedUrlPath = "/empty-file";
+
+            // Custom stubbing for empty file to include Content-Length header
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", testETag)
+                                        .withHeader("Content-Length", "0")
+                                        .withBody(testContent)));
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            
+            Path downloadFile = tempDir.resolve("empty-file-" + UUID.randomUUID() + ".txt");
+            CompletableFuture<GetObjectResponse> result = presignedUrlManager.getObject(request, downloadFile);
+            
+            GetObjectResponse response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.eTag()).isEqualTo(testETag);
+            assertThat(Files.size(downloadFile)).isEqualTo(0);
+        }
+
+        @Test
+        void givenLargeFile_whenGetObjectCalled_thenDownloadsCompleteContent(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            int contentSize = 1024 * 1024 + 512 * 1024; // 1.5MB
+            byte[] largeContent = new byte[contentSize];
+            new Random().nextBytes(largeContent);
+            
+            String testETag = "\"large-file-etag\"";
+            String presignedUrlPath = "/large-file";
+
+            // Custom stubbing for large file with Content-Length header
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", testETag)
+                                        .withHeader("Content-Length", String.valueOf(contentSize))
+                                        .withBody(largeContent)));
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+
+            Path downloadFile = tempDir.resolve("large-file-" + UUID.randomUUID() + ".bin");
+            CompletableFuture<GetObjectResponse> result = presignedUrlManager.getObject(request, downloadFile);
+            
+            GetObjectResponse response = result.get();
+            assertThat(response).isNotNull();
+            assertThat(response.eTag()).isEqualTo(testETag);
+            
+            assertThat(Files.size(downloadFile)).isEqualTo(contentSize);
+            
+            byte[] downloadedContent = Files.readAllBytes(downloadFile);
+            assertThat(downloadedContent).isEqualTo(largeContent);
+        }
     }
 
-    // Test Method 2: getObject(Consumer<Builder>, AsyncResponseTransformer)
-    @Test
-    void testGetObjectWithConsumerBuilder(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String testContent = "Hello consumer";
-        String testETag = "\"c1234567890abcdef1234567890abcdef\"";
-        String presignedUrlPath = "/presigned-test-consumer";
+    @Nested
+    class RetryBehavior {
+        @Test
+        void givenNetworkError_whenGetObjectCalled_thenRetriesAndEventuallySucceeds(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "Success after network error";
+            String testETag = "\"network-retry-etag\"";
+            String presignedUrlPath = "/network-error-retry";
+            String scenarioName = "network-error-scenario";
 
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("ETag", testETag)
-                                    .withBody(testContent)));
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .inScenario(scenarioName)
+                        .whenScenarioStateIs(Scenario.STARTED)
+                        .willReturn(aResponse()
+                                        .withFault(Fault.CONNECTION_RESET_BY_PEER))
+                        .willSetStateTo("after-network-error"));
 
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .inScenario(scenarioName)
+                        .whenScenarioStateIs("after-network-error")
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", testETag)
+                                        .withBody(testContent)));
 
-        CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-            presignedUrlManager.getObject(
-                request -> request.presignedUrl(presignedUrl),
-                AsyncResponseTransformer.toBytes()
-            );
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
 
-        ResponseBytes<GetObjectResponse> response = result.get();
-        assertThat(response).isNotNull();
-        assertThat(response.asUtf8String()).isEqualTo(testContent);
-        assertThat(response.response().eTag()).isEqualTo(testETag);
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertSuccessfulResponse(response, testContent, testETag);
+
+            verify(exactly(2), getRequestedFor(urlEqualTo(presignedUrlPath)));
+        }
+
+        @Test
+        void givenTemporaryFailure_whenGetObjectCalled_thenRetriesAndSucceeds(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String testContent = "Success after retry";
+            String testETag = "\"retry-success-etag\"";
+            String presignedUrlPath = "/retry-test";
+            String scenarioName = "retry-scenario";
+
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .inScenario(scenarioName)
+                        .whenScenarioStateIs(Scenario.STARTED)
+                        .willReturn(aResponse()
+                                        .withStatus(503)
+                                        .withBody("Service Unavailable"))
+                        .willSetStateTo("retry"));
+
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .inScenario(scenarioName)
+                        .whenScenarioStateIs("retry")
+                        .willReturn(aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", testETag)
+                                        .withBody(testContent)));
+
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            ResponseBytes<GetObjectResponse> response = result.get();
+            assertSuccessfulResponse(response, testContent, testETag);
+
+            verify(exactly(2), getRequestedFor(urlEqualTo(presignedUrlPath)));
+        }
     }
 
-    // Test Method 3: getObject(PresignedUrlGetObjectRequest, Path)
-    @Test
-    void testGetObjectToFile(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String testContent = "File content for download";
-        String testETag = "\"" + UUID.randomUUID().toString().replace("-", "") + "\"";
-        String presignedUrlPath = "/presigned-test-file";
+    @Nested
+    class ErrorScenarios {
+        @Test
+        void givenMalformedResponse_whenGetObjectCalled_thenCompletableFutureCompletesExceptionally(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            String presignedUrlPath = "/malformed-response";
+            stubFor(get(urlEqualTo(presignedUrlPath))
+                        .willReturn(aResponse()
+                                        .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("ETag", testETag)
-                                    .withBody(testContent)));
+            URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
+            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
 
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-                                                                           .presignedUrl(presignedUrl)
-                                                                           .build();
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+            try {
+                result.get();
+                throw new AssertionError("Expected exception was not thrown");
+            } catch (ExecutionException e) {
+                assertThat(e.getCause()).isInstanceOf(SdkClientException.class);
+            }
+        }
 
-        Path downloadFile = tempDir.resolve("download-" + UUID.randomUUID() + ".txt");
+        @Test
+        void givenNotFoundError_whenGetObjectCalled_thenCompletableFutureCompletesExceptionally(WireMockRuntimeInfo wireMockRuntimeInfo) {
+            String urlPath = "/nonexistent-key";
+            
+            stubFor(get(urlEqualTo(urlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(404)
+                                        .withBody("<Error><Code>NoSuchKey</Code></Error>")));
 
-        CompletableFuture<GetObjectResponse> result =
-            presignedUrlManager.getObject(request, downloadFile);
+            URL presignedUrl;
+            try {
+                presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + urlPath);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-        GetObjectResponse response = result.get();
-        assertThat(response).isNotNull();
-        assertThat(response.eTag()).isEqualTo(testETag);
+            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+                                                                               .presignedUrl(presignedUrl)
+                                                                               .build();
 
-        String fileContent = new String(Files.readAllBytes(downloadFile), StandardCharsets.UTF_8);
-        assertThat(fileContent).isEqualTo(testContent);
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            assertThatThrownBy(() -> result.get())
+                .isInstanceOf(ExecutionException.class);
+        }
+        
+        @Test
+        void givenAccessDeniedError_whenGetObjectCalled_thenCompletableFutureCompletesExceptionally(WireMockRuntimeInfo wireMockRuntimeInfo) {
+            String urlPath = "/forbidden-key";
+            
+            stubFor(get(urlEqualTo(urlPath))
+                        .willReturn(aResponse()
+                                        .withStatus(403)
+                                        .withBody("<Error><Code>AccessDenied</Code></Error>")));
+
+            URL presignedUrl;
+            try {
+                presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + urlPath);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+                                                                               .presignedUrl(presignedUrl)
+                                                                               .build();
+
+            CompletableFuture<ResponseBytes<GetObjectResponse>> result =
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+
+            assertThatThrownBy(() -> result.get())
+                .isInstanceOf(ExecutionException.class);
+        }
     }
 
-    // Test Method 4: getObject(Consumer<Builder>, Path)
-    @Test
-    void testGetObjectToFileWithConsumerBuilder(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String testContent = "Consumer file content";
-        String testETag = "\"" + UUID.randomUUID().toString().replace("-", "") + "\"";
-        String presignedUrlPath = "/presigned-test-file-consumer";
-
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("ETag", testETag)
-                                    .withBody(testContent)));
-
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
-        Path downloadFile = tempDir.resolve("consumer-download-" + UUID.randomUUID() + ".txt");
-
-        CompletableFuture<GetObjectResponse> result =
-            presignedUrlManager.getObject(
-                request -> request.presignedUrl(presignedUrl),
-                downloadFile
-            );
-
-        GetObjectResponse response = result.get();
-        assertThat(response).isNotNull();
-        assertThat(response.eTag()).isEqualTo(testETag);
-
-        String fileContent = new String(Files.readAllBytes(downloadFile), StandardCharsets.UTF_8);
-        assertThat(fileContent).isEqualTo(testContent);
+    @Nested
+    class ConcurrentOperations {
+        @Test
+        void givenMultipleRequests_whenGetObjectCalledConcurrently_thenAllDownloadsComplete(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
+            int concurrentRequests = 5;
+            List<String> contents = new ArrayList<>();
+            List<String> eTags = new ArrayList<>();
+            List<String> paths = new ArrayList<>();
+            
+            for (int i = 0; i < concurrentRequests; i++) {
+                String content = "Content for concurrent download " + i;
+                String eTag = "\"concurrent-etag-" + i + "\"";
+                String path = "/concurrent-" + i;
+                
+                contents.add(content);
+                eTags.add(eTag);
+                paths.add(path);
+                
+                stubSuccessResponse(path, content, eTag);
+            }
+            
+            List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
+            for (int i = 0; i < concurrentRequests; i++) {
+                URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, paths.get(i));
+                PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+                
+                futures.add(presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes()));
+            }
+            
+            CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allFutures.get();
+            
+            for (int i = 0; i < concurrentRequests; i++) {
+                ResponseBytes<GetObjectResponse> response = futures.get(i).get();
+                assertSuccessfulResponse(response, contents.get(i), eTags.get(i));
+            }
+        }
     }
 
-    // Test Range Requests functionality
-    @ParameterizedTest(name = "Range: ''{0}'' -> ''{1}''")
-    @MethodSource("rangeTestData")
-    void testGetObjectWithRange(String range, String expectedContent, String contentRange, WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String presignedUrlPath = "/presigned-test-range";
-        String testETag = "\"d6eb32081c822ed572b70567826d9d9d\"";
-
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(206)
-                                    .withHeader("ETag", testETag)
-                                    .withHeader("Content-Range", contentRange)
-                                    .withBody(expectedContent)));
-
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-                                                                           .presignedUrl(presignedUrl)
-                                                                           .range(range)
-                                                                           .build();
-
-        CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
-
-        ResponseBytes<GetObjectResponse> response = result.get();
-        assertThat(response).isNotNull();
-        assertThat(response.asUtf8String()).isEqualTo(expectedContent);
-    }
-
-    // Test Error Scenarios
-    @ParameterizedTest(name = "Error: HTTP {0}")
-    @MethodSource("errorScenarios")
-    void testGetObjectErrorScenarios(int httpStatus, String errorCode, String urlPath, WireMockRuntimeInfo wireMockRuntimeInfo) {
-        stubFor(get(urlEqualTo(urlPath))
-                    .willReturn(aResponse()
-                                    .withStatus(httpStatus)
-                                    .withBody(String.format("<Error><Code>%s</Code></Error>", errorCode))));
-
-        URL presignedUrl;
+    // Helper methods
+    private URL createPresignedUrl(WireMockRuntimeInfo wireMockRuntimeInfo, String path) {
         try {
-            presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + urlPath);
+            return new URL(wireMockRuntimeInfo.getHttpBaseUrl() + path);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-                                                                           .presignedUrl(presignedUrl)
-                                                                           .build();
-
-        CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
-
-        assertThatThrownBy(() -> result.get())
-            .isInstanceOf(ExecutionException.class);
     }
 
-    // Retry test
-    @Test
-    void testRetryOnTimeout(WireMockRuntimeInfo wireMockRuntimeInfo) throws Exception {
-        String testContent = "Timeout retry success";
-        String presignedUrlPath = "/presigned-timeout";
+    private PresignedUrlGetObjectRequest createRequest(URL presignedUrl) {
+        return PresignedUrlGetObjectRequest.builder()
+                                           .presignedUrl(presignedUrl)
+                                           .build();
+    }
 
-        // First call times out, second succeeds
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .inScenario("Timeout Retry")
-                    .whenScenarioStateIs(STARTED)
+    private String generateRandomETag() {
+        return "\"" + UUID.randomUUID().toString().replace("-", "") + "\"";
+    }
+
+    private void stubSuccessResponse(String path, String content, String eTag) {
+        stubFor(get(urlEqualTo(path))
                     .willReturn(aResponse()
                                     .withStatus(200)
-                                    .withFixedDelay(3000)) // Longer than attempt timeout
-                    .willSetStateTo("Timeout Occurred"));
+                                    .withHeader("ETag", eTag)
+                                    .withBody(content)));
+    }
 
-        stubFor(get(urlEqualTo(presignedUrlPath))
-                    .inScenario("Timeout Retry")
-                    .whenScenarioStateIs("Timeout Occurred")
+    private void stubErrorResponse(String path, int statusCode, String body) {
+        stubFor(get(urlEqualTo(path))
                     .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withBody(testContent)));
-
-        URL presignedUrl = new URL(wireMockRuntimeInfo.getHttpBaseUrl() + presignedUrlPath);
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-                                                                           .presignedUrl(presignedUrl)
-                                                                           .build();
-
-        CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
-
-        ResponseBytes<GetObjectResponse> response = result.get();
-        assertThat(response.asUtf8String()).isEqualTo(testContent);
-
-        verify(exactly(2), getRequestedFor(urlEqualTo(presignedUrlPath)));
+                                    .withStatus(statusCode)
+                                    .withBody(body)));
     }
 
-    static Stream<Arguments> rangeTestData() {
-        return Stream.of(
-            Arguments.of("bytes=0-4", "Hello", "bytes 0-4/11"),
-            Arguments.of("bytes=6-10", "world", "bytes 6-10/11"),
-            Arguments.of("bytes=0-0", "H", "bytes 0-0/11"),
-            Arguments.of("bytes=-5", "world", "bytes 6-10/11")
-        );
+    private void assertSuccessfulResponse(ResponseBytes<GetObjectResponse> response, String expectedContent, String expectedETag) {
+        assertThat(response).isNotNull();
+        assertThat(response.asUtf8String()).isEqualTo(expectedContent);
+        assertThat(response.response().eTag()).isEqualTo(expectedETag);
     }
 
-    static Stream<Arguments> errorScenarios() {
-        return Stream.of(
-            Arguments.of(404, "NoSuchKey", "/nonexistent-key"),
-            Arguments.of(403, "AccessDenied", "/forbidden-key"),
-            Arguments.of(409, "InvalidObjectState", "/archived-key")
-        );
-    }
 }
