@@ -98,7 +98,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "S3");
             //TODO: Discuss if we need to change OPERATION_NAME as part of Surface API Review
-            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetObject");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PresignedUrlGetObject");
 
             Pair<AsyncResponseTransformer<GetObjectResponse, ReturnT>, CompletableFuture<Void>> pair =
                     AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
@@ -113,7 +113,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                     new ClientExecutionParams<PresignedUrlGetObjectRequestWrapper, GetObjectResponse>()
-                            .withOperationName("GetObject")
+                            .withOperationName("PresignedUrlGetObject")
                             .withProtocolMetadata(protocolMetadata)
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
