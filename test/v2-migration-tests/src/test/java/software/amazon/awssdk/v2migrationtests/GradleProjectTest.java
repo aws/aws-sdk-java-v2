@@ -36,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class GradleProjectTest {
