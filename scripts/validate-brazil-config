@@ -12,7 +12,7 @@ import re
 # Usage: validate-brazil-config [module-paths-file] [dependencies-file]
 
 # Generating module-paths-file:
-#   mvn exec:exec -Dexec.executable=pwd -pl \!:aws-sdk-java-pom,\!:sdk-benchmarks,\!:module-path-tests -q 2>&1 > modules.txt
+#   mvn exec:exec -Dexec.executable=pwd -pl \!:aws-sdk-java-pom,\!:sdk-benchmarks,\!:http-client-benchmarks,\!:module-path-tests -q 2>&1 > modules.txt
 #
 #   Generates contents similar to:
 #     /workspace/aws-sdk-java-v2/build-tools
