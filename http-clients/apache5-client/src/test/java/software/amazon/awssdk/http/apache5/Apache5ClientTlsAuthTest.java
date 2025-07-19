@@ -35,7 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
@@ -274,7 +273,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         SdkTlsSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
 
         client = Apache5HttpClient.builder()
-                                  .tlsStrategy(socketFactorySpy)  // Modern approach
+                                  .tlsSocketStrategy(socketFactorySpy)  // Modern approach
                                   .build();
         makeRequestWithHttpClient(client);
 

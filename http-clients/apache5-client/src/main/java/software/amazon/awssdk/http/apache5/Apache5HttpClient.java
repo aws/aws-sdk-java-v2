@@ -454,6 +454,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
+         * @deprecated this has been replaced with {{@link #tlsSocketStrategy(TlsSocketStrategy)}}
          * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
          * <p>
          * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
@@ -463,7 +464,17 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder socketFactory(SSLConnectionSocketFactory socketFactory);
 
 
-        Builder tlsStrategy(TlsSocketStrategy tlsStrategy);
+        /**
+         * Configure a custom TLS strategy for SSL/TLS connections.
+         * This is the preferred method over the deprecated {@link #socketFactory(SSLConnectionSocketFactory)}.
+         *
+         * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
+         *                    If null, default TLS configuration will be used.
+         * @return This builder for method chaining
+
+         */
+
+        Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy);
 
         /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
@@ -652,8 +663,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder tlsStrategy(TlsSocketStrategy tlsStrategy) {
-            this.tlsStrategy = tlsStrategy;
+        public Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy) {
+            this.tlsStrategy = tlsSocketStrategy;
             this.legacySocketFactory = null; // Clear any legacy factory
             return this;
         }
