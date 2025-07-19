@@ -14,6 +14,7 @@
  */
 
 package software.amazon.awssdk.http.apache5.internal.conn;
+
 import java.io.IOException;
 import java.net.Socket;
 import javax.net.ssl.SSLSocket;
