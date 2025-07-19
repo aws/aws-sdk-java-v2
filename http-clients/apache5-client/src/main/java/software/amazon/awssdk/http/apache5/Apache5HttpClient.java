@@ -656,7 +656,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         @Override
         public Builder socketFactory(SSLConnectionSocketFactory socketFactory) {
-            log.warn(() -> "SSLConnectionSocketFactory is deprecated. Consider migrating to tlsStrategy().");
             this.legacySocketFactory = socketFactory;
             this.tlsStrategy = null; // Clear any previously set strategy
             return this;
