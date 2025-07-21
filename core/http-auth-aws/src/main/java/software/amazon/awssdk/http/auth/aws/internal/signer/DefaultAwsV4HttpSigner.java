@@ -25,11 +25,13 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Optional
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
 
+import java.nio.ByteBuffer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -70,7 +72,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
 
-        return doSign(request, checksummer, v4RequestSigner, payloadSigner);
+        return doSignAsync(request, checksummer, v4RequestSigner, payloadSigner);
     }
 
     private static V4Properties v4Properties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
@@ -182,6 +184,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         boolean isPayloadSigning = request.requireProperty(PAYLOAD_SIGNING_ENABLED, true);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+        boolean isTrailing = request.request().firstMatchingHeader(X_AMZ_TRAILER).isPresent();
+        boolean isFlexible = request.hasProperty(CHECKSUM_ALGORITHM) && !hasChecksumHeader(request);
 
         if (isEventStreaming) {
             if (isPayloadSigning) {
@@ -194,12 +198,15 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
         }
 
-        if (isChunkEncoding && isPayloadSigning) {
-            // TODO(sra-identity-and-auth): We need to implement aws-chunk content-encoding for async.
-            //  For now, we basically have to treat this as an unsigned case because there are existing s3 use-cases for
-            //  Unsigned-payload + HTTP. These requests SHOULD be signed-payload, but are not pre-SRA, hence the problem. This
-            //  will be taken care of in HttpChecksumStage for now, so we shouldn't throw an unsupported exception here, we
-            //  should just fall through to the default since it will already encoded by the time it gets here.
+        if (isChunkEncoding) {
+            if (!isPayloadSigning) {
+                return AwsChunkedV4PayloadSigner.builder()
+                                                .credentialScope(properties.getCredentialScope())
+                                                .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                                .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
+                                                .build();
+            }
+            // TODO: support payload signing with chunked encoding
             return V4PayloadSigner.create();
         }
 
@@ -230,19 +237,26 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                             .build();
     }
 
-    private static CompletableFuture<AsyncSignedRequest> doSign(AsyncSignRequest<? extends AwsCredentialsIdentity> request,
-                                                                Checksummer checksummer,
-                                                                V4RequestSigner requestSigner,
-                                                                V4PayloadSigner payloadSigner) {
+    private static CompletableFuture<AsyncSignedRequest> doSignAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request,
+                                                                     Checksummer checksummer,
+                                                                     V4RequestSigner requestSigner,
+                                                                     V4PayloadSigner payloadSigner) {
 
         SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
 
-        return checksummer.checksum(request.payload().orElse(null), requestBuilder)
-                          .thenApply(payload -> {
-                              V4RequestSigningResult requestSigningResultFuture = requestSigner.sign(requestBuilder);
+        Publisher<ByteBuffer> payload = request.payload().orElse(null);
+
+        return checksummer.checksum(payload, requestBuilder)
+                          .thenCompose(checksummedPayload ->
+                                           payloadSigner.beforeSigningAsync(requestBuilder, checksummedPayload))
+                          .thenApply(p -> {
+                              SdkHttpRequest.Builder requestToSign = p.left();
+                              Publisher<ByteBuffer> payloadToSign = p.right();
+
+                              V4RequestSigningResult requestSigningResult = requestSigner.sign(requestToSign);
                               return AsyncSignedRequest.builder()
-                                                       .request(requestSigningResultFuture.getSignedRequest().build())
-                                                       .payload(payloadSigner.signAsync(payload, requestSigningResultFuture))
+                                                       .request(requestSigningResult.getSignedRequest().build())
+                                                       .payload(payloadSigner.signAsync(payloadToSign, requestSigningResult))
                                                        .build();
                           });
     }

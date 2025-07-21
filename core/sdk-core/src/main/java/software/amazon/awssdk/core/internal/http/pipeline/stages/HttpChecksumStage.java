@@ -119,19 +119,6 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         }
         executionAttributes.putAttribute(RESOLVED_CHECKSUM_SPECS, resolvedChecksumSpecs);
 
-        SdkHttpRequest httpRequest = context.executionContext().interceptorContext().httpRequest();
-
-        // TODO(sra-identity-and-auth): payload checksum calculation (trailer) for sync is done in AwsChunkedV4PayloadSigner,
-        //  but async is still in this class. We should first add chunked encoding support for async to
-        //  AwsChunkedV4PayloadSigner
-        //  and remove the logic here. Details in https://github.com/aws/aws-sdk-java-v2/pull/4568
-        if (clientType == ClientType.ASYNC &&
-            isStreamingUnsignedPayload(httpRequest, executionAttributes, resolvedChecksumSpecs,
-                                       resolvedChecksumSpecs.isRequestStreaming())) {
-            addFlexibleChecksumInTrailer(request, context, resolvedChecksumSpecs);
-            return request;
-        }
-
         return request;
     }
 
