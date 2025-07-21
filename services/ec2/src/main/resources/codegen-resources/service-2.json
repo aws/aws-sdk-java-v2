@@ -798,7 +798,7 @@
       },
       "input":{"shape":"CreateInstanceConnectEndpointRequest"},
       "output":{"shape":"CreateInstanceConnectEndpointResult"},
-      "documentation":"<p>Creates an EC2 Instance Connect Endpoint.</p> <p>An EC2 Instance Connect Endpoint allows you to connect to an instance, without requiring the instance to have a public IPv4 address. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html\">Connect to your instances using EC2 Instance Connect Endpoint</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Creates an EC2 Instance Connect Endpoint.</p> <p>An EC2 Instance Connect Endpoint allows you to connect to an instance, without requiring the instance to have a public IPv4 or public IPv6 address. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Connect-using-EC2-Instance-Connect-Endpoint.html\">Connect to your instances using EC2 Instance Connect Endpoint</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CreateInstanceEventWindow":{
       "name":"CreateInstanceEventWindow",
@@ -14811,7 +14811,7 @@
         },
         "PreserveClientIp":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether the client IP address is preserved as the source. The following are the possible values.</p> <ul> <li> <p> <code>true</code> - Use the client IP address as the source.</p> </li> <li> <p> <code>false</code> - Use the network interface IP address as the source.</p> </li> </ul> <p>Default: <code>false</code> </p>"
+          "documentation":"<p>Indicates whether the client IP address is preserved as the source. The following are the possible values.</p> <ul> <li> <p> <code>true</code> - Use the client IP address as the source.</p> </li> <li> <p> <code>false</code> - Use the network interface IP address as the source.</p> </li> </ul> <note> <p> <code>PreserveClientIp</code> is only supported on IPv4 EC2 Instance Connect Endpoints. To use <code>PreserveClientIp</code>, the value for <code>IpAddressType</code> must be <code>ipv4</code>.</p> </note> <p>Default: <code>false</code> </p>"
         },
         "ClientToken":{
           "shape":"String",
@@ -14822,6 +14822,10 @@
           "shape":"TagSpecificationList",
           "documentation":"<p>The tags to apply to the EC2 Instance Connect Endpoint during creation.</p>",
           "locationName":"TagSpecification"
+        },
+        "IpAddressType":{
+          "shape":"IpAddressType",
+          "documentation":"<p>The IP address type of the endpoint.</p> <p>If no value is specified, the default value is determined by the IP address type of the subnet:</p> <ul> <li> <p> <code>dualstack</code> - If the subnet has both IPv4 and IPv6 CIDRs</p> </li> <li> <p> <code>ipv4</code> - If the subnet has only IPv4 CIDRs</p> </li> <li> <p> <code>ipv6</code> - If the subnet has only IPv6 CIDRs</p> </li> </ul> <note> <p> <code>PreserveClientIp</code> is only supported on IPv4 EC2 Instance Connect Endpoints. To use <code>PreserveClientIp</code>, the value for <code>IpAddressType</code> must be <code>ipv4</code>.</p> </note>"
         }
       }
     },
@@ -23635,7 +23639,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>architecture</code> - The image architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code> | <code>x86_64_mac</code> | <code>arm64_mac</code>).</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.snapshot-id</code> - The ID of the snapshot used for the Amazon EBS volume.</p> </li> <li> <p> <code>block-device-mapping.volume-size</code> - The volume size of the Amazon EBS volume, in GiB.</p> </li> <li> <p> <code>block-device-mapping.volume-type</code> - The volume type of the Amazon EBS volume (<code>io1</code> | <code>io2</code> | <code>gp2</code> | <code>gp3</code> | <code>sc1 </code>| <code>st1</code> | <code>standard</code>).</p> </li> <li> <p> <code>block-device-mapping.encrypted</code> - A Boolean that indicates whether the Amazon EBS volume is encrypted.</p> </li> <li> <p> <code>creation-date</code> - The time when the image was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2021-09-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2021-09-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>description</code> - The description of the image (provided during image creation).</p> </li> <li> <p> <code>ena-support</code> - A Boolean that indicates whether enhanced networking with ENA is enabled.</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>image-allowed</code> - A Boolean that indicates whether the image meets the criteria specified for Allowed AMIs.</p> </li> <li> <p> <code>image-id</code> - The ID of the image.</p> </li> <li> <p> <code>image-type</code> - The image type (<code>machine</code> | <code>kernel</code> | <code>ramdisk</code>).</p> </li> <li> <p> <code>is-public</code> - A Boolean that indicates whether the image is public.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>manifest-location</code> - The location of the image manifest.</p> </li> <li> <p> <code>name</code> - The name of the AMI (provided during image creation).</p> </li> <li> <p> <code>owner-alias</code> - The owner alias (<code>amazon</code> | <code>aws-backup-vault</code> | <code>aws-marketplace</code>). The valid aliases are defined in an Amazon-maintained list. This is not the Amazon Web Services account alias that can be set using the IAM console. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>owner-id</code> - The Amazon Web Services account ID of the owner. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>platform</code> - The platform. The only supported value is <code>windows</code>.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>product-code.type</code> - The type of the product code (<code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>source-image-id</code> - The ID of the source AMI from which the AMI was created.</p> </li> <li> <p> <code>source-image-region</code> - The Region of the source AMI.</p> </li> <li> <p> <code>source-instance-id</code> - The ID of the instance that the AMI was created from if the AMI was created using CreateImage. This filter is applicable only if the AMI was created using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateImage.html\">CreateImage</a>.</p> </li> <li> <p> <code>state</code> - The state of the image (<code>available</code> | <code>pending</code> | <code>failed</code>).</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - The message for the state change.</p> </li> <li> <p> <code>sriov-net-support</code> - A value of <code>simple</code> indicates that enhanced networking with the Intel 82599 VF interface is enabled.</p> </li> <li> <p> <code>tag:&lt;key&gt;</code> - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type (<code>paravirtual</code> | <code>hvm</code>).</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>architecture</code> - The image architecture (<code>i386</code> | <code>x86_64</code> | <code>arm64</code> | <code>x86_64_mac</code> | <code>arm64_mac</code>).</p> </li> <li> <p> <code>block-device-mapping.delete-on-termination</code> - A Boolean value that indicates whether the Amazon EBS volume is deleted on instance termination.</p> </li> <li> <p> <code>block-device-mapping.device-name</code> - The device name specified in the block device mapping (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p> </li> <li> <p> <code>block-device-mapping.snapshot-id</code> - The ID of the snapshot used for the Amazon EBS volume.</p> </li> <li> <p> <code>block-device-mapping.volume-size</code> - The volume size of the Amazon EBS volume, in GiB.</p> </li> <li> <p> <code>block-device-mapping.volume-type</code> - The volume type of the Amazon EBS volume (<code>io1</code> | <code>io2</code> | <code>gp2</code> | <code>gp3</code> | <code>sc1 </code>| <code>st1</code> | <code>standard</code>).</p> </li> <li> <p> <code>block-device-mapping.encrypted</code> - A Boolean that indicates whether the Amazon EBS volume is encrypted.</p> </li> <li> <p> <code>creation-date</code> - The time when the image was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2021-09-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2021-09-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>description</code> - The description of the image (provided during image creation).</p> </li> <li> <p> <code>ena-support</code> - A Boolean that indicates whether enhanced networking with ENA is enabled.</p> </li> <li> <p> <code>free-tier-eligible</code> - A Boolean that indicates whether this image can be used under the Amazon Web Services Free Tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor type (<code>ovm</code> | <code>xen</code>).</p> </li> <li> <p> <code>image-allowed</code> - A Boolean that indicates whether the image meets the criteria specified for Allowed AMIs.</p> </li> <li> <p> <code>image-id</code> - The ID of the image.</p> </li> <li> <p> <code>image-type</code> - The image type (<code>machine</code> | <code>kernel</code> | <code>ramdisk</code>).</p> </li> <li> <p> <code>is-public</code> - A Boolean that indicates whether the image is public.</p> </li> <li> <p> <code>kernel-id</code> - The kernel ID.</p> </li> <li> <p> <code>manifest-location</code> - The location of the image manifest.</p> </li> <li> <p> <code>name</code> - The name of the AMI (provided during image creation).</p> </li> <li> <p> <code>owner-alias</code> - The owner alias (<code>amazon</code> | <code>aws-backup-vault</code> | <code>aws-marketplace</code>). The valid aliases are defined in an Amazon-maintained list. This is not the Amazon Web Services account alias that can be set using the IAM console. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>owner-id</code> - The Amazon Web Services account ID of the owner. We recommend that you use the <b>Owner</b> request parameter instead of this filter.</p> </li> <li> <p> <code>platform</code> - The platform. The only supported value is <code>windows</code>.</p> </li> <li> <p> <code>product-code</code> - The product code.</p> </li> <li> <p> <code>product-code.type</code> - The type of the product code (<code>marketplace</code>).</p> </li> <li> <p> <code>ramdisk-id</code> - The RAM disk ID.</p> </li> <li> <p> <code>root-device-name</code> - The device name of the root device volume (for example, <code>/dev/sda1</code>).</p> </li> <li> <p> <code>root-device-type</code> - The type of the root device volume (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>source-image-id</code> - The ID of the source AMI from which the AMI was created.</p> </li> <li> <p> <code>source-image-region</code> - The Region of the source AMI.</p> </li> <li> <p> <code>source-instance-id</code> - The ID of the instance that the AMI was created from if the AMI was created using CreateImage. This filter is applicable only if the AMI was created using <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateImage.html\">CreateImage</a>.</p> </li> <li> <p> <code>state</code> - The state of the image (<code>available</code> | <code>pending</code> | <code>failed</code>).</p> </li> <li> <p> <code>state-reason-code</code> - The reason code for the state change.</p> </li> <li> <p> <code>state-reason-message</code> - The message for the state change.</p> </li> <li> <p> <code>sriov-net-support</code> - A value of <code>simple</code> indicates that enhanced networking with the Intel 82599 VF interface is enabled.</p> </li> <li> <p> <code>tag:&lt;key&gt;</code> - The key/value combination of a tag assigned to the resource. Use the tag key in the filter name and the tag value as the filter value. For example, to find all resources that have a tag with the key <code>Owner</code> and the value <code>TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The key of a tag assigned to the resource. Use this filter to find all resources assigned a tag with a specific key, regardless of the tag value.</p> </li> <li> <p> <code>virtualization-type</code> - The virtualization type (<code>paravirtual</code> | <code>hvm</code>).</p> </li> </ul>",
           "locationName":"Filter"
         }
       }
@@ -31013,7 +31017,7 @@
         },
         "FipsDnsName":{
           "shape":"String",
-          "documentation":"<p/>",
+          "documentation":"<p>The Federal Information Processing Standards (FIPS) compliant DNS name of the EC2 Instance Connect Endpoint.</p>",
           "locationName":"fipsDnsName"
         },
         "NetworkInterfaceIds":{
@@ -31055,6 +31059,11 @@
           "shape":"TagList",
           "documentation":"<p>The tags assigned to the EC2 Instance Connect Endpoint.</p>",
           "locationName":"tagSet"
+        },
+        "IpAddressType":{
+          "shape":"IpAddressType",
+          "documentation":"<p>The IP address type of the endpoint.</p>",
+          "locationName":"ipAddressType"
         }
       },
       "documentation":"<p>The EC2 Instance Connect Endpoint.</p>"
@@ -37334,6 +37343,11 @@
           "documentation":"<p>The Region of the source AMI. </p> <p>The Region only appears if the AMI was created using <a>CreateImage</a>, <a>CopyImage</a>, or <a>CreateRestoreImageTask</a>. The Region does not appear if the AMI was created using any other API. For some older AMIs, the Region might not be available. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify-source-ami-used-to-create-new-ami.html\">Identify the source AMI used to create a new Amazon EC2 AMI</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"sourceImageRegion"
         },
+        "FreeTierEligible":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the image is eligible for Amazon Web Services Free Tier.</p> <ul> <li> <p>If <code>true</code>, the AMI is eligible for Free Tier and can be used to launch instances under the Free Tier limits.</p> </li> <li> <p>If <code>false</code>, the AMI is not eligible for Free Tier.</p> </li> </ul>",
+          "locationName":"freeTierEligible"
+        },
         "ImageId":{
           "shape":"String",
           "documentation":"<p>The ID of the AMI.</p>",
@@ -38533,6 +38547,34 @@
     },
     "InferenceDeviceMemorySize":{"type":"integer"},
     "InferenceDeviceName":{"type":"string"},
+    "InitializationStatusDetails":{
+      "type":"structure",
+      "members":{
+        "InitializationType":{
+          "shape":"InitializationType",
+          "documentation":"<p>The method used for volume initialization. Possible values include:</p> <ul> <li> <p> <code>default</code> - Volume initialized using the default volume initialization rate or fast snapshot restore.</p> </li> <li> <p> <code>provisioned-rate</code> - Volume initialized using an Amazon EBS Provisioned Rate for Volume Initialization.</p> </li> </ul>",
+          "locationName":"initializationType"
+        },
+        "Progress":{
+          "shape":"Long",
+          "documentation":"<p>The current volume initialization progress as a percentage (0-100). Returns <code>100</code> when volume initialization has completed.</p>",
+          "locationName":"progress"
+        },
+        "EstimatedTimeToCompleteInSeconds":{
+          "shape":"Long",
+          "documentation":"<p>The estimated remaining time, in seconds, for volume initialization to complete. Returns <code>0</code> when volume initialization has completed.</p> <p>Only available for volumes created with Amazon EBS Provisioned Rate for Volume Initialization.</p>",
+          "locationName":"estimatedTimeToCompleteInSeconds"
+        }
+      },
+      "documentation":"<p>Information about the volume initialization. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/initalize-volume.html\">Initialize Amazon EBS volumes</a>.</p>"
+    },
+    "InitializationType":{
+      "type":"string",
+      "enum":[
+        "default",
+        "provisioned-rate"
+      ]
+    },
     "InsideCidrBlocksStringList":{
       "type":"list",
       "member":{
@@ -41732,7 +41774,21 @@
         "r8gd.24xlarge",
         "r8gd.48xlarge",
         "r8gd.metal-24xl",
-        "r8gd.metal-48xl"
+        "r8gd.metal-48xl",
+        "c8gn.medium",
+        "c8gn.large",
+        "c8gn.xlarge",
+        "c8gn.2xlarge",
+        "c8gn.4xlarge",
+        "c8gn.8xlarge",
+        "c8gn.12xlarge",
+        "c8gn.16xlarge",
+        "c8gn.24xlarge",
+        "c8gn.48xlarge",
+        "c8gn.metal-24xl",
+        "c8gn.metal-48xl",
+        "f2.6xlarge",
+        "p6e-gb200.36xlarge"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -67157,7 +67213,7 @@
       "members":{
         "Name":{
           "shape":"VolumeStatusName",
-          "documentation":"<p>The name of the volume status.</p>",
+          "documentation":"<p>The name of the volume status.</p> <ul> <li> <p> <code>io-enabled</code> - Indicates the volume I/O status. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-checks.html\">Amazon EBS volume status checks</a>.</p> </li> <li> <p> <code>io-performance</code> - Indicates the volume performance status. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/monitoring-volume-checks.html\">Amazon EBS volume status checks</a>.</p> </li> <li> <p> <code>initialization-state</code> - Indicates the status of the volume initialization process. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/initalize-volume.html\">Initialize Amazon EBS volumes</a>.</p> </li> </ul>",
           "locationName":"name"
         },
         "Status":{
@@ -67280,6 +67336,11 @@
           "documentation":"<p>Information about the instances to which the volume is attached.</p>",
           "locationName":"attachmentStatuses"
         },
+        "InitializationStatusDetails":{
+          "shape":"InitializationStatusDetails",
+          "documentation":"<p>Information about the volume initialization. It can take up to 5 minutes for the volume initialization information to be updated.</p> <p>Only available for volumes created from snapshots. Not available for empty volumes created without a snapshot.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/initalize-volume.html\"> Initialize Amazon EBS volumes</a>.</p>",
+          "locationName":"initializationStatusDetails"
+        },
         "AvailabilityZoneId":{
           "shape":"String",
           "documentation":"<p>The ID of the Availability Zone.</p>",
@@ -67299,7 +67360,8 @@
       "type":"string",
       "enum":[
         "io-enabled",
-        "io-performance"
+        "io-performance",
+        "initialization-state"
       ]
     },
     "VolumeType":{
