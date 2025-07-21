@@ -1,0 +1,38 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.http.auth.aws.internal.signer.util;
+
+import java.nio.ByteBuffer;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.tck.SubscriberBlackboxVerification;
+import org.reactivestreams.tck.TestEnvironment;
+
+public class LengthCalculatingSubscriberTckTest extends SubscriberBlackboxVerification<ByteBuffer> {
+
+    public LengthCalculatingSubscriberTckTest() {
+        super(new TestEnvironment());
+    }
+
+    @Override
+    public Subscriber<ByteBuffer> createSubscriber() {
+        return new LengthCalculatingSubscriber();
+    }
+
+    @Override
+    public ByteBuffer createElement(int element) {
+        return ByteBuffer.wrap(Integer.toString(element).getBytes());
+    }
+}

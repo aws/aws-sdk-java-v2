@@ -121,28 +121,6 @@ public class HttpChecksumStageSraTest {
         assertThat(checksumSpecs.algorithmV2()).isEqualTo(DefaultChecksumAlgorithm.SHA1);
     }
 
-    @Test
-    public void async_flexibleChecksumInTrailer_addsFlexibleChecksumInTrailer() throws Exception {
-        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        boolean isStreaming = true;
-        RequestExecutionContext ctx = flexibleChecksumRequestContext(ClientType.ASYNC,
-                                                                     ChecksumSpecs.builder()
-                                                                                  .algorithmV2(DefaultChecksumAlgorithm.SHA256)
-                                                                                  .headerName(ChecksumUtil.checksumHeaderName(DefaultChecksumAlgorithm.SHA1)),
-                                                                     isStreaming);
-
-        new HttpChecksumStage(ClientType.ASYNC).execute(requestBuilder, ctx);
-
-        assertThat(requestBuilder.headers().get(HEADER_FOR_TRAILER_REFERENCE)).containsExactly(CHECKSUM_SPECS_HEADER);
-        assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
-        assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
-        assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
-        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
-
-        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
-        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
-    }
-
     private SdkHttpFullRequest.Builder createHttpRequestBuilder() {
         return SdkHttpFullRequest.builder().contentStreamProvider(REQUEST_BODY.contentStreamProvider());
     }

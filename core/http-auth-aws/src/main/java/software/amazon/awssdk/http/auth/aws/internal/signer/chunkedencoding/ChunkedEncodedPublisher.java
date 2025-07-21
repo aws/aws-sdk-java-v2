@@ -72,8 +72,9 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     private final List<ChunkExtensionProvider> extensions = new ArrayList<>();
     private final List<TrailerProvider> trailers = new ArrayList<>();
     private final int chunkSize;
-    private ByteBuffer chunkBuffer;
     private final boolean addEmptyTrailingChunk;
+
+    private ByteBuffer chunkBuffer;
 
     public ChunkedEncodedPublisher(Builder b) {
         this.wrapped = b.publisher;
@@ -86,6 +87,8 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
     @Override
     public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+        resetState();
+
         Publisher<ByteBuffer> lengthEnforced = limitLength(wrapped, contentLength);
         Publisher<Iterable<ByteBuffer>> chunked = chunk(lengthEnforced);
         Publisher<Iterable<ByteBuffer>> trailingAdded = addTrailingChunks(chunked);
@@ -97,6 +100,12 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    private void resetState() {
+        extensions.forEach(Resettable::reset);
+        trailers.forEach(Resettable::reset);
+        chunkBuffer = null;
     }
 
     private Iterable<Iterable<ByteBuffer>> getTrailingChunks() {

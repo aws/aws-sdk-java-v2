@@ -115,7 +115,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallPutObject(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyPutObject(s3ExpressSessionAuth);
-        verifyPutObjectHeaders(clientType, protocol, checksumAlgorithm);
+        verifyPutObjectHeaders(protocol, checksumAlgorithm);
     }
 
     @ParameterizedTest
@@ -126,7 +126,7 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         createClientAndCallUploadPart(clientType, protocol, s3ExpressSessionAuth, checksumAlgorithm, wm);
 
         verifyUploadPart(s3ExpressSessionAuth);
-        verifyUploadPartHeaders(clientType, protocol);
+        verifyUploadPartHeaders(protocol);
     }
 
     @ParameterizedTest
@@ -268,10 +268,12 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
             .withHeader("x-amz-content-sha256", equalTo("UNSIGNED-PAYLOAD")));
     }
 
-    void verifyPutObjectHeaders(ClientType clientType, Protocol protocol, ChecksumAlgorithm checksumAlgorithm) {
-        String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
-        if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
+    void verifyPutObjectHeaders(Protocol protocol, ChecksumAlgorithm checksumAlgorithm) {
+        String streamingSha256;
+        if (protocol == Protocol.HTTP) {
             streamingSha256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+        } else {
+            streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
         }
         ChecksumAlgorithm expectedChecksumAlgorithm = checksumAlgorithm == ChecksumAlgorithm.UNKNOWN_TO_SDK_VERSION ?
                                                       ChecksumAlgorithm.CRC32 : checksumAlgorithm;
@@ -290,15 +292,17 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
 
-    void verifyUploadPartHeaders(ClientType clientType, Protocol protocol) {
+    void verifyUploadPartHeaders(Protocol protocol) {
         Map<String, List<String>> headers = CAPTURING_INTERCEPTOR.headers;
         assertThat(headers.get("Content-Length")).isNotNull();
         assertThat(headers.get("x-amz-content-sha256")).isNotNull();
 
         assertThat(headers.get("x-amz-decoded-content-length")).isNotNull();
-        String streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
-        if (protocol == Protocol.HTTP && clientType == ClientType.SYNC) {
+        String streamingSha256;
+        if (protocol == Protocol.HTTP) {
             streamingSha256 = "STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER";
+        } else {
+            streamingSha256 = "STREAMING-UNSIGNED-PAYLOAD-TRAILER";
         }
         assertThat(headers.get("x-amz-content-sha256").get(0)).isEqualToIgnoringCase(streamingSha256);
     }
