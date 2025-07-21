@@ -26,8 +26,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -219,6 +222,43 @@ public final class SignerUtils {
         request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, String.valueOf(contentLength))
                .removeHeader(Header.CONTENT_LENGTH);
         return contentLength;
+    }
+
+    /**
+     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
+     * the payload is read in its entirety to calculate the length.
+     */
+    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> moveContentLength(
+        SdkHttpRequest.Builder request, Publisher<ByteBuffer> contentPublisher) {
+        Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
+
+        if (decodedContentLength.isPresent()) {
+            request.removeHeader(Header.CONTENT_LENGTH);
+            return CompletableFuture.completedFuture(Pair.of(request, Optional.of(contentPublisher)));
+        }
+
+        CompletableFuture<Long> contentLengthFuture;
+
+        Optional<String> contentLengthFromHeader =
+            request.firstMatchingHeader(Header.CONTENT_LENGTH);
+        if (contentLengthFromHeader.isPresent()) {
+            long contentLength = Long.parseLong(contentLengthFromHeader.get());
+            contentLengthFuture = CompletableFuture.completedFuture(contentLength);
+        } else {
+            if (contentPublisher == null) {
+                contentLengthFuture = CompletableFuture.completedFuture(0L);
+            } else {
+                LengthCalculatingSubscriber lengthCalculatingSubscriber = new LengthCalculatingSubscriber();
+                contentPublisher.subscribe(lengthCalculatingSubscriber);
+                contentLengthFuture = lengthCalculatingSubscriber.contentLengthFuture();
+            }
+        }
+
+        return contentLengthFuture.thenApply(cl -> {
+            request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, String.valueOf(cl))
+                   .removeHeader(Header.CONTENT_LENGTH);
+            return Pair.of(request, Optional.ofNullable(contentPublisher));
+        });
     }
 
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {
