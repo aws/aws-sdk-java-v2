@@ -21,6 +21,8 @@ import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Random;
@@ -44,6 +46,108 @@ public class ChunkedEncodedPublisherTest {
     @BeforeEach
     public void setup() {
         CRC32.reset();
+    }
+
+    @Test
+    public void subscribe_publisherEmpty_onlyProducesTrailer() {
+        Publisher<ByteBuffer> emptyPublisher = Flowable.empty();
+
+        ChunkedEncodedPublisher build = newChunkedBuilder(emptyPublisher)
+            .addTrailer(() -> Pair.of("foo", Collections.singletonList("1")))
+            .addTrailer(() -> Pair.of("bar", Collections.singletonList("2")))
+            .addEmptyTrailingChunk(true)
+            .build();
+
+        List<ByteBuffer> chunks = getAllElements(build);
+
+        assertThat(chunks.size()).isEqualTo(1);
+
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(0)).toString();
+
+        assertThat(trailerAsString).isEqualTo(
+            "0\r\n" +
+            "foo:1\r\n" +
+            "bar:2\r\n" +
+            "\r\n");
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_trailerPartAdded() {
+        TestPublisher upstream = randomPublisherOfLength(8);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", "bar");
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .addTrailer(trailerProvider)
+                                                                          .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        String expectedTrailer = "foo:bar";
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        assertThat(trailerAsString).endsWith(expectedTrailer);
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_multipleValues_trailerPartAdded() {
+        TestPublisher upstream = randomPublisherOfLength(8);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", Arrays.asList("bar1", "bar2", "bar3"));
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .addTrailer(trailerProvider)
+                                                                          .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        String expectedTrailer = "foo:bar1,bar2,bar3";
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        assertThat(trailerAsString).endsWith(expectedTrailer);
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_onlyInvokedOnce() {
+        TestPublisher upstream = randomPublisherOfLength(8);
+
+        TrailerProvider trailerProvider = Mockito.spy(new StaticTrailerProvider("foo", "bar"));
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .addTrailer(trailerProvider).build();
+
+        getAllElements(chunkedPublisher);
+
+        Mockito.verify(trailerProvider, Mockito.times(1)).get();
+    }
+
+    @Test
+    void subscribe_trailerPresent_trailerFormattedCorrectly() {
+        TestPublisher testPublisher = randomPublisherOfLength(32);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", "bar");
+
+        ChunkedEncodedPublisher chunkedPublisher = newChunkedBuilder(testPublisher)
+            .addTrailer(trailerProvider)
+            .addEmptyTrailingChunk(true)
+            .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        ByteBuffer last = chunks.get(chunks.size() - 1);
+
+        String expected = "0\r\n" +
+                          "foo:bar\r\n" +
+                          "\r\n";
+
+        assertThat(chunkAsString(last)).isEqualTo(expected);
     }
 
     @Test
@@ -212,6 +316,10 @@ public class ChunkedEncodedPublisherTest {
         }
     }
 
+    private static ChunkedEncodedPublisher.Builder newChunkedBuilder(Publisher<ByteBuffer> publisher) {
+        return ChunkedEncodedPublisher.builder().publisher(publisher).chunkSize(CHUNK_SIZE);
+    }
+
     private TestPublisher randomPublisherOfLength(int bytes) {
         List<ByteBuffer> elements = new ArrayList<>();
 
@@ -237,6 +345,10 @@ public class ChunkedEncodedPublisherTest {
 
     private List<ByteBuffer> getAllElements(Publisher<ByteBuffer> publisher) {
         return Flowable.fromPublisher(publisher).toList().blockingGet();
+    }
+
+    private String chunkAsString(ByteBuffer chunk) {
+        return StandardCharsets.UTF_8.decode(chunk).toString();
     }
 
     private String getHeaderAsString(ByteBuffer chunk) {
@@ -321,6 +433,26 @@ public class ChunkedEncodedPublisherTest {
         @Override
         public Pair<byte[], byte[]> get(ByteBuffer chunk) {
             return Pair.of(key, value);
+        }
+    }
+
+    private static class StaticTrailerProvider implements TrailerProvider {
+        private final String key;
+        private final List<String> values;
+
+        public StaticTrailerProvider(String key, String value) {
+            this.key = key;
+            this.values = Collections.singletonList(value);
+        }
+
+        public StaticTrailerProvider(String key, List<String> values) {
+            this.key = key;
+            this.values = values;
+        }
+
+        @Override
+        public Pair<String, List<String>> get() {
+            return Pair.of(key, values);
         }
     }
 }

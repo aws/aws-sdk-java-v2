@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.5__ __2025-07-21__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Add support for VPC resource endpoints in Service Managed Fleets
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add dualstack endpoint support
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for C8gn, F2 and P6e-GB200 Instance types
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds 1/ Support for S3FileSystem in CustomFileSystems 2/ The ability for a customer to select their preferred IpAddressType for use with private Workforces 3/ Support for p4de instance type in SageMaker Training Plans
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Timestream for InfluxDB adds support for db.influx.24xlarge instance type. This enhancement enables higher compute capacity for demanding workloads through CreateDbInstance, CreateDbCluster, UpdateDbInstance, and UpdateDbCluster APIs.
+
 # __2.32.4__ __2025-07-18__
 ## __AWS Audit Manager__
   - ### Features
