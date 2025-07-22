@@ -179,4 +179,69 @@ public class VersionedRecordExtensionTest {
                                            .tableMetadata(FakeItem.getTableMetadata())
                                            .build());
     }
+
+    @Test
+    public void beforeDelete_existingVersion_expressionIsCorrect() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setVersion(3);
+
+        Expression result =
+            versionedRecordExtension.beforeDelete(DefaultDynamoDbExtensionContext
+                                                      .builder()
+                                                      .items(FakeItem.getTableSchema().itemToMap(fakeItem, true))
+                                                      .tableMetadata(FakeItem.getTableMetadata())
+                                                      .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result,
+                   is(Expression.builder()
+                                .expression("#AMZN_MAPPED_version = :old_version_value")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .expressionValues(singletonMap(":old_version_value",
+                                                               AttributeValue.builder().n("3").build()))
+                                .build()));
+    }
+
+    @Test
+    public void beforeDelete_returnsEmptyExpression_ifVersionAttributeNotDefined() {
+        FakeItemWithSort fakeItemWithSort = createUniqueFakeItemWithSort();
+        Map<String, AttributeValue> itemMap =
+            new HashMap<>(FakeItemWithSort.getTableSchema().itemToMap(fakeItemWithSort, true));
+
+        Expression deleteExpression = versionedRecordExtension.beforeDelete(DefaultDynamoDbExtensionContext.builder()
+                                                                                                           .items(itemMap)
+                                                                                                           .operationContext(PRIMARY_CONTEXT)
+                                                                                                           .tableMetadata(FakeItemWithSort.getTableMetadata())
+                                                                                                           .build());
+        assertThat(deleteExpression, is(Expression.builder().build()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void beforeDelete_throwsIllegalArgumentException_ifVersionAttributeIsNull() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemWIthBadVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        fakeItemWIthBadVersion.put("version", null);
+
+        versionedRecordExtension.beforeDelete(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(fakeItemWIthBadVersion)
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .build());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void beforeDelete_throwsIllegalArgumentException_ifVersionAttributeIsWrongType() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemWIthBadVersion =
+            new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        fakeItemWIthBadVersion.put("version", AttributeValue.builder().s("14").build());
+
+        versionedRecordExtension.beforeDelete(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(fakeItemWIthBadVersion)
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .build());
+    }
 }

@@ -556,4 +556,46 @@ public class DeleteItemOperationTest {
         assertThat(actualResult, is(expectedResult));
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
     }
+
+    @Test
+    public void generateTransactDeleteItem_conditionalRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setVersion(1);
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                    .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                    .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        String conditionExpression = "condition-expression";
+        Map<String, AttributeValue> attributeValues = Collections.singletonMap("key", stringValue("value1"));
+        Map<String, String> attributeNames = Collections.singletonMap("key", "value2");
+
+        DeleteItemRequest deleteItemRequest = DeleteItemRequest.builder()
+                                                               .tableName(TABLE_NAME)
+                                                               .key(fakeItemMap)
+                                                               .conditionExpression(conditionExpression)
+                                                               .expressionAttributeValues(attributeValues)
+                                                               .expressionAttributeNames(attributeNames)
+                                                               .build();
+        doReturn(deleteItemRequest).when(deleteItemOperation).generateRequest(any(), any(), any());
+
+        TransactWriteItem actualResult = deleteItemOperation.generateTransactDeleteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       mockDynamoDbEnhancedClientExtension,
+                                                                                        fakeItemMap);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .delete(Delete.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .conditionExpression(conditionExpression)
+                                                                          .expressionAttributeNames(attributeNames)
+                                                                          .expressionAttributeValues(attributeValues)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
 }

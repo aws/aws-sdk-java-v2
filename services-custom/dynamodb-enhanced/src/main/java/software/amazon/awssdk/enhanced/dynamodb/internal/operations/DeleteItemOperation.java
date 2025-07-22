@@ -15,6 +15,10 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinExpressions;
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinNames;
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinValues;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -27,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
@@ -146,6 +151,49 @@ public class DeleteItemOperation<T>
                                        .conditionExpression(deleteItemRequest.conditionExpression())
                                        .expressionAttributeValues(deleteItemRequest.expressionAttributeValues())
                                        .expressionAttributeNames(deleteItemRequest.expressionAttributeNames());
+
+        request.right()
+               .map(TransactDeleteItemEnhancedRequest::returnValuesOnConditionCheckFailureAsString)
+               .ifPresent(builder::returnValuesOnConditionCheckFailure);
+
+        return TransactWriteItem.builder()
+                                .delete(builder.build())
+                                .build();
+    }
+
+    public TransactWriteItem generateTransactDeleteItem(TableSchema<T> tableSchema,
+                                                        OperationContext operationContext,
+                                                        DynamoDbEnhancedClientExtension dynamoDbEnhancedClientExtension,
+                                                        Map<String, AttributeValue> itemMap) {
+        DeleteItemRequest deleteItemRequest = generateRequest(tableSchema, operationContext, dynamoDbEnhancedClientExtension);
+
+        Expression beforeDeleteConditionExpression =
+            dynamoDbEnhancedClientExtension != null ? dynamoDbEnhancedClientExtension.beforeDelete(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemMap)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableSchema.tableMetadata())
+                                               .tableSchema(tableSchema)
+                                               .operationName(operationName())
+                                               .build())
+                                                    : null;
+
+        Delete.Builder builder = Delete.builder()
+                                       .key(deleteItemRequest.key())
+                                       .tableName(deleteItemRequest.tableName());
+
+        if (beforeDeleteConditionExpression != null) {
+            builder.conditionExpression(joinExpressions(deleteItemRequest.conditionExpression(),
+                                                        beforeDeleteConditionExpression.expression(), " AND "))
+                   .expressionAttributeValues(joinValues(deleteItemRequest.expressionAttributeValues(),
+                                                         beforeDeleteConditionExpression.expressionValues()))
+                   .expressionAttributeNames(joinNames(deleteItemRequest.expressionAttributeNames(),
+                                                       beforeDeleteConditionExpression.expressionNames()));
+        } else {
+            builder.conditionExpression(deleteItemRequest.conditionExpression())
+                   .expressionAttributeValues(deleteItemRequest.expressionAttributeValues())
+                   .expressionAttributeNames(deleteItemRequest.expressionAttributeNames());
+        }
 
         request.right()
                .map(TransactDeleteItemEnhancedRequest::returnValuesOnConditionCheckFailureAsString)
