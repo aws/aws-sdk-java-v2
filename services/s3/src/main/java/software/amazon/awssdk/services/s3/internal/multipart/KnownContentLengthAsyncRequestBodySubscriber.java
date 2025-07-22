@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartUploadHelper.contentLengthMismatchForPart;
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartUploadHelper.partNumMismatch;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -154,7 +157,16 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
             return;
         }
 
-        validatePart(asyncRequestBody, currentPartNum);
+        Optional<SdkClientException> sdkClientException = validatePart(asyncRequestBody, currentPartNum);
+        if (sdkClientException.isPresent()) {
+            multipartUploadHelper.failRequestsElegantly(futures,
+                                                        sdkClientException.get(),
+                                                        uploadId,
+                                                        returnFuture,
+                                                        putObjectRequest);
+            subscription.cancel();
+            return;
+        }
 
         asyncRequestBodyInFlight.incrementAndGet();
         UploadPartRequest uploadRequest = SdkPojoConversionUtils.toUploadPartRequest(putObjectRequest,
@@ -178,47 +190,37 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         subscription.request(1);
     }
 
-    private void validatePart(AsyncRequestBody asyncRequestBody, int currentPartNum) {
+    private Optional<SdkClientException> validatePart(AsyncRequestBody asyncRequestBody, int currentPartNum) {
         if (!asyncRequestBody.contentLength().isPresent()) {
-            SdkClientException e = SdkClientException.create("Content length must be present on the AsyncRequestBody");
-            multipartUploadHelper.failRequestsElegantly(futures, e, uploadId, returnFuture, putObjectRequest);
-            return;
+            return Optional.of(MultipartUploadHelper.contentLengthMissingForPart(currentPartNum));
         }
 
         Long currentPartSize = asyncRequestBody.contentLength().get();
+
         if (currentPartNum > expectedNumParts) {
-            SdkClientException exception = SdkClientException.create(String.format("The number of parts divided is "
-                                                                                   + "not equal to the expected number of "
-                                                                                   + "parts. Expected: %d, Actual: %d",
-                                                                                   expectedNumParts, currentPartNum));
-            multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
-            return;
+            return Optional.of(partNumMismatch(expectedNumParts, currentPartNum));
         }
 
         if (currentPartNum == expectedNumParts) {
-            validateLastPartSize(currentPartSize);
-            return;
+            return validateLastPartSize(currentPartSize);
         }
 
         if (currentPartSize != partSize) {
-            SdkClientException e = SdkClientException.create(String.format("Content length must be equal to the "
-                                                                           + "part size. Expected: %d, Actual: %d",
-                                                                           partSize,
-                                                                           currentPartSize));
-            multipartUploadHelper.failRequestsElegantly(futures, e, uploadId, returnFuture, putObjectRequest);
+            return Optional.of(contentLengthMismatchForPart(partSize, currentPartSize));
         }
+        return Optional.empty();
     }
 
-    private void validateLastPartSize(Long currentPartSize) {
+    private Optional<SdkClientException> validateLastPartSize(Long currentPartSize) {
         long remainder = totalSize % partSize;
         long expectedLastPartSize = remainder == 0 ? partSize : remainder;
         if (currentPartSize != expectedLastPartSize) {
-            SdkClientException exception =
+            return Optional.of(
                 SdkClientException.create("Content length of the last part must be equal to the "
                                           + "expected last part size. Expected: " + expectedLastPartSize
-                                          + ", Actual: " + currentPartSize);
-            multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
+                                          + ", Actual: " + currentPartSize));
         }
+        return Optional.empty();
     }
 
     private boolean shouldFailRequest() {
@@ -256,6 +258,14 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                 // List of CompletedParts needs to be in ascending order
                 parts = mergeCompletedParts();
             }
+
+            int actualNumParts = partNumber.get() - 1;
+            if (actualNumParts != expectedNumParts) {
+                SdkClientException exception = partNumMismatch(expectedNumParts, actualNumParts);
+                multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
+                return;
+            }
+
             completeMpuFuture = multipartUploadHelper.completeMultipartUpload(returnFuture, uploadId, parts, putObjectRequest,
                                                                               totalSize);
         }

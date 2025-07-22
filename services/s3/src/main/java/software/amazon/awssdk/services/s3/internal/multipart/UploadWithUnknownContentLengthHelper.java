@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartUploadHelper.contentLengthMismatchForPart;
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartUploadHelper.contentLengthMissingForPart;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.Collection;
@@ -71,7 +73,7 @@ public final class UploadWithUnknownContentLengthHelper {
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
-        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, partSizeInBytes, multipartUploadThresholdInBytes,
+        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
     }
 
@@ -167,6 +169,14 @@ public final class UploadWithUnknownContentLengthHelper {
             log.trace(() -> "Received asyncRequestBody " + asyncRequestBody.contentLength());
             asyncRequestBodyInFlight.incrementAndGet();
 
+            Optional<SdkClientException> sdkClientException = validatePart(asyncRequestBody, currentPartNum);
+            if (sdkClientException.isPresent()) {
+                multipartUploadHelper.failRequestsElegantly(futures, sdkClientException.get(), uploadId, returnFuture,
+                                                            putObjectRequest);
+                subscription.cancel();
+                return;
+            }
+
             if (isFirstAsyncRequestBody.compareAndSet(true, false)) {
                 log.trace(() -> "Received first async request body");
                 // If this is the first AsyncRequestBody received, request another one because we don't know if there is more
@@ -206,24 +216,24 @@ public final class UploadWithUnknownContentLengthHelper {
             }
         }
 
-        private void sendUploadPartRequest(String uploadId,
-                                           AsyncRequestBody asyncRequestBody,
-                                           int currentPartNum) {
+        private Optional<SdkClientException> validatePart(AsyncRequestBody asyncRequestBody, int currentPartNum) {
             Optional<Long> contentLength = asyncRequestBody.contentLength();
             if (!contentLength.isPresent()) {
-                SdkClientException e = SdkClientException.create("Content length must be present on the AsyncRequestBody");
-                multipartUploadHelper.failRequestsElegantly(futures, e, uploadId, returnFuture, putObjectRequest);
+                return Optional.of(contentLengthMissingForPart(currentPartNum));
             }
 
             Long contentLengthCurrentPart = contentLength.get();
             if (contentLengthCurrentPart > partSizeInBytes) {
-                SdkClientException e = SdkClientException.create(String.format("Content length must not be greater than the "
-                                                                               + "part size. Expected: %d, Actual: %d",
-                                                                               partSizeInBytes,
-                                                                               contentLengthCurrentPart));
-                multipartUploadHelper.failRequestsElegantly(futures, e, uploadId, returnFuture, putObjectRequest);
-            }
+                return Optional.of(contentLengthMismatchForPart(partSizeInBytes, contentLengthCurrentPart));
 
+            }
+            return Optional.empty();
+        }
+
+        private void sendUploadPartRequest(String uploadId,
+                                           AsyncRequestBody asyncRequestBody,
+                                           int currentPartNum) {
+            Long contentLengthCurrentPart = asyncRequestBody.contentLength().get();
             this.contentLength.getAndAdd(contentLengthCurrentPart);
 
             multipartUploadHelper
@@ -281,11 +291,11 @@ public final class UploadWithUnknownContentLengthHelper {
                                                       .toArray(CompletedPart[]::new);
 
                 long totalLength = contentLength.get();
-                int expectedNumPart = genericMultipartHelper.determinePartCount(totalLength, partSizeInBytes);
-                if (parts.length != expectedNumPart) {
+                int expectedNumParts = genericMultipartHelper.determinePartCount(totalLength, partSizeInBytes);
+                if (parts.length != expectedNumParts) {
                     SdkClientException exception = SdkClientException.create(
                         String.format("The number of UploadParts requests is not equal to the expected number of parts. "
-                                      + "Expected: %d, Actual: %d", expectedNumPart, parts.length));
+                                      + "Expected: %d, Actual: %d", expectedNumParts, parts.length));
                     multipartUploadHelper.failRequestsElegantly(futures, exception, uploadId, returnFuture, putObjectRequest);
                     return;
                 }

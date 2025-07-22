@@ -101,13 +101,13 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     @Test
     void validatePart_withMissingContentLength_shouldFailRequest() {
         subscriber.onNext(createMockAsyncRequestBodyWithEmptyContentLength());
-        verifyFailRequestsElegantly("Content length must be present on the AsyncRequestBody");
+        verifyFailRequestsElegantly("Content length is missing on the AsyncRequestBody");
     }
 
     @Test
     void validatePart_withPartSizeExceedingLimit_shouldFailRequest() {
         subscriber.onNext(createMockAsyncRequestBody(PART_SIZE + 1));
-        verifyFailRequestsElegantly("Content length must be equal to the part size");
+        verifyFailRequestsElegantly("Content length must not be greater than part size");
     }
 
     @Test
@@ -145,7 +145,6 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
             .thenReturn(CompletableFuture.completedFuture(null));
         lastPartSubscriber.onNext(createMockAsyncRequestBody(expectedLastPartSize));
         lastPartSubscriber.onNext(createMockAsyncRequestBody(expectedLastPartSize));
-        lastPartSubscriber.onComplete();
 
         verifyFailRequestsElegantly("The number of parts divided is not equal to the expected number of parts");
     }
@@ -266,6 +265,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         Throwable exception = exceptionCaptor.getValue();
         assertThat(exception).isInstanceOf(SdkClientException.class);
         assertThat(exception.getMessage()).contains(expectedErrorMessage);
+        verify(subscription).cancel();
     }
 
     private Map<Integer, CompletedPart> createExistingParts(int numExistingParts) {

@@ -48,18 +48,15 @@ public final class MultipartUploadHelper {
     private static final Logger log = Logger.loggerFor(MultipartUploadHelper.class);
 
     private final S3AsyncClient s3AsyncClient;
-    private final long partSizeInBytes;
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
 
     private final long maxMemoryUsageInBytes;
     private final long multipartUploadThresholdInBytes;
 
     public MultipartUploadHelper(S3AsyncClient s3AsyncClient,
-                                 long partSizeInBytes,
                                  long multipartUploadThresholdInBytes,
                                  long maxMemoryUsageInBytes) {
         this.s3AsyncClient = s3AsyncClient;
-        this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
                                                                    SdkPojoConversionUtils::toAbortMultipartUploadRequest,
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
@@ -159,5 +156,23 @@ public final class MultipartUploadHelper {
                                                                                                           asyncRequestBody);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, putObjectResponseCompletableFuture);
         CompletableFutureUtils.forwardResultTo(putObjectResponseCompletableFuture, returnFuture);
+    }
+
+    static SdkClientException contentLengthMissingForPart(int currentPartNum) {
+        return SdkClientException.create("Content length is missing on the AsyncRequestBody for part number " + currentPartNum);
+    }
+
+    static SdkClientException contentLengthMismatchForPart(long expected, long actual) {
+        return SdkClientException.create(String.format("Content length must not be greater than "
+                                                       + "part size. Expected: %d, Actual: %d",
+                                                       expected,
+                                                       actual));
+    }
+
+    static SdkClientException partNumMismatch(int expectedNumParts, int actualNumParts) {
+        return SdkClientException.create(String.format("The number of parts divided is "
+                                                       + "not equal to the expected number of "
+                                                       + "parts. Expected: %d, Actual: %d",
+                                                       expectedNumParts, actualNumParts));
     }
 }

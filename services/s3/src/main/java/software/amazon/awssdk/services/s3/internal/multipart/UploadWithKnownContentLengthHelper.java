@@ -62,7 +62,7 @@ public final class UploadWithKnownContentLengthHelper {
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
         this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
-        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, partSizeInBytes, multipartUploadThresholdInBytes,
+        this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
     }
 

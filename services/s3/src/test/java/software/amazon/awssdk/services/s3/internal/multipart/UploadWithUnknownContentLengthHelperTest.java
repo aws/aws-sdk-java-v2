@@ -116,14 +116,14 @@ public class UploadWithUnknownContentLengthHelperTest {
     void uploadObject_withMissingContentLength_shouldFailRequest() {
         AsyncRequestBody asyncRequestBody = createMockAsyncRequestBodyWithEmptyContentLength();
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
-        verifyFailureWithMessage(future, "Content length must be present on the AsyncRequestBody");
+        verifyFailureWithMessage(future, "Content length is missing on the AsyncRequestBody for part number");
     }
 
     @Test
     void uploadObject_withPartSizeExceedingLimit_shouldFailRequest() {
         AsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
-        verifyFailureWithMessage(future, "Content length must not be greater than the part size");
+        verifyFailureWithMessage(future, "Content length must not be greater than part size");
     }
 
     private PutObjectRequest createPutObjectRequest() {
