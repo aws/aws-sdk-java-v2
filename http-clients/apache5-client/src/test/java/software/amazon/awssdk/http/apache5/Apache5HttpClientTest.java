@@ -145,6 +145,4 @@ public class Apache5HttpClientTest {
                         .build()
                         .close();
     }
-
-
 }

@@ -291,7 +291,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void testTlsStrategyOverridesLegacyFactory() throws Exception {
+    public void tls_strategy_overrides_legacy_factory() throws Exception {
         // Setup TLS context
         KeyManager[] keyManagers = keyManagersProvider.keyManagers();
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -333,7 +333,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void testAdapterConvertsNonSslSocketException() throws Exception {
+    public void adapter_converts_non_sslSocketException() throws Exception {
         // Create mock that returns a regular Socket (not SSLSocket)
         SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
         Socket nonSslSocket = Mockito.mock(Socket.class);
@@ -361,7 +361,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
 
 
     @Test
-    public void testAdapterHandlesNullSocket() throws Exception {
+    public void adapter_handlesNullSocket() throws Exception {
         // Create mock that returns null
         SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
 
@@ -385,7 +385,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void testNullTlsStrategyFallsBackToDefault() throws Exception {
+    public void null_tlsStrategy_falls_backToDefault() throws Exception {
         // Test that setting tlsSocketStrategy(null) works correctly
         client = Apache5HttpClient.builder()
                                   .tlsSocketStrategy(null)
@@ -395,6 +395,4 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         HttpExecuteResponse response = makeRequestWithHttpClient(client);
         assertThat(response.httpResponse().isSuccessful()).isTrue();
     }
-
-
 }
