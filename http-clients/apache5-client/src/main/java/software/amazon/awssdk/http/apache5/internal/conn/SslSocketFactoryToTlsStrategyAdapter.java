@@ -42,7 +42,9 @@ public class SslSocketFactoryToTlsStrategyAdapter implements TlsSocketStrategy {
                              Object attachment,
                              HttpContext context) throws IOException {
         Socket layeredSocket = legacySocketFactory.createLayeredSocket(socket, target, port, context);
-
+        if (layeredSocket == null) {
+            throw new IOException("SSLConnectionSocketFactory.createLayeredSocket returned null");
+        }
         if (!(layeredSocket instanceof SSLSocket)) {
             throw new IOException("SSLConnectionSocketFactory.createLayeredSocket did not return an SSLSocket. " +
                                   "Returned type: " + layeredSocket.getClass().getName());

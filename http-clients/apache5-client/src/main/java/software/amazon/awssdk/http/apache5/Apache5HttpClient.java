@@ -661,17 +661,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
             return this;
         }
 
+        public void setSocketFactory(SSLConnectionSocketFactory socketFactory) {
+            socketFactory(socketFactory);
+        }
+
         @Override
         public Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy) {
             this.tlsStrategy = tlsSocketStrategy;
             this.legacySocketFactory = null; // Clear any legacy factory
             return this;
-        }
-
-
-
-        public void setLegacySocketFactory(SSLConnectionSocketFactory legacySocketFactory) {
-            socketFactory(legacySocketFactory);
         }
 
         @Override
@@ -744,7 +742,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         // Internal method to get the effective TLS strategy
-
         TlsSocketStrategy getEffectiveTlsStrategy() {
             if (tlsStrategy != null) {
                 return tlsStrategy;
@@ -754,8 +751,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
             }
             return null;
         }
-
-
     }
 
     private static class ApacheConnectionManagerFactory {
