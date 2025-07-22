@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 
 import java.net.URL;
 import java.util.Objects;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -73,16 +72,6 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
 
     public static Builder builder() {
         return new BuilderImpl();
-    }
-
-    /**
-     * Create a {@code PresignedUrlDownloadRequest} instance with the given configuration
-     *
-     * @param builderConsumer the consumer that will configure the builder
-     * @return a {@code PresignedUrlDownloadRequest} instance
-     */
-    public static PresignedUrlDownloadRequest builder(Consumer<Builder> builderConsumer) {
-        return builder().applyMutation(builderConsumer).build();
     }
 
     public static Class<? extends Builder> serializableBuilderClass() {
