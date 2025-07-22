@@ -32,11 +32,11 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
-import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlGetObjectRequestWrapper;
+import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlDownloadRequestWrapper;
 
-class PresignedUrlGetObjectRequestMarshallerTest {
+class PresignedUrlDownloadRequestMarshallerTest {
 
-    private PresignedUrlGetObjectRequestMarshaller marshaller;
+    private PresignedUrlDownloadRequestMarshaller marshaller;
     private AwsXmlProtocolFactory mockProtocolFactory;
     private ProtocolMarshaller<SdkHttpFullRequest> mockProtocolMarshaller;
     private URL testUrl;
@@ -47,7 +47,7 @@ class PresignedUrlGetObjectRequestMarshallerTest {
         mockProtocolMarshaller = mock(ProtocolMarshaller.class);
         when(mockProtocolFactory.createProtocolMarshaller(any(OperationInfo.class)))
             .thenReturn(mockProtocolMarshaller);
-        marshaller = new PresignedUrlGetObjectRequestMarshaller(mockProtocolFactory);
+        marshaller = new PresignedUrlDownloadRequestMarshaller(mockProtocolFactory);
 
         testUrl = new URL("https://test-bucket.s3.us-east-1.amazonaws.com/test-key?" +
                           "X-Amz-Date=20231215T000000Z&" +
@@ -67,10 +67,10 @@ class PresignedUrlGetObjectRequestMarshallerTest {
                                                            .protocol("https")
                                                            .host("example.com")
                                                            .build();
-        when(mockProtocolMarshaller.marshall(any(PresignedUrlGetObjectRequestWrapper.class)))
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
             .thenReturn(baseRequest);
 
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(testUrl)
                                                                                          .build();
         SdkHttpFullRequest result = marshaller.marshall(request);
@@ -114,10 +114,10 @@ class PresignedUrlGetObjectRequestMarshallerTest {
                                                            .putHeader("Range", rangeValue)  // Add the Range header to the mock response
                                                            .build();
 
-        when(mockProtocolMarshaller.marshall(any(PresignedUrlGetObjectRequestWrapper.class)))
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
             .thenReturn(baseRequest);
 
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(testUrl)
                                                                                          .range(rangeValue)
                                                                                          .build();
@@ -139,10 +139,10 @@ class PresignedUrlGetObjectRequestMarshallerTest {
                                                            .protocol("https")
                                                            .host("example.com")
                                                            .build();
-        when(mockProtocolMarshaller.marshall(any(PresignedUrlGetObjectRequestWrapper.class)))
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
             .thenReturn(baseRequest);
 
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(testUrl)
                                                                                          .range(rangeValue)
                                                                                          .build();
@@ -166,11 +166,11 @@ class PresignedUrlGetObjectRequestMarshallerTest {
                                                            .protocol("https")
                                                            .host("example.com")
                                                            .build();
-        when(mockProtocolMarshaller.marshall(any(PresignedUrlGetObjectRequestWrapper.class)))
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
             .thenReturn(baseRequest);
 
         URL malformedUrl = new URL("https", "test-bucket.s3.us-east-1.amazonaws.com", -1, "/test key with spaces");
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(malformedUrl)
                                                                                          .build();
 

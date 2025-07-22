@@ -24,14 +24,14 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 
 /**
  * Interface for executing S3 operations asynchronously using presigned URLs. This can be accessed using
- * {@link S3AsyncClient#presignedUrlManager()}.
+ * {@link S3AsyncClient#presignedUrlExtension()}.
  */
 @SdkPublicApi
-public interface AsyncPresignedUrlManager {
+public interface AsyncPresignedUrlExtension {
     /**
      * <p>
      * Downloads an S3 object asynchronously using a presigned URL.
@@ -52,7 +52,7 @@ public interface AsyncPresignedUrlManager {
      * @throws SdkClientException If any client side error occurs
      * @throws S3Exception        Base class for all S3 service exceptions
      */
-    default <ReturnT> CompletableFuture<ReturnT> getObject(PresignedUrlGetObjectRequest request,
+    default <ReturnT> CompletableFuture<ReturnT> getObject(PresignedUrlDownloadRequest request,
                                                            AsyncResponseTransformer<GetObjectResponse,
                                                                ReturnT> responseTransformer) {
         throw new UnsupportedOperationException();
@@ -64,20 +64,20 @@ public interface AsyncPresignedUrlManager {
      * </p>
      *
      * <p>
-     * This is a convenience method that creates a {@link PresignedUrlGetObjectRequest} using the provided consumer.
+     * This is a convenience method that creates a {@link PresignedUrlDownloadRequest} using the provided consumer.
      * </p>
      *
-     * @param requestConsumer     Consumer that will configure a {@link PresignedUrlGetObjectRequest.Builder}
+     * @param requestConsumer     Consumer that will configure a {@link PresignedUrlDownloadRequest.Builder}
      * @param responseTransformer Transforms the response to the desired return type
      * @param <ReturnT>           The type of the transformed response
      * @return A {@link CompletableFuture} containing the transformed result
      * @throws SdkClientException If any client side error occurs
      * @throws S3Exception        Base class for all S3 service exceptions
      */
-    default <ReturnT> CompletableFuture<ReturnT> getObject(Consumer<PresignedUrlGetObjectRequest.Builder> requestConsumer,
+    default <ReturnT> CompletableFuture<ReturnT> getObject(Consumer<PresignedUrlDownloadRequest.Builder> requestConsumer,
                                                            AsyncResponseTransformer<GetObjectResponse,
                                                                ReturnT> responseTransformer) {
-        return getObject(PresignedUrlGetObjectRequest.builder().applyMutation(requestConsumer).build(), responseTransformer);
+        return getObject(PresignedUrlDownloadRequest.builder().applyMutation(requestConsumer).build(), responseTransformer);
     }
 
     /**
@@ -96,7 +96,7 @@ public interface AsyncPresignedUrlManager {
      * @throws SdkClientException If any client side error occurs
      * @throws S3Exception        Base class for all S3 service exceptions
      */
-    default CompletableFuture<GetObjectResponse> getObject(PresignedUrlGetObjectRequest request,
+    default CompletableFuture<GetObjectResponse> getObject(PresignedUrlDownloadRequest request,
                                                            Path destinationPath) {
         return getObject(request, AsyncResponseTransformer.toFile(destinationPath));
     }
@@ -111,13 +111,13 @@ public interface AsyncPresignedUrlManager {
      * This is a convenience method that combines consumer-based request building with file-based response handling.
      * </p>
      *
-     * @param requestConsumer Consumer that will configure a {@link PresignedUrlGetObjectRequest.Builder}
+     * @param requestConsumer Consumer that will configure a {@link PresignedUrlDownloadRequest.Builder}
      * @param destinationPath The path where the downloaded object will be saved
      * @return A {@link CompletableFuture} containing the {@link GetObjectResponse}
      * @throws SdkClientException If any client side error occurs
      * @throws S3Exception        Base class for all S3 service exceptions
      */
-    default CompletableFuture<GetObjectResponse> getObject(Consumer<PresignedUrlGetObjectRequest.Builder> requestConsumer,
+    default CompletableFuture<GetObjectResponse> getObject(Consumer<PresignedUrlDownloadRequest.Builder> requestConsumer,
                                                            Path destinationPath) {
         return getObject(requestConsumer, AsyncResponseTransformer.toFile(destinationPath));
     }

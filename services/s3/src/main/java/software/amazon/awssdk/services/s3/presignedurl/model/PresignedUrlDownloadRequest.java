@@ -25,15 +25,15 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object for performing GetObject operations using a presigned URL.
+ * Request object for performing download operations using a presigned URL.
  */
 @SdkPublicApi
-public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<PresignedUrlGetObjectRequest.Builder,
-    PresignedUrlGetObjectRequest> {
+public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<PresignedUrlDownloadRequest.Builder,
+    PresignedUrlDownloadRequest> {
     private final URL presignedUrl;
     private final String range;
 
-    private PresignedUrlGetObjectRequest(BuilderImpl builder) {
+    private PresignedUrlDownloadRequest(BuilderImpl builder) {
         this.presignedUrl = builder.presignedUrl;
         this.range = builder.range;
     }
@@ -76,12 +76,12 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
     }
 
     /**
-     * Create a {@code PresignedUrlGetObjectRequest} instance with the given configuration
+     * Create a {@code PresignedUrlDownloadRequest} instance with the given configuration
      *
      * @param builderConsumer the consumer that will configure the builder
-     * @return a {@code PresignedUrlGetObjectRequest} instance
+     * @return a {@code PresignedUrlDownloadRequest} instance
      */
-    public static PresignedUrlGetObjectRequest builder(Consumer<Builder> builderConsumer) {
+    public static PresignedUrlDownloadRequest builder(Consumer<Builder> builderConsumer) {
         return builder().applyMutation(builderConsumer).build();
     }
 
@@ -105,20 +105,20 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        PresignedUrlGetObjectRequest other = (PresignedUrlGetObjectRequest) obj;
+        PresignedUrlDownloadRequest other = (PresignedUrlDownloadRequest) obj;
         return Objects.equals(presignedUrl(), other.presignedUrl()) &&
                Objects.equals(range(), other.range());
     }
 
     @Override
     public String toString() {
-        return ToString.builder("PresignedUrlGetObjectRequest")
+        return ToString.builder("PresignedUrlDownloadRequest")
                        .add("PresignedUrl", presignedUrl())
                        .add("Range", range())
                        .build();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, PresignedUrlGetObjectRequest> {
+    public interface Builder extends CopyableBuilder<Builder, PresignedUrlDownloadRequest> {
         /**
          * Sets the presigned URL for the S3 object.
          * @param presignedUrl
@@ -141,7 +141,7 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         private BuilderImpl() {
         }
 
-        private BuilderImpl(PresignedUrlGetObjectRequest presignedUrlGetObjectRequest) {
+        private BuilderImpl(PresignedUrlDownloadRequest presignedUrlGetObjectRequest) {
             presignedUrl(presignedUrlGetObjectRequest.presignedUrl());
             range(presignedUrlGetObjectRequest.range());
         }
@@ -159,9 +159,9 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         }
 
         @Override
-        public PresignedUrlGetObjectRequest build() {
+        public PresignedUrlDownloadRequest build() {
             Validate.paramNotNull(presignedUrl, "presignedUrl");
-            return new PresignedUrlGetObjectRequest(this);
+            return new PresignedUrlDownloadRequest(this);
         }
     }
 }

@@ -67,13 +67,13 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
 /**
- * Tests for {@link DefaultAsyncPresignedUrlManager} using MockAsyncHttpClient to verify HTTP interactions.
+ * Tests for {@link DefaultAsyncPresignedUrlExtension} using MockAsyncHttpClient to verify HTTP interactions.
  */
-class DefaultAsyncPresignedUrlManagerTest {
+class DefaultAsyncPresignedUrlExtensionTest {
 
     private static final String TEST_CONTENT = "test-content";
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
@@ -87,8 +87,8 @@ class DefaultAsyncPresignedUrlManagerTest {
                                            "X-Amz-Expires=86400";
 
     private MockAsyncHttpClient mockHttpClient;
-    private DefaultAsyncPresignedUrlManager presignedUrlManager;
-    private PresignedUrlGetObjectRequest testRequest;
+    private DefaultAsyncPresignedUrlExtension presignedUrlExtension;
+    private PresignedUrlDownloadRequest testRequest;
     private AwsProtocolMetadata protocolMetadata;
     private AwsS3ProtocolFactory protocolFactory;
     private AsyncClientHandler clientHandler;
@@ -97,7 +97,7 @@ class DefaultAsyncPresignedUrlManagerTest {
     void setUp() throws Exception {
         mockHttpClient = new MockAsyncHttpClient();
         URL testPresignedUrl = new URL(TEST_URL);
-        testRequest = PresignedUrlGetObjectRequest.builder()
+        testRequest = PresignedUrlDownloadRequest.builder()
                                                   .presignedUrl(testPresignedUrl)
                                                   .build();
 
@@ -108,7 +108,7 @@ class DefaultAsyncPresignedUrlManagerTest {
         protocolFactory = initProtocolFactory(clientConfiguration);
         clientHandler = new AwsAsyncClientHandler(clientConfiguration);
 
-        presignedUrlManager = new DefaultAsyncPresignedUrlManager(
+        presignedUrlExtension = new DefaultAsyncPresignedUrlExtension(
             clientHandler, protocolFactory, clientConfiguration, protocolMetadata);
     }
 
@@ -145,13 +145,13 @@ class DefaultAsyncPresignedUrlManagerTest {
         return Stream.of(
             Arguments.of(
                 "Basic request",
-                (Consumer<PresignedUrlGetObjectRequest.Builder>) builder ->
+                (Consumer<PresignedUrlDownloadRequest.Builder>) builder ->
                     builder.presignedUrl(createTestUrl()),
                 null
             ),
             Arguments.of(
                 "Request with range header",
-                (Consumer<PresignedUrlGetObjectRequest.Builder>) builder ->
+                (Consumer<PresignedUrlDownloadRequest.Builder>) builder ->
                     builder.presignedUrl(createTestUrl()).range("bytes=0-1024"),
                 "bytes=0-1024"
             )
@@ -176,7 +176,7 @@ class DefaultAsyncPresignedUrlManagerTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("httpResponseTestCases")
-    void given_AsyncPresignedUrlManager_when_GetObjectWithDifferentHttpResponses_then_ShouldHandleSuccessAndErrorsCorrectly(
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithDifferentHttpResponses_then_ShouldHandleSuccessAndErrorsCorrectly(
             String testName,
             HttpExecuteResponse response,
             boolean expectSuccess,
@@ -188,7 +188,7 @@ class DefaultAsyncPresignedUrlManagerTest {
             assertSuccessfulGetObject(testRequest);
         } else {
             CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
-                presignedUrlManager.getObject(testRequest, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(testRequest, AsyncResponseTransformer.toBytes());
             
             assertThatThrownBy(future::join)
                 .hasCauseInstanceOf(expectedExceptionType);
@@ -197,19 +197,19 @@ class DefaultAsyncPresignedUrlManagerTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("requestConfigurationTestCases")
-    void given_AsyncPresignedUrlManager_when_GetObjectWithDifferentRequestConfigurations_then_ShouldSetCorrectHeaders(
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithDifferentRequestConfigurations_then_ShouldSetCorrectHeaders(
             String testName,
-            Consumer<PresignedUrlGetObjectRequest.Builder> requestCustomizer,
+            Consumer<PresignedUrlDownloadRequest.Builder> requestCustomizer,
             String expectedRangeHeader) throws ExecutionException, InterruptedException {
         
         mockHttpClient.stubNextResponse(createSuccessResponse());
         
-        PresignedUrlGetObjectRequest.Builder builder = PresignedUrlGetObjectRequest.builder();
+        PresignedUrlDownloadRequest.Builder builder = PresignedUrlDownloadRequest.builder();
         requestCustomizer.accept(builder);
-        PresignedUrlGetObjectRequest request = builder.build();
+        PresignedUrlDownloadRequest request = builder.build();
         
         CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> result = future.get();
         
         assertThat(result).isNotNull();
@@ -227,14 +227,14 @@ class DefaultAsyncPresignedUrlManagerTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("additionalTestCases")
-    void given_AsyncPresignedUrlManager_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(
+    void given_AsyncPresignedUrlExtension_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(
             String testName, String testType) throws Exception {
         
         switch (testType) {
             case "CUSTOM_TRANSFORMER":
                 mockHttpClient.stubNextResponse(createSuccessResponse());
                 CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
-                    presignedUrlManager.getObject(testRequest, AsyncResponseTransformer.toBytes());
+                    presignedUrlExtension.getObject(testRequest, AsyncResponseTransformer.toBytes());
                 ResponseBytes<GetObjectResponse> result = future.get();
                 assertThat(result.asUtf8String()).isEqualTo(TEST_CONTENT);
                 break;
@@ -244,7 +244,7 @@ class DefaultAsyncPresignedUrlManagerTest {
                 SdkClientConfiguration clientConfigWithMetrics = getDefaultSdkConfigs().toBuilder()
                     .option(SdkClientOption.METRIC_PUBLISHERS, Collections.singletonList(mockPublisher))
                     .build();
-                DefaultAsyncPresignedUrlManager managerWithMetrics = new DefaultAsyncPresignedUrlManager(
+                DefaultAsyncPresignedUrlExtension managerWithMetrics = new DefaultAsyncPresignedUrlExtension(
                     clientHandler, protocolFactory, clientConfigWithMetrics, protocolMetadata);
                 mockHttpClient.stubNextResponse(createSuccessResponse());
                 CompletableFuture<ResponseBytes<GetObjectResponse>> metricsFuture = 
@@ -256,21 +256,21 @@ class DefaultAsyncPresignedUrlManagerTest {
                 verify(mockPublisher).publish(metricsCaptor.capture());
                 MetricCollection capturedMetrics = metricsCaptor.getValue();
                 assertThat(capturedMetrics.metricValues(CoreMetric.SERVICE_ID)).contains("S3");
-                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("PresignedUrlGetObject");
+                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("PresignedUrlDownload");
                 break;
         }
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidUrlTestCases")
-    void given_AsyncPresignedUrlManager_when_GetObjectWithInvalidUrl_then_ShouldThrowException(
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithInvalidUrl_then_ShouldThrowException(
             String testName, String invalidUrlString) {
         assertThatThrownBy(() -> {
             URL invalidUrl = new URL(invalidUrlString);
-            PresignedUrlGetObjectRequest invalidRequest = PresignedUrlGetObjectRequest.builder()
+            PresignedUrlDownloadRequest invalidRequest = PresignedUrlDownloadRequest.builder()
                                                                                      .presignedUrl(invalidUrl)
                                                                                      .build();
-            presignedUrlManager.getObject(invalidRequest, AsyncResponseTransformer.toBytes()).join();
+            presignedUrlExtension.getObject(invalidRequest, AsyncResponseTransformer.toBytes()).join();
         }).satisfiesAnyOf(
             ex -> assertThat(ex).isInstanceOf(java.net.MalformedURLException.class),
             ex -> assertThat(ex).isInstanceOf(SdkClientException.class),
@@ -324,10 +324,10 @@ class DefaultAsyncPresignedUrlManagerTest {
         }
     }
 
-    private void assertSuccessfulGetObject(PresignedUrlGetObjectRequest request) {
+    private void assertSuccessfulGetObject(PresignedUrlDownloadRequest request) {
         try {
             CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
             ResponseBytes<GetObjectResponse> result = future.get();
             
             assertThat(result).isNotNull();

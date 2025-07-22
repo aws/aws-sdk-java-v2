@@ -44,22 +44,22 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
-import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlGetObjectRequestWrapper;
+import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlDownloadRequestWrapper;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlManager;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Pair;
 
 /**
- * Default implementation of {@link AsyncPresignedUrlManager} for executing S3 operations asynchronously using presigned URLs.
+ * Default implementation of {@link AsyncPresignedUrlExtension} for executing S3 operations asynchronously using presigned URLs.
  */
 @SdkInternalApi
-public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlManager {
-    private static final Logger log = LoggerFactory.getLogger(DefaultAsyncPresignedUrlManager.class);
+public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUrlExtension {
+    private static final Logger log = LoggerFactory.getLogger(DefaultAsyncPresignedUrlExtension.class);
 
     private final AsyncClientHandler clientHandler;
     private final AwsS3ProtocolFactory protocolFactory;
@@ -67,7 +67,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
     private final List<MetricPublisher> metricPublishers;
     private final AwsProtocolMetadata protocolMetadata;
     
-    public DefaultAsyncPresignedUrlManager(AsyncClientHandler clientHandler,
+    public DefaultAsyncPresignedUrlExtension(AsyncClientHandler clientHandler,
                                            AwsS3ProtocolFactory protocolFactory,
                                            SdkClientConfiguration clientConfiguration,
                                            AwsProtocolMetadata protocolMetadata) {
@@ -82,12 +82,12 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
 
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
-            PresignedUrlGetObjectRequest presignedUrlGetObjectRequest,
+            PresignedUrlDownloadRequest presignedUrlGetObjectRequest,
             AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer)
             throws NoSuchKeyException, InvalidObjectStateException,
                    AwsServiceException, SdkClientException, S3Exception {
 
-        PresignedUrlGetObjectRequestWrapper internalRequest = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper internalRequest = PresignedUrlDownloadRequestWrapper.builder()
                 .url(presignedUrlGetObjectRequest.presignedUrl())
                 .range(presignedUrlGetObjectRequest.range())
                 .build();
@@ -98,7 +98,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "S3");
             //TODO: Discuss if we need to change OPERATION_NAME as part of Surface API Review
-            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PresignedUrlGetObject");
+            apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PresignedUrlDownload");
 
             Pair<AsyncResponseTransformer<GetObjectResponse, ReturnT>, CompletableFuture<Void>> pair =
                     AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(asyncResponseTransformer);
@@ -112,8 +112,8 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
             HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
-                    new ClientExecutionParams<PresignedUrlGetObjectRequestWrapper, GetObjectResponse>()
-                            .withOperationName("PresignedUrlGetObject")
+                    new ClientExecutionParams<PresignedUrlDownloadRequestWrapper, GetObjectResponse>()
+                            .withOperationName("PresignedUrlDownload")
                             .withProtocolMetadata(protocolMetadata)
                             .withResponseHandler(responseHandler)
                             .withErrorResponseHandler(errorResponseHandler)
@@ -122,7 +122,7 @@ public final class DefaultAsyncPresignedUrlManager implements AsyncPresignedUrlM
                             .withMetricCollector(apiCallMetricCollector)
                             // TODO: Deprecate IS_DISCOVERED_ENDPOINT, use new SKIP_ENDPOINT_RESOLUTION for better semantics
                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true)
-                            .withMarshaller(new PresignedUrlGetObjectRequestMarshaller(protocolFactory)),
+                            .withMarshaller(new PresignedUrlDownloadRequestMarshaller(protocolFactory)),
                                                                                         asyncResponseTransformer);
             
             CompletableFuture<ReturnT> whenCompleteFuture = executeFuture.whenComplete((r, e) -> {

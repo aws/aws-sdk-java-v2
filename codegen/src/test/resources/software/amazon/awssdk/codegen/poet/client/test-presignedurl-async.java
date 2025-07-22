@@ -39,12 +39,12 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.json.internal.ServiceVersionInfo;
-import software.amazon.awssdk.services.json.internal.presignedurl.DefaultAsyncPresignedUrlManager;
+import software.amazon.awssdk.services.json.internal.presignedurl.DefaultAsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.InvalidInputException;
 import software.amazon.awssdk.services.json.model.JsonException;
-import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlManager;
+import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.services.json.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -147,8 +147,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     }
 
     @Override
-    public AsyncPresignedUrlManager presignedUrlManager() {
-        return new DefaultAsyncPresignedUrlManager(clientHandler, protocolFactory, clientConfiguration, protocolMetadata);
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        return new DefaultAsyncPresignedUrlExtension(clientHandler, protocolFactory, clientConfiguration, protocolMetadata);
     }
 
     @Override

@@ -52,13 +52,13 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 
 @WireMockTest
-public class AsyncPresignedUrlManagerTest {
+public class AsyncPresignedUrlExtensionTest {
 
     private S3AsyncClient s3AsyncClient;
-    private AsyncPresignedUrlManager presignedUrlManager;
+    private AsyncPresignedUrlExtension presignedUrlExtension;
 
     @TempDir
     Path tempDir;
@@ -68,7 +68,7 @@ public class AsyncPresignedUrlManagerTest {
         s3AsyncClient = S3AsyncClient.builder()
                                      .endpointOverride(URI.create(wireMockRuntimeInfo.getHttpBaseUrl()))
                                      .build();
-        presignedUrlManager = s3AsyncClient.presignedUrlManager();
+        presignedUrlExtension = s3AsyncClient.presignedUrlExtension();
     }
 
     @AfterEach
@@ -82,7 +82,7 @@ public class AsyncPresignedUrlManagerTest {
     class BasicFunctionality {
         @Test
         void givenS3AsyncClient_whenPresignedUrlManagerRequested_thenReturnsNonNullInstance() {
-            assertThat(presignedUrlManager).isNotNull();
+            assertThat(presignedUrlExtension).isNotNull();
         }
 
         @Test
@@ -94,10 +94,10 @@ public class AsyncPresignedUrlManagerTest {
             stubSuccessResponse(presignedUrlPath, testContent, testETag);
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             ResponseBytes<GetObjectResponse> response = result.get();
             assertSuccessfulResponse(response, testContent, testETag);
@@ -114,7 +114,7 @@ public class AsyncPresignedUrlManagerTest {
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(
+                presignedUrlExtension.getObject(
                     request -> request.presignedUrl(presignedUrl),
                     AsyncResponseTransformer.toBytes()
                 );
@@ -138,10 +138,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(testContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
             
             ResponseBytes<GetObjectResponse> response = result.get();
             assertThat(response).isNotNull();
@@ -166,13 +166,13 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(expectedContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+            PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                                .presignedUrl(presignedUrl)
                                                                                .range(range)
                                                                                .build();
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             ResponseBytes<GetObjectResponse> response = result.get();
             assertThat(response).isNotNull();
@@ -191,12 +191,12 @@ public class AsyncPresignedUrlManagerTest {
             stubSuccessResponse(presignedUrlPath, testContent, testETag);
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             Path downloadFile = tempDir.resolve("download-" + UUID.randomUUID() + ".txt");
 
             CompletableFuture<GetObjectResponse> result =
-                presignedUrlManager.getObject(request, downloadFile);
+                presignedUrlExtension.getObject(request, downloadFile);
 
             GetObjectResponse response = result.get();
             assertThat(response).isNotNull();
@@ -218,7 +218,7 @@ public class AsyncPresignedUrlManagerTest {
             Path downloadFile = tempDir.resolve("consumer-download-" + UUID.randomUUID() + ".txt");
 
             CompletableFuture<GetObjectResponse> result =
-                presignedUrlManager.getObject(
+                presignedUrlExtension.getObject(
                     request -> request.presignedUrl(presignedUrl),
                     downloadFile
                 );
@@ -246,10 +246,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(testContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
             
             Path downloadFile = tempDir.resolve("empty-file-" + UUID.randomUUID() + ".txt");
-            CompletableFuture<GetObjectResponse> result = presignedUrlManager.getObject(request, downloadFile);
+            CompletableFuture<GetObjectResponse> result = presignedUrlExtension.getObject(request, downloadFile);
             
             GetObjectResponse response = result.get();
             assertThat(response).isNotNull();
@@ -275,10 +275,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(largeContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             Path downloadFile = tempDir.resolve("large-file-" + UUID.randomUUID() + ".bin");
-            CompletableFuture<GetObjectResponse> result = presignedUrlManager.getObject(request, downloadFile);
+            CompletableFuture<GetObjectResponse> result = presignedUrlExtension.getObject(request, downloadFile);
             
             GetObjectResponse response = result.get();
             assertThat(response).isNotNull();
@@ -316,10 +316,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(testContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             ResponseBytes<GetObjectResponse> response = result.get();
             assertSuccessfulResponse(response, testContent, testETag);
@@ -351,10 +351,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withBody(testContent)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             ResponseBytes<GetObjectResponse> response = result.get();
             assertSuccessfulResponse(response, testContent, testETag);
@@ -373,10 +373,10 @@ public class AsyncPresignedUrlManagerTest {
                                         .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
             URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, presignedUrlPath);
-            PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+            PresignedUrlDownloadRequest request = createRequest(presignedUrl);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
             try {
                 result.get();
                 throw new AssertionError("Expected exception was not thrown");
@@ -401,12 +401,12 @@ public class AsyncPresignedUrlManagerTest {
                 throw new RuntimeException(e);
             }
 
-            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+            PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                                .presignedUrl(presignedUrl)
                                                                                .build();
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             assertThatThrownBy(() -> result.get())
                 .isInstanceOf(ExecutionException.class);
@@ -428,12 +428,12 @@ public class AsyncPresignedUrlManagerTest {
                 throw new RuntimeException(e);
             }
 
-            PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+            PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                                .presignedUrl(presignedUrl)
                                                                                .build();
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> result =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 
             assertThatThrownBy(() -> result.get())
                 .isInstanceOf(ExecutionException.class);
@@ -464,9 +464,9 @@ public class AsyncPresignedUrlManagerTest {
             List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
             for (int i = 0; i < concurrentRequests; i++) {
                 URL presignedUrl = createPresignedUrl(wireMockRuntimeInfo, paths.get(i));
-                PresignedUrlGetObjectRequest request = createRequest(presignedUrl);
+                PresignedUrlDownloadRequest request = createRequest(presignedUrl);
                 
-                futures.add(presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes()));
+                futures.add(presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes()));
             }
             
             CompletableFuture<Void> allFutures = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -488,8 +488,8 @@ public class AsyncPresignedUrlManagerTest {
         }
     }
 
-    private PresignedUrlGetObjectRequest createRequest(URL presignedUrl) {
-        return PresignedUrlGetObjectRequest.builder()
+    private PresignedUrlDownloadRequest createRequest(URL presignedUrl) {
+        return PresignedUrlDownloadRequest.builder()
                                            .presignedUrl(presignedUrl)
                                            .build();
     }
