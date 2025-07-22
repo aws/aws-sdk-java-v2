@@ -28,6 +28,7 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,5 +108,15 @@ public class Application {
         GetMetricStatisticsRequest getMetricStatisticsRequest = new GetMetricStatisticsRequest()
             .withStartTime(start)
             .withEndTime(end);
+
+        GetMetricStatisticsRequest getMetricStatisticsRequest2 = new GetMetricStatisticsRequest();
+        getMetricStatisticsRequest2.setStartTime(start);
+        getMetricStatisticsRequest2.setEndTime(end);
+    }
+
+    void pojoSettersAfterCreation() {
+        SendMessageRequest sendMessageRequest = new SendMessageRequest();
+        sendMessageRequest.setMessageGroupId("groupId");
+        sendMessageRequest.setQueueUrl("queueUrl");
     }
 }

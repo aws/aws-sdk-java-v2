@@ -97,6 +97,15 @@ public final class AuthSchemeSpecUtils {
         return ClassName.get(internalPackage(), "Modeled" + providerInterfaceName().simpleName());
     }
 
+    public ClassName preferredAuthSchemeProviderName() {
+        return ClassName.get(internalPackage(), "Preferred" + providerInterfaceName().simpleName());
+    }
+
+    public ClassName authSchemeProviderBuilderName() {
+        return ClassName.get(basePackage(),
+                             intermediateModel.getMetadata().getServiceName() + "AuthSchemeProviderBuilder");
+    }
+
     public ClassName authSchemeInterceptor() {
         return ClassName.get(internalPackage(), intermediateModel.getMetadata().getServiceName() + "AuthSchemeInterceptor");
     }

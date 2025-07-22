@@ -62,6 +62,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
     private final DownloadFileRequest downloadFileRequest;
     private final long bytesTransferred;
     private final Instant s3ObjectLastModified;
+    private final String s3ObjectEtag;
     private final Long totalSizeInBytes;
     private final Instant fileLastModified;
     private final List<Integer> completedParts;
@@ -71,6 +72,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
         this.bytesTransferred = builder.bytesTransferred == null ? 0 : Validate.isNotNegative(builder.bytesTransferred,
                                                                                               "bytesTransferred");
         this.s3ObjectLastModified = builder.s3ObjectLastModified;
+        s3ObjectEtag = builder.s3ObjectEtag;
         this.totalSizeInBytes = Validate.isPositiveOrNull(builder.totalSizeInBytes, "totalSizeInBytes");
         this.fileLastModified = builder.fileLastModified;
         List<Integer> compledPartsList =  Validate.getOrDefault(builder.completedParts, Collections::emptyList);
@@ -97,6 +99,9 @@ public final class ResumableFileDownload implements ResumableTransfer,
         if (!Objects.equals(s3ObjectLastModified, that.s3ObjectLastModified)) {
             return false;
         }
+        if (!Objects.equals(s3ObjectEtag, that.s3ObjectEtag)) {
+            return false;
+        }
         if (!Objects.equals(fileLastModified, that.fileLastModified)) {
             return false;
         }
@@ -111,6 +116,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
         int result = downloadFileRequest.hashCode();
         result = 31 * result + (int) (bytesTransferred ^ (bytesTransferred >>> 32));
         result = 31 * result + (s3ObjectLastModified != null ? s3ObjectLastModified.hashCode() : 0);
+        result = 31 * result + (s3ObjectEtag != null ? s3ObjectEtag.hashCode() : 0);
         result = 31 * result + (fileLastModified != null ? fileLastModified.hashCode() : 0);
         result = 31 * result + (totalSizeInBytes != null ? totalSizeInBytes.hashCode() : 0);
         result = 31 * result + (completedParts != null ? completedParts.hashCode() : 0);
@@ -144,6 +150,13 @@ public final class ResumableFileDownload implements ResumableTransfer,
     }
 
     /**
+     * Etag of the S3 object since last pause, or {@link Optional#empty()} if unknown
+     */
+    public Optional<String> s3ObjectEtag() {
+        return Optional.ofNullable(s3ObjectEtag);
+    }
+
+    /**
      * Last modified time of the file since last pause
      */
     public Instant fileLastModified() {
@@ -174,6 +187,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
                        .add("bytesTransferred", bytesTransferred)
                        .add("fileLastModified", fileLastModified)
                        .add("s3ObjectLastModified", s3ObjectLastModified)
+                       .add("s3ObjectEtag", s3ObjectEtag)
                        .add("totalSizeInBytes", totalSizeInBytes)
                        .add("downloadFileRequest", downloadFileRequest)
                        .add("completedParts", completedParts)
@@ -332,6 +346,14 @@ public final class ResumableFileDownload implements ResumableTransfer,
         Builder s3ObjectLastModified(Instant s3ObjectLastModified);
 
         /**
+         * Sets the Etag of the object
+         *
+         * @param s3ObjectEtag the Etag of the object
+         * @return a reference to this object so that method calls can be chained together.
+         */
+        Builder s3ObjectEtag(String s3ObjectEtag);
+
+        /**
          * Sets the last modified time of the object
          *
          * @param lastModified the last modified time of the object
@@ -353,6 +375,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
         private DownloadFileRequest downloadFileRequest;
         private Long bytesTransferred;
         private Instant s3ObjectLastModified;
+        private String s3ObjectEtag;
         private Long totalSizeInBytes;
         private Instant fileLastModified;
         private List<Integer> completedParts;
@@ -366,6 +389,7 @@ public final class ResumableFileDownload implements ResumableTransfer,
             this.totalSizeInBytes = persistableFileDownload.totalSizeInBytes;
             this.fileLastModified = persistableFileDownload.fileLastModified;
             this.s3ObjectLastModified = persistableFileDownload.s3ObjectLastModified;
+            this.s3ObjectEtag = persistableFileDownload.s3ObjectEtag;
             this.completedParts = persistableFileDownload.completedParts;
         }
 
@@ -390,6 +414,12 @@ public final class ResumableFileDownload implements ResumableTransfer,
         @Override
         public Builder s3ObjectLastModified(Instant s3ObjectLastModified) {
             this.s3ObjectLastModified = s3ObjectLastModified;
+            return this;
+        }
+
+        @Override
+        public Builder s3ObjectEtag(String s3ObjectEtag) {
+            this.s3ObjectEtag = s3ObjectEtag;
             return this;
         }
 

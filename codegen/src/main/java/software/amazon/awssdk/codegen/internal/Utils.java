@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -331,11 +332,13 @@ public final class Utils {
                     "The operation parameter must be specified!");
         }
 
+        String protocol = ProtocolUtils.resolveProtocol(service);
+
         ShapeMarshaller marshaller = new ShapeMarshaller()
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
                 .withRequestUri(operation.getHttp().getRequestUri())
-                .withProtocol(service.getProtocol());
+                .withProtocol(protocol);
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -345,7 +348,7 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (Metadata.usesOperationIdentifier(service.getProtocol())) {
+        if (Metadata.usesOperationIdentifier(protocol)) {
             marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
                                  operation.getName() :
                                  service.getTargetPrefix() + "." + operation.getName());

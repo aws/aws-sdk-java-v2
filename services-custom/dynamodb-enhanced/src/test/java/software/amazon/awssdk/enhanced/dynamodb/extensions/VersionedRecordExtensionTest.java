@@ -166,7 +166,7 @@ public class VersionedRecordExtensionTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void beforeWrite_throwsIllegalArgumentException_ifVersionAttributeIsWrongType() {
+    public void beforeWrite_throwsIllegalArgumentException_ifVersioPnAttributeIsWrongType() {
         FakeItem fakeItem = createUniqueFakeItem();
         Map<String, AttributeValue> fakeItemWIthBadVersion =
             new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));

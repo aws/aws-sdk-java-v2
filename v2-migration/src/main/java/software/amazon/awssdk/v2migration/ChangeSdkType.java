@@ -20,6 +20,7 @@ import static software.amazon.awssdk.v2migration.internal.utils.NamingConversion
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1Class;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isSupportedV1ClientClass;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isV1ClientClass;
+import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.shouldSkip;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -117,6 +118,10 @@ public class ChangeSdkType extends Recipe {
                     maybeAddImport(getV2ModelPackageWildCardEquivalent(fullName));
                     wildcardImports.add(fullName);
                 }
+                return anImport;
+            }
+
+            if (shouldSkip(fullyQualified.getFullyQualifiedName())) {
                 return anImport;
             }
 
@@ -316,7 +321,8 @@ public class ChangeSdkType extends Recipe {
         }
 
         private void storeV1ClassMetadata(String currentFqcn) {
-            if (oldTypeToNewType.containsKey(currentFqcn)) {
+            if (oldTypeToNewType.containsKey(currentFqcn)
+                || shouldSkip(currentFqcn)) {
                 return;
             }
 

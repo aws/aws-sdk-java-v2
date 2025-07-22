@@ -37,6 +37,16 @@ recipeList:
         - withKey
         - withVersionId
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - boolean
+      fluentNames:
+        - withBucket
+        - withKey
+        - withRequestPayer
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.PutObjectRequest
       parameterTypes:
         - java.lang.String
@@ -122,16 +132,6 @@ recipeList:
         - java.lang.String
       fluentNames:
         - withBucket
-  - software.amazon.awssdk.v2migration.ConstructorToFluent:
-      clzzFqcn: com.amazonaws.services.s3.model.ListPartsRequest
-      parameterTypes:
-        - java.lang.String
-        - java.lang.String
-        - java.lang.Integer
-      fluentNames:
-        - withBucket
-        - withKey
-        - withUploadId
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.DeleteBucketCrossOriginConfigurationRequest
       parameterTypes:
@@ -292,6 +292,28 @@ recipeList:
         - withBucket
         - withKey
         - withVersionId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteVersionRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+        - withVersionId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.DeleteVersionRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - com.amazonaws.services.s3.model.MultiFactorAuthentication
+      fluentNames:
+        - withBucket
+        - withKey
+        - withVersionId
+        - withMfa
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.DeleteObjectsRequest
       parameterTypes:
@@ -507,6 +529,12 @@ recipeList:
       fluentNames:
         - withStatus
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.BucketAccelerateConfiguration
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withStatus
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.SetBucketAccelerateConfigurationRequest
       parameterTypes:
         - java.lang.String
@@ -546,6 +574,30 @@ recipeList:
       fluentNames:
         - withBucket
         - withNotificationConfiguration
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetBucketNotificationConfigurationRequest
+      parameterTypes:
+        - com.amazonaws.services.s3.model.BucketNotificationConfiguration
+        - java.lang.String
+      fluentNames:
+        - withNotificationConfiguration
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetBucketVersioningConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - com.amazonaws.services.s3.model.BucketVersioningConfiguration
+      fluentNames:
+        - withBucket
+        - withVersioningConfiguration
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetRequestPaymentConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+        - com.amazonaws.services.s3.model.RequestPaymentConfiguration
+      fluentNames:
+        - withBucket
+        - withRequestPaymentConfiguration
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.SetBucketOwnershipControlsRequest
       parameterTypes:
@@ -622,3 +674,141 @@ recipeList:
         - withKey
         - withUploadId
         - withMultipartUpload
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ListPartsRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+        - withUploadId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.MetadataEntry
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withName
+        - withValue
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.RestoreObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withKey
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.RestoreObjectRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.Integer
+      fluentNames:
+        - withBucket
+        - withKey
+        - withDays
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.Tag
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withKey
+        - withValue
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.CanonicalGrantee
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withId
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.EmailAddressGrantee
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withEmailAddress
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.Grant
+      parameterTypes:
+        - com.amazonaws.services.s3.model.Grantee
+        - com.amazonaws.services.s3.model.Permission
+      fluentNames:
+        - withGrantee
+        - withPermission
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetRequestPaymentConfigurationRequest
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withBucket
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.Bucket
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withName
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.ObjectTagging
+      parameterTypes:
+        - java.util.List<com.amazonaws.services.s3.model.Tag>
+      fluentNames:
+        - withTagSet
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetObjectTaggingRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - com.amazonaws.services.s3.model.ObjectTagging
+      fluentNames:
+        - withBucket
+        - withKey
+        - withTagging
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetObjectTaggingRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+        - java.lang.String
+        - com.amazonaws.services.s3.model.ObjectTagging
+      fluentNames:
+        - withBucket
+        - withKey
+        - withVersionId
+        - withTagging
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.BucketVersioningConfiguration
+      parameterTypes:
+        - java.lang.String
+      fluentNames:
+        - withStatus
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.Owner
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withId
+        - withDisplayName
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.PartitionedPrefix
+      parameterTypes:
+        - com.amazonaws.services.s3.model.PartitionDateSource
+      fluentNames:
+        - withPartitionDateSource
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.SetBucketPolicyRequest
+      parameterTypes:
+        - java.lang.String
+        - java.lang.String
+      fluentNames:
+        - withBucket
+        - withPolicy
+  - software.amazon.awssdk.v2migration.ConstructorToFluent:
+      clzzFqcn: com.amazonaws.services.s3.model.GetObjectTaggingResult
+      parameterTypes:
+        - java.util.List<com.amazonaws.services.s3.model.Tag>
+      fluentNames:
+        - withTagSet

@@ -82,7 +82,8 @@ public class DateToInstant extends Recipe {
             }
 
             boolean isDateParam = javaType.isAssignableFrom(DATE_PATTERN);
-            return SdkTypeUtils.isV2ModelBuilder(declaringType) && isDateParam;
+            boolean isV2Model = SdkTypeUtils.isV2ModelBuilder(declaringType) || SdkTypeUtils.isV2ModelClass(declaringType);
+            return isDateParam && isV2Model;
         }
     }
 }

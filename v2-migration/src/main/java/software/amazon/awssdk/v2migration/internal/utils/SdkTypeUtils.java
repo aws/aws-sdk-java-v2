@@ -15,10 +15,11 @@
 
 package software.amazon.awssdk.v2migration.internal.utils;
 
-import java.util.Arrays;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V1_S3_MODEL_PKG;
+
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -111,8 +112,7 @@ public final class SdkTypeUtils {
                          ProcessCredentialsProvider.Builder.class.getCanonicalName())
                     .build();
 
-    private static final Set<String> V2_CORE_CLASS_BUILDERS =
-        new HashSet<>(V2_CORE_CLASS_TO_BUILDER.values());
+    private static final Collection<String> V2_CORE_CLASS_BUILDERS = new HashSet<>(V2_CORE_CLASS_TO_BUILDER.values());
 
     private static final Pattern V2_CLIENT_BUILDER_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.services\\.[a-zA-Z0-9]+\\.[a-zA-Z0-9]+Builder");
@@ -120,36 +120,98 @@ public final class SdkTypeUtils {
     private static final Pattern V2_TRANSFER_MANAGER_PATTERN = Pattern.compile(
         "software\\.amazon\\.awssdk\\.transfer\\.s3\\.S3TransferManager");
 
-    private static final Set<String> V1_SERVICES_PACKAGE_NAMES = new HashSet<>();
+    private static final Collection<String> PACKAGES_TO_SKIP = new HashSet<>();
+    private static final Collection<String> CLASSES_TO_SKIP = new HashSet<>();
+    private static final Collection<String> V1_SERVICES_PACKAGE_NAMES = new HashSet<>();
 
-    private static final Set<String> PACKAGES_AND_CLASSES_TO_SKIP = new HashSet<>(
-        Arrays.asList("com.amazonaws.services.s3.transfer",
-                      "com.amazonaws.services.dynamodbv2.datamodeling",
-                      "com.amazonaws.services.lambda.invoke",
-                      "com.amazonaws.services.sns.message",
-                      "com.amazonaws.services.dynamodbv2.xspec",
-                      "com.amazonaws.services.dynamodbv2.document.spec",
-                      "com.amazonaws.services.stepfunctions.builder",
-                      "com.amazonaws.services.elasticmapreduce.util",
-                      "com.amazonaws.services.elasticmapreduce.spi",
-                      "com.amazonaws.services.simpleemail.AWSJavaMailTransport",
-                      "com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia",
-                      "com.amazonaws.services.s3.model.PresignedUrlDownloadRequest",
-                      "com.amazonaws.services.s3.model.PresignedUrlDownloadResult",
-                      "com.amazonaws.services.s3.model.PresignedUrlDownloadConfig",
-                      "com.amazonaws.services.s3.model.PresignedUrlUploadRequest",
-                      "com.amazonaws.services.s3.model.PresignedUrlUploadResult",
-                      // non-SDK libraries
-                      // Lambda Runtime : aws-lambda-java-core
-                      "com.amazonaws.services.lambda.runtime",
-                      // Kinesis Client Library (KCL) : amazon-kinesis-client
-                      "com.amazonaws.services.kinesis.clientlibrary",
-                      "com.amazonaws.services.kinesis.leases",
-                      "com.amazonaws.services.kinesis.metrics",
-                      "com.amazonaws.services.kinesis.multilang",
-                      // Kinesis Producer Library (KCL) : amazon-kinesis-producer
-                      "com.amazonaws.services.kinesis.producer"
-        ));
+    static {
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.s3.transfer");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.dynamodbv2.datamodeling");
+
+        // parity features
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.lambda.invoke");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.sns.message");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.dynamodbv2.xspec");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.dynamodbv2.document.spec");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.stepfunctions.builder");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.elasticmapreduce.util");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.elasticmapreduce.spi");
+
+        CLASSES_TO_SKIP.add("com.amazonaws.services.simpleemail.AWSJavaMailTransport");
+        CLASSES_TO_SKIP.add("com.amazonaws.services.kinesisvideo.AmazonKinesisVideoPutMedia");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PresignedUrlDownloadRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PresignedUrlDownloadResult");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PresignedUrlDownloadConfig");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PresignedUrlUploadRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PresignedUrlUploadResult");
+
+        // non-SDK library - Lambda Runtime : aws-lambda-java-core
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.lambda.runtime");
+
+        // non-SDK library - Kinesis Client Library (KCL) : amazon-kinesis-client
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.kinesis.clientlibrary");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.kinesis.leases");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.kinesis.metrics");
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.kinesis.multilang");
+
+        // non-SDK library - Kinesis Producer Library (KCL) : amazon-kinesis-producer
+        PACKAGES_TO_SKIP.add("com.amazonaws.services.kinesis.producer");
+
+        // S3 POJOs with no v2 equivalent
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SSEAwsKeyManagementParams");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SSECustomerKey");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "BucketLoggingConfiguration");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "Filter");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "GenericBucketRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ListBucketsPaginatedRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ListBucketsPaginatedResult");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ListNextBatchOfObjectsRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ListNextBatchOfVersionsRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MultiFactorAuthentication");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ResponseHeaderOverrides");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3AccelerateUnsupported");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3DataSource");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3ObjectId");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "S3ObjectIdBuilder");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "TagSet");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SelectObjectContentEvent");
+
+        // S3 Enums with no v2 equivalent
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "GroupGrantee");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "Region");
+
+        // S3 Enum that maps to two separate enums in v2 : BucketCannedACL and ObjectCannedACL
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CannedAccessControlList");
+
+        // No specific exceptions in v2
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "IllegalBucketNameException");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MultiObjectDeleteException");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MultiObjectDeleteSlowdownException");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SelectObjectContentEventException");
+
+        // S3 Encryption
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoConfiguration");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoConfigurationV2");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoKeyWrapAlgorithm");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoMode");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoRangeGetMode");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "CryptoStorageMode");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "EncryptedGetObjectRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "EncryptedInitiateMultipartUploadRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "EncryptedPutObjectRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "AmazonS3EncryptionClient");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "PutInstructionFileRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "InstructionFileId");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "KMSEncryptionMaterials");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "EncryptionMaterials");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "KMSEncryptionMaterialsProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "StaticEncryptionMaterialsProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "EncryptionMaterialsProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "MaterialsDescriptionProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "UploadObjectRequest");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "SimpleMaterialProvider");
+        CLASSES_TO_SKIP.add(V1_S3_MODEL_PKG + "ExtraMaterialsDescription");
+    }
 
     static {
         V1_SERVICES_PACKAGE_NAMES.add("com.amazonaws.services.sagemakeredgemanager");
@@ -548,11 +610,16 @@ public final class SdkTypeUtils {
         return !V1_SERVICES_PACKAGE_NAMES.contains(rootPackage);
     }
 
+    public static boolean shouldSkip(String fullyQualifiedName) {
+        return !fullyQualifiedName.startsWith("com.amazonaws.")
+            || PACKAGES_TO_SKIP.stream().anyMatch(fullyQualifiedName::startsWith)
+            || CLASSES_TO_SKIP.stream().anyMatch(fullyQualifiedName::equals);
+    }
+
     public static boolean isSupportedV1Class(JavaType.FullyQualified fullyQualified) {
         String fullyQualifiedName = fullyQualified.getFullyQualifiedName();
 
-        if (!fullyQualifiedName.startsWith("com.amazonaws.") ||
-            PACKAGES_AND_CLASSES_TO_SKIP.stream().anyMatch(fullyQualifiedName::startsWith)) {
+        if (shouldSkip(fullyQualifiedName)) {
             return false;
         }
 

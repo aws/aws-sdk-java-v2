@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Objects;
+
 public class ReturnTypeModel {
 
     private String returnType;
@@ -47,5 +49,25 @@ public class ReturnTypeModel {
     public ReturnTypeModel withDocumentation(String documentation) {
         setDocumentation(documentation);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ReturnTypeModel that = (ReturnTypeModel) o;
+        return Objects.equals(returnType, that.returnType) && Objects.equals(documentation, that.documentation);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(returnType);
+        result = 31 * result + Objects.hashCode(documentation);
+        return result;
     }
 }

@@ -48,6 +48,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.testutils.LogCaptor;
@@ -581,6 +582,15 @@ class ProfileFileSupplierTest {
         }
     }
 
+    @Test
+    public void defaultSupplier_noCredentialsFiles_returnsEmptyProvider() {
+        EnvironmentVariableHelper.run(environmentVariableHelper -> {
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_SHARED_CREDENTIALS_FILE, "no-such-file");
+            environmentVariableHelper.set(ProfileFileSystemSetting.AWS_CONFIG_FILE, "no-such-file");
+            ProfileFileSupplier supplier = ProfileFileSupplier.defaultSupplier();
+            assertThat(supplier.get().profiles()).isEmpty();
+        });
+    }
 
     private Path writeTestFile(String contents, Path path) {
         try {

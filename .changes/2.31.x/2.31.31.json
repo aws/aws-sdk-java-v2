@@ -1,0 +1,42 @@
+{
+    "version": "2.31.31",
+    "date": "2025-04-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager",
+            "contributor": "",
+            "description": "Add support for file-based HTTP domain control validation, available through Amazon CloudFront."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "This release adds native h2 support for the bedrock runtime API, the support is only limited to SDKs that support h2 requests natively."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add distribution tenant, connection group, and multi-tenant distribution APIs to the CloudFront SDK."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Doc only update for GSI descriptions."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Add integration with SSM Parameter Store to Image Builder."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
