@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSWORD;
@@ -27,6 +28,7 @@ import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -34,8 +36,10 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,6 +57,7 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
+import software.amazon.awssdk.http.apache5.internal.conn.SslSocketFactoryToTlsStrategyAdapter;
 import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
@@ -177,9 +182,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws IOException,
-                                                                                                NoSuchAlgorithmException,
-                                                                                                KeyManagementException {
+    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws Exception {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -192,8 +195,9 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         SSLContext sslcontext = SSLContext.getInstance("TLS");
         sslcontext.init(keyManagers, null, null);
 
-        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
-        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+        // Use TlsSocketStrategy instead of ConnectionSocketFactory
+        TlsSocketStrategy socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
+        TlsSocketStrategy socketFactoryMock = Mockito.spy(socketFactory);
 
         client = Apache5HttpClient.builder().build();
 
@@ -221,20 +225,24 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagers, null, null);
 
-        SdkTlsSocketFactory socketFactory = new SdkTlsSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-        SdkTlsSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
-
+        // Create actual SSLConnectionSocketFactory instead of SdkTlsSocketFactory
+        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
+            sslContext,
+            NoopHostnameVerifier.INSTANCE
+        );
+        SSLConnectionSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
 
         client = Apache5HttpClient.builder()
-                                 .socketFactory(socketFactorySpy)
-                                 .build();
+                                  .socketFactory(socketFactorySpy)  // Now passes correct type
+                                  .build();
         makeRequestWithHttpClient(client);
 
+        // Verify the legacy method signature
         Mockito.verify(socketFactorySpy).createLayeredSocket(
-            Mockito.any(),       // Socket
-            Mockito.anyString(), // Target host
-            Mockito.anyInt(),    // Port
-            Mockito.any()        // HttpContext
+            Mockito.any(Socket.class),
+            Mockito.anyString(),
+            Mockito.anyInt(),
+            Mockito.any(HttpContext.class)
         );
     }
 
@@ -252,4 +260,139 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         return httpClient.prepareRequest(request).call();
     }
 
+    @Test
+    public void tls_strategy_configuration() throws Exception {
+        // Setup TLS context
+        KeyManager[] keyManagers = keyManagersProvider.keyManagers();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagers, null, null);
+
+        // Create and spy on TlsSocketStrategy
+        TlsSocketStrategy tlsStrategy = new SdkTlsSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        TlsSocketStrategy tlsStrategySpy = Mockito.spy(tlsStrategy);
+
+        // Build client with TLS strategy
+        client = Apache5HttpClient.builder()
+                                  .tlsSocketStrategy(tlsStrategySpy)
+                                  .build();
+
+        // Make request and verify
+        HttpExecuteResponse response = makeRequestWithHttpClient(client);
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+
+        // Verify upgrade method was called
+        Mockito.verify(tlsStrategySpy).upgrade(
+            Mockito.any(Socket.class),
+            Mockito.anyString(),
+            Mockito.anyInt(),
+            Mockito.any(),
+            Mockito.any(HttpContext.class)
+        );
+    }
+
+    @Test
+    public void tls_strategy_overrides_legacy_factory() throws Exception {
+        // Setup TLS context
+        KeyManager[] keyManagers = keyManagersProvider.keyManagers();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagers, null, null);
+
+        // Create spies for both approaches
+        SSLConnectionSocketFactory legacyFactory = new SSLConnectionSocketFactory(
+            sslContext,
+            NoopHostnameVerifier.INSTANCE
+        );
+        SSLConnectionSocketFactory legacyFactorySpy = Mockito.spy(legacyFactory);
+
+        TlsSocketStrategy tlsStrategy = new SdkTlsSocketFactory(
+            sslContext,
+            NoopHostnameVerifier.INSTANCE
+        );
+        TlsSocketStrategy tlsStrategySpy = Mockito.spy(tlsStrategy);
+
+        // Build client with both - TLS strategy should take precedence
+        client = Apache5HttpClient.builder()
+                                  .socketFactory(legacyFactorySpy)
+                                  .tlsSocketStrategy(tlsStrategySpy)  // This should override
+                                  .build();
+
+        // Make request
+        HttpExecuteResponse response = makeRequestWithHttpClient(client);
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+
+        // Verify only TLS strategy was used, not legacy
+        Mockito.verify(tlsStrategySpy).upgrade(
+            Mockito.any(Socket.class),
+            Mockito.anyString(),
+            Mockito.anyInt(),
+            Mockito.any(),
+            Mockito.any(HttpContext.class)
+        );
+
+        Mockito.verifyNoInteractions(legacyFactorySpy);
+    }
+
+    @Test
+    public void adapter_converts_non_sslSocketException() throws Exception {
+        // Create mock that returns a regular Socket (not SSLSocket)
+        SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
+        Socket nonSslSocket = Mockito.mock(Socket.class);
+
+        // Setup mock to return non-SSL socket
+        Mockito.when(mockFactory.createLayeredSocket(
+            Mockito.any(Socket.class),
+            Mockito.eq("example.com"),
+            Mockito.eq(443),
+            Mockito.any()
+        )).thenReturn(nonSslSocket);
+
+        // Create adapter
+        SslSocketFactoryToTlsStrategyAdapter adapter =
+            new SslSocketFactoryToTlsStrategyAdapter(mockFactory);
+
+        // Test should throw IOException
+        Socket plainSocket = Mockito.mock(Socket.class);
+
+        assertThatExceptionOfType(IOException.class)
+            .isThrownBy(() -> adapter.upgrade(plainSocket, "example.com", 443, null, null))
+            .withMessageContaining("did not return an SSLSocket")
+            .withMessageContaining(nonSslSocket.getClass().getName());
+    }
+
+
+    @Test
+    public void adapter_handlesNullSocket() throws Exception {
+        // Create mock that returns null
+        SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
+
+        Mockito.when(mockFactory.createLayeredSocket(
+            Mockito.any(Socket.class),
+            Mockito.anyString(),
+            Mockito.anyInt(),
+            Mockito.any(HttpContext.class)
+        )).thenReturn(null);
+
+        // Create adapter
+        SslSocketFactoryToTlsStrategyAdapter adapter =
+            new SslSocketFactoryToTlsStrategyAdapter(mockFactory);
+
+        // Test should throw IOException
+        Socket plainSocket = Mockito.mock(Socket.class);
+
+        assertThatExceptionOfType(IOException.class)
+            .isThrownBy(() -> adapter.upgrade(plainSocket, "example.com", 443, null, null))
+            .withMessageContaining("returned null");
+    }
+
+    @Test
+    public void null_tlsStrategy_falls_backToDefault() throws Exception {
+        // Test that setting tlsSocketStrategy(null) works correctly
+        client = Apache5HttpClient.builder()
+                                  .tlsSocketStrategy(null)
+                                  .tlsKeyManagersProvider(keyManagersProvider)
+                                  .build();
+
+        HttpExecuteResponse response = makeRequestWithHttpClient(client);
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+    }
 }

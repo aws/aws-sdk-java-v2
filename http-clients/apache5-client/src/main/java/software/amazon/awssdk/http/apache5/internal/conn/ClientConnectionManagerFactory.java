@@ -49,7 +49,7 @@ public final class ClientConnectionManagerFactory {
     /**
      * Further wraps {@link LeaseRequest} to capture performance metrics.
      */
-    private static class InstrumentedHttpClientConnectionManager extends DelegatingHttpClientConnectionManager {
+    private static final class InstrumentedHttpClientConnectionManager extends DelegatingHttpClientConnectionManager {
 
         private InstrumentedHttpClientConnectionManager(HttpClientConnectionManager delegate) {
             super(delegate);
