@@ -16,6 +16,7 @@
 package software.amazon.awssdk.utils;
 
 import java.util.Arrays;
+import java.util.concurrent.locks.ReentrantLock;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 

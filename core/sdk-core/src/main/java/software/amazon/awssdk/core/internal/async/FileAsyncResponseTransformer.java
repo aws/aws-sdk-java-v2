@@ -23,7 +23,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.CompletionHandler;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
@@ -34,18 +33,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -59,7 +57,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
-    private final long position;
+    private long position;
     private final FileTransformerConfiguration configuration;
 
     public FileAsyncResponseTransformer(Path path) {
@@ -89,7 +87,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         if (fileConfiguration.fileWriteOption() == WRITE_TO_POSITION) {
             return Validate.getOrDefault(fileConfiguration.position(), () -> 0L);
         }
-        return  0L;
+        return 0L;
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
@@ -134,6 +132,15 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.response = response;
     }
 
+    // to be overridden by subclasses
+    public void setOffsetPosition(long position) {
+        this.position = position;
+    }
+
+    public FileTransformerConfiguration getConfiguration() {
+        return this.configuration;
+    }
+
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         try {
@@ -174,114 +181,4 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return TransformerType.FILE.getName();
     }
 
-    /**
-     * {@link Subscriber} implementation that writes chunks to a file.
-     */
-    static class FileSubscriber implements Subscriber<ByteBuffer> {
-        private final AtomicLong position;
-        private final AsynchronousFileChannel fileChannel;
-        private final Path path;
-        private final CompletableFuture<Void> future;
-        private final Consumer<Throwable> onErrorMethod;
-
-        private volatile boolean writeInProgress = false;
-        private volatile boolean closeOnLastWrite = false;
-        private Subscription subscription;
-
-        FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future,
-                       Consumer<Throwable> onErrorMethod, long startingPosition) {
-            this.fileChannel = fileChannel;
-            this.path = path;
-            this.future = future;
-            this.onErrorMethod = onErrorMethod;
-            this.position = new AtomicLong(startingPosition);
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            if (this.subscription != null) {
-                s.cancel();
-                return;
-            }
-            this.subscription = s;
-            // Request the first chunk to start producing content
-            s.request(1);
-        }
-
-        @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            if (byteBuffer == null) {
-                throw new NullPointerException("Element must not be null");
-            }
-
-            performWrite(byteBuffer);
-        }
-
-        private void performWrite(ByteBuffer byteBuffer) {
-            writeInProgress = true;
-
-            fileChannel.write(byteBuffer, position.get(), byteBuffer, new CompletionHandler<Integer, ByteBuffer>() {
-                @Override
-                public void completed(Integer result, ByteBuffer attachment) {
-                    position.addAndGet(result);
-
-                    if (byteBuffer.hasRemaining()) {
-                        performWrite(byteBuffer);
-                    } else {
-                        synchronized (FileSubscriber.this) {
-                            writeInProgress = false;
-                            if (closeOnLastWrite) {
-                                close();
-                            } else {
-                                subscription.request(1);
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void failed(Throwable exc, ByteBuffer attachment) {
-                    subscription.cancel();
-                    future.completeExceptionally(exc);
-                }
-            });
-        }
-
-        @Override
-        public void onError(Throwable t) {
-            onErrorMethod.accept(t);
-        }
-
-        @Override
-        public void onComplete() {
-            log.trace(() -> "onComplete");
-            // if write in progress, tell write to close on finish.
-            synchronized (this) {
-                if (writeInProgress) {
-                    log.trace(() -> "writeInProgress = true, not closing");
-                    closeOnLastWrite = true;
-                } else {
-                    log.trace(() -> "writeInProgress = false, closing");
-                    close();
-                }
-            }
-        }
-
-        private void close() {
-            try {
-                if (fileChannel != null) {
-                    invokeSafely(fileChannel::close);
-                }
-                log.trace(() -> "Completing File async transformer future future");
-                future.complete(null);
-            } catch (RuntimeException exception) {
-                future.completeExceptionally(exception);
-            }
-        }
-
-        @Override
-        public String toString() {
-            return getClass() + ":" + path.toString();
-        }
-    }
 }

@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal.progress;
+package software.amazon.awssdk.utils;
 
+import java.util.Optional;
 import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Parse a Content-Range header value into a total byte count. The expected format is the following: <p></p>
@@ -72,4 +71,34 @@ public final class ContentRangeParser {
             return OptionalLong.empty();
         }
     }
+
+    public static Optional<Pair<Long, Long>> range(String contentRange) {
+        if (StringUtils.isEmpty(contentRange)) {
+            return Optional.empty();
+        }
+
+        String trimmed = contentRange.trim();
+        if (!trimmed.startsWith("bytes ")) {
+            return Optional.empty();
+        }
+        String withoutBytes = trimmed.substring("bytes ".length());
+        int hyphen = withoutBytes.indexOf('-');
+        if (hyphen == -1) {
+            return Optional.empty();
+        }
+        String begin = withoutBytes.substring(0, hyphen);
+        int slash = withoutBytes.indexOf('/');
+        if (slash == -1) {
+            return Optional.empty();
+        }
+        String end = withoutBytes.substring(hyphen + 1, slash);
+        try {
+            long startInt = Long.parseLong(begin);
+            long endInt = Long.parseLong(end);
+            return Optional.of(Pair.of(startInt, endInt));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
 }

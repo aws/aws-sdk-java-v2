@@ -35,6 +35,7 @@ import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
+import software.amazon.awssdk.utils.ContentRangeParser;
 
 /**
  * An SDK-internal helper class that facilitates updating a {@link TransferProgress} and invoking {@link TransferListener}s.
