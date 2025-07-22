@@ -1,6 +1,8 @@
 name: AWS CodeBuild CI Integration Tests
 on:
   pull_request:
+    paths:
+      - '**/*.java'
   merge_group:
   push:
     branches:
