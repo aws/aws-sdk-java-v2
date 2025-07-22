@@ -79,6 +79,7 @@
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
+        <module>test/http-client-benchmarks</module>
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
         <module>test/stability-tests</module>
