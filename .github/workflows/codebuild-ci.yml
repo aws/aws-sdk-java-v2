@@ -29,23 +29,6 @@ jobs:
         timeout-minutes: 120
         with:
           project-name: aws-sdk-java-v2
-  integration-tests:
-    if: github.repository == 'aws/aws-sdk-java-v2'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.CI_AWS_ROLE_ARN }}
-          aws-region: us-west-2
-          role-duration-seconds: 7200
-      - name: Run Integration Test build
-        uses: aws-actions/aws-codebuild-run-build@v1
-        hide-cloudwatch-logs: true
-        timeout-minutes: 180
-        with:
-          project-name: aws-sdk-java-v2-IntegrationTest-JDK8
-
   jdk11-build:
     if: github.repository == 'aws/aws-sdk-java-v2'
     runs-on: ubuntu-latest
