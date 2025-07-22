@@ -454,6 +454,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     @Override
     public AsyncPresignedUrlExtension presignedUrlExtension() {
         // TODO: Implement presigned URL extension support for CRT client
-        throw new UnsupportedOperationException("Presigned URL extension is not supported for multipart client");
+        throw new UnsupportedOperationException("Presigned URL extension is not supported for CRT client");
     }
 }

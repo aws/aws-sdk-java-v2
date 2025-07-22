@@ -97,7 +97,6 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
 
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "S3");
-            //TODO: Discuss if we need to change OPERATION_NAME as part of Surface API Review
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PresignedUrlDownload");
 
             Pair<AsyncResponseTransformer<GetObjectResponse, ReturnT>, CompletableFuture<Void>> pair =
