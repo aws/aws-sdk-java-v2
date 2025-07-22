@@ -41,6 +41,7 @@ jobs:
           role-duration-seconds: 7200
       - name: Run Integration Test build
         uses: aws-actions/aws-codebuild-run-build@v1
+        hide-cloudwatch-logs: true
         timeout-minutes: 180
         with:
           project-name: aws-sdk-java-v2-IntegrationTest-JDK8
