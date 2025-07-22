@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "DynamoDB Enhanced Client",
+    "contributor": "akiesler",
+    "description": "Support for Version Starting at 0 with Configurable Increment"
+}
