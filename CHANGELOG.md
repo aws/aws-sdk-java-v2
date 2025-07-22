@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.6__ __2025-07-22__
+## __AWS Lambda__
+  - ### Features
+    - This release migrated the model to Smithy keeping all features unchanged.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EMR__
+  - ### Features
+    - This release adds new parameter 'ExtendedSupport' in AWS EMR RunJobFlow, ModifyCluster and DescribeCluster API.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Image Tag Mutability Exception feature, allowing repositories to define wildcard-based patterns that override the default image tag mutability settings.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - This release updates the supported regions for Neptune API to include current AWS regions.
+
 # __2.32.5__ __2025-07-21__
 ## __AWS SDK for Java v2__
   - ### Features
