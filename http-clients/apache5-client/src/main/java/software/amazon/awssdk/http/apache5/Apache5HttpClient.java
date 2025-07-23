@@ -739,16 +739,14 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private static ConnectionConfig getConnectionConfig(AttributeMap standardOptions) {
             ConnectionConfig.Builder connectionConfigBuilder =
                 ConnectionConfig.custom()
-                                .setConnectTimeout(
-                                    Timeout.of(standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis(),
-                                               TimeUnit.MILLISECONDS))
-                                .setSocketTimeout(
-                                    Timeout.of(standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis(),
-                                               TimeUnit.MILLISECONDS));
+                                .setConnectTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()))
+                                .setSocketTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
             Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
             if (!connectionTtl.isZero()) {
                 // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
-                connectionConfigBuilder.setTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
+                connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
             }
             return connectionConfigBuilder.build();
         }
