@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.interceptor;
 
 import java.util.Optional;
+import org.slf4j.MDC;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.internal.interceptor.TracingSystemSetting;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.utils.SystemSetting;
 public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static final String TRACE_ID_HEADER = "X-Amzn-Trace-Id";
     private static final String LAMBDA_FUNCTION_NAME_ENVIRONMENT_VARIABLE = "AWS_LAMBDA_FUNCTION_NAME";
+    private static final String CONCURRENT_TRACE_ID_KEY = "AWS_LAMBDA_X_TraceId";
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
@@ -53,6 +55,9 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     }
 
     private Optional<String> traceId() {
+        if (TracingSystemSetting.AWS_LAMBDA_MAX_CONCURRENCY.getStringValue().isPresent()) {
+            return Optional.ofNullable(MDC.get(CONCURRENT_TRACE_ID_KEY));
+        }
         return TracingSystemSetting._X_AMZN_TRACE_ID.getStringValue();
     }
 

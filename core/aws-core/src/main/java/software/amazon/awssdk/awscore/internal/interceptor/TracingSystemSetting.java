@@ -24,7 +24,9 @@ import software.amazon.awssdk.utils.SystemSetting;
 @SdkInternalApi
 public enum TracingSystemSetting implements SystemSetting {
     // See: https://github.com/aws/aws-xray-sdk-java/issues/251
-    _X_AMZN_TRACE_ID("com.amazonaws.xray.traceHeader", null);
+    _X_AMZN_TRACE_ID("com.amazonaws.xray.traceHeader", null),
+    // Environment variable to detect Lambda multi concurrency mode ("elevator"). This value is set by the Lambda runtime.
+    AWS_LAMBDA_MAX_CONCURRENCY("aws.lambda.maxConcurrency", null);
 
     private final String systemProperty;
     private final String defaultValue;
