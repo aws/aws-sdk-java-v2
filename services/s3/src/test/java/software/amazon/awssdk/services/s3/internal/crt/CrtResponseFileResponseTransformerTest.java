@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -31,13 +32,13 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 public class CrtResponseFileResponseTransformerTest {
     private CrtResponseFileResponseTransformer<SdkResponse> transformer;
     private SdkResponse response;
-    private SdkPublisher<ByteBuffer> publisher;
+    private MockCrtPublisher publisher;
 
     @BeforeEach
     public void setUp() throws Exception {
         transformer = new CrtResponseFileResponseTransformer<>();
         response = Mockito.mock(SdkResponse.class);
-        publisher = AsyncRequestBody.fromString("");
+        publisher = new MockCrtPublisher();
     }
 
     @Test
@@ -46,6 +47,7 @@ public class CrtResponseFileResponseTransformerTest {
         transformer.onResponse(response);
         assertThat(responseFuture.isDone()).isFalse();
         transformer.onStream(publisher);
+        publisher.complete();
         assertThat(responseFuture.isDone()).isTrue();
         SdkResponse returnedResponse = responseFuture.get();
         assertThat(returnedResponse).isEqualTo(response);
@@ -72,6 +74,18 @@ public class CrtResponseFileResponseTransformerTest {
         assertThatThrownBy(responseFuture::get)
             .isInstanceOf(ExecutionException.class)
             .hasCauseInstanceOf(RuntimeException.class);
+    }
+
+    private static class MockCrtPublisher implements SdkPublisher<ByteBuffer> {
+        private Subscriber<? super ByteBuffer> subscriber;
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            subscriber = s;
+        }
+
+        public void complete() {
+            subscriber.onComplete();
+        }
     }
 
 }

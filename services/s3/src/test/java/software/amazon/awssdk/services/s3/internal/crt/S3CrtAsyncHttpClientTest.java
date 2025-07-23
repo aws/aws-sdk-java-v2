@@ -571,7 +571,7 @@ public class S3CrtAsyncHttpClientTest {
         Path path = RandomTempFile.randomUncreatedFile().toPath();
 
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder()
-            .putHttpExecutionAttribute(OPERATION_NAME,"GetObject")
+            .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
             .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
             .putHttpExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND)
             .build();
@@ -579,8 +579,6 @@ public class S3CrtAsyncHttpClientTest {
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getResponseFilePath()).isEqualTo(path);
         assertThat(actual.getResponseFileOption()).isEqualTo(S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND);
-        S3MetaRequestResponseHandler handler = actual.getResponseHandler();
-        System.out.println(handler);
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

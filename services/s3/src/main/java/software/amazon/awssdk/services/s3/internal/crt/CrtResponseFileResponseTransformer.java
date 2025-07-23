@@ -27,6 +27,8 @@ import software.amazon.awssdk.utils.Logger;
 
 /**
  * When the CRT Response File option is used in a request, the body is streamed directly to the file.
+ * The S3CrtResponseHandlerAdapter in this case will never receive a response body but will call onStream
+ * when the request is complete with a publisher that will complete immediately.
  * This transformer is effectively a no-op transformer that waits for the stream to complete and then
  * completes the future with the response.
  *
@@ -62,7 +64,7 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
         if (cf != null) {
             cf.completeExceptionally(throwable);
         } else {
-            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
+            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture. "
                            + "The future cannot be completed exceptionally because it is null");
         }
     }
@@ -85,12 +87,14 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
                 return;
             }
             this.subscription = s;
-            // Request the first chunk to start producing content
-            s.request(1);
+            // do not request data from the subscription since body is written directly to file
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
+            // The response body is streamed directly to the file - this method should never be called.
+            // ensure the future is completed exceptionally if this occurs
+            onErrorMethod.accept(new IllegalStateException("OnCompleteSubscriber received unexpected call to onNext."));
         }
 
         @Override
