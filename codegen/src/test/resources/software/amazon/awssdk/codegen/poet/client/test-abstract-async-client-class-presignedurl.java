@@ -8,7 +8,7 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
 import software.amazon.awssdk.services.json.model.JsonRequest;
-import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlManager;
+import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.Validate;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -51,11 +51,11 @@ public abstract class DelegatingJsonAsyncClient implements JsonAsyncClient {
     }
 
     /**
-     * Creates an instance of {@link AsyncPresignedUrlManager} object with the configuration set on this client.
+     * Creates an instance of {@link AsyncPresignedUrlExtension} object with the configuration set on this client.
      */
     @Override
-    public AsyncPresignedUrlManager presignedUrlManager() {
-        return delegate.presignedUrlManager();
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        return delegate.presignedUrlExtension();
     }
 
     @Override

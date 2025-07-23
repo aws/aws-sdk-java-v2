@@ -99,8 +99,8 @@ public class AsyncClientInterface implements ClassSpec {
         if (model.getCustomizationConfig().getBatchManagerSupported()) {
             addBatchManagerMethod(result);
         }
-        if (model.getCustomizationConfig().getPresignedUrlManagerSupported()) {
-            addPresignedUrlManagerMethod(result);
+        if (model.getCustomizationConfig().getPresignedUrlExtensionSupported()) {
+            addPresignedUrlExtensionMethod(result);
         }
         result.addMethod(serviceClientConfigMethod());
         addAdditionalMethods(result);
@@ -178,14 +178,14 @@ public class AsyncClientInterface implements ClassSpec {
         type.addMethod(batchManagerOperationBody(builder).build());
     }
     
-    protected void addPresignedUrlManagerMethod(TypeSpec.Builder type) {
-        ClassName returnType = poetExtensions.getPresignedUrlManagerAsyncInterface();
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("presignedUrlManager")
+    protected void addPresignedUrlExtensionMethod(TypeSpec.Builder type) {
+        ClassName returnType = poetExtensions.getPresignedUrlExtensionAsyncInterface();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("presignedUrlExtension")
                                                .addModifiers(PUBLIC)
                                                .returns(returnType)
                                                .addJavadoc("Creates an instance of {@link $T} object with the "
                                                            + "configuration set on this client.", returnType);
-        type.addMethod(presignedUrlManagerOperationBody(builder).build());
+        type.addMethod(presignedUrlExtensionOperationBody(builder).build());
     }
 
     @Override
@@ -564,7 +564,7 @@ public class AsyncClientInterface implements ClassSpec {
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
     
-    protected MethodSpec.Builder presignedUrlManagerOperationBody(MethodSpec.Builder builder) {
+    protected MethodSpec.Builder presignedUrlExtensionOperationBody(MethodSpec.Builder builder) {
         return builder.addModifiers(DEFAULT, PUBLIC)
                       .addStatement("throw new $T()", UnsupportedOperationException.class);
     }
