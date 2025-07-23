@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces Thin Client",
-    "contributor": "",
-    "description": "Added the lastUserId parameter to the ListDevices and GetDevice API."
-}
