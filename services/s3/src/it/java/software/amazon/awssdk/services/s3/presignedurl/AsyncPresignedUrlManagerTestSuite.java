@@ -122,7 +122,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("basicFunctionalityTestData")
-    void given_validPresignedUrl_when_requestingObject_then_returnsContent(String testDescription, 
+    void getObject_withValidPresignedUrl_returnsContent(String testDescription, 
                                String objectKey, 
                                String expectedContent) throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(objectKey);
@@ -140,7 +140,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_validPresignedUrl_when_downloadingToFile_then_savesContentToFile() throws Exception {
+    void getObject_withValidPresignedUrl_savesContentToFile() throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey);
         Path downloadFile = temporaryFolder.resolve("download-" + UUID.randomUUID() + ".txt");
         CompletableFuture<GetObjectResponse> future =
@@ -153,7 +153,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_validPresignedUrl_when_usingConsumerBuilder_then_returnsContent() throws Exception {
+    void getObject_withConsumerBuilder_returnsContent() throws Exception {
         URL presignedUrl = createPresignedUrl(testGetObjectKey);
 
         CompletableFuture<ResponseBytes<GetObjectResponse>> bytesFuture =
@@ -179,7 +179,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("rangeTestData")
-    void given_validRangeRequest_when_requestingPartialContent_then_returnsSpecifiedRange(String testDescription, 
+    void getObject_withRangeRequest_returnsSpecifiedRange(String testDescription, 
                        String range, 
                        String expectedContent) throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey, range);
@@ -193,7 +193,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("errorHandlingTestData")
-    void given_invalidRequest_when_executingOperation_then_throwsExpectedException(String testDescription,
+    void getObject_withInvalidRequest_throwsExpectedException(String testDescription,
                           String errorType,
                           Class<? extends Exception> expectedExceptionType) throws Exception {
 
@@ -241,7 +241,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_multipleRangeRequests_when_executingConcurrently_then_returnsCorrectContent() throws Exception {
+    void getObject_withMultipleRangeRequestsConcurrently_returnsCorrectContent() throws Exception {
         String concurrentTestKey = uploadTestObject("concurrent-test", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
@@ -271,7 +271,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_largeObject_when_requestingRanges_then_returnsCorrectChunks() throws Exception {
+    void getObject_withLargeObjectRanges_returnsCorrectChunks() throws Exception {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
         int chunkSize = 1024 * 1024;
 
@@ -300,7 +300,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_largeObject_when_downloadingToFile_then_savesCompleteContent() throws Exception {
+    void getObject_withLargeObjectToFile_savesCompleteContent() throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testLargeObjectKey);
         Path downloadFile = temporaryFolder.resolve("large-download-" + UUID.randomUUID() + ".bin");
         CompletableFuture<GetObjectResponse> future =
@@ -313,7 +313,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_clientWithMetrics_when_executingRequest_then_collectsMetrics() throws Exception {
+    void getObject_withClientMetrics_collectsMetrics() throws Exception {
         List<MetricCollection> collectedMetrics = new ArrayList<>();
         MetricPublisher metricPublisher = new MetricPublisher() {
             @Override
@@ -341,7 +341,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void given_presignedUrl_when_usingBuilderPattern_then_returnsContent() throws Exception {
+    void getObject_withBuilderPattern_returnsContent() throws Exception {
         PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
             .presignedUrl(createPresignedUrl(testGetObjectKey))
             .build();
@@ -355,11 +355,11 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     static Stream<Arguments> basicFunctionalityTestData() {
         return Stream.of(
-            Arguments.of("given_validUrl_when_requestingObject_then_returnsContent", 
+            Arguments.of("getObject_withValidUrl_returnsContent", 
                         testGetObjectKey, testObjectContent),
-            Arguments.of("given_validUrl_when_requestingLargeObject_then_returnsContent", 
+            Arguments.of("getObject_withValidLargeObjectUrl_returnsContent", 
                         testLargeObjectKey, null),
-            Arguments.of("given_validUrl_when_requestingWithBuilder_then_returnsContent", 
+            Arguments.of("getObject_withBuilderPattern_returnsContent", 
                         testGetObjectKey, testObjectContent)
         );
     }
@@ -367,26 +367,26 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     static Stream<Arguments> rangeTestData() {
         String content = "Hello AsyncPresignedUrlManager Integration Test";
         return Stream.of(
-            Arguments.of("given_validUrl_when_requestingPrefix10Bytes_then_returnsFirst10Bytes",
+            Arguments.of("getObject_withPrefix10BytesRange_returnsFirst10Bytes",
                         "bytes=0-9", content.substring(0, 10)),
-            Arguments.of("given_validUrl_when_requestingSuffix10Bytes_then_returnsLast10Bytes",
+            Arguments.of("getObject_withSuffix10BytesRange_returnsLast10Bytes",
                         "bytes=-10", content.substring(content.length() - 10)),
-            Arguments.of("given_validUrl_when_requestingMiddle10Bytes_then_returnsMiddle10Bytes",
+            Arguments.of("getObject_withMiddle10BytesRange_returnsMiddle10Bytes",
                         "bytes=10-19", content.substring(10, 20)),
-            Arguments.of("given_validUrl_when_requestingSingleByte_then_returnsSingleByte",
+            Arguments.of("getObject_withSingleByteRange_returnsSingleByte",
                         "bytes=0-0", content.substring(0, 1))
         );
     }
 
     static Stream<Arguments> errorHandlingTestData() {
         return Stream.of(
-            Arguments.of("given_nonExistentKey_when_requestingObject_then_throwsNoSuchKeyException",
+            Arguments.of("getObject_withNonExistentKey_throwsNoSuchKeyException",
                         "nonExistentKey", NoSuchKeyException.class),
-            Arguments.of("given_invalidUrl_when_requestingObject_then_throwsS3Exception",
+            Arguments.of("getObject_withInvalidUrl_throwsS3Exception",
                         "invalidUrl", S3Exception.class),
-            Arguments.of("given_expiredUrl_when_requestingObject_then_throwsS3Exception",
+            Arguments.of("getObject_withExpiredUrl_throwsS3Exception",
                         "expiredUrl", S3Exception.class),
-            Arguments.of("given_malformedUrl_when_requestingObject_then_throwsIllegalArgumentException",
+            Arguments.of("getObject_withMalformedUrl_throwsIllegalArgumentException",
                         "malformedUrl", IllegalArgumentException.class)
         );
     }
