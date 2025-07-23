@@ -51,19 +51,19 @@ public class PresignedUrlDownloadRequestMarshaller implements Marshaller<Presign
     /**
      * Marshalls the presigned URL request into an HTTP GET request.
      *
-     * @param presignedUrlGetObjectRequestWrapper the request to marshall
+     * @param presignedUrlDownloadRequestWrapper the request to marshall
      * @return HTTP request ready for execution
      * @throws SdkClientException if URL conversion fails
      */
     @Override
-    public SdkHttpFullRequest marshall(PresignedUrlDownloadRequestWrapper presignedUrlGetObjectRequestWrapper) {
-        Validate.paramNotNull(presignedUrlGetObjectRequestWrapper, "presignedUrlGetObjectRequestWrapper");
+    public SdkHttpFullRequest marshall(PresignedUrlDownloadRequestWrapper presignedUrlDownloadRequestWrapper) {
+        Validate.paramNotNull(presignedUrlDownloadRequestWrapper, "presignedUrlDownloadRequestWrapper");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING);
-            URI presignedUri = presignedUrlGetObjectRequestWrapper.url().toURI();
+            URI presignedUri = presignedUrlDownloadRequestWrapper.url().toURI();
 
-            return protocolMarshaller.marshall(presignedUrlGetObjectRequestWrapper)
+            return protocolMarshaller.marshall(presignedUrlDownloadRequestWrapper)
                                      .toBuilder()
                                      .uri(presignedUri)
                                      .build();

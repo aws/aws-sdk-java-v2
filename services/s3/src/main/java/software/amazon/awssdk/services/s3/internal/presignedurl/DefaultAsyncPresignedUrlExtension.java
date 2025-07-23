@@ -82,14 +82,14 @@ public final class DefaultAsyncPresignedUrlExtension implements AsyncPresignedUr
 
     @Override
     public <ReturnT> CompletableFuture<ReturnT> getObject(
-            PresignedUrlDownloadRequest presignedUrlGetObjectRequest,
+            PresignedUrlDownloadRequest presignedUrlDownloadRequest,
             AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer)
             throws NoSuchKeyException, InvalidObjectStateException,
                    AwsServiceException, SdkClientException, S3Exception {
 
         PresignedUrlDownloadRequestWrapper internalRequest = PresignedUrlDownloadRequestWrapper.builder()
-                .url(presignedUrlGetObjectRequest.presignedUrl())
-                .range(presignedUrlGetObjectRequest.range())
+                .url(presignedUrlDownloadRequest.presignedUrl())
+                .range(presignedUrlDownloadRequest.range())
                 .build();
 
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ?

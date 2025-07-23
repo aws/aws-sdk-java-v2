@@ -120,8 +120,8 @@ public class AsyncClientClassTest {
     
     @Test
     public void asyncClientPresignedUrlExtension() {
-        ClassSpec asyncClientPresignedUrlManager = createAsyncClientClass(presignedUrlExtensionModels());
-        assertThat(asyncClientPresignedUrlManager, generatesTo("test-presignedurl-async.java"));
+        ClassSpec asyncClientPresignedUrlExtension = createAsyncClientClass(presignedUrlExtensionModels());
+        assertThat(asyncClientPresignedUrlExtension, generatesTo("test-presignedurl-async.java"));
     }
 
     @Test

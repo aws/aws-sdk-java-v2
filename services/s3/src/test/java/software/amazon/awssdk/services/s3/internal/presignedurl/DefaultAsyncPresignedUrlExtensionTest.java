@@ -244,11 +244,11 @@ class DefaultAsyncPresignedUrlExtensionTest {
                 SdkClientConfiguration clientConfigWithMetrics = getDefaultSdkConfigs().toBuilder()
                     .option(SdkClientOption.METRIC_PUBLISHERS, Collections.singletonList(mockPublisher))
                     .build();
-                DefaultAsyncPresignedUrlExtension managerWithMetrics = new DefaultAsyncPresignedUrlExtension(
+                DefaultAsyncPresignedUrlExtension extensionWithMetrics = new DefaultAsyncPresignedUrlExtension(
                     clientHandler, protocolFactory, clientConfigWithMetrics, protocolMetadata);
                 mockHttpClient.stubNextResponse(createSuccessResponse());
                 CompletableFuture<ResponseBytes<GetObjectResponse>> metricsFuture = 
-                    managerWithMetrics.getObject(testRequest, AsyncResponseTransformer.toBytes());
+                    extensionWithMetrics.getObject(testRequest, AsyncResponseTransformer.toBytes());
                 metricsFuture.get();
                 
                 verify(mockPublisher, atLeastOnce()).publish(any(MetricCollection.class));

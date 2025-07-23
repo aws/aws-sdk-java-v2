@@ -81,7 +81,7 @@ public class AsyncPresignedUrlExtensionTest {
     @Nested
     class BasicFunctionality {
         @Test
-        void givenS3AsyncClient_whenPresignedUrlManagerRequested_thenReturnsNonNullInstance() {
+        void givenS3AsyncClient_whenPresignedUrlExtensionRequested_thenReturnsNonNullInstance() {
             assertThat(presignedUrlExtension).isNotNull();
         }
 

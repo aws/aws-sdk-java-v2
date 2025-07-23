@@ -130,9 +130,9 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         private BuilderImpl() {
         }
 
-        private BuilderImpl(PresignedUrlDownloadRequest presignedUrlGetObjectRequest) {
-            presignedUrl(presignedUrlGetObjectRequest.presignedUrl());
-            range(presignedUrlGetObjectRequest.range());
+        private BuilderImpl(PresignedUrlDownloadRequest presignedUrlDownloadRequest) {
+            presignedUrl(presignedUrlDownloadRequest.presignedUrl());
+            range(presignedUrlDownloadRequest.range());
         }
 
         @Override

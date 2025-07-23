@@ -155,7 +155,7 @@ class PresignedUrlDownloadRequestMarshallerTest {
     void marshall_withNullRequest_shouldThrowException() {
         assertThatThrownBy(() -> marshaller.marshall(null))
             .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("presignedUrlGetObjectRequestWrapper must not be null");
+            .hasMessageContaining("presignedUrlDownloadRequestWrapper must not be null");
     }
 
     @Test
