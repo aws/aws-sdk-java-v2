@@ -1,4 +1,30 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.7__ __2025-07-23__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports dynamic session policies for job executions. This feature allows you to specify custom, fine-grained permissions for each job run without creating multiple IAM roles.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for skip-os-shutdown option for the EC2 instance stop and terminate operations. This feature enables customers to bypass the graceful OS shutdown, supporting faster state transitions when instance data preservation isn't critical.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Added the lastUserId parameter to the ListDevices and GetDevice API.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Support for Version Starting at 0 with Configurable Increment
+        - Contributed by: [@akiesler](https://github.com/akiesler)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akiesler](https://github.com/akiesler)
 # __2.32.6__ __2025-07-22__
 ## __AWS Lambda__
   - ### Features
