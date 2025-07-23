@@ -24,11 +24,11 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.protocols.core.OperationInfo;
 import software.amazon.awssdk.protocols.core.ProtocolMarshaller;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
-import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlGetObjectRequestWrapper;
+import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlDownloadRequestWrapper;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * {@link PresignedUrlGetObjectRequestWrapper} Marshaller
+ * {@link PresignedUrlDownloadRequestWrapper} Marshaller
  *
  * <p>
  * Marshalls presigned URL requests by using the complete URL directly and adding optional Range headers.
@@ -36,7 +36,7 @@ import software.amazon.awssdk.utils.Validate;
  * </p>
  */
 @SdkInternalApi
-public class PresignedUrlGetObjectRequestMarshaller implements Marshaller<PresignedUrlGetObjectRequestWrapper> {
+public class PresignedUrlDownloadRequestMarshaller implements Marshaller<PresignedUrlDownloadRequestWrapper> {
     private static final OperationInfo SDK_OPERATION_BINDING = OperationInfo.builder()
             .requestUri("").httpMethod(SdkHttpMethod.GET).hasExplicitPayloadMember(false).hasPayloadMembers(false)
             .putAdditionalMetadata(AwsXmlProtocolFactory.ROOT_MARSHALL_LOCATION_ATTRIBUTE, null)
@@ -44,26 +44,26 @@ public class PresignedUrlGetObjectRequestMarshaller implements Marshaller<Presig
 
     private final AwsXmlProtocolFactory protocolFactory;
 
-    public PresignedUrlGetObjectRequestMarshaller(AwsXmlProtocolFactory protocolFactory) {
+    public PresignedUrlDownloadRequestMarshaller(AwsXmlProtocolFactory protocolFactory) {
         this.protocolFactory = protocolFactory;
     }
 
     /**
      * Marshalls the presigned URL request into an HTTP GET request.
      *
-     * @param presignedUrlGetObjectRequestWrapper the request to marshall
+     * @param presignedUrlDownloadRequestWrapper the request to marshall
      * @return HTTP request ready for execution
      * @throws SdkClientException if URL conversion fails
      */
     @Override
-    public SdkHttpFullRequest marshall(PresignedUrlGetObjectRequestWrapper presignedUrlGetObjectRequestWrapper) {
-        Validate.paramNotNull(presignedUrlGetObjectRequestWrapper, "presignedUrlGetObjectRequestWrapper");
+    public SdkHttpFullRequest marshall(PresignedUrlDownloadRequestWrapper presignedUrlDownloadRequestWrapper) {
+        Validate.paramNotNull(presignedUrlDownloadRequestWrapper, "presignedUrlDownloadRequestWrapper");
         try {
             ProtocolMarshaller<SdkHttpFullRequest> protocolMarshaller = protocolFactory
                 .createProtocolMarshaller(SDK_OPERATION_BINDING);
-            URI presignedUri = presignedUrlGetObjectRequestWrapper.url().toURI();
+            URI presignedUri = presignedUrlDownloadRequestWrapper.url().toURI();
 
-            return protocolMarshaller.marshall(presignedUrlGetObjectRequestWrapper)
+            return protocolMarshaller.marshall(presignedUrlDownloadRequestWrapper)
                                      .toBuilder()
                                      .uri(presignedUri)
                                      .build();

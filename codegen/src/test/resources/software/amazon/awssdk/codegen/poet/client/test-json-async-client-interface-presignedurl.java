@@ -8,7 +8,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.awscore.AwsClient;
 import software.amazon.awssdk.services.json.model.APostOperationRequest;
 import software.amazon.awssdk.services.json.model.APostOperationResponse;
-import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlManager;
+import software.amazon.awssdk.services.json.presignedurl.AsyncPresignedUrlExtension;
 
 /**
  * Service client for accessing Json Service asynchronously. This can be created using the static {@link #builder()}
@@ -94,9 +94,9 @@ public interface JsonAsyncClient extends AwsClient {
     }
 
     /**
-     * Creates an instance of {@link AsyncPresignedUrlManager} object with the configuration set on this client.
+     * Creates an instance of {@link AsyncPresignedUrlExtension} object with the configuration set on this client.
      */
-    default AsyncPresignedUrlManager presignedUrlManager() {
+    default AsyncPresignedUrlExtension presignedUrlExtension() {
         throw new UnsupportedOperationException();
     }
 
