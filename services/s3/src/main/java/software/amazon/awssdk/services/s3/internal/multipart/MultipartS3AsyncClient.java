@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -110,5 +111,11 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
             }
         };
         return new MultipartS3AsyncClient(clientWithUserAgent, multipartConfiguration, checksumEnabled);
+    }
+
+    @Override
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        // TODO: Implement presigned URL extension support for multipart client
+        throw new UnsupportedOperationException("Presigned URL extension is not supported for multipart client");
     }
 }

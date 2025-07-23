@@ -21,18 +21,18 @@ import java.net.URL;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
 
-class PresignedUrlGetObjectRequestTest {
+class PresignedUrlDownloadRequestTest {
 
     @Test
     void equalsAndHashCode_shouldFollowContract() {
-        EqualsVerifier.forClass(PresignedUrlGetObjectRequest.class)
+        EqualsVerifier.forClass(PresignedUrlDownloadRequest.class)
                       .verify();
     }
 
     @Test
     void builder_shouldCreateRequestWithAllFields() throws Exception {
         URL url = new URL("https://example.com");
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
                                                                            .range("bytes=0-100")
                                                                            .build();
@@ -44,7 +44,7 @@ class PresignedUrlGetObjectRequestTest {
     @Test
     void builder_shouldCreateRequestWithOnlyRequiredFields() throws Exception {
         URL url = new URL("https://example.com");
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
                                                                            .build();
 
@@ -55,12 +55,12 @@ class PresignedUrlGetObjectRequestTest {
     @Test
     void toBuilder_shouldCreateBuilderFromExistingRequest() throws Exception {
         URL url = new URL("https://example.com");
-        PresignedUrlGetObjectRequest original = PresignedUrlGetObjectRequest.builder()
+        PresignedUrlDownloadRequest original = PresignedUrlDownloadRequest.builder()
                                                                             .presignedUrl(url)
                                                                             .range("bytes=0-100")
                                                                             .build();
 
-        PresignedUrlGetObjectRequest copy = original.toBuilder().build();
+        PresignedUrlDownloadRequest copy = original.toBuilder().build();
 
         assertThat(copy.presignedUrl()).isEqualTo(original.presignedUrl());
         assertThat(copy.range()).isEqualTo(original.range());
@@ -70,12 +70,12 @@ class PresignedUrlGetObjectRequestTest {
     void toBuilder_shouldAllowModification() throws Exception {
         URL url1 = new URL("https://example.com");
         URL url2 = new URL("https://other.com");
-        PresignedUrlGetObjectRequest original = PresignedUrlGetObjectRequest.builder()
+        PresignedUrlDownloadRequest original = PresignedUrlDownloadRequest.builder()
                                                                             .presignedUrl(url1)
                                                                             .range("bytes=0-100")
                                                                             .build();
 
-        PresignedUrlGetObjectRequest modified = original.toBuilder()
+        PresignedUrlDownloadRequest modified = original.toBuilder()
                                                         .presignedUrl(url2)
                                                         .range("bytes=200-300")
                                                         .build();
@@ -92,7 +92,7 @@ class PresignedUrlGetObjectRequestTest {
         URL url = new URL("https://example.com");
         String range = "bytes=0-100";
 
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
                                                                            .range(range)
                                                                            .build();
@@ -109,7 +109,7 @@ class PresignedUrlGetObjectRequestTest {
 
     @Test
     void serializableBuilderClass_shouldReturnCorrectClass() {
-        assertThat(PresignedUrlGetObjectRequest.serializableBuilderClass())
-            .isEqualTo(PresignedUrlGetObjectRequest.BuilderImpl.class);
+        assertThat(PresignedUrlDownloadRequest.serializableBuilderClass())
+            .isEqualTo(PresignedUrlDownloadRequest.BuilderImpl.class);
     }
 }

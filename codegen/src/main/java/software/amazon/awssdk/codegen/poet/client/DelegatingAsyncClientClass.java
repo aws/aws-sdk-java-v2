@@ -224,7 +224,7 @@ public class DelegatingAsyncClientClass extends AsyncClientInterface {
     }
     
     @Override
-    protected MethodSpec.Builder presignedUrlManagerOperationBody(MethodSpec.Builder builder) {
-        return builder.addAnnotation(Override.class).addStatement("return delegate.presignedUrlManager()");
+    protected MethodSpec.Builder presignedUrlExtensionOperationBody(MethodSpec.Builder builder) {
+        return builder.addAnnotation(Override.class).addStatement("return delegate.presignedUrlExtension()");
     }
 }
