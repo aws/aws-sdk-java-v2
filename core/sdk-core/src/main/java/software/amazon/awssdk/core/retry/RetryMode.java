@@ -130,7 +130,7 @@ public enum RetryMode {
      * Allows customizing the variables used during determination of a {@link RetryMode}. Created via {@link #resolver()}.
      */
     public static class Resolver {
-        private static final RetryMode SDK_DEFAULT_RETRY_MODE = LEGACY;
+        private static final RetryMode SDK_DEFAULT_RETRY_MODE = STANDARD;
         
         private Supplier<ProfileFile> profileFile;
         private String profileName;

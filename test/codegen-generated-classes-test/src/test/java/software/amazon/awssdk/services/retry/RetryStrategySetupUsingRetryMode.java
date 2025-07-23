@@ -90,8 +90,8 @@ public class RetryStrategySetupUsingRetryMode {
 
         // Configuring the client using an unrelated plugin should not remember the previous settings.
         assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client, Collections.singletonList(unrelatedPlugin)));
-        // Four retries, the LEGACY retry strategy is back in.
-        verifyRequestCount(3 + 4);
+        // 3 retries, the STANDARD retry strategy is back in.
+        verifyRequestCount(3 + 3);
     }
 
     @Test

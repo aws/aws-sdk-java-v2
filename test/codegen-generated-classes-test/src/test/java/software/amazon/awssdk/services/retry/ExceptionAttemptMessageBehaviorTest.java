@@ -88,8 +88,8 @@ public abstract class ExceptionAttemptMessageBehaviorTest<ClientT, BuilderT exte
         SdkClientException exception = assertThrows(SdkClientException.class,
                                                     () -> callAllTypes(client));
 
-        assertThat(exception.getMessage()).contains("SDK Attempt Count: 4");
-        wireMock.verify(4, postRequestedFor(anyUrl()));
+        assertThat(exception.getMessage()).contains("SDK Attempt Count: 3");
+        wireMock.verify(3, postRequestedFor(anyUrl()));
     }
 
     @Test
