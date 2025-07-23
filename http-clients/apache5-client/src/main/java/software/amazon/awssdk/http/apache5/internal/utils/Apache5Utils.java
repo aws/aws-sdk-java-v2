@@ -79,6 +79,7 @@ public final class Apache5Utils {
      * Returns a new instance of NTCredentials used for proxy authentication.
      */
     private static Credentials newNtCredentials(ProxyConfiguration proxyConfiguration) {
+        // Deprecated NTCredentials is used to maintain backward compatibility with Apache4.
         return new NTCredentials(
             proxyConfiguration.username(),
             proxyConfiguration.password().toCharArray(),

@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -70,6 +71,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -343,7 +345,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                                          AttributeMap resolvedOptions) {
         return Apache5HttpRequestConfig.builder()
                                        .socketTimeout(resolvedOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT))
-                                       .connectionTimeout(resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
                                        .connectionAcquireTimeout(
                                           resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT))
                                        .proxyConfiguration(builder.proxyConfiguration)
@@ -728,15 +729,26 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                                          .setSSLSocketFactory(sslsf)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);
-            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isZero()) {
-                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
-                builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
-            }
             builder.setMaxConnPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setMaxConnTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setDefaultSocketConfig(buildSocketConfig(standardOptions));
+            builder.setDefaultConnectionConfig(getConnectionConfig(standardOptions));
             return builder.build();
+        }
+
+        private static ConnectionConfig getConnectionConfig(AttributeMap standardOptions) {
+            ConnectionConfig.Builder connectionConfigBuilder =
+                ConnectionConfig.custom()
+                                .setConnectTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()))
+                                .setSocketTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
+            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
+            if (!connectionTtl.isZero()) {
+                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+                connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
+            }
+            return connectionConfigBuilder.build();
         }
 
         private SSLConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,

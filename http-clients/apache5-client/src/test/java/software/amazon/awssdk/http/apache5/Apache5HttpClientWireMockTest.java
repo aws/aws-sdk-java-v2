@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache5;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,10 +29,15 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.time.Duration;
+import java.util.stream.Stream;
+import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.HttpRoute;
 import org.apache.hc.client5.http.SystemDefaultDnsResolver;
@@ -278,5 +284,72 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
         }).isInstanceOfAny(
             IllegalStateException.class
         ).hasMessageContaining("Connection pool shut down");
+    }
+
+    @Test
+    public void connectionTimeout_exceedsLimit_throwsException() throws Exception {
+        // Test connection timeout with a very short timeout and non-responsive address
+        try (SdkHttpClient client = Apache5HttpClient.builder()
+                                                     .connectionTimeout(Duration.ofMillis(100))
+                                                     .build()) {
+
+            // Use a non-routable address to simulate connection timeout
+            // 192.0.2.1 is a reserved test address
+            SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                           .uri(URI.create("http://192.0.2.1:8080/test"))
+                                                           .method(SdkHttpMethod.GET)
+                                                           .putHeader("Host", "192.0.2.1:8080")
+                                                           .build();
+
+            assertThatThrownBy(() ->
+                                   client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call())
+                .isInstanceOfAny(
+                    ConnectTimeoutException.class,
+                    ConnectException.class,
+                    IOException.class)
+                .satisfies(exception -> {
+                    // message vary based on JVM
+                    String message = exception.getMessage().toLowerCase();
+                    boolean hasTimeoutMessage = Stream.of("timeout", "timed out", "read timeout")
+                                                      .anyMatch(message::contains);
+                    assertThat(hasTimeoutMessage).isTrue();
+                });
+        }
+    }
+
+    @Test
+    public void socketTimeout_exceedsLimit_throwsException() throws Exception {
+        // Configure WireMock to delay response longer than socket timeout
+        mockServer.stubFor(any(urlPathEqualTo("/delayed"))
+                               .willReturn(aResponse()
+                                               .withStatus(200)
+                                               .withBody("delayed response")
+                                               .withFixedDelay(2000)));
+
+        try (SdkHttpClient client = Apache5HttpClient.builder()
+                                                     .socketTimeout(Duration.ofMillis(500))
+                                                     .build()) {
+
+            SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                           .uri(URI.create("http://localhost:" + mockServer.port() + "/delayed"))
+                                                           .method(SdkHttpMethod.GET)
+                                                           .putHeader("Host", "localhost:" + mockServer.port())
+                                                           .putHeader("User-Agent", "test-client")
+                                                           .build();
+
+            assertThatThrownBy(() ->
+                                   client.prepareRequest(HttpExecuteRequest.builder().request(request).build()).call())
+                .isInstanceOfAny(
+                    SocketTimeoutException.class,
+                    IOException.class)
+                .satisfies(exception -> {
+                    String message = exception.getMessage().toLowerCase();
+                    boolean hasTimeoutMessage = Stream.of("timeout", "timed out", "read timeout")
+                                                      .anyMatch(message::contains);
+                    assertThat(hasTimeoutMessage).isTrue();
+
+                });
+            mockServer.verify(1, getRequestedFor(urlPathEqualTo("/delayed")));
+        }
     }
 }
