@@ -1,8 +1,8 @@
 
 # S3 Pre-signed URL GET - Decision Log
 
-## Review Meeting: 06/17/2024
-**Attendees**: Alban, John, Zoe, Dongie, Bole, Ran, Saranya
+## Review Meeting: 06/17/2025
+**Attendees**: Alban Gicquel, John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli
 
 ### Closed Decisions
 
@@ -20,8 +20,8 @@
 
 3. What should we name the Helper API? Options include PresignedURLManager or PresignedUrlExtension. Will be addressed in the Surface API Review.
 
-## Review Meeting: 06/23/2024
-**Attendees**: John, Zoe, Dongie, Bole, Ran, Saranya, Alex, David
+## Review Meeting: 06/23/2025
+**Attendees**: John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli, David Ho
 
 ### Decisions Addressed
 
@@ -30,3 +30,26 @@
 2. Replace IS_DISCOVERED_ENDPOINT execution attribute with a more semantically appropriate solution. Decided to introduce new SKIP_ENDPOINT_RESOLUTION execution attribute specifically for presigned URL scenarios where endpoint resolution should be bypassed, as IS_DISCOVERED_ENDPOINT is tied to deprecated endpoint discovery feature.
 
 3. Use separate rangeStart/rangeEnd fields vs single range string parameter. Decided to use separate rangeStart and rangeEnd Long fields for better user experience, as start/end is more intuitive than string parsing.
+
+## Decision Poll Meeting: 06/30/2025
+**Attendees**: John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli, David Ho, Alex Woods
+
+### Decision Addressed
+Decided to use String range field for Request object to support all RFC 7233 formats including suffix ranges (bytes=-100) and future multi-range support, since S3 currently doesn't support multiple ranges but may in the future without requiring SDK changes.
+
+## Post-standup Meeting: 07/14/2025 
+**Attendees**: Alban Gicquel, John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli, David Ho, Alex Woods
+
+### Decision Addressed
+The team has decided to implement functionality only for S3 async client and defer S3 sync client implementation for now. This decision was made because implementing S3 sync client would require supporting multipart download capabilities. 
+
+## API Surface Area Review: 07/21/2025
+**Attendees**: John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli, David Ho, Alex Woods
+
+### Decisions Addressed
+
+1. Decided on the naming for the surface APIs - AsyncPresignedUrlExtension for the new core API, presignedUrlExtension() for the method to call from the AsyncS3Client and PresignedUrlDownloadRequest for the Get Object Request. Also decided to have PresignedUrlDownload as the Operation Name for metric collection.
+
+2. Remove the consumer builder pattern from Get Request Model.
+
+3. throw UnsupportedOperationException for Multipart S3 Client and S3 CRT Client for now.

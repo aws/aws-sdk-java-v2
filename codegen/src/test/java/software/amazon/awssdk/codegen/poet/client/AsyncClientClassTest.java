@@ -25,6 +25,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackage
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.presignedUrlExtensionModels;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithCustomContextParamsModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceModels;
@@ -117,7 +118,7 @@ public class AsyncClientClassTest {
         ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
         assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
     }
-    
+
     @Test
     public void asyncClientPresignedUrlExtension() {
         ClassSpec asyncClientPresignedUrlExtension = createAsyncClientClass(presignedUrlExtensionModels());
@@ -128,6 +129,12 @@ public class AsyncClientClassTest {
     public void asyncClientWithStreamingUnsignedPayload() {
         AsyncClientClass asyncClientClass = createAsyncClientClass(opsWithSigv4a(), false);
         assertThat(asyncClientClass, generatesTo("test-unsigned-payload-trait-async-client-class.java"));
+    }
+
+    @Test
+    public void asyncClientWithCustomContextParams() {
+        AsyncClientClass asyncClientClass = createAsyncClientClass(serviceWithCustomContextParamsModels());
+        assertThat(asyncClientClass, generatesTo("test-custom-context-params-async-client-class.java"));
     }
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {

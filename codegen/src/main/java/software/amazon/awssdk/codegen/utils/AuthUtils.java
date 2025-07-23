@@ -58,13 +58,17 @@ public final class AuthUtils {
     }
 
     /**
-     * Returns {@code true} if the operation should use bearer auth.
+     * Returns {@code true} if and only if the operation should use bearer auth as the first preferred auth scheme.
      */
-    public static boolean isOpBearerAuth(IntermediateModel model, OperationModel opModel) {
-        if (opModel.getAuthType() == AuthType.BEARER) {
-            return true;
-        }
-        return isServiceBearerAuth(model) && hasNoAuthType(opModel);
+    public static boolean isOpBearerAuthPreferred(IntermediateModel model, OperationModel opModel) {
+        return opModel.getAuthType() == AuthType.BEARER // single modeled auth on operation is bearer
+            // auth array, first auth type is bearer
+            || (opModel.getAuth() != null && !opModel.getAuth().isEmpty() && opModel.getAuth().get(0) == AuthType.BEARER)
+            // service is only bearer and operation doesn't override
+            || (model.getMetadata().getAuthType() == AuthType.BEARER && hasNoAuthType(opModel))
+            // service is only bearer first and operation doesn't override
+            || (model.getMetadata().getAuth() != null && !model.getMetadata().getAuth().isEmpty()
+                && model.getMetadata().getAuth().get(0) == AuthType.BEARER && hasNoAuthType(opModel));
     }
 
     private static boolean isServiceBearerAuth(IntermediateModel model) {

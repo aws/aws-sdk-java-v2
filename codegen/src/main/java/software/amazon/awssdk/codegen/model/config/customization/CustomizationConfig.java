@@ -362,6 +362,11 @@ public class CustomizationConfig {
      */
     private boolean enableEnvironmentBearerToken = false;
 
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
+
     private CustomizationConfig() {
     }
 
@@ -951,5 +956,13 @@ public class CustomizationConfig {
 
     public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
         this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
     }
 }

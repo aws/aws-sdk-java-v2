@@ -39,10 +39,10 @@ public class ClientTestModels {
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/json/customization.config").getFile());
         File paginatorsModel = new File(ClientTestModels.class.getResource("client/c2j/json/paginators.json").getFile());
         C2jModels models = C2jModels.builder()
-            .serviceModel(getServiceModel(serviceModel))
-            .customizationConfig(getCustomizationConfig(customizationModel))
-            .paginatorsModel(getPaginatorsModel(paginatorsModel))
-            .build();
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(getCustomizationConfig(customizationModel))
+                                    .paginatorsModel(getPaginatorsModel(paginatorsModel))
+                                    .build();
 
         return new IntermediateModelBuilder(models).build();
     }
@@ -136,13 +136,13 @@ public class ClientTestModels {
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
 
         C2jModels models = C2jModels
-                .builder()
-                .serviceModel(getServiceModel(serviceModel))
-                .customizationConfig(getCustomizationConfig(customizationModel))
-                .waitersModel(getWaiters(waitersModel))
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .waitersModel(getWaiters(waitersModel))
             .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
             .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
-                .build();
+            .build();
 
         return new IntermediateModelBuilder(models).build();
     }
@@ -192,13 +192,55 @@ public class ClientTestModels {
         File endpointRuleSetModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-unknown-properties.json").getFile());
         File endpointTestsModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-unknown-properties.json").getFile());
 
         C2jModels models = C2jModels
             .builder()
             .serviceModel(getServiceModel(serviceModel))
             .waitersModel(getWaiters(waitersModel))
             .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel queryServiceModelsWithUnknownEndpointMetricValues() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-metric-values.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-metric-values.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel queryServiceModelsWithUriCache() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/customization-uri-cache.config").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .waitersModel(getWaiters(waitersModel))
             .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
             .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
             .build();
@@ -427,6 +469,21 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel serviceWithCustomContextParamsModels() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-custom-context-params/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/service-with-custom-context-params/customization.config")
+                                           .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel xmlServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/xml/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/xml/customization.config").getFile());
@@ -458,9 +515,9 @@ public class ClientTestModels {
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/customservicemetadata/customization.config").getFile());
 
         C2jModels models = C2jModels.builder()
-                .serviceModel(getServiceModel(serviceModel))
-                .customizationConfig(getCustomizationConfig(customizationModel))
-                .build();
+                                    .serviceModel(getServiceModel(serviceModel))
+                                    .customizationConfig(getCustomizationConfig(customizationModel))
+                                    .build();
 
         return new IntermediateModelBuilder(models).build();
     }
