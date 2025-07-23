@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -54,80 +54,75 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 
 /**
  * Abstract test suite for AsyncPresignedUrlManager integration tests.
  */
-public abstract class AsyncPresignedUrlManagerTestSuite {
-    
-    protected static S3Client s3Client;
+public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTestBase {
     protected static S3Presigner presigner;
+    protected AsyncPresignedUrlManager presignedUrlManager;
     protected static String testBucket;
+
+    @TempDir
+    static Path temporaryFolder;
+
     protected static String testGetObjectKey;
     protected static String testLargeObjectKey;
     protected static String testNonExistentKey;
     protected static String testObjectContent;
     protected static byte[] testLargeObjectContent;
 
-    protected AsyncPresignedUrlManager presignedUrlManager;
-
-    @TempDir
-    static Path temporaryFolder;
-
     protected abstract S3AsyncClient createS3AsyncClient();
 
     @BeforeAll
-    static void setUpClass() {
-        s3Client = S3Client.create();
-        presigner = S3Presigner.create();
+    static void setUpTestSuite() throws Exception {
+        setUp();
 
-        testBucket = S3TestUtils.getTestBucket(s3Client);
+        presigner = S3Presigner.builder()
+                                .region(DEFAULT_REGION)
+                                .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                .build();
+        testBucket = S3BucketUtils.temporaryBucketName("async-presigned-url-manager-test");
+        createBucket(testBucket);
         testGetObjectKey = generateRandomObjectKey();
         testLargeObjectKey = generateRandomObjectKey() + "-large";
         testNonExistentKey = generateRandomObjectKey() + "-nonexistent";
         testObjectContent = "Hello AsyncPresignedUrlManager Integration Test";
-
         testLargeObjectContent = new byte[5 * 1024 * 1024];
         for (int i = 0; i < testLargeObjectContent.length; i++) {
             testLargeObjectContent[i] = (byte) (i % 256);
         }
-
-        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3Client, testBucket, testGetObjectKey, testObjectContent);
-
-        S3AsyncClient setupClient = S3AsyncClient.create();
-        setupClient.putObject(
+        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3, testBucket, testGetObjectKey, testObjectContent);
+        s3Async.putObject(
             PutObjectRequest.builder()
                             .bucket(testBucket)
                             .key(testLargeObjectKey)
                             .build(),
             AsyncRequestBody.fromBytes(testLargeObjectContent)
         ).join();
-        setupClient.close();
-
         S3TestUtils.addCleanupTask(AsyncPresignedUrlManagerTestSuite.class, () -> {
-            try {
-                s3Client.deleteObject(DeleteObjectRequest.builder()
-                                                        .bucket(testBucket)
-                                                        .key(testGetObjectKey)
-                                                        .build());
-                s3Client.deleteObject(DeleteObjectRequest.builder()
-                                                        .bucket(testBucket)
-                                                        .key(testLargeObjectKey)
-                                                        .build());
-            } catch (Exception e) {
-            }
+            s3.deleteObject(DeleteObjectRequest.builder()
+                                                    .bucket(testBucket)
+                                                    .key(testGetObjectKey)
+                                                    .build());
+            s3.deleteObject(DeleteObjectRequest.builder()
+                                                    .bucket(testBucket)
+                                                    .key(testLargeObjectKey)
+                                                    .build());
+            deleteBucketAndAllContents(testBucket);
         });
     }
 
     @BeforeEach
-    void setUp() {
+    void setUpEach() {
         S3AsyncClient s3AsyncClient = createS3AsyncClient();
         presignedUrlManager = s3AsyncClient.presignedUrlManager();
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("basicFunctionalityTestData")
-    void testBasicFunctionality(String testDescription, 
+    void given_validPresignedUrl_when_requestingObject_then_returnsContent(String testDescription, 
                                String objectKey, 
                                String expectedContent) throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(objectKey);
@@ -145,7 +140,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
     }
 
     @Test
-    void testGetObjectToFile() throws Exception {
+    void given_validPresignedUrl_when_downloadingToFile_then_savesContentToFile() throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey);
         Path downloadFile = temporaryFolder.resolve("download-" + UUID.randomUUID() + ".txt");
         CompletableFuture<GetObjectResponse> future =
@@ -158,10 +153,9 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
     }
 
     @Test
-    void testGetObjectWithConsumerBuilder() throws Exception {
+    void given_validPresignedUrl_when_usingConsumerBuilder_then_returnsContent() throws Exception {
         URL presignedUrl = createPresignedUrl(testGetObjectKey);
 
-        // Test with bytes transformer
         CompletableFuture<ResponseBytes<GetObjectResponse>> bytesFuture =
             presignedUrlManager.getObject(
                 builder -> builder.presignedUrl(presignedUrl),
@@ -171,7 +165,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
         assertThat(bytesResponse).isNotNull();
         assertThat(bytesResponse.asUtf8String()).isEqualTo(testObjectContent);
 
-        // Test with file transformer
         Path downloadFile = temporaryFolder.resolve("consumer-builder-download-" + UUID.randomUUID() + ".txt");
         CompletableFuture<GetObjectResponse> fileFuture =
             presignedUrlManager.getObject(
@@ -186,7 +179,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("rangeTestData")
-    void testValidRange(String testDescription, 
+    void given_validRangeRequest_when_requestingPartialContent_then_returnsSpecifiedRange(String testDescription, 
                        String range, 
                        String expectedContent) throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey, range);
@@ -200,7 +193,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("errorHandlingTestData")
-    void testErrorHandling(String testDescription,
+    void given_invalidRequest_when_executingOperation_then_throwsExpectedException(String testDescription,
                           String errorType,
                           Class<? extends Exception> expectedExceptionType) throws Exception {
 
@@ -248,77 +241,55 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
     }
 
     @Test
-    void testConcurrentRequests() throws Exception {
+    void given_multipleRangeRequests_when_executingConcurrently_then_returnsCorrectContent() throws Exception {
         String concurrentTestKey = uploadTestObject("concurrent-test", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
-        try {
-            List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
+        futures.add(presignedUrlManager.getObject(
+            createRequestForKey(concurrentTestKey, "bytes=0-8"),   // "012345678"
+            AsyncResponseTransformer.toBytes()));
+        futures.add(presignedUrlManager.getObject(
+            createRequestForKey(concurrentTestKey, "bytes=9-17"),  // "9ABCDEFGH"
+            AsyncResponseTransformer.toBytes()));
+        futures.add(presignedUrlManager.getObject(
+            createRequestForKey(concurrentTestKey, "bytes=18-26"), // "IJKLMNOPQ"
+            AsyncResponseTransformer.toBytes()));
+        futures.add(presignedUrlManager.getObject(
+            createRequestForKey(concurrentTestKey, "bytes=27-35"), // "RSTUVWXYZ"
+            AsyncResponseTransformer.toBytes()));
 
-            // Split the content into 4 parts (9 chars each)
-            futures.add(presignedUrlManager.getObject(
-                createRequestForKey(concurrentTestKey, "bytes=0-8"),   // "012345678"
-                AsyncResponseTransformer.toBytes()));
+        CompletableFuture<Void> allFutures = CompletableFuture.allOf(
+            futures.toArray(new CompletableFuture[0]));
+        allFutures.get(30, TimeUnit.SECONDS);
 
-            futures.add(presignedUrlManager.getObject(
-                createRequestForKey(concurrentTestKey, "bytes=9-17"),  // "9ABCDEFGH"
-                AsyncResponseTransformer.toBytes()));
-
-            futures.add(presignedUrlManager.getObject(
-                createRequestForKey(concurrentTestKey, "bytes=18-26"), // "IJKLMNOPQ"
-                AsyncResponseTransformer.toBytes()));
-
-            futures.add(presignedUrlManager.getObject(
-                createRequestForKey(concurrentTestKey, "bytes=27-35"), // "RSTUVWXYZ"
-                AsyncResponseTransformer.toBytes()));
-
-            // Wait for all requests to complete
-            CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-                futures.toArray(new CompletableFuture[0]));
-            allFutures.get(30, TimeUnit.SECONDS);
-
-            // Verify results
-            StringBuilder result = new StringBuilder();
-            for (CompletableFuture<ResponseBytes<GetObjectResponse>> future : futures) {
-                result.append(future.get().asUtf8String());
-            }
-
-            assertThat(result.toString()).isEqualTo("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-        } finally {
-            // Cleanup
-            s3Client.deleteObject(DeleteObjectRequest.builder()
-                                                    .bucket(testBucket)
-                                                    .key(concurrentTestKey)
-                                                    .build());
+        StringBuilder result = new StringBuilder();
+        for (CompletableFuture<ResponseBytes<GetObjectResponse>> future : futures) {
+            result.append(future.get().asUtf8String());
         }
+
+        assertThat(result.toString()).isEqualTo("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     }
 
     @Test
-    void testLargeObjectRangeRequests() throws Exception {
+    void given_largeObject_when_requestingRanges_then_returnsCorrectChunks() throws Exception {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
-        int chunkSize = 1024 * 1024; // 1MB chunks
+        int chunkSize = 1024 * 1024;
 
-        // Request 4 chunks of 1MB each
         for (int i = 0; i < 4; i++) {
             int start = i * chunkSize;
             int end = start + chunkSize - 1;
             String range = String.format("bytes=%d-%d", start, end);
-
             futures.add(presignedUrlManager.getObject(
                 createRequestForKey(testLargeObjectKey, range),
                 AsyncResponseTransformer.toBytes()));
         }
 
-        // Wait for all requests to complete
         CompletableFuture<Void> allFutures = CompletableFuture.allOf(
             futures.toArray(new CompletableFuture[0]));
         allFutures.get(60, TimeUnit.SECONDS);
-
-        // Verify each chunk
         for (int i = 0; i < futures.size(); i++) {
             ResponseBytes<GetObjectResponse> response = futures.get(i).get();
             assertThat(response.asByteArray()).hasSize(chunkSize);
-
-            // Verify content matches expected pattern
             byte[] chunk = response.asByteArray();
             int baseOffset = i * chunkSize;
             for (int j = 0; j < chunk.length; j++) {
@@ -329,20 +300,20 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
     }
 
     @Test
-    void testLargeObjectDownloadToFile() throws Exception {
+    void given_largeObject_when_downloadingToFile_then_savesCompleteContent() throws Exception {
         PresignedUrlGetObjectRequest request = createRequestForKey(testLargeObjectKey);
-
         Path downloadFile = temporaryFolder.resolve("large-download-" + UUID.randomUUID() + ".bin");
         CompletableFuture<GetObjectResponse> future =
             presignedUrlManager.getObject(request, downloadFile);
         GetObjectResponse response = future.get();
+
         assertThat(response).isNotNull();
         assertThat(downloadFile).exists();
         assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
     }
 
     @Test
-    void testMetricsCollection() throws Exception {
+    void given_clientWithMetrics_when_executingRequest_then_collectsMetrics() throws Exception {
         List<MetricCollection> collectedMetrics = new ArrayList<>();
         MetricPublisher metricPublisher = new MetricPublisher() {
             @Override
@@ -352,31 +323,25 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
             @Override
             public void close() {}
         };
-        
-        // Create a new client with metrics configuration
-        S3AsyncClient clientWithMetrics = S3AsyncClient.builder()
-                                                       .overrideConfiguration(o -> o.addMetricPublisher(metricPublisher))
-                                                       .build();
-        AsyncPresignedUrlManager metricsManager = clientWithMetrics.presignedUrlManager();
 
-        try {
+        try (S3AsyncClient clientWithMetrics = S3AsyncClient.builder()
+                                                           .overrideConfiguration(o -> o.addMetricPublisher(metricPublisher))
+                                                           .build()) {
+            
+            AsyncPresignedUrlManager metricsManager = clientWithMetrics.presignedUrlManager();
             PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey);
 
             CompletableFuture<ResponseBytes<GetObjectResponse>> future =
                 metricsManager.getObject(request, AsyncResponseTransformer.toBytes());
             ResponseBytes<GetObjectResponse> response = future.get(30, TimeUnit.SECONDS);
+            
             assertThat(response).isNotNull();
             assertThat(collectedMetrics).isNotEmpty();
-
-        } finally {
-            closeQuietly(clientWithMetrics);
-            metricPublisher.close();
         }
     }
 
     @Test
-    void testGetObjectWithBuilderPattern() throws Exception {
-        // Test that we can create a request with just the presigned URL using the builder pattern
+    void given_presignedUrl_when_usingBuilderPattern_then_returnsContent() throws Exception {
         PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
             .presignedUrl(createPresignedUrl(testGetObjectKey))
             .build();
@@ -388,13 +353,12 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
         assertThat(response.asUtf8String()).isEqualTo(testObjectContent);
     }
 
-    // Test data methods - these maintain the optimized structure from our previous work
     static Stream<Arguments> basicFunctionalityTestData() {
         return Stream.of(
             Arguments.of("given_validUrl_when_requestingObject_then_returnsContent", 
                         testGetObjectKey, testObjectContent),
             Arguments.of("given_validUrl_when_requestingLargeObject_then_returnsContent", 
-                        testLargeObjectKey, null), // null means don't check content for large object
+                        testLargeObjectKey, null),
             Arguments.of("given_validUrl_when_requestingWithBuilder_then_returnsContent", 
                         testGetObjectKey, testObjectContent)
         );
@@ -428,19 +392,16 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
     }
 
     @AfterAll
-    static void tearDownClass() {
+    static void tearDownTestSuite() {
         try {
             S3TestUtils.runCleanupTasks(AsyncPresignedUrlManagerTestSuite.class);
         } catch (Exception e) {
-            // Ignore cleanup exceptions
         }
         
-        if (s3Client != null) {
-            s3Client.close();
-        }
         if (presigner != null) {
             presigner.close();
         }
+        cleanUpResources();
     }
 
     // Helper methods
@@ -475,14 +436,11 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
             case "invalidUrl":
                 return createRequestForKey("invalid-key-that-does-not-exist-" + UUID.randomUUID());
             case "expiredUrl":
-                // Create a presigned URL with minimum duration (1 second) and then wait for it to expire
                 PresignedGetObjectRequest expiredRequest = presigner.presignGetObject(r -> r
                     .getObjectRequest(req -> req.bucket(testBucket).key(testGetObjectKey))
                     .signatureDuration(Duration.ofSeconds(1))); // Minimum valid duration
-                
-                // Wait for the URL to expire
                 try {
-                    Thread.sleep(2000); // Wait 2 seconds to ensure expiration
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     throw new RuntimeException("Interrupted while waiting for URL to expire", e);
@@ -506,17 +464,14 @@ public abstract class AsyncPresignedUrlManagerTestSuite {
 
     private String uploadTestObject(String keyPrefix, String content) {
         String key = keyPrefix + "-" + UUID.randomUUID();
-        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3Client, testBucket, key, content);
-        return key;
-    }
+        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3, testBucket, key, content);
 
-    private static void closeQuietly(AutoCloseable resource) {
-        if (resource != null) {
-            try {
-                resource.close();
-            } catch (Exception e) {
-                // Ignore
-            }
-        }
+        S3TestUtils.addCleanupTask(AsyncPresignedUrlManagerTestSuite.class, () -> {
+            s3.deleteObject(DeleteObjectRequest.builder()
+                                                    .bucket(testBucket)
+                                                    .key(key)
+                                                    .build());
+        });
+        return key;
     }
 }
