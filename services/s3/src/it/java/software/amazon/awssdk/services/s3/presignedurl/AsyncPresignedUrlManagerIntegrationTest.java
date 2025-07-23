@@ -20,6 +20,6 @@ public class AsyncPresignedUrlManagerIntegrationTest extends AsyncPresignedUrlMa
 
     @Override
     protected S3AsyncClient createS3AsyncClient() {
-        return S3AsyncClient.create();
+        return s3AsyncClientBuilder().build();
     }
 }
