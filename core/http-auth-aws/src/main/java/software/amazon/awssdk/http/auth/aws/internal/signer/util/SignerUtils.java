@@ -339,33 +339,4 @@ public final class SignerUtils {
     private static SdkChecksum sha256Checksum() {
         return SdkChecksum.forAlgorithm(() -> "SHA256");
     }
-
-    private static class LengthCalculatingSubscriber implements Subscriber<ByteBuffer> {
-        private final CompletableFuture<Long> contentLengthFuture = new CompletableFuture<>();
-        private long length = 0;
-
-        @Override
-        public void onSubscribe(Subscription subscription) {
-            subscription.request(Long.MAX_VALUE);
-        }
-
-        @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            length += byteBuffer.remaining();
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-            contentLengthFuture.completeExceptionally(throwable);
-        }
-
-        @Override
-        public void onComplete() {
-            contentLengthFuture.complete(length);
-        }
-
-        public CompletableFuture<Long> contentLengthFuture() {
-            return contentLengthFuture;
-        }
-    }
 }
