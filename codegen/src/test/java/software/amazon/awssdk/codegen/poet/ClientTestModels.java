@@ -526,7 +526,7 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
     
-    public static IntermediateModel presignedUrlManagerModels() {
+    public static IntermediateModel presignedUrlExtensionModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/presignedurl/service-2.json").getFile());
         File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/presignedurl/customization.config").getFile());
 

@@ -37,14 +37,14 @@ import software.amazon.awssdk.services.s3.model.S3Request;
  * SdkField definitions needed for custom marshalling and is not intended for direct use by SDK users.
  * </p>
  * <b>Note:</b> This is an internal implementation class and should not be used
- * directly. Use {@code PresignedUrlGetObjectRequest} for public API interactions.
+ * directly. Use {@code PresignedUrlDownloadRequest} for public API interactions.
  */
 @SdkInternalApi
-public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
+public final class PresignedUrlDownloadRequestWrapper extends S3Request {
     private static final SdkField<String> RANGE_FIELD = SdkField
         .<String>builder(MarshallingType.STRING)
         .memberName("Range")
-        .getter(getter(PresignedUrlGetObjectRequestWrapper::range))
+        .getter(getter(PresignedUrlDownloadRequestWrapper::range))
         .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("Range")
                              .unmarshallLocationName("Range").build()).build();
 
@@ -56,7 +56,7 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
     private final URL url;
     private final String range;
 
-    private PresignedUrlGetObjectRequestWrapper(Builder builder) {
+    private PresignedUrlDownloadRequestWrapper(Builder builder) {
         super(builder);
         this.url = builder.url;
         this.range = builder.range;
@@ -80,8 +80,8 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         return SDK_NAME_TO_FIELD;
     }
 
-    private static <T> Function<Object, T> getter(Function<PresignedUrlGetObjectRequestWrapper, T> g) {
-        return obj -> g.apply((PresignedUrlGetObjectRequestWrapper) obj);
+    private static <T> Function<Object, T> getter(Function<PresignedUrlDownloadRequestWrapper, T> g) {
+        return obj -> g.apply((PresignedUrlDownloadRequestWrapper) obj);
     }
 
     private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
@@ -110,7 +110,7 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         if (!super.equals(obj)) {
             return false;
         }
-        PresignedUrlGetObjectRequestWrapper that = (PresignedUrlGetObjectRequestWrapper) obj;
+        PresignedUrlDownloadRequestWrapper that = (PresignedUrlDownloadRequestWrapper) obj;
         return Objects.equals(url, that.url) && Objects.equals(range, that.range);
     }
 
@@ -129,7 +129,7 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         public Builder() {
         }
 
-        Builder(PresignedUrlGetObjectRequestWrapper request) {
+        Builder(PresignedUrlDownloadRequestWrapper request) {
             super(request);
             this.url = request.url();
             this.range = request.range();
@@ -146,8 +146,8 @@ public final class PresignedUrlGetObjectRequestWrapper extends S3Request {
         }
 
         @Override
-        public PresignedUrlGetObjectRequestWrapper build() {
-            return new PresignedUrlGetObjectRequestWrapper(this);
+        public PresignedUrlDownloadRequestWrapper build() {
+            return new PresignedUrlDownloadRequestWrapper(this);
         }
     }
 }

@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 
 import java.net.URL;
 import java.util.Objects;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
@@ -25,15 +24,15 @@ import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
- * Request object for performing GetObject operations using a presigned URL.
+ * Request object for performing download operations using a presigned URL.
  */
 @SdkPublicApi
-public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<PresignedUrlGetObjectRequest.Builder,
-    PresignedUrlGetObjectRequest> {
+public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<PresignedUrlDownloadRequest.Builder,
+    PresignedUrlDownloadRequest> {
     private final URL presignedUrl;
     private final String range;
 
-    private PresignedUrlGetObjectRequest(BuilderImpl builder) {
+    private PresignedUrlDownloadRequest(BuilderImpl builder) {
         this.presignedUrl = builder.presignedUrl;
         this.range = builder.range;
     }
@@ -75,16 +74,6 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         return new BuilderImpl();
     }
 
-    /**
-     * Create a {@code PresignedUrlGetObjectRequest} instance with the given configuration
-     *
-     * @param builderConsumer the consumer that will configure the builder
-     * @return a {@code PresignedUrlGetObjectRequest} instance
-     */
-    public static PresignedUrlGetObjectRequest builder(Consumer<Builder> builderConsumer) {
-        return builder().applyMutation(builderConsumer).build();
-    }
-
     public static Class<? extends Builder> serializableBuilderClass() {
         return BuilderImpl.class;
     }
@@ -105,20 +94,20 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        PresignedUrlGetObjectRequest other = (PresignedUrlGetObjectRequest) obj;
+        PresignedUrlDownloadRequest other = (PresignedUrlDownloadRequest) obj;
         return Objects.equals(presignedUrl(), other.presignedUrl()) &&
                Objects.equals(range(), other.range());
     }
 
     @Override
     public String toString() {
-        return ToString.builder("PresignedUrlGetObjectRequest")
+        return ToString.builder("PresignedUrlDownloadRequest")
                        .add("PresignedUrl", presignedUrl())
                        .add("Range", range())
                        .build();
     }
 
-    public interface Builder extends CopyableBuilder<Builder, PresignedUrlGetObjectRequest> {
+    public interface Builder extends CopyableBuilder<Builder, PresignedUrlDownloadRequest> {
         /**
          * Sets the presigned URL for the S3 object.
          * @param presignedUrl
@@ -141,9 +130,9 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         private BuilderImpl() {
         }
 
-        private BuilderImpl(PresignedUrlGetObjectRequest presignedUrlGetObjectRequest) {
-            presignedUrl(presignedUrlGetObjectRequest.presignedUrl());
-            range(presignedUrlGetObjectRequest.range());
+        private BuilderImpl(PresignedUrlDownloadRequest presignedUrlDownloadRequest) {
+            presignedUrl(presignedUrlDownloadRequest.presignedUrl());
+            range(presignedUrlDownloadRequest.range());
         }
 
         @Override
@@ -159,9 +148,9 @@ public final class PresignedUrlGetObjectRequest implements ToCopyableBuilder<Pre
         }
 
         @Override
-        public PresignedUrlGetObjectRequest build() {
+        public PresignedUrlDownloadRequest build() {
             Validate.paramNotNull(presignedUrl, "presignedUrl");
-            return new PresignedUrlGetObjectRequest(this);
+            return new PresignedUrlDownloadRequest(this);
         }
     }
 }
