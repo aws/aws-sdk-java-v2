@@ -46,8 +46,8 @@ public class RetryStrategyMaxRetriesTest {
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
             // Test defaults
-            new TestData(null, null, null, null, null, 4),
-            new TestData(null, null, null, null, "PropertyNotSet", 4),
+            new TestData(null, null, null, null, null, 3),
+            new TestData(null, null, null, null, "PropertyNotSet", 3),
 
             // Test precedence
             new TestData("9", "2", "standard", "standard",
