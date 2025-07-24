@@ -60,17 +60,13 @@ public class MetricReportingTest {
     public void methodSetup() throws IOException {
         // Create a response that can be reused
         BasicClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
-
         // Mock executeOpen which is now being used
         when(mockHttpClient.executeOpen(any(), any(HttpUriRequest.class), any(HttpContext.class)))
             .thenReturn(response);
-
         when(mockHttpClient.getHttpClientConnectionManager()).thenReturn(cm);
-
         PoolStats stats = new PoolStats(1, 2, 3, 4);
         when(cm.getTotalStats()).thenReturn(stats);
     }
-
 
     @Test
     public void prepareRequest_callableCalled_metricsReported() throws IOException {

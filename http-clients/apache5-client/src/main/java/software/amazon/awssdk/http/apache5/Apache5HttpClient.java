@@ -286,14 +286,16 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
     }
 
-    private static HttpHost determineTarget(final ClassicHttpRequest request) throws IOException {
+    /**
+     * Determines the target host from the request using Apache HttpClient's official routing support utility.
+     */
+    private static HttpHost determineTarget(ClassicHttpRequest request) throws IOException {
         try {
             return RoutingSupport.determineHost(request);
-        } catch (final HttpException ex) {
+        } catch (HttpException ex) {
             throw new ClientProtocolException(ex);
         }
     }
-
 
     private HttpUriRequestBase toApacheRequest(HttpExecuteRequest request) {
         return apacheHttpRequestFactory.create(request, requestConfig);
