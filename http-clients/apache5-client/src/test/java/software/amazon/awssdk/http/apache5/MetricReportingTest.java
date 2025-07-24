@@ -30,11 +30,7 @@ import java.time.Duration;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequest;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
-import org.apache.hc.core5.http.ClassicHttpResponse;
-import org.apache.hc.core5.http.HttpVersion;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
-import org.apache.hc.core5.http.message.BasicHttpResponse;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.pool.PoolStats;
 import org.junit.Before;
@@ -43,7 +39,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.HttpExecuteRequest;
-import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
@@ -63,15 +58,19 @@ public class MetricReportingTest {
 
     @Before
     public void methodSetup() throws IOException {
+        // Create a response that can be reused
+        BasicClassicHttpResponse response = new BasicClassicHttpResponse(200, "OK");
 
-        when(mockHttpClient.execute(any(HttpUriRequest.class), any(HttpContext.class)))
-            .thenReturn(new BasicClassicHttpResponse(200, "OK"));
+        // Mock executeOpen which is now being used
+        when(mockHttpClient.executeOpen(any(), any(HttpUriRequest.class), any(HttpContext.class)))
+            .thenReturn(response);
 
         when(mockHttpClient.getHttpClientConnectionManager()).thenReturn(cm);
 
         PoolStats stats = new PoolStats(1, 2, 3, 4);
         when(cm.getTotalStats()).thenReturn(stats);
     }
+
 
     @Test
     public void prepareRequest_callableCalled_metricsReported() throws IOException {
@@ -117,11 +116,11 @@ public class MetricReportingTest {
     }
 
     private HttpExecuteRequest newRequest(MetricCollector collector) {
-        final SdkHttpFullRequest sdkRequest = SdkHttpFullRequest.builder()
-                .method(SdkHttpMethod.HEAD)
-                .host("amazonaws.com")
-                .protocol("https")
-                .build();
+        SdkHttpFullRequest sdkRequest = SdkHttpFullRequest.builder()
+                                                                .method(SdkHttpMethod.HEAD)
+                                                                .host("amazonaws.com")
+                                                                .protocol("https")
+                                                                .build();
         return HttpExecuteRequest.builder()
                                  .request(sdkRequest)
                                  .metricCollector(collector)
