@@ -177,4 +177,13 @@ public class StringUtilsTest {
     public void repeat_maxCount_shouldThrowOom() {
         StringUtils.repeat("a", Integer.MAX_VALUE);
     }
+
+    @Test
+    public void testEquals() {
+        assertFalse(StringUtils.equals(null, null));
+        assertFalse(StringUtils.equals(null, "abc"));
+        assertFalse(StringUtils.equals("abc", null));
+        assertTrue(StringUtils.equals("abc", "abc"));
+        assertFalse(StringUtils.equals("abc", "ABC"));
+    }
 }
