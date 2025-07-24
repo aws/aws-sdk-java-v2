@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.8__ __2025-07-24__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds support for 1) highlighting relevant text in returned results for Search and SearchListings APIs and 2) returning aggregated counts of values for specified attributes for SearchListings API.
+
+## __Amazon Omics__
+  - ### Features
+    - Add Git integration and README support for HealthOmics workflows
+
 # __2.32.7__ __2025-07-23__
 ## __AWS Glue__
   - ### Features
