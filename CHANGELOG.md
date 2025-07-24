@@ -1,4 +1,51 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.7__ __2025-07-23__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports dynamic session policies for job executions. This feature allows you to specify custom, fine-grained permissions for each job run without creating multiple IAM roles.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for skip-os-shutdown option for the EC2 instance stop and terminate operations. This feature enables customers to bypass the graceful OS shutdown, supporting faster state transitions when instance data preservation isn't critical.
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Added the lastUserId parameter to the ListDevices and GetDevice API.
+
+## __DynamoDB Enhanced Client__
+  - ### Features
+    - Support for Version Starting at 0 with Configurable Increment
+        - Contributed by: [@akiesler](https://github.com/akiesler)
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@akiesler](https://github.com/akiesler)
+# __2.32.6__ __2025-07-22__
+## __AWS Lambda__
+  - ### Features
+    - This release migrated the model to Smithy keeping all features unchanged.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon EMR__
+  - ### Features
+    - This release adds new parameter 'ExtendedSupport' in AWS EMR RunJobFlow, ModifyCluster and DescribeCluster API.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for Image Tag Mutability Exception feature, allowing repositories to define wildcard-based patterns that override the default image tag mutability settings.
+
+## __Amazon NeptuneData__
+  - ### Features
+    - This release updates the supported regions for Neptune API to include current AWS regions.
+
 # __2.32.5__ __2025-07-21__
 ## __AWS SDK for Java v2__
   - ### Features
