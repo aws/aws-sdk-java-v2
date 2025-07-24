@@ -120,8 +120,8 @@
         </dependency>
         <dependency>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
-            <version>1.70</version>
+            <artifactId>bcpkix-jdk18on</artifactId>
+            <version>1.80</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
