@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
@@ -63,6 +64,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlattenMap;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
@@ -222,6 +224,14 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             throw new IllegalArgumentException(e);
         }
 
+        List<PropertyDescriptor> mappableProperties = Arrays.stream(beanInfo.getPropertyDescriptors())
+                                                            .filter(p -> isMappableProperty(beanClass, p))
+                                                            .collect(Collectors.toList());
+
+        if (dynamoDbFlattenMapAnnotationHasInvalidUse(mappableProperties)) {
+            throw new IllegalArgumentException("More than one @DynamoDbFlattenMap annotation found on the same record");
+        }
+
         Supplier<T> newObjectSupplier = newObjectSupplierForClass(beanClass, lookup);
 
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
@@ -231,9 +241,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
-        Arrays.stream(beanInfo.getPropertyDescriptors())
-              .filter(p -> isMappableProperty(beanClass, p))
-              .forEach(propertyDescriptor -> {
+        mappableProperties.forEach(propertyDescriptor -> {
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
@@ -241,19 +249,27 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                       getterForProperty(propertyDescriptor, beanClass, lookup),
                                       setterForProperty(propertyDescriptor, beanClass, lookup));
                   } else {
-                      AttributeConfiguration attributeConfiguration =
-                          resolveAttributeConfiguration(propertyDescriptor);
+                      DynamoDbFlattenMap dynamoDbFlattenMap = getPropertyAnnotation(propertyDescriptor, DynamoDbFlattenMap.class);
 
-                      StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
-                                                 attributeConfiguration);
+                      if (dynamoDbFlattenMap != null) {
+                          builder.flatten(propertyDescriptor.getName(), getterForProperty(propertyDescriptor, beanClass, lookup),
+                                          setterForProperty(propertyDescriptor, beanClass, lookup));
 
-                      Optional<AttributeConverter> attributeConverter =
+                      } else {
+                          AttributeConfiguration attributeConfiguration =
+                              resolveAttributeConfiguration(propertyDescriptor);
+
+                          StaticAttribute.Builder<T, ?> attributeBuilder =
+                              staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
+                                                     attributeConfiguration);
+
+                          Optional<AttributeConverter> attributeConverter =
                               createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
-                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+                          attributeConverter.ifPresent(attributeBuilder::attributeConverter);
 
-                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
-                      attributes.add(attributeBuilder.build());
+                          addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                          attributes.add(attributeBuilder.build());
+                      }
                   }
               });
 
@@ -284,6 +300,15 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                   && m.getParameterCount() == 1
                                   && m.getReturnType().equals(beanClass))
                      .findFirst();
+    }
+
+    private static boolean dynamoDbFlattenMapAnnotationHasInvalidUse(List<PropertyDescriptor> mappableProperties) {
+        return mappableProperties.stream()
+                                 .map(pd -> getPropertyAnnotation(pd, DynamoDbFlattenMap.class))
+                                 .filter(Objects::nonNull)
+                                 .skip(1)
+                                 .findFirst()
+                                 .isPresent();
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {
