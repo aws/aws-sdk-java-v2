@@ -106,9 +106,6 @@ import software.amazon.awssdk.utils.Validate;
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
  * in exchange for more functionality, like support for HTTP proxies.
  *
- * <p><b>Note:</b> The higher startup latency is compared to UrlConnectionHttpClient, not to the Apache HttpClient 4.5.x
- * based client. Performance characteristics between Apache 4.5.x and 5.x clients are similar.</p>
- *
  * <p>This client uses Apache HttpClient 5.x, which provides the following
  * improvements over the Apache HttpClient 4.5.x based client:</p>
  * <ul>
@@ -116,7 +113,7 @@ import software.amazon.awssdk.utils.Validate;
  *   <li>Active maintenance with regular security updates</li>
  *   <li>Enhanced logging flexibility through SLF4J (replacing problematic JCL dependencies)</li>
  * </ul>
- *
+ * <p><b>Note:</b> Performance characteristics between Apache 4.5.x and 5.x clients are similar.</p>
  * <p>See
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
  * for a lighter-weight alternative implementation.</p>
