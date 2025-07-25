@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Budgets",
-    "contributor": "",
-    "description": "Adds IPv6 and PrivateLink support for AWS Budgets in IAD."
-}

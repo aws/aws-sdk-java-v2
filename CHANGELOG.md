@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.9__ __2025-07-25__
+## __AWS Budgets__
+  - ### Features
+    - Adds IPv6 and PrivateLink support for AWS Budgets in IAD.
+
+## __AWS Config__
+  - ### Features
+    - Documentation improvements have been made to the EvaluationModel and DescribeConfigurationRecorders APIs.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for specifying a preferred input for channels using CMAF ingest.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - This release introduces new WhatsApp template management APIs that enable customers to programmatically create and submit templates for approval, monitor approval status, and manage the complete template lifecycle
+
+## __AWS Key Management Service__
+  - ### Features
+    - Doc only update: fixed grammatical errors.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Amazon AppIntegrations introduces new configuration capabilities to enable customers to manage iframe permissions, control application refresh behavior (per contact or per browser/cross-contact), and run background applications (service).
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Transit Gateway native integration with AWS Network Firewall. Adding new enum value for the new Transit Gateway Attachment type.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation updates for Amazon SQS fair queues feature.
+
 # __2.32.8__ __2025-07-24__
 ## __AWS SDK for Java v2__
   - ### Features
