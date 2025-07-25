@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Config",
+    "contributor": "",
+    "description": "Documentation improvements have been made to the EvaluationModel and DescribeConfigurationRecorders APIs."
+}
