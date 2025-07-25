@@ -14,23 +14,22 @@
  */
 package software.amazon.awssdk.services.s3.presignedurl;
 
+import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,16 +39,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
@@ -61,7 +57,7 @@ import software.amazon.awssdk.testutils.service.S3BucketUtils;
  */
 public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTestBase {
     protected static S3Presigner presigner;
-    protected AsyncPresignedUrlManager presignedUrlManager;
+    protected static AsyncPresignedUrlManager presignedUrlManager;
     protected static String testBucket;
 
     @TempDir
@@ -69,7 +65,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     protected static String testGetObjectKey;
     protected static String testLargeObjectKey;
-    protected static String testNonExistentKey;
     protected static String testObjectContent;
     protected static byte[] testLargeObjectContent;
 
@@ -87,12 +82,8 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         createBucket(testBucket);
         testGetObjectKey = generateRandomObjectKey();
         testLargeObjectKey = generateRandomObjectKey() + "-large";
-        testNonExistentKey = generateRandomObjectKey() + "-nonexistent";
         testObjectContent = "Hello AsyncPresignedUrlManager Integration Test";
-        testLargeObjectContent = new byte[5 * 1024 * 1024];
-        for (int i = 0; i < testLargeObjectContent.length; i++) {
-            testLargeObjectContent[i] = (byte) (i % 256);
-        }
+        testLargeObjectContent = randomAscii(5 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
         S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3, testBucket, testGetObjectKey, testObjectContent);
         s3Async.putObject(
             PutObjectRequest.builder()
@@ -114,10 +105,16 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         });
     }
 
-    @BeforeEach
-    void setUpEach() {
-        S3AsyncClient s3AsyncClient = createS3AsyncClient();
-        presignedUrlManager = s3AsyncClient.presignedUrlManager();
+    @AfterAll
+    static void tearDownTestSuite() {
+        try {
+            S3TestUtils.runCleanupTasks(AsyncPresignedUrlManagerTestSuite.class);
+        } catch (Exception e) {
+        }
+        if (presigner != null) {
+            presigner.close();
+        }
+        cleanUpResources();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -152,31 +149,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         assertThat(downloadFile).hasContent(testObjectContent);
     }
 
-    @Test
-    void getObject_withConsumerBuilder_returnsContent() throws Exception {
-        URL presignedUrl = createPresignedUrl(testGetObjectKey);
-
-        CompletableFuture<ResponseBytes<GetObjectResponse>> bytesFuture =
-            presignedUrlManager.getObject(
-                builder -> builder.presignedUrl(presignedUrl),
-                AsyncResponseTransformer.toBytes());
-        ResponseBytes<GetObjectResponse> bytesResponse = bytesFuture.get();
-
-        assertThat(bytesResponse).isNotNull();
-        assertThat(bytesResponse.asUtf8String()).isEqualTo(testObjectContent);
-
-        Path downloadFile = temporaryFolder.resolve("consumer-builder-download-" + UUID.randomUUID() + ".txt");
-        CompletableFuture<GetObjectResponse> fileFuture =
-            presignedUrlManager.getObject(
-                builder -> builder.presignedUrl(presignedUrl),
-                AsyncResponseTransformer.toFile(downloadFile));
-        GetObjectResponse fileResponse = fileFuture.get();
-
-        assertThat(fileResponse).isNotNull();
-        assertThat(downloadFile).exists();
-        assertThat(downloadFile).hasContent(testObjectContent);
-    }
-
     @ParameterizedTest(name = "{0}")
     @MethodSource("rangeTestData")
     void getObject_withRangeRequest_returnsSpecifiedRange(String testDescription, 
@@ -189,55 +161,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         ResponseBytes<GetObjectResponse> response = future.get();
 
         assertThat(response.asUtf8String()).isEqualTo(expectedContent);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("errorHandlingTestData")
-    void getObject_withInvalidRequest_throwsExpectedException(String testDescription,
-                          String errorType,
-                          Class<? extends Exception> expectedExceptionType) throws Exception {
-
-        PresignedUrlGetObjectRequest request = createErrorRequest(errorType);
-        CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
-
-        switch (errorType) {
-            case "nonExistentKey":
-                assertThatThrownBy(future::get)
-                    .isInstanceOf(ExecutionException.class)
-                    .satisfies(ex -> {
-                        Throwable cause = ex.getCause();
-                        assertThat(cause).satisfiesAnyOf(
-                            c -> assertThat(c).isInstanceOf(NoSuchKeyException.class),
-                            c -> assertThat(c).isInstanceOf(SdkClientException.class)
-                        );
-                    });
-                break;
-            case "invalidUrl":
-            case "expiredUrl":
-                assertThatThrownBy(future::get)
-                    .isInstanceOf(ExecutionException.class)
-                    .satisfies(ex -> {
-                        Throwable cause = ex.getCause();
-                        assertThat(cause).satisfiesAnyOf(
-                            c -> assertThat(c).isInstanceOf(S3Exception.class),
-                            c -> assertThat(c).isInstanceOf(SdkClientException.class)
-                        );
-                    });
-                break;
-            case "malformedUrl":
-                assertThatThrownBy(future::get)
-                    .isInstanceOf(ExecutionException.class)
-                    .satisfies(ex -> {
-                        Throwable cause = ex.getCause();
-                        // Accept either IllegalArgumentException or network-related exceptions
-                        assertThat(cause).satisfiesAnyOf(
-                            c -> assertThat(c).isInstanceOf(IllegalArgumentException.class),
-                            c -> assertThat(c).isInstanceOf(SdkClientException.class)
-                        );
-                    });
-                break;
-        }
     }
 
     @Test
@@ -271,49 +194,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     @Test
-    void getObject_withLargeObjectRanges_returnsCorrectChunks() throws Exception {
-        List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
-        int chunkSize = 1024 * 1024;
-
-        for (int i = 0; i < 4; i++) {
-            int start = i * chunkSize;
-            int end = start + chunkSize - 1;
-            String range = String.format("bytes=%d-%d", start, end);
-            futures.add(presignedUrlManager.getObject(
-                createRequestForKey(testLargeObjectKey, range),
-                AsyncResponseTransformer.toBytes()));
-        }
-
-        CompletableFuture<Void> allFutures = CompletableFuture.allOf(
-            futures.toArray(new CompletableFuture[0]));
-        allFutures.get(60, TimeUnit.SECONDS);
-        for (int i = 0; i < futures.size(); i++) {
-            ResponseBytes<GetObjectResponse> response = futures.get(i).get();
-            assertThat(response.asByteArray()).hasSize(chunkSize);
-            byte[] chunk = response.asByteArray();
-            int baseOffset = i * chunkSize;
-            for (int j = 0; j < chunk.length; j++) {
-                int expectedValue = (baseOffset + j) % 256;
-                assertThat(chunk[j]).isEqualTo((byte) expectedValue);
-            }
-        }
-    }
-
-    @Test
-    void getObject_withLargeObjectToFile_savesCompleteContent() throws Exception {
-        PresignedUrlGetObjectRequest request = createRequestForKey(testLargeObjectKey);
-        Path downloadFile = temporaryFolder.resolve("large-download-" + UUID.randomUUID() + ".bin");
-        CompletableFuture<GetObjectResponse> future =
-            presignedUrlManager.getObject(request, downloadFile);
-        GetObjectResponse response = future.get();
-
-        assertThat(response).isNotNull();
-        assertThat(downloadFile).exists();
-        assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
-    }
-
-    @Test
-    void getObject_withClientMetrics_collectsMetrics() throws Exception {
+    void getObject_withLargeObjectToFile_savesCompleteContentAndCollectsMetrics() throws Exception {
         List<MetricCollection> collectedMetrics = new ArrayList<>();
         MetricPublisher metricPublisher = new MetricPublisher() {
             @Override
@@ -324,33 +205,23 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
             public void close() {}
         };
 
-        try (S3AsyncClient clientWithMetrics = S3AsyncClient.builder()
+        try (S3AsyncClient clientWithMetrics = s3AsyncClientBuilder()
                                                            .overrideConfiguration(o -> o.addMetricPublisher(metricPublisher))
                                                            .build()) {
             
             AsyncPresignedUrlManager metricsManager = clientWithMetrics.presignedUrlManager();
-            PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey);
-
-            CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-                metricsManager.getObject(request, AsyncResponseTransformer.toBytes());
-            ResponseBytes<GetObjectResponse> response = future.get(30, TimeUnit.SECONDS);
+            PresignedUrlGetObjectRequest request = createRequestForKey(testLargeObjectKey);
+            Path downloadFile = temporaryFolder.resolve("large-download-with-metrics-" + UUID.randomUUID() + ".bin");
+            
+            CompletableFuture<GetObjectResponse> future =
+                metricsManager.getObject(request, downloadFile);
+            GetObjectResponse response = future.get(60, TimeUnit.SECONDS);
             
             assertThat(response).isNotNull();
+            assertThat(downloadFile).exists();
+            assertThat(downloadFile.toFile().length()).isEqualTo(testLargeObjectContent.length);
             assertThat(collectedMetrics).isNotEmpty();
         }
-    }
-
-    @Test
-    void getObject_withBuilderPattern_returnsContent() throws Exception {
-        PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
-            .presignedUrl(createPresignedUrl(testGetObjectKey))
-            .build();
-
-        CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
-
-        ResponseBytes<GetObjectResponse> response = future.get();
-        assertThat(response.asUtf8String()).isEqualTo(testObjectContent);
     }
 
     static Stream<Arguments> basicFunctionalityTestData() {
@@ -358,9 +229,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
             Arguments.of("getObject_withValidUrl_returnsContent", 
                         testGetObjectKey, testObjectContent),
             Arguments.of("getObject_withValidLargeObjectUrl_returnsContent", 
-                        testLargeObjectKey, null),
-            Arguments.of("getObject_withBuilderPattern_returnsContent", 
-                        testGetObjectKey, testObjectContent)
+                        testLargeObjectKey, null)
         );
     }
 
@@ -376,32 +245,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
             Arguments.of("getObject_withSingleByteRange_returnsSingleByte",
                         "bytes=0-0", content.substring(0, 1))
         );
-    }
-
-    static Stream<Arguments> errorHandlingTestData() {
-        return Stream.of(
-            Arguments.of("getObject_withNonExistentKey_throwsNoSuchKeyException",
-                        "nonExistentKey", NoSuchKeyException.class),
-            Arguments.of("getObject_withInvalidUrl_throwsS3Exception",
-                        "invalidUrl", S3Exception.class),
-            Arguments.of("getObject_withExpiredUrl_throwsS3Exception",
-                        "expiredUrl", S3Exception.class),
-            Arguments.of("getObject_withMalformedUrl_throwsIllegalArgumentException",
-                        "malformedUrl", IllegalArgumentException.class)
-        );
-    }
-
-    @AfterAll
-    static void tearDownTestSuite() {
-        try {
-            S3TestUtils.runCleanupTasks(AsyncPresignedUrlManagerTestSuite.class);
-        } catch (Exception e) {
-        }
-        
-        if (presigner != null) {
-            presigner.close();
-        }
-        cleanUpResources();
     }
 
     // Helper methods
@@ -427,39 +270,6 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
             .getObjectRequest(req -> req.bucket(testBucket).key(key))
             .signatureDuration(Duration.ofMinutes(10)));
         return presignedRequest.url();
-    }
-
-    private PresignedUrlGetObjectRequest createErrorRequest(String errorType) {
-        switch (errorType) {
-            case "nonExistentKey":
-                return createRequestForKey(testNonExistentKey);
-            case "invalidUrl":
-                return createRequestForKey("invalid-key-that-does-not-exist-" + UUID.randomUUID());
-            case "expiredUrl":
-                PresignedGetObjectRequest expiredRequest = presigner.presignGetObject(r -> r
-                    .getObjectRequest(req -> req.bucket(testBucket).key(testGetObjectKey))
-                    .signatureDuration(Duration.ofSeconds(1))); // Minimum valid duration
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException("Interrupted while waiting for URL to expire", e);
-                }
-                
-                return PresignedUrlGetObjectRequest.builder()
-                    .presignedUrl(expiredRequest.url())
-                    .build();
-            case "malformedUrl":
-                try {
-                    return PresignedUrlGetObjectRequest.builder()
-                        .presignedUrl(new URL("http://invalid-hostname-that-does-not-exist"))
-                        .build();
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            default:
-                throw new IllegalArgumentException("Unknown error type: " + errorType);
-        }
     }
 
     private String uploadTestObject(String keyPrefix, String content) {

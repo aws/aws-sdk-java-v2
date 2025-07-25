@@ -14,9 +14,16 @@
  */
 package software.amazon.awssdk.services.s3.presignedurl;
 
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 public class AsyncPresignedUrlManagerIntegrationTest extends AsyncPresignedUrlManagerTestSuite {
+
+    @BeforeAll
+    static void setUpIntegrationTest() {
+        S3AsyncClient s3AsyncClient = s3AsyncClientBuilder().build();
+        presignedUrlManager = s3AsyncClient.presignedUrlManager();
+    }
 
     @Override
     protected S3AsyncClient createS3AsyncClient() {
