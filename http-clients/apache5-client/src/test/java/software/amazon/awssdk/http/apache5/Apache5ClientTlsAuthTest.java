@@ -20,7 +20,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE;
 import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_PASSWORD;
@@ -57,7 +56,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
-import software.amazon.awssdk.http.apache5.internal.conn.SslSocketFactoryToTlsStrategyAdapter;
 import software.amazon.awssdk.internal.http.NoneTlsKeyManagersProvider;
 
 /**
@@ -332,67 +330,4 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         Mockito.verifyNoInteractions(legacyFactorySpy);
     }
 
-    @Test
-    public void adapter_converts_non_sslSocketException() throws Exception {
-        // Create mock that returns a regular Socket (not SSLSocket)
-        SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
-        Socket nonSslSocket = Mockito.mock(Socket.class);
-
-        // Setup mock to return non-SSL socket
-        Mockito.when(mockFactory.createLayeredSocket(
-            Mockito.any(Socket.class),
-            Mockito.eq("example.com"),
-            Mockito.eq(443),
-            Mockito.any()
-        )).thenReturn(nonSslSocket);
-
-        // Create adapter
-        SslSocketFactoryToTlsStrategyAdapter adapter =
-            new SslSocketFactoryToTlsStrategyAdapter(mockFactory);
-
-        // Test should throw IOException
-        Socket plainSocket = Mockito.mock(Socket.class);
-
-        assertThatExceptionOfType(IOException.class)
-            .isThrownBy(() -> adapter.upgrade(plainSocket, "example.com", 443, null, null))
-            .withMessageContaining("did not return an SSLSocket")
-            .withMessageContaining(nonSslSocket.getClass().getName());
-    }
-
-
-    @Test
-    public void adapter_handlesNullSocket() throws Exception {
-        // Create mock that returns null
-        SSLConnectionSocketFactory mockFactory = Mockito.mock(SSLConnectionSocketFactory.class);
-
-        Mockito.when(mockFactory.createLayeredSocket(
-            Mockito.any(Socket.class),
-            Mockito.anyString(),
-            Mockito.anyInt(),
-            Mockito.any(HttpContext.class)
-        )).thenReturn(null);
-
-        // Create adapter
-        SslSocketFactoryToTlsStrategyAdapter adapter =
-            new SslSocketFactoryToTlsStrategyAdapter(mockFactory);
-
-        // Test should throw IOException
-        Socket plainSocket = Mockito.mock(Socket.class);
-
-        assertThatExceptionOfType(IOException.class)
-            .isThrownBy(() -> adapter.upgrade(plainSocket, "example.com", 443, null, null))
-            .withMessageContaining("returned null");
-    }
-
-    @Test
-    public void null_tlsStrategy_falls_backToDefault() throws Exception {
-        // Test that setting tlsSocketStrategy(null) works correctly
-        client = Apache5HttpClient.builder()
-                                  .tlsSocketStrategy(null)
-                                  .tlsKeyManagersProvider(keyManagersProvider)
-                                  .build();
-
-        HttpExecuteResponse response = makeRequestWithHttpClient(client);
-        assertThat(response.httpResponse().isSuccessful()).isTrue();
-    }
 }

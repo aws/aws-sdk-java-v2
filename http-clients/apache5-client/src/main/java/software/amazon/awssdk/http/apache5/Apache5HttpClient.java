@@ -53,9 +53,9 @@ import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -88,10 +88,10 @@ import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
+import software.amazon.awssdk.http.apache5.internal.conn.ConnectionSocketFactoryToTlsStrategyAdapter;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
-import software.amazon.awssdk.http.apache5.internal.conn.SslSocketFactoryToTlsStrategyAdapter;
 import software.amazon.awssdk.http.apache5.internal.impl.Apache5HttpRequestFactory;
 import software.amazon.awssdk.http.apache5.internal.impl.Apache5SdkHttpClient;
 import software.amazon.awssdk.http.apache5.internal.impl.ConnectionManagerAwareHttpClient;
@@ -461,12 +461,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
          * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
          */
         @Deprecated
-        Builder socketFactory(SSLConnectionSocketFactory socketFactory);
+        Builder socketFactory(ConnectionSocketFactory socketFactory);
 
 
         /**
          * Configure a custom TLS strategy for SSL/TLS connections.
-         * This is the preferred method over the deprecated {@link #socketFactory(SSLConnectionSocketFactory)}.
+         * This is the preferred method over the deprecated {@link #socketFactory(ConnectionSocketFactory)}.
          *
          * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
          *                    If null, default TLS configuration will be used.
@@ -532,7 +532,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
-        private SSLConnectionSocketFactory legacySocketFactory;
+        private ConnectionSocketFactory legacySocketFactory;
         private TlsSocketStrategy tlsStrategy;
 
         private DefaultBuilder() {
@@ -655,13 +655,13 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder socketFactory(SSLConnectionSocketFactory socketFactory) {
+        public Builder socketFactory(ConnectionSocketFactory socketFactory) {
             this.legacySocketFactory = socketFactory;
             this.tlsStrategy = null; // Clear any previously set strategy
             return this;
         }
 
-        public void setSocketFactory(SSLConnectionSocketFactory socketFactory) {
+        public void setSocketFactory(ConnectionSocketFactory socketFactory) {
             socketFactory(socketFactory);
         }
 
@@ -747,7 +747,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
                 return tlsStrategy;
             }
             if (legacySocketFactory != null) {
-                return new SslSocketFactoryToTlsStrategyAdapter(legacySocketFactory);
+                return new ConnectionSocketFactoryToTlsStrategyAdapter(legacySocketFactory);
             }
             return null;
         }
