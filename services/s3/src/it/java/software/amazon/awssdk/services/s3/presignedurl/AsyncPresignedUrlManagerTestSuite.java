@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.presignedurl;
 import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.testutils.service.S3BucketUtils;
+import software.amazon.awssdk.utils.Md5Utils;
 
 /**
  * Abstract test suite for AsyncPresignedUrlManager integration tests.
@@ -125,15 +127,24 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         PresignedUrlGetObjectRequest request = createRequestForKey(objectKey);
 
         CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> response = future.get();
 
         assertThat(response).isNotNull();
         if (expectedContent != null) {
             assertThat(response.asUtf8String()).isEqualTo(expectedContent);
             assertThat(response.response().contentLength()).isEqualTo(expectedContent.length());
+        } else {
+            try (ByteArrayInputStream originalStream = new ByteArrayInputStream(testLargeObjectContent);
+                 ByteArrayInputStream downloadedStream = new ByteArrayInputStream(response.asByteArray())) {
+
+                String originalMd5 = Md5Utils.md5AsBase64(originalStream);
+                String downloadedMd5 = Md5Utils.md5AsBase64(downloadedStream);
+                assertThat(downloadedMd5).isEqualTo(originalMd5);
+                assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
+            }
+            assertThat(response.response()).isNotNull();
         }
-        assertThat(response.response()).isNotNull();
     }
 
     @Test
