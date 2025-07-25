@@ -35,7 +35,7 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static final String TRACE_ID_HEADER = "X-Amzn-Trace-Id";
     private static final String LAMBDA_FUNCTION_NAME_ENVIRONMENT_VARIABLE = "AWS_LAMBDA_FUNCTION_NAME";
     private static final String CONCURRENT_TRACE_ID_KEY = "AWS_LAMBDA_X_TraceId";
-    protected static final ExecutionAttribute<String> CACHED_TRACE_ID = new ExecutionAttribute<>("CachedTraceId");
+    private static final ExecutionAttribute<String> CACHED_TRACE_ID = new ExecutionAttribute<>("CachedTraceId");
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
