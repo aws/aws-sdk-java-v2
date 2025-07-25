@@ -117,13 +117,17 @@ public class TraceIdExecutionInterceptorTest {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            env.set("AWS_LAMBDA_MAX_CONCURRENCY", "10");
-
             MDC.put("AWS_LAMBDA_X_TraceId", "mdc-trace-123");
 
             try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
                 Context.ModifyHttpRequest context = context();
-                assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
             } finally {
                 MDC.remove("AWS_LAMBDA_X_TraceId");
             }
@@ -135,15 +139,21 @@ public class TraceIdExecutionInterceptorTest {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            env.set("AWS_LAMBDA_MAX_CONCURRENCY", "10");
 
             MDC.put("AWS_LAMBDA_X_TraceId", "mdc-trace-123");
             Properties props = System.getProperties();
             props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop-345");
 
             try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
                 Context.ModifyHttpRequest context = context();
-                assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
             } finally {
                 MDC.remove("AWS_LAMBDA_X_TraceId");
                 props.remove("com.amazonaws.xray.traceHeader");
@@ -152,48 +162,22 @@ public class TraceIdExecutionInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_whenMultiConcurrencyModeWithEmptyMdc_shouldNotAddHeader() {
-        EnvironmentVariableHelper.run(env -> {
-            resetRelevantEnvVars(env);
-            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            env.set("AWS_LAMBDA_MAX_CONCURRENCY", "10");
-
-            MDC.clear();
-
-            Context.ModifyHttpRequest context = context();
-            assertThat(modifyHttpRequest(context)).isSameAs(context.httpRequest());
-        });
-    }
-
-    @Test
     public void modifyHttpRequest_whenNotInLambdaEnvironmentWithMdc_shouldNotAddHeader() {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
-            env.set("AWS_LAMBDA_MAX_CONCURRENCY", "10");
 
             MDC.put("AWS_LAMBDA_X_TraceId", "should-be-ignored");
 
             try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
                 Context.ModifyHttpRequest context = context();
-                assertThat(modifyHttpRequest(context)).isSameAs(context.httpRequest());
-            } finally {
-                MDC.remove("AWS_LAMBDA_X_TraceId");
-            }
-        });
-    }
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
 
-    @Test
-    public void modifyHttpRequest_whenConcurrencyModeIsEmptyString_shouldUseMdcValue() {
-        EnvironmentVariableHelper.run(env -> {
-            resetRelevantEnvVars(env);
-            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            env.set("AWS_LAMBDA_MAX_CONCURRENCY", "");
-
-            MDC.put("AWS_LAMBDA_X_TraceId", "empty-string-test");
-
-            try {
-                Context.ModifyHttpRequest context = context();
-                assertThat(modifyHttpRequest(context).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("empty-string-test");
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).isEmpty();
             } finally {
                 MDC.remove("AWS_LAMBDA_X_TraceId");
             }

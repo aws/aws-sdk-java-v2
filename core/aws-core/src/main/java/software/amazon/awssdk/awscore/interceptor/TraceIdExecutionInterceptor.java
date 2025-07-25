@@ -20,6 +20,7 @@ import org.slf4j.MDC;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.internal.interceptor.TracingSystemSetting;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -34,19 +35,27 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static final String TRACE_ID_HEADER = "X-Amzn-Trace-Id";
     private static final String LAMBDA_FUNCTION_NAME_ENVIRONMENT_VARIABLE = "AWS_LAMBDA_FUNCTION_NAME";
     private static final String CONCURRENT_TRACE_ID_KEY = "AWS_LAMBDA_X_TraceId";
+    protected static final ExecutionAttribute<String> CACHED_TRACE_ID = new ExecutionAttribute<>("CachedTraceId");
+
+    @Override
+    public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+        String traceId = MDC.get(CONCURRENT_TRACE_ID_KEY);
+        if (traceId != null) {
+            executionAttributes.putAttribute(CACHED_TRACE_ID, traceId);
+        }
+    }
 
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         Optional<String> traceIdHeader = traceIdHeader(context);
         if (!traceIdHeader.isPresent()) {
-            Optional<String> lambdafunctionName = lambdaFunctionNameEnvironmentVariable();
-            Optional<String> traceId = traceId();
+            Optional<String> lambdaFunctionName = lambdaFunctionNameEnvironmentVariable();
+            Optional<String> traceId = traceId(executionAttributes);
 
-            if (lambdafunctionName.isPresent() && traceId.isPresent()) {
+            if (lambdaFunctionName.isPresent() && traceId.isPresent()) {
                 return context.httpRequest().copy(r -> r.putHeader(TRACE_ID_HEADER, traceId.get()));
             }
         }
-
         return context.httpRequest();
     }
 
@@ -54,9 +63,10 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
         return context.httpRequest().firstMatchingHeader(TRACE_ID_HEADER);
     }
 
-    private Optional<String> traceId() {
-        if (TracingSystemSetting.AWS_LAMBDA_MAX_CONCURRENCY.getStringValue().isPresent()) {
-            return Optional.ofNullable(MDC.get(CONCURRENT_TRACE_ID_KEY));
+    private Optional<String> traceId(ExecutionAttributes executionAttributes) {
+        Optional<String> traceId = Optional.ofNullable(executionAttributes.getAttribute(CACHED_TRACE_ID));
+        if (traceId.isPresent()) {
+            return traceId;
         }
         return TracingSystemSetting._X_AMZN_TRACE_ID.getStringValue();
     }
