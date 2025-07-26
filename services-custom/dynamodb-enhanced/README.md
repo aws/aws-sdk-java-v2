@@ -685,3 +685,85 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
 ```
 Just as for annotations, you can flatten as many different eligible classes as you like using the
 builder pattern. 
+
+
+
+
+### Using subtypes to assist with single-table design
+It's considered a best practice in some situations to combine entities of various types into a single table in DynamoDb
+to enable the querying of multiple related entities without the need to actually join data across multiple tables. The
+enhanced client assists with this by supporting polymorphic mapping into distinct subtypes.
+
+Let's say you have a customer:
+
+```java
+public class Customer {
+    String getCustomerId();
+    void setId(String id);
+    
+    String getName();
+    void setName(String name);
+}
+```
+
+And an order that's associated with a customer:
+
+```java
+public class Order {
+    String getOrderId();
+    void setOrderId();
+    
+    String getCustomerId();
+    void setCustomerId();
+}
+```
+
+You could choose to store both of these in a single table that is indexed by customer ID, and create a TableSchema that
+is capable of mapping both types of entities into a common supertype:
+
+```java
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
+
+@DynamoDbBean
+@DynamoDbSupertype({
+        @Subtype(discriminatorValue = "CUSTOMER", subtypeClass = Customer.class),
+        @Subtype(discriminatorValue = "ORDER", subtypeClass = Order.class)})
+public class CustomerRelatedEntity {
+   @DynamoDbSubtypeDiscriminator
+   String getEntityType();
+   void setEntityType();
+
+   @DynamoDbPartitionKey
+   String getCustomerId();
+   void setCustomerId();
+}
+
+@DynamoDbBean
+public class Customer extends CustomerRelatedEntity {
+   String getName();
+   void setName(String name);
+}
+
+@DynamoDbBean
+public class Order extends CustomerRelatedEntity {
+   String getOrderId();
+   void setOrderId();
+}
+```
+
+Now all you have to do is create a TableSchema that maps the supertype class:
+```java
+TableSchema<CustomerRelatedEntity> tableSchema = TableSchema.fromClass(CustomerRelatedEntity.class);
+```
+Now you have a `TableSchema` that can map any objects of both `Customer` and `Order` and write them to the table,
+and can also read any record from the table and correctly instantiate it using the subtype class. So it's now possible
+to write a single query that will return both the customer record and all order records associated with a specific
+customer ID.
+
+As with all the other `TableSchema` implementations, a static version is provided that allows reflective introspection
+to be skipped entirely and is recommended for applications where cold-start latency is critical. See the javadocs for
+`StaticPolymorphicTableSchema` for an example of how to use this.
