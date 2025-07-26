@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.sts.internal;
 
+import static software.amazon.awssdk.services.sts.internal.StsCredentialsProviderSystemSetting.AWS_ENDPOINT_URL_STS;
+
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
@@ -128,6 +130,12 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
             } else {
                 stsClientBuilder.region(Region.US_EAST_1);
                 stsClientBuilder.endpointOverride(URI.create("https://sts.amazonaws.com"));
+            }
+
+            // Set custom STS endpoint if it's specified
+            if (AWS_ENDPOINT_URL_STS.getStringValue().isPresent()) {
+                stsClientBuilder.endpointOverride(URI.create(
+                    AWS_ENDPOINT_URL_STS.getStringValue().get()));
             }
         }
     }
