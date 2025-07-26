@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.internal.MappingSubscriber;
 
 /**
  * An implementation of chunk-transfer encoding, but by wrapping a {@link Publisher} of {@link ByteBuffer}. This implementation
- * supports chunk-headers, chunk-extensions.
+ * supports chunk-headers, chunk-extensions, and trailer-part.
  * <p>
  * Per <a href="https://datatracker.ietf.org/doc/html/rfc7230#section-4.1">RFC-7230</a>, a chunk-transfer encoded message is
  * defined as:
@@ -153,8 +153,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         int trailerLen = trailerData.stream()
-                                    // + 2 for each CRLF that ends the header-field
-                                    .mapToInt(t -> t.remaining() + 2)
+                                    .mapToInt(t -> t.remaining() + CRLF.length)
                                     .sum();
 
         int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
@@ -188,6 +187,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                 encoded.put(t);
                 encoded.put(CRLF);
             });
+            // empty line ends the request body
             encoded.put(CRLF);
         }
 
@@ -304,6 +304,10 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
             return this;
         }
 
+        public Publisher<ByteBuffer> publisher() {
+            return publisher;
+        }
+
         public Builder chunkSize(int chunkSize) {
             this.chunkSize = chunkSize;
             return this;
@@ -322,6 +326,10 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         public Builder addTrailer(TrailerProvider trailerProvider) {
             this.trailers.add(trailerProvider);
             return this;
+        }
+
+        public List<TrailerProvider> trailers() {
+            return trailers;
         }
 
         public ChunkedEncodedPublisher build() {
