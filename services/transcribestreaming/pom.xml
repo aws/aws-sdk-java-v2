@@ -52,11 +52,6 @@
                      code that explicitly uses it -->
                     <ignoredUnusedDeclaredDependencies>
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth-aws-eventstream</ignoredUnusedDeclaredDependency>
-
-                        <!-- TODO(post-sra-identity-auth): Once this module is switched to useSraAuth=true, remove this-->
-                        <!-- This ignore is already present in the root pom.xml, but seems like the
-                         ignoredUnusedDeclaredDependencies aren't merged. So repeating it here. -->
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
