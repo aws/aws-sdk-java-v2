@@ -44,4 +44,18 @@ class EndpointProviderCompiledRulesClassSpecTest {
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointProperties());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-unknown-property-class.java"));
     }
+
+    @Test
+    void endpointProviderClassWithUriCache() {
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUriCache());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-uri-cache-class.java"));
+    }
+
+    @Test
+    void endpointProviderClassWithMetricValues() {
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-metric-values-class.java"));
+    }
 }

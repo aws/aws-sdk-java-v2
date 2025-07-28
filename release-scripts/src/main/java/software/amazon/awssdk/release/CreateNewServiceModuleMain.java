@@ -26,8 +26,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -73,6 +75,14 @@ public class CreateNewServiceModuleMain extends Cli {
 
     private static final Set<String> DEFAULT_INTERNAL_DEPENDENCIES = toSet("http-auth-aws");
 
+    private static final Map<String, Set<String>> ADDITIONAL_INTERNAL_PROTOCOL_DEPENDENCIES;
+
+    static {
+        // Note, the protocol keys must match the values returned from transformSpecialProtocols
+        ADDITIONAL_INTERNAL_PROTOCOL_DEPENDENCIES = new HashMap<>();
+        ADDITIONAL_INTERNAL_PROTOCOL_DEPENDENCIES.put("smithy-rpcv2", toSet("aws-json-protocol"));
+    }
+
     private CreateNewServiceModuleMain() {
         super(requiredOption("service-module-name", "The name of the service module to be created."),
               requiredOption("service-id", "The service ID of the service module to be created."),
@@ -103,9 +113,10 @@ public class CreateNewServiceModuleMain extends Cli {
         return Arrays.asList(optionValues);
     }
 
-    static Set<String> computeInternalDependencies(List<String> includes, List<String> excludes) {
+    static Set<String> computeInternalDependencies(String serviceProtocol, List<String> includes, List<String> excludes) {
         Set<String> result = new LinkedHashSet<>(DEFAULT_INTERNAL_DEPENDENCIES);
         result.addAll(includes);
+        result.addAll(ADDITIONAL_INTERNAL_PROTOCOL_DEPENDENCIES.getOrDefault(serviceProtocol, Collections.emptySet()));
         excludes.forEach(result::remove);
         return Collections.unmodifiableSet(result);
     }
@@ -129,7 +140,8 @@ public class CreateNewServiceModuleMain extends Cli {
             this.serviceModuleName = commandLine.getOptionValue("service-module-name").trim();
             this.serviceId = commandLine.getOptionValue("service-id").trim();
             this.serviceProtocol = transformSpecialProtocols(commandLine.getOptionValue("service-protocol").trim());
-            this.internalDependencies = computeInternalDependencies(toList(commandLine
+            this.internalDependencies = computeInternalDependencies(serviceProtocol,
+                                                                    toList(commandLine
                                                                                .getOptionValues("include-internal-dependency")),
                                                                     toList(commandLine
                                                                                .getOptionValues("exclude-internal-dependency")));
@@ -141,7 +153,7 @@ public class CreateNewServiceModuleMain extends Cli {
                 case "ec2": return "aws-query";
                 case "rest-xml": return "aws-xml";
                 case "rest-json": return "aws-json";
-                case "rpc-v2-cbor": return "smithy-rpcv2";
+                case "smithy-rpc-v2-cbor": return "smithy-rpcv2";
                 default: return "aws-" + protocol;
             }
         }
@@ -180,10 +192,10 @@ public class CreateNewServiceModuleMain extends Cli {
 
         private String replacePlaceholders(String line) {
             String[] searchList = {
-                    "{{MVN_ARTIFACT_ID}}",
-                    "{{MVN_NAME}}",
-                    "{{MVN_VERSION}}",
-                    "{{PROTOCOL}}"
+                "{{MVN_ARTIFACT_ID}}",
+                "{{MVN_NAME}}",
+                "{{MVN_VERSION}}",
+                "{{PROTOCOL}}"
             };
             String[] replaceList = {
                 serviceModuleName,
@@ -217,5 +229,4 @@ public class CreateNewServiceModuleMain extends Cli {
             }
         }
     }
-
 }
