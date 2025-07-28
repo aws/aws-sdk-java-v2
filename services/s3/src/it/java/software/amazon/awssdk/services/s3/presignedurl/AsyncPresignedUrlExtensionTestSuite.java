@@ -49,17 +49,17 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.testutils.service.S3BucketUtils;
 import software.amazon.awssdk.utils.Md5Utils;
 
 /**
- * Abstract test suite for AsyncPresignedUrlManager integration tests.
+ * Abstract test suite for AsyncPresignedUrlExtension integration tests.
  */
-public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTestBase {
+public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationTestBase {
     protected static S3Presigner presigner;
-    protected static AsyncPresignedUrlManager presignedUrlManager;
+    protected static AsyncPresignedUrlExtension presignedUrlExtension;
     protected static String testBucket;
 
     @TempDir
@@ -69,6 +69,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     protected static String testLargeObjectKey;
     protected static String testObjectContent;
     protected static byte[] testLargeObjectContent;
+    protected static String expectedLargeObjectMd5;
 
     protected abstract S3AsyncClient createS3AsyncClient();
 
@@ -80,13 +81,20 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
                                 .region(DEFAULT_REGION)
                                 .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                 .build();
-        testBucket = S3BucketUtils.temporaryBucketName("async-presigned-url-manager-test");
+        testBucket = S3BucketUtils.temporaryBucketName("async-presigned-url-extension-test");
         createBucket(testBucket);
         testGetObjectKey = generateRandomObjectKey();
         testLargeObjectKey = generateRandomObjectKey() + "-large";
-        testObjectContent = "Hello AsyncPresignedUrlManager Integration Test";
+        testObjectContent = "Hello AsyncPresignedUrlExtension Integration Test";
         testLargeObjectContent = randomAscii(5 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
-        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3, testBucket, testGetObjectKey, testObjectContent);
+
+        try (ByteArrayInputStream originalStream = new ByteArrayInputStream(testLargeObjectContent)) {
+            expectedLargeObjectMd5 = Md5Utils.md5AsBase64(originalStream);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to compute MD5 for test data", e);
+        }
+        
+        S3TestUtils.putObject(AsyncPresignedUrlExtensionTestSuite.class, s3, testBucket, testGetObjectKey, testObjectContent);
         s3Async.putObject(
             PutObjectRequest.builder()
                             .bucket(testBucket)
@@ -94,7 +102,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
                             .build(),
             AsyncRequestBody.fromBytes(testLargeObjectContent)
         ).join();
-        S3TestUtils.addCleanupTask(AsyncPresignedUrlManagerTestSuite.class, () -> {
+        S3TestUtils.addCleanupTask(AsyncPresignedUrlExtensionTestSuite.class, () -> {
             s3.deleteObject(DeleteObjectRequest.builder()
                                                     .bucket(testBucket)
                                                     .key(testGetObjectKey)
@@ -110,7 +118,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     @AfterAll
     static void tearDownTestSuite() {
         try {
-            S3TestUtils.runCleanupTasks(AsyncPresignedUrlManagerTestSuite.class);
+            S3TestUtils.runCleanupTasks(AsyncPresignedUrlExtensionTestSuite.class);
         } catch (Exception e) {
         }
         if (presigner != null) {
@@ -124,10 +132,10 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     void getObject_withValidPresignedUrl_returnsContent(String testDescription, 
                                String objectKey, 
                                String expectedContent) throws Exception {
-        PresignedUrlGetObjectRequest request = createRequestForKey(objectKey);
+        PresignedUrlDownloadRequest request = createRequestForKey(objectKey);
 
         CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-                presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> response = future.get();
 
         assertThat(response).isNotNull();
@@ -135,12 +143,9 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
             assertThat(response.asUtf8String()).isEqualTo(expectedContent);
             assertThat(response.response().contentLength()).isEqualTo(expectedContent.length());
         } else {
-            try (ByteArrayInputStream originalStream = new ByteArrayInputStream(testLargeObjectContent);
-                 ByteArrayInputStream downloadedStream = new ByteArrayInputStream(response.asByteArray())) {
-
-                String originalMd5 = Md5Utils.md5AsBase64(originalStream);
+            try (ByteArrayInputStream downloadedStream = new ByteArrayInputStream(response.asByteArray())) {
                 String downloadedMd5 = Md5Utils.md5AsBase64(downloadedStream);
-                assertThat(downloadedMd5).isEqualTo(originalMd5);
+                assertThat(downloadedMd5).isEqualTo(expectedLargeObjectMd5);
                 assertThat(response.asByteArray().length).isEqualTo(testLargeObjectContent.length);
             }
             assertThat(response.response()).isNotNull();
@@ -149,10 +154,10 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     @Test
     void getObject_withValidPresignedUrl_savesContentToFile() throws Exception {
-        PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey);
+        PresignedUrlDownloadRequest request = createRequestForKey(testGetObjectKey);
         Path downloadFile = temporaryFolder.resolve("download-" + UUID.randomUUID() + ".txt");
         CompletableFuture<GetObjectResponse> future =
-            presignedUrlManager.getObject(request, downloadFile);
+            presignedUrlExtension.getObject(request, downloadFile);
         GetObjectResponse response = future.get();
 
         assertThat(response).isNotNull();
@@ -165,10 +170,10 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     void getObject_withRangeRequest_returnsSpecifiedRange(String testDescription, 
                        String range, 
                        String expectedContent) throws Exception {
-        PresignedUrlGetObjectRequest request = createRequestForKey(testGetObjectKey, range);
+        PresignedUrlDownloadRequest request = createRequestForKey(testGetObjectKey, range);
 
         CompletableFuture<ResponseBytes<GetObjectResponse>> future =
-            presignedUrlManager.getObject(request, AsyncResponseTransformer.toBytes());
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
         ResponseBytes<GetObjectResponse> response = future.get();
 
         assertThat(response.asUtf8String()).isEqualTo(expectedContent);
@@ -179,16 +184,16 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
         String concurrentTestKey = uploadTestObject("concurrent-test", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
-        futures.add(presignedUrlManager.getObject(
+        futures.add(presignedUrlExtension.getObject(
             createRequestForKey(concurrentTestKey, "bytes=0-8"),   // "012345678"
             AsyncResponseTransformer.toBytes()));
-        futures.add(presignedUrlManager.getObject(
+        futures.add(presignedUrlExtension.getObject(
             createRequestForKey(concurrentTestKey, "bytes=9-17"),  // "9ABCDEFGH"
             AsyncResponseTransformer.toBytes()));
-        futures.add(presignedUrlManager.getObject(
+        futures.add(presignedUrlExtension.getObject(
             createRequestForKey(concurrentTestKey, "bytes=18-26"), // "IJKLMNOPQ"
             AsyncResponseTransformer.toBytes()));
-        futures.add(presignedUrlManager.getObject(
+        futures.add(presignedUrlExtension.getObject(
             createRequestForKey(concurrentTestKey, "bytes=27-35"), // "RSTUVWXYZ"
             AsyncResponseTransformer.toBytes()));
 
@@ -220,12 +225,12 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
                                                            .overrideConfiguration(o -> o.addMetricPublisher(metricPublisher))
                                                            .build()) {
             
-            AsyncPresignedUrlManager metricsManager = clientWithMetrics.presignedUrlManager();
-            PresignedUrlGetObjectRequest request = createRequestForKey(testLargeObjectKey);
+            AsyncPresignedUrlExtension metricsExtension = clientWithMetrics.presignedUrlExtension();
+            PresignedUrlDownloadRequest request = createRequestForKey(testLargeObjectKey);
             Path downloadFile = temporaryFolder.resolve("large-download-with-metrics-" + UUID.randomUUID() + ".bin");
             
             CompletableFuture<GetObjectResponse> future =
-                metricsManager.getObject(request, downloadFile);
+                metricsExtension.getObject(request, downloadFile);
             GetObjectResponse response = future.get(60, TimeUnit.SECONDS);
             
             assertThat(response).isNotNull();
@@ -245,7 +250,7 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
     }
 
     static Stream<Arguments> rangeTestData() {
-        String content = "Hello AsyncPresignedUrlManager Integration Test";
+        String content = "Hello AsyncPresignedUrlExtension Integration Test";
         return Stream.of(
             Arguments.of("getObject_withPrefix10BytesRange_returnsFirst10Bytes",
                         "bytes=0-9", content.substring(0, 10)),
@@ -260,17 +265,17 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     // Helper methods
     private static String generateRandomObjectKey() {
-        return "async-presigned-url-manager-test-" + UUID.randomUUID();
+        return "async-presigned-url-extension-test-" + UUID.randomUUID();
     }
 
-    private PresignedUrlGetObjectRequest createRequestForKey(String key) {
-        return PresignedUrlGetObjectRequest.builder()
+    private PresignedUrlDownloadRequest createRequestForKey(String key) {
+        return PresignedUrlDownloadRequest.builder()
             .presignedUrl(createPresignedUrl(key))
             .build();
     }
 
-    private PresignedUrlGetObjectRequest createRequestForKey(String key, String range) {
-        return PresignedUrlGetObjectRequest.builder()
+    private PresignedUrlDownloadRequest createRequestForKey(String key, String range) {
+        return PresignedUrlDownloadRequest.builder()
             .presignedUrl(createPresignedUrl(key))
             .range(range)
             .build();
@@ -285,9 +290,9 @@ public abstract class AsyncPresignedUrlManagerTestSuite extends S3IntegrationTes
 
     private String uploadTestObject(String keyPrefix, String content) {
         String key = keyPrefix + "-" + UUID.randomUUID();
-        S3TestUtils.putObject(AsyncPresignedUrlManagerTestSuite.class, s3, testBucket, key, content);
+        S3TestUtils.putObject(AsyncPresignedUrlExtensionTestSuite.class, s3, testBucket, key, content);
 
-        S3TestUtils.addCleanupTask(AsyncPresignedUrlManagerTestSuite.class, () -> {
+        S3TestUtils.addCleanupTask(AsyncPresignedUrlExtensionTestSuite.class, () -> {
             s3.deleteObject(DeleteObjectRequest.builder()
                                                     .bucket(testBucket)
                                                     .key(key)
