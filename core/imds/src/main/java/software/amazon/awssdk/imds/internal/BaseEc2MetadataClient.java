@@ -60,6 +60,10 @@ public abstract class BaseEc2MetadataClient {
         this(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
     }
 
+    protected BaseEc2MetadataClient(DefaultEc2MetadataClientWithFallback.Ec2MetadataBuilder builder) {
+        this(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
+    }
+
     private URI getEndpoint(URI builderEndpoint, EndpointMode builderEndpointMode) {
         Validate.mutuallyExclusive("Only one of 'endpoint' or 'endpointMode' must be specified, but not both",
                                    builderEndpoint, builderEndpointMode);
