@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.10__ __2025-07-28__
+## __AWS Direct Connect__
+  - ### Features
+    - Enable MACSec support and features on Interconnects.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Add support for native anomaly detection in IoT SiteWise using new Computation Model APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Add Pipeline Role Arn as an optional parameter to the create / update pipeline APIs as an alternative to passing in the pipeline configuration body
+
 # __2.32.9__ __2025-07-25__
 ## __AWS Budgets__
   - ### Features
