@@ -26,17 +26,17 @@ import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 
 
-class PresignedUrlGetObjectRequestWrapperTest {
+class PresignedUrlDownloadRequestWrapperTest {
     @Test
     void equalsAndHashCode_shouldFollowContract() {
-        EqualsVerifier.forClass(PresignedUrlGetObjectRequestWrapper.class)
+        EqualsVerifier.forClass(PresignedUrlDownloadRequestWrapper.class)
                       .withRedefinedSuperclass()
                       .verify();
     }
 
     @Test
     void basicProperties_shouldWork() throws Exception {
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .range("bytes=0-100")
                                                                                          .build();
@@ -47,7 +47,7 @@ class PresignedUrlGetObjectRequestWrapperTest {
 
     @Test
     void sdkFields_shouldReturnExpectedFields() throws Exception {
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .range("bytes=0-100")
                                                                                          .build();
@@ -66,7 +66,7 @@ class PresignedUrlGetObjectRequestWrapperTest {
 
     @Test
     void sdkFieldNameToField_shouldReturnExpectedMapping() throws Exception {
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .build();
 
@@ -80,7 +80,7 @@ class PresignedUrlGetObjectRequestWrapperTest {
 
     @Test
     void rangeField_shouldMarshalCorrectly() throws Exception {
-        PresignedUrlGetObjectRequestWrapper request = PresignedUrlGetObjectRequestWrapper.builder()
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .range("bytes=0-1023")
                                                                                          .build();

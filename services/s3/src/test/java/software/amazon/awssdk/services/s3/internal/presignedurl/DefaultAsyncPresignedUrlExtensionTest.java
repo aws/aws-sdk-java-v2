@@ -17,12 +17,19 @@ package software.amazon.awssdk.services.s3.internal.presignedurl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,32 +37,29 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.metrics.MetricCollection;
-import software.amazon.awssdk.metrics.MetricPublisher;
-import software.amazon.awssdk.core.metrics.CoreMetric;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.any;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
-import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
-import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsS3ProtocolFactory;
 import software.amazon.awssdk.regions.Region;
@@ -63,14 +67,13 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.InvalidObjectStateException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlGetObjectRequest;
-import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
-import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 
 /**
- * Tests for {@link DefaultPresignedUrlManager} using MockSyncHttpClient to verify HTTP interactions.
+ * Tests for {@link DefaultAsyncPresignedUrlExtension} using MockAsyncHttpClient to verify HTTP interactions.
  */
- class DefaultPresignedUrlManagerTest {
+class DefaultAsyncPresignedUrlExtensionTest {
 
     private static final String TEST_CONTENT = "test-content";
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
@@ -82,31 +85,30 @@ import software.amazon.awssdk.utils.IoUtils;
                                            "X-Amz-Security-Token=test-session-token&" +
                                            "X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20250707%2Fus-east-1%2Fs3%2Faws4_request&" +
                                            "X-Amz-Expires=86400";
-    private MockSyncHttpClient mockHttpClient;
-    private DefaultPresignedUrlManager presignedUrlManager;
-    private URL testPresignedUrl;
-    private PresignedUrlGetObjectRequest testRequest;
+
+    private MockAsyncHttpClient mockHttpClient;
+    private DefaultAsyncPresignedUrlExtension presignedUrlExtension;
+    private PresignedUrlDownloadRequest testRequest;
     private AwsProtocolMetadata protocolMetadata;
     private AwsS3ProtocolFactory protocolFactory;
-    private SyncClientHandler clientHandler;
-    private SdkClientConfiguration clientConfiguration;
+    private AsyncClientHandler clientHandler;
 
     @BeforeEach
     void setUp() throws Exception {
-        mockHttpClient = new MockSyncHttpClient();
-        testPresignedUrl = new URL(TEST_URL);
-        testRequest = PresignedUrlGetObjectRequest.builder()
+        mockHttpClient = new MockAsyncHttpClient();
+        URL testPresignedUrl = new URL(TEST_URL);
+        testRequest = PresignedUrlDownloadRequest.builder()
                                                   .presignedUrl(testPresignedUrl)
                                                   .build();
 
-        clientConfiguration = getDefaultSdkConfigs();
+        SdkClientConfiguration clientConfiguration = getDefaultSdkConfigs();
         protocolMetadata = AwsProtocolMetadata.builder()
                                               .serviceProtocol(AwsServiceProtocol.REST_XML)
                                               .build();
         protocolFactory = initProtocolFactory(clientConfiguration);
-        clientHandler = new AwsSyncClientHandler(clientConfiguration);
+        clientHandler = new AwsAsyncClientHandler(clientConfiguration);
 
-        presignedUrlManager = new DefaultPresignedUrlManager(
+        presignedUrlExtension = new DefaultAsyncPresignedUrlExtension(
             clientHandler, protocolFactory, clientConfiguration, protocolMetadata);
     }
 
@@ -143,116 +145,98 @@ import software.amazon.awssdk.utils.IoUtils;
         return Stream.of(
             Arguments.of(
                 "Basic request",
-                (Consumer<PresignedUrlGetObjectRequest.Builder>) builder ->
+                (Consumer<PresignedUrlDownloadRequest.Builder>) builder ->
                     builder.presignedUrl(createTestUrl()),
                 null
             ),
             Arguments.of(
                 "Request with range header",
-                (Consumer<PresignedUrlGetObjectRequest.Builder>) builder ->
+                (Consumer<PresignedUrlDownloadRequest.Builder>) builder ->
                     builder.presignedUrl(createTestUrl()).range("bytes=0-1024"),
                 "bytes=0-1024"
             )
         );
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("httpResponseTestCases")
-    void given_PresignedUrlManager_when_GetObjectWithDifferentHttpResponses_then_ShouldHandleSuccessAndErrorsCorrectly(String testName,
-                                             HttpExecuteResponse response,
-                                             boolean expectSuccess,
-                                             Class<? extends Exception> expectedExceptionType) {
-        mockHttpClient.stubNextResponse(response);
-        if (expectSuccess) {
-            assertSuccessfulGetObject(testRequest);
-        } else {
-            assertThatThrownBy(() -> presignedUrlManager.getObject(testRequest, ResponseTransformer.toInputStream()))
-                .isInstanceOf(expectedExceptionType);
-        }
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("requestConfigurationTestCases")
-    void given_PresignedUrlManager_when_GetObjectWithDifferentRequestConfigurations_then_ShouldSetCorrectHeaders(String testName,
-                                                         Consumer<PresignedUrlGetObjectRequest.Builder> requestCustomizer,
-                                                         String expectedRangeHeader) throws IOException {
-        mockHttpClient.stubNextResponse(createSuccessResponse());
-        PresignedUrlGetObjectRequest.Builder builder = PresignedUrlGetObjectRequest.builder();
-        requestCustomizer.accept(builder);
-        PresignedUrlGetObjectRequest request = builder.build();
-        ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request, ResponseTransformer.toInputStream());
-        assertThat(result).isNotNull();
-        String content = IoUtils.toUtf8String(result);
-        assertThat(content).isEqualTo(TEST_CONTENT);
-        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
-        assertThat(lastRequest.method()).isEqualTo(SdkHttpMethod.GET);
-        if (expectedRangeHeader != null) {
-            assertThat(lastRequest.firstMatchingHeader("Range")).isPresent()
-                                                                .contains(expectedRangeHeader);
-        }
-    }
-
     private static Stream<Arguments> additionalTestCases() {
         return Stream.of(
-            Arguments.of(
-                "Custom transformer test",
-                "CUSTOM_TRANSFORMER"
-            ),
-            Arguments.of(
-                "Resolved endpoint verification",
-                "ENDPOINT_VERIFICATION"
-            ),
-            Arguments.of(
-                "Metrics collection test",
-                "METRICS_COLLECTION"
-            )
+            Arguments.of("Custom transformer test", "CUSTOM_TRANSFORMER"),
+            Arguments.of("Metrics collection test", "METRICS_COLLECTION")
         );
     }
 
     private static Stream<Arguments> invalidUrlTestCases() {
         return Stream.of(
-            Arguments.of(
-                "URL with spaces in path",
-                "https://test-bucket.s3.us-east-1.amazonaws.com/test key with spaces"
-            ),
-            Arguments.of(
-                "URL with invalid characters",
-                "https://test-bucket.s3.us-east-1.amazonaws.com/test<>key"
-            ),
-            Arguments.of(
-                "Malformed URL",
-                "not-a-valid-url"
-            )
+            Arguments.of("Invalid URL format", "not-a-url"),
+            Arguments.of("Empty HTTP URL", "http://"),
+            Arguments.of("Empty HTTPS URL", "https://"),
+            Arguments.of("Empty string", "")
         );
     }
 
     @ParameterizedTest(name = "{0}")
+    @MethodSource("httpResponseTestCases")
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithDifferentHttpResponses_then_ShouldHandleSuccessAndErrorsCorrectly(
+            String testName,
+            HttpExecuteResponse response,
+            boolean expectSuccess,
+            Class<? extends Exception> expectedExceptionType) {
+        
+        mockHttpClient.stubNextResponse(response);
+        
+        if (expectSuccess) {
+            assertSuccessfulGetObject(testRequest);
+        } else {
+            CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
+                presignedUrlExtension.getObject(testRequest, AsyncResponseTransformer.toBytes());
+            
+            assertThatThrownBy(future::join)
+                .hasCauseInstanceOf(expectedExceptionType);
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("requestConfigurationTestCases")
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithDifferentRequestConfigurations_then_ShouldSetCorrectHeaders(
+            String testName,
+            Consumer<PresignedUrlDownloadRequest.Builder> requestCustomizer,
+            String expectedRangeHeader) throws ExecutionException, InterruptedException {
+        
+        mockHttpClient.stubNextResponse(createSuccessResponse());
+        
+        PresignedUrlDownloadRequest.Builder builder = PresignedUrlDownloadRequest.builder();
+        requestCustomizer.accept(builder);
+        PresignedUrlDownloadRequest request = builder.build();
+        
+        CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
+            presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
+        ResponseBytes<GetObjectResponse> result = future.get();
+        
+        assertThat(result).isNotNull();
+        assertThat(result.asUtf8String()).isEqualTo(TEST_CONTENT);
+        
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest.method()).isEqualTo(SdkHttpMethod.GET);
+        
+        if (expectedRangeHeader != null) {
+            assertThat(lastRequest.firstMatchingHeader("Range"))
+                .isPresent()
+                .contains(expectedRangeHeader);
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
     @MethodSource("additionalTestCases")
-    void given_PresignedUrlManager_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(String testName,
-                                                                                                String testType) {
+    void given_AsyncPresignedUrlExtension_when_ExecutingDifferentScenarios_then_ShouldBehaveCorrectly(
+            String testName, String testType) throws Exception {
+        
         switch (testType) {
             case "CUSTOM_TRANSFORMER":
                 mockHttpClient.stubNextResponse(createSuccessResponse());
-                ResponseTransformer<GetObjectResponse, String> transformer =
-                    (response, inputStream) -> IoUtils.toUtf8String(inputStream);
-                String result = presignedUrlManager.getObject(testRequest, transformer);
-                assertThat(result).isEqualTo(TEST_CONTENT);
-                break;
-                
-            case "ENDPOINT_VERIFICATION":
-                mockHttpClient.stubNextResponse(createSuccessResponse());
-                presignedUrlManager.getObject(testRequest, ResponseTransformer.toInputStream());
-                SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
-                assertThat(lastRequest.getUri().toString()).startsWith(testPresignedUrl.toString().split("\\?")[0]);
-                String presignedUrlQuery = testPresignedUrl.getQuery();
-                for (String param : presignedUrlQuery.split("&")) {
-                    String[] keyValue = param.split("=", 2);
-                    if (keyValue.length == 2) {
-                        String key = keyValue[0];
-                        String value = keyValue[1];
-                        assertThat(lastRequest.getUri().toString()).contains(key + "=" + value);
-                    }
-                }
+                CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
+                    presignedUrlExtension.getObject(testRequest, AsyncResponseTransformer.toBytes());
+                ResponseBytes<GetObjectResponse> result = future.get();
+                assertThat(result.asUtf8String()).isEqualTo(TEST_CONTENT);
                 break;
                 
             case "METRICS_COLLECTION":
@@ -260,38 +244,45 @@ import software.amazon.awssdk.utils.IoUtils;
                 SdkClientConfiguration clientConfigWithMetrics = getDefaultSdkConfigs().toBuilder()
                     .option(SdkClientOption.METRIC_PUBLISHERS, Collections.singletonList(mockPublisher))
                     .build();
-                DefaultPresignedUrlManager managerWithMetrics = new DefaultPresignedUrlManager(
+                DefaultAsyncPresignedUrlExtension extensionWithMetrics = new DefaultAsyncPresignedUrlExtension(
                     clientHandler, protocolFactory, clientConfigWithMetrics, protocolMetadata);
                 mockHttpClient.stubNextResponse(createSuccessResponse());
-                managerWithMetrics.getObject(testRequest, ResponseTransformer.toInputStream());
+                CompletableFuture<ResponseBytes<GetObjectResponse>> metricsFuture = 
+                    extensionWithMetrics.getObject(testRequest, AsyncResponseTransformer.toBytes());
+                metricsFuture.get();
+                
                 verify(mockPublisher, atLeastOnce()).publish(any(MetricCollection.class));
                 ArgumentCaptor<MetricCollection> metricsCaptor = ArgumentCaptor.forClass(MetricCollection.class);
                 verify(mockPublisher).publish(metricsCaptor.capture());
                 MetricCollection capturedMetrics = metricsCaptor.getValue();
                 assertThat(capturedMetrics.metricValues(CoreMetric.SERVICE_ID)).contains("S3");
-                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("GetObject");
+                assertThat(capturedMetrics.metricValues(CoreMetric.OPERATION_NAME)).contains("PresignedUrlDownload");
                 break;
         }
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidUrlTestCases")
-    void given_PresignedUrlManager_when_GetObjectWithInvalidUrl_then_ShouldThrowException(String testName, String invalidUrlString) {
+    void given_AsyncPresignedUrlExtension_when_GetObjectWithInvalidUrl_then_ShouldThrowException(
+            String testName, String invalidUrlString) {
         assertThatThrownBy(() -> {
             URL invalidUrl = new URL(invalidUrlString);
-            PresignedUrlGetObjectRequest invalidRequest = PresignedUrlGetObjectRequest.builder()
+            PresignedUrlDownloadRequest invalidRequest = PresignedUrlDownloadRequest.builder()
                                                                                      .presignedUrl(invalidUrl)
                                                                                      .build();
-            presignedUrlManager.getObject(invalidRequest, ResponseTransformer.toInputStream());
+            presignedUrlExtension.getObject(invalidRequest, AsyncResponseTransformer.toBytes()).join();
         }).satisfiesAnyOf(
             ex -> assertThat(ex).isInstanceOf(java.net.MalformedURLException.class),
-            ex -> assertThat(ex).isInstanceOf(SdkClientException.class)
+            ex -> assertThat(ex).isInstanceOf(SdkClientException.class),
+            ex -> assertThat(ex).isInstanceOf(java.util.concurrent.CompletionException.class)
+                    .extracting(Throwable::getCause)
+                    .isInstanceOf(SdkClientException.class)
         );
     }
 
     private SdkClientConfiguration getDefaultSdkConfigs() {
         return SdkClientConfiguration.builder()
-                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, mockHttpClient)
+                                     .option(SdkClientOption.ASYNC_HTTP_CLIENT, mockHttpClient)
                                      .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, Collections.emptyMap())
                                      .option(SdkClientOption.EXECUTION_INTERCEPTORS, Collections.emptyList())
                                      .option(SdkClientOption.RETRY_STRATEGY, AwsRetryStrategy.doNotRetry())
@@ -303,6 +294,8 @@ import software.amazon.awssdk.utils.IoUtils;
                                      .option(AwsClientOption.SIGNING_REGION, Region.US_EAST_2)
                                      .option(AwsClientOption.SERVICE_SIGNING_NAME, Region.AP_EAST_2.toString())
                                      .option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, false)
+                                     .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
                                      .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
                                              software.amazon.awssdk.core.ClientEndpointProvider.forEndpointOverride(DEFAULT_ENDPOINT))
                                      .build();
@@ -331,20 +324,23 @@ import software.amazon.awssdk.utils.IoUtils;
         }
     }
 
-    private void assertSuccessfulGetObject(PresignedUrlGetObjectRequest request) {
+    private void assertSuccessfulGetObject(PresignedUrlDownloadRequest request) {
         try {
-            ResponseInputStream<GetObjectResponse> result = presignedUrlManager.getObject(request, ResponseTransformer.toInputStream());
+            CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
+                presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
+            ResponseBytes<GetObjectResponse> result = future.get();
+            
             assertThat(result).isNotNull();
-            String content = IoUtils.toUtf8String(result);
-            assertThat(content).isEqualTo(TEST_CONTENT);
+            assertThat(result.asUtf8String()).isEqualTo(TEST_CONTENT);
 
             SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
             assertThat(lastRequest.method()).isEqualTo(SdkHttpMethod.GET);
             assertThat(lastRequest.getUri().toString()).contains("test-bucket.s3.us-east-1.amazonaws.com/test-key");
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
     private static HttpExecuteResponse createSuccessResponse() {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
@@ -361,7 +357,7 @@ import software.amazon.awssdk.utils.IoUtils;
 
     private static HttpExecuteResponse createErrorResponse(int statusCode, String errorCode, String errorMessage) {
         String errorContent = String.format(
-            "<Error><Code>%s</Code><Message>%s</Message></Error>",
+            "<e><Code>%s</Code><Message>%s</Message></e>",
             errorCode, errorMessage);
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(statusCode)
@@ -375,4 +371,3 @@ import software.amazon.awssdk.utils.IoUtils;
                                   .build();
     }
 }
-

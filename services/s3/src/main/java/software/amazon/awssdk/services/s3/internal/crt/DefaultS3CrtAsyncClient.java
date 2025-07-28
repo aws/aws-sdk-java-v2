@@ -74,6 +74,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -448,5 +449,11 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                             + "software.amazon.awssdk.crt:crt is a required dependency; make sure you have it "
                                             + "on the classpath.", e);
         }
+    }
+
+    @Override
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        // TODO: Implement presigned URL extension support for CRT client
+        throw new UnsupportedOperationException("Presigned URL extension is not supported for CRT client");
     }
 }
