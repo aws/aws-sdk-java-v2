@@ -27,6 +27,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ContentLengthAwareSubscriber;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.AddingTrailingDataSubscriber;
 import software.amazon.awssdk.utils.async.DelegatingSubscriber;
 import software.amazon.awssdk.utils.async.FlatteningSubscriber;
@@ -76,7 +77,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
     public ChunkedEncodedPublisher(Builder b) {
         this.wrapped = b.publisher;
-        this.contentLength = b.contentLength;
+        this.contentLength = Validate.notNull(b.contentLength, "contentLength must not be null");
         this.chunkSize = b.chunkSize;
         this.extensions.addAll(b.extensions);
         this.trailers.addAll(b.trailers);
@@ -301,7 +302,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
 
     public static class Builder {
         private Publisher<ByteBuffer> publisher;
-        private long contentLength;
+        private Long contentLength;
         private int chunkSize;
         private boolean addEmptyTrailingChunk;
         private final List<ChunkExtensionProvider> extensions = new ArrayList<>();

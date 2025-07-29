@@ -29,11 +29,11 @@ public class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
     private final Subscriber<? super ByteBuffer> subscriber;
     private Subscription subscription;
     private boolean subscriptionCancelled;
-    private long contentLength;
+    private long remaining;
 
     public ContentLengthAwareSubscriber(Subscriber<? super ByteBuffer> subscriber, long contentLength) {
         this.subscriber = subscriber;
-        this.contentLength = contentLength;
+        this.remaining = contentLength;
     }
 
     @Override
@@ -47,13 +47,13 @@ public class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
-        if (contentLength > 0) {
-            long bytesToRead = Math.min(contentLength, byteBuffer.remaining());
+        if (remaining > 0) {
+            long bytesToRead = Math.min(remaining, byteBuffer.remaining());
             // cast is safe, min of long and int is <= max_int
             byteBuffer.limit(byteBuffer.position() + (int) bytesToRead);
-            contentLength -= bytesToRead;
+            remaining -= bytesToRead;
             subscriber.onNext(byteBuffer);
-        } else if (contentLength == 0 && !subscriptionCancelled) {
+        } else if (remaining == 0 && !subscriptionCancelled) {
             subscriptionCancelled = true;
             subscription.cancel();
             onComplete();
