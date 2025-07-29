@@ -53,7 +53,6 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     public void setup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
                            "http://localhost:" + wireMock.port());
-        ENVIRONMENT_VARIABLE_HELPER.remove(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.environmentVariable());
     }
 
     @After
@@ -71,12 +70,10 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(200).withBody("us-east-1")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
 
-        // Should return IN_REGION since client region (us-east-1) matches IMDS region (us-east-1)
+        // Should return IN_REGION since client region matches IMDS region
         assertThat(result).isEqualTo(DefaultsMode.IN_REGION);
 
         // Verify that the shared HTTP client was used
@@ -99,8 +96,6 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(200).withBody("us-west-2")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         // Create multiple discovery instances
         AutoDefaultsModeDiscovery discovery1 = new AutoDefaultsModeDiscovery();
         AutoDefaultsModeDiscovery discovery2 = new AutoDefaultsModeDiscovery();
@@ -109,7 +104,7 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         DefaultsMode result1 = discovery1.discover(Region.US_EAST_1);
         DefaultsMode result2 = discovery2.discover(Region.US_EAST_1);
 
-        // Both should return CROSS_REGION (client: us-east-1, IMDS: us-west-2)
+        // Both should return CROSS_REGION
         assertThat(result1).isEqualTo(DefaultsMode.CROSS_REGION);
         assertThat(result2).isEqualTo(DefaultsMode.CROSS_REGION);
 
@@ -129,8 +124,6 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     public void awsEc2MetadataDisabled_shouldSkipImdsAndUseStandardMode() {
         // Disable IMDS
         ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_EC2_METADATA_DISABLED.environmentVariable(), "true");
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
 
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
@@ -151,8 +144,6 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
 
@@ -171,19 +162,16 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
 
         // Should fail immediately without retries and fallback to STANDARD
         assertThat(result).isEqualTo(DefaultsMode.STANDARD);
 
-        // Verify requests were made but no retries
-        verify(putRequestedFor(urlEqualTo("/latest/api/token")));
-        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        // Verify requests were made once (no retries)
+        verify(1, putRequestedFor(urlEqualTo("/latest/api/token")));
+        verify(1, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
     }
-
 
     @Test
     public void imdsV1Fallback_shouldWorkWhenTokenFails() {
@@ -195,15 +183,13 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(200).withBody("us-east-1")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
 
-        // Should fall back to IMDSv1 and succeed, returning IN_REGION
+        // Should fall back to IMDSv1 and return IN_REGION
         assertThat(result).isEqualTo(DefaultsMode.IN_REGION);
 
-        // Verify both token request (failed) and region request (succeeded) were made
+        // Verify both token request and region request were made
         verify(putRequestedFor(urlEqualTo("/latest/api/token")));
         verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
     }
@@ -216,8 +202,6 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         // Stub token request to fail
         stubFor(put("/latest/api/token")
                     .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
-
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
 
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
@@ -235,15 +219,13 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         stubFor(put("/latest/api/token")
                     .willReturn(aResponse().withStatus(400).withBody("Bad Request")));
 
-        ENVIRONMENT_VARIABLE_HELPER.set("AWS_DEFAULT_REGION", "us-west-2");
-
         AutoDefaultsModeDiscovery discovery = new AutoDefaultsModeDiscovery();
         DefaultsMode result = discovery.discover(Region.US_EAST_1);
 
         // Should fail without attempting IMDSv1 fallback and return STANDARD
         assertThat(result).isEqualTo(DefaultsMode.STANDARD);
 
-        // Verify only token request was made (no region request)
+        // Verify only token request was made
         verify(putRequestedFor(urlEqualTo("/latest/api/token")));
     }
 }
