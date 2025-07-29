@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Batch",
-    "contributor": "",
-    "description": "AWS Batch for SageMaker Training jobs feature support. Includes new APIs for service job submission (e.g., SubmitServiceJob) and managing service environments (e.g., CreateServiceEnvironment) that enable queueing SageMaker Training jobs."
-}
