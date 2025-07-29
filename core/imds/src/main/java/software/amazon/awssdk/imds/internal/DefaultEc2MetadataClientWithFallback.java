@@ -80,7 +80,7 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
 
         this.imdsV1FallbackEnabled = !resolveImdsV1Disabled();
 
-        this.tokenCache = CachedSupplier.builder(() -> RefreshResult.builder(this.getToken())
+        this.tokenCache = CachedSupplier.builder(() -> RefreshResult.builder(this.getTokenWithFallback())
                                                                     .staleTime(Instant.now().plus(tokenTtl))
                                                                     .build())
                                         .cachedValueName(toString())
@@ -122,7 +122,7 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
             RetryPolicyContext retryPolicyContext = RetryPolicyContext.builder().retriesAttempted(attempt).build();
             try {
                 if (token == null || token.isExpired()) {
-                    token = getTokenWithFallback();
+                    token = tokenCache.get();
                 }
                 return sendRequest(path, token != null ? token.value() : null);
             } catch (UncheckedIOException | RetryableException e) {
@@ -154,13 +154,13 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
     }
 
     /**
-     * Gets token with fallback logic that matches EC2MetadataUtils behavior.
+     * Gets token with fallback logic that can be cached.
      * If token retrieval fails with 400 error, throws exception.
      * Otherwise, returns null to indicate fallback to IMDSv1.
      */
     private Token getTokenWithFallback() {
         try {
-            return tokenCache.get();
+            return getToken();
         } catch (Exception e) {
             boolean is400ServiceException = e instanceof Ec2MetadataClientException
                     && ((Ec2MetadataClientException) e).statusCode() == 400;
