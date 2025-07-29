@@ -116,7 +116,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void canMakeHttpsRequestWhenKeyProviderConfigured() throws IOException {
+    public void prepareRequest_whenKeyProviderConfigured_successfullyMakesHttpsRequest() throws IOException {
         client = Apache5HttpClient.builder()
                 .tlsKeyManagersProvider(keyManagersProvider)
                 .build();
@@ -125,13 +125,13 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void requestFailsWhenKeyProviderNotConfigured() throws IOException {
+    public void prepareRequest_whenKeyProviderNotConfigured_throwsSslException() throws IOException {
         client = Apache5HttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
         assertThatThrownBy(() -> makeRequestWithHttpClient(client)).isInstanceOfAny(SSLException.class, SocketException.class);
     }
 
     @Test
-    public void authenticatesWithTlsProxy() throws IOException {
+    public void prepareRequest_whenTlsProxyConfigured_authenticatesSuccessfully() throws IOException {
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
                 .endpoint(URI.create("https://localhost:" + wireMockServer.httpsPort()))
                 .build();
@@ -148,7 +148,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider() throws IOException {
+    public void build_whenNoTlsKeyManagersProviderSet_usesSystemPropertyProvider() throws IOException {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -164,7 +164,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider_explicitlySetToNull() throws IOException {
+    public void build_whenTlsKeyManagersProviderExplicitlySetToNull_usesSystemPropertyProvider() throws IOException {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -180,7 +180,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws Exception {
+    public void build_whenSocketFactoryNotSet_configuresDefaultSocketFactory() throws Exception {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -212,7 +212,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void build_settingCustomSocketFactory_configuresClientWithGivenSocketFactory() throws IOException,
+    public void build_whenCustomSocketFactorySet_usesProvidedSocketFactory() throws IOException,
                                                                                                  NoSuchAlgorithmException,
                                                                                                  KeyManagementException {
         TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
@@ -259,7 +259,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void tls_strategy_configuration() throws Exception {
+    public void build_whenTlsSocketStrategyConfigured_usesProvidedStrategy() throws Exception {
         // Setup TLS context
         KeyManager[] keyManagers = keyManagersProvider.keyManagers();
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -289,45 +289,32 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void tls_strategy_overrides_legacy_factory() throws Exception {
+    public void build_whenBothTlsStrategyAndLegacyFactorySet_throwsIllegalArgumentException() throws Exception {
         // Setup TLS context
         KeyManager[] keyManagers = keyManagersProvider.keyManagers();
         SSLContext sslContext = SSLContext.getInstance("TLS");
         sslContext.init(keyManagers, null, null);
 
-        // Create spies for both approaches
+        // Create both socket factory and TLS strategy
         SSLConnectionSocketFactory legacyFactory = new SSLConnectionSocketFactory(
             sslContext,
             NoopHostnameVerifier.INSTANCE
         );
-        SSLConnectionSocketFactory legacyFactorySpy = Mockito.spy(legacyFactory);
 
         TlsSocketStrategy tlsStrategy = new SdkTlsSocketFactory(
             sslContext,
             NoopHostnameVerifier.INSTANCE
         );
-        TlsSocketStrategy tlsStrategySpy = Mockito.spy(tlsStrategy);
 
-        // Build client with both - TLS strategy should take precedence
-        client = Apache5HttpClient.builder()
-                                  .socketFactory(legacyFactorySpy)
-                                  .tlsSocketStrategy(tlsStrategySpy)  // This should override
-                                  .build();
-
-        // Make request
-        HttpExecuteResponse response = makeRequestWithHttpClient(client);
-        assertThat(response.httpResponse().isSuccessful()).isTrue();
-
-        // Verify only TLS strategy was used, not legacy
-        Mockito.verify(tlsStrategySpy).upgrade(
-            Mockito.any(Socket.class),
-            Mockito.anyString(),
-            Mockito.anyInt(),
-            Mockito.any(),
-            Mockito.any(HttpContext.class)
-        );
-
-        Mockito.verifyNoInteractions(legacyFactorySpy);
+        // Attempt to build client with both - should throw exception
+        assertThatThrownBy(() -> Apache5HttpClient.builder()
+                                                  .socketFactory(legacyFactory)
+                                                  .tlsSocketStrategy(tlsStrategy)
+                                                  .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Cannot configure both tlsSocketStrategy and socketFactory")
+            .hasMessageContaining("deprecated")
+            .hasMessageContaining("use tlsSocketStrategy");
     }
 
 }

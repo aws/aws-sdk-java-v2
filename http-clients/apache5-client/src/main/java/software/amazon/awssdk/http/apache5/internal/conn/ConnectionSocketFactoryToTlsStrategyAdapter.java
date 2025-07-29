@@ -23,6 +23,7 @@ import org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Adapter to wrap ConnectionSocketFactory as TlsSocketStrategy.
@@ -34,7 +35,7 @@ public class ConnectionSocketFactoryToTlsStrategyAdapter implements TlsSocketStr
     private final ConnectionSocketFactory socketFactory;
 
     public ConnectionSocketFactoryToTlsStrategyAdapter(ConnectionSocketFactory socketFactory) {
-        this.socketFactory = socketFactory;
+        this.socketFactory = Validate.paramNotNull(socketFactory, "socketFactory");
     }
 
     @Override
