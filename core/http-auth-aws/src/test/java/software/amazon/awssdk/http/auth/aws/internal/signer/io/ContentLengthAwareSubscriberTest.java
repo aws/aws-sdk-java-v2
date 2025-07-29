@@ -33,7 +33,7 @@ import org.reactivestreams.Subscription;
 
 public class ContentLengthAwareSubscriberTest {
     @Test
-    public void subscribe_upstreamExceedsContentLength_correctlyTruncates() {
+    void subscribe_upstreamExceedsContentLength_correctlyTruncates() {
         long contentLength = 64;
         Publisher<ByteBuffer> upstream = randomPublisherOfLength(8192, 8, 16);
 
@@ -46,7 +46,7 @@ public class ContentLengthAwareSubscriberTest {
     }
 
     @Test
-    public void subscribe_upstreamHasExactlyContentLength_signalsComplete() {
+    void subscribe_upstreamHasExactlyContentLength_signalsComplete() {
         long contentLength = 8192;
         Publisher<ByteBuffer> upstream = randomPublisherOfLength((int) contentLength, 8, 16);
 
@@ -59,7 +59,7 @@ public class ContentLengthAwareSubscriberTest {
     }
 
     @Test
-    public void subscribe_upstreamExceedsContentLength_request1BufferAtATime_correctlyTruncates() throws Exception {
+    void subscribe_upstreamExceedsContentLength_request1BufferAtATime_correctlyTruncates() throws Exception {
         long contentLength = 8192;
 
         Publisher<ByteBuffer> upstream = randomPublisherOfLength((int) contentLength * 2, 8, 16);
@@ -104,7 +104,7 @@ public class ContentLengthAwareSubscriberTest {
     }
 
     @Test
-    public void subscribe_upstreamExceedsContentLength_upstreamSubscriptionCancelledAfterContentLengthReached() {
+    void subscribe_upstreamExceedsContentLength_upstreamSubscriptionCancelledAfterContentLengthReached() {
         long contentLength = 64;
         Publisher<ByteBuffer> upstream = randomPublisherOfLength((int) contentLength * 4, 8, 16);
 
@@ -116,6 +116,19 @@ public class ContentLengthAwareSubscriberTest {
         testSubscriber.assertComplete();
         assertThat(subscriptionWrappingSubscriber.wrappedSubscription.cancelInvocations.get()).isEqualTo(1L);
         assertThat(totalRemaining(testSubscriber.values())).isEqualTo(contentLength);
+    }
+
+    @Test
+    void subscribe_upstreamHasContentAndContentLength0_signalsComplete() {
+        Publisher<ByteBuffer> upstream = randomPublisherOfLength(128, 8, 16);
+
+        TestSubscriber<ByteBuffer> testSubscriber = new TestSubscriber<>();
+        ContentLengthAwareSubscriber lengthAwareSubscriber = new ContentLengthAwareSubscriber(testSubscriber, 0L);
+        upstream.subscribe(lengthAwareSubscriber);
+
+        testSubscriber.awaitTerminalEvent(5, TimeUnit.SECONDS);
+        testSubscriber.assertComplete();
+        assertThat(testSubscriber.values()).isEmpty();
     }
 
     private static class TestSubscription implements Subscription {
