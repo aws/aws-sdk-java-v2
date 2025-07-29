@@ -23,6 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -47,12 +48,18 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
     @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
+    public WireMockRule wireMock = new WireMockRule(wireMockConfig()
+            .port(0)
+            .httpsPort(-1));
 
     @Before
     public void setup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
                            "http://localhost:" + wireMock.port());
+
+        clearEnvironmentVariable("AWS_EXECUTION_ENV");
+        clearEnvironmentVariable("AWS_REGION");
+        clearEnvironmentVariable("AWS_DEFAULT_REGION");
     }
 
     @After
@@ -60,6 +67,15 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         wireMock.resetAll();
         ENVIRONMENT_VARIABLE_HELPER.reset();
         System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
+    }
+
+   // Clear an environment variable by setting it to null.
+    private void clearEnvironmentVariable(String name) {
+        try {
+            ENVIRONMENT_VARIABLE_HELPER.set(name, null);
+        } catch (Exception e) {
+            // Ignore
+        }
     }
 
     @Test
@@ -132,8 +148,8 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         assertThat(result).isEqualTo(DefaultsMode.STANDARD);
 
         // Verify no IMDS requests were made
-        wireMock.verify(0, putRequestedFor(urlEqualTo("/latest/api/token")));
-        wireMock.verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        verify(0, putRequestedFor(urlEqualTo("/latest/api/token")));
+        verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
     }
 
     @Test
