@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "OpenSearch Service Serverless",
+    "contributor": "",
+    "description": "This is to support Granular access control support for SAML with IAMFedraton in AOSS"
+}
