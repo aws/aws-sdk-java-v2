@@ -8,7 +8,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class ServiceVersionInfo {
   /**
-   * Returns the current version for the AWS SDK in which this class is running.
+   * Returns the current major.minor.x version for the AWS SDK in which this class is running.
    */
   public static final String VERSION = "{{VERSION}}";
 

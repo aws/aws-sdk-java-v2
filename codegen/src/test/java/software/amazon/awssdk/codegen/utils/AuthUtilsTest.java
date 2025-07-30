@@ -79,26 +79,41 @@ public class AuthUtilsTest {
 
     @ParameterizedTest
     @MethodSource("opValues")
-    public void testIfOperationIsBearerAuth(AuthType serviceAuthType, AuthType opAuthType, Boolean expectedResult) {
-        IntermediateModel model = modelWith(serviceAuthType);
-        OperationModel opModel = opModelWith(opAuthType);
-        assertThat(AuthUtils.isOpBearerAuth(model, opModel)).isEqualTo(expectedResult);
+    public void testIfOperationIsBearerAuthPreferred(AuthType serviceAuthType, List<AuthType> serviceAuth,
+                                                     AuthType opAuthType, List<AuthType> opAuth,
+                                                     Boolean expectedResult) {
+        IntermediateModel model = modelWith(serviceAuthType, serviceAuth);
+        OperationModel opModel = opModelWith(opAuthType, opAuth);
+        assertThat(AuthUtils.isOpBearerAuthPreferred(model, opModel)).isEqualTo(expectedResult);
     }
 
     private static Stream<Arguments> opValues() {
-        return Stream.of(Arguments.of(AuthType.BEARER, AuthType.BEARER, true),
-                         Arguments.of(AuthType.BEARER, AuthType.S3V4, false),
-                         Arguments.of(AuthType.BEARER, AuthType.NONE, true),
-                         Arguments.of(AuthType.BEARER, null, true),
-                         Arguments.of(AuthType.S3V4, AuthType.BEARER, true),
-                         Arguments.of(AuthType.S3V4, AuthType.S3V4, false),
-                         Arguments.of(AuthType.S3V4, AuthType.NONE, false),
-                         Arguments.of(AuthType.S3V4, null, false));
+        return Stream.of(
+            Arguments.of(AuthType.BEARER, null, AuthType.BEARER, null, true),
+            Arguments.of(AuthType.BEARER, null, AuthType.S3V4, null, false),
+            Arguments.of(AuthType.BEARER, null, AuthType.NONE, null, true),
+            Arguments.of(AuthType.BEARER, null, null, null, true),
+            Arguments.of(AuthType.S3V4, null, AuthType.BEARER, null, true),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.NONE, null, false),
+            Arguments.of(AuthType.S3V4, null, null, null, false),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.S3V4, AuthType.BEARER), AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, Arrays.asList(AuthType.S3V4, AuthType.BEARER), false),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), null, null, true),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), true)
+        );
     }
 
     private static OperationModel opModelWith(AuthType authType) {
         OperationModel opModel = new OperationModel();
         opModel.setAuthType(authType);
+        return opModel;
+    }
+
+    private static OperationModel opModelWith(AuthType authType, List<AuthType> auth) {
+        OperationModel opModel = opModelWith(authType);
+        opModel.setAuth(auth);
         return opModel;
     }
 

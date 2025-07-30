@@ -21,6 +21,7 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ResumeToken;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
 import software.amazon.awssdk.regions.Region;
 
@@ -56,6 +57,12 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
 
     public static final S3InternalSdkHttpExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION =
         new S3InternalSdkHttpExecutionAttribute<>(ResponseChecksumValidation.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<Path> RESPONSE_FILE_PATH =
+        new S3InternalSdkHttpExecutionAttribute<>(Path.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
+        new S3InternalSdkHttpExecutionAttribute<>(S3MetaRequestOptions.ResponseFileOption.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);

@@ -160,6 +160,8 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
 
         endpointParamsKnowledgeIndex.addAccountIdMethodsIfPresent(b);
+
+        b.addMethod(setMetricValuesMethod());
         return b.build();
     }
 
@@ -255,6 +257,7 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         }
 
         b.addStatement("executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint)");
+        b.addStatement("setMetricValues(endpoint, executionAttributes)");
         b.addStatement("return result");
         b.endControlFlow();
         b.beginControlFlow("catch ($T e)", CompletionException.class);
@@ -903,6 +906,21 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                            endpointRulesSpecUtils.rulesRuntimeClassName("DefaultEndpointAuthSchemeStrategyFactory"));
         }
         b.addStatement("this.$N = $N.endpointAuthSchemeStrategy()", endpointAuthSchemeFieldName, factoryLocalVarName);
+        return b.build();
+    }
+
+    private MethodSpec setMetricValuesMethod() {
+        MethodSpec.Builder b = MethodSpec.methodBuilder("setMetricValues")
+                                         .addModifiers(Modifier.PRIVATE)
+                                         .addParameter(Endpoint.class, "endpoint")
+                                         .addParameter(ExecutionAttributes.class, "executionAttributes")
+                                         .returns(void.class);
+
+        b.beginControlFlow("if (endpoint.attribute($T.METRIC_VALUES) != null)", AwsEndpointAttribute.class);
+        b.addStatement("executionAttributes.getOptionalAttribute($T.BUSINESS_METRICS).ifPresent("
+                       + "metrics -> endpoint.attribute($T.METRIC_VALUES).forEach(v -> metrics.addMetric(v)))",
+                       SdkInternalExecutionAttribute.class, AwsEndpointAttribute.class);
+        b.endControlFlow();
         return b.build();
     }
 }

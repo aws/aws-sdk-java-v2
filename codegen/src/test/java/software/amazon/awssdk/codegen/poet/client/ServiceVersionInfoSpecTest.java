@@ -16,7 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringWhiteSpace;
+import static software.amazon.awssdk.core.util.VersionInfo.SDK_VERSION;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.poet.client.specs.ServiceVersionInfoSpec;
-import software.amazon.awssdk.core.util.VersionInfo;
+import software.amazon.awssdk.codegen.utils.VersionUtils;
 
 public class ServiceVersionInfoSpecTest {
 
@@ -36,7 +36,7 @@ public class ServiceVersionInfoSpecTest {
     // version at build time.
     @Test
     void testServiceVersionInfoClass() {
-        String currVersion = VersionInfo.SDK_VERSION;
+        String currVersion = VersionUtils.convertToMajorMinorX(SDK_VERSION);
         ClassSpec serviceVersionInfoSpec = new ServiceVersionInfoSpec(ClientTestModels.restJsonServiceModels());
 
         String expectedContent = loadFixtureFile("test-service-version-info-class.java");
