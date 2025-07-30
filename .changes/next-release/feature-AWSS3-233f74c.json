@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS S3",
-    "contributor": "",
-    "description": "Add support for using CRT's response file in the CRT based S3AsyncClient - CRT will directly write to the file when calling getObject with a Path."
-}

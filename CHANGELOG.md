@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.11__ __2025-07-29__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch for SageMaker Training jobs feature support. Includes new APIs for service job submission (e.g., SubmitServiceJob) and managing service environments (e.g., CreateServiceEnvironment) that enable queueing SageMaker Training jobs.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This feature provides the ability to update the table reference and allowed columns on an existing configured table.
+
+## __AWS S3__
+  - ### Features
+    - Add support for using CRT's response file in the CRT based S3AsyncClient - CRT will directly write to the file when calling getObject with a Path.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tag management on monitors.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release 1) adds support for multi-polygon geofences with disconnected territories, and 2) enables polygon exclusion zones within geofences for more accurate representation of real-world boundaries.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This is to support Granular access control support for SAML with IAMFedraton in AOSS
+
 # __2.32.10__ __2025-07-28__
 ## __AWS Direct Connect__
   - ### Features
