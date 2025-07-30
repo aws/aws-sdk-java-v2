@@ -13,10 +13,10 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.io;
+package software.amazon.awssdk.utils.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.http.auth.aws.PublisherUtils.randomPublisherOfLength;
+import static software.amazon.awssdk.testutils.PublisherUtils.randomPublisherOfLength;
 
 import io.reactivex.subscribers.TestSubscriber;
 import java.nio.ByteBuffer;
