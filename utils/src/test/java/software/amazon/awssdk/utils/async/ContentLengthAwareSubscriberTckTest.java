@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.io;
+package software.amazon.awssdk.utils.async;
 
 import io.reactivex.subscribers.TestSubscriber;
 import java.nio.ByteBuffer;

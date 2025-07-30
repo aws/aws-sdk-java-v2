@@ -13,18 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.io;
+package software.amazon.awssdk.utils.async;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Decorator subscriber that limits the number of bytes sent to the wrapped subscriber to at most {@code contentLength}. Once
  * the given content length is reached, the upstream subscription is cancelled, and the wrapped subscriber is completed.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
     private final Subscriber<? super ByteBuffer> subscriber;
     private Subscription subscription;
@@ -53,7 +53,9 @@ public class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
             byteBuffer.limit(byteBuffer.position() + (int) bytesToRead);
             remaining -= bytesToRead;
             subscriber.onNext(byteBuffer);
-        } else if (remaining == 0 && !subscriptionCancelled) {
+        }
+
+        if (remaining == 0 && !subscriptionCancelled) {
             subscriptionCancelled = true;
             subscription.cancel();
             onComplete();

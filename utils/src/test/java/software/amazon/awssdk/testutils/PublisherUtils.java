@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws;
+package software.amazon.awssdk.testutils;
 
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
