@@ -126,4 +126,10 @@ class DynamoDbRetryPolicyTest {
         assertThat(retryMode).isEqualTo(RetryMode.STANDARD);
     }
 
+    @Test
+    void test_numRetries_with_defaultSettings() {
+        SdkClientConfiguration sdkClientConfiguration = SdkClientConfiguration.builder().build();
+        RetryStrategy retryStrategy = DynamoDbRetryPolicy.resolveRetryStrategy(sdkClientConfiguration);
+        assertThat(retryStrategy.maxAttempts()).isEqualTo(9);
+    }
 }
