@@ -15,21 +15,24 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.getNestedSchema;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.valueRef;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation.NESTED_OBJECT_UPDATE;
 import static software.amazon.awssdk.utils.CollectionUtils.filterMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
@@ -57,12 +60,12 @@ public final class UpdateExpressionUtils {
      * Generates an UpdateExpression representing a POJO, with only SET and REMOVE actions.
      */
     public static UpdateExpression operationExpression(Map<String, AttributeValue> itemMap,
-                                                       TableMetadata tableMetadata,
+                                                       TableSchema tableSchema,
                                                        List<String> nonRemoveAttributes) {
 
         Map<String, AttributeValue> setAttributes = filterMap(itemMap, e -> !isNullAttributeValue(e.getValue()));
         UpdateExpression setAttributeExpression = UpdateExpression.builder()
-                                                                  .actions(setActionsFor(setAttributes, tableMetadata))
+                                                                  .actions(setActionsFor(setAttributes, tableSchema))
                                                                   .build();
 
         Map<String, AttributeValue> removeAttributes =
@@ -78,13 +81,31 @@ public final class UpdateExpressionUtils {
     /**
      * Creates a list of SET actions for all attributes supplied in the map.
      */
-    private static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableMetadata tableMetadata) {
-        return attributesToSet.entrySet()
-                              .stream()
-                              .map(entry -> setValue(entry.getKey(),
-                                                     entry.getValue(),
-                                                     UpdateBehaviorTag.resolveForAttribute(entry.getKey(), tableMetadata)))
-                              .collect(Collectors.toList());
+    private static List<SetAction> setActionsFor(Map<String, AttributeValue> attributesToSet, TableSchema tableSchema) {
+        List<SetAction> actions = new ArrayList<>();
+        for (Map.Entry<String, AttributeValue> entry : attributesToSet.entrySet()) {
+            String key = entry.getKey();
+            AttributeValue value = entry.getValue();
+
+            if (key.contains(NESTED_OBJECT_UPDATE)) {
+                TableSchema currentSchema = tableSchema;
+                List<String> pathFieldNames = Arrays.asList(PATTERN.split(key));
+                String attributeName = pathFieldNames.get(pathFieldNames.size() - 1);
+
+                for (int i = 0; i < pathFieldNames.size() - 1; i++) {
+                    Optional<? extends TableSchema<?>> nestedSchema = getNestedSchema(currentSchema, pathFieldNames.get(i));
+                    if (nestedSchema.isPresent()) {
+                        currentSchema = nestedSchema.get();
+                    }
+                }
+
+                actions.add(setValue(key, value,
+                                     UpdateBehaviorTag.resolveForAttribute(attributeName, currentSchema.tableMetadata())));
+            } else {
+                actions.add(setValue(key, value, UpdateBehaviorTag.resolveForAttribute(key, tableSchema.tableMetadata())));
+            }
+        }
+        return actions;
     }
 
     /**
