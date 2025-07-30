@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.12__ __2025-07-30__
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for AWS Managed Microsoft AD Hybrid Edition, introducing new operations: StartADAssessment, DescribeADAssessment, ListADAssessments, DeleteADAssessment, CreateHybridAD, UpdateHybridAD, and DescribeHybridADUpdate; and updated existing operation: DescribeDirectories.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Added TxPowerIndexMin, TxPowerIndexMax, NbTransMin and NbTransMax params to ServiceProfile.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds new origin timeout options: 1) ResponseCompletionTimeout and 2) OriginReadTimeout (for S3 origins)
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add support for setting Serverless Scaling Configuration on clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to show the next hop IP address for routes propagated by VPC Route Server into VPC route tables.
+
 # __2.32.11__ __2025-07-29__
 ## __AWS Batch__
   - ### Features
