@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon WorkSpaces Web",
+    "contributor": "",
+    "description": "Added ability to log session activity on a portal to an S3 bucket."
+}
