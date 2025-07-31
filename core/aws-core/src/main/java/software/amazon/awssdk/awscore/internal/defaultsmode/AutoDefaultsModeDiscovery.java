@@ -19,6 +19,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.internal.Ec2MetadataSharedClient;
@@ -96,7 +97,7 @@ public class AutoDefaultsModeDiscovery {
 
             String ec2InstanceRegion = client.get(EC2_METADATA_REGION_PATH).asString();
             return Optional.ofNullable(ec2InstanceRegion);
-        } catch (Exception exception) {
+        } catch (SdkClientException e) {
             return Optional.empty();
         } finally {
             if (client != null) {
