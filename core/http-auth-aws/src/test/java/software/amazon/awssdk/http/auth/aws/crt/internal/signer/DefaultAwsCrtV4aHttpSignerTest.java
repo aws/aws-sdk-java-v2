@@ -412,4 +412,26 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-checksum-crc32"))
             .contains("some value");
     }
+
+    @Test
+    public void sign_withProvidedHostHeader_shouldRespectUserHostHeader() {
+        AwsCredentialsIdentity credentials =
+            AwsCredentialsIdentity.create("access", "secret");
+
+        String hostOverride = "virtual-host.localhost";
+        SignRequest<AwsCredentialsIdentity> request = generateBasicRequest(
+            credentials,
+            httpRequest -> httpRequest.putHeader("Host", hostOverride).port(443),
+            signRequest -> {
+
+            }
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        assertThat(signedRequest.request().firstMatchingHeader("Host")).hasValue(hostOverride);
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
+        assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
+        assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
+    }
 }
