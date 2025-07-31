@@ -25,7 +25,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
  * the given content length is reached, the upstream subscription is cancelled, and the wrapped subscriber is completed.
  */
 @SdkProtectedApi
-public class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
+public final class ContentLengthAwareSubscriber implements Subscriber<ByteBuffer> {
     private final Subscriber<? super ByteBuffer> subscriber;
     private Subscription subscription;
     private boolean subscriptionCancelled;
