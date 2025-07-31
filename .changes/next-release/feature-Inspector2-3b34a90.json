@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "Extend usage to include agentless hours and add CODE_REPOSITORY to aggregation resource type"
-}

@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.13__ __2025-07-31__
+## __AWS EntityResolution__
+  - ### Features
+    - Add support for creating advanced rule-based matching workflows in AWS Entity Resolution.
+
+## __AWS Glue__
+  - ### Features
+    - Added support for Route node, S3 Iceberg sources/targets, catalog Iceberg sources, DynamoDB ELT connector, AutoDataQuality evaluation, enhanced PII detection with redaction, Kinesis fan-out support, and new R-series worker types.
+
+## __AWS IoT__
+  - ### Features
+    - This release allows AWS IoT Core users to use their own AWS KMS keys for data protection
+
+## __AWS S3 Control__
+  - ### Features
+    - Add Tags field to CreateAccessPoint
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - The release updates standard profile with 2 new fields that supports account-level engagement. Updated APIs include CreateProfile, UpdateProfile, MergeProfiles, SearchProfiles, BatchGetProfile, GetSegmentMembership, CreateSegmentDefinition, CreateSegmentEstimate.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for the force option for the EC2 instance terminate command. This feature enables customers to recover resources associated with an instance stuck in the shutting-down state as a result of rare issues caused by a frozen operating system or an underlying hardware problem.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Granular access control support for NEO-SAML with IAMFederation for AOS data source
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added Impala connector support
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release introduces support for Multi-tenant management
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added ability to log session activity on a portal to an S3 bucket.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables secondary IP addresses for Network Load Balancers.
+
+## __Inspector2__
+  - ### Features
+    - Extend usage to include agentless hours and add CODE_REPOSITORY to aggregation resource type
+
 # __2.32.12__ __2025-07-30__
 ## __AWS Directory Service__
   - ### Features
