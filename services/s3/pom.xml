@@ -128,12 +128,13 @@
             <artifactId>retries-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <!-- Test Dependencies -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>retries</artifactId>
+            <scope>test</scope>
             <version>${awsjavasdk.version}</version>
         </dependency>
-        <!-- Test Dependencies -->
         <dependency>
             <artifactId>commons-io</artifactId>
             <groupId>commons-io</groupId>

@@ -25,10 +25,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.exception.SdkServiceException;
-import software.amazon.awssdk.core.internal.retry.SdkDefaultRetrySetting;
-import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -344,32 +340,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             if (!isFirstPart || onStreamCalled.get()) {
                 publisherToUpstream.error(error);
             }
-
-            if (!isRetryableError(error)) {
-                log.trace(() -> "error is non-retryable, forwarding upstream future to result future");
-                CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
-            }
         }
-    }
-
-    private boolean isRetryableError(Throwable error) {
-        if (error instanceof SdkException) {
-            SdkException ex = (SdkException) error;
-            return retryOnStatusCodes(ex)
-                || RetryUtils.isRetryableException(ex)
-                || RetryUtils.isClockSkewException(ex)
-                || RetryUtils.isClockSkewException(ex);
-
-        }
-        return false;
-    }
-
-    private static boolean retryOnStatusCodes(Throwable ex) {
-        if (ex instanceof SdkServiceException) {
-            SdkServiceException failure = (SdkServiceException) ex;
-            return SdkDefaultRetrySetting.RETRYABLE_STATUS_CODES.contains(failure.statusCode());
-        }
-        return false;
     }
 
     /**
