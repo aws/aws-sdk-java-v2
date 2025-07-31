@@ -100,7 +100,7 @@
         <dependency>
             <groupId>io.reactivex.rxjava3</groupId>
             <artifactId>rxjava</artifactId>
-            <version>3.1.5</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

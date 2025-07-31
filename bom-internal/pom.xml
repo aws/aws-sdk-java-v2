@@ -239,6 +239,7 @@
                 <groupId>io.reactivex.rxjava3</groupId>
                 <artifactId>rxjava</artifactId>
                 <version>${rxjava3.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <artifactId>commons-lang3</artifactId>
