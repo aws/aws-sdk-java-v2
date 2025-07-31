@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
@@ -45,7 +44,7 @@ public class IndividualPartSubscriberTckTest extends SubscriberWhiteboxVerificat
                                 .maximumBufferSizeInBytes(32L)
                                 .resultFuture(new CompletableFuture<>())
                                 .build();
-        return transformer.new IndividualPartSubscriber<ByteBuffer>(future, ByteBuffer.wrap(new byte[0])) {
+        return transformer.new IndividualPartSubscriber<ByteBuffer>(future, ByteBuffer.wrap(new byte[0]), true) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);
