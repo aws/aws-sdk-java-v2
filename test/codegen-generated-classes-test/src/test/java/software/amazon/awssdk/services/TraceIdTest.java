@@ -37,7 +37,8 @@ import software.amazon.awssdk.utils.StringInputStream;
 /**
  * Verifies that the {@link TraceIdExecutionInterceptor} is actually wired up for AWS services.
  */
-public class TraceIdTest {
+public class
+TraceIdTest {
     @Test
     public void traceIdInterceptorIsEnabled() {
         EnvironmentVariableHelper.run(env -> {
@@ -66,7 +67,7 @@ public class TraceIdTest {
     public void traceIdInterceptorPreservesTraceIdAcrossRetries() {
         EnvironmentVariableHelper.run(env -> {
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            MDC.put("AWS_LAMBDA_X_TraceId", "mdc-trace-123");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
 
             try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
                  ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
@@ -80,6 +81,10 @@ public class TraceIdTest {
                                        .response(SdkHttpResponse.builder().statusCode(500).build())
                                        .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
                                        .build(),
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(500).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build(),
                     HttpExecuteResponse.builder().response(SdkHttpResponse.builder().statusCode(200).build())
                                        .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
                                        .build());
@@ -87,6 +92,94 @@ public class TraceIdTest {
                 client.allTypes().join();
 
                 List<SdkHttpRequest> requests = mockHttpClient.getRequests();
+                assertThat(requests).hasSize(3);
+
+                assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                assertThat(requests.get(1).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                assertThat(requests.get(2).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+
+            } finally {
+                MDC.clear();
+            }
+        });
+    }
+
+    @Test
+    public void traceIdInterceptorPreservesTraceIdAcrossChainedFutures() {
+        EnvironmentVariableHelper.run(env -> {
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+
+            try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+                 ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                                                                                 .region(Region.US_WEST_2)
+                                                                                 .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                                                 .httpClient(mockHttpClient)
+                                                                                 .build()) {
+
+                mockHttpClient.stubResponses(
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(200).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build(),
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(200).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build()
+                );
+
+                client.allTypes()
+                      .thenRun(() -> {
+                          String traceId = MDC.get("AWS_LAMBDA_X_TRACE_ID");
+                          client.allTypes().join();
+                      })
+                      .join();
+
+                List<SdkHttpRequest> requests = mockHttpClient.getRequests();
+
+                assertThat(requests).hasSize(2);
+
+                assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                assertThat(requests.get(1).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+
+            } finally {
+                MDC.clear();
+            }
+        });
+    }
+
+    @Test
+    public void traceIdInterceptorPreservesTraceIdAcrossExceptionallyCompletedFutures() {
+        EnvironmentVariableHelper.run(env -> {
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+
+            try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+                 ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                                                                                 .region(Region.US_WEST_2)
+                                                                                 .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                                                 .httpClient(mockHttpClient)
+                                                                                 .build()) {
+
+                mockHttpClient.stubResponses(
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(400).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build(),
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(200).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build()
+                );
+
+                client.allTypes()
+                      .exceptionally(throwable -> {
+                          client.allTypes().join();
+                          return null;
+                      }).join();
+
+                List<SdkHttpRequest> requests = mockHttpClient.getRequests();
+
                 assertThat(requests).hasSize(2);
 
                 assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
@@ -98,3 +191,4 @@ public class TraceIdTest {
         });
     }
 }
+

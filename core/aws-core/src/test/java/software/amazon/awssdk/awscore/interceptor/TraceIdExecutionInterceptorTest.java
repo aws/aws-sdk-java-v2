@@ -117,7 +117,7 @@ public class TraceIdExecutionInterceptorTest {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            MDC.put("AWS_LAMBDA_X_TraceId", "mdc-trace-123");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
 
             try {
                 TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
@@ -129,7 +129,7 @@ public class TraceIdExecutionInterceptorTest {
                 SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
                 assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
             } finally {
-                MDC.remove("AWS_LAMBDA_X_TraceId");
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
             }
         });
     }
@@ -140,7 +140,7 @@ public class TraceIdExecutionInterceptorTest {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
 
-            MDC.put("AWS_LAMBDA_X_TraceId", "mdc-trace-123");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
             Properties props = System.getProperties();
             props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop-345");
 
@@ -155,7 +155,7 @@ public class TraceIdExecutionInterceptorTest {
 
                 assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
             } finally {
-                MDC.remove("AWS_LAMBDA_X_TraceId");
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
                 props.remove("com.amazonaws.xray.traceHeader");
             }
         });
@@ -166,7 +166,7 @@ public class TraceIdExecutionInterceptorTest {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
 
-            MDC.put("AWS_LAMBDA_X_TraceId", "should-be-ignored");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "should-be-ignored");
 
             try {
                 TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
@@ -179,7 +179,7 @@ public class TraceIdExecutionInterceptorTest {
 
                 assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).isEmpty();
             } finally {
-                MDC.remove("AWS_LAMBDA_X_TraceId");
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
             }
         });
     }
@@ -206,6 +206,5 @@ public class TraceIdExecutionInterceptorTest {
     private void resetRelevantEnvVars(EnvironmentVariableHelper env) {
         env.remove("AWS_LAMBDA_FUNCTION_NAME");
         env.remove("_X_AMZN_TRACE_ID");
-        env.remove("AWS_LAMBDA_MAX_CONCURRENCY");
     }
 }
