@@ -124,7 +124,7 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
                 if (token == null || token.isExpired()) {
                     token = tokenCache.get();
                 }
-                return sendRequest(path, token != null ? token.value() : null);
+                return sendRequest(path, token == null ? null : token.value());
             } catch (UncheckedIOException | RetryableException e) {
                 lastCause = e;
                 int currentTry = attempt;

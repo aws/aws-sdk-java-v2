@@ -88,15 +88,20 @@ public class AutoDefaultsModeDiscovery {
             return Optional.empty();
         }
 
+        Ec2MetadataClient client = null;
         try {
-            Ec2MetadataClient client = Ec2MetadataSharedClient.builder()
-                                                              .retryPolicy(Ec2MetadataRetryPolicy.none())
-                                                              .build();
+            client = Ec2MetadataSharedClient.builder()
+                                            .retryPolicy(Ec2MetadataRetryPolicy.none())
+                                            .build();
 
             String ec2InstanceRegion = client.get(EC2_METADATA_REGION_PATH).asString();
             return Optional.ofNullable(ec2InstanceRegion);
         } catch (Exception exception) {
             return Optional.empty();
+        } finally {
+            if (client != null) {
+                Ec2MetadataSharedClient.decrementAndClose();
+            }
         }
     }
 

@@ -23,22 +23,21 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.lang.reflect.Field;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.imds.internal.Ec2MetadataSharedClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Tests specifically for AutoDefaultsModeDiscovery's migration to use Ec2MetadataClient.
@@ -47,26 +46,29 @@ import software.amazon.awssdk.utils.Lazy;
 public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(wireMockConfig()
-            .port(0)
-            .httpsPort(-1));
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+                                                               .options(wireMockConfig().dynamicPort().dynamicPort())
+                                                               .configureStaticDsl(true)
+                                                               .build();
 
-    @Before
-    public void setup() {
+    @BeforeAll
+    static void setupClass() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
-                           "http://localhost:" + wireMock.port());
+                           "http://localhost:" + wireMock.getPort());
+    }
 
+    @BeforeEach
+    public void setup() {
         clearEnvironmentVariable("AWS_EXECUTION_ENV");
         clearEnvironmentVariable("AWS_REGION");
         clearEnvironmentVariable("AWS_DEFAULT_REGION");
     }
 
-    @After
+    @AfterEach
     public void cleanup() {
         wireMock.resetAll();
         ENVIRONMENT_VARIABLE_HELPER.reset();
-        System.clearProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property());
     }
 
    // Clear an environment variable by setting it to null.
@@ -82,7 +84,10 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     public void autoDefaultsModeDiscovery_shouldUseSharedHttpClient() throws Exception {
         // Stub successful IMDS responses
         stubFor(put("/latest/api/token")
-                    .willReturn(aResponse().withStatus(200).withBody("test-token")));
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-aws-ec2-metadata-token-ttl-seconds", "21600")
+                                    .withBody("test-token")));
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(200).withBody("us-east-1")));
 
@@ -92,23 +97,25 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         // Should return IN_REGION since client region matches IMDS region
         assertThat(result).isEqualTo(DefaultsMode.IN_REGION);
 
-        // Verify that the shared HTTP client was used
-        Field sharedClientField = Ec2MetadataSharedClient.class.getDeclaredField("SHARED_HTTP_CLIENT");
-        sharedClientField.setAccessible(true);
-        Lazy<SdkHttpClient> sharedHttpClient = (Lazy<SdkHttpClient>) sharedClientField.get(null);
-
-        // Verify the shared HTTP client was initialized
-        assertThat(sharedHttpClient.hasValue()).isTrue();
-
-        // Verify IMDS requests were made
+        // Verify token request was made
         verify(putRequestedFor(urlEqualTo("/latest/api/token")));
-        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        
+        // Verify region request was made with token header - IMDSv2
+        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withHeader("x-aws-ec2-metadata-token", matching("test-token")));
+        
+        // Verify no IMDSv1 requests were made
+        verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withoutHeader("x-aws-ec2-metadata-token"));
     }
 
     @Test
     public void multipleDiscoveryInstances_shouldShareSameHttpClient() throws Exception {
         stubFor(put("/latest/api/token")
-                    .willReturn(aResponse().withStatus(200).withBody("test-token")));
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-aws-ec2-metadata-token-ttl-seconds", "21600")
+                                    .withBody("test-token")));
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(200).withBody("us-west-2")));
 
@@ -124,16 +131,16 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         assertThat(result1).isEqualTo(DefaultsMode.CROSS_REGION);
         assertThat(result2).isEqualTo(DefaultsMode.CROSS_REGION);
 
-        // Verify shared HTTP client was used
-        Field sharedClientField = Ec2MetadataSharedClient.class.getDeclaredField("SHARED_HTTP_CLIENT");
-        sharedClientField.setAccessible(true);
-        Lazy<SdkHttpClient> sharedHttpClient = (Lazy<SdkHttpClient>) sharedClientField.get(null);
-
-        assertThat(sharedHttpClient.hasValue()).isTrue();
-
-        // Verify IMDS requests were made
+        // Verify token request was made
         verify(putRequestedFor(urlEqualTo("/latest/api/token")));
-        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        
+        // Verify region request was made with token header - IMDSv2
+        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withHeader("x-aws-ec2-metadata-token", matching("test-token")));
+        
+        // Verify no IMDSv1 requests were made
+        verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withoutHeader("x-aws-ec2-metadata-token"));
     }
 
     @Test
@@ -174,7 +181,10 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
     public void noRetryPolicy_shouldBeUsedByDefault() {
         // Stub token to succeed but region to fail with retryable error
         stubFor(put("/latest/api/token")
-                    .willReturn(aResponse().withStatus(200).withBody("test-token")));
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-aws-ec2-metadata-token-ttl-seconds", "21600")
+                                    .withBody("test-token")));
         stubFor(get("/latest/meta-data/placement/region")
                     .willReturn(aResponse().withStatus(500).withBody("Internal Server Error")));
 
@@ -186,7 +196,14 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
 
         // Verify requests were made once (no retries)
         verify(1, putRequestedFor(urlEqualTo("/latest/api/token")));
-        verify(1, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        
+        // Verify region request was made with token header - IMDSv2
+        verify(1, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withHeader("x-aws-ec2-metadata-token", matching("test-token")));
+        
+        // Verify no IMDSv1 requests were made
+        verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withoutHeader("x-aws-ec2-metadata-token"));
     }
 
     @Test
@@ -205,9 +222,16 @@ public class AutoDefaultsModeDiscoveryEc2MetadataClientTest {
         // Should fall back to IMDSv1 and return IN_REGION
         assertThat(result).isEqualTo(DefaultsMode.IN_REGION);
 
-        // Verify both token request and region request were made
+        // Verify token request was attempted
         verify(putRequestedFor(urlEqualTo("/latest/api/token")));
-        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region")));
+        
+        // Verify region request was made without token header - IMDSv1 fallback
+        verify(getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withoutHeader("x-aws-ec2-metadata-token"));
+        
+        // Verify no IMDSv2 requests were made
+        verify(0, getRequestedFor(urlEqualTo("/latest/meta-data/placement/region"))
+                .withHeader("x-aws-ec2-metadata-token", matching(".*")));
     }
 
     @Test

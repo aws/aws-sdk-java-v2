@@ -16,24 +16,24 @@
 package software.amazon.awssdk.imds.internal;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.imds.Ec2MetadataClient;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.awssdk.utils.Lazy;
 
 /**
  * Creates Ec2MetadataClient instances using a shared HTTP client internally.
  * This provides resource efficiency by sharing a single HTTP client across all IMDS-backed providers
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class Ec2MetadataSharedClient {
-    // Singleton HTTP client shared across all Ec2MetadataClient instances
-    private static final Lazy<SdkHttpClient> SHARED_HTTP_CLIENT = new Lazy<>(() -> createImdsHttpClient());
-    
+
+    private static volatile SdkHttpClient sharedHttpClient;
+    private static int referenceCount = 0;
+
     private Ec2MetadataSharedClient() {
         // Prevent instantiation
     }
@@ -52,6 +52,17 @@ public final class Ec2MetadataSharedClient {
     public static Ec2MetadataClient create() {
         return builder().build();
     }
+
+    /**
+     * Decrements the reference count and closes the shared HTTP client if no more references exist.
+     */
+    public static synchronized void decrementAndClose() {
+        referenceCount--;
+        if (referenceCount == 0 && sharedHttpClient != null) {
+            sharedHttpClient.close();
+            sharedHttpClient = null;
+        }
+    }
     
     private static SdkHttpClient createImdsHttpClient() {
         Duration metadataServiceTimeout = Ec2MetadataConfigProvider.instance().resolveServiceTimeout();
@@ -69,14 +80,21 @@ public final class Ec2MetadataSharedClient {
         private Builder() {
         }
         
-        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
+        public synchronized Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }
         
-        public Ec2MetadataClient build() {
+        public synchronized Ec2MetadataClient build() {
+
+            if (sharedHttpClient == null) {
+                sharedHttpClient = createImdsHttpClient();
+            }
+
+            referenceCount++;
+            
             return DefaultEc2MetadataClientWithFallback.builder()
-                .httpClient(SHARED_HTTP_CLIENT.getValue())
+                .httpClient(sharedHttpClient)
                 .retryPolicy(retryPolicy)
                 .build();
         }
