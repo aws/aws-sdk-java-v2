@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
@@ -211,39 +212,6 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         Mockito.verifyNoInteractions(socketFactoryMock);
     }
 
-    @Test
-    public void build_whenCustomSocketFactorySet_usesProvidedSocketFactory() throws IOException,
-                                                                                                 NoSuchAlgorithmException,
-                                                                                                 KeyManagementException {
-        TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
-                                                                                 CLIENT_STORE_TYPE,
-                                                                                 STORE_PASSWORD);
-        KeyManager[] keyManagers = provider.keyManagers();
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagers, null, null);
-
-        // Create actual SSLConnectionSocketFactory instead of SdkTlsSocketFactory
-        SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-            sslContext,
-            NoopHostnameVerifier.INSTANCE
-        );
-        SSLConnectionSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
-
-        client = Apache5HttpClient.builder()
-                                  .socketFactory(socketFactorySpy)  // Now passes correct type
-                                  .build();
-        makeRequestWithHttpClient(client);
-
-        // Verify the legacy method signature
-        Mockito.verify(socketFactorySpy).createLayeredSocket(
-            Mockito.any(Socket.class),
-            Mockito.anyString(),
-            Mockito.anyInt(),
-            Mockito.any(HttpContext.class)
-        );
-    }
-
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
@@ -266,7 +234,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         sslContext.init(keyManagers, null, null);
 
         // Create and spy on TlsSocketStrategy
-        TlsSocketStrategy tlsStrategy = new SdkTlsSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+        TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext, NoopHostnameVerifier.INSTANCE);
         TlsSocketStrategy tlsStrategySpy = Mockito.spy(tlsStrategy);
 
         // Build client with TLS strategy
@@ -286,35 +254,6 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
             Mockito.any(),
             Mockito.any(HttpContext.class)
         );
-    }
-
-    @Test
-    public void build_whenBothTlsStrategyAndLegacyFactorySet_throwsIllegalArgumentException() throws Exception {
-        // Setup TLS context
-        KeyManager[] keyManagers = keyManagersProvider.keyManagers();
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagers, null, null);
-
-        // Create both socket factory and TLS strategy
-        SSLConnectionSocketFactory legacyFactory = new SSLConnectionSocketFactory(
-            sslContext,
-            NoopHostnameVerifier.INSTANCE
-        );
-
-        TlsSocketStrategy tlsStrategy = new SdkTlsSocketFactory(
-            sslContext,
-            NoopHostnameVerifier.INSTANCE
-        );
-
-        // Attempt to build client with both - should throw exception
-        assertThatThrownBy(() -> Apache5HttpClient.builder()
-                                                  .socketFactory(legacyFactory)
-                                                  .tlsSocketStrategy(tlsStrategy)
-                                                  .build())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Cannot configure both tlsSocketStrategy and socketFactory")
-            .hasMessageContaining("deprecated")
-            .hasMessageContaining("use tlsSocketStrategy");
     }
 
 }

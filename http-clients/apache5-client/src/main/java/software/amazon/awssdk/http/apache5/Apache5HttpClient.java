@@ -44,6 +44,7 @@ import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -71,6 +72,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -88,7 +90,6 @@ import software.amazon.awssdk.http.apache5.internal.Apache5HttpRequestConfig;
 import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
-import software.amazon.awssdk.http.apache5.internal.conn.ConnectionSocketFactoryToTlsStrategyAdapter;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
@@ -345,7 +346,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                                          AttributeMap resolvedOptions) {
         return Apache5HttpRequestConfig.builder()
                                        .socketTimeout(resolvedOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT))
-                                       .connectionTimeout(resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
                                        .connectionAcquireTimeout(
                                           resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT))
                                        .proxyConfiguration(builder.proxyConfiguration)
@@ -454,26 +454,14 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
-         * @deprecated this has been replaced with {@link #tlsSocketStrategy(TlsSocketStrategy)}.
-         * This method is retained for backwards compatibility to ease migration from Apache HttpClient 4.5.x.
-         * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
-         * <p>
-         * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
-         * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
-         */
-        @Deprecated
-        Builder socketFactory(ConnectionSocketFactory socketFactory);
-
-        /**
          * Configure a custom TLS strategy for SSL/TLS connections.
-         * This is the preferred method over the deprecated {@link #socketFactory(ConnectionSocketFactory)}.
+         * This is the preferred method over the  {@link ConnectionSocketFactory)}.
          *
          * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
          *                    If null, default TLS configuration will be used.
          * @return This builder for method chaining
 
          */
-
         Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy);
 
         /**
@@ -532,7 +520,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
-        private ConnectionSocketFactory legacyConnectionSocketFactory;
         private TlsSocketStrategy tlsStrategy;
 
         private DefaultBuilder() {
@@ -655,16 +642,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder socketFactory(ConnectionSocketFactory socketFactory) {
-            this.legacyConnectionSocketFactory = socketFactory;
-            return this;
-        }
-
-        public void setSocketFactory(ConnectionSocketFactory socketFactory) {
-            socketFactory(socketFactory);
-        }
-
-        @Override
         public Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy) {
             this.tlsStrategy = tlsSocketStrategy;
             return this;
@@ -738,27 +715,12 @@ public final class Apache5HttpClient implements SdkHttpClient {
                 SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
             return new Apache5HttpClient(this, resolvedOptions);
         }
-
-        // Internal method to get the effective TLS strategy
-        TlsSocketStrategy getEffectiveTlsStrategy() {
-            if (tlsStrategy != null) {
-                return tlsStrategy;
-            }
-            if (legacyConnectionSocketFactory != null) {
-                return new ConnectionSocketFactoryToTlsStrategyAdapter(legacyConnectionSocketFactory);
-            }
-            return null;
-        }
     }
 
     private static class ApacheConnectionManagerFactory {
 
         public PoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
                                                  AttributeMap standardOptions) {
-
-            Validate.isTrue(configuration.tlsStrategy == null || configuration.legacyConnectionSocketFactory == null,
-                            "Cannot configure both tlsSocketStrategy and socketFactory. "
-                            + "The connectionSocketFactory is deprecated; use tlsSocketStrategy for new implementations.");
 
             TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 
@@ -767,25 +729,32 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                                          .setTlsSocketStrategy(tlsStrategy)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);
-
-
-            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isZero()) {
-                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
-                builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
-            }
             builder.setMaxConnPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setMaxConnTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setDefaultSocketConfig(buildSocketConfig(standardOptions));
+            builder.setDefaultConnectionConfig(getConnectionConfig(standardOptions));
             return builder.build();
+        }
+
+        private static ConnectionConfig getConnectionConfig(AttributeMap standardOptions) {
+            ConnectionConfig.Builder connectionConfigBuilder =
+                ConnectionConfig.custom()
+                                .setConnectTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()))
+                                .setSocketTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
+            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
+            if (!connectionTtl.isZero()) {
+                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+                connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
+            }
+            return connectionConfigBuilder.build();
         }
 
         private TlsSocketStrategy getPreferredTlsStrategy(Apache5HttpClient.DefaultBuilder configuration,
                                                           AttributeMap standardOptions) {
-            // Use the effective strategy which handles both legacy and new approaches
-            TlsSocketStrategy configuredStrategy = configuration.getEffectiveTlsStrategy();
-            if (configuredStrategy != null) {
-                return configuredStrategy;
+            if (configuration.tlsStrategy != null) {
+                return configuration.tlsStrategy;
             }
             return new SdkTlsSocketFactory(getSslContext(standardOptions),
                                            getHostNameVerifier(standardOptions));
@@ -859,7 +828,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                .setTcpNoDelay(true)
                                .build();
         }
-
 
     }
 

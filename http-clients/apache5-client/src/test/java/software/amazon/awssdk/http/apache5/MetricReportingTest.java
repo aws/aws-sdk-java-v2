@@ -109,7 +109,6 @@ public class MetricReportingTest {
     private Apache5HttpClient newClient() {
         Apache5HttpRequestConfig config = Apache5HttpRequestConfig.builder()
                                                                   .connectionAcquireTimeout(Duration.ofDays(1))
-                                                                  .connectionTimeout(Duration.ofDays(1))
                                                                   .socketTimeout(Duration.ofDays(1))
                                                                   .proxyConfiguration(ProxyConfiguration.builder().build())
                                                                   .build();

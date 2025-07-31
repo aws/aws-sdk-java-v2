@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client 5",
+    "contributor": "",
+    "description": "Preview Release of AWS SDK Apache5 HttpClient with Apache HttpClient 5.5.x"
+}
