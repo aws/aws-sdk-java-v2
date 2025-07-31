@@ -70,7 +70,10 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     }
 
     private static void saveTraceId(ExecutionAttributes executionAttributes) {
-        MDC.put(CONCURRENT_TRACE_ID_KEY, executionAttributes.getAttribute(TRACE_ID));
+        String traceId = executionAttributes.getAttribute(TRACE_ID);
+        if (traceId != null) {
+            MDC.put(CONCURRENT_TRACE_ID_KEY, executionAttributes.getAttribute(TRACE_ID));
+        }
     }
 
     private Optional<String> traceIdHeader(Context.ModifyHttpRequest context) {

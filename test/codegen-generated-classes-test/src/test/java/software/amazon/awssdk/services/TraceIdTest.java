@@ -37,8 +37,7 @@ import software.amazon.awssdk.utils.StringInputStream;
 /**
  * Verifies that the {@link TraceIdExecutionInterceptor} is actually wired up for AWS services.
  */
-public class
-TraceIdTest {
+public class TraceIdTest {
     @Test
     public void traceIdInterceptorIsEnabled() {
         EnvironmentVariableHelper.run(env -> {
@@ -130,7 +129,6 @@ TraceIdTest {
 
                 client.allTypes()
                       .thenRun(() -> {
-                          String traceId = MDC.get("AWS_LAMBDA_X_TRACE_ID");
                           client.allTypes().join();
                       })
                       .join();
