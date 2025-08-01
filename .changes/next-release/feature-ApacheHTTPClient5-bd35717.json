@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client 5",
+    "contributor": "",
+    "description": "Replace internally used deprecated API from Apache 5.5.x to corresponding recommneded apis"
+}
