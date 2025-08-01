@@ -287,7 +287,7 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
     }
 
     @Test
-    public void connectionTimeout_exceedsLimit_throwsException() throws Exception {
+    public void connectionTimeout_exceedsLimit_throwsException() {
         // Test connection timeout with a very short timeout and non-responsive address
         try (SdkHttpClient client = Apache5HttpClient.builder()
                                                      .connectionTimeout(Duration.ofMillis(100))
@@ -318,7 +318,7 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
     }
 
     @Test
-    public void socketTimeout_exceedsLimit_throwsException() throws Exception {
+    public void socketTimeout_exceedsLimit_throwsException() {
         // Configure WireMock to delay response longer than socket timeout
         mockServer.stubFor(any(urlPathEqualTo("/delayed"))
                                .willReturn(aResponse()

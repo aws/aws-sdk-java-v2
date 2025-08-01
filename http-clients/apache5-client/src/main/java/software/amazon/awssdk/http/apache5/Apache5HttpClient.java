@@ -39,6 +39,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -54,10 +55,11 @@ import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
@@ -276,11 +278,22 @@ public final class Apache5HttpClient implements SdkHttpClient {
         HttpClientContext localRequestContext = Apache5Utils.newClientContext(requestConfig.proxyConfiguration());
         THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
         try {
-            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-            // Create a connection-aware input stream that closes the response when closed
+            HttpHost target = determineTarget(apacheRequest);
+            ClassicHttpResponse httpResponse = httpClient.executeOpen(target, apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+        }
+    }
+
+    /**
+     * Determines the target host from the request using Apache HttpClient's official routing support utility.
+     */
+    private static HttpHost determineTarget(ClassicHttpRequest request) throws IOException {
+        try {
+            return RoutingSupport.determineHost(request);
+        } catch (HttpException ex) {
+            throw new ClientProtocolException(ex);
         }
     }
 
@@ -455,7 +468,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         /**
          * Configure a custom TLS strategy for SSL/TLS connections.
-         * This is the preferred method over the  {@link ConnectionSocketFactory)}.
+         * This is the preferred method over the ConnectionSocketFactory.
          *
          * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
          *                    If null, default TLS configuration will be used.
