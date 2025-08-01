@@ -336,7 +336,6 @@ public final class NettyUtils {
      */
     private static void configureSslEngine(SSLEngine sslEngine) {
         SSLParameters sslParameters = sslEngine.getSSLParameters();
-        sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
         sslEngine.setSSLParameters(sslParameters);
     }
 
