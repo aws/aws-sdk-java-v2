@@ -27,6 +27,7 @@ import static software.amazon.awssdk.utils.JavaSystemSetting.SSL_KEY_STORE_TYPE;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -34,8 +35,11 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
-import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -113,7 +117,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void canMakeHttpsRequestWhenKeyProviderConfigured() throws IOException {
+    public void prepareRequest_whenKeyProviderConfigured_successfullyMakesHttpsRequest() throws IOException {
         client = Apache5HttpClient.builder()
                 .tlsKeyManagersProvider(keyManagersProvider)
                 .build();
@@ -122,13 +126,13 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void requestFailsWhenKeyProviderNotConfigured() throws IOException {
+    public void prepareRequest_whenKeyProviderNotConfigured_throwsSslException() throws IOException {
         client = Apache5HttpClient.builder().tlsKeyManagersProvider(NoneTlsKeyManagersProvider.getInstance()).build();
         assertThatThrownBy(() -> makeRequestWithHttpClient(client)).isInstanceOfAny(SSLException.class, SocketException.class);
     }
 
     @Test
-    public void authenticatesWithTlsProxy() throws IOException {
+    public void prepareRequest_whenTlsProxyConfigured_authenticatesSuccessfully() throws IOException {
         ProxyConfiguration proxyConfig = ProxyConfiguration.builder()
                 .endpoint(URI.create("https://localhost:" + wireMockServer.httpsPort()))
                 .build();
@@ -145,7 +149,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider() throws IOException {
+    public void build_whenNoTlsKeyManagersProviderSet_usesSystemPropertyProvider() throws IOException {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -161,7 +165,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void defaultTlsKeyManagersProviderIsSystemPropertyProvider_explicitlySetToNull() throws IOException {
+    public void build_whenTlsKeyManagersProviderExplicitlySetToNull_usesSystemPropertyProvider() throws IOException {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -177,9 +181,7 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
     }
 
     @Test
-    public void build_notSettingSocketFactory_configuresClientWithDefaultSocketFactory() throws IOException,
-                                                                                                NoSuchAlgorithmException,
-                                                                                                KeyManagementException {
+    public void build_whenSocketFactoryNotSet_configuresDefaultSocketFactory() throws Exception {
         System.setProperty(SSL_KEY_STORE.property(), clientKeyStore.toAbsolutePath().toString());
         System.setProperty(SSL_KEY_STORE_TYPE.property(), CLIENT_STORE_TYPE);
         System.setProperty(SSL_KEY_STORE_PASSWORD.property(), STORE_PASSWORD);
@@ -192,8 +194,9 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         SSLContext sslcontext = SSLContext.getInstance("TLS");
         sslcontext.init(keyManagers, null, null);
 
-        ConnectionSocketFactory socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
-        ConnectionSocketFactory socketFactoryMock = Mockito.spy(socketFactory);
+        // Use TlsSocketStrategy instead of ConnectionSocketFactory
+        TlsSocketStrategy socketFactory = new SdkTlsSocketFactory(sslcontext, NoopHostnameVerifier.INSTANCE);
+        TlsSocketStrategy socketFactoryMock = Mockito.spy(socketFactory);
 
         client = Apache5HttpClient.builder().build();
 
@@ -209,35 +212,6 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         Mockito.verifyNoInteractions(socketFactoryMock);
     }
 
-    @Test
-    public void build_settingCustomSocketFactory_configuresClientWithGivenSocketFactory() throws IOException,
-                                                                                                 NoSuchAlgorithmException,
-                                                                                                 KeyManagementException {
-        TlsKeyManagersProvider provider = FileStoreTlsKeyManagersProvider.create(clientKeyStore,
-                                                                                 CLIENT_STORE_TYPE,
-                                                                                 STORE_PASSWORD);
-        KeyManager[] keyManagers = provider.keyManagers();
-
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagers, null, null);
-
-        SdkTlsSocketFactory socketFactory = new SdkTlsSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-        SdkTlsSocketFactory socketFactorySpy = Mockito.spy(socketFactory);
-
-
-        client = Apache5HttpClient.builder()
-                                 .socketFactory(socketFactorySpy)
-                                 .build();
-        makeRequestWithHttpClient(client);
-
-        Mockito.verify(socketFactorySpy).createLayeredSocket(
-            Mockito.any(),       // Socket
-            Mockito.anyString(), // Target host
-            Mockito.anyInt(),    // Port
-            Mockito.any()        // HttpContext
-        );
-    }
-
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
@@ -250,6 +224,36 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
                 .build();
 
         return httpClient.prepareRequest(request).call();
+    }
+
+    @Test
+    public void build_whenTlsSocketStrategyConfigured_usesProvidedStrategy() throws Exception {
+        // Setup TLS context
+        KeyManager[] keyManagers = keyManagersProvider.keyManagers();
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagers, null, null);
+
+        // Create and spy on TlsSocketStrategy
+        TlsSocketStrategy tlsStrategy = new DefaultClientTlsStrategy(sslContext, NoopHostnameVerifier.INSTANCE);
+        TlsSocketStrategy tlsStrategySpy = Mockito.spy(tlsStrategy);
+
+        // Build client with TLS strategy
+        client = Apache5HttpClient.builder()
+                                  .tlsSocketStrategy(tlsStrategySpy)
+                                  .build();
+
+        // Make request and verify
+        HttpExecuteResponse response = makeRequestWithHttpClient(client);
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+
+        // Verify upgrade method was called
+        Mockito.verify(tlsStrategySpy).upgrade(
+            Mockito.any(Socket.class),
+            Mockito.anyString(),
+            Mockito.anyInt(),
+            Mockito.any(),
+            Mockito.any(HttpContext.class)
+        );
     }
 
 }

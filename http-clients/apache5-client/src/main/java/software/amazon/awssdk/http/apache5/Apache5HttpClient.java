@@ -58,7 +58,7 @@ import org.apache.hc.client5.http.routing.HttpRoutePlanner;
 import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
@@ -467,12 +467,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
-         * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
-         * <p>
-         * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
-         * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
+         * Configure a custom TLS strategy for SSL/TLS connections.
+         * This is the preferred method over the ConnectionSocketFactory.
+         *
+         * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
+         *                    If null, default TLS configuration will be used.
+         * @return This builder for method chaining
+
          */
-        Builder socketFactory(SSLConnectionSocketFactory socketFactory);
+        Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy);
 
         /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
@@ -530,7 +533,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
-        private SSLConnectionSocketFactory socketFactory;
+        private TlsSocketStrategy tlsStrategy;
 
         private DefaultBuilder() {
         }
@@ -652,13 +655,9 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder socketFactory(SSLConnectionSocketFactory socketFactory) {
-            this.socketFactory = socketFactory;
+        public Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy) {
+            this.tlsStrategy = tlsSocketStrategy;
             return this;
-        }
-
-        public void setSocketFactory(SSLConnectionSocketFactory socketFactory) {
-            socketFactory(socketFactory);
         }
 
         @Override
@@ -734,13 +733,13 @@ public final class Apache5HttpClient implements SdkHttpClient {
     private static class ApacheConnectionManagerFactory {
 
         public PoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
-                                                  AttributeMap standardOptions) {
-            // TODO : Deprecated method needs to be removed with new replacements
-            SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
+                                                 AttributeMap standardOptions) {
+
+            TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 
             PoolingHttpClientConnectionManagerBuilder builder =
                 PoolingHttpClientConnectionManagerBuilder.create()
-                                                         .setSSLSocketFactory(sslsf)
+                                                         .setTlsSocketStrategy(tlsStrategy)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);
             builder.setMaxConnPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
@@ -765,11 +764,13 @@ public final class Apache5HttpClient implements SdkHttpClient {
             return connectionConfigBuilder.build();
         }
 
-        private SSLConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,
-                                                                  AttributeMap standardOptions) {
-            return Optional.ofNullable(configuration.socketFactory)
-                           .orElseGet(() -> new SdkTlsSocketFactory(getSslContext(standardOptions),
-                                                                    getHostNameVerifier(standardOptions)));
+        private TlsSocketStrategy getPreferredTlsStrategy(Apache5HttpClient.DefaultBuilder configuration,
+                                                          AttributeMap standardOptions) {
+            if (configuration.tlsStrategy != null) {
+                return configuration.tlsStrategy;
+            }
+            return new SdkTlsSocketFactory(getSslContext(standardOptions),
+                                           getHostNameVerifier(standardOptions));
         }
 
 
