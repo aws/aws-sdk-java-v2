@@ -27,3 +27,5 @@ Class <software.amazon.awssdk.utils.internal.Base16Lower> does not reside outsid
 Class <software.amazon.awssdk.utils.internal.EnumUtils> does not reside outside of package '..internal..' in (EnumUtils.java:0)
 Class <software.amazon.awssdk.utils.internal.MappingSubscriber> does not reside outside of package '..internal..' in (MappingSubscriber.java:0)
 Class <software.amazon.awssdk.utils.internal.SystemSettingUtils> does not reside outside of package '..internal..' in (SystemSettingUtils.java:0)
+Class <software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder> does not reside outside of package '..internal..' in (DefaultSdkHttpClientBuilder.java:0)
+Class <software.amazon.awssdk.imds.internal.Ec2MetadataSharedClient> does not reside outside of package '..internal..' in (Ec2MetadataSharedClient.java:0)
