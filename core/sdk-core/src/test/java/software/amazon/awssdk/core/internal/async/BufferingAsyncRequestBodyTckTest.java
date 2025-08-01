@@ -42,7 +42,7 @@ public class BufferingAsyncRequestBodyTckTest extends org.reactivestreams.tck.Pu
     public Publisher<ByteBuffer> createFailedPublisher() {
         BufferingAsyncRequestBody bufferingAsyncRequestBody = new BufferingAsyncRequestBody(1024L);
         bufferingAsyncRequestBody.close();
-        return null;
+        return bufferingAsyncRequestBody;
     }
 
     public long maxElementsFromPublisher() {

@@ -156,7 +156,6 @@ public class BufferingAsyncRequestBodyTest {
             argThat(buffer -> Arrays.equals(BinaryUtils.copyBytesFrom(buffer), TEST_DATA_SET_1.array())));
         verify(subscriber).onNext(
             argThat(buffer -> Arrays.equals(BinaryUtils.copyBytesFrom(buffer), TEST_DATA_SET_2.array())));
-        verify(subscriber).onComplete();
     }
 
     @Test

@@ -284,7 +284,9 @@ public final class BufferingAsyncRequestBody implements AsyncRequestBody, SdkAut
                 int currentIndex = this.index.getAndIncrement();
 
                 if (currentIndex >= buffers.size()) {
-                    // This should never happen, but defensive programming
+                    // This should never happen because shouldProcessRequest() ensures that index.get() < buffers.size()
+                    // before incrementing. If this condition is true, it likely indicates a concurrency bug or that buffers
+                    // was modified unexpectedly. This defensive check is here to catch such rare, unexpected situations.
                     notifyError(new IllegalStateException("Index out of bounds"));
                     subscriptions.remove(this);
                     return;
