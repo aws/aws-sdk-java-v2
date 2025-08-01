@@ -275,7 +275,7 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
     }
 
     @Test
-    public void getItem_set_eventualConsistent() {
+    public void getItem_set_eventualConsistent() throws InterruptedException {
         Record record = new Record().setId("101").setSort(102).setStringAttribute(getStringAttrValue(80 * 1024));
         Key key = Key.builder()
                      .partitionValue(record.getId())
@@ -286,6 +286,18 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(
             req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
         );
+
+        // Handle eventual consistency: DynamoDB's eventually consistent reads may not immediately
+        // reflect recent writes. Retry once with a delay to ensure item propagation.
+        if(response.attributes() == null){
+            Thread.sleep(200);
+            response = mappedTable.getItemWithResponse(
+                req -> req.key(key).returnConsumedCapacity(ReturnConsumedCapacity.TOTAL));
+        }
+        assertThat(response.attributes())
+            .withFailMessage("Item not propagated to DynamoDB after retry - eventual consistency delay exceeded")
+            .isNotNull();
+
         ConsumedCapacity consumedCapacity = response.consumedCapacity();
         assertThat(consumedCapacity).isNotNull();
         // An eventually consistent read request of an item up to 4 KB requires one-half read request unit.

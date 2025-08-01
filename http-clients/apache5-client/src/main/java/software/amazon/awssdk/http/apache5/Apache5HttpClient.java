@@ -106,14 +106,26 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link SdkHttpClient} that uses Apache5 HTTP client to communicate with the service. This is the most
- * powerful synchronous client that adds an extra dependency and additional startup latency in exchange for more functionality,
- * like support for HTTP proxies.
+ * An implementation of {@link SdkHttpClient} that uses Apache HttpClient 5.x to communicate with the service. This is a
+ * full-featured synchronous client that adds an extra dependency and higher startup latency compared to
+ * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
+ * in exchange for more functionality, like support for HTTP proxies.
  *
- * <p>See software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient for an alternative implementation.</p>
+ * <p>This client uses Apache HttpClient 5.x, which provides the following
+ * improvements over the Apache HttpClient 4.5.x based client:</p>
+ * <ul>
+ *   <li>Modern Java ecosystem compatibility including virtual thread support for Java 21</li>
+ *   <li>Active maintenance with regular security updates</li>
+ *   <li>Enhanced logging flexibility through SLF4J (replacing problematic JCL dependencies)</li>
+ * </ul>
+ * <p><b>Note:</b> Performance characteristics between Apache 4.5.x and 5.x clients are similar.</p>
+ * <p>See
+ * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
+ * for a lighter-weight alternative implementation.</p>
  *
  * <p>This can be created via {@link #builder()}</p>
  */
+
 @SdkPreviewApi
 @SdkPublicApi
 public final class Apache5HttpClient implements SdkHttpClient {
