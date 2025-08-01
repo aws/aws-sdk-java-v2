@@ -189,8 +189,6 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                 newDownloadFileRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
 
             if (resumableFileDownload.bytesTransferred() == 0) {
-                System.out.println("Looks like our file thinks it is empty, so we are going to be basic.");
-
                 GetObjectRequest newGetObjectRequest = attachSdkAttribute(
                     getObjectRequestWithAttributes.toBuilder().range(null).build(),
                 b -> b
@@ -208,8 +206,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
+            log.error(() -> "Failed to resume: " + throwable);
             // TODO: Handle this
-            System.out.println("OH NO, resume blew up: " + throwable);
             // handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
             return null;
         });
@@ -223,7 +221,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
     @Override
     public FileDownload downloadFile(DownloadFileRequest downloadRequest) {
-        System.out.println("Using the CRT downloadFile!");
+        log.debug(() -> "Using CRT direct download to file.");
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
