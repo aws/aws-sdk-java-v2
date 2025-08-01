@@ -53,6 +53,49 @@ public final class SdkPojoConversionUtils {
         new HashSet<>(Arrays.asList("ChecksumSHA1", "ChecksumSHA256", "ContentMD5", "ChecksumCRC32C", "ChecksumCRC32",
                                     "ChecksumCRC64NVME", "ContentLength"));
 
+    private static final Set<String> PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS = new HashSet<>(Arrays.asList(
+        "ACL",
+        "Bucket",
+        "CacheControl",
+        "ContentDisposition",
+        "ContentEncoding",
+        "ContentLanguage",
+        "ContentLength",
+        "ContentMD5",
+        "ContentType",
+        "ChecksumAlgorithm",
+        "ChecksumCRC32",
+        "ChecksumCRC32C",
+        "ChecksumCRC64NVME",
+        "ChecksumSHA1",
+        "ChecksumSHA256",
+        "Expires",
+        "IfMatch",
+        "IfNoneMatch",
+        "GrantFullControl",
+        "GrantRead",
+        "GrantReadACP",
+        "GrantWriteACP",
+        "Key",
+        "WriteOffsetBytes",
+        "Metadata",
+        "ServerSideEncryption",
+        "StorageClass",
+        "WebsiteRedirectLocation",
+        "SSECustomerAlgorithm",
+        "SSECustomerKey",
+        "SSECustomerKeyMD5",
+        "SSEKMSKeyId",
+        "SSEKMSEncryptionContext",
+        "BucketKeyEnabled",
+        "RequestPayer",
+        "Tagging",
+        "ObjectLockMode",
+        "ObjectLockRetainUntilDate",
+        "ObjectLockLegalHoldStatus",
+        "ExpectedBucketOwner"
+    ));
+
     private SdkPojoConversionUtils() {
     }
 
@@ -134,22 +177,6 @@ public final class SdkPojoConversionUtils {
         return builder.uploadId(uploadId).build();
     }
 
-    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject) {
-        setSdkFields(targetBuilder, sourceObject, new HashSet<>());
-    }
-
-    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject, Set<String> fieldsToIgnore) {
-        Map<String, Object> sourceFields = retrieveSdkFields(sourceObject, sourceObject.sdkFields());
-        List<SdkField<?>> targetSdkFields = targetBuilder.sdkFields();
-
-        for (SdkField<?> field : targetSdkFields) {
-            if (fieldsToIgnore.contains(field.memberName())) {
-                continue;
-            }
-            field.set(targetBuilder, sourceFields.getOrDefault(field.memberName(), null));
-        }
-    }
-
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
 
@@ -224,5 +251,21 @@ public final class SdkPojoConversionUtils {
             (map, field) -> map.put(field.memberName(),
                                     field.getValueOrDefault(sourceObject)),
             Map::putAll);
+    }
+
+    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject) {
+        setSdkFields(targetBuilder, sourceObject, new HashSet<>());
+    }
+
+    private static void setSdkFields(SdkPojo targetBuilder, SdkPojo sourceObject, Set<String> fieldsToIgnore) {
+        Map<String, Object> sourceFields = retrieveSdkFields(sourceObject, sourceObject.sdkFields());
+        List<SdkField<?>> targetSdkFields = targetBuilder.sdkFields();
+
+        for (SdkField<?> field : targetSdkFields) {
+            if (fieldsToIgnore.contains(field.memberName())) {
+                continue;
+            }
+            field.set(targetBuilder, sourceFields.getOrDefault(field.memberName(), null));
+        }
     }
 }
