@@ -1389,24 +1389,6 @@ public class StaticImmutableTableSchemaTest {
     }
 
     @Test
-    public void buildAbstractWithFlattenAndIgnoreNullAsFalse() {
-        StaticTableSchema<FakeMappedItem> tableSchema =
-            StaticTableSchema.builder(FakeMappedItem.class)
-                             .flatten(FAKE_DOCUMENT_TABLE_SCHEMA,
-                                      FakeMappedItem::getAFakeDocument,
-                                      FakeMappedItem::setAFakeDocument)
-                             .build();
-
-        FakeDocument document = FakeDocument.of("test-string", null);
-        FakeMappedItem item = FakeMappedItem.builder().aFakeDocument(document).build();
-
-        Map<String, AttributeValue> attributeMapWithNulls = tableSchema.itemToMap(item, false);
-        assertThat(attributeMapWithNulls.size(), is(2));
-        assertThat(attributeMapWithNulls, hasEntry("documentString", AttributeValue.builder().s("test-string").build()));
-        assertThat(attributeMapWithNulls, hasEntry("documentInteger", AttributeValue.fromNul(true)));
-    }
-
-    @Test
     public void buildAbstractExtends() {
         StaticTableSchema<FakeAbstractSuperclass> superclassTableSchema =
             StaticTableSchema.builder(FakeAbstractSuperclass.class)

@@ -18,13 +18,19 @@ package software.amazon.awssdk.v2migration;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.SUPPORTED_METADATA_TRANSFORMS;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addCommentForUnsupportedPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.addMetadataFields;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.createComments;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getArgumentName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getSelectName;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.inputStreamBufferingWarningComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPayloadSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestBuilderSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isRequestPayerSetter;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isUnsupportedPutObjectRequestSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2S3MethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
 import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isFileType;
@@ -33,10 +39,8 @@ import static software.amazon.awssdk.v2migration.internal.utils.SdkTypeUtils.isI
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.regex.Pattern;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -44,10 +48,8 @@ import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.tree.Comment;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.TypeUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
@@ -62,8 +64,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
 
     private static final MethodMatcher UPLOAD_WITH_REQUEST =
         v2TmMethodMatcher(String.format("upload(%sPutObjectRequest)", V2_S3_MODEL_PKG));
-
-    private static final Pattern METADATA_V2 = Pattern.compile(V2_S3_MODEL_PKG + "HeadObjectResponse");
 
     @Override
     public String getDisplayName() {
@@ -106,6 +106,10 @@ public class S3PutObjectRequestToV2 extends Recipe {
                 }
                 if (isRequestPayerSetter(method)) {
                     return transformWithRequesterPays(method);
+                }
+                if (isUnsupportedPutObjectRequestSetter(method)) {
+                    method = addCommentForUnsupportedPutObjectRequestSetter(method);
+                    return super.visitMethodInvocation(method, ctx);
                 }
             }
             if (isPutObjectRequestSetter(method)) {
@@ -317,11 +321,18 @@ public class S3PutObjectRequestToV2 extends Recipe {
             addS3Import("PutObjectRequest");
 
             Expression metadata = method.getArguments().get(3);
-            String metadataName = ((J.Identifier) metadata).getSimpleName();
+            String metadataName = null;
+            if (metadata instanceof J.Identifier) {
+                metadataName = ((J.Identifier) metadata).getSimpleName();
+            }
 
             StringBuilder sb = new StringBuilder("PutObjectRequest.builder().bucket(#{any()}).key(#{any()})");
-            addMetadataFields(sb, metadataName, metadataMap);
-            Expression contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+
+            Expression contentLen = null;
+            if (metadataName != null) {
+                addMetadataFields(sb, metadataName, metadataMap);
+                contentLen = retrieveContentLengthForMetadataIfSet(metadataName);
+            }
 
             Expression[] params = {method.getArguments().get(0), method.getArguments().get(1),
                                    method.getArguments().get(2)};
@@ -412,15 +423,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
             return map.get("contentLength");
         }
 
-        private boolean isObjectMetadataSetter(J.MethodInvocation method) {
-            if (method.getSelect() == null || method.getSelect().getType() == null) {
-                return false;
-            }
-
-            return method.getSelect().getType().isAssignableFrom(METADATA_V2)
-                   && !method.getArguments().isEmpty();
-        }
-
         private J.MethodInvocation saveMetadataValueAndRemoveStatement(J.MethodInvocation method) {
             J.Identifier metadataPojo = (J.Identifier) method.getSelect();
             String variableName = metadataPojo.getSimpleName();
@@ -464,28 +466,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
                                .apply(getCursor(), method.getCoordinates().replaceArguments());
         }
 
-        /** Field set during POJO instantiation, e.g.,
-         * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation").withFile(file);
-         */
-        private boolean isPutObjectRequestBuilderSetter(J.MethodInvocation method) {
-            return isSetterForClassType(method, "software.amazon.awssdk.services.s3.model.PutObjectRequest$Builder");
-        }
-
-        /** Field set after POJO instantiation, e.g.,
-         * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation");
-         * request.setFile(file);
-         */
-        private boolean isPutObjectRequestSetter(J.MethodInvocation method) {
-            return isSetterForClassType(method, "software.amazon.awssdk.services.s3.model.PutObjectRequest");
-        }
-
-        private boolean isSetterForClassType(J.MethodInvocation method, String fqcn) {
-            if (method.getSelect() == null || method.getSelect().getType() == null) {
-                return false;
-            }
-            return TypeUtils.isOfClassType(method.getSelect().getType(), fqcn);
-        }
-
         private void addRequestBodyImport() {
             String fqcn = "software.amazon.awssdk.core.sync.RequestBody";
             doAfterVisit(new AddImport<>(fqcn, null, false));
@@ -504,14 +484,6 @@ public class S3PutObjectRequestToV2 extends Recipe {
         private void addTmImport(String pojoName) {
             String fqcn = V2_TM_MODEL_PKG + pojoName;
             doAfterVisit(new AddImport<>(fqcn, null, false));
-        }
-
-        private List<Comment> inputStreamBufferingWarningComment() {
-            String warning = "When using InputStream to upload with S3Client, Content-Length should be specified and used "
-                             + "with RequestBody.fromInputStream(). Otherwise, the entire stream will be buffered in memory. If"
-                             + " content length must be unknown, we recommend using the CRT-based S3 client - "
-                             + "https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/crt-based-s3-client.html";
-            return createComments(warning);
         }
     }
 }

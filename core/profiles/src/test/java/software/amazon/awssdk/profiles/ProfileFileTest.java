@@ -570,6 +570,14 @@ public class ProfileFileTest {
         assertThat(missingProfile.profiles()).isInstanceOf(Map.class);
     }
 
+    @Test
+    public void builderValidatesContentRequired() {
+        assertThatThrownBy(() -> ProfileFile.builder().type(ProfileFile.Type.CONFIGURATION).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("content or contentLocation must be set.");
+
+    }
+
     private ProfileFile configFile(String configFile) {
         return ProfileFile.builder()
                           .content(configFile)

@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.ListQueuesRequest;
 import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
 import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SqsException;
 
 public class Application {
@@ -113,5 +114,17 @@ public class Application {
             .startTime(start.toInstant())
             .endTime(end.toInstant())
             .build();
+
+        GetMetricStatisticsRequest getMetricStatisticsRequest2 = GetMetricStatisticsRequest.builder()
+            .build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().startTime(start.toInstant()).build();
+        getMetricStatisticsRequest2 = getMetricStatisticsRequest2.toBuilder().endTime(end.toInstant()).build();
+    }
+
+    void pojoSettersAfterCreation() {
+        SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
+            .build();
+        sendMessageRequest = sendMessageRequest.toBuilder().messageGroupId("groupId").build();
+        sendMessageRequest = sendMessageRequest.toBuilder().queueUrl("queueUrl").build();
     }
 }

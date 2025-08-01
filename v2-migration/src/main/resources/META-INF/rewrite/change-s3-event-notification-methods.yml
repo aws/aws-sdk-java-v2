@@ -1,0 +1,34 @@
+#
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License").
+# You may not use this file except in compliance with the License.
+# A copy of the License is located at
+#
+#  http://aws.amazon.com/apache2.0
+#
+# or in the "license" file accompanying this file. This file is distributed
+# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+# express or implied. See the License for the specific language governing
+# permissions and limitations under the License.
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: software.amazon.awssdk.v2migration.S3EventNotificationMethodsToV2
+displayName: Change S3EventNotification methods to v2.
+description: Change S3EventNotification methods to v2.
+recipeList:
+  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+      methodPattern: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord getEventNameAsEnum()
+      newReturnType: String
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.event.S3EventNotification.GlacierEventDataEntity getRestoreEventDataEntity()
+      newMethodName: getRestoreEventData
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord getEventNameAsEnum()
+      newMethodName: getEventName
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord getReplicationEventDataEntity()
+      newMethodName: getReplicationEventData
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.event.S3EventNotification parseJson(String)
+      newMethodName: fromJson

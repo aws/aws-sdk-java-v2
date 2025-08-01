@@ -13,6 +13,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.Mutable;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkField;
 import software.amazon.awssdk.core.SdkPojo;
@@ -190,6 +192,8 @@ public class InputEventTwo implements SdkPojo, Serializable, ToCopyableBuilder<I
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
+    @Mutable
+    @NotThreadSafe
     public interface Builder extends SdkPojo, CopyableBuilder<Builder, InputEventTwo> {
         /**
          * Sets the value of the ImplicitPayloadMemberOne property for this object.

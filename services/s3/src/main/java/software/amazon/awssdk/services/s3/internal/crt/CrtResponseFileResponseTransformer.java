@@ -20,10 +20,21 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * When the CRT Response File option is used in a request, the body is streamed directly to the file.
+ * The S3CrtResponseHandlerAdapter in this case will never receive a response body but will call onStream
+ * when the request is complete with a publisher that will complete immediately.
+ * This transformer is effectively a no-op transformer that waits for the stream to complete and then
+ * completes the future with the response.
+ *
+ * @param <ResponseT> Pojo response type.
+ */
+@SdkInternalApi
 public final class CrtResponseFileResponseTransformer<ResponseT> implements AsyncResponseTransformer<ResponseT,
     ResponseT> {
 
@@ -40,7 +51,6 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
     @Override
     public void onResponse(ResponseT response) {
-        System.out.println("CrtResponseFileResponseTransformer Got response: " + response);
         this.response = response;
     }
 
@@ -54,17 +64,16 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
         if (cf != null) {
             cf.completeExceptionally(throwable);
         } else {
-            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
+            log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture. "
                            + "The future cannot be completed exceptionally because it is null");
-
         }
     }
 
     private static final class OnCompleteSubscriber implements Subscriber<ByteBuffer> {
 
-        private Subscription subscription;
         private final CompletableFuture<Void> future;
         private final Consumer<Throwable> onErrorMethod;
+        private Subscription subscription;
 
         private OnCompleteSubscriber(CompletableFuture<Void> future, Consumer<Throwable> onErrorMethod) {
             this.future = future;
@@ -78,13 +87,14 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
                 return;
             }
             this.subscription = s;
-            // Request the first chunk to start producing content
-            s.request(1);
+            // do not request data from the subscription since body is written directly to file
         }
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            System.out.println("We should probably not be here!!!");
+            // The response body is streamed directly to the file - this method should never be called.
+            // ensure the future is completed exceptionally if this occurs
+            onErrorMethod.accept(new IllegalStateException("OnCompleteSubscriber received unexpected call to onNext."));
         }
 
         @Override
@@ -94,7 +104,6 @@ public final class CrtResponseFileResponseTransformer<ResponseT> implements Asyn
 
         @Override
         public void onComplete() {
-            System.out.println("Yay, we completed!");
             future.complete(null);
         }
     }

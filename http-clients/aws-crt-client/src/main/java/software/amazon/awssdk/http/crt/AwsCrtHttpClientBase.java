@@ -44,6 +44,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * Common functionality and configuration for the CRT Http clients.
@@ -162,8 +163,8 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     }
 
     URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
-                                          sdkRequest.port(), null, null, null));
+        return invokeSafely(() -> SdkUri.getInstance().newUri(sdkRequest.protocol(), null, sdkRequest.host(),
+                                                              sdkRequest.port(), null, null, null));
     }
 
     @Override

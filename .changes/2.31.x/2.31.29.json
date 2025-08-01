@@ -1,0 +1,54 @@
+{
+    "version": "2.31.29",
+    "date": "2025-04-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS App Runner",
+            "contributor": "",
+            "description": "AWS App Runner adds Node.js 22 runtime."
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Add data source support to Event APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Remove redundant validation check."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Documentation-only update: added valid values for the version property of the Scheduler and SchedulerRequest data types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Add support for ARN-sourced account endpoint generation for TransactWriteItems. This will generate account endpoints for DynamoDB TransactWriteItems requests using ARN-sourced account ID when available."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation only release for Amazon ECS"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This Amazon RDS release adds support for managed master user passwords for Oracle CDBs."
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Added support for modality routing and modality enablement on CreateDataAutomationProject and UpdateDataAutomationProject APIs"
+        }
+    ]
+}

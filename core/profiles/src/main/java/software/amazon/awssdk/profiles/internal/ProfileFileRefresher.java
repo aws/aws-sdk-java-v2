@@ -39,6 +39,7 @@ public final class ProfileFileRefresher {
     private static final ProfileFileRefreshRecord EMPTY_REFRESH_RECORD = ProfileFileRefreshRecord.builder()
                                                                                                  .refreshTime(Instant.MIN)
                                                                                                  .build();
+    private static final long STALE_TIME_MS = 1000;
     private final CachedSupplier<ProfileFileRefreshRecord> profileFileCache;
     private volatile ProfileFileRefreshRecord currentRefreshRecord;
     private final Supplier<ProfileFile> profileFile;
@@ -96,7 +97,7 @@ public final class ProfileFileRefresher {
             refreshRecord = currentRefreshRecord;
         }
 
-        return wrapIntoRefreshResult(refreshRecord, now);
+        return wrapIntoRefreshResult(refreshRecord, now.plusMillis(STALE_TIME_MS));
     }
 
     private <T> RefreshResult<T> wrapIntoRefreshResult(T value, Instant staleTime) {

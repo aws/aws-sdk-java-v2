@@ -137,11 +137,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         HttpRequest httpRequest = toCrtRequest(asyncRequest);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
-        S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(executeFuture,
-                                            asyncRequest.responseHandler(),
-                                            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                                            s3MetaRequestFuture);
 
         String operationName = asyncRequest.httpExecutionAttributes().getAttribute(OPERATION_NAME);
         S3MetaRequestOptions.MetaRequestType requestType = requestType(operationName);
@@ -159,12 +154,14 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                                        responseChecksumValidation);
 
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
-        if (responseFilePath != null) {
-            // TODO: This should be on constructor
-            responseHandler.handleResponseOnHeaders = true;
-        }
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
-        System.out.println("S3CrtAsyncHttpClient.execute(): " + operationName + "\tResponseFilePath: " + responseFilePath + "\tResponseFileOption: " + responseFileOption);
+
+        S3CrtResponseHandlerAdapter responseHandler =
+            new S3CrtResponseHandlerAdapter(
+                executeFuture,
+                asyncRequest.responseHandler(),
+                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                s3MetaRequestFuture);
 
         URI endpoint = getEndpoint(uri);
 

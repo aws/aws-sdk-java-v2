@@ -24,11 +24,14 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 
 import java.net.URI;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +59,7 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -63,6 +67,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.testutils.RandomTempFile;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -148,10 +153,9 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
-    public void NonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
+    public void nonStreamingOperation_shouldSetMetaRequestTypeCorrectly() {
         AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME,
                                                                                                        "CreateBucket").build();
-
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.DEFAULT);
         assertThat(actual.getOperationName()).isEqualTo("CreateBucket");
@@ -287,7 +291,8 @@ public class S3CrtAsyncHttpClientTest {
 
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                                                  "test")))
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -312,7 +317,8 @@ public class S3CrtAsyncHttpClientTest {
 
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
                                                                  .endpointOverride(DEFAULT_ENDPOINT)
-                                                                 .credentialsProvider(null)
+                                                                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                       "test")))
                                                                  .build();
 
         asyncHttpClient = new S3CrtAsyncHttpClient(s3Client, S3CrtAsyncHttpClient.builder()
@@ -425,6 +431,8 @@ public class S3CrtAsyncHttpClientTest {
                                        .signingRegion(signingRegion)
                                        .thresholdInBytes(1024L)
                                        .targetThroughputInGbps(3.5)
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .maxNativeMemoryLimitInBytes(5L * 1024 * 1024 * 1024)
                                        .standardRetryOptions(
                                            new StandardRetryOptions()
@@ -466,6 +474,8 @@ public class S3CrtAsyncHttpClientTest {
         long partSizeInBytes = 1024 * 8L;
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .partSizeInBytes(partSizeInBytes)
                                        .build();
         try (S3CrtAsyncHttpClient client =
@@ -480,6 +490,8 @@ public class S3CrtAsyncHttpClientTest {
     void build_nullHttpConfiguration() {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
@@ -539,6 +551,8 @@ public class S3CrtAsyncHttpClientTest {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()
                                        .httpConfiguration(s3CrtHttpConfiguration)
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
                                        .build();
         try(S3CrtAsyncHttpClient client =
             (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
@@ -550,6 +564,21 @@ public class S3CrtAsyncHttpClientTest {
                     .isEqualTo(environmentVariableType);
             }
         }
+    }
+
+    @Test
+    public void responseFilePathAndOption_shouldPassToCrt() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder()
+            .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+            .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
+            .putHttpExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND)
+            .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+        assertThat(actual.getResponseFilePath()).isEqualTo(path);
+        assertThat(actual.getResponseFileOption()).isEqualTo(S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND);
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

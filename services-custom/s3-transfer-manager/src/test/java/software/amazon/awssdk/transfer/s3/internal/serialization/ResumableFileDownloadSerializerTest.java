@@ -49,6 +49,7 @@ class ResumableFileDownloadSerializerTest {
     private static final Instant DATE1 = parseIso8601Date("2022-05-13T21:55:52.529Z");
     private static final Instant DATE2 = parseIso8601Date("2022-05-15T21:50:11.308Z");
     private static final Map<String, GetObjectRequest> GET_OBJECT_REQUESTS;
+    private static final String ETAG = "acbd18db4cc2f85cedef654fccc4a4d8";
 
     static {
         Map<String, GetObjectRequest> requests = new HashMap<>();
@@ -82,6 +83,7 @@ class ResumableFileDownloadSerializerTest {
                                                             .getObjectRequest(GET_OBJECT_REQUESTS.get("ALL_TYPES")))
                                  .bytesTransferred(1000L)
                                  .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
+                                 .s3ObjectEtag(ETAG)
                                  .totalSizeInBytes(5000L)
                                  .s3ObjectLastModified(parseIso8601Date("2022-03-10T08:21:00Z"))
                                  .build();
@@ -147,6 +149,7 @@ class ResumableFileDownloadSerializerTest {
                                                             .getObjectRequest(GET_OBJECT_REQUESTS.get("ALL_TYPES")))
                                  .bytesTransferred(1000L)
                                  .fileLastModified(parseIso8601Date("2022-03-08T10:15:30Z"))
+                                 .s3ObjectEtag(ETAG)
                                  .totalSizeInBytes(5000L)
                                  .s3ObjectLastModified(parseIso8601Date("2022-03-10T08:21:00Z"))
                                  .completedParts(Arrays.asList(1, 2, 3))
@@ -170,19 +173,23 @@ class ResumableFileDownloadSerializerTest {
     private static List<ResumableFileDownload> differentGetObjects() {
         return GET_OBJECT_REQUESTS.values()
                                   .stream()
-                                  .map(request -> resumableFileDownload(1000L, null, DATE1, null, downloadRequest(PATH, request)))
+                                  .map(request -> resumableFileDownload(1000L, null, DATE1, null, null, downloadRequest(PATH,
+                                                                                                                   request)))
                                   .collect(Collectors.toList());
     }
 
     private static List<ResumableFileDownload> differentDownloadSettings() {
         DownloadFileRequest request = downloadRequest(PATH, GET_OBJECT_REQUESTS.get("STANDARD"));
         return Arrays.asList(
-            resumableFileDownload(null, null, null, null, request),
-            resumableFileDownload(1000L, null, null, null, request),
-            resumableFileDownload(1000L, null, DATE1, null, request),
-            resumableFileDownload(1000L, 2000L, DATE1, DATE2, request),
-            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, DATE1, DATE2, request),
-            resumableFileDownload(1000L, 2000L, DATE1, DATE2, request, Arrays.asList(1, 2, 3))
+            resumableFileDownload(null, null, null, null, null, request),
+            resumableFileDownload(1000L, null, null, null, null, request),
+            resumableFileDownload(1000L, null, DATE1, null, null, request),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, null, request),
+            resumableFileDownload(Long.MAX_VALUE, Long.MAX_VALUE, DATE1, DATE2, null, request),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, null, request, Arrays.asList(1, 2, 3)),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, ETAG, request, Arrays.asList(1, 2, 3)),
+            resumableFileDownload(1000L, 2000L, DATE1, DATE2, ETAG, request),
+            resumableFileDownload(1000L, 2000L, DATE1, null, ETAG, request)
         );
     }
 
@@ -190,6 +197,7 @@ class ResumableFileDownloadSerializerTest {
                                                                Long totalSizeInBytes,
                                                                Instant fileLastModified,
                                                                Instant s3ObjectLastModified,
+                                                               String s3ObjectEtag,
                                                                DownloadFileRequest request) {
         ResumableFileDownload.Builder builder = ResumableFileDownload.builder()
                                                                      .downloadFileRequest(request)
@@ -203,16 +211,20 @@ class ResumableFileDownloadSerializerTest {
         if (s3ObjectLastModified != null) {
             builder.s3ObjectLastModified(s3ObjectLastModified);
         }
+        if (s3ObjectEtag != null) {
+            builder.s3ObjectEtag(s3ObjectEtag);
+        }
         return builder.build();
     }
     private static ResumableFileDownload resumableFileDownload(Long bytesTransferred,
                                                                Long totalSizeInBytes,
                                                                Instant fileLastModified,
                                                                Instant s3ObjectLastModified,
+                                                               String s3ObjectEtag,
                                                                DownloadFileRequest request,
                                                                List<Integer> completedParts) {
         ResumableFileDownload dl = resumableFileDownload(
-            bytesTransferred, totalSizeInBytes, fileLastModified, s3ObjectLastModified, request);
+            bytesTransferred, totalSizeInBytes, fileLastModified, s3ObjectLastModified, s3ObjectEtag, request);
         return dl.copy(b -> b.completedParts(completedParts));
     }
 
@@ -225,17 +237,21 @@ class ResumableFileDownloadSerializerTest {
 
     private static final String SERIALIZED_DOWNLOAD_OBJECT = "{\"bytesTransferred\":1000,\"fileLastModified\":1646734530.000,"
                                                              + "\"totalSizeInBytes\":5000,\"s3ObjectLastModified\":1646900460"
-                                                             + ".000,\"downloadFileRequest\":{\"destination\":\"test/request\","
+                                                             + ".000,\"s3ObjectEtag\":\"acbd18db4cc2f85cedef654fccc4a4d8\","
+                                                             + "\"downloadFileRequest\":{\"destination\":\"test/request\","
                                                              + "\"getObjectRequest\":{\"Bucket\":\"BUCKET\","
                                                              + "\"If-Modified-Since\":1577880630.000,\"Key\":\"KEY\","
                                                              + "\"x-amz-request-payer\":\"requester\",\"partNumber\":1,"
                                                              + "\"x-amz-checksum-mode\":\"ENABLED\"}},\"completedParts\":[]}";
 
+
+
     private static final String SERIALIZED_DOWNLOAD_OBJECT_WITH_COMPLETED_PARTS =
         "{\"bytesTransferred\":1000,"
         + "\"fileLastModified\":1646734530.000,"
         + "\"totalSizeInBytes\":5000,\"s3ObjectLastModified\":1646900460"
-        + ".000,\"downloadFileRequest\":{\"destination\":\"test/request\","
+        + ".000,\"s3ObjectEtag\":\"acbd18db4cc2f85cedef654fccc4a4d8\","
+        + "\"downloadFileRequest\":{\"destination\":\"test/request\","
         + "\"getObjectRequest\":{\"Bucket\":\"BUCKET\","
         + "\"If-Modified-Since\":1577880630.000,\"Key\":\"KEY\","
         + "\"x-amz-request-payer\":\"requester\",\"partNumber\":1,"

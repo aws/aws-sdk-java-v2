@@ -8,6 +8,9 @@ completely made up and not part of this library. Any search or key
 values used are also completely arbitrary.
 
 ### Initialization
+**IMPORTANT**: Fields in your DynamoDbBean java class **MUST NOT** be marked as `final`. 
+The DynamoDB Enhanced Client requires fields to be mutable for the mapping to work correctly.
+
 1. Create or use a java class for mapping records to and from the
    database table. At a minimum you must annotate the class so that
    it can be used as a DynamoDb bean, and also the property that

@@ -141,6 +141,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         }
     }
 
+    @Override
+    public String body() {
+        return BodyType.FILE.getName();
+    }
+
     /**
      * @return Builder instance to construct a {@link FileAsyncRequestBody}.
      */

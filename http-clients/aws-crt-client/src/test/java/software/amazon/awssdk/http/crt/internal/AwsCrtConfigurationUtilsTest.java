@@ -33,12 +33,6 @@ import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 
 class AwsCrtConfigurationUtilsTest {
-
-    @AfterAll
-    public static void tearDown() {
-        CrtResource.waitForNoResources();
-    }
-
     @ParameterizedTest
     @MethodSource("cipherPreferences")
     void resolveCipherPreference_pqNotSupported_shouldFallbackToSystemDefault(Boolean preferPqTls,

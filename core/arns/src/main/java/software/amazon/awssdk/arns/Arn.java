@@ -139,6 +139,23 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
     }
 
     /**
+     * Attempts to parse the given string into an {@link Arn}. If the input string is not a valid ARN,
+     * this method returns {@link Optional#empty()} instead of throwing an exception.
+     * <p>
+     * When successful, the resource is accessible entirely as a string through
+     * {@link #resourceAsString()}. Where correctly formatted, a parsed resource
+     * containing resource type, resource and qualifier is available through
+     * {@link #resource()}.
+     *
+     * @param arn A string containing an ARN to parse.
+     * @return An {@link Optional} containing the parsed {@link Arn} if valid, or empty if invalid.
+     * @throws IllegalArgumentException if the ARN contains empty partition or service fields
+     */
+    public static Optional<Arn> tryFromString(String arn) {
+        return parseArn(arn, false);
+    }
+
+    /**
      * Parses a given string into an {@link Arn}. The resource is accessible entirely as a
      * string through {@link #resourceAsString()}. Where correctly formatted, a parsed
      * resource containing resource type, resource and qualifier is available through
@@ -148,47 +165,75 @@ public final class Arn implements ToCopyableBuilder<Arn.Builder, Arn> {
      * @return {@link Arn} - A modeled Arn.
      */
     public static Arn fromString(String arn) {
+        return parseArn(arn, true).orElseThrow(() -> new IllegalArgumentException("ARN parsing failed"));
+    }
+
+    private static Optional<Arn> parseArn(String arn, boolean throwOnError) {
+        if (arn == null) {
+            return Optional.empty();
+        }
+
         int arnColonIndex = arn.indexOf(':');
         if (arnColonIndex < 0 || !"arn".equals(arn.substring(0, arnColonIndex))) {
-            throw new IllegalArgumentException("Malformed ARN - doesn't start with 'arn:'");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - doesn't start with 'arn:'");
+            }
+            return Optional.empty();
         }
 
         int partitionColonIndex = arn.indexOf(':', arnColonIndex + 1);
         if (partitionColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS partition specified");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - no AWS partition specified");
+            }
+            return Optional.empty();
         }
         String partition = arn.substring(arnColonIndex + 1, partitionColonIndex);
 
         int serviceColonIndex = arn.indexOf(':', partitionColonIndex + 1);
         if (serviceColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no service specified");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - no service specified");
+            }
+            return Optional.empty();
         }
         String service = arn.substring(partitionColonIndex + 1, serviceColonIndex);
 
         int regionColonIndex = arn.indexOf(':', serviceColonIndex + 1);
         if (regionColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS region partition specified");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - no AWS region partition specified");
+            }
+            return Optional.empty();
         }
         String region = arn.substring(serviceColonIndex + 1, regionColonIndex);
 
         int accountColonIndex = arn.indexOf(':', regionColonIndex + 1);
         if (accountColonIndex < 0) {
-            throw new IllegalArgumentException("Malformed ARN - no AWS account specified");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - no AWS account specified");
+            }
+            return Optional.empty();
         }
         String accountId = arn.substring(regionColonIndex + 1, accountColonIndex);
 
         String resource = arn.substring(accountColonIndex + 1);
         if (resource.isEmpty()) {
-            throw new IllegalArgumentException("Malformed ARN - no resource specified");
+            if (throwOnError) {
+                throw new IllegalArgumentException("Malformed ARN - no resource specified");
+            }
+            return Optional.empty();
         }
 
-        return Arn.builder()
-                  .partition(partition)
-                  .service(service)
-                  .region(region)
-                  .accountId(accountId)
-                  .resource(resource)
-                  .build();
+        Arn resultArn = builder()
+            .partition(partition)
+            .service(service)
+            .region(region)
+            .accountId(accountId)
+            .resource(resource)
+            .build();
+
+        return Optional.of(resultArn);
     }
 
     @Override

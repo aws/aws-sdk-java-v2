@@ -19,8 +19,10 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -36,6 +38,7 @@ import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -156,6 +159,16 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
                                                                                   .applyMutation(splitConfig)
                                                                                   .build();
         return split(conf);
+    }
+
+    /**
+     * Each AsyncResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestTransformer.
+     */
+    default String name() {
+        return TransformerType.UNKNOWN.getName();
     }
 
     /**
@@ -367,6 +380,38 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * @return an instance of this Builder
              */
             Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+        }
+    }
+
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
         }
     }
 }

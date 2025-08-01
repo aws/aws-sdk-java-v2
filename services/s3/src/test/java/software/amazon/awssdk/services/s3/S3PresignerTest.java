@@ -56,6 +56,8 @@ import software.amazon.awssdk.services.s3.model.SessionCredentials;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -440,6 +442,55 @@ public class S3PresignerTest {
             assertThat(expires).containsOnlyDigits();
             assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
+    }
+
+    @Test
+    public void headObject_compareWithGetObject_sameUrlDifferentMethod() {
+        PresignedHeadObjectRequest headRequest =
+            presigner.presignHeadObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                              .headObjectRequest(ho -> ho.bucket("test-bucket")
+                                                                         .key("test-key")));
+
+        PresignedGetObjectRequest getRequest =
+            presigner.presignGetObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .getObjectRequest(go -> go.bucket("test-bucket")
+                                                                       .key("test-key")));
+
+        String headUrl = headRequest.url().toString();
+        String getUrl = getRequest.url().toString();
+
+        assertThat(headUrl).contains("X-Amz-Algorithm=");
+        assertThat(getUrl).contains("X-Amz-Algorithm=");
+        assertThat(headRequest.httpRequest().method().name()).isEqualTo("HEAD");
+        assertThat(getRequest.httpRequest().method().name()).isEqualTo("GET");
+    }
+
+    @Test
+    public void headObject_withVersionId_includesVersionIdInQueryString() {
+        String versionId = "version-12345";
+
+        PresignedHeadObjectRequest presigned =
+            presigner.presignHeadObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                              .headObjectRequest(ho -> ho.bucket("versioned-bucket")
+                                                                         .key("versioned-object")
+                                                                         .versionId(versionId)));
+
+        assertThat(presigned.url().toString()).contains("versionId=" + versionId);
+        assertThat(presigned.httpRequest().rawQueryParameters().get("versionId").get(0)).isEqualTo(versionId);
+    }
+
+    @Test
+    public void headBucket_withExpectedBucketOwner_includesHeaderInSignature() {
+        String accountId = "123456789012";
+
+        PresignedHeadBucketRequest presigned =
+            presigner.presignHeadBucket(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                              .headBucketRequest(hb -> hb.bucket("owner-bucket")
+                                                                         .expectedBucketOwner(accountId)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+        assertThat(presigned.signedHeaders().keySet()).containsExactlyInAnyOrder("host", "x-amz-expected-bucket-owner");
+        assertThat(presigned.signedHeaders().get("x-amz-expected-bucket-owner")).containsExactly(accountId);
     }
 
     @Test

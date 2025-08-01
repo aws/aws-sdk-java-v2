@@ -1,0 +1,66 @@
+{
+    "version": "2.31.21",
+    "date": "2025-04-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "Add support for Marketplace Entitlement Service dual-stack endpoints for CN and GOV regions"
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "Add support for Marketplace Metering Service dual-stack endpoints for CN regions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Changed the minimum length of clusterIdentifier, computeNodeGroupIdentifier, and queueIdentifier to 3."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update `aws-crt` to `0.38.1`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Contact Lens",
+            "contributor": "",
+            "description": "Making sentiment optional for ListRealtimeContactAnalysisSegments Response depending on conversational analytics configuration"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Raise hard limit of authorized principals per SubscriptionTarget from 10 to 20."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Detective",
+            "contributor": "",
+            "description": "Add support for Detective DualStack endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Doc only update for API descriptions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Adds deletion protection support to policy stores. Deletion protection is disabled by default, can be enabled via the CreatePolicyStore or UpdatePolicyStore APIs, and is visible in GetPolicyStore."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
