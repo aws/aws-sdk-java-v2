@@ -23,6 +23,9 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 /**
  * Utility to load the default HTTP client factory and create an instance of {@link SdkHttpClient}.
+ *
+ * Implementation notes: this class should've been outside internal package,
+ * but we can't fix it due to backwards compatibility reasons.
  */
 @SdkProtectedApi
 public final class DefaultSdkHttpClientBuilder implements SdkHttpClient.Builder {

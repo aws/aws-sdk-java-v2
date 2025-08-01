@@ -17,6 +17,8 @@ package software.amazon.awssdk.imds.internal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -326,8 +328,8 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
     protected static final class Ec2MetadataBuilder implements Ec2MetadataClient.Builder {
 
         private Ec2MetadataRetryPolicy retryPolicy;
-        private java.net.URI endpoint;
-        private java.time.Duration tokenTtl;
+        private URI endpoint;
+        private Duration tokenTtl;
         private EndpointMode endpointMode;
         private SdkHttpClient httpClient;
         private SdkHttpClient.Builder<?> httpClientBuilder;

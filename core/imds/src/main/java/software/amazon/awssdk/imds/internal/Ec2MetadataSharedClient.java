@@ -16,6 +16,8 @@
 package software.amazon.awssdk.imds.internal;
 
 import java.time.Duration;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 @SdkProtectedApi
 public final class Ec2MetadataSharedClient {
 
+    private static final Lock LOCK = new ReentrantLock();
     private static volatile SdkHttpClient sharedHttpClient;
     private static int referenceCount = 0;
 
@@ -56,11 +59,16 @@ public final class Ec2MetadataSharedClient {
     /**
      * Decrements the reference count and closes the shared HTTP client if no more references exist.
      */
-    public static synchronized void decrementAndClose() {
-        referenceCount--;
-        if (referenceCount == 0 && sharedHttpClient != null) {
-            sharedHttpClient.close();
-            sharedHttpClient = null;
+    public static void decrementAndClose() {
+        LOCK.lock();
+        try {
+            referenceCount--;
+            if (referenceCount == 0 && sharedHttpClient != null) {
+                sharedHttpClient.close();
+                sharedHttpClient = null;
+            }
+        } finally {
+            LOCK.unlock();
         }
     }
     
@@ -80,23 +88,27 @@ public final class Ec2MetadataSharedClient {
         private Builder() {
         }
         
-        public synchronized Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
+        public Builder retryPolicy(Ec2MetadataRetryPolicy retryPolicy) {
             this.retryPolicy = retryPolicy;
             return this;
         }
         
-        public synchronized Ec2MetadataClient build() {
+        public Ec2MetadataClient build() {
+            LOCK.lock();
+            try {
+                if (sharedHttpClient == null) {
+                    sharedHttpClient = createImdsHttpClient();
+                }
 
-            if (sharedHttpClient == null) {
-                sharedHttpClient = createImdsHttpClient();
+                referenceCount++;
+                
+                return DefaultEc2MetadataClientWithFallback.builder()
+                                                           .httpClient(sharedHttpClient)
+                                                           .retryPolicy(retryPolicy)
+                                                           .build();
+            } finally {
+                LOCK.unlock();
             }
-
-            referenceCount++;
-            
-            return DefaultEc2MetadataClientWithFallback.builder()
-                .httpClient(sharedHttpClient)
-                .retryPolicy(retryPolicy)
-                .build();
         }
     }
 }
