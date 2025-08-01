@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.Properties;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.slf4j.MDC;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -108,6 +109,78 @@ public class TraceIdExecutionInterceptorTest {
             env.set("_X_AMZN_TRACE_ID", "bar");
             Context.ModifyHttpRequest context = context();
             assertThat(modifyHttpRequest(context)).isSameAs(context.httpRequest());
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithMdc_shouldAddTraceIdHeader() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+                Context.ModifyHttpRequest context = context();
+
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+            } finally {
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
+            }
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithBothMdcAndSystemProperty_shouldUseMdcValue() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+            Properties props = System.getProperties();
+            props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop-345");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
+                Context.ModifyHttpRequest context = context();
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+            } finally {
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
+                props.remove("com.amazonaws.xray.traceHeader");
+            }
+        });
+    }
+
+    @Test
+    public void modifyHttpRequest_whenNotInLambdaEnvironmentWithMdc_shouldNotAddHeader() {
+        EnvironmentVariableHelper.run(env -> {
+            resetRelevantEnvVars(env);
+
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "should-be-ignored");
+
+            try {
+                TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
+                ExecutionAttributes executionAttributes = new ExecutionAttributes();
+
+                interceptor.beforeExecution(null, executionAttributes);
+
+                Context.ModifyHttpRequest context = context();
+                SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
+
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).isEmpty();
+            } finally {
+                MDC.remove("AWS_LAMBDA_X_TRACE_ID");
+            }
         });
     }
 
