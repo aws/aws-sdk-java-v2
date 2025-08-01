@@ -24,6 +24,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.customContent
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.customPackageModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.endpointDiscoveryModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.presignedUrlExtensionModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithCustomContextParamsModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
@@ -116,6 +117,12 @@ public class AsyncClientClassTest {
     public void asyncClientBatchManager() {
         ClassSpec aSyncClientBatchManager = createAsyncClientClass(batchManagerModels());
         assertThat(aSyncClientBatchManager, generatesTo("test-batchmanager-async.java"));
+    }
+
+    @Test
+    public void asyncClientPresignedUrlExtension() {
+        ClassSpec asyncClientPresignedUrlExtension = createAsyncClientClass(presignedUrlExtensionModels());
+        assertThat(asyncClientPresignedUrlExtension, generatesTo("test-presignedurl-async.java"));
     }
 
     @Test

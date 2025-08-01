@@ -102,7 +102,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         Endpoint resolvedEndpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-        if (resolvedEndpoint.headers().isEmpty()) {
+        if (resolvedEndpoint == null || CollectionUtils.isNullOrEmpty(resolvedEndpoint.headers())) {
             return context.httpRequest();
         }
         SdkHttpRequest.Builder httpRequestBuilder = context.httpRequest().toBuilder();

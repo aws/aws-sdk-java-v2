@@ -558,6 +558,26 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         type.addMethod(batchManager);
     }
+    
+    @Override
+    protected void addPresignedUrlExtensionMethod(Builder type) {
+        ClassName returnType = poetExtensions.getPresignedUrlExtensionAsyncInterface();
+        String internalPresignedUrlPackage = model.getMetadata().getFullInternalPackageName() + ".presignedurl";
+        ClassName implClass = ClassName.get(internalPresignedUrlPackage, "DefaultAsyncPresignedUrlExtension");
+        
+        MethodSpec presignedUrlExtension = MethodSpec.methodBuilder("presignedUrlExtension")
+                                                  .addModifiers(PUBLIC)
+                                                  .addAnnotation(Override.class)
+                                                  .returns(returnType)
+                                                  .addStatement("return new $T(clientHandler,"
+                                                                + " protocolFactory, "
+                                                                + "clientConfiguration,"
+                                                                + " protocolMetadata)",
+                                                                implClass)
+                                                  .build();
+        
+        type.addMethod(presignedUrlExtension);
+    }
 
     private MethodSpec resolveMetricPublishersMethod() {
         String clientConfigName = "clientConfiguration";
