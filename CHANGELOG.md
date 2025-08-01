@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.14__ __2025-08-01__
+## __ARC - Region switch__
+  - ### Features
+    - This is the initial SDK release for Region switch
+
+## __AWS AI Ops__
+  - ### Features
+    - This release includes fix for InvestigationGroup timestamp conversion issue.
+
+## __AWS Audit Manager__
+  - ### Features
+    - Added a note to Framework APIs (CreateAssessmentFramework, GetAssessmentFramework, UpdateAssessmentFramework) clarifying that the Controls object returns a partial response when called through Framework APIs. Added documentation that the Framework's controlSources parameter is no longer supported.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Doc-only update to add more information to GetCertificate action.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Add support for IPv6 Networking for Clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Fixed SigV4a signing to respect pre-existing Host headers to be consistent with existing SigV4 signing behavior.
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release new resource detail type CodeRepository
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the Asia Pacific (Jakarta) (ap-southeast-3) Region.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add additional validations for multipart upload operations in the Java multipart S3 client.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Amazon SNS support for Amazon SQS fair queues
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin adds the ability to enable telemetry on AWS resources such as Amazon VPCs (Flow Logs) in customers AWS Accounts and Organizations. The release introduces new APIs to manage telemetry rules, which define telemetry settings to be applied on AWS resources.
+
 # __2.32.13__ __2025-07-31__
 ## __AWS EntityResolution__
   - ### Features
