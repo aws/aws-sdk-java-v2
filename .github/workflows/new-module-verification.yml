@@ -129,7 +129,7 @@ jobs:
               fi
               
               # 2. Check if added to tests-coverage-reporting pom.xml
-              if ! grep -q "<module>.*$MODULE_NAME</module>" test/tests-coverage-reporting/pom.xml 2>/dev/null; then
+              if ! grep -q "<dependency>.*$MODULE_NAME</dependency>" test/tests-coverage-reporting/pom.xml 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not added to tests-coverage-reporting pom.xml"
                 HAS_ERRORS=1
               else
@@ -137,7 +137,7 @@ jobs:
               fi
               
               # 3. Check if added to aws-sdk-java pom.xml
-              if ! grep -q "<module>.*$MODULE_NAME</module>" aws-sdk-java/pom.xml 2>/dev/null; then
+              if ! grep -q "<dependency>.*$MODULE_NAME</dependency>" aws-sdk-java/pom.xml 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not added to aws-sdk-java pom.xml"
                 HAS_ERRORS=1
               else
@@ -145,7 +145,7 @@ jobs:
               fi
               
               # 4. Check if added to architecture-tests pom.xml
-              if ! grep -q "<module>.*$MODULE_NAME</module>" test/architecture-tests/pom.xml 2>/dev/null; then
+              if ! grep -q "<dependency>.*$MODULE_NAME</dependency>" test/architecture-tests/pom.xml 2>/dev/null; then
                 echo "::error::Module $MODULE_NAME is not added to architecture-tests pom.xml"
                 HAS_ERRORS=1
               else
