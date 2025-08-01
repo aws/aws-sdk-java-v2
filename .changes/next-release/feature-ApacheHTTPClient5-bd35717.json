@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Apache HTTP Client 5",
     "contributor": "",
-    "description": "Replace internally used deprecated API from Apache 5.5.x to corresponding recommneded apis"
+    "description": "Replace internally used deprecated APIs from Apache HttpClient 5.5.x with corresponding recommended APIs"
 }
