@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Notification Service",
+    "contributor": "",
+    "description": "Amazon SNS support for Amazon SQS fair queues"
+}
