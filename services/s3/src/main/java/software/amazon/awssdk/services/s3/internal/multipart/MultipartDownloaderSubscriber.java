@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -79,6 +81,8 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      */
     private final Object lock = new Object();
 
+    private final Queue<CompletableFuture<GetObjectResponse>> getObjectFutures = new ConcurrentLinkedQueue<>();
+
     public MultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest) {
         this(s3, getObjectRequest, 0);
     }
@@ -119,7 +123,9 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         GetObjectRequest actualRequest = nextRequest(nextPartToGet);
         log.debug(() -> "Sending GetObjectRequest for next part with partNumber=" + nextPartToGet);
         CompletableFuture<GetObjectResponse> getObjectFuture = s3.getObject(actualRequest, asyncResponseTransformer);
+        getObjectFutures.add(getObjectFuture);
         getObjectFuture.whenComplete((response, error) -> {
+            getObjectFutures.remove(getObjectFuture);
             if (error != null) {
                 log.debug(() -> "Error encountered during GetObjectRequest with partNumber=" + nextPartToGet);
                 onError(error);
@@ -166,6 +172,10 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onError(Throwable t) {
+        CompletableFuture<GetObjectResponse> partFuture;
+        while ((partFuture = getObjectFutures.poll()) != null) {
+            partFuture.cancel(true);
+        }
         future.completeExceptionally(t);
     }
 
