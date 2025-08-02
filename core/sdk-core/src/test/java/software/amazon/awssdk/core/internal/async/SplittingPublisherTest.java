@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -24,7 +23,6 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -42,7 +40,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -72,13 +69,18 @@ public class SplittingPublisherTest {
     }
 
     @Test
-    public void split_contentUnknownMaxMemorySmallerThanChunkSize_shouldThrowException() {
+    public void split_MaxMemorySmallerThanChunkSize_shouldThrowException() {
         AsyncRequestBody body = AsyncRequestBody.fromPublisher(s -> {
         });
-        assertThatThrownBy(() -> new SplittingPublisher(body, AsyncRequestBodySplitConfiguration.builder()
-                                                                                                .chunkSizeInBytes(10L)
-                                                                                                .bufferSizeInBytes(5L)
-                                                                                                .build()))
+        AsyncRequestBodySplitConfiguration configuration = AsyncRequestBodySplitConfiguration.builder()
+                                                                                             .chunkSizeInBytes(10L)
+                                                                                             .bufferSizeInBytes(5L)
+                                                                                             .build();
+        assertThatThrownBy(() -> new SplittingPublisher(body, configuration))
+            .hasMessageContaining("must be larger than or equal");
+
+        assertThatThrownBy(() -> new SplittingPublisher(AsyncRequestBody.fromString("test"),
+                                                        configuration))
             .hasMessageContaining("must be larger than or equal");
     }
 
@@ -169,7 +171,7 @@ public class SplittingPublisherTest {
                                                                                                          .bufferSizeInBytes((long) chunkSize * 4)
                                                                                                          .build());
 
-        verifyIndividualAsyncRequestBody(splittingPublisher, testFile.toPath(), chunkSize);
+        verifyIndividualAsyncRequestBody(splittingPublisher.map(m -> m), testFile.toPath(), chunkSize);
     }
 
     private static class TestAsyncRequestBody implements AsyncRequestBody {
@@ -200,30 +202,6 @@ public class SplittingPublisherTest {
                     cancelled = true;
                 }
             });
-
-        }
-    }
-
-    private static final class OnlyRequestOnceSubscriber implements Subscriber<AsyncRequestBody> {
-        private List<AsyncRequestBody> asyncRequestBodies = new ArrayList<>();
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            s.request(1);
-        }
-
-        @Override
-        public void onNext(AsyncRequestBody requestBody) {
-            asyncRequestBodies.add(requestBody);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-
-        }
-
-        @Override
-        public void onComplete() {
 
         }
     }

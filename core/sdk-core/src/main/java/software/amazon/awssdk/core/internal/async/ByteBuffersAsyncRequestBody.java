@@ -76,7 +76,9 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody, SdkA
     private final Object lock = new Object();
     private boolean closed;
 
-    private ByteBuffersAsyncRequestBody(String mimetype, Long length, List<ByteBuffer> buffers) {
+    private ByteBuffersAsyncRequestBody(String mimetype,
+                                        Long length,
+                                        List<ByteBuffer> buffers) {
         this.mimetype = mimetype;
         this.buffers = buffers;
         this.length = length;

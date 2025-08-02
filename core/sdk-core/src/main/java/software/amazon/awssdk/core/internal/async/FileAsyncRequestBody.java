@@ -34,6 +34,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
@@ -84,6 +85,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return new FileAsyncRequestBodySplitHelper(this, splitConfiguration).split();
+    }
+
+    @Override
+    public SdkPublisher<ClosableAsyncRequestBody> splitV2(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        return split(splitConfiguration).map(body -> new ClosableAsyncRequestBodyWrapper(body));
     }
 
     public Path path() {
@@ -435,5 +441,27 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     private static AsynchronousFileChannel openInputChannel(Path path) throws IOException {
         return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+    }
+
+    private static class ClosableAsyncRequestBodyWrapper implements ClosableAsyncRequestBody {
+        private final AsyncRequestBody body;
+
+        ClosableAsyncRequestBodyWrapper(AsyncRequestBody body) {
+            this.body = body;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return body.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            body.subscribe(s);
+        }
+
+        @Override
+        public void close() {
+        }
     }
 }

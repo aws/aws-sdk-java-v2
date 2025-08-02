@@ -33,6 +33,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
+import software.amazon.awssdk.core.internal.async.ClosableAsyncRequestBodyAdaptor;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.InputStreamWithExecutorAsyncRequestBody;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
@@ -507,17 +508,33 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * is 2MB and the default buffer size is 8MB.
      *
      * <p>
-     * By default, if content length of this {@link AsyncRequestBody} is present, each divided {@link AsyncRequestBody} is
-     * delivered to the subscriber right after it's initialized. On the other hand, if content length is null, it is sent after
-     * the entire content for that chunk is buffered. In this case, the configured {@code maxMemoryUsageInBytes} must be larger
-     * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
-     * interface overrides this method.
+     * Each divided {@link AsyncRequestBody} is sent after the entire content for that chunk is buffered.
+     *
+     * @see AsyncRequestBodySplitConfiguration
+     * @deprecated Use {@link #splitV2(AsyncRequestBodySplitConfiguration)} instead.
+     */
+    @Deprecated
+    default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return splitV2(splitConfiguration).map(body -> new ClosableAsyncRequestBodyAdaptor(body));
+    }
+
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link ClosableAsyncRequestBody}s, each of which publishes
+     * specific portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk
+     * size is 2MB and the default buffer size is 8MB.
+     *
+     * <p>
+     * Each divided {@link ClosableAsyncRequestBody} is sent after the entire content for that chunk is buffered. This behavior
+     * may be different if a specific implementation of this interface overrides this method.
+     *
+     * <p>
+     * Each {@link ClosableAsyncRequestBody} MUST be closed by the user when it is ready to be disposed.
      *
      * @see AsyncRequestBodySplitConfiguration
      */
-    default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+    default SdkPublisher<ClosableAsyncRequestBody> splitV2(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
-
         return new SplittingPublisher(this, splitConfiguration);
     }
 
@@ -526,10 +543,24 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
      *
      * @see #split(AsyncRequestBodySplitConfiguration)
+     * @deprecated Use {@link #splitV2(Consumer)} instead.
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * @see #splitV2(Consumer)
+     */
+    default SdkPublisher<ClosableAsyncRequestBody> splitV2(
+        Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return splitV2(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
     }
 
     @SdkProtectedApi
