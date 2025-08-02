@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Fix MultipartS3AsyncClient GetObject retryable errors"
+    "description": "Fix bug in MultipartS3AsyncClient GET where retryable errors may not retried, and if retried, successful responses are incorrectly processed with the initial error."
 }

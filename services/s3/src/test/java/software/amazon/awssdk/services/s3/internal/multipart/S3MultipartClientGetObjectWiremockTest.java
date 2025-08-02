@@ -92,6 +92,8 @@ public class S3MultipartClientGetObjectWiremockTest {
                                        .build();
     }
 
+    // TODO - 1) update test names 2) add test for I/O error
+
     @Test
     public void stub_200_only() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
@@ -305,7 +307,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     private CompletableFuture<ResponseBytes<GetObjectResponse>> mock200Response(S3AsyncClient s3Client, int runNumber) {
-        String runId = runNumber + " sucess";
+        String runId = runNumber + " success";
 
         stubFor(any(anyUrl())
                     .withHeader("RunNum", matching(runId))
