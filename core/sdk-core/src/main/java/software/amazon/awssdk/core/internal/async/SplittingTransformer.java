@@ -324,19 +324,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            log.trace(() -> "calling exceptionOccurred on the upstream transformer");
-
             if (partNumber == 1) {
+                log.trace(() -> "calling exceptionOccurred on the upstream transformer");
                 upstreamResponseTransformer.exceptionOccurred(error);
             }
 
-            // TODO - add comments explaining
+            // Invoking publisherToUpstream.error() essentially fails the request immediately. We should only call this if
+            // 1) The part number is greater than 1, since we want to retry errors on the first part OR 2) onStream() has
+            // already been invoked and data has started to be written
             synchronized (cancelLock) {
                 if (partNumber > 1 || onStreamCalled) {
                     publisherToUpstream.error(error);
                 }
             }
-
         }
     }
 

@@ -30,10 +30,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,10 +94,8 @@ public class S3MultipartClientGetObjectWiremockTest {
                                        .build();
     }
 
-    // TODO - 1) update test names 2) add test for I/O error
-
     @Test
-    public void stub_200_only() {
+    public void getObject_concurrentCallsReturn200_shouldSucceed() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
         int numRuns = 1000;
@@ -108,7 +108,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @Test
-    public void stub_200s_one503_more200s() {
+    public void getObject_single500WithinMany200s_shouldRetrySuccessfully() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
         int numRuns = 1000;
@@ -130,7 +130,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @Test
-    public void stub_503_then_200_multipleTimes() {
+    public void getObject_concurrent503s_shouldRetrySuccessfully() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
         int numRuns = 1000;
@@ -143,7 +143,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @Test
-    public void stub_503_only(WireMockRuntimeInfo wm) {
+    public void getObject_503Response_shouldNotReuseInitialRequestId() {
         String firstRequestId = UUID.randomUUID().toString();
         String secondRequestId = UUID.randomUUID().toString();
 
@@ -186,7 +186,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @Test
-    public void multipleParts_all_200() {
+    public void multipartDownload_200Response_shouldSucceed() {
         int totalParts = 3;
         int partSize = 1024;
 
@@ -237,7 +237,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @Test
-    public void multipleParts_503OnFirstPart_then_200s() {
+    public void multipartDownload_503OnFirstPart_shouldRetrySuccessfully() {
         int totalParts = 3;
         int partSize = 1024;
 
@@ -306,6 +306,43 @@ public class S3MultipartClientGetObjectWiremockTest {
         verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=3", BUCKET, KEY))));
     }
 
+    @Test
+    public void getObject_iOError_shouldRetrySuccessfully() {
+        String requestId = UUID.randomUUID().toString();
+
+        stubFor(any(anyUrl())
+                    .inScenario("io-error")
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(aResponse()
+                                    .withFault(Fault.CONNECTION_RESET_BY_PEER))
+                    .willSetStateTo("retry"));
+
+        stubFor(any(anyUrl())
+                    .inScenario("io-error")
+                    .whenScenarioStateIs("retry")
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-amz-request-id", requestId)
+                                    .withBody("Hello World")));
+
+        ResponseBytes<GetObjectResponse> response = multipartClient.getObject(GetObjectRequest.builder()
+                                                                                              .bucket(BUCKET)
+                                                                                              .key(KEY)
+                                                                                              .build(),
+                                                                              AsyncResponseTransformer.toBytes()).join();
+
+        assertArrayEquals("Hello World".getBytes(StandardCharsets.UTF_8), response.asByteArray());
+
+        verify(2, getRequestedFor(urlEqualTo("/" + BUCKET + "/" + KEY + "?partNumber=1")));
+
+        List<SdkHttpResponse> responses = capturingInterceptor.getResponses();
+        String finalRequestId = responses.get(responses.size() - 1)
+                                         .firstMatchingHeader("x-amz-request-id")
+                                         .orElse(null);
+
+        assertEquals(requestId, finalRequestId);
+    }
+
     private CompletableFuture<ResponseBytes<GetObjectResponse>> mock200Response(S3AsyncClient s3Client, int runNumber) {
         String runId = runNumber + " success";
 
@@ -331,7 +368,7 @@ public class S3MultipartClientGetObjectWiremockTest {
                     .whenScenarioStateIs(Scenario.STARTED)
                     .willReturn(aResponse()
                                     .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
-                                    .withStatus(503).withBody(ERROR_BODY)
+                                    .withStatus(500).withBody(ERROR_BODY)
                     )
                     .willSetStateTo("SecondAttempt" + runId));
 
