@@ -52,7 +52,7 @@ public class Apache5HttpRequestFactory {
     private static final List<String> IGNORE_HEADERS = Arrays.asList(HttpHeaders.CONTENT_LENGTH, HttpHeaders.HOST,
                                                                      HttpHeaders.TRANSFER_ENCODING);
 
-    public HttpUriRequestBase create(final HttpExecuteRequest request, final Apache5HttpRequestConfig requestConfig) {
+    public HttpUriRequestBase create(HttpExecuteRequest request, Apache5HttpRequestConfig requestConfig) {
         HttpUriRequestBase base = createApacheRequest(request, sanitizeUri(request.httpRequest()));
         addHeadersToRequest(base, request.httpRequest());
         addRequestConfig(base, request.httpRequest(), requestConfig);
@@ -90,12 +90,10 @@ public class Apache5HttpRequestFactory {
     private void addRequestConfig(HttpUriRequestBase base,
                                   SdkHttpRequest request,
                                   Apache5HttpRequestConfig requestConfig) {
-        int connectTimeout = saturatedCast(requestConfig.connectionTimeout().toMillis());
         int connectAcquireTimeout = saturatedCast(requestConfig.connectionAcquireTimeout().toMillis());
         RequestConfig.Builder requestConfigBuilder = RequestConfig
             .custom()
             .setConnectionRequestTimeout(connectAcquireTimeout, TimeUnit.MILLISECONDS)
-            .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
             .setResponseTimeout(saturatedCast(requestConfig.socketTimeout().toMillis()), TimeUnit.MILLISECONDS);
 
         /*

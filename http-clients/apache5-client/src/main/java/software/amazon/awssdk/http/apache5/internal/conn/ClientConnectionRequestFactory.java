@@ -55,7 +55,7 @@ public final class ClientConnectionRequestFactory {
     /**
      * Measures the latency of {@link LeaseRequest#get(Timeout)}.
      */
-    private static class InstrumentedConnectionRequest extends DelegatingConnectionRequest {
+    private static final class InstrumentedConnectionRequest extends DelegatingConnectionRequest {
 
         private InstrumentedConnectionRequest(LeaseRequest delegate) {
             super(delegate);
