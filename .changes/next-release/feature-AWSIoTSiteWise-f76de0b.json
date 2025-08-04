@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT SiteWise",
+    "contributor": "",
+    "description": "Support Interface for IoT SiteWise Asset Modeling"
+}
