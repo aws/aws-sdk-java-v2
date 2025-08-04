@@ -33,9 +33,9 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 🚀 SPARK Intern Fair Demo: S3 Presigned URL Multipart Downloads
+ * 🚀 S3 Presigned URL Download Demo
  * 
- * Demonstrating AWS SDK Java v2's new multipart download capability for presigned URLs
+ * Demonstrating AWS SDK Java v2's new presigned URL download capability with multipart support
  * Built with Amazon's Leadership Principles in mind:
  * 
  * 📋 CUSTOMER OBSESSION: Faster downloads for large files improve customer experience
@@ -48,50 +48,61 @@ public class PresignedUrlMultipartDemo {
     private static final String OBJECT_KEY = "Amazon Q.dmg";
     
     public static void main(String[] args) throws Exception {
-        System.out.println("🎬 Starting S3 Presigned URL Multipart Download Demo");
+        System.out.println("🎬 S3 Presigned URL Download Demo");
         System.out.println("============================================================");
         System.out.println("📦 Bucket: " + BUCKET_NAME);
         System.out.println("🔑 Object: " + OBJECT_KEY);
         System.out.println();
         
-        // Generate presigned URL once for both demos
-        URL presignedUrl = generatePresignedUrl();
+        // Step 1: Generate presigned URL for browser demonstration
+        URL presignedUrl = generateAndExplainPresignedUrl();
         
-        // Demo 1: Traditional Single-Stream Download
-        demonstrateTraditionalDownload(presignedUrl);
+        // Step 2: Pause for browser demonstration
+        waitForBrowserDemo();
         
-        System.out.println("\n============================================================");
+        // Step 3: Explain limitations of browser approach
+        explainBrowserLimitations();
         
-        // Demo 2: New Multipart Download
-        demonstrateMultipartDownload(presignedUrl);
+        // Step 4: Show SDK solution
+        demonstrateSDKSolution(presignedUrl);
         
         System.out.println("\n🎉 Demo Complete! Questions?");
     }
     
     /**
-     * Generate a presigned URL for our demo object
+     * Step 1: Generate presigned URL and prepare for browser demo
      */
-    private static URL generatePresignedUrl() {
+    private static URL generateAndExplainPresignedUrl() {
+        System.out.println("🔐 STEP 1: GENERATING PRESIGNED URL FOR BROWSER DEMO");
+        System.out.println("============================================================");
+        
         try (S3Presigner presigner = S3Presigner.create()) {
-            // Define the S3 object request
             GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(BUCKET_NAME)
                 .key(OBJECT_KEY)
                 .build();
             
-            // Create the presign request
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(10)) // URL expires in 10 minutes
+                .signatureDuration(Duration.ofMinutes(10))
                 .getObjectRequest(objectRequest)
                 .build();
             
-            // Generate the presigned URL
             PresignedGetObjectRequest presignedRequest = presigner.presignGetObject(presignRequest);
-            
-            // Retrieve the URL
             URL presignedUrl = presignedRequest.url();
-            System.out.println("🔗 Generated presigned URL: " + presignedUrl.toExternalForm().substring(0, 100) + "...");
-            System.out.println("⏰ URL expires in 10 minutes");
+            
+            // Display URL for browser copy-paste
+            System.out.println("🔗 PRESIGNED URL:");
+            System.out.println("┌" + repeatString("─", 100) + "┐");
+            System.out.println("│ " + presignedUrl.toExternalForm());
+            System.out.println("└" + repeatString("─", 100) + "┘");
+            System.out.println();
+            
+            // Explain what makes this URL special
+            System.out.println("💡 What makes this URL special:");
+            System.out.println("   ✅ No AWS credentials needed - authentication is embedded");
+            System.out.println("   ✅ Time-limited access - expires in 10 minutes");
+            System.out.println("   ✅ Direct S3 access - bypasses your application");
+            System.out.println("   ✅ Works in any HTTP client - browser, curl, wget, etc.");
             System.out.println();
             
             return presignedUrl;
@@ -99,37 +110,92 @@ public class PresignedUrlMultipartDemo {
     }
     
     /**
-     * 📊 Presigned URL Single-Stream Download
-     * Downloads entire file in one stream using presigned URLs
+     * Step 2: Pause for browser demonstration
      */
-    private static void demonstrateTraditionalDownload(URL presignedUrl) throws Exception {
-        System.out.println("📥 DEMO 1: Presigned URL Single-Stream Download");
-        System.out.println("   → Downloads entire file in one request using presigned URL");
-        System.out.println("   → Using same presigned URL for fair comparison");
+    private static void waitForBrowserDemo() {
+        System.out.println("🌐 BROWSER DEMONSTRATION");
+        System.out.println("============================================================");
+        System.out.println("👆 Now let's paste this URL in a browser and see what happens...");
+        System.out.println();
+        System.out.println("   • Notice how the download starts immediately");
+        System.out.println("   • No login required - the URL contains authentication");
+        System.out.println("   • Browser shows basic download progress");
+        System.out.println();
         
-        // Standard S3 client - no multipart configuration
-        S3AsyncClient standardClient = S3AsyncClient.builder()
-            .region(Region.US_EAST_1)
+        waitForKeyPress("Press Enter after browser demo to continue...");
+    }
+    
+    /**
+     * Step 3: Explain limitations of browser/raw HTTP approach
+     */
+    private static void explainBrowserLimitations() {
+        System.out.println("⚠️  LIMITATIONS OF BROWSER/RAW HTTP APPROACH");
+        System.out.println("============================================================");
+        System.out.println("❌ No automatic retry logic if network fails");
+        System.out.println("❌ No metrics collection for monitoring");
+        System.out.println("❌ No structured error handling");
+        System.out.println("❌ No streaming with backpressure control");
+        System.out.println("❌ No integration with application logging");
+        System.out.println("❌ Single-stream download only (no multipart optimization)");
+        System.out.println("❌ No progress callbacks for application integration");
+        System.out.println();
+        System.out.println("🤔 Question: How do we get SDK benefits WITH presigned URLs?");
+        System.out.println();
+        
+        waitForKeyPress("Press Enter to see the SDK solution...");
+    }
+    
+    /**
+     * Step 4: Demonstrate SDK solution with benefits
+     */
+    private static void demonstrateSDKSolution(URL presignedUrl) {
+        System.out.println("🚀 SDK SOLUTION: PRESIGNED URL DOWNLOADS WITH FULL SDK BENEFITS");
+        System.out.println("============================================================");
+        System.out.println("💡 Our innovation: AsyncPresignedUrlExtension");
+        System.out.println("   • Same presigned URL from browser demo");
+        System.out.println("   • But now with full SDK capabilities");
+        System.out.println("   • PLUS multipart download support");
+        System.out.println();
+        
+        try {
+            // Demo 1: Single-stream with SDK benefits
+            demonstrateSDKSingleStream(presignedUrl);
+            
+            System.out.println("\n" + repeatString("=", 60));
+            
+            // Demo 2: Multipart innovation
+            demonstrateSDKMultipart(presignedUrl);
+            
+            // Show final comparison
+            showSDKBenefitsSummary();
+            
+        } catch (Exception e) {
+            System.out.println("❌ Demo failed: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Demo SDK single-stream with benefits
+     */
+    private static void demonstrateSDKSingleStream(URL presignedUrl) throws Exception {
+        System.out.println("📥 SDK APPROACH 1: Single-Stream with SDK Benefits");
+        System.out.println("   → Same URL, but now with retry logic, metrics, error handling");
+        
+        S3AsyncClient client = S3AsyncClient.builder()
             .build();
         
-        Instant start = Instant.now();
-        System.out.println("   ⏱️  Starting download at: " + start);
-        
-        // Single stream presigned URL download
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
             .presignedUrl(presignedUrl)
             .build();
         
-        System.out.println("   🔍 Single-stream approach:");
-        System.out.println("      • Single HTTP connection to presigned URL");
-        System.out.println("      • Downloads entire file sequentially");
-        System.out.println("      • Limited by single connection bandwidth");
+        Instant start = Instant.now();
+        System.out.println("   ⏱️  Starting single-stream SDK download...");
         
         try {
-            // Execute download
             CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
-                standardClient.presignedUrlExtension()
-                             .getObject(request, AsyncResponseTransformer.toBytes());
+                client.presignedUrlExtension()
+                      .getObject(request, AsyncResponseTransformer.toBytes());
             
             ResponseBytes<GetObjectResponse> response = future.get();
             
@@ -137,60 +203,45 @@ public class PresignedUrlMultipartDemo {
             long seconds = elapsed.getSeconds();
             long bytes = response.asByteArray().length;
             
-            System.out.println("   ✅ Download completed in: " + seconds + " seconds");
+            System.out.println("   ✅ Single-stream download completed!");
+            System.out.println("   ⏱️  Time taken: " + seconds + " seconds");
             System.out.println("   📊 Downloaded: " + formatBytes(bytes));
             System.out.println("   📊 Throughput: " + formatThroughput(bytes, seconds));
+            System.out.println("   🛡️  With automatic retries, metrics, and error handling!");
             
-        } catch (Exception e) {
-            System.out.println("   ❌ Download failed: " + e.getMessage());
-            throw e;
         } finally {
-            standardClient.close();
+            client.close();
         }
     }
     
     /**
-     * 🚀 KEY INNOVATION: Multipart download capability for presigned URLs
-     * CUSTOMER OBSESSION: Faster downloads through parallel connections
-     * INVENT AND SIMPLIFY: Same API, smarter implementation
-     * THINK BIG: Scales to handle massive files efficiently
+     * Demo SDK multipart innovation
      */
-    private static void demonstrateMultipartDownload(URL presignedUrl) throws Exception {
-        System.out.println("🔥 DEMO 2: Presigned URL Multipart Download (Key Innovation!)");
-        System.out.println("   → First-ever multipart download support for presigned URLs");
-        System.out.println("   → Using same presigned URL for fair comparison");
+    private static void demonstrateSDKMultipart(URL presignedUrl) throws Exception {
+        System.out.println("🔥 SDK APPROACH 2: Multipart Download");
+        System.out.println("   → Same URL + Same API + Multipart Performance");
         
-        // 🎯 THINK BIG: Configure for optimal performance across file sizes
         MultipartConfiguration config = MultipartConfiguration.builder()
-            .minimumPartSizeInBytes(8L * 1024 * 1024)    // 8MB parts for good parallelism
+            .minimumPartSizeInBytes(8L * 1024 * 1024)    // 8MB parts
             .thresholdInBytes(16L * 1024 * 1024)         // Use multipart for files > 16MB
             .build();
-        
-        // 🔧 INVENT AND SIMPLIFY: Same S3AsyncClient, enhanced with multipart capability
+
         S3AsyncClient multipartClient = S3AsyncClient.builder()
-            .region(Region.US_EAST_1)
-            .multipartConfiguration(config)  // ← This enables the innovation!
+            .multipartConfiguration(config)
             .build();
         
-        Instant start = Instant.now();
-        System.out.println("   ⏱️  Starting multipart download at: " + start);
-        
-        // 📋 CUSTOMER OBSESSION: Same simple API, but faster performance
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
             .presignedUrl(presignedUrl)
             .build();
         
-        // Show the multipart magic happening
-        System.out.println("   🔍 Multipart innovation for presigned URLs:");
-        System.out.println("      • Step 1: First part request (bytes=0-8388607) downloads 8MB + discovers total size");
-        System.out.println("      • Step 2: Parse Content-Range header to get total object size");
-        System.out.println("      • Step 3: Calculate remaining parts needed for parallel download");
-        System.out.println("      • Step 4: Generate Range headers for remaining parts (bytes=8388608-16777215...)");
-        System.out.println("      • Step 5: Download remaining parts concurrently while processing first part");
-        System.out.println("      • Step 6: Assemble all parts in correct order");
+        Instant start = Instant.now();
+        System.out.println("   ⏱️  Starting multipart download...");
+        System.out.println("   🔍 Innovation: Using Range headers instead of partNumber");
+        System.out.println("      • Range: bytes=0-8388607 (first 8MB + size discovery)");
+        System.out.println("      • Range: bytes=8388608-16777215 (second 8MB)");
+        System.out.println("      • Multiple parallel connections automatically!");
         
         try {
-            // Execute multipart download
             CompletableFuture<ResponseBytes<GetObjectResponse>> future = 
                 multipartClient.presignedUrlExtension()
                               .getObject(request, AsyncResponseTransformer.toBytes());
@@ -201,25 +252,47 @@ public class PresignedUrlMultipartDemo {
             long seconds = elapsed.getSeconds();
             long bytes = response.asByteArray().length;
             
-            System.out.println("   ✅ Download completed in: " + seconds + " seconds");
+            System.out.println("   ✅ Multipart download completed!");
+            System.out.println("   ⏱️  Time taken: " + seconds + " seconds");
             System.out.println("   📊 Downloaded: " + formatBytes(bytes));
             System.out.println("   📊 Throughput: " + formatThroughput(bytes, seconds));
-            System.out.println("   ⚡ Multiple parallel connections used automatically");
+            System.out.println("   🚀 Multiple parallel connections used!");
+            System.out.println("   🌟 FIRST-EVER multipart presigned URL downloads!");
             
-            System.out.println("   🚀 Key innovation: Multipart downloads now work with presigned URLs!");
-            
-        } catch (Exception e) {
-            System.out.println("   ❌ Multipart download failed: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
         } finally {
             multipartClient.close();
         }
     }
     
     /**
-     * Format bytes in human readable format
+     * Show SDK benefits summary
      */
+    private static void showSDKBenefitsSummary() {
+        System.out.println("\n🏆 SDK BENEFITS SUMMARY");
+        System.out.println("============================================================");
+        System.out.println("Browser/Raw HTTP          →    AWS SDK Solution");
+        System.out.println("─────────────────────────────────────────────────────────");
+        System.out.println("❌ No retry logic         →    ✅ Automatic retries");
+        System.out.println("❌ No metrics            →    ✅ Built-in metrics");
+        System.out.println("❌ Basic error handling  →    ✅ Structured exceptions");
+        System.out.println("❌ No streaming control  →    ✅ Backpressure support");
+        System.out.println("❌ Single-stream only    →    ✅ Multipart optimization");
+        System.out.println("❌ No progress callbacks →    ✅ Progress tracking");
+        System.out.println("❌ Manual integration    →    ✅ Familiar S3AsyncClient API");
+        System.out.println();
+        System.out.println("🎯 Result: Same presigned URL, dramatically better experience!");
+    }
+    
+    // Utility methods
+    private static void waitForKeyPress(String message) {
+        System.out.println(message);
+        try {
+            System.in.read();
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+    
     private static String formatBytes(long bytes) {
         if (bytes < 1024) return bytes + " B";
         if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
@@ -227,12 +300,20 @@ public class PresignedUrlMultipartDemo {
         return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
     }
     
-    /**
-     * Calculate and format throughput
-     */
     private static String formatThroughput(long bytes, long seconds) {
         if (seconds == 0) return "N/A";
         double mbps = (bytes / (1024.0 * 1024)) / seconds;
         return String.format("%.2f MB/s", mbps);
+    }
+    
+    /**
+     * Utility method to repeat a string
+     */
+    private static String repeatString(String str, int count) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            sb.append(str);
+        }
+        return sb.toString();
     }
 }
