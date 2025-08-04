@@ -70,7 +70,7 @@ public final class DefaultEc2MetadataClientWithFallback extends BaseEc2MetadataC
     private final boolean imdsV1FallbackEnabled;
 
     private DefaultEc2MetadataClientWithFallback(Ec2MetadataBuilder builder) {
-        super(builder);
+        super(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
 
         Validate.isTrue(builder.httpClient == null || builder.httpClientBuilder == null,
                         "The httpClient and the httpClientBuilder can't both be configured.");
