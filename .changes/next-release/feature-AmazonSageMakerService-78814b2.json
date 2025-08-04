@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "This release adds the ability for customers to attach and detach their EBS volumes to EKS-orchestrated HyperPod cluster nodes."
-}
