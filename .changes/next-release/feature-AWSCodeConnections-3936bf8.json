@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeConnections",
+    "contributor": "",
+    "description": "New integration with Azure DevOps provider type."
+}
