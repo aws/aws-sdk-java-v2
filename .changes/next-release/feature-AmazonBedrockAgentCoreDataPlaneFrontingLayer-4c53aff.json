@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
+    "contributor": "",
+    "description": "Remove superfluous field from API"
+}
