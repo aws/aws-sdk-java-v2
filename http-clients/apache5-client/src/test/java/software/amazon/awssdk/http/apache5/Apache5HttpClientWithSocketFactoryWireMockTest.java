@@ -51,10 +51,10 @@ class Apache5HttpClientWithSocketFactoryWireMockTest {
 
     @BeforeEach
     void setUp() {
-        httpMockServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        httpMockServer = new WireMockServer(WireMockConfiguration.options().port(0).dynamicPort());
         httpMockServer.start();
 
-        httpsMockServer = new WireMockServer(WireMockConfiguration.options().dynamicHttpsPort());
+        httpsMockServer = new WireMockServer(WireMockConfiguration.options().port(0).dynamicHttpsPort());
         httpsMockServer.start();
     }
 
