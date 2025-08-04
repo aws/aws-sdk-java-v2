@@ -50,7 +50,7 @@ public class RequestMarshaller {
     }
 
     public SdkHttpFullRequest createTokenRequest(Duration tokenTtl) {
-        return defaulttHttpBuilder()
+        return defaultHttpBuilder()
             .method(SdkHttpMethod.PUT)
             .uri(tokenPath)
             .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()))
@@ -59,15 +59,17 @@ public class RequestMarshaller {
 
     public SdkHttpFullRequest createDataRequest(String path, String token, Duration tokenTtl) {
         URI resourcePath = URI.create(basePath + path);
-        return defaulttHttpBuilder()
+        SdkHttpFullRequest.Builder builder = defaultHttpBuilder()
             .method(SdkHttpMethod.GET)
             .uri(resourcePath)
-            .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()))
-            .putHeader(TOKEN_HEADER, token)
-            .build();
+            .putHeader(EC2_METADATA_TOKEN_TTL_HEADER, String.valueOf(tokenTtl.getSeconds()));
+        if (token != null) {
+            builder.putHeader(TOKEN_HEADER, token);
+        }
+        return builder.build();
     }
 
-    private SdkHttpFullRequest.Builder defaulttHttpBuilder() {
+    private SdkHttpFullRequest.Builder defaultHttpBuilder() {
         return SdkHttpFullRequest.builder()
                              .putHeader(USER_AGENT, SystemUserAgent.getOrCreate().userAgentString())
                              .putHeader(ACCEPT, "*/*")

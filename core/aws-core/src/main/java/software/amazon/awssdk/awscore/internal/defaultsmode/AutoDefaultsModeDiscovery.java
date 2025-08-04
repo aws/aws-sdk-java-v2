@@ -19,8 +19,11 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.imds.Ec2MetadataClient;
+import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
+import software.amazon.awssdk.imds.internal.Ec2MetadataSharedClient;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
 import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.SystemSetting;
@@ -81,12 +84,25 @@ public class AutoDefaultsModeDiscovery {
     }
 
     private static Optional<String> queryImdsV2() {
-        try {
-            String ec2InstanceRegion = EC2MetadataUtils.fetchData(EC2_METADATA_REGION_PATH, false, 1);
-            // ec2InstanceRegion could be null
-            return Optional.ofNullable(ec2InstanceRegion);
-        } catch (Exception exception) {
+
+        if (SdkSystemSetting.AWS_EC2_METADATA_DISABLED.getBooleanValueOrThrow()) {
             return Optional.empty();
+        }
+
+        Ec2MetadataClient client = null;
+        try {
+            client = Ec2MetadataSharedClient.builder()
+                                            .retryPolicy(Ec2MetadataRetryPolicy.none())
+                                            .build();
+
+            String ec2InstanceRegion = client.get(EC2_METADATA_REGION_PATH).asString();
+            return Optional.ofNullable(ec2InstanceRegion);
+        } catch (SdkClientException e) {
+            return Optional.empty();
+        } finally {
+            if (client != null) {
+                Ec2MetadataSharedClient.decrementAndClose();
+            }
         }
     }
 

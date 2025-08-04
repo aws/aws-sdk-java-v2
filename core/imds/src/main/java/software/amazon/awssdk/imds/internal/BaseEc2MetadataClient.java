@@ -44,8 +44,8 @@ public abstract class BaseEc2MetadataClient {
     protected final RequestMarshaller requestMarshaller;
     protected final Duration tokenTtl;
 
-    private BaseEc2MetadataClient(Ec2MetadataRetryPolicy retryPolicy, Duration tokenTtl, URI endpoint,
-                                  EndpointMode endpointMode) {
+    protected BaseEc2MetadataClient(Ec2MetadataRetryPolicy retryPolicy, Duration tokenTtl, URI endpoint,
+                                    EndpointMode endpointMode) {
         this.retryPolicy = Validate.getOrDefault(retryPolicy, Ec2MetadataRetryPolicy.builder()::build);
         this.tokenTtl = Validate.getOrDefault(tokenTtl, () -> DEFAULT_TOKEN_TTL);
         this.endpoint = getEndpoint(endpoint, endpointMode);
@@ -59,6 +59,7 @@ public abstract class BaseEc2MetadataClient {
     protected BaseEc2MetadataClient(DefaultEc2MetadataAsyncClient.Ec2MetadataAsyncBuilder builder) {
         this(builder.getRetryPolicy(), builder.getTokenTtl(), builder.getEndpoint(), builder.getEndpointMode());
     }
+
 
     private URI getEndpoint(URI builderEndpoint, EndpointMode builderEndpointMode) {
         Validate.mutuallyExclusive("Only one of 'endpoint' or 'endpointMode' must be specified, but not both",
