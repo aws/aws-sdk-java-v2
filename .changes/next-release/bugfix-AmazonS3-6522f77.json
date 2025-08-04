@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Add additional validations for multipart upload operations in the Java multipart S3 client."
-}
