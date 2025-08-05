@@ -1,0 +1,36 @@
+{
+    "version": "2.32.7",
+    "date": "2025-07-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue now supports dynamic session policies for job executions. This feature allows you to specify custom, fine-grained permissions for each job run without creating multiple IAM roles."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added support for skip-os-shutdown option for the EC2 instance stop and terminate operations. This feature enables customers to bypass the graceful OS shutdown, supporting faster state transitions when instance data preservation isn't critical."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Added the lastUserId parameter to the ListDevices and GetDevice API."
+        },
+        {
+            "type": "feature",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "akiesler",
+            "description": "Support for Version Starting at 0 with Configurable Increment"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -353,6 +353,8 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
         properties.forEach((k, v) -> {
             if ("authSchemes".equals(k)) {
                 addAuthSchemesBlock(v);
+            } else if ("metricValues".equals(k)) {
+                addMetricValuesBlock(v);
             } else if (knownEndpointAttributes.containsKey(k)) {
                 addAttributeBlock(k, v);
             } else {
@@ -434,6 +436,12 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             default:
                 throw new RuntimeException("Unknown auth scheme: " + name);
         }
+    }
+
+    private void addMetricValuesBlock(RuleExpression v) {
+        builder.add(".putAttribute($T.METRIC_VALUES, ", AwsEndpointAttribute.class);
+        v.accept(this);
+        builder.add(")");
     }
 
     private void addAttributeBlock(String k, RuleExpression v) {
