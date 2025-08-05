@@ -44,7 +44,7 @@ public class IndividualPartSubscriberTckTest extends SubscriberWhiteboxVerificat
                                 .maximumBufferSizeInBytes(32L)
                                 .resultFuture(new CompletableFuture<>())
                                 .build();
-        return transformer.new IndividualPartSubscriber<ByteBuffer>(future, ByteBuffer.wrap(new byte[0]), 1) {
+        return transformer.new IndividualPartSubscriber<ByteBuffer>(future, ByteBuffer.wrap(new byte[0])) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

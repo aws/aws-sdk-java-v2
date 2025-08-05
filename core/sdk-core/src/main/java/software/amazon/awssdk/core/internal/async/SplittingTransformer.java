@@ -307,6 +307,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             }
             synchronized (cancelLock) {
                 if (partNumber == 1) {
+                    CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
                     onStreamCalled = true;
                     log.trace(() -> "calling onStream on the upstream transformer");
                     upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
@@ -317,9 +318,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     );
                 }
             }
-
-            CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
-            publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response, partNumber));
+            publisher.subscribe(new IndividualPartSubscriber<>(this.individualFuture, response));
         }
 
         @Override
@@ -347,13 +346,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         private final CompletableFuture<T> future;
         private final T response;
-        private final int partNumber;
         private Subscription subscription;
 
-        IndividualPartSubscriber(CompletableFuture<T> future, T response, int partNumber) {
+        IndividualPartSubscriber(CompletableFuture<T> future, T response) {
             this.future = future;
             this.response = response;
-            this.partNumber = partNumber;
         }
 
         @Override
@@ -393,9 +390,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         }
 
         private void handleError(Throwable t) {
-            if (partNumber > 1) {
-                publisherToUpstream.error(t);
-            }
+            publisherToUpstream.error(t);
             future.completeExceptionally(t);
         }
     }
