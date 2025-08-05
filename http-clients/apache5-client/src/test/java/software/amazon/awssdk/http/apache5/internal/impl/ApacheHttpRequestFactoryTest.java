@@ -50,7 +50,6 @@ class ApacheHttpRequestFactoryTest {
         instance = new Apache5HttpRequestFactory();
         requestConfig = Apache5HttpRequestConfig.builder()
                                                 .connectionAcquireTimeout(Duration.ZERO)
-                                                .connectionTimeout(Duration.ZERO)
                                                 .socketTimeout(Duration.ZERO)
                                                 .build();
     }

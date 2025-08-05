@@ -66,6 +66,11 @@ public class Apache5SdkHttpClient implements ConnectionManagerAwareHttpClient {
     }
 
     @Override
+    public ClassicHttpResponse executeOpen(HttpHost target, ClassicHttpRequest request, HttpContext context) throws IOException {
+        return delegate.executeOpen(target, request, context);
+    }
+
+    @Override
     public HttpResponse execute(HttpHost target, ClassicHttpRequest request, HttpContext context) throws IOException {
         return delegate.execute(target, request, context);
     }

@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.16__ __2025-08-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release introduces Automated Reasoning checks for Amazon Bedrock Guardrails. The feature adds new APIs for policy building, refinement, version management, and testing. Guardrail APIs now support Automated Reasoning policy configuration and validation output.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for Automated Reasoning checks output models for the Amazon Bedrock Guardrails ApplyGuardrail API.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for deletion protection on EKS clusters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds a new Aurora Serverless v2 attribute to the DBCluster resource to expose the platform version. Also updates the attribute to be part of both the engine version and platform version descriptions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for SageMaker Hyperpod continuous scaling and custom AMI; Introduce new APIs: ListClusterEvents, DescribeClusterEvent, BatchAddClusterNodes
+
+# __2.32.15__ __2025-08-04__
+## __AWS CodeConnections__
+  - ### Features
+    - New integration with Azure DevOps provider type.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Support Interface for IoT SiteWise Asset Modeling
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Remove superfluous field from API
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - TagResource API now throws ServiceQuotaExceededException when the number of tags on the Amazon EVS resource exceeds the maximum allowed. TooManyTagsException is deprecated.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ability for customers to attach and detach their EBS volumes to EKS-orchestrated HyperPod cluster nodes.
+
 # __2.32.14__ __2025-08-01__
 ## __ARC - Region switch__
   - ### Features

@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Apache HTTP Client 5",
+    "contributor": "",
+    "description": "Replace deprecated APIs from Apache HttpClient 5.5.x with corresponding recommended APIs"
+}
