@@ -29,12 +29,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -43,13 +45,17 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -163,9 +169,8 @@ public class S3MultipartClientGetObjectWiremockTest {
                                     .withHeader("x-amz-request-id", secondRequestId)
                                     .withStatus(503)));
 
-        assertThrows(CompletionException.class, () -> {
-            multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join();
-        });
+        assertThrows(CompletionException.class, () ->
+            multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes()).join());
 
         List<SdkHttpResponse> responses = capturingInterceptor.getResponses();
         assertEquals(MAX_ATTEMPTS, responses.size(), () -> String.format("Expected exactly %s responses", MAX_ATTEMPTS));
@@ -341,6 +346,87 @@ public class S3MultipartClientGetObjectWiremockTest {
                                          .orElse(null);
 
         assertEquals(requestId, finalRequestId);
+    }
+
+    @Test
+    public void multipartDownload_errorDuringFirstPartAfterOnStream_shouldFailAndNotRetry() {
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY)))
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", String.valueOf(2))
+                                    .withStatus(200)
+                                    .withBody("Hello ")));
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", BUCKET, KEY)))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-amz-mp-parts-count", "2")
+                                    .withBody("World")));
+
+        StreamingErrorTransformer failingTransformer = new StreamingErrorTransformer();
+        assertThrows(CompletionException.class, () ->
+            multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), failingTransformer).join());
+
+        assertTrue(failingTransformer.onStreamCalled.get());
+        // Verify that the first part was requested only once and not retried
+        verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
+    }
+
+    /**
+     * Custom AsyncResponseTransformer that simulates an error occurring after onStream() has been called
+     */
+    private static final class StreamingErrorTransformer
+        implements AsyncResponseTransformer<GetObjectResponse, ResponseBytes<GetObjectResponse>> {
+
+        private final CompletableFuture<ResponseBytes<GetObjectResponse>> future = new CompletableFuture<>();
+        private final AtomicBoolean errorThrown = new AtomicBoolean();
+        private final AtomicBoolean onStreamCalled = new AtomicBoolean();
+
+        @Override
+        public CompletableFuture<ResponseBytes<GetObjectResponse>> prepare() {
+            return future;
+        }
+
+        @Override
+        public void onResponse(GetObjectResponse response) {
+            //
+        }
+
+        @Override
+        public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            onStreamCalled.set(true);
+            publisher.subscribe(new Subscriber<ByteBuffer>() {
+                private Subscription subscription;
+
+                @Override
+                public void onSubscribe(Subscription s) {
+                    this.subscription = s;
+                    s.request(1);
+                }
+
+                @Override
+                public void onNext(ByteBuffer byteBuffer) {
+                    if (errorThrown.compareAndSet(false, true)) {
+                        future.completeExceptionally(new RuntimeException());
+                        subscription.cancel();
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    future.completeExceptionally(t);
+                }
+
+                @Override
+                public void onComplete() {
+                    //
+                }
+            });
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable throwable) {
+            future.completeExceptionally(throwable);
+        }
     }
 
     private CompletableFuture<ResponseBytes<GetObjectResponse>> mock200Response(S3AsyncClient s3Client, int runNumber) {
