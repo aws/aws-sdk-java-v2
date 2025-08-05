@@ -58,8 +58,8 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public final class ImmutableMap<K, V> implements Map<K, V> {
 
+    private static final Logger log = Logger.loggerFor(ImmutableMap.class);
     private static final String UNMODIFIABLE_MESSAGE = "This is an immutable map.";
-    private static final String DUPLICATED_KEY_MESSAGE = "Duplicate keys are provided.";
 
     private final Map<K, V> map;
 
@@ -199,7 +199,9 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
     private static <K, V> void putAndWarnDuplicateKeys(Map<K, V> map, K key,
                                                        V value) {
         if (map.containsKey(key)) {
-            throw new IllegalArgumentException(DUPLICATED_KEY_MESSAGE);
+            log.error(() -> String.format("Duplicate keys are provided for [%s]. The first value [%s] will be kept, and the "
+                                          + "second value [%s] will be ignored.", key, map.get(key), value));
+            return;
         }
         map.put(key, value);
     }
@@ -295,9 +297,8 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
         }
 
         /**
-         * Add a key-value pair into the built map. The method will throw
-         * IllegalArgumentException immediately when duplicate keys are
-         * provided.
+         * Add a key-value pair into the built map. If duplicate keys are provided, the first value will be kept and the second
+         * value will be ignored, and the SDK will log an error.
          *
          * @return Returns a reference to this object so that method calls can
          *         be chained together.
