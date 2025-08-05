@@ -15,58 +15,44 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 class ByteBuffersAsyncRequestBodyTest {
 
-    private static class TestSubscriber implements Subscriber<ByteBuffer> {
-        private Subscription subscription;
-        private boolean onCompleteCalled = false;
-        private int callsToComplete = 0;
-        private final List<ByteBuffer> publishedResults = Collections.synchronizedList(new ArrayList<>());
+    private static ExecutorService executor = Executors.newFixedThreadPool(10);
 
-        public void request(long n) {
-            subscription.request(n);
-        }
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            this.subscription = s;
-        }
-
-        @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            publishedResults.add(byteBuffer);
-        }
-
-        @Override
-        public void onError(Throwable throwable) {
-            throw new IllegalStateException(throwable);
-        }
-
-        @Override
-        public void onComplete() {
-            onCompleteCalled = true;
-            callsToComplete++;
-        }
+    @AfterAll
+    static void tearDown() {
+        executor.shutdown();
     }
 
     @Test
@@ -212,6 +198,169 @@ class ByteBuffersAsyncRequestBodyTest {
         ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.from(bytes);
         assertTrue(body.contentLength().isPresent());
         assertEquals(bytes.length, body.contentLength().get());
+    }
+
+    @Test
+    public void subscribe_whenBodyIsClosed_shouldNotifySubscriberWithError() {
+        ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.of(ByteBuffer.wrap("test".getBytes()));
+        body.close(); // Set closed to true
+        Subscriber<Object> mockSubscriber = mock(Subscriber.class);
+
+        body.subscribe(mockSubscriber);
+
+        verify(mockSubscriber).onSubscribe(any());
+        verify(mockSubscriber).onError(argThat(e ->
+                                                   e instanceof NonRetryableException &&
+                                                   e.getMessage().equals("AsyncRequestBody has been closed")
+        ));
+    }
+
+    @Test
+    public void close_withActiveSubscriptions_shouldNotifyAllSubscribers() {
+        ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.of(ByteBuffer.wrap(RandomStringUtils.randomAscii(1024).getBytes(StandardCharsets.UTF_8)));
+
+        Subscriber<ByteBuffer> subscriber1 = mock(Subscriber.class);
+        Subscriber<ByteBuffer> subscriber2 = mock(Subscriber.class);
+        Subscriber<ByteBuffer> subscriber3 = mock(Subscriber.class);
+
+        body.subscribe(subscriber1);
+        body.subscribe(subscriber2);
+        body.subscribe(subscriber3);
+
+        body.close();
+
+        verify(subscriber1).onError(argThat(e ->
+                                                e instanceof IllegalStateException &&
+                                                e.getMessage().contains("The publisher has been closed")
+        ));
+        verify(subscriber2).onError(argThat(e ->
+                                                e instanceof IllegalStateException &&
+                                                e.getMessage().contains("The publisher has been closed")
+        ));
+        verify(subscriber3).onError(argThat(e ->
+                                                e instanceof IllegalStateException &&
+                                                e.getMessage().contains("The publisher has been closed")
+        ));
+    }
+
+    @Test
+    public void bufferedData_afterClose_shouldBeEmpty() {
+        ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.of(
+                                                                         ByteBuffer.wrap("test1".getBytes()),
+                                                                         ByteBuffer.wrap("test2".getBytes()));
+
+        assertThat(body.bufferedData()).hasSize(2);
+        body.close();
+        assertThat(body.bufferedData()).isEmpty();
+    }
+
+    @Test
+    public void concurrentSubscribeAndClose_shouldBeThreadSafe() throws InterruptedException {
+        ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.of(
+            ByteBuffer.wrap("test1".getBytes()),
+            ByteBuffer.wrap("test2".getBytes()));
+
+
+        CountDownLatch latch = new CountDownLatch(10);
+        AtomicInteger successfulSubscriptions = new AtomicInteger(0);
+        AtomicInteger errorNotifications = new AtomicInteger(0);
+
+        // Start multiple threads subscribing
+        for (int i = 0; i < 10; i++) {
+            executor.submit(() -> {
+                try {
+                    Subscriber<ByteBuffer> subscriber = new Subscriber<ByteBuffer>() {
+                        @Override
+                        public void onSubscribe(Subscription s) {
+                            successfulSubscriptions.incrementAndGet();
+                            s.request(1);
+                        }
+
+                        @Override
+                        public void onNext(ByteBuffer byteBuffer) {}
+
+                        @Override
+                        public void onError(Throwable t) {
+                            errorNotifications.incrementAndGet();
+                        }
+
+                        @Override
+                        public void onComplete() {}
+                    };
+                    body.subscribe(subscriber);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        // Close after a short delay
+        Thread.sleep(10);
+        body.close();
+
+        latch.await(5, TimeUnit.SECONDS);
+        executor.shutdown();
+
+        // All subscribers should have been notified
+        assertThat(successfulSubscriptions.get()).isEqualTo(10);
+    }
+
+    @Test
+    public void subscription_readOnlyBuffers_shouldNotAffectOriginalData() {
+        ByteBuffer originalBuffer = ByteBuffer.wrap(RandomStringUtils.randomAscii(1024).getBytes());
+        ByteBuffersAsyncRequestBody body = ByteBuffersAsyncRequestBody.of(
+            originalBuffer);
+        int originalPosition = originalBuffer.position();
+
+        Subscriber<ByteBuffer> mockSubscriber = mock(Subscriber.class);
+        ArgumentCaptor<Subscription> subscriptionCaptor = ArgumentCaptor.forClass(Subscription.class);
+        ArgumentCaptor<ByteBuffer> bufferCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
+
+        body.subscribe(mockSubscriber);
+        verify(mockSubscriber).onSubscribe(subscriptionCaptor.capture());
+
+        Subscription subscription = subscriptionCaptor.getValue();
+        subscription.request(1);
+
+        verify(mockSubscriber).onNext(bufferCaptor.capture());
+        ByteBuffer receivedBuffer = bufferCaptor.getValue();
+        byte[] bytes = BinaryUtils.copyBytesFrom(receivedBuffer);
+
+        assertThat(receivedBuffer.isReadOnly()).isTrue();
+
+        assertThat(originalBuffer.position()).isEqualTo(originalPosition);
+    }
+
+    private static class TestSubscriber implements Subscriber<ByteBuffer> {
+        private Subscription subscription;
+        private boolean onCompleteCalled = false;
+        private int callsToComplete = 0;
+        private final List<ByteBuffer> publishedResults = Collections.synchronizedList(new ArrayList<>());
+
+        public void request(long n) {
+            subscription.request(n);
+        }
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            this.subscription = s;
+        }
+
+        @Override
+        public void onNext(ByteBuffer byteBuffer) {
+            publishedResults.add(byteBuffer);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+            throw new IllegalStateException(throwable);
+        }
+
+        @Override
+        public void onComplete() {
+            onCompleteCalled = true;
+            callsToComplete++;
+        }
     }
 
 }
