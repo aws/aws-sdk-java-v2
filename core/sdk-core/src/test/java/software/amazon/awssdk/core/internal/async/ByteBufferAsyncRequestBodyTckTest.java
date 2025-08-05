@@ -17,30 +17,30 @@ package software.amazon.awssdk.core.internal.async;
 
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.SdkBytes;
 
-public class BufferingAsyncRequestBodyTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
-    public BufferingAsyncRequestBodyTckTest() {
-        super(new TestEnvironment(true));
+public class ByteBufferAsyncRequestBodyTckTest extends org.reactivestreams.tck.PublisherVerification<ByteBuffer> {
+    public ByteBufferAsyncRequestBodyTckTest() {
+        super(new TestEnvironment());
     }
 
     @Override
     public Publisher<ByteBuffer> createPublisher(long elements) {
-        BufferingAsyncRequestBody bufferingAsyncRequestBody = new BufferingAsyncRequestBody(1024 * elements);
+        List<ByteBuffer> buffers = new ArrayList<>();
         for (int i = 0; i < elements; i++) {
-            bufferingAsyncRequestBody.send(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(1024)).asByteBuffer());
+            buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(1024)).asByteBuffer());
         }
-
-        bufferingAsyncRequestBody.complete();
-        return bufferingAsyncRequestBody;
+        return ByteBuffersAsyncRequestBody.of(buffers.toArray(new ByteBuffer[0]));
     }
 
     @Override
     public Publisher<ByteBuffer> createFailedPublisher() {
-        BufferingAsyncRequestBody bufferingAsyncRequestBody = new BufferingAsyncRequestBody(1024L);
+        ByteBuffersAsyncRequestBody bufferingAsyncRequestBody = ByteBuffersAsyncRequestBody.of(ByteBuffer.wrap(RandomStringUtils.randomAscii(1024).getBytes()));
         bufferingAsyncRequestBody.close();
         return bufferingAsyncRequestBody;
     }
