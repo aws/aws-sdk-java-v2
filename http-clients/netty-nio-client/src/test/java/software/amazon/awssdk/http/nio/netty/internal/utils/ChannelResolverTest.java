@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelResolver.resolveDatagramChannelFactory;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelResolver.resolveSocketChannelFactory;
 
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.oio.OioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -39,6 +41,12 @@ public class ChannelResolverTest {
     public void canDetectFactoryForStandardNioEventLoopGroup() {
         assertThat(resolveSocketChannelFactory(new NioEventLoopGroup()).newChannel()).isInstanceOf(NioSocketChannel.class);
         assertThat(resolveDatagramChannelFactory(new NioEventLoopGroup()).newChannel()).isInstanceOf(NioDatagramChannel.class);
+    }
+
+    @Test
+    public void multiThreadIoEventLoopGroup_returnsNioChannels() {
+        assertThat(resolveSocketChannelFactory(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory())).newChannel()).isInstanceOf(NioSocketChannel.class);
+        assertThat(resolveDatagramChannelFactory(new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory())).newChannel()).isInstanceOf(NioDatagramChannel.class);
     }
 
     @Test

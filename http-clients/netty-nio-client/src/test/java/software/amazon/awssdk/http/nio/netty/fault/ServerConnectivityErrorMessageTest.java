@@ -29,8 +29,10 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.MultiThreadIoEventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpContent;
@@ -312,7 +314,7 @@ public class ServerConnectivityErrorMessageTest {
     }
 
     private static class Server extends ChannelInitializer<Channel> {
-        private final NioEventLoopGroup group = new NioEventLoopGroup();
+        private final EventLoopGroup group = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
         private CloseTime closeTime;
         private ServerBootstrap bootstrap;
         private ServerSocketChannel serverSock;
