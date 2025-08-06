@@ -30,7 +30,11 @@ import static org.assertj.core.api.Assertions.fail;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +42,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -54,9 +59,9 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 @WireMockTest
 @Timeout(value = 30, unit = TimeUnit.SECONDS)
 public class S3MultipartClientGetObjectWiremockTest {
-    public static final String BUCKET = "Example-Bucket";
-    public static final String KEY = "Key";
-    private static final int MAX_ATTEMPTS = 7;
+    private static final String BUCKET = "Example-Bucket";
+    private static final String KEY = "Key";
+    private static int fileCounter = 0;
     private S3AsyncClient multipartClient;
 
     @BeforeEach
@@ -72,13 +77,38 @@ public class S3MultipartClientGetObjectWiremockTest {
                                        .build();
     }
 
-    @Test
-    public void getObject_single500WithinMany200s_shouldNotRetryError() {
-        List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
+    private static Stream<TransformerFactory> responseTransformerFactories() {
+        return Stream.of(
+            AsyncResponseTransformer::toBytes,
+            AsyncResponseTransformer::toBlockingInputStream,
+            // TODO - hanging
+            //AsyncResponseTransformer::toPublisher,
+            () -> {
+                try {
+                    Path tempDir = Files.createTempDirectory("s3-test");
+                    Path tempFile = tempDir.resolve("testFile" + fileCounter + ".txt");
+                    fileCounter++;
+                    tempFile.toFile().deleteOnExit();
+                    return AsyncResponseTransformer.toFile(tempFile);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        );
+    }
+
+    interface TransformerFactory {
+        AsyncResponseTransformer<GetObjectResponse, ?> create();
+    }
+
+    @ParameterizedTest
+    @MethodSource("responseTransformerFactories")
+    public void getObject_single500WithinMany200s_shouldNotRetryError(TransformerFactory transformerFactory) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
 
         int numRuns = 1000;
         for (int i = 0; i < numRuns; i++) {
-            CompletableFuture<ResponseBytes<GetObjectResponse>> resp = mock200Response(multipartClient, i);
+            CompletableFuture<?> resp = mock200Response(multipartClient, i, transformerFactory);
             futures.add(resp);
         }
 
@@ -100,12 +130,12 @@ public class S3MultipartClientGetObjectWiremockTest {
                                            .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
                                            .withBody("Hello World")));
 
-        CompletableFuture<ResponseBytes<GetObjectResponse>> requestWithRetryableError =
-            multipartClient.getObject(r -> r.bucket(BUCKET).key(errorKey), AsyncResponseTransformer.toBytes());
+        CompletableFuture<?> requestWithRetryableError =
+            multipartClient.getObject(r -> r.bucket(BUCKET).key(errorKey), transformerFactory.create());
         futures.add(requestWithRetryableError);
 
         for (int i = 0; i < numRuns; i++) {
-            CompletableFuture<ResponseBytes<GetObjectResponse>> resp = mock200Response(multipartClient, i + 1000);
+            CompletableFuture<?> resp = mock200Response(multipartClient, i + 1000, transformerFactory);
             futures.add(resp);
         }
 
@@ -119,19 +149,7 @@ public class S3MultipartClientGetObjectWiremockTest {
         verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, errorKey))));
     }
 
-    private String errorBody(String errorCode, String errorMessage) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-               + "<Error>\n"
-               + "  <Code>" + errorCode + "</Code>\n"
-               + "  <Message>" + errorMessage + "</Message>\n"
-               + "</Error>";
-    }
-
-    private String internalErrorBody() {
-        return errorBody("InternalError", "We encountered an internal error. Please try again.");
-    }
-
-    private CompletableFuture<ResponseBytes<GetObjectResponse>> mock200Response(S3AsyncClient s3Client, int runNumber) {
+    private CompletableFuture<?> mock200Response(S3AsyncClient s3Client, int runNumber, TransformerFactory transformerFactory) {
         String runId = runNumber + " success";
 
         stubFor(any(anyUrl())
@@ -142,8 +160,20 @@ public class S3MultipartClientGetObjectWiremockTest {
                                            .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
                                            .withBody("Hello World")));
 
-        return s3Client.getObject(r -> r.bucket(BUCKET).key("key")
+        return s3Client.getObject(r -> r.bucket(BUCKET).key(KEY)
                                         .overrideConfiguration(c -> c.putHeader("RunNum", runId)),
-                                  AsyncResponseTransformer.toBytes());
+                                  transformerFactory.create());
+    }
+
+    private String errorBody(String errorCode, String errorMessage) {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+               + "<Error>\n"
+               + "  <Code>" + errorCode + "</Code>\n"
+               + "  <Message>" + errorMessage + "</Message>\n"
+               + "</Error>";
+    }
+
+    private String internalErrorBody() {
+        return errorBody("InternalError", "We encountered an internal error. Please try again.");
     }
 }

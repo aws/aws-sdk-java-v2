@@ -281,11 +281,8 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                     return;
                 }
 
-                // This isn't necessary, might be good for debugging? Or can just log error
-                /*e.addSuppressed(NonRetryableException.create(
-                    "Error occurred during multipart download. Request will not be retried."));*/
-
-                individualFuture.completeExceptionally(e);
+                individualFuture.completeExceptionally(NonRetryableException.create(
+                    "Error occurred during multipart download. Request will not be retried.", e));
             });
             individualFuture.whenComplete((r, e) -> {
                 if (isCancelled.get()) {
