@@ -125,7 +125,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         CompletableFuture<GetObjectResponse> getObjectFuture = s3.getObject(actualRequest, asyncResponseTransformer);
         getObjectFutures.add(getObjectFuture);
         getObjectFuture.whenComplete((response, error) -> {
-            getObjectFutures.remove(getObjectFuture);
             if (error != null) {
                 log.debug(() -> "Error encountered during GetObjectRequest with partNumber=" + nextPartToGet);
                 onError(error);
