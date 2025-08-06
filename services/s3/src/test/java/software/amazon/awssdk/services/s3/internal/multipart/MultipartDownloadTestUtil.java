@@ -23,9 +23,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 
+import com.github.tomakehurst.wiremock.http.Fault;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupplier;
 
 public class MultipartDownloadTestUtil {
@@ -63,6 +66,12 @@ public class MultipartDownloadTestUtil {
         return expectedBody;
     }
 
+    void stubIoError(int partNumber) {
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%s", testBucket, testKey, partNumber)))
+                    .willReturn(aResponse()
+                                    .withFault(Fault.CONNECTION_RESET_BY_PEER)));
+    }
+
     public byte[] stubForPart(String testBucket, String testKey,int part, int totalPart, int partSize) {
         byte[] body = new byte[partSize];
         random.nextBytes(body);
@@ -72,6 +81,27 @@ public class MultipartDownloadTestUtil {
                 .withHeader("ETag", eTag)
                 .withBody(body)));
         return body;
+    }
+
+     String internalErrorBody() {
+        return errorBody("InternalError", "We encountered an internal error. Please try again.");
+    }
+
+    private String errorBody(String errorCode, String errorMessage) {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+               + "<Error>\n"
+               + "  <Code>" + errorCode + "</Code>\n"
+               + "  <Message>" + errorMessage + "</Message>\n"
+               + "</Error>";
+    }
+
+
+    void stubSeverError(int partNumber, String errorBody, int totalPart) {
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, partNumber)))
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
+                                    .withHeader("x-amz-mp-parts-count", String.valueOf(totalPart))
+                                    .withStatus(500).withBody(errorBody)));
     }
 
     public void verifyCorrectAmountOfRequestsMade(int amountOfPartToTest) {
@@ -94,5 +124,42 @@ public class MultipartDownloadTestUtil {
                             .withHeader("ETag", eTag)
                             .withBody(body)));
         return body;
+    }
+
+    public byte[] stubFirst503Second200(int partNumber, int totalPart, int partSize) {
+        byte[] body = new byte[partSize];
+        random.nextBytes(body);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%s", testBucket, testKey, partNumber)))
+                    .inScenario("part-retry" + partNumber)
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withHeader("x-amz-request-id", UUID.randomUUID().toString())
+                                    .withBody(internalErrorBody()))
+                    .willSetStateTo("retry-attempt" + partNumber));
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%s", testBucket, testKey, partNumber)))
+                    .inScenario("part-retry" + partNumber)
+                    .whenScenarioStateIs("retry-attempt" + partNumber)
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("x-amz-mp-parts-count", String.valueOf(totalPart))
+                                    .withHeader("x-amz-request-id", UUID.randomUUID().toString())
+                                    .withBody(body)));
+        return body;
+    }
+
+    public byte[] stubFirst503Second200AllParts(int totalPart, int partSize) {
+
+        byte[] expectedBody = new byte[totalPart * partSize];
+        for (int i = 0; i < totalPart; i++) {
+            byte[] individualBody = stubFirst503Second200(i + 1, totalPart, partSize);
+            System.arraycopy(individualBody, 0, expectedBody, i * partSize, individualBody.length);
+        }
+        return expectedBody;
+    }
+
+    private String slowdownErrorBody() {
+        return errorBody("SlowDown", "Please reduce your request rate.");
     }
 }

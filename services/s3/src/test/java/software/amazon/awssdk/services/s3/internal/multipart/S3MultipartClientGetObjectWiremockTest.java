@@ -17,8 +17,10 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,7 +33,10 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -41,6 +46,9 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -50,21 +58,25 @@ import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupp
 import software.amazon.awssdk.utils.Pair;
 
 @WireMockTest
-class MultipartDownloaderSubscriberWiremockTest {
+class S3MultipartClientGetObjectWiremockTest {
 
     private final String testBucket = "test-bucket";
     private final String testKey = "test-key";
+    private final static int MAX_ATTEMPT = 3;
 
     private S3AsyncClient s3AsyncClient;
     private MultipartDownloadTestUtil util;
 
     @BeforeEach
     public void init(WireMockRuntimeInfo wiremock) {
+        wiremock.getWireMock().resetMappings();
         s3AsyncClient = S3AsyncClient.builder()
                                      .credentialsProvider(StaticCredentialsProvider.create(
                                          AwsBasicCredentials.create("key", "secret")))
                                      .region(Region.US_WEST_2)
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                     .multipartEnabled(true)
+            .overrideConfiguration(o -> o.retryStrategy(b -> b.maxAttempts(MAX_ATTEMPT)))
                                      .serviceConfiguration(S3Configuration.builder()
                                                                           .pathStyleAccessEnabled(true)
                                                                           .build())
@@ -83,15 +95,8 @@ class MultipartDownloaderSubscriberWiremockTest {
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
-            s3AsyncClient,
-            GetObjectRequest.builder()
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build());
 
-        split.publisher().subscribe(subscriber);
-        T response = split.resultFuture().join();
+        T response = s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join();
 
         byte[] body = supplier.body(response);
         assertArrayEquals(expectedBody, body);
@@ -100,7 +105,7 @@ class MultipartDownloaderSubscriberWiremockTest {
 
     @ParameterizedTest
     @MethodSource("argumentsProvider")
-    <T> void errorOnFirstRequest_shouldCompleteExceptionally(AsyncResponseTransformerTestSupplier<T> supplier,
+    <T> void nonRetryableErrorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier,
                                                              int amountOfPartToTest,
                                                              int partSize) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))).willReturn(
@@ -112,21 +117,14 @@ class MultipartDownloaderSubscriberWiremockTest {
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
-            s3AsyncClient,
-            GetObjectRequest.builder()
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build());
 
-        split.publisher().subscribe(subscriber);
-        assertThatThrownBy(() -> split.resultFuture().join())
+        assertThatThrownBy(() -> s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join())
             .hasMessageContaining("test error message");
     }
 
     @ParameterizedTest
     @MethodSource("argumentsProvider")
-    <T> void errorOnThirdRequest_shouldCompleteExceptionallyOnlyPartsGreaterThanTwo(
+    <T> void nonRetryableErrorOnThirdPart_shouldCompleteExceptionallyOnlyPartsGreaterThanTwo(
         AsyncResponseTransformerTestSupplier<T> supplier,
         int amountOfPartToTest,
         int partSize) {
@@ -149,15 +147,71 @@ class MultipartDownloaderSubscriberWiremockTest {
                             .build());
 
         if (partSize > 1) {
-            split.publisher().subscribe(subscriber);
             assertThatThrownBy(() -> {
-                T res = split.resultFuture().join();
+                T res = s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join();
                 supplier.body(res);
             }).hasMessageContaining("test error message");
         } else {
             T res = split.resultFuture().join();
             assertNotNull(supplier.body(res));
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("argumentsProvider")
+    <T> void ioError_retryExhausted_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier,
+                                                     int amountOfPartToTest,
+                                                     int partSize) {
+        util.stubIoError( 1);
+        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+
+        assertThatThrownBy(() -> s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join())
+            .hasMessageContaining("The connection was closed during the request");
+        verify(MAX_ATTEMPT, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1",
+                                                                     testBucket, testKey))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argumentsProvider")
+    <T> void serverError_retryExhausted_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier,
+                                               int amountOfPartToTest,
+                                               int partSize) {
+        util.stubSeverError(1, util.internalErrorBody(), amountOfPartToTest);
+        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+
+
+        // Only enable this test for ByteArrayAsyncResponseTransformer because only ByteArrayAsyncResponseTransformer supports
+        // retry
+        Assumptions.assumeTrue(transformer instanceof ByteArrayAsyncResponseTransformer);
+
+        assertThatThrownBy(() -> s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join())
+            .hasMessageContaining(" We encountered an internal error");
+        verify(MAX_ATTEMPT, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1",
+                                                                     testBucket, testKey))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("argumentsProvider")
+    <T> void serverError_retrySucceeds_shouldSucceed(AsyncResponseTransformerTestSupplier<T> supplier,
+                                                   int amountOfPartToTest,
+                                                   int partSize) {
+
+        byte[] expectedBody = util.stubFirst503Second200AllParts(amountOfPartToTest, partSize);
+        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+
+        // Only enable this test for ByteArrayAsyncResponseTransformer because only ByteArrayAsyncResponseTransformer supports
+        // retry
+        Assumptions.assumeTrue(transformer instanceof ByteArrayAsyncResponseTransformer);
+
+        T response = s3AsyncClient.getObject(b -> b.bucket(testBucket).key(testKey), transformer).join();
+
+        byte[] body = supplier.body(response);
+        assertArrayEquals(expectedBody, body);
+        util.verifyCorrectAmountOfRequestsMade(amountOfPartToTest);
+
+        IntStream.range(1, amountOfPartToTest)
+                 .forEach(index -> verify(2, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber="+ index,
+                                                                                                testBucket, testKey)))));
     }
 
     private static Stream<Arguments> argumentsProvider() {

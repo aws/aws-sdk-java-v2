@@ -20,10 +20,12 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
@@ -63,6 +65,17 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     @Override
     public void exceptionOccurred(Throwable throwable) {
         cf.completeExceptionally(throwable);
+    }
+
+    @Override
+    public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(SplittingTransformerConfiguration splitConfig) {
+        CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
+            new ByteArraySplittingTransformer(this, future);
+        return AsyncResponseTransformer.SplitResult.<ResponseT, ResponseBytes<ResponseT>>builder()
+                                                   .publisher(transformer)
+                                                   .resultFuture(future)
+                                                   .build();
     }
 
     @Override
@@ -108,4 +121,5 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
             resultFuture.complete(baos.toByteArray());
         }
     }
+
 }
