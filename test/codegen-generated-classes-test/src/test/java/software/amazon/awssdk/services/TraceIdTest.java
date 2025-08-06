@@ -18,10 +18,14 @@ package software.amazon.awssdk.services;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.slf4j.MDC;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -182,6 +186,56 @@ public class TraceIdTest {
 
                 assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
                 assertThat(requests.get(1).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+
+            } finally {
+                MDC.clear();
+            }
+        });
+    }
+
+    @Test
+    public void traceIdInterceptorPreservesTraceIdAcrossExceptionallyCompletedFuturesThrownInPreExecution() {
+        EnvironmentVariableHelper.run(env -> {
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+            MDC.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+
+            ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
+                private boolean hasThrown = false;
+
+                @Override
+                public void beforeMarshalling(Context.BeforeMarshalling context, ExecutionAttributes executionAttributes) {
+                    if (!hasThrown) {
+                        hasThrown = true;
+                        throw new RuntimeException("failing in pre execution");
+                    }
+                }
+            };
+
+            try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+                 ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                                             .region(Region.US_WEST_2)
+                                             .credentialsProvider(AnonymousCredentialsProvider.create())
+                                             .overrideConfiguration(o -> o.addExecutionInterceptor(throwingInterceptor))
+                                             .httpClient(mockHttpClient)
+                                             .build()) {
+
+                mockHttpClient.stubResponses(
+                    HttpExecuteResponse.builder()
+                                       .response(SdkHttpResponse.builder().statusCode(200).build())
+                                       .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                       .build()
+                );
+
+                client.allTypes()
+                      .exceptionally(throwable -> {
+                          client.allTypes().join();
+                          return null;
+                      }).join();
+
+                List<SdkHttpRequest> requests = mockHttpClient.getRequests();
+
+                assertThat(requests).hasSize(1);
+                assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
 
             } finally {
                 MDC.clear();
