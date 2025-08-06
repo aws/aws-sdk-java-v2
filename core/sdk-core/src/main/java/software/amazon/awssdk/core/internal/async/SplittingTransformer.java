@@ -25,6 +25,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -279,6 +280,11 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (e == null) {
                     return;
                 }
+
+                // This isn't necessary, might be good for debugging? Or can just log error
+                /*e.addSuppressed(NonRetryableException.create(
+                    "Error occurred during multipart download. Request will not be retried."));*/
+
                 individualFuture.completeExceptionally(e);
             });
             individualFuture.whenComplete((r, e) -> {
