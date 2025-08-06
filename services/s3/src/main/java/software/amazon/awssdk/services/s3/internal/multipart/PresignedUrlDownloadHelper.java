@@ -53,7 +53,8 @@ public class PresignedUrlDownloadHelper {
         Validate.paramNotNull(asyncResponseTransformer, "asyncResponseTransformer");
 
         if (presignedRequest.range() != null) {
-            logSinglePartMessage(presignedRequest);
+            log.debug(() -> "Using single part download because presigned URL request range is included in the request. range = "
+                            + presignedRequest.range());
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 
@@ -72,16 +73,5 @@ public class PresignedUrlDownloadHelper {
         // split.publisher().subscribe(subscriber);
         // return split.resultFuture();
         throw new UnsupportedOperationException("Multipart presigned URL download not yet implemented - TODO in next PR");
-    }
-
-    private void logSinglePartMessage(PresignedUrlDownloadRequest presignedRequest) {
-        log.debug(() -> {
-            String reason = "";
-            if (presignedRequest.range() != null) {
-                reason = " because presigned URL request range is included in the request."
-                         + " range = " + presignedRequest.range();
-            }
-            return "Using single part download" + reason;
-        });
     }
 }
