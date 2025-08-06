@@ -33,17 +33,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * {@link AsyncResponseTransformer} that writes the data to the specified file.
@@ -57,6 +56,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
+    private final long initialPosition;
     private long position;
     private final FileTransformerConfiguration configuration;
 
@@ -71,7 +71,20 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileTransformerConfiguration, long position) {
         this.path = path;
         this.configuration = fileTransformerConfiguration;
+        this.initialPosition = position;
         this.position = position;
+    }
+
+    FileTransformerConfiguration config() {
+        return configuration;
+    }
+
+    Path path() {
+        return path;
+    }
+
+    Long initialPosition() {
+        return initialPosition;
     }
 
     private static long determineFilePositionToWrite(Path path, FileTransformerConfiguration fileConfiguration) {
@@ -132,9 +145,8 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.response = response;
     }
 
-    // to be overridden by subclasses
-    public void setOffsetPosition(long position) {
-        this.position = position;
+    void offsetPosition(Long offset) {
+        this.position = Validate.isPositive(offset, "Offset must be positive");
     }
 
     public FileTransformerConfiguration getConfiguration() {

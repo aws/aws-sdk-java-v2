@@ -348,6 +348,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          */
         CompletableFuture<ResultT> resultFuture();
 
+        default Boolean supportParallel() {
+            return false;
+        }
+
         static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
             return DefaultAsyncResponseTransformerSplitResult.builder();
         }
@@ -380,6 +384,20 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * @return an instance of this Builder
              */
             Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+
+            /**
+             * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Boolean supportsParallel();
+
+            /**
+             * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Builder<ResponseT, ResultT> supportsParallel(Boolean supportsParallel);
         }
     }
 

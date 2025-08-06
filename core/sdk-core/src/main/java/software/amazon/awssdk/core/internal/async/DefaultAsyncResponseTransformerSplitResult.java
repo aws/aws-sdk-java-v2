@@ -27,12 +27,14 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
+    private final Boolean supportParallel;
 
     private DefaultAsyncResponseTransformerSplitResult(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
             builder.resultFuture(), "future");
+        this.supportParallel = Validate.getOrDefault(builder.supportsParallel(), () -> false);
     }
 
     /**
@@ -53,6 +55,11 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
     }
 
     @Override
+    public Boolean supportParallel() {
+        return this.supportParallel;
+    }
+
+    @Override
     public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> toBuilder() {
         return new DefaultBuilder<>(this);
     }
@@ -65,6 +72,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         implements AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
+        private Boolean suppressParallelism;
 
         DefaultBuilder() {
         }
@@ -98,8 +106,20 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         }
 
         @Override
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> supportsParallel(Boolean supportsParallel) {
+            this.suppressParallelism = supportsParallel;
+            return this;
+        }
+
+        @Override
+        public Boolean supportsParallel() {
+            return suppressParallelism;
+        }
+
+        @Override
         public AsyncResponseTransformer.SplitResult<ResponseT, ResultT> build() {
             return new DefaultAsyncResponseTransformerSplitResult<>(this);
         }
+
     }
 }

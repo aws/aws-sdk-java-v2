@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformerPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -44,13 +44,34 @@ public class DownloadObjectHelper {
             logSinglePartMessage(getObjectRequest);
             return s3AsyncClient.getObject(getObjectRequest, asyncResponseTransformer);
         }
-        if (asyncResponseTransformer instanceof FileAsyncResponseTransformer) {
-
-        }
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
+        if (!split.supportParallel()) {
+            return downloadPartsLinear(getObjectRequest, split);
+        }
+
+        // The publisher of AsyncResponseTransformer needs to know about s3 GetObjectResponse to write to the correct file offset.
+        // The default publisher in the SplitResult may not be able to do so, so we need to create a new one that knows about s3
+        FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher =
+            new FileAsyncResponseTransformerPublisher<>(asyncResponseTransformer);
+        return downloadPartsNonLinear(getObjectRequest, publisher, split);
+
+    }
+
+    private <T> CompletableFuture<T> downloadPartsNonLinear(GetObjectRequest getObjectRequest,
+                                                            FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher,
+                                                            AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+        // TODO pause & resume
+        NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
+            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture());
+        publisher.subscribe(subscriber);
+        return split.resultFuture();
+    }
+
+    private <T> CompletableFuture<T> downloadPartsLinear(GetObjectRequest getObjectRequest,
+                                                         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
         MultipartDownloaderSubscriber subscriber = subscriber(getObjectRequest);
         split.publisher().subscribe(subscriber);
         return split.resultFuture();

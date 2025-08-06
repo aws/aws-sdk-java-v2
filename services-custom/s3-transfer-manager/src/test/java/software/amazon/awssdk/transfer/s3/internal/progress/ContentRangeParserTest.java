@@ -62,6 +62,7 @@ class ContentRangeParserTest {
     static Stream<Arguments> testRange() {
         return Stream.of(
             Arguments.of("bytes 0-9/10", Optional.of(Pair.of(0L, 9L))),
+            Arguments.of("bytes */10", Optional.empty()),
             Arguments.of("bytes 12000000-17999999/30000000", Optional.of(Pair.of(12000000L, 17999999L)))
         );
     }

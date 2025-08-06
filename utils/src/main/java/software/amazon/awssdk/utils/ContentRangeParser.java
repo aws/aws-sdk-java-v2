@@ -72,6 +72,15 @@ public final class ContentRangeParser {
         }
     }
 
+    /**
+     * Parse the Content-Range to extract the byte range from the content. Only supports the {@code bytes} unit, any
+     * other unit will result in an empty OptionalLong. If byte range in unknown, which is represented by a {@code *} symbol
+     * in the header value, an empty OptionalLong will be returned.
+     *
+     * @param contentRange the value of the Content-Range header to be parsed.
+     * @return The total number of bytes in the content range or an empty optional if the contentRange is null, empty or if the
+     * total length is not a valid long.
+     */
     public static Optional<Pair<Long, Long>> range(String contentRange) {
         if (StringUtils.isEmpty(contentRange)) {
             return Optional.empty();
@@ -82,6 +91,9 @@ public final class ContentRangeParser {
             return Optional.empty();
         }
         String withoutBytes = trimmed.substring("bytes ".length());
+        if (withoutBytes.startsWith("*")) {
+            return Optional.empty();
+        }
         int hyphen = withoutBytes.indexOf('-');
         if (hyphen == -1) {
             return Optional.empty();
