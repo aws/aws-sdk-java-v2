@@ -1,4 +1,207 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.16__ __2025-08-05__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release introduces Automated Reasoning checks for Amazon Bedrock Guardrails. The feature adds new APIs for policy building, refinement, version management, and testing. Guardrail APIs now support Automated Reasoning policy configuration and validation output.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - This release adds support for Automated Reasoning checks output models for the Amazon Bedrock Guardrails ApplyGuardrail API.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for deletion protection on EKS clusters
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds a new Aurora Serverless v2 attribute to the DBCluster resource to expose the platform version. Also updates the attribute to be part of both the engine version and platform version descriptions.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for SageMaker Hyperpod continuous scaling and custom AMI; Introduce new APIs: ListClusterEvents, DescribeClusterEvent, BatchAddClusterNodes
+
+# __2.32.15__ __2025-08-04__
+## __AWS CodeConnections__
+  - ### Features
+    - New integration with Azure DevOps provider type.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Support Interface for IoT SiteWise Asset Modeling
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Remove superfluous field from API
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - TagResource API now throws ServiceQuotaExceededException when the number of tags on the Amazon EVS resource exceeds the maximum allowed. TooManyTagsException is deprecated.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ability for customers to attach and detach their EBS volumes to EKS-orchestrated HyperPod cluster nodes.
+
+# __2.32.14__ __2025-08-01__
+## __ARC - Region switch__
+  - ### Features
+    - This is the initial SDK release for Region switch
+
+## __AWS AI Ops__
+  - ### Features
+    - This release includes fix for InvestigationGroup timestamp conversion issue.
+
+## __AWS Audit Manager__
+  - ### Features
+    - Added a note to Framework APIs (CreateAssessmentFramework, GetAssessmentFramework, UpdateAssessmentFramework) clarifying that the Controls object returns a partial response when called through Framework APIs. Added documentation that the Framework's controlSources parameter is no longer supported.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Doc-only update to add more information to GetCertificate action.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Add support for IPv6 Networking for Clusters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Fixed SigV4a signing to respect pre-existing Host headers to be consistent with existing SigV4 signing behavior.
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release new resource detail type CodeRepository
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the Asia Pacific (Jakarta) (ap-southeast-3) Region.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Add additional validations for multipart upload operations in the Java multipart S3 client.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Amazon SNS support for Amazon SQS fair queues
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin adds the ability to enable telemetry on AWS resources such as Amazon VPCs (Flow Logs) in customers AWS Accounts and Organizations. The release introduces new APIs to manage telemetry rules, which define telemetry settings to be applied on AWS resources.
+
+# __2.32.13__ __2025-07-31__
+## __AWS EntityResolution__
+  - ### Features
+    - Add support for creating advanced rule-based matching workflows in AWS Entity Resolution.
+
+## __AWS Glue__
+  - ### Features
+    - Added support for Route node, S3 Iceberg sources/targets, catalog Iceberg sources, DynamoDB ELT connector, AutoDataQuality evaluation, enhanced PII detection with redaction, Kinesis fan-out support, and new R-series worker types.
+
+## __AWS IoT__
+  - ### Features
+    - This release allows AWS IoT Core users to use their own AWS KMS keys for data protection
+
+## __AWS S3 Control__
+  - ### Features
+    - Add Tags field to CreateAccessPoint
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - The release updates standard profile with 2 new fields that supports account-level engagement. Updated APIs include CreateProfile, UpdateProfile, MergeProfiles, SearchProfiles, BatchGetProfile, GetSegmentMembership, CreateSegmentDefinition, CreateSegmentEstimate.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for the force option for the EC2 instance terminate command. This feature enables customers to recover resources associated with an instance stuck in the shutting-down state as a result of rare issues caused by a frozen operating system or an underlying hardware problem.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Granular access control support for NEO-SAML with IAMFederation for AOS data source
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added Impala connector support
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - This release introduces support for Multi-tenant management
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Added ability to log session activity on a portal to an S3 bucket.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release enables secondary IP addresses for Network Load Balancers.
+
+## __Inspector2__
+  - ### Features
+    - Extend usage to include agentless hours and add CODE_REPOSITORY to aggregation resource type
+
+# __2.32.12__ __2025-07-30__
+## __AWS Directory Service__
+  - ### Features
+    - This release adds support for AWS Managed Microsoft AD Hybrid Edition, introducing new operations: StartADAssessment, DescribeADAssessment, ListADAssessments, DeleteADAssessment, CreateHybridAD, UpdateHybridAD, and DescribeHybridADUpdate; and updated existing operation: DescribeDirectories.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Added TxPowerIndexMin, TxPowerIndexMax, NbTransMin and NbTransMax params to ServiceProfile.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds new origin timeout options: 1) ResponseCompletionTimeout and 2) OriginReadTimeout (for S3 origins)
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add support for setting Serverless Scaling Configuration on clusters.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to show the next hop IP address for routes propagated by VPC Route Server into VPC route tables.
+
+# __2.32.11__ __2025-07-29__
+## __AWS Batch__
+  - ### Features
+    - AWS Batch for SageMaker Training jobs feature support. Includes new APIs for service job submission (e.g., SubmitServiceJob) and managing service environments (e.g., CreateServiceEnvironment) that enable queueing SageMaker Training jobs.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This feature provides the ability to update the table reference and allowed columns on an existing configured table.
+
+## __AWS S3__
+  - ### Features
+    - Add support for using CRT's response file in the CRT based S3AsyncClient - CRT will directly write to the file when calling getObject with a Path.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for tag management on monitors.
+
+## __Amazon Location Service__
+  - ### Features
+    - This release 1) adds support for multi-polygon geofences with disconnected territories, and 2) enables polygon exclusion zones within geofences for more accurate representation of real-world boundaries.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - This is to support Granular access control support for SAML with IAMFedraton in AOSS
+
 # __2.32.10__ __2025-07-28__
 ## __AWS Direct Connect__
   - ### Features

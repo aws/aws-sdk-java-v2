@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.apache5;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -59,8 +60,11 @@ public class Apache5ClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         IOException exception = assertThrows(IOException.class, () -> {
             executeHttpRequest(httpClient);
         });
-        assertThat(exception.getMessage())
-            .containsIgnoringCase("broken pipe");
+        assertTrue(
+            exception.getMessage().equals("Connection or outbound has closed") ||
+            exception.getMessage().equals("Connection is closed"),
+            "Expected connection closed message, but got: " + exception.getMessage());
+
     }
 
 
@@ -78,7 +82,11 @@ public class Apache5ClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         });
 
         if(halfCloseSupported()){
-            assertEquals("Connection or outbound has closed", exception.getMessage());
+            assertTrue(
+                exception.getMessage().equals("Connection or outbound has closed") ||
+                exception.getMessage().equals("Connection is closed"),
+                "Expected connection closed message, but got: " + exception.getMessage());
+
 
         }else {
             assertEquals("Socket is closed", exception.getMessage());

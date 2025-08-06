@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.apache5;
 
-
 import org.junit.jupiter.api.DisplayName;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientUriSanitizationTestSuite;
