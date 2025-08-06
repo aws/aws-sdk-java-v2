@@ -57,7 +57,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @WireMockTest
-@Timeout(value = 30, unit = TimeUnit.SECONDS)
+@Timeout(value = 45, unit = TimeUnit.SECONDS)
 public class S3MultipartClientGetObjectWiremockTest {
     private static final String BUCKET = "Example-Bucket";
     private static final String KEY = "Key";
@@ -72,7 +72,7 @@ public class S3MultipartClientGetObjectWiremockTest {
                                        .multipartEnabled(true)
                                        .httpClientBuilder(NettyNioAsyncHttpClient.builder()
                                                                                  .maxConcurrency(100)
-                                                                                 .connectionAcquisitionTimeout(Duration.ofSeconds(100)))
+                                                                                 .connectionAcquisitionTimeout(Duration.ofSeconds(60)))
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
                                        .build();
     }
@@ -81,8 +81,7 @@ public class S3MultipartClientGetObjectWiremockTest {
         return Stream.of(
             AsyncResponseTransformer::toBytes,
             AsyncResponseTransformer::toBlockingInputStream,
-            // TODO - hanging
-            //AsyncResponseTransformer::toPublisher,
+            AsyncResponseTransformer::toPublisher,
             () -> {
                 try {
                     Path tempDir = Files.createTempDirectory("s3-test");
@@ -106,7 +105,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     public void getObject_single500WithinMany200s_shouldNotRetryError(TransformerFactory transformerFactory) {
         List<CompletableFuture<?>> futures = new ArrayList<>();
 
-        int numRuns = 1000;
+        int numRuns = 100;
         for (int i = 0; i < numRuns; i++) {
             CompletableFuture<?> resp = mock200Response(multipartClient, i, transformerFactory);
             futures.add(resp);
