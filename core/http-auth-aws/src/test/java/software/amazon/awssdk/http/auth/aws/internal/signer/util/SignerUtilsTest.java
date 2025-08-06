@@ -38,13 +38,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 public class SignerUtilsTest {
 
     @Test
-    void moveContentLength_decodedContentLengthPresent_shouldNotInvokeNewStream() {
+    void computeAndMoveContentLength_decodedContentLengthPresent_shouldNotInvokeNewStream() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
             .appendHeader(X_AMZ_DECODED_CONTENT_LENGTH, "10")
             .appendHeader(CONTENT_LENGTH, "10");
 
         ContentStreamProvider streamProvider = Mockito.mock(ContentStreamProvider.class);
-        long contentLength = SignerUtils.moveContentLength(request, streamProvider);
+        long contentLength = SignerUtils.computeAndMoveContentLength(request, streamProvider);
         Mockito.verify(streamProvider, Mockito.never()).newStream();
         assertThat(contentLength).isEqualTo(10L);
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -52,12 +52,12 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void moveContentLength_contentLengthPresent_shouldNotInvokeNewStream() {
+    void computeAndMoveContentLength_contentLengthPresent_shouldNotInvokeNewStream() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
                                                        .appendHeader(CONTENT_LENGTH, "10");
 
         ContentStreamProvider streamProvider = Mockito.mock(ContentStreamProvider.class);
-        long contentLength = SignerUtils.moveContentLength(request, streamProvider);
+        long contentLength = SignerUtils.computeAndMoveContentLength(request, streamProvider);
         Mockito.verify(streamProvider, Mockito.never()).newStream();
         assertThat(contentLength).isEqualTo(10L);
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -66,13 +66,13 @@ public class SignerUtilsTest {
 
     @ParameterizedTest
     @MethodSource("streams")
-    void moveContentLength_contentLengthNotPresent_shouldInvokeNewStream(InputStream inputStream, long expectedLength) {
+    void computeAndMoveContentLength_contentLengthNotPresent_shouldInvokeNewStream(InputStream inputStream, long expectedLength) {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder();
 
         ContentStreamProvider streamProvider = Mockito.mock(ContentStreamProvider.class);
         Mockito.when(streamProvider.newStream()).thenReturn(inputStream);
 
-        long contentLength = SignerUtils.moveContentLength(request, streamProvider);
+        long contentLength = SignerUtils.computeAndMoveContentLength(request, streamProvider);
         Mockito.verify(streamProvider, Mockito.times(1)).newStream();
         assertThat(contentLength).isEqualTo(expectedLength);
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -80,7 +80,7 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void moveContentLength_async_decodedContentLengthPresent_shouldNotSubscribeToPublisher() {
+    void computeAndMoveContentLength_async_decodedContentLengthPresent_shouldNotSubscribeToPublisher() {
 
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
                                                        .appendHeader(X_AMZ_DECODED_CONTENT_LENGTH, "10")
@@ -88,7 +88,7 @@ public class SignerUtilsTest {
 
         Publisher<ByteBuffer> contentPublisher = Mockito.spy(Flowable.empty());
 
-        SignerUtils.moveContentLength(request, contentPublisher).join();
+        SignerUtils.computeAndMoveContentLength(request, contentPublisher).join();
         Mockito.verify(contentPublisher, Mockito.never()).subscribe(Mockito.any(Subscriber.class));
 
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -96,13 +96,13 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void moveContentLength_async_contentLengthPresent_shouldNotSubscribeToPublisher() {
+    void computeAndMoveContentLength_async_contentLengthPresent_shouldNotSubscribeToPublisher() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
                                                        .appendHeader(CONTENT_LENGTH, "10");
 
         Publisher<ByteBuffer> contentPublisher = Mockito.spy(Flowable.empty());
 
-        SignerUtils.moveContentLength(request, contentPublisher).join();
+        SignerUtils.computeAndMoveContentLength(request, contentPublisher).join();
         Mockito.verify(contentPublisher, Mockito.never()).subscribe(Mockito.any(Subscriber.class));
 
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -111,14 +111,14 @@ public class SignerUtilsTest {
 
     @ParameterizedTest
     @MethodSource("publishers")
-    void moveContentLength_contentLengthNotPresent_shouldInvokeSubscribe(Flowable<ByteBuffer> publisher, long expectedLength) {
+    void computeAndMoveContentLength_contentLengthNotPresent_shouldInvokeSubscribe(Flowable<ByteBuffer> publisher, long expectedLength) {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder();
 
         if (publisher != null) {
             publisher = Mockito.spy(publisher);
         }
 
-        SignerUtils.moveContentLength(request, publisher).join();
+        SignerUtils.computeAndMoveContentLength(request, publisher).join();
 
         if (publisher != null) {
             Mockito.verify(publisher, Mockito.times(1)).subscribe(Mockito.any(Subscriber.class));

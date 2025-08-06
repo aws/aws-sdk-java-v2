@@ -24,8 +24,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 
 /**
- * A decorating {@code Subscriber} that updates a list of {@code SdkChecksum}s with the data of each buffer given to {@code
- * onNext}.
+ * A decorating {@code Subscriber} that updates a list of {@code SdkChecksum}s with the data of each buffer given to
+ * {@code onNext}.
  * <p>
  * This is "unbuffered", as opposed to {@link ChecksumSubscriber} which <i>does</i> buffer the data.
  */

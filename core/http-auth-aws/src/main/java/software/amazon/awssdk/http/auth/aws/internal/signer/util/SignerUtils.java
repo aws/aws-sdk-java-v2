@@ -201,7 +201,7 @@ public final class SignerUtils {
      * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
      * the payload is read in its entirety to calculate the length.
      */
-    public static long moveContentLength(SdkHttpRequest.Builder request, ContentStreamProvider contentStreamProvider) {
+    public static long computeAndMoveContentLength(SdkHttpRequest.Builder request, ContentStreamProvider contentStreamProvider) {
         Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
 
         if (decodedContentLength.isPresent()) {
@@ -228,7 +228,7 @@ public final class SignerUtils {
      * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
      * the payload is read in its entirety to calculate the length.
      */
-    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> moveContentLength(
+    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> computeAndMoveContentLength(
         SdkHttpRequest.Builder request, Publisher<ByteBuffer> contentPublisher) {
         Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
 

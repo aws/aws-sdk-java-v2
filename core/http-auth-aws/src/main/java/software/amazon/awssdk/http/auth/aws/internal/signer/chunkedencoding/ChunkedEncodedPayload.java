@@ -21,7 +21,8 @@ import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.http.auth.aws.internal.signer.AwsChunkedV4PayloadSigner;
 
 /**
- * Abstraction interface to simplify payload signing in {@link AwsChunkedV4PayloadSigner}.
+ * Abstraction interface to simplify payload signing in {@link AwsChunkedV4PayloadSigner} by allowing us to have a uniform
+ * interface for signing both sync and async payloads. See the {@code signCommon} method in {@link AwsChunkedV4PayloadSigner}.
  */
 @SdkInternalApi
 public interface ChunkedEncodedPayload {

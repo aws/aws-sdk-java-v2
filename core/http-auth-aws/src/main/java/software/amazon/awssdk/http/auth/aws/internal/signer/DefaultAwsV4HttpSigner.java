@@ -231,9 +231,14 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
                               Publisher<ByteBuffer> payloadToSign = p.right().orElse(null);
 
                               V4RequestSigningResult requestSigningResult = requestSigner.sign(requestToSign);
+
+                              Publisher<ByteBuffer> signedPayload = null;
+                              if (payloadToSign != null) {
+                                  signedPayload = payloadSigner.signAsync(payloadToSign, requestSigningResult);
+                              }
                               return AsyncSignedRequest.builder()
                                                        .request(requestSigningResult.getSignedRequest().build())
-                                                       .payload(payloadSigner.signAsync(payloadToSign, requestSigningResult))
+                                                       .payload(signedPayload)
                                                        .build();
                           });
     }
