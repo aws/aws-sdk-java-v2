@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "OpenSearch Service Serverless",
-    "contributor": "",
-    "description": "Features: add Index APIs in OpenSearchServerless to support managed semantic enrichment"
-}

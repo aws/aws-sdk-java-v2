@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.17__ __2025-08-06__
+## __AWS Budgets__
+  - ### Features
+    - Adds support for billing views. Billing views let you control access to cost and usage data through an AWS resource, streamlining the process of sharing cost and usage data across account boundaries. With this release, you can now create and view budgets based on billing views.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Netty to `4.1.123`.
+    - Updated endpoint and partition metadata.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for G6 instances
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Mark Elastic Inference Accelerators and Elastic Graphics Processor parameters as deprecated on the RunInstances and LaunchTemplate APIs.
+
+## __Apache HTTP Client 5__
+  - ### Features
+    - Replace deprecated APIs from Apache HttpClient 5.5.x with corresponding recommended APIs
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Features: add Index APIs in OpenSearchServerless to support managed semantic enrichment
+
+## __QBusiness__
+  - ### Features
+    - Amazon Q Business now supports the GetDocumentContent() API that enables customers to securely access the source documents through clickable citation links at query time
+
 # __2.32.16__ __2025-08-05__
 ## __AWS SDK for Java v2__
   - ### Features
