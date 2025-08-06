@@ -34,14 +34,14 @@ public class MultipartAsyncPresignedUrlExtension implements AsyncPresignedUrlExt
 
     public MultipartAsyncPresignedUrlExtension(
             S3AsyncClient s3AsyncClient,
-            AsyncPresignedUrlExtension delegate,
+            AsyncPresignedUrlExtension asyncPresignedUrlExtension,
             long bufferSizeInBytes,
             long partSizeInBytes) {
         Validate.paramNotNull(s3AsyncClient, "s3AsyncClient");
-        Validate.paramNotNull(delegate, "delegate");
+        Validate.paramNotNull(asyncPresignedUrlExtension, "asyncPresignedUrlExtension");
         this.downloadHelper = new PresignedUrlDownloadHelper(
                 s3AsyncClient,
-                delegate,
+                asyncPresignedUrlExtension,
                 bufferSizeInBytes,
                 partSizeInBytes);
     }

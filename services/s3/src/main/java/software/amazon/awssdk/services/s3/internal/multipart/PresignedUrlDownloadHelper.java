@@ -31,16 +31,16 @@ public class PresignedUrlDownloadHelper {
     private static final Logger log = Logger.loggerFor(PresignedUrlDownloadHelper.class);
 
     private final S3AsyncClient s3AsyncClient;
-    private final AsyncPresignedUrlExtension originalExtension;
+    private final AsyncPresignedUrlExtension asyncPresignedUrlExtension;
     private final long bufferSizeInBytes;
     private final long configuredPartSizeInBytes;
 
     public PresignedUrlDownloadHelper(S3AsyncClient s3AsyncClient,
-                                      AsyncPresignedUrlExtension originalExtension,
+                                      AsyncPresignedUrlExtension asyncPresignedUrlExtension,
                                       long bufferSizeInBytes,
                                       long configuredPartSizeInBytes) {
         this.s3AsyncClient = Validate.paramNotNull(s3AsyncClient, "s3AsyncClient");
-        this.originalExtension = Validate.paramNotNull(originalExtension, "originalExtension");
+        this.asyncPresignedUrlExtension = Validate.paramNotNull(asyncPresignedUrlExtension, "asyncPresignedUrlExtension");
         this.bufferSizeInBytes = Validate.isPositive(bufferSizeInBytes, "bufferSizeInBytes");
         this.configuredPartSizeInBytes = Validate.isPositive(configuredPartSizeInBytes, "configuredPartSizeInBytes");
     }
@@ -54,7 +54,7 @@ public class PresignedUrlDownloadHelper {
 
         if (presignedRequest.range() != null) {
             logSinglePartMessage(presignedRequest);
-            return originalExtension.getObject(presignedRequest, asyncResponseTransformer);
+            return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 
         SplittingTransformerConfiguration splittingConfig = SplittingTransformerConfiguration.builder()
