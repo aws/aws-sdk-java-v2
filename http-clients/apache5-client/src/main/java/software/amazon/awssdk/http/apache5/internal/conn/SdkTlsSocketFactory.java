@@ -16,22 +16,19 @@
 package software.amazon.awssdk.http.apache5.internal.conn;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
-import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.util.TimeValue;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.apache5.internal.net.SdkSocket;
+import software.amazon.awssdk.http.apache5.internal.net.SdkSslSocket;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
-public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
+public class SdkTlsSocketFactory extends DefaultClientTlsStrategy {
 
     private static final Logger log = Logger.loggerFor(SdkTlsSocketFactory.class);
 
@@ -39,27 +36,30 @@ public class SdkTlsSocketFactory extends SSLConnectionSocketFactory {
         super(sslContext, hostnameVerifier);
         if (sslContext == null) {
             throw new IllegalArgumentException(
-                "sslContext must not be null. " + "Use SSLContext.getDefault() if you are unsure.");
+                "sslContext must not be null. Use SSLContext.getDefault() if you are unsure.");
         }
     }
 
     @Override
-    protected final void prepareSocket(SSLSocket socket) {
+    protected void initializeSocket(SSLSocket socket) {
+        super.initializeSocket(socket);
         log.debug(() -> String.format("socket.getSupportedProtocols(): %s, socket.getEnabledProtocols(): %s",
                                       Arrays.toString(socket.getSupportedProtocols()),
                                       Arrays.toString(socket.getEnabledProtocols())));
     }
 
     @Override
-        public Socket connectSocket(TimeValue connectTimeout,
-            Socket socket,
-            HttpHost host,
-            InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress,
-            HttpContext context) throws IOException {
-        log.trace(() -> String.format("Connecting to %s:%s", remoteAddress.getAddress(), remoteAddress.getPort()));
+    public SSLSocket upgrade(Socket socket,
+                             String target,
+                             int port,
+                             Object attachment,
+                             HttpContext context) throws IOException {
+        log.trace(() -> String.format("Upgrading socket to TLS for %s:%s", target, port));
 
-        Socket connectSocket = super.connectSocket(connectTimeout, socket, host, remoteAddress, localAddress, context);
-        return new SdkSocket(connectSocket);
+        SSLSocket upgradedSocket = super.upgrade(socket, target, port, attachment, context);
+
+        // Wrap the upgraded SSLSocket in SdkSSLSocket for logging
+        return new SdkSslSocket(upgradedSocket);
     }
+
 }
