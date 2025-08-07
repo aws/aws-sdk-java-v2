@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Added support for VPC owner account ID associated with DNS request in the GuardDuty finding."
+}
