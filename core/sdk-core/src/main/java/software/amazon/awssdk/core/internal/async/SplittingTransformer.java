@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -55,19 +56,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
 
     /**
-     * Set to true once {@code .prepare()} is called on the upstreamResponseTransformer
-     */
-    private final AtomicBoolean preparedCalled = new AtomicBoolean(false);
-
-    /**
-     * Set to true once {@code .onResponse()} is called on the upstreamResponseTransformer
-     */
-    private final AtomicBoolean onResponseCalled = new AtomicBoolean(false);
-
-    /**
      * Set to true once {@code .onStream()} is called on the upstreamResponseTransformer
      */
-    private final AtomicBoolean onStreamCalled = new AtomicBoolean(false);
+    private boolean onStreamCalled;
 
     /**
      * Set to true once {@code .cancel()} is called in the subscription of the downstream subscriber, or if the
@@ -110,6 +101,17 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
     private final Object cancelLock = new Object();
+
+    /**
+     * Keeps track of the upstream future returned by {@code upstreamResponseTransformer.prepare()}. If an error occurs, we
+     * forward this to the {@code resultFuture}.
+     */
+    private volatile CompletableFuture<ResultT> upstreamFuture;
+
+    /**
+     * Tracks the part number. Errors will only be retried for the first part.
+     */
+    private final AtomicInteger partNumber = new AtomicInteger(0);
 
     private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
                                  Long maximumBufferSizeInBytes,
@@ -198,7 +200,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             }
             if (outstandingDemand.get() > 0) {
                 demand = outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(new IndividualTransformer());
+                downstreamSubscriber.onNext(new IndividualTransformer(partNumber.incrementAndGet()));
             }
         }
         return false;
@@ -216,7 +218,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 log.trace(() -> "downstreamSubscriber already null, skipping downstreamSubscriber.onComplete()");
                 return;
             }
-            if (!onStreamCalled.get()) {
+            if (!onStreamCalled) {
                 // we never subscribe publisherToUpstream to the upstream, it would not complete
                 downstreamSubscriber = null;
                 return;
@@ -230,6 +232,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 } else {
                     log.trace(() -> "calling downstreamSubscriber.onComplete()");
                     downstreamSubscriber.onComplete();
+                    CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
                 }
                 downstreamSubscriber = null;
             });
@@ -259,28 +262,27 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
      * body publisher.
      */
     private class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
+        private final int partNumber;
         private ResponseT response;
         private CompletableFuture<ResponseT> individualFuture;
+
+        IndividualTransformer(int partNumber) {
+            this.partNumber = partNumber;
+        }
 
         @Override
         public CompletableFuture<ResponseT> prepare() {
             this.individualFuture = new CompletableFuture<>();
-            if (preparedCalled.compareAndSet(false, true)) {
+
+            if (partNumber == 1) {
                 if (isCancelled.get()) {
                     return individualFuture;
                 }
                 log.trace(() -> "calling prepare on the upstream transformer");
-                CompletableFuture<ResultT> upstreamFuture = upstreamResponseTransformer.prepare();
-                if (!resultFuture.isDone()) {
-                    CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
-                }
+                upstreamFuture = upstreamResponseTransformer.prepare();
+
             }
-            resultFuture.whenComplete((r, e) -> {
-                if (e == null) {
-                    return;
-                }
-                individualFuture.completeExceptionally(e);
-            });
+
             individualFuture.whenComplete((r, e) -> {
                 if (isCancelled.get()) {
                     handleSubscriptionCancel();
@@ -291,7 +293,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void onResponse(ResponseT response) {
-            if (onResponseCalled.compareAndSet(false, true)) {
+            if (partNumber == 1) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
                 upstreamResponseTransformer.onResponse(response);
             }
@@ -304,7 +306,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 return;
             }
             synchronized (cancelLock) {
-                if (onStreamCalled.compareAndSet(false, true)) {
+                if (partNumber == 1) {
+                    CompletableFutureUtils.forwardResultTo(upstreamFuture, resultFuture);
+                    onStreamCalled = true;
                     log.trace(() -> "calling onStream on the upstream transformer");
                     upstreamResponseTransformer.onStream(upstreamSubscriber -> publisherToUpstream.subscribe(
                         DelegatingBufferingSubscriber.builder()
@@ -319,9 +323,19 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            publisherToUpstream.error(error);
-            log.trace(() -> "calling exceptionOccurred on the upstream transformer");
-            upstreamResponseTransformer.exceptionOccurred(error);
+            if (partNumber == 1) {
+                log.trace(() -> "calling exceptionOccurred on the upstream transformer");
+                upstreamResponseTransformer.exceptionOccurred(error);
+            }
+
+            // Invoking publisherToUpstream.error() essentially fails the request immediately. We should only call this if
+            // 1) The part number is greater than 1, since we want to retry errors on the first part OR 2) onStream() has
+            // already been invoked and data has started to be written
+            synchronized (cancelLock) {
+                if (partNumber > 1 || onStreamCalled) {
+                    publisherToUpstream.error(error);
+                }
+            }
         }
     }
 

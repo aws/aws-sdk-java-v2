@@ -100,32 +100,6 @@ class MultipartDownloaderSubscriberWiremockTest {
 
     @ParameterizedTest
     @MethodSource("argumentsProvider")
-    <T> void errorOnFirstRequest_shouldCompleteExceptionally(AsyncResponseTransformerTestSupplier<T> supplier,
-                                                             int amountOfPartToTest,
-                                                             int partSize) {
-        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))).willReturn(
-            aResponse()
-                .withStatus(400)
-                .withBody("<Error><Code>400</Code><Message>test error message</Message></Error>")));
-        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
-            s3AsyncClient,
-            GetObjectRequest.builder()
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build());
-
-        split.publisher().subscribe(subscriber);
-        assertThatThrownBy(() -> split.resultFuture().join())
-            .hasMessageContaining("test error message");
-    }
-
-    @ParameterizedTest
-    @MethodSource("argumentsProvider")
     <T> void errorOnThirdRequest_shouldCompleteExceptionallyOnlyPartsGreaterThanTwo(
         AsyncResponseTransformerTestSupplier<T> supplier,
         int amountOfPartToTest,

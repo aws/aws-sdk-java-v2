@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix a bug in the Java based multipart client where retryable errors from getObject may not be retried correctly."
+}
