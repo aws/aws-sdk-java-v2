@@ -33,7 +33,12 @@ import java.util.Map;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
@@ -41,6 +46,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
@@ -57,6 +63,60 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
         mappedTable.createTable();
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
+
+        // sandbox
+
+        QueryConditional queryConditional = QueryConditional.keyEqualTo(Key.builder().partitionValue("val").build());
+
+        PageIterable<Record> pageIterable = mappedTable.query(QueryEnhancedRequest.builder()
+                                                                                  .queryConditional(queryConditional)
+                                                                                  .select(Select.COUNT)
+                                                                                  .build());
+        Iterator<Page<Record>> iterator = pageIterable.iterator();
+
+        Page<Record> page = iterator.next();
+
+        int count = page.count();
+    }
+
+    public class NullifyEmptyStringConverter implements AttributeConverter<String> {
+        @Override
+        public AttributeValue transformFrom(String value) {
+            if (value == null || value.isEmpty()) {
+                return AttributeValue.builder().nul(true).build();
+            }
+            return AttributeValue.builder().s(value).build();
+        }
+
+        @Override
+        public String transformTo(AttributeValue attributeValue) {
+            if (attributeValue.nul()) {
+                return null;
+            }
+            return attributeValue.s();
+        }
+
+        @Override
+        public EnhancedType<String> type() {
+            return EnhancedType.of(String.class);
+        }
+
+        @Override
+        public AttributeValueType attributeValueType() {
+            return AttributeValueType.S;
+        }
+    }
+
+    // Usage:
+    @DynamoDbBean
+    public class Customer {
+        private String name;
+
+        @DynamoDbAttribute("name")
+        @DynamoDbConvertedBy(NullifyEmptyStringConverter.class)
+        public String getName() {
+            return name;
+        }
     }
 
     @AfterClass
