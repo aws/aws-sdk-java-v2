@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.18__ __2025-08-07__
+## __AWS Batch__
+  - ### Features
+    - This feature allows customers to use AWS Batch with Linux with ARM64 CPU Architecture with Fargate Spot compute support.
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports comment-based pull request control.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Data Catalog now supports Iceberg Optimization settings at the Catalog level, and supports new options to control the optimization job run rate.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Added new viewer security policy, TLSv1.3_2025, for CloudFront.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Adds Proton 9.0-2 to the list of runtime environment options available when creating an Amazon GameLift Streams application
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added support for VPC owner account ID associated with DNS request in the GuardDuty finding.
+
 # __2.32.17__ __2025-08-06__
 ## __AWS Budgets__
   - ### Features
