@@ -60,6 +60,7 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
 
     private static final Logger log = Logger.loggerFor(ImmutableMap.class);
     private static final String UNMODIFIABLE_MESSAGE = "This is an immutable map.";
+    private static final String DUPLICATED_KEY_MESSAGE = "Duplicate keys are provided.";
 
     private final Map<K, V> map;
 
@@ -198,10 +199,18 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
 
     private static <K, V> void putAndWarnDuplicateKeys(Map<K, V> map, K key,
                                                        V value) {
+        putAndWarnDuplicateKeys(map, key, value, false);
+    }
+
+    private static <K, V> void putAndWarnDuplicateKeys(Map<K, V> map, K key, V value, boolean allowDuplicateKeys) {
         if (map.containsKey(key)) {
-            log.error(() -> String.format("Duplicate keys are provided for [%s]. The first value [%s] will be kept, and the "
-                                          + "second value [%s] will be ignored.", key, map.get(key), value));
-            return;
+
+            if (allowDuplicateKeys) {
+                log.warn(() -> String.format("Duplicate keys are provided for [%s]. The newer value [%s] will be saved, and the "
+                                             + "existing value [%s] will be overwritten.", key, value, map.get(key)));
+            } else {
+                throw new IllegalArgumentException(DUPLICATED_KEY_MESSAGE);
+            }
         }
         map.put(key, value);
     }
@@ -291,20 +300,38 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
     public static class Builder<K, V> {
 
         private final Map<K, V> entries;
+        private boolean allowDuplicateKeys;
 
         public Builder() {
             this.entries = new HashMap<>();
         }
 
         /**
-         * Add a key-value pair into the built map. If duplicate keys are provided, the first value will be kept and the second
-         * value will be ignored, and the SDK will log an error.
+         * Add a key-value pair into the built map. The method will throw
+         * IllegalArgumentException immediately when duplicate keys are
+         * provided and allowDuplicateKeys is false (default value).
+         *
+         *
+         * If duplicate keys are provided and allowDuplicateKeys is true, the latest value will overwrite the existing value, and
+         * the SDK will log a message at WARN level.
          *
          * @return Returns a reference to this object so that method calls can
          *         be chained together.
          */
         public Builder<K, V> put(K key, V value) {
-            putAndWarnDuplicateKeys(entries, key, value);
+            putAndWarnDuplicateKeys(entries, key, value, allowDuplicateKeys);
+            return this;
+        }
+
+        /**
+         * Sets whether duplicate keys are allowed. If true, the latest value will overwrite the existing value. If
+         * false, an error will be thrown when attempting to put an entry with a duplicate key. Default value is false.
+         *
+         * @return Returns a reference to this object so that method calls can
+         *         be chained together.
+         */
+        public Builder<K, V> allowDuplicateKeys(boolean allowDuplicateKeys) {
+            this.allowDuplicateKeys = allowDuplicateKeys;
             return this;
         }
 

@@ -71,13 +71,29 @@ public class ImmutableMapTest {
     }
 
     @Test
-    public void putDuplicateKeys_keepsFirstOneAndDoesNotThrowError() {
+    public void testErrorOnDuplicateKeys() {
+        try {
+            Map<Integer, String> builtMap = new ImmutableMap.Builder<Integer, String>()
+                .put(1, "one")
+                .put(1, "two")
+                .build();
+            fail("IllegalArgumentException expected.");
+        } catch (IllegalArgumentException iae) {
+            // Ignored or expected.
+        } catch (Exception e) {
+            fail("IllegalArgumentException expected.");
+        }
+    }
+
+    @Test
+    public void putDuplicateKeys_allowDuplicateKeysTrue_doesNotThrowErrorAndKeepsNewestValue() {
         Map<Integer, String> builtMap = new ImmutableMap.Builder<Integer, String>()
+            .allowDuplicateKeys(true)
             .put(1, "one")
             .put(1, "two")
             .build();
 
-        assertEquals("one", builtMap.get(1));
+        assertEquals("two", builtMap.get(1));
     }
 
     @Test

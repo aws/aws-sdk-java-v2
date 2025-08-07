@@ -1,6 +1,6 @@
 {
-    "type": "bugfix",
+    "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Log error instead of throwing error for duplicate keys in ImmutableMap"
+    "description": "Add allowDuplicateKeys to ImmutableMap Builder"
 }
