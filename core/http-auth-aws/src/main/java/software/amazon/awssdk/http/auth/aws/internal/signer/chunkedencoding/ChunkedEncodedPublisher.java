@@ -83,6 +83,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         this.extensions.addAll(b.extensions);
         this.trailers.addAll(b.trailers);
         this.addEmptyTrailingChunk = b.addEmptyTrailingChunk;
+        this.chunkBuffer = ByteBuffer.allocate(chunkSize);
     }
 
     @Override
@@ -93,6 +94,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         Publisher<Iterable<ByteBuffer>> chunked = chunk(lengthEnforced);
         Publisher<Iterable<ByteBuffer>> trailingAdded = addTrailingChunks(chunked);
         Publisher<ByteBuffer> flattened = flatten(trailingAdded);
+        // TODO: combine encodeChunk into chunk and addTrailingChunks to reduce allocations
         Publisher<ByteBuffer> encoded = map(flattened, this::encodeChunk);
 
         encoded.subscribe(subscriber);
@@ -105,7 +107,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     private void resetState() {
         extensions.forEach(Resettable::reset);
         trailers.forEach(Resettable::reset);
-        chunkBuffer = null;
+        chunkBuffer.clear();
     }
 
     private Iterable<Iterable<ByteBuffer>> getTrailingChunks() {
@@ -272,37 +274,54 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            if (chunkBuffer == null) {
-                chunkBuffer = ByteBuffer.allocate(chunkSize);
-            }
-
-            long totalBufferedBytes = (long) chunkBuffer.position() + byteBuffer.remaining();
+        public void onNext(ByteBuffer inputBuffer) {
+            long totalBufferedBytes = (long) chunkBuffer.position() + inputBuffer.remaining();
             int nBufferedChunks = (int) (totalBufferedBytes / chunkSize);
 
             List<ByteBuffer> chunks = new ArrayList<>(nBufferedChunks);
 
             if (nBufferedChunks > 0) {
-                for (int i = 0; i < nBufferedChunks; i++) {
-                    ByteBuffer slice = byteBuffer.slice();
-                    int maxBytesToCopy = Math.min(chunkBuffer.remaining(), slice.remaining());
-                    slice.limit(maxBytesToCopy);
+                if (chunkBuffer.position() > 0) {
+                    int bytesToFill = chunkBuffer.remaining();
+                    // System.out.println("chunk buffer pos: " + chunkBuffer.position());
+                    ByteBuffer slice = inputBuffer.slice();
+                    slice.limit(slice.position() + bytesToFill);
+                    inputBuffer.position(inputBuffer.position() + bytesToFill);
 
                     chunkBuffer.put(slice);
-                    if (!chunkBuffer.hasRemaining()) {
-                        chunkBuffer.flip();
-                        chunks.add(chunkBuffer);
-                        chunkBuffer = ByteBuffer.allocate(chunkSize);
-                    }
+                    chunkBuffer.flip();
 
-                    byteBuffer.position(byteBuffer.position() + maxBytesToCopy);
+                    ByteBuffer fullChunk = ByteBuffer.allocate(chunkSize);
+
+                    fullChunk.put(chunkBuffer);
+                    fullChunk.flip();
+
+                    chunks.add(fullChunk);
+
+                    chunkBuffer.flip();
+
+
+                    nBufferedChunks--;
                 }
 
-                if (byteBuffer.hasRemaining()) {
-                    chunkBuffer.put(byteBuffer);
+                for (int i = 0; i < nBufferedChunks; i++) {
+                    // System.out.println("slicing full buffers");
+                    ByteBuffer slice = inputBuffer.slice();
+
+                    if (slice.remaining() >= chunkSize) {
+                        slice.limit(slice.position() + chunkSize);
+                        chunks.add(slice);
+                    } else {
+                        chunkBuffer.put(slice);
+                    }
+                    inputBuffer.position(inputBuffer.position() + slice.remaining());
+                }
+
+                if (inputBuffer.hasRemaining()) {
+                    chunkBuffer.put(inputBuffer);
                 }
             } else {
-                chunkBuffer.put(byteBuffer);
+                chunkBuffer.put(inputBuffer);
             }
 
             subscriber.onNext(chunks);

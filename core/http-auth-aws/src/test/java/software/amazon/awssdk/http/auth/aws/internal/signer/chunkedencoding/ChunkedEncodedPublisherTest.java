@@ -264,6 +264,7 @@ public class ChunkedEncodedPublisherTest {
                                                                               .build();
 
             List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+            assertThat(chunks.size()).isEqualTo(24);
 
             chunks.forEach(c -> {
                 String header = StandardCharsets.UTF_8.decode(getHeader(c)).toString();

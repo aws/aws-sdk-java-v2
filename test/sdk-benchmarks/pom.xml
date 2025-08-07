@@ -96,6 +96,12 @@
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-query-protocol</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
