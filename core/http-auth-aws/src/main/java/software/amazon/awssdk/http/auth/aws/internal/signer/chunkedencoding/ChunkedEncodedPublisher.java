@@ -61,6 +61,7 @@ import software.amazon.awssdk.utils.internal.MappingSubscriber;
  */
 @SdkInternalApi
 public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
+    private final ByteBuffer EMPTY = ByteBuffer.allocate(0);
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte SEMICOLON = ';';
     private static final byte EQUALS = '=';
@@ -83,6 +84,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         this.extensions.addAll(b.extensions);
         this.trailers.addAll(b.trailers);
         this.addEmptyTrailingChunk = b.addEmptyTrailingChunk;
+        this.chunkBuffer = ByteBuffer.allocate(chunkSize);
     }
 
     @Override
@@ -93,9 +95,8 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         Publisher<Iterable<ByteBuffer>> chunked = chunk(lengthEnforced);
         Publisher<Iterable<ByteBuffer>> trailingAdded = addTrailingChunks(chunked);
         Publisher<ByteBuffer> flattened = flatten(trailingAdded);
-        Publisher<ByteBuffer> encoded = map(flattened, this::encodeChunk);
 
-        encoded.subscribe(subscriber);
+        flattened.subscribe(subscriber);
     }
 
     public static Builder builder() {
@@ -105,7 +106,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     private void resetState() {
         extensions.forEach(Resettable::reset);
         trailers.forEach(Resettable::reset);
-        chunkBuffer = null;
+        chunkBuffer = ByteBuffer.allocate(chunkSize);
     }
 
     private Iterable<Iterable<ByteBuffer>> getTrailingChunks() {
@@ -114,12 +115,13 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         if (chunkBuffer != null) {
             chunkBuffer.flip();
             if (chunkBuffer.hasRemaining()) {
-                trailing.add(chunkBuffer);
+                trailing.add(encodeChunk(chunkBuffer));
+                chunkBuffer = null;
             }
         }
 
         if (addEmptyTrailingChunk) {
-            trailing.add(ByteBuffer.allocate(0));
+            trailing.add(encodeChunk(EMPTY.duplicate()));
         }
 
         return Collections.singletonList(trailing);
@@ -173,6 +175,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         int trailerLen = trailerData.stream()
                                     .mapToInt(t -> t.remaining() + CRLF.length)
                                     .sum();
+
 
         int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
 
@@ -272,37 +275,57 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         @Override
-        public void onNext(ByteBuffer byteBuffer) {
-            if (chunkBuffer == null) {
-                chunkBuffer = ByteBuffer.allocate(chunkSize);
-            }
-
-            long totalBufferedBytes = (long) chunkBuffer.position() + byteBuffer.remaining();
+        public void onNext(ByteBuffer inputBuffer) {
+            long totalBufferedBytes = (long) chunkBuffer.position() + inputBuffer.remaining();
+            // compute the number full chunks we have currently
             int nBufferedChunks = (int) (totalBufferedBytes / chunkSize);
 
             List<ByteBuffer> chunks = new ArrayList<>(nBufferedChunks);
 
             if (nBufferedChunks > 0) {
-                for (int i = 0; i < nBufferedChunks; i++) {
-                    ByteBuffer slice = byteBuffer.slice();
-                    int maxBytesToCopy = Math.min(chunkBuffer.remaining(), slice.remaining());
-                    slice.limit(maxBytesToCopy);
+                // We have some data from the previous inputBuffer
+                if (chunkBuffer.position() > 0) {
+                    int bytesToFill = chunkBuffer.remaining();
 
+                    ByteBuffer slice = inputBuffer.slice();
+
+                    slice.limit(slice.position() + bytesToFill);
+                    inputBuffer.position(inputBuffer.position() + bytesToFill);
+
+                    // At this point, we know chunkBuffer is full since inputBuffer has at least enough bytes to make up a full
+                    // chunk along with the data already in chunkBuffer
                     chunkBuffer.put(slice);
-                    if (!chunkBuffer.hasRemaining()) {
-                        chunkBuffer.flip();
-                        chunks.add(chunkBuffer);
-                        chunkBuffer = ByteBuffer.allocate(chunkSize);
-                    }
+                    chunkBuffer.flip();
+                    chunks.add(encodeChunk(chunkBuffer));
 
-                    byteBuffer.position(byteBuffer.position() + maxBytesToCopy);
+                    chunkBuffer.flip();
+
+                    nBufferedChunks--;
                 }
 
-                if (byteBuffer.hasRemaining()) {
-                    chunkBuffer.put(byteBuffer);
+                // Now encode all the remaining full chunks from inputBuffer.
+                // At this point chunkBuffer has no data in it; slice off chunks from inputBuffer and encode directly
+                for (int i = 0; i < nBufferedChunks; i++) {
+                    ByteBuffer slice = inputBuffer.slice();
+
+                    int sliceLimit = Math.min(slice.limit(), chunkSize);
+                    slice.limit(sliceLimit);
+
+                    inputBuffer.position(inputBuffer.position() + slice.remaining());
+
+                    if (slice.remaining() >= chunkSize) {
+                        slice.limit(slice.position() + chunkSize);
+                        chunks.add(encodeChunk(slice));
+                    } else {
+                        chunkBuffer.put(slice);
+                    }
+                }
+
+                if (inputBuffer.hasRemaining()) {
+                    chunkBuffer.put(inputBuffer);
                 }
             } else {
-                chunkBuffer.put(byteBuffer);
+                chunkBuffer.put(inputBuffer);
             }
 
             subscriber.onNext(chunks);
