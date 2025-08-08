@@ -104,96 +104,34 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
         return new String(chars);
     }
 
-
     protected static final TableSchema<RecordWithVersion> RECORD_WITH_VERSION_TABLE_SCHEMA =
-
-
-
         StaticTableSchema.builder(RecordWithVersion.class)
-
-
                          .newItemSupplier(RecordWithVersion::new)
-
-
                          .addAttribute(String.class, a -> a.name("id")
-
-
                                                            .getter(RecordWithVersion::getId)
-
-
                                                            .setter(RecordWithVersion::setId)
-
-
                                                            .tags(primaryPartitionKey(), secondaryPartitionKey("index1")))
-
-
                          .addAttribute(Integer.class, a -> a.name("sort")
-
-
                                                             .getter(RecordWithVersion::getSort)
-
-
                                                             .setter(RecordWithVersion::setSort)
-
-
                                                             .tags(primarySortKey(), secondarySortKey("index1")))
-
-
                          .addAttribute(Integer.class, a -> a.name("value")
-
-
                                                             .getter(RecordWithVersion::getValue)
-
-
                                                             .setter(RecordWithVersion::setValue))
-
-
                          .addAttribute(String.class, a -> a.name("gsi_id")
-
-
                                                            .getter(RecordWithVersion::getGsiId)
-
-
                                                            .setter(RecordWithVersion::setGsiId)
-
-
                                                            .tags(secondaryPartitionKey("gsi_keys_only")))
-
-
                          .addAttribute(Integer.class, a -> a.name("gsi_sort")
-
-
                                                             .getter(RecordWithVersion::getGsiSort)
-
-
                                                             .setter(RecordWithVersion::setGsiSort)
-
-
                                                             .tags(secondarySortKey("gsi_keys_only")))
-
-
                          .addAttribute(String.class, a -> a.name("stringAttribute")
-
-
                                                            .getter(RecordWithVersion::getStringAttribute)
-
-
                                                            .setter(RecordWithVersion::setStringAttribute))
-
-
                          .addAttribute(Integer.class, a -> a.name("version")
-
-
                                                             .getter(RecordWithVersion::getVersion)
-
-
                                                             .setter(RecordWithVersion::setVersion)
-
-
                                                             .tags(versionAttribute(0L, 1L, true)))  // startAt=0, incrementBy=1,
-                         // optimisticLockingOnDelete=true
-
-
                          .build();
-
 }
