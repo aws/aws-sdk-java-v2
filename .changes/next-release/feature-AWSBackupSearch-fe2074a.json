@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Backup Search",
+    "contributor": "",
+    "description": "Removed incorrect endpoint tests"
+}
