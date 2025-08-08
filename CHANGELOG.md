@@ -1,4 +1,101 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.19__ __2025-08-08__
+## __AWS Backup Search__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Billing__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Invoicing__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Adding DeleteConnection API to IoT Data Plane
+
+## __AWS Multi-party Approval__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS User Notifications__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS User Notifications Contacts__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new API GetContactMetrics for Amazon Connect.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix a bug in the Java based multipart client with GetObject incorrect retry behavior
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for GB200 UltraServers in Amazon SageMaker training jobs, training plans, and HyperPod clusters
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Update documentation to use key ARN only in OutputEncryptionKMSKeyId request parameter
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Inspector2__
+  - ### Features
+    - Add CVSSV4 to Vulnerability Search API and update enable/disable account id list length to 5
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Network Flow Monitor__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Partner Central Selling API__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Security Incident Response__
+  - ### Features
+    - Removed incorrect endpoint tests
+
 # __2.32.18__ __2025-08-07__
 ## __AWS Batch__
   - ### Features
