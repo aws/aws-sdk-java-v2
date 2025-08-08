@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.multipart;
+package software.amazon.awssdk.services.s3.internal.multipart.utils;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -31,18 +31,17 @@ import java.util.Random;
 import java.util.UUID;
 import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupplier;
 
-public class MultipartDownloadTestUtil {
+public class MultipartDownloadTestUtils {
 
     private static final String RETRY_SCENARIO = "retry";
     private static final String SUCCESS_STATE = "success";
-    private static final String FAILED_STATE = "failed";
 
-    private String testBucket;
-    private String testKey;
-    private String eTag;
-    private Random random = new Random();
+    private final String testBucket;
+    private final String testKey;
+    private final String eTag;
+    private final Random random = new Random();
 
-    public MultipartDownloadTestUtil(String testBucket, String testKey, String eTag) {
+    public MultipartDownloadTestUtils(String testBucket, String testKey, String eTag) {
         this.testBucket = testBucket;
         this.testKey = testKey;
         this.eTag = eTag;
@@ -66,7 +65,7 @@ public class MultipartDownloadTestUtil {
         return expectedBody;
     }
 
-    void stubIoError(int partNumber) {
+    public void stubIoError(int partNumber) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%s", testBucket, testKey, partNumber)))
                     .willReturn(aResponse()
                                     .withFault(Fault.CONNECTION_RESET_BY_PEER)));
@@ -83,20 +82,8 @@ public class MultipartDownloadTestUtil {
         return body;
     }
 
-     String internalErrorBody() {
-        return errorBody("InternalError", "We encountered an internal error. Please try again.");
-    }
 
-    private String errorBody(String errorCode, String errorMessage) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-               + "<Error>\n"
-               + "  <Code>" + errorCode + "</Code>\n"
-               + "  <Message>" + errorMessage + "</Message>\n"
-               + "</Error>";
-    }
-
-
-    void stubSeverError(int partNumber, String errorBody, int totalPart) {
+    public void stubSeverError(int partNumber, String errorBody, int totalPart) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, partNumber)))
                     .willReturn(aResponse()
                                     .withHeader("x-amz-request-id", String.valueOf(UUID.randomUUID()))
@@ -159,7 +146,19 @@ public class MultipartDownloadTestUtil {
         return expectedBody;
     }
 
-    private String slowdownErrorBody() {
+    public static String errorBody(String errorCode, String errorMessage) {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+               + "<Error>\n"
+               + "  <Code>" + errorCode + "</Code>\n"
+               + "  <Message>" + errorMessage + "</Message>\n"
+               + "</Error>";
+    }
+
+    public static String internalErrorBody() {
+        return errorBody("InternalError", "We encountered an internal error. Please try again.");
+    }
+
+    public static String slowdownErrorBody() {
         return errorBody("SlowDown", "Please reduce your request rate.");
     }
 }

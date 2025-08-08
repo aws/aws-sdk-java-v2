@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -36,13 +37,13 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.DelegatingBufferingSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
+@SdkInternalApi
 public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> {
     private static final Logger log = Logger.loggerFor(ByteArraySplittingTransformer.class);
     private final AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> upstreamResponseTransformer;
-    private final SimplePublisher<AsyncResponseTransformer<ResponseT, ResponseT>> simplePublisher = new SimplePublisher<>();
     private final CompletableFuture<ResponseBytes<ResponseT>> resultFuture;
     private Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downstreamSubscriber;
-    private final AtomicInteger partNumber = new AtomicInteger(0);
+    private final AtomicInteger onNextSignalsSent = new AtomicInteger(0);
     private final AtomicReference<ResponseT> responseT = new AtomicReference<>();
 
     /**
@@ -77,7 +78,8 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
     private final Map<Integer, ByteBuffer> buffers;
 
-    public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> upstreamResponseTransformer,
+    public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
+                                             upstreamResponseTransformer,
                                          CompletableFuture<ResponseBytes<ResponseT>> resultFuture) {
         this.upstreamResponseTransformer = upstreamResponseTransformer;
         this.resultFuture = resultFuture;
@@ -141,7 +143,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
             }
             if (outstandingDemand.get() > 0) {
                 demand = outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(new IndividualTransformer(partNumber.incrementAndGet()));
+                downstreamSubscriber.onNext(new IndividualTransformer(onNextSignalsSent.incrementAndGet()));
             }
         }
         return false;
@@ -195,15 +197,15 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
         }
     }
 
-    private class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
-        private final int partNumber;
-        private ByteArrayAsyncResponseTransformer<ResponseT> delegate = new ByteArrayAsyncResponseTransformer<>();
+    private final class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
+        private final int onNextCount;
+        private final ByteArrayAsyncResponseTransformer<ResponseT> delegate = new ByteArrayAsyncResponseTransformer<>();
 
         private CompletableFuture<ResponseT> future;
-        private List<CompletableFuture<ResponseBytes<ResponseT>>> delegatePrepareFutures = new ArrayList<>();
+        private final List<CompletableFuture<ResponseBytes<ResponseT>>> delegatePrepareFutures = new ArrayList<>();
 
-        private IndividualTransformer(int partNumber) {
-            this.partNumber = partNumber;
+        private IndividualTransformer(int onNextCount) {
+            this.onNextCount = onNextCount;
         }
 
         @Override
@@ -213,7 +215,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
             CompletableFutureUtils.forwardExceptionTo(prepare, future);
             delegatePrepareFutures.add(prepare);
             return prepare.thenApply(responseTResponseBytes -> {
-                    buffers.put(partNumber, responseTResponseBytes.asByteBuffer());
+                buffers.put(onNextCount, responseTResponseBytes.asByteBuffer());
                 return responseTResponseBytes.response();
             });
         }
