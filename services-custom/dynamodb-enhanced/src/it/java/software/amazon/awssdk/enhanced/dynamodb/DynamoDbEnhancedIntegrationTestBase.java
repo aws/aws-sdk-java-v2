@@ -21,6 +21,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -75,6 +76,36 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
                                                            .setter(Record::setStringAttribute))
                          .build();
 
+    protected static final TableSchema<Record> RECORD_WITH_FLATTEN_MAP_TABLE_SCHEMA =
+        StaticTableSchema.builder(Record.class)
+                         .newItemSupplier(Record::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(Record::getId)
+                                                           .setter(Record::setId)
+                                                           .tags(primaryPartitionKey(), secondaryPartitionKey("index1")))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(Record::getSort)
+                                                            .setter(Record::setSort)
+                                                            .tags(primarySortKey(), secondarySortKey("index1")))
+                         .addAttribute(Integer.class, a -> a.name("value")
+                                                            .getter(Record::getValue)
+                                                            .setter(Record::setValue))
+                         .addAttribute(String.class, a -> a.name("gsi_id")
+                                                           .getter(Record::getGsiId)
+                                                           .setter(Record::setGsiId)
+                                                           .tags(secondaryPartitionKey("gsi_keys_only")))
+                         .addAttribute(Integer.class, a -> a.name("gsi_sort")
+                                                            .getter(Record::getGsiSort)
+                                                            .setter(Record::setGsiSort)
+                                                            .tags(secondarySortKey("gsi_keys_only")))
+                         .addAttribute(String.class, a -> a.name("stringAttribute")
+                                                           .getter(Record::getStringAttribute)
+                                                           .setter(Record::setStringAttribute))
+                         .flatten("attributesMap",
+                                  Record::getAttributesMap,
+                                  Record::setAttributesMap)
+                         .build();
+
 
     protected static final List<Record> RECORDS =
         IntStream.range(0, 9)
@@ -85,6 +116,22 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
                      .setStringAttribute(getStringAttrValue(10 * 1024))
                      .setGsiId("gsi-id-value")
                      .setGsiSort(i))
+                 .collect(Collectors.toList());
+
+    protected static final List<Record> RECORDS_WITH_FLATTEN_MAP =
+        IntStream.range(0, 9)
+                 .mapToObj(i -> new Record()
+                     .setId("id-value")
+                     .setSort(i)
+                     .setValue(i)
+                     .setStringAttribute(getStringAttrValue(10 * 1024))
+                     .setGsiId("gsi-id-value")
+                     .setGsiSort(i)
+                     .setAttributesMap(new HashMap<String, String>() {{
+                         put("mapAttribute1", "mapValue1");
+                         put("mapAttribute2", "mapValue2");
+                         put("mapAttribute3", "mapValue3");
+                     }}))
                  .collect(Collectors.toList());
 
     protected static final List<Record> KEYS_ONLY_RECORDS =
