@@ -68,8 +68,6 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
     @Override
     public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(SplittingTransformerConfiguration splitConfig) {
-        // TODO - splitConfig not used - support this or log warning/update javdocs
-
         CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
             new ByteArraySplittingTransformer<>(this, future);

@@ -46,13 +46,9 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
     private final AtomicInteger onNextSignalsSent = new AtomicInteger(0);
     private final AtomicReference<ResponseT> responseT = new AtomicReference<>();
 
-    /**
-     * This publisher is used to send the bytes received from the downstream subscriber's transformers to a
-     * {@link DelegatingBufferingSubscriber} that will buffer a number of bytes up to {@code maximumBufferSize}.
-     */
     private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
     /**
-     * The amount requested by the downstream subscriber that is still left to fulfill. Updated. when the
+     * The amount requested by the downstream subscriber that is still left to fulfill. Updated when the
      * {@link Subscription#request(long) request} method is called on the downstream subscriber's subscription. Corresponds to the
      * number of {@code AsyncResponseTransformer} that will be published to the downstream subscriber.
      */
