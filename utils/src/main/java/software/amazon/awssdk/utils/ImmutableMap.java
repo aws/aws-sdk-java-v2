@@ -206,7 +206,7 @@ public final class ImmutableMap<K, V> implements Map<K, V> {
         if (map.containsKey(key)) {
 
             if (allowDuplicateKeys) {
-                log.warn(() -> String.format("Duplicate keys are provided for [%s]. The newer value [%s] will be saved, and the "
+                log.debug(() -> String.format("Duplicate keys are provided for [%s]. The newer value [%s] will be saved, and the "
                                              + "existing value [%s] will be overwritten.", key, value, map.get(key)));
             } else {
                 throw new IllegalArgumentException(DUPLICATED_KEY_MESSAGE);

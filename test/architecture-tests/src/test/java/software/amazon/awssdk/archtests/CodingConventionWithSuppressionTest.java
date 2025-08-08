@@ -52,8 +52,7 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
-                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
-                      ArchUtils.classNameToPattern("software.amazon.awssdk.utils.ImmutableMap")));
+                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
