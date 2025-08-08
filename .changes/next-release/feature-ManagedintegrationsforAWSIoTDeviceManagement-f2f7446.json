@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed integrations for AWS IoT Device Management",
-    "contributor": "",
-    "description": "Removed incorrect endpoint tests"
-}

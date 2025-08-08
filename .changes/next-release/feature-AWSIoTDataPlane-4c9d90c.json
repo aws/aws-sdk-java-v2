@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Data Plane",
-    "contributor": "",
-    "description": "Adding DeleteConnection API to IoT Data Plane"
-}

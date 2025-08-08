@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Network Flow Monitor",
-    "contributor": "",
-    "description": "Removed incorrect endpoint tests"
-}
