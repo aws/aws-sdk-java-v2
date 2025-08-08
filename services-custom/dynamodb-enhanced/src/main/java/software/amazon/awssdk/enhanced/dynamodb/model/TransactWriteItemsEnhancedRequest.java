@@ -282,7 +282,11 @@ public final class TransactWriteItemsEnhancedRequest {
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {
-            return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
+
+
+             return addDeleteItem(mappedTableResource,
+                            TransactDeleteItemEnhancedRequest.builder().key( mappedTableResource.keyFrom(keyItem)).item(keyItem).build());
+             // return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
         }
 
         /**

@@ -531,7 +531,7 @@ public class DeleteItemOperationTest {
 
         DeleteItemOperation<FakeItem> deleteItemOperation =
             spy(DeleteItemOperation.create(TransactDeleteItemEnhancedRequest.builder()
-                                                                            .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                            // .key(k -> k.partitionValue(fakeItem.getId()))
                                                                             .returnValuesOnConditionCheckFailure(returnValues)
                                                                             .build()));
         OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());

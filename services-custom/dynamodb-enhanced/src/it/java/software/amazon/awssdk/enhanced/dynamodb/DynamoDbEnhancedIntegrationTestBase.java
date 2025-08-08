@@ -19,6 +19,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.RecordWithVersion;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -101,5 +103,97 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
         Arrays.fill(chars, 'a');
         return new String(chars);
     }
+
+
+    protected static final TableSchema<RecordWithVersion> RECORD_WITH_VERSION_TABLE_SCHEMA =
+
+
+
+        StaticTableSchema.builder(RecordWithVersion.class)
+
+
+                         .newItemSupplier(RecordWithVersion::new)
+
+
+                         .addAttribute(String.class, a -> a.name("id")
+
+
+                                                           .getter(RecordWithVersion::getId)
+
+
+                                                           .setter(RecordWithVersion::setId)
+
+
+                                                           .tags(primaryPartitionKey(), secondaryPartitionKey("index1")))
+
+
+                         .addAttribute(Integer.class, a -> a.name("sort")
+
+
+                                                            .getter(RecordWithVersion::getSort)
+
+
+                                                            .setter(RecordWithVersion::setSort)
+
+
+                                                            .tags(primarySortKey(), secondarySortKey("index1")))
+
+
+                         .addAttribute(Integer.class, a -> a.name("value")
+
+
+                                                            .getter(RecordWithVersion::getValue)
+
+
+                                                            .setter(RecordWithVersion::setValue))
+
+
+                         .addAttribute(String.class, a -> a.name("gsi_id")
+
+
+                                                           .getter(RecordWithVersion::getGsiId)
+
+
+                                                           .setter(RecordWithVersion::setGsiId)
+
+
+                                                           .tags(secondaryPartitionKey("gsi_keys_only")))
+
+
+                         .addAttribute(Integer.class, a -> a.name("gsi_sort")
+
+
+                                                            .getter(RecordWithVersion::getGsiSort)
+
+
+                                                            .setter(RecordWithVersion::setGsiSort)
+
+
+                                                            .tags(secondarySortKey("gsi_keys_only")))
+
+
+                         .addAttribute(String.class, a -> a.name("stringAttribute")
+
+
+                                                           .getter(RecordWithVersion::getStringAttribute)
+
+
+                                                           .setter(RecordWithVersion::setStringAttribute))
+
+
+                         .addAttribute(Integer.class, a -> a.name("version")
+
+
+                                                            .getter(RecordWithVersion::getVersion)
+
+
+                                                            .setter(RecordWithVersion::setVersion)
+
+
+                                                            .tags(versionAttribute(0L, 1L, true)))  // startAt=0, incrementBy=1,
+                         // optimisticLockingOnDelete=true
+
+
+                         .build();
 
 }
