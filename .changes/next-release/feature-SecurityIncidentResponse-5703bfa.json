@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Security Incident Response",
+    "contributor": "",
+    "description": "Removed incorrect endpoint tests"
+}
