@@ -17,82 +17,82 @@ name: software.amazon.awssdk.v2migration.S3TypesToV2
 displayName: Change S3 types to v2.
 description: Change S3 types to v2.
 recipeList:
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getObject(com.amazonaws.services.s3.model.GetObjectRequest, java.io.File)
       newReturnType: software.amazon.awssdk.services.s3.model.GetObjectResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketAcl(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketAclResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getObjectAcl(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetObjectAclResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketAccelerateConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketAccelerateConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketLifecycleConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketCrossOriginConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketCorsResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketLoggingConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketLoggingResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketNotificationConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketPolicy(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketReplicationConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketReplicationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketTaggingConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketTaggingResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketVersioningConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3 getBucketWebsiteConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketWebsiteResponse
 
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getObject(com.amazonaws.services.s3.model.GetObjectRequest, java.io.File)
       newReturnType: software.amazon.awssdk.services.s3.model.GetObjectResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketAcl(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketAclResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getObjectAcl(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetObjectAclResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketAccelerateConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketAccelerateConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketLifecycleConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketLifecycleConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketCrossOriginConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketCorsResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketLoggingConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketLoggingResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketNotificationConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketNotificationConfigurationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketPolicy(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketReplicationConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketReplicationResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketTaggingConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketTaggingResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketVersioningConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getBucketWebsiteConfiguration(..)
       newReturnType: software.amazon.awssdk.services.s3.model.GetBucketWebsiteResponse
