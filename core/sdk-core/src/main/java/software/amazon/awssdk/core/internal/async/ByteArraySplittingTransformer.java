@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.async.DelegatingBufferingSubscriber;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @SdkInternalApi
