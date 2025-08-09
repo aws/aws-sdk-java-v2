@@ -37,14 +37,16 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
  */
 @SdkPublicApi
 @ThreadSafe
-public final class TransactDeleteItemEnhancedRequest {
+public final class TransactDeleteItemEnhancedRequest<T> {
 
     private final Key key;
+    private final T item;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
 
-    private TransactDeleteItemEnhancedRequest(Builder builder) {
+    private TransactDeleteItemEnhancedRequest(Builder<T> builder) {
         this.key = builder.key;
+        this.item = builder.item;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
@@ -57,12 +59,24 @@ public final class TransactDeleteItemEnhancedRequest {
     }
 
     /**
+     * Creates a newly initialized builder for a request object.
+     *
+     * @param itemClass the class that items in this table map to
+     * @param <T> The type of the modelled object, corresponding to itemClass
+     * @return a TransactDeleteItemEnhancedRequest builder
+     */
+    public static <T> Builder<T> builder(Class<? extends T> itemClass) {
+        return new Builder<>();
+    }
+
+    /**
      * Returns a builder initialized with all existing values on the request object.
      */
-    public Builder toBuilder() {
-        return builder().key(key)
-                        .conditionExpression(conditionExpression)
-                        .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
+    public Builder<T> toBuilder() {
+        return new Builder<T>().key(key)
+                               .item(item)
+                               .conditionExpression(conditionExpression)
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailureAsString());
     }
 
     /**
@@ -70,6 +84,13 @@ public final class TransactDeleteItemEnhancedRequest {
      */
     public Key key() {
         return key;
+    }
+
+    /**
+     * Returns the item for this delete operation request.
+     */
+    public T item() {
+        return item;
     }
 
     /**
@@ -116,9 +137,12 @@ public final class TransactDeleteItemEnhancedRequest {
             return false;
         }
 
-        TransactDeleteItemEnhancedRequest that = (TransactDeleteItemEnhancedRequest) o;
+        TransactDeleteItemEnhancedRequest<?> that = (TransactDeleteItemEnhancedRequest<?>) o;
 
         if (!Objects.equals(key, that.key)) {
+            return false;
+        }
+        if (!Objects.equals(item, that.item)) {
             return false;
         }
         if (!Objects.equals(conditionExpression, that.conditionExpression)) {
@@ -130,6 +154,7 @@ public final class TransactDeleteItemEnhancedRequest {
     @Override
     public int hashCode() {
         int result = Objects.hashCode(key);
+        result = 31 * result + Objects.hashCode(item);
         result = 31 * result + Objects.hashCode(conditionExpression);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
         return result;
@@ -138,11 +163,12 @@ public final class TransactDeleteItemEnhancedRequest {
     /**
      * A builder that is used to create a request with the desired parameters.
      * <p>
-     * <b>Note</b>: A valid request builder must define a {@link Key}.
+     * <b>Note</b>: A valid request builder must define either a {@link Key} or an item.
      */
     @NotThreadSafe
-    public static final class Builder {
+    public static final class Builder<T> {
         private Key key;
+        private T item;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
 
@@ -155,7 +181,7 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param key the primary key to use in the request.
          * @return a builder of this type
          */
-        public Builder key(Key key) {
+        public Builder<T> key(Key key) {
             this.key = key;
             return this;
         }
@@ -167,10 +193,22 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param keyConsumer a {@link Consumer} of {@link Key}
          * @return a builder of this type
          */
-        public Builder key(Consumer<Key.Builder> keyConsumer) {
+        public Builder<T> key(Consumer<Key.Builder> keyConsumer) {
             Key.Builder builder = Key.builder();
             keyConsumer.accept(builder);
             return key(builder.build());
+        }
+
+        /**
+         * Sets the item to delete from DynamoDB. The key will be extracted from this item.
+         * This is useful when you want to delete an item with version checking.
+         *
+         * @param item the item to delete
+         * @return a builder of this type
+         */
+        public Builder<T> item(T item) {
+            this.item = item;
+            return this;
         }
 
         /**
@@ -182,7 +220,7 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param conditionExpression a condition written as an {@link Expression}
          * @return a builder of this type
          */
-        public Builder conditionExpression(Expression conditionExpression) {
+        public Builder<T> conditionExpression(Expression conditionExpression) {
             this.conditionExpression = conditionExpression;
             return this;
         }
@@ -195,7 +233,7 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param returnValuesOnConditionCheckFailure What values to return on condition check failure.
          * @return a builder of this type
          */
-        public Builder returnValuesOnConditionCheckFailure(
+        public Builder<T> returnValuesOnConditionCheckFailure(
             ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure == null ? null :
                                                        returnValuesOnConditionCheckFailure.toString();
@@ -210,13 +248,13 @@ public final class TransactDeleteItemEnhancedRequest {
          * @param returnValuesOnConditionCheckFailure What values to return on condition check failure.
          * @return a builder of this type
          */
-        public Builder returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
+        public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
             return this;
         }
 
 
-        public TransactDeleteItemEnhancedRequest build() {
+        public TransactDeleteItemEnhancedRequest<? extends T> build() {
             return new TransactDeleteItemEnhancedRequest(this);
         }
     }

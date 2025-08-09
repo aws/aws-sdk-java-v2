@@ -31,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -64,8 +65,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
     private final long startAt;
     private final long incrementBy;
+    private final boolean optimisticLockingOnDelete;
 
-    private VersionedRecordExtension(Long startAt, Long incrementBy) {
+    private VersionedRecordExtension(Long startAt, Long incrementBy, Boolean optimisticLockingOnDelete) {
         Validate.isNotNegativeOrNull(startAt, "startAt");
 
         if (incrementBy != null && incrementBy < 1) {
@@ -74,6 +76,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         this.startAt = startAt != null ? startAt : 0L;
         this.incrementBy = incrementBy != null ? incrementBy : 1L;
+        this.optimisticLockingOnDelete = optimisticLockingOnDelete != null ? optimisticLockingOnDelete : false;
     }
 
     public static Builder builder() {
@@ -91,23 +94,37 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy) {
             return new VersionAttribute(startAt, incrementBy);
         }
+
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, Boolean optimisticLockingOnDelete) {
+            return new VersionAttribute(startAt, incrementBy, optimisticLockingOnDelete);
+        }
     }
 
     private static final class VersionAttribute implements StaticAttributeTag {
         private static final String START_AT_METADATA_KEY = "VersionedRecordExtension:StartAt";
         private static final String INCREMENT_BY_METADATA_KEY = "VersionedRecordExtension:IncrementBy";
+        private static final String OPTIMISTIC_LOCKING_ON_DELETE_METADATA_KEY = "VersionedRecordExtension:OptimisticLockingOnDelete";
 
         private final Long startAt;
         private final Long incrementBy;
+        private final Boolean optimisticLockingOnDelete;
 
         private VersionAttribute() {
             this.startAt = null;
             this.incrementBy = null;
+            this.optimisticLockingOnDelete = null;
         }
 
         private VersionAttribute(Long startAt, Long incrementBy) {
             this.startAt = startAt;
             this.incrementBy = incrementBy;
+            this.optimisticLockingOnDelete = null;
+        }
+
+        private VersionAttribute(Long startAt, Long incrementBy, Boolean optimisticLockingOnDelete) {
+            this.startAt = startAt;
+            this.incrementBy = incrementBy;
+            this.optimisticLockingOnDelete = optimisticLockingOnDelete;
         }
 
         @Override
@@ -128,6 +145,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
                                        .addCustomMetadataObject(START_AT_METADATA_KEY, startAt)
                                        .addCustomMetadataObject(INCREMENT_BY_METADATA_KEY, incrementBy)
+                                       .addCustomMetadataObject(OPTIMISTIC_LOCKING_ON_DELETE_METADATA_KEY, optimisticLockingOnDelete)
                                        .markAttributeAsKey(attributeName, attributeValueType);
         }
     }
@@ -141,8 +159,28 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return WriteModification.builder().build();
         }
 
-        Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
+        // Check if optimistic locking is enabled for delete operations
+        // First check attribute-level setting, then fall back to extension-level setting
+        Boolean attributeLevelOptimisticLocking = context.tableMetadata()
+                                                         .customMetadataObject(VersionAttribute.OPTIMISTIC_LOCKING_ON_DELETE_METADATA_KEY, Boolean.class)
+                                                         .orElse(null);
 
+        boolean shouldApplyOptimisticLocking = attributeLevelOptimisticLocking != null
+                                               ? attributeLevelOptimisticLocking
+                                               : this.optimisticLockingOnDelete;
+
+        // Handle DELETE operations with optimistic locking if enabled
+        if (context.operationName() == OperationName.DELETE_ITEM && shouldApplyOptimisticLocking) {
+            return handleOptimisticDelete(context, versionAttributeKey.get());
+        }
+
+        // For non-delete operations, skip version handling if it's a delete
+        if (context.operationName() == OperationName.DELETE_ITEM) {
+            return WriteModification.builder().build();
+        }
+
+        // Existing logic for other operations
+        Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
         String attributeKeyRef = keyRef(versionAttributeKey.get());
         AttributeValue newVersionValue;
         Expression condition;
@@ -152,9 +190,8 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                                    .customMetadataObject(VersionAttribute.START_AT_METADATA_KEY, Long.class)
                                                    .orElse(this.startAt);
         Long versionIncrementByFromAnnotation = context.tableMetadata()
-                                                   .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY, Long.class)
-                                                   .orElse(this.incrementBy);
-
+                                                       .customMetadataObject(VersionAttribute.INCREMENT_BY_METADATA_KEY, Long.class)
+                                                       .orElse(this.incrementBy);
 
         if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
             newVersionValue = AttributeValue.builder()
@@ -167,19 +204,13 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         } else {
             // Existing record, increment version
             if (existingVersionValue.n() == null) {
-                // In this case a non-null version attribute is present, but it's not an N
                 throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
             }
 
             long existingVersion = Long.parseLong(existingVersionValue.n());
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
-
             long increment = versionIncrementByFromAnnotation;
 
-            /*
-            Since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
-            to happen in a real life scenario, we should add overflow protection.
-            */
             if (existingVersion > Long.MAX_VALUE - increment) {
                 throw new IllegalStateException(
                     String.format("Version overflow detected. Current version %d + increment %d would exceed Long.MAX_VALUE",
@@ -191,8 +222,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             condition = Expression.builder()
                                   .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
-                                  .expressionValues(Collections.singletonMap(existingVersionValueKey,
-                                                                             existingVersionValue))
+                                  .expressionValues(Collections.singletonMap(existingVersionValueKey, existingVersionValue))
                                   .build();
         }
 
@@ -204,6 +234,31 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .build();
     }
 
+    private WriteModification handleOptimisticDelete(DynamoDbExtensionContext.BeforeWrite context,
+                                                     String versionAttributeKey) {
+        // Look for version in the items map
+        AttributeValue versionValue = context.items().get(versionAttributeKey);
+
+        if (versionValue != null && versionValue.n() != null) {
+            // Build condition for the specific version
+            String attributeKeyRef = keyRef(versionAttributeKey);
+            String valueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey);
+
+            Expression condition = Expression.builder()
+                                             .expression(String.format("%s = %s", attributeKeyRef, valueKey))
+                                             .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey))
+                                             .expressionValues(Collections.singletonMap(valueKey, versionValue))
+                                             .build();
+
+            return WriteModification.builder()
+                                    .additionalConditionalExpression(condition)
+                                    .build();
+        }
+
+        // If no version value is provided, don't add any condition (backward compatible)
+        return WriteModification.builder().build();
+    }
+
     private boolean isInitialVersion(AttributeValue existingVersionValue, Long versionStartAtFromAnnotation) {
         if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
             return true;
@@ -211,7 +266,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
         if (existingVersionValue.n() != null) {
             long currentVersion = Long.parseLong(existingVersionValue.n());
-            // If annotation value is present, use it, otherwise fall back to the extension's value
             Long effectiveStartAt = versionStartAtFromAnnotation != null ? versionStartAtFromAnnotation : this.startAt;
             return currentVersion == effectiveStartAt;
         }
@@ -223,6 +277,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
     public static final class Builder {
         private Long startAt;
         private Long incrementBy;
+        private Boolean optimisticLockingOnDelete;
 
         private Builder() {
         }
@@ -251,8 +306,21 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return this;
         }
 
+        /**
+         * Enables or disables optimistic locking for delete operations.
+         * When enabled, delete operations will include a condition to check the version attribute.
+         * Default value - {@code false} (for backward compatibility).
+         *
+         * @param optimisticLockingOnDelete true to enable optimistic locking on deletes, false to disable
+         * @return the builder instance
+         */
+        public Builder optimisticLockingOnDelete(Boolean optimisticLockingOnDelete) {
+            this.optimisticLockingOnDelete = optimisticLockingOnDelete;
+            return this;
+        }
+
         public VersionedRecordExtension build() {
-            return new VersionedRecordExtension(this.startAt, this.incrementBy);
+            return new VersionedRecordExtension(this.startAt, this.incrementBy, this.optimisticLockingOnDelete);
         }
     }
 }

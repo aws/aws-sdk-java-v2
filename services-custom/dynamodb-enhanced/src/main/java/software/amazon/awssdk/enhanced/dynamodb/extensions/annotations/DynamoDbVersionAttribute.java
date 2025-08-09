@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions.annotations;
 
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,11 +24,6 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.VersionRecordAttributeTags;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.BeanTableSchemaAttributeTag;
 
-/**
- * Denotes this attribute as recording the version record number to be used for optimistic locking. Every time a record
- * with this attribute is written to the database it will be incremented and a condition added to the request to check
- * for an exact match of the old version.
- */
 @SdkPublicApi
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -49,4 +45,12 @@ public @interface DynamoDbVersionAttribute {
      */
     long incrementBy() default 1;
 
+    /**
+     * Whether to enable optimistic locking for delete operations.
+     * When enabled, delete operations will include a condition to check the version attribute.
+     * Default value - {@code false} (for backward compatibility).
+     *
+     * @return true to enable optimistic locking on deletes, false to disable
+     */
+    boolean optimisticLockingOnDelete() default false;
 }

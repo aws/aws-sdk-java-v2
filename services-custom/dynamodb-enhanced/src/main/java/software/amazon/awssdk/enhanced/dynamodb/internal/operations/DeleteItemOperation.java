@@ -15,18 +15,22 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
@@ -48,13 +52,13 @@ public class DeleteItemOperation<T>
                TransactableWriteOperation<T>,
                BatchableWriteOperation<T> {
 
-    private final Either<DeleteItemEnhancedRequest, TransactDeleteItemEnhancedRequest> request;
+    private final Either<DeleteItemEnhancedRequest, TransactDeleteItemEnhancedRequest<? extends T>> request;
 
     private DeleteItemOperation(DeleteItemEnhancedRequest request) {
         this.request = Either.left(request);
     }
 
-    private DeleteItemOperation(TransactDeleteItemEnhancedRequest request) {
+    private DeleteItemOperation(TransactDeleteItemEnhancedRequest<? extends T> request) {
         this.request = Either.right(request);
     }
 
@@ -62,7 +66,7 @@ public class DeleteItemOperation<T>
         return new DeleteItemOperation<>(request);
     }
 
-    public static <T> DeleteItemOperation<T> create(TransactDeleteItemEnhancedRequest request) {
+    public static <T> DeleteItemOperation<T> create(TransactDeleteItemEnhancedRequest<? extends T> request) {
         return new DeleteItemOperation<>(request);
     }
 
@@ -82,20 +86,78 @@ public class DeleteItemOperation<T>
 
         Key key = request.map(DeleteItemEnhancedRequest::key, TransactDeleteItemEnhancedRequest::key);
 
+
+        Map<String, AttributeValue> keyAttributes = key.keyMap(tableSchema, operationContext.indexName());
+
+        // Create item map for extension processing
+        Map<String, AttributeValue> itemForExtensions = new HashMap<>(keyAttributes);
+
+          // If item is provided, use full item attributes for extension processing (includes version)
+         if (request.right().isPresent() && request.right().get().item() != null) {
+          T item = request.right().get().item();
+           itemForExtensions = tableSchema.itemToMap(item, false);
+          }
+
+        // Apply extensions to potentially add version conditions
+        WriteModification writeModification = null;
+        if (extension != null) {
+            DynamoDbExtensionContext.BeforeWrite beforeWriteContext =
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemForExtensions)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableSchema.tableMetadata())
+                                               .tableSchema(tableSchema)
+                                               .operationName(OperationName.DELETE_ITEM)
+                                               .build();
+
+            writeModification = extension.beforeWrite(beforeWriteContext);
+        }
+
         DeleteItemRequest.Builder requestBuilder =
             DeleteItemRequest.builder()
                              .tableName(operationContext.tableName())
-                             .key(key.keyMap(tableSchema, operationContext.indexName()))
+                             .key(keyAttributes)
                              .returnValues(ReturnValue.ALL_OLD);
 
         if (request.left().isPresent()) {
             requestBuilder = addPlainDeleteItemParameters(requestBuilder, request.left().get());
         }
-
-        requestBuilder = addExpressionsIfExist(requestBuilder);
-
+        requestBuilder = addExpressionsIfExist(requestBuilder, writeModification);
         return requestBuilder.build();
     }
+
+    private DeleteItemRequest.Builder addExpressionsIfExist(DeleteItemRequest.Builder requestBuilder,
+                                                            WriteModification writeModification) {
+        Expression conditionExpression = request.map(r -> Optional.ofNullable(r.conditionExpression()),
+                                                     r -> Optional.ofNullable(r.conditionExpression()))
+                                                .orElse(null);
+
+        // Merge extension condition with user-provided condition
+        if (writeModification != null && writeModification.additionalConditionalExpression() != null) {
+            Expression extensionCondition = writeModification.additionalConditionalExpression();
+            if (conditionExpression != null) {
+                conditionExpression = conditionExpression.and(extensionCondition);
+            } else {
+                conditionExpression = extensionCondition;
+            }
+        }
+
+        if (conditionExpression != null) {
+            requestBuilder = requestBuilder.conditionExpression(conditionExpression.expression());
+            Map<String, String> expressionNames = conditionExpression.expressionNames();
+            Map<String, AttributeValue> expressionValues = conditionExpression.expressionValues();
+
+            if (expressionNames != null && !expressionNames.isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeNames(expressionNames);
+            }
+
+            if (expressionValues != null && !expressionValues.isEmpty()) {
+                requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
+            }
+        }
+        return requestBuilder;
+    }
+
 
     @Override
     public DeleteItemEnhancedResponse<T> transformResponse(DeleteItemResponse response,
