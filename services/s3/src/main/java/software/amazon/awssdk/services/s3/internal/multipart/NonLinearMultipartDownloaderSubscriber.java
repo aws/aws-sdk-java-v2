@@ -209,16 +209,16 @@ public class NonLinearMultipartDownloaderSubscriber
                 allRemainingParts.add(i);
             }
             getObjectResponse = res;
+            // request the next part, which will start the whole multipart dl in parallel
             subscription.request(1);
         });
         return true;
     }
 
     private void requestMoreIfNeeded() {
-        if (allPartsCompletedOrInFlights()) {
-            return;
+        if (!allPartsCompletedOrInFlights()) {
+            subscription.request(1);
         }
-        subscription.request(1);
     }
 
     private Integer nextPart() {
