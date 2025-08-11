@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Lambda",
-    "contributor": "",
-    "description": "Doc-only update for Lambda that updates the maximum payload size for response streaming invocations to 200 MB."
-}
