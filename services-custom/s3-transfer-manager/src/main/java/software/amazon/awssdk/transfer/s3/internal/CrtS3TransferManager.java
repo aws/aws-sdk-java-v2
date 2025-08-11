@@ -149,7 +149,9 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         log.debug(() -> "Using CRT direct download to file.");
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
 
-       TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        // CRT with direct file download does not call onSubscribe until the request is complete
+        // set resetProgressOnSubscribe=false to ensure progress is maintained when the request is completed.
+       TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null, false);
         // TODO: This could be a single method that takes two builders probably
        GetObjectRequest getObjectRequestWithAttributes = attachSdkHttpExecutionAttribute(
             attachSdkAttribute(

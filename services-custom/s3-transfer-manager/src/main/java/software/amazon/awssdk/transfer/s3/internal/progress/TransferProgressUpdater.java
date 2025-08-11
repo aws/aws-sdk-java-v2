@@ -45,9 +45,11 @@ public class TransferProgressUpdater {
     private final TransferListenerContext context;
     private final TransferListenerInvoker listenerInvoker;
     private final CompletableFuture<Void> endOfStreamFuture;
+    private final boolean resetProgressOnSubscribe;
 
     public TransferProgressUpdater(TransferObjectRequest request,
-                                   Long contentLength) {
+                                   Long contentLength, boolean resetProgressOnSubscribe) {
+        this.resetProgressOnSubscribe = resetProgressOnSubscribe;
         DefaultTransferProgressSnapshot.Builder snapshotBuilder = DefaultTransferProgressSnapshot.builder();
         snapshotBuilder.transferredBytes(0L);
         Optional.ofNullable(contentLength).ifPresent(snapshotBuilder::totalBytes);
@@ -63,6 +65,11 @@ public class TransferProgressUpdater {
                           : new TransferListenerInvoker(request.transferListeners());
 
         endOfStreamFuture = new CompletableFuture<>();
+    }
+
+    public TransferProgressUpdater(TransferObjectRequest request,
+                                   Long contentLength) {
+        this(request, contentLength, true);
     }
 
     public TransferProgress progress() {
@@ -81,7 +88,9 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-                    resetBytesTransferred();
+                    if (resetProgressOnSubscribe) {
+                        resetBytesTransferred();
+                    }
                 }
 
                 @Override
@@ -120,7 +129,9 @@ public class TransferProgressUpdater {
         return new PublisherListener<Long>() {
             @Override
             public void publisherSubscribe(Subscriber<? super Long> subscriber) {
-                resetBytesTransferred();
+                if (resetProgressOnSubscribe) {
+                    resetBytesTransferred();
+                }
             }
 
             @Override
@@ -144,7 +155,9 @@ public class TransferProgressUpdater {
         return new PublisherListener<S3MetaRequestProgress>() {
             @Override
             public void publisherSubscribe(Subscriber<? super S3MetaRequestProgress> subscriber) {
-                resetBytesTransferred();
+                if (resetProgressOnSubscribe) {
+                    resetBytesTransferred();
+                }
             }
 
             @Override
@@ -270,7 +283,9 @@ public class TransferProgressUpdater {
 
         @Override
         public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
-            resetBytesTransferred();
+            if (resetProgressOnSubscribe) {
+                resetBytesTransferred();
+            }
         }
 
         @Override
