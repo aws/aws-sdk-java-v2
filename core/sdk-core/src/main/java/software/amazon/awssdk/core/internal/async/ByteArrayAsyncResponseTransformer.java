@@ -28,6 +28,8 @@ import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.DelegatingBufferingSubscriber;
 
 /**
  * Implementation of {@link AsyncResponseTransformer} that dumps content into a byte array and supports further
@@ -61,6 +63,13 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         publisher.subscribe(new BaosSubscriber(cf));
     }
 
+    public void onStream(SdkPublisher<ByteBuffer> publisher, long maximumBufferSize) {
+        publisher.subscribe(DelegatingBufferingSubscriber.builder()
+                                                         .maximumBufferInBytes(maximumBufferSize)
+                                                         .delegate(new BaosSubscriber(cf))
+                                                         .build());
+    }
+
     @Override
     public void exceptionOccurred(Throwable throwable) {
         cf.completeExceptionally(throwable);
@@ -68,9 +77,10 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
     @Override
     public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(SplittingTransformerConfiguration splitConfig) {
+        Validate.notNull(splitConfig, "splitConfig must not be null");
         CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
-            new ByteArraySplittingTransformer<>(this, future);
+            new ByteArraySplittingTransformer<>(this, future, splitConfig.bufferSizeInBytes());
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResponseBytes<ResponseT>>builder()
                                                    .publisher(transformer)
                                                    .resultFuture(future)
