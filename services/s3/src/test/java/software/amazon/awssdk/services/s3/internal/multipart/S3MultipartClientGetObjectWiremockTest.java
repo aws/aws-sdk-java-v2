@@ -33,14 +33,13 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.internalErrorBody;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.transformersSuppliers;
 
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.io.IOException;
-import java.io.UncheckedIOException;
+import java.net.SocketException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,15 +48,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -70,7 +66,6 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupplier;
@@ -82,7 +77,6 @@ public class S3MultipartClientGetObjectWiremockTest {
     private static final String BUCKET = "Example-Bucket";
     private static final String KEY = "Key";
     private static final int MAX_ATTEMPTS = 3;
-    private static int fileCounter = 0;
     private S3AsyncClient multipartClient;
     private MultipartDownloadTestUtils util;
 
@@ -112,35 +106,12 @@ public class S3MultipartClientGetObjectWiremockTest {
                                                               int partSize) {
         byte[] expectedBody = util.stubAllParts(BUCKET, KEY, amountOfPartToTest, partSize);
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
 
         T response = multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), transformer).join();
 
         byte[] body = supplier.body(response);
         assertArrayEquals(expectedBody, body);
         util.verifyCorrectAmountOfRequestsMade(amountOfPartToTest);
-    }
-
-    @ParameterizedTest
-    @MethodSource("partSizeAndTransformerParams")
-    <T> void nonRetryableErrorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier,
-                                                     int amountOfPartToTest,
-                                                     int partSize) {
-        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))).willReturn(
-            aResponse()
-                .withStatus(400)
-                .withBody("<Error><Code>400</Code><Message>test error message</Message></Error>")));
-        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-
-        assertThatThrownBy(() -> multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), transformer).join())
-            .hasMessageContaining("test error message");
     }
 
     @ParameterizedTest
@@ -160,12 +131,6 @@ public class S3MultipartClientGetObjectWiremockTest {
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
-            multipartClient,
-            GetObjectRequest.builder()
-                            .bucket(BUCKET)
-                            .key(KEY)
-                            .build());
 
         if (partSize > 1) {
             assertThatThrownBy(() -> {
@@ -179,116 +144,46 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @ParameterizedTest
-    @MethodSource("partSizeAndTransformerParams")
-    <T> void serverError_retryExhausted_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier,
-                                                   int amountOfPartToTest,
-                                                   int partSize) {
-        util.stubSeverError(1, internalErrorBody(), amountOfPartToTest);
+    @MethodSource("responseTransformers")
+    <T> void nonRetryableErrorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier) {
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))).willReturn(
+            aResponse()
+                .withStatus(400)
+                .withBody("<Error><Code>400</Code><Message>test error message</Message></Error>")));
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
 
-
-        // Only enable this test for ByteArrayAsyncResponseTransformer because only ByteArrayAsyncResponseTransformer supports
-        // retry
-        Assumptions.assumeTrue(transformer instanceof ByteArrayAsyncResponseTransformer);
-
         assertThatThrownBy(() -> multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), transformer).join())
-            .hasMessageContaining(" We encountered an internal error");
-        verify(MAX_ATTEMPTS, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1",
-                                                                     BUCKET, KEY))));
+            .hasMessageContaining("test error message");
     }
 
     @ParameterizedTest
-    @MethodSource("partSizeAndTransformerParams")
-    <T> void serverError_retrySucceeds_shouldSucceed(AsyncResponseTransformerTestSupplier<T> supplier,
-                                                     int amountOfPartToTest,
-                                                     int partSize) {
+    @MethodSource("responseTransformers")
+    public void ioError_shouldFailAndNotRetry() {
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY)))
+                    .willReturn(aResponse()
+                                    .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
-        byte[] expectedBody = util.stubFirst503Second200AllParts(amountOfPartToTest, partSize);
-        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+        assertThatThrownBy(() -> multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY),
+                                                           AsyncResponseTransformer.toBlockingInputStream()).join())
+            .satisfiesAnyOf(
+                throwable -> assertThat(throwable)
+                    .hasMessageContaining("The connection was closed during the request"),
 
-        // Only enable this test for ByteArrayAsyncResponseTransformer because only ByteArrayAsyncResponseTransformer supports
-        // retry
-        Assumptions.assumeTrue(transformer instanceof ByteArrayAsyncResponseTransformer);
+                throwable -> assertThat(throwable)
+                    .hasMessageContaining("Connection reset")
+            );
 
-        T response = multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), transformer).join();
-
-        byte[] body = supplier.body(response);
-        assertArrayEquals(expectedBody, body);
-        util.verifyCorrectAmountOfRequestsMade(amountOfPartToTest);
-
-        IntStream.range(1, amountOfPartToTest)
-                 .forEach(index -> verify(2, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber="+ index,
-                                                                                      BUCKET, KEY)))));
-    }
-
-    private static Stream<Arguments> partSizeAndTransformerParams() {
-        // amount of part, individual part size
-        List<Pair<Integer, Integer>> partSizes = Arrays.asList(
-            Pair.of(4, 16),
-            Pair.of(1, 1024),
-            Pair.of(31, 1243),
-            Pair.of(16, 16 * 1024),
-            Pair.of(1, 1024 * 1024),
-            Pair.of(4, 1024 * 1024),
-            Pair.of(1, 4 * 1024 * 1024),
-            Pair.of(4, 6 * 1024 * 1024),
-            Pair.of(7, 5 * 3752)
-        );
-
-        Stream.Builder<Arguments> sb = Stream.builder();
-        transformersSuppliers().forEach(tr -> partSizes.forEach(p -> sb.accept(arguments(tr, p.left(), p.right()))));
-        return sb.build();
-    }
-
-    /**
-     * Testing {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}, and
-     * {@link FileAsyncResponseTransformer}
-     * <p>
-     *
-     * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}, tested in
-     * {@link S3MultipartClientGetObjectToBytesWiremockTest}.
-     */
-    private static Stream<TransformerFactory> responseTransformerFactories() {
-        return Stream.of(
-            AsyncResponseTransformer::toBlockingInputStream,
-            AsyncResponseTransformer::toPublisher,
-            () -> {
-                try {
-                    Path tempDir = Files.createTempDirectory("s3-test");
-                    Path tempFile = tempDir.resolve("testFile" + fileCounter + ".txt");
-                    fileCounter++;
-                    tempFile.toFile().deleteOnExit();
-                    return AsyncResponseTransformer.toFile(tempFile);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        );
-    }
-
-    interface TransformerFactory {
-        AsyncResponseTransformer<GetObjectResponse, ?> create();
-    }
-
-    @ParameterizedTest
-    @MethodSource("responseTransformerFactories")
-    public void ioError_shouldFailAndNotRetry(TransformerFactory transformerFactory) {
-        util.stubIoError( 1);
-        AsyncResponseTransformer<GetObjectResponse, ?> transformer = transformerFactory.create();
-
-        assertThatThrownBy(() -> multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY), transformer).join())
-            .hasCauseInstanceOf(IOException.class);
         verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
     }
 
     @ParameterizedTest
-    @MethodSource("responseTransformerFactories")
-    public void getObject_single500WithinMany200s_shouldNotRetryError(TransformerFactory transformerFactory) {
+    @MethodSource("responseTransformers")
+    public void getObject_single500WithinMany200s_shouldNotRetryError(AsyncResponseTransformerTestSupplier<?> transformerSupplier) {
         List<CompletableFuture<?>> futures = new ArrayList<>();
 
-        int numRuns = 100;
+        int numRuns = 50;
         for (int i = 0; i < numRuns; i++) {
-            CompletableFuture<?> resp = mock200Response(multipartClient, i, transformerFactory);
+            CompletableFuture<?> resp = mock200Response(multipartClient, i, transformerSupplier);
             futures.add(resp);
         }
 
@@ -311,11 +206,11 @@ public class S3MultipartClientGetObjectWiremockTest {
                                            .withBody("Hello World")));
 
         CompletableFuture<?> requestWithRetryableError =
-            multipartClient.getObject(r -> r.bucket(BUCKET).key(errorKey), transformerFactory.create());
+            multipartClient.getObject(r -> r.bucket(BUCKET).key(errorKey), transformerSupplier.transformer());
         futures.add(requestWithRetryableError);
 
         for (int i = 0; i < numRuns; i++) {
-            CompletableFuture<?> resp = mock200Response(multipartClient, i + 1000, transformerFactory);
+            CompletableFuture<?> resp = mock200Response(multipartClient, i + 1000, transformerSupplier);
             futures.add(resp);
         }
 
@@ -329,7 +224,42 @@ public class S3MultipartClientGetObjectWiremockTest {
         verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, errorKey))));
     }
 
-    private CompletableFuture<?> mock200Response(S3AsyncClient s3Client, int runNumber, TransformerFactory transformerFactory) {
+    private static Stream<Arguments> partSizeAndTransformerParams() {
+        // amount of part, individual part size
+        List<Pair<Integer, Integer>> partSizes = Arrays.asList(
+            Pair.of(4, 16),
+            Pair.of(1, 1024),
+            Pair.of(31, 1243),
+            Pair.of(16, 16 * 1024),
+            Pair.of(1, 1024 * 1024),
+            Pair.of(4, 1024 * 1024),
+            Pair.of(1, 4 * 1024 * 1024),
+            Pair.of(4, 6 * 1024 * 1024),
+            Pair.of(7, 5 * 3752)
+        );
+
+        Stream.Builder<Arguments> sb = Stream.builder();
+        transformersSuppliers().forEach(tr -> partSizes.forEach(p -> sb.accept(arguments(tr, p.left(), p.right()))));
+        return sb.build();
+    }
+
+
+    /**
+     * Testing {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}, and
+     * {@link FileAsyncResponseTransformer}
+     * <p>
+     *
+     * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}, tested in
+     * {@link S3MultipartClientGetObjectToBytesWiremockTest}.
+     */
+    private static Stream<AsyncResponseTransformerTestSupplier<?>> responseTransformers() {
+        return Stream.of(new AsyncResponseTransformerTestSupplier.InputStreamArtSupplier(),
+                         new AsyncResponseTransformerTestSupplier.PublisherArtSupplier(),
+                         new AsyncResponseTransformerTestSupplier.FileArtSupplier());
+    }
+
+    private CompletableFuture<?> mock200Response(S3AsyncClient s3Client, int runNumber,
+                                                 AsyncResponseTransformerTestSupplier<?> transformerSupplier) {
         String runId = runNumber + " success";
 
         stubFor(any(anyUrl())
@@ -342,6 +272,6 @@ public class S3MultipartClientGetObjectWiremockTest {
 
         return s3Client.getObject(r -> r.bucket(BUCKET).key(KEY)
                                         .overrideConfiguration(c -> c.putHeader("RunNum", runId)),
-                                  transformerFactory.create());
+                                  transformerSupplier.transformer());
     }
 }

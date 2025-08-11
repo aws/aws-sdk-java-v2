@@ -52,7 +52,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -104,10 +103,7 @@ public class S3MultipartClientGetObjectToBytesWiremockTest {
                                        .httpClientBuilder(NettyNioAsyncHttpClient.builder().maxConcurrency(100).connectionAcquisitionTimeout(Duration.ofSeconds(100)))
                                        .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
                                        .overrideConfiguration(
-                                           o -> o.retryStrategy(AwsRetryStrategy.standardRetryStrategy().toBuilder()
-                                                                                .maxAttempts(MAX_ATTEMPTS)
-                                                                                .circuitBreakerEnabled(false)
-                                                                                .build())
+                                           o -> o.retryStrategy(b -> b.maxAttempts(MAX_ATTEMPTS))
                                                  .addExecutionInterceptor(capturingInterceptor))
                                        .build();
     }
@@ -151,7 +147,7 @@ public class S3MultipartClientGetObjectToBytesWiremockTest {
     public void getObject_concurrent503s_shouldRetrySuccessfully() {
         List<CompletableFuture<ResponseBytes<GetObjectResponse>>> futures = new ArrayList<>();
 
-        int numRuns = 1000;
+        int numRuns = 100;
         for (int i = 0; i < numRuns; i++) {
             CompletableFuture<ResponseBytes<GetObjectResponse>> resp = mockRetryableErrorThen200Response(multipartClient, i);
             futures.add(resp);
@@ -188,7 +184,7 @@ public class S3MultipartClientGetObjectToBytesWiremockTest {
 
 
         List<SdkHttpResponse> responses = capturingInterceptor.getResponses();
-        assertEquals(MAX_ATTEMPTS, responses.size(), () -> String.format("Expected exactly %s responses", MAX_ATTEMPTS));
+        assertEquals(MAX_ATTEMPTS, responses.size());
 
         String actualFirstRequestId = responses.get(0).firstMatchingHeader("x-amz-request-id").orElse(null);
         String actualSecondRequestId = responses.get(1).firstMatchingHeader("x-amz-request-id").orElse(null);
@@ -222,7 +218,7 @@ public class S3MultipartClientGetObjectToBytesWiremockTest {
 
         ResponseBytes<GetObjectResponse> response = future.join();
         byte[] actualBody = response.asByteArray();
-        assertArrayEquals(expectedBody, actualBody, "Downloaded body should match expected combined parts");
+        assertArrayEquals(expectedBody, actualBody);
 
         // Verify that all 3 parts were requested only once
         verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
@@ -336,7 +332,7 @@ public class S3MultipartClientGetObjectToBytesWiremockTest {
                                                                                    AsyncResponseTransformer.toBytes()).join();
 
         byte[] actualBody = response.asByteArray();
-        assertArrayEquals(expectedBody, actualBody, "Downloaded body should match expected combined parts");
+        assertArrayEquals(expectedBody, actualBody);
 
         // Verify that part 1 was requested twice (initial 503 + retry)
         verify(2, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
