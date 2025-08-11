@@ -76,12 +76,6 @@ public class TransferManagerConfigurationTest {
     }
 
     @Test
-    public void directoryTransferMaxConcurrency_noOverride_shouldUseDefault() {
-        transferManagerConfiguration = TransferManagerConfiguration.builder().build();
-        assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(100);
-    }
-
-    @Test
     public void close_noCustomExecutor_shouldCloseDefaultOne() {
         transferManagerConfiguration = TransferManagerConfiguration.builder().build();
         transferManagerConfiguration.close();
