@@ -86,6 +86,7 @@ public final class TransferManagerFactory {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
         transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
         transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
+        transferConfigBuilder.directoryTransferMaxConcurrency(tmBuilder.directoryTransferMaxConcurrency);
         transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
@@ -95,6 +96,7 @@ public final class TransferManagerFactory {
         private Executor executor;
         private Boolean uploadDirectoryFollowSymbolicLinks;
         private Integer uploadDirectoryMaxDepth;
+        private Integer directoryTransferMaxConcurrency;
 
         @Override
         public DefaultBuilder s3Client(S3AsyncClient s3AsyncClient) {
@@ -134,6 +136,20 @@ public final class TransferManagerFactory {
 
         public Integer getUploadDirectoryMaxDepth() {
             return uploadDirectoryMaxDepth;
+        }
+
+        @Override
+        public DefaultBuilder directoryTransferMaxConcurrency(Integer directoryTransferMaxConcurrency) {
+            this.directoryTransferMaxConcurrency = directoryTransferMaxConcurrency;
+            return this;
+        }
+
+        public void setDirectoryTransferMaxConcurrency(Integer directoryTransferMaxConcurrency) {
+            directoryTransferMaxConcurrency(directoryTransferMaxConcurrency);
+        }
+
+        public Integer getDirectoryTransferMaxConcurrency() {
+            return directoryTransferMaxConcurrency;
         }
 
         @Override

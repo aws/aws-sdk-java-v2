@@ -18,6 +18,7 @@ package software.amazon.awssdk.transfer.s3.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.EXECUTOR;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
@@ -62,7 +63,22 @@ public class TransferManagerConfigurationTest {
         transferManagerConfiguration = TransferManagerConfiguration.builder().build();
         assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)).isFalse();
         assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_MAX_DEPTH)).isEqualTo(Integer.MAX_VALUE);
+        assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(100);
         assertThat(transferManagerConfiguration.option(EXECUTOR)).isNotNull();
+    }
+
+    @Test
+    public void directoryTransferMaxConcurrency_customValue_shouldBeStored() {
+        transferManagerConfiguration = TransferManagerConfiguration.builder()
+                                                                   .directoryTransferMaxConcurrency(50)
+                                                                   .build();
+        assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(50);
+    }
+
+    @Test
+    public void directoryTransferMaxConcurrency_noOverride_shouldUseDefault() {
+        transferManagerConfiguration = TransferManagerConfiguration.builder().build();
+        assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(100);
     }
 
     @Test
