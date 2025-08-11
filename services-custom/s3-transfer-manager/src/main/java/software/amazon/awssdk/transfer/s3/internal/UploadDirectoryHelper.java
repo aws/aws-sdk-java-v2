@@ -102,7 +102,9 @@ public class UploadDirectoryHelper {
         AsyncBufferingSubscriber<Path> bufferingSubscriber =
             new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, path),
                                            allOfFutures, 
-                                           transferConfiguration.option(TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY));
+                                           transferConfiguration.option(
+                                               TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
+                                           ));
 
         iterablePublisher.subscribe(bufferingSubscriber);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, allOfFutures);

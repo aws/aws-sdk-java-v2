@@ -30,12 +30,16 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -456,6 +460,114 @@ public class UploadDirectoryHelperTest {
                                  .completionFuture();
 
         assertThatThrownBy(uploadFuture::join).getCause().hasCause(exception);
+    }
+
+    @Test
+    void uploadDirectory_customMaxConcurrency_shouldLimitConcurrentOperations() throws Exception {
+        // Create many files to test concurrency
+        Path testDir = jimfs.getPath("concurrencyTest");
+        Files.createDirectory(testDir);
+        int totalFiles = 50;
+        for (int i = 0; i < totalFiles; i++) {
+            Files.createFile(jimfs.getPath("concurrencyTest/file" + i + ".txt"));
+        }
+        
+        // Configuration with expected concurrency limit
+        int configuredMaxConcurrency = 5;
+        
+        // Track concurrent operations
+        AtomicInteger currentlyActive = new AtomicInteger(0);
+        AtomicInteger peakConcurrency = new AtomicInteger(0);
+        
+        // Use a Phaser to coordinate phases
+        Phaser phaser = new Phaser(1); // Start with test thread
+        
+        // Mock the single upload function to track concurrent operations
+        when(singleUploadFunction.apply(any())).thenAnswer(invocation -> {
+            phaser.register(); // Each operation registers
+            
+            CompletableFuture<CompletedFileUpload> future = new CompletableFuture<>();
+            
+            CompletableFuture.runAsync(() -> {
+                try {
+                    // Track entry
+                    int current = currentlyActive.incrementAndGet();
+                    peakConcurrency.updateAndGet(max -> Math.max(max, current));
+                    
+                    // Wait at barrier - this forces all operations to be active simultaneously
+                    phaser.arriveAndAwaitAdvance();
+                    
+                    // Complete
+                    future.complete(CompletedFileUpload.builder()
+                        .response(PutObjectResponse.builder().eTag("test").build())
+                        .build());
+                    
+                } catch (Exception e) {
+                    future.completeExceptionally(e);
+                } finally {
+                    currentlyActive.decrementAndGet();
+                    phaser.arriveAndDeregister();
+                }
+            });
+            
+            return new DefaultFileUpload(future,
+                new DefaultTransferProgress(DefaultTransferProgressSnapshot.builder()
+                                               .transferredBytes(0L)
+                                               .build()),
+                new PauseObservable(),
+                UploadFileRequest.builder()
+                 .putObjectRequest(p -> p.key("key").bucket("bucket"))
+                 .source(Paths.get("test.txt"))
+                 .build());
+        });
+        
+        // Configure with our expected limit
+        // To verify test works as intended, verify test failure when directoryTransferMaxConcurrency is
+        // configuredMaxConcurrency + 1 or configuredMaxConcurrency - 1
+        TransferManagerConfiguration customConfig = TransferManagerConfiguration.builder()
+            .directoryTransferMaxConcurrency(configuredMaxConcurrency)
+            .build();
+        
+        UploadDirectoryHelper customHelper = new UploadDirectoryHelper(customConfig, singleUploadFunction);
+        
+        // Start upload asynchronously
+        CompletableFuture<Void> uploadTask = CompletableFuture.runAsync(() -> {
+            DirectoryUpload upload = customHelper.uploadDirectory(
+                UploadDirectoryRequest.builder()
+                    .source(testDir)
+                    .bucket("bucket")
+                    .build()
+            );
+            upload.completionFuture().join();
+        });
+        
+        // Wait for operations to register (but not complete the phase)
+        // We wait for more than the configured limit to ensure we'd catch violations
+        Duration maxWait = Duration.ofSeconds(5);
+        long deadline = System.nanoTime() + maxWait.toNanos();
+        int current = phaser.getRegisteredParties() - 1; // Subtract 1 for main thread
+        while (current < configuredMaxConcurrency) {
+            if (System.nanoTime() >= deadline) {
+                throw new AssertionError(
+                    "Timed out waiting for registrations: current=" + current +
+                    ", configuredMaxConcurrency=" + configuredMaxConcurrency);
+            }
+            LockSupport.parkNanos(10_000_000L); // ~10 ms
+            current = phaser.getRegisteredParties() - 1;
+        }
+
+        // Check peak BEFORE releasing the phase
+        int observedPeak = peakConcurrency.get();
+        assertThat(observedPeak)
+            .as("Implementation allowed %d concurrent operations but was configured for %d", 
+                observedPeak, configuredMaxConcurrency)
+            .isEqualTo(configuredMaxConcurrency);
+
+        // Release the phase to let operations complete
+        phaser.arriveAndDeregister();
+        
+        // Complete the test
+        uploadTask.get(2, TimeUnit.SECONDS);
     }
 
 

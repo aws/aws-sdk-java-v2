@@ -109,7 +109,9 @@ public class DownloadDirectoryHelper {
             new AsyncBufferingSubscriber<>(downloadSingleFile(downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
-                                           transferConfiguration.option(TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY));
+                                           transferConfiguration.option(
+                                               TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
+                                           ));
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
