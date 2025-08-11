@@ -37,8 +37,6 @@ import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
-import java.io.IOException;
-import java.net.SocketException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
