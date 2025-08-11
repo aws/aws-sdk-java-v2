@@ -285,6 +285,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                     int bytesToFill = chunkBuffer.remaining();
 
                     ByteBuffer slice = inputBuffer.slice();
+
                     slice.limit(slice.position() + bytesToFill);
                     inputBuffer.position(inputBuffer.position() + bytesToFill);
 
@@ -303,7 +304,10 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
                 // At this point chunkBuffer has no data in it; slice off chunks from inputBuffer and encode directly
                 for (int i = 0; i < nBufferedChunks; i++) {
                     ByteBuffer slice = inputBuffer.slice();
-                    slice.limit(chunkSize);
+
+                    int sliceLimit = Math.min(slice.limit(), chunkSize);
+                    slice.limit(sliceLimit);
+
                     inputBuffer.position(inputBuffer.position() + slice.remaining());
 
                     if (slice.remaining() >= chunkSize) {
