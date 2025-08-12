@@ -155,12 +155,12 @@ public final class ApacheUtils {
             try {
                 basicAuth.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=default"));
                 authCache.put(targetHost, basicAuth);
+                clientContext.setAuthCache(authCache);
             } catch (Exception e) {
                 logger.warn(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
             }
 
             clientContext.setCredentialsProvider(credsProvider);
-            clientContext.setAuthCache(authCache);
         }
     }
 
