@@ -58,10 +58,10 @@ public class PresignedUrlMultipartDownloaderSubscriber
     private final Object lock = new Object();
     private final AtomicInteger completedParts;
 
-    private volatile Long totalContentLength;
-    private volatile Integer totalParts;
-    private volatile String eTag;
-    private volatile Subscription subscription;
+    private Long totalContentLength;
+    private Integer totalParts;
+    private String eTag;
+    private Subscription subscription;
 
     public PresignedUrlMultipartDownloaderSubscriber(
         S3AsyncClient s3AsyncClient,
