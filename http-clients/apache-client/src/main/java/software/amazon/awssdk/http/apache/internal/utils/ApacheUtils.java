@@ -22,6 +22,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
+import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
@@ -153,10 +154,10 @@ public final class ApacheUtils {
             BasicScheme basicAuth = new BasicScheme();
             try {
                 basicAuth.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=default"));
+                authCache.put(targetHost, basicAuth);
             } catch (Exception e) {
                 logger.warn(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
             }
-            authCache.put(targetHost, basicAuth);
 
             clientContext.setCredentialsProvider(credsProvider);
             clientContext.setAuthCache(authCache);
