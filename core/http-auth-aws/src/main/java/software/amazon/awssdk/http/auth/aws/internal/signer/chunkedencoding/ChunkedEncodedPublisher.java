@@ -61,6 +61,7 @@ import software.amazon.awssdk.utils.internal.MappingSubscriber;
  */
 @SdkInternalApi
 public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
+    private final ByteBuffer EMPTY = ByteBuffer.allocate(0);
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte SEMICOLON = ';';
     private static final byte EQUALS = '=';
@@ -79,7 +80,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     public ChunkedEncodedPublisher(Builder b) {
         this.wrapped = b.publisher;
         this.contentLength = Validate.notNull(b.contentLength, "contentLength must not be null");
-        this.chunkSize = b.chunkSize;
+        this.chunkSize = 16 * 1024;
         this.extensions.addAll(b.extensions);
         this.trailers.addAll(b.trailers);
         this.addEmptyTrailingChunk = b.addEmptyTrailingChunk;
@@ -119,7 +120,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         if (addEmptyTrailingChunk) {
-            trailing.add(encodeChunk(ByteBuffer.allocate(0)));
+            trailing.add(encodeChunk(EMPTY.duplicate()));
         }
 
         return Collections.singletonList(trailing);
@@ -164,15 +165,19 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         boolean isTrailerChunk = contentLen == 0;
 
         List<ByteBuffer> trailerData;
+        int trailerLen;
         if (isTrailerChunk) {
-            trailerData = getTrailerData();
+            // trailerData = getTrailerData();
+            trailerLen = 36;
         } else {
             trailerData = Collections.emptyList();
+            trailerLen = 0;
         }
 
-        int trailerLen = trailerData.stream()
-                                    .mapToInt(t -> t.remaining() + CRLF.length)
-                                    .sum();
+        // int trailerLen = trailerData.stream()
+        //                             .mapToInt(t -> t.remaining() + CRLF.length)
+        //                             .sum();
+
 
         int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
 
@@ -200,11 +205,13 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         if (isTrailerChunk) {
-            // trailer-part
-            trailerData.forEach(t -> {
-                encoded.put(t);
-                encoded.put(CRLF);
-            });
+            Pair<String, List<String>> stringListPair = trailers.get(0).get();
+            encoded.put(stringListPair.left().getBytes(StandardCharsets.UTF_8)).put(COLON).put(stringListPair.right().get(0).getBytes(StandardCharsets.UTF_8)).put(CRLF);
+            // // trailer-part
+            // trailerData.forEach(t -> {
+            //     encoded.put(t);
+            //     encoded.put(CRLF);
+            // });
             // empty line ends the request body
             encoded.put(CRLF);
         }
