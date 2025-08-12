@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix a potential NullPointerException in ApiCallAttemptTimeoutTrackingStage where the RequestExecutionContext might not have a timeout tracker configured"
+}
