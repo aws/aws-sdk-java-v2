@@ -59,18 +59,32 @@ public class TransferManagerConfigurationTest {
     }
 
     @Test
-    public void noOverride_shouldUseDefaults() {
-        transferManagerConfiguration = TransferManagerConfiguration.builder().build();
-        assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)).isFalse();
-        assertThat(transferManagerConfiguration.option(UPLOAD_DIRECTORY_MAX_DEPTH)).isEqualTo(Integer.MAX_VALUE);
-        assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(100);
-        assertThat(transferManagerConfiguration.option(EXECUTOR)).isNotNull();
+    public void noOverride_orNullOverride_shouldUseDefaults() {
+        assertDefaultTransferManagerConfiguration(
+            TransferManagerConfiguration.builder().build()
+        );
+
+        assertDefaultTransferManagerConfiguration(
+            TransferManagerConfiguration.builder()
+                .transferDirectoryMaxConcurrency(null)
+                .executor(null)
+                .uploadDirectoryFollowSymbolicLinks(null)
+                .uploadDirectoryMaxDepth(null)
+                .build()
+        );
+    }
+
+    private void assertDefaultTransferManagerConfiguration(TransferManagerConfiguration config) {
+        assertThat(config.option(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS)).isFalse();
+        assertThat(config.option(UPLOAD_DIRECTORY_MAX_DEPTH)).isEqualTo(Integer.MAX_VALUE);
+        assertThat(config.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(100);
+        assertThat(config.option(EXECUTOR)).isNotNull();
     }
 
     @Test
-    public void directoryTransferMaxConcurrency_customValue_shouldBeStored() {
+    public void transferDirectoryMaxConcurrency_customValue_shouldBeStored() {
         transferManagerConfiguration = TransferManagerConfiguration.builder()
-                                                                   .directoryTransferMaxConcurrency(50)
+                                                                   .transferDirectoryMaxConcurrency(50)
                                                                    .build();
         assertThat(transferManagerConfiguration.option(DIRECTORY_TRANSFER_MAX_CONCURRENCY)).isEqualTo(50);
     }

@@ -787,10 +787,10 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * <p>
          * Default to 100
          *
-         * @param directoryTransferMaxConcurrency the maximum number of concurrent file transfers
+         * @param transferDirectoryMaxConcurrency the maximum number of concurrent file transfers
          * @return This builder for method chaining.
          */
-        Builder directoryTransferMaxConcurrency(Integer directoryTransferMaxConcurrency);
+        Builder transferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency);
 
         /**
          * Builds an instance of {@link S3TransferManager} based on the settings supplied to this builder

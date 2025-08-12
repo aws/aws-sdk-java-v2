@@ -33,7 +33,7 @@ public final class TransferConfigurationOption<T> extends AttributeMap.Key<T> {
         new TransferConfigurationOption<>("UploadDirectoryFileVisitOption", Boolean.class);
 
     public static final TransferConfigurationOption<Integer> DIRECTORY_TRANSFER_MAX_CONCURRENCY =
-        new TransferConfigurationOption<>("DirectoryTransferMaxConcurrency", Integer.class);
+        new TransferConfigurationOption<>("TransferDirectoryMaxConcurrency", Integer.class);
 
     public static final TransferConfigurationOption<Executor> EXECUTOR =
         new TransferConfigurationOption<>("Executor", Executor.class);

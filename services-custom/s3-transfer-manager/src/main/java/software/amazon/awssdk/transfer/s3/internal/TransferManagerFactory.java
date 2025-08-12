@@ -86,7 +86,7 @@ public final class TransferManagerFactory {
         TransferManagerConfiguration.Builder transferConfigBuilder = TransferManagerConfiguration.builder();
         transferConfigBuilder.uploadDirectoryFollowSymbolicLinks(tmBuilder.uploadDirectoryFollowSymbolicLinks);
         transferConfigBuilder.uploadDirectoryMaxDepth(tmBuilder.uploadDirectoryMaxDepth);
-        transferConfigBuilder.directoryTransferMaxConcurrency(tmBuilder.directoryTransferMaxConcurrency);
+        transferConfigBuilder.transferDirectoryMaxConcurrency(tmBuilder.transferDirectoryMaxConcurrency);
         transferConfigBuilder.executor(tmBuilder.executor);
         return transferConfigBuilder.build();
     }
@@ -96,7 +96,7 @@ public final class TransferManagerFactory {
         private Executor executor;
         private Boolean uploadDirectoryFollowSymbolicLinks;
         private Integer uploadDirectoryMaxDepth;
-        private Integer directoryTransferMaxConcurrency;
+        private Integer transferDirectoryMaxConcurrency;
 
         @Override
         public DefaultBuilder s3Client(S3AsyncClient s3AsyncClient) {
@@ -139,17 +139,17 @@ public final class TransferManagerFactory {
         }
 
         @Override
-        public DefaultBuilder directoryTransferMaxConcurrency(Integer directoryTransferMaxConcurrency) {
-            this.directoryTransferMaxConcurrency = directoryTransferMaxConcurrency;
+        public DefaultBuilder transferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency) {
+            this.transferDirectoryMaxConcurrency = transferDirectoryMaxConcurrency;
             return this;
         }
 
-        public void setDirectoryTransferMaxConcurrency(Integer directoryTransferMaxConcurrency) {
-            directoryTransferMaxConcurrency(directoryTransferMaxConcurrency);
+        public void setTransferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency) {
+            transferDirectoryMaxConcurrency(transferDirectoryMaxConcurrency);
         }
 
-        public Integer getDirectoryTransferMaxConcurrency() {
-            return directoryTransferMaxConcurrency;
+        public Integer getTransferDirectoryMaxConcurrency() {
+            return transferDirectoryMaxConcurrency;
         }
 
         @Override

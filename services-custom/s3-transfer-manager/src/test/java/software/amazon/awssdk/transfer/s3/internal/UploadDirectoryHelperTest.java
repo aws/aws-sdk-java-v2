@@ -522,10 +522,10 @@ public class UploadDirectoryHelperTest {
         });
         
         // Configure with our expected limit
-        // To verify test works as intended, verify test failure when directoryTransferMaxConcurrency is
+        // To verify test works as intended, verify test failure when transferDirectoryMaxConcurrency is
         // configuredMaxConcurrency + 1 or configuredMaxConcurrency - 1
         TransferManagerConfiguration customConfig = TransferManagerConfiguration.builder()
-            .directoryTransferMaxConcurrency(configuredMaxConcurrency)
+            .transferDirectoryMaxConcurrency(configuredMaxConcurrency)
             .build();
         
         UploadDirectoryHelper customHelper = new UploadDirectoryHelper(customConfig, singleUploadFunction);
