@@ -80,7 +80,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     public ChunkedEncodedPublisher(Builder b) {
         this.wrapped = b.publisher;
         this.contentLength = Validate.notNull(b.contentLength, "contentLength must not be null");
-        this.chunkSize = 16 * 1024;
+        this.chunkSize = b.chunkSize;
         this.extensions.addAll(b.extensions);
         this.trailers.addAll(b.trailers);
         this.addEmptyTrailingChunk = b.addEmptyTrailingChunk;
@@ -165,18 +165,15 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         boolean isTrailerChunk = contentLen == 0;
 
         List<ByteBuffer> trailerData;
-        int trailerLen;
         if (isTrailerChunk) {
-            // trailerData = getTrailerData();
-            trailerLen = 36;
+            trailerData = getTrailerData();
         } else {
             trailerData = Collections.emptyList();
-            trailerLen = 0;
         }
 
-        // int trailerLen = trailerData.stream()
-        //                             .mapToInt(t -> t.remaining() + CRLF.length)
-        //                             .sum();
+        int trailerLen = trailerData.stream()
+                                    .mapToInt(t -> t.remaining() + CRLF.length)
+                                    .sum();
 
 
         int encodedLen = chunkSizeHex.length + extensionsLength + CRLF.length + contentLen + trailerLen + CRLF.length;
