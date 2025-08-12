@@ -30,6 +30,8 @@ import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.auth.AUTH;
+import org.apache.http.message.BasicHeader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.apache.ProxyConfiguration;
 import software.amazon.awssdk.utils.Logger;
@@ -149,6 +151,11 @@ public final class ApacheUtils {
             AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
+            try {
+                basicAuth.processChallenge(new BasicHeader(AUTH.PROXY_AUTH, "BASIC realm=default"));
+            } catch (Exception e) {
+                logger.warn(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
+            }
             authCache.put(targetHost, basicAuth);
 
             clientContext.setCredentialsProvider(credsProvider);
