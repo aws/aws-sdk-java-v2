@@ -202,13 +202,11 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         if (isTrailerChunk) {
-            Pair<String, List<String>> stringListPair = trailers.get(0).get();
-            encoded.put(stringListPair.left().getBytes(StandardCharsets.UTF_8)).put(COLON).put(stringListPair.right().get(0).getBytes(StandardCharsets.UTF_8)).put(CRLF);
-            // // trailer-part
-            // trailerData.forEach(t -> {
-            //     encoded.put(t);
-            //     encoded.put(CRLF);
-            // });
+            // trailer-part
+            trailerData.forEach(t -> {
+                encoded.put(t);
+                encoded.put(CRLF);
+            });
             // empty line ends the request body
             encoded.put(CRLF);
         }
