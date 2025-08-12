@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.20__ __2025-08-11__
+## __AWS Lambda__
+  - ### Features
+    - Doc-only update for Lambda that updates the maximum payload size for response streaming invocations to 200 MB.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add allowDuplicateKeys to ImmutableMap Builder
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Added support for managing user background session for applications
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for Wait and Save feature in service-managed fleets
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release includes model updates and enhanced SDK documentation for union fields in automated reasoning policy components. Added docs cover policy definitions, mutations (add/update for rules/types/variables), build assets, workflow sources, test results, and tag exception handling.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Remove SigV4 auth requirement for GetTokensFromRefreshToken
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updating SearchUserHierarchyGroups API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateVolume, DescribeVolume, LaunchTemplates, RunInstances, DescribeInstances, CreateDefaultSubnet, SpotInstances, and CreateDefaultSubnet APIs.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Update for general availability of Amazon Elastic VMware Service (EVS).
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add RowAxisDisplayOptions and ColumnAxisDisplayOptions to HeatMapConfiguration, add Actions to PluginVisual, increase limit for CalculatedFields list
+
 # __2.32.19__ __2025-08-08__
 ## __AWS Backup Search__
   - ### Features
