@@ -34,7 +34,6 @@ import java.util.Random;
 public class PresignedUrlMultipartDownloadTestUtil {
 
     private static final String PRESIGNED_URL_PATH = "/presigned-url";
-    private static final String DIFFERENT_ETAG = "different-etag-12345";
 
     private final String presignedUrl;
     private final String eTag;
@@ -148,4 +147,6 @@ public class PresignedUrlMultipartDownloadTestUtil {
         verify(0, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH))
             .withHeader("Range", new EqualToPattern(rangeHeader)));
     }
+
+    // Additional utility methods for error condition testing can be added here as needed
 }

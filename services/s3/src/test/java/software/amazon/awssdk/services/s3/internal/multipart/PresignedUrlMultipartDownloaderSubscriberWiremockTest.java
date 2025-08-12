@@ -18,6 +18,9 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadTestUtil.transformersSuppliers;
 
@@ -28,6 +31,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -84,14 +89,14 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         int partSize) {
         byte[] expectedBody = util.stubAllRangeParts(amountOfPartsToTest, partSize);
         URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-        
+
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
                 PresignedUrlDownloadRequest.builder()
@@ -116,14 +121,14 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         int actualPartSize = partSize * 2; // Larger part size to ensure single part
         byte[] expectedBody = util.stubSingleRangePart(actualPartSize);
         URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-        
+
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
                 PresignedUrlDownloadRequest.builder()
@@ -143,17 +148,17 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
     void onNext_whenFirstRequestFails_shouldCompleteExceptionally() {
         AsyncResponseTransformerTestSupplier<?> supplier = transformersSuppliers().get(0);
         int partSize = 1024;
-        
+
         URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
         util.stubFirstRangeRequestWithError();
-        
+
         AsyncResponseTransformer<GetObjectResponse, ?> transformer = supplier.transformer();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, ?> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
                 PresignedUrlDownloadRequest.builder()
@@ -163,7 +168,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
         long startTime = System.currentTimeMillis();
         split.publisher().subscribe(subscriber);
-        
+
         assertThatThrownBy(() -> split.resultFuture().join())
             .satisfiesAnyOf(
                 ex -> assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageContaining("test error message"),
@@ -181,18 +186,18 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         AsyncResponseTransformerTestSupplier<?> supplier = transformersSuppliers().get(0);
         int partSize = 1024;
         int amountOfParts = 3;
-        
+
         URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
         util.stubFirstRangePartForSizeDiscovery(amountOfParts, partSize);
         util.stubSecondRangeRequestWithError(partSize);
-        
+
         AsyncResponseTransformer<GetObjectResponse, ?> transformer = supplier.transformer();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, ?> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
                                              .build());
-        
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
                 PresignedUrlDownloadRequest.builder()
@@ -202,7 +207,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
         long startTime = System.currentTimeMillis();
         split.publisher().subscribe(subscriber);
-        
+
         assertThatThrownBy(() -> split.resultFuture().join())
             .satisfiesAnyOf(
                 ex -> assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageContaining("test error message"),
@@ -215,11 +220,97 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         util.verifyNoRequestMadeForRange(2 * partSize, 3 * partSize - 1);
     }
 
+    @Test
+    void onNext_withNullTransformer_shouldThrowNullPointerException() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                PresignedUrlDownloadRequest.builder()
+                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
+                                          .build(),
+                1024);
+
+        assertThatThrownBy(() -> subscriber.onNext(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("onNext must not be called with null asyncResponseTransformer");
+    }
+
+    @Test
+    void onSubscribe_withMultipleSubscriptions_shouldCancelSecond() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                PresignedUrlDownloadRequest.builder()
+                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
+                                          .build(),
+                1024);
+
+        Subscription firstSubscription = mock(Subscription.class);
+        Subscription secondSubscription = mock(Subscription.class);
+        subscriber.onSubscribe(firstSubscription);
+        subscriber.onSubscribe(secondSubscription);
+
+        verify(secondSubscription).cancel();
+        verify(firstSubscription, never()).cancel();
+    }
+
+    @Test
+    void future_shouldReturnCompletableFuture() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                PresignedUrlDownloadRequest.builder()
+                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
+                                          .build(),
+                1024);
+
+        CompletableFuture<Void> future = subscriber.future();
+        assertThat(future).isNotNull();
+        assertThat(future.isDone()).isFalse();
+    }
+
+    @Test
+    void onComplete_shouldCompleteFuture() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                PresignedUrlDownloadRequest.builder()
+                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
+                                          .build(),
+                1024);
+
+        CompletableFuture<Void> future = subscriber.future();
+        subscriber.onComplete();
+
+        assertThat(future.isDone()).isTrue();
+        assertThat(future.isCompletedExceptionally()).isFalse();
+    }
+
+    @Test
+    void onError_shouldCompleteExceptionally() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                PresignedUrlDownloadRequest.builder()
+                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
+                                          .build(),
+                1024);
+
+        CompletableFuture<Void> future = subscriber.future();
+        RuntimeException testException = new RuntimeException("Test error");
+        subscriber.onError(testException);
+
+        assertThat(future.isDone()).isTrue();
+        assertThat(future.isCompletedExceptionally()).isTrue();
+        assertThatThrownBy(() -> future.join())
+            .hasRootCause(testException);
+    }
+
 
 
     private static Stream<Arguments> argumentsProvider() {
         List<AsyncResponseTransformerTestSupplier<?>> transformers = transformersSuppliers();
-        
+
         return Stream.of(
             arguments(transformers.get(0), 2, 1024),
             arguments(transformers.get(0), 4, 16 * 1024),
@@ -232,7 +323,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
     private static Stream<Arguments> singlePartArgumentsProvider() {
         List<AsyncResponseTransformerTestSupplier<?>> transformers = transformersSuppliers();
-        
+
         return Stream.of(
             arguments(transformers.get(0), 1024),
             arguments(transformers.get(0), 1024 * 1024),
