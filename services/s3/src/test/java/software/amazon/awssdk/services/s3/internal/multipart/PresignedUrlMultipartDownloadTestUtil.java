@@ -147,6 +147,4 @@ public class PresignedUrlMultipartDownloadTestUtil {
         verify(0, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH))
             .withHeader("Range", new EqualToPattern(rangeHeader)));
     }
-
-    // Additional utility methods for error condition testing can be added here as needed
 }

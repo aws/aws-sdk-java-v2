@@ -53,7 +53,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
 
     private final S3AsyncClient s3AsyncClient;
     private final PresignedUrlDownloadRequest presignedUrlDownloadRequest;
-    private final long configuredPartSizeInBytes;
+    private final Long configuredPartSizeInBytes;
     private final CompletableFuture<Void> future;
     private final Object lock = new Object();
     private final AtomicInteger completedParts;
@@ -139,11 +139,9 @@ public class PresignedUrlMultipartDownloaderSubscriber
             if (totalContentLength == null && response.contentRange() != null) {
                 try {
                     validateResponse(response);
-                    long totalSize = parseContentRangeForTotalSize(response.contentRange());
-                    int calculatedTotalParts = calculateTotalParts(totalSize, configuredPartSizeInBytes);
-                    this.totalContentLength = totalSize;
-                    this.totalParts = calculatedTotalParts;
-                    log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalSize, calculatedTotalParts));
+                    this.totalContentLength = parseContentRangeForTotalSize(response.contentRange());
+                    this.totalParts = calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
+                    log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
                 } catch (Exception e) {
                     log.debug(() -> "Failed to parse content range", e);
                     handleError(e);
@@ -167,7 +165,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
             throw new IllegalStateException("No Content-Range header in response");
         }
         Long contentLength = response.contentLength();
-        if (contentLength == null || contentLength <= 0) {
+        if (contentLength == null || contentLength < 0) {
             throw new IllegalStateException("Invalid or missing Content-Length in response");
         }
     }
