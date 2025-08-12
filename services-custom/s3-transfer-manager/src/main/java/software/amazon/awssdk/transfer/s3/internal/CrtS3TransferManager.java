@@ -19,6 +19,7 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -33,11 +34,15 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
+import software.amazon.awssdk.transfer.s3.model.Upload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -52,6 +57,51 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                          boolean isDefaultS3AsyncClient) {
         super(transferConfiguration, s3AsyncClient, isDefaultS3AsyncClient);
         this.s3AsyncClient = s3AsyncClient;
+    }
+
+    @Override
+    public final Upload upload(UploadRequest uploadRequest) {
+        Validate.paramNotNull(uploadRequest, "uploadRequest");
+
+        AsyncRequestBody requestBody = uploadRequest.requestBody();
+
+        CompletableFuture<CompletedUpload> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
+                                                                              requestBody.contentLength().orElse(null));
+        progressUpdater.transferInitiated();
+        // requestBody = progressUpdater.wrapRequestBody(requestBody);
+        progressUpdater.registerCompletion(returnFuture);
+
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+
+        Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
+            b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable)
+                  .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener());
+
+        PutObjectRequest putObjectRequest = attachCrtSdkAttribute(uploadRequest.putObjectRequest(), attachObservable);
+
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
+
+            CompletableFuture<PutObjectResponse> future =
+                s3AsyncClient.putObject(putObjectRequest, requestBody);
+
+            // Forward upload cancellation to future
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedUpload.builder()
+                                                                                  .response(r)
+                                                                                  .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultUpload(returnFuture, progressUpdater.progress());
     }
 
     @Override

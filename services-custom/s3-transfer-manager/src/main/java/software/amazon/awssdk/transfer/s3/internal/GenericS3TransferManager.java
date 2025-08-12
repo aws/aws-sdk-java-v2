@@ -128,7 +128,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     @Override
-    public final Upload upload(UploadRequest uploadRequest) {
+    public Upload upload(UploadRequest uploadRequest) {
         Validate.paramNotNull(uploadRequest, "uploadRequest");
 
         AsyncRequestBody requestBody = uploadRequest.requestBody();
