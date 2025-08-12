@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon SageMaker Service",
-    "contributor": "",
-    "description": "IAM Identity Center trusted identity propagation is now supported in SageMaker Studio."
-}
