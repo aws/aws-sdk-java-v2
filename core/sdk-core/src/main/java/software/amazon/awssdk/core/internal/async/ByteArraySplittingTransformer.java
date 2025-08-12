@@ -34,7 +34,6 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @SdkInternalApi
@@ -74,18 +73,9 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
     private final Map<Integer, ByteBuffer> buffers;
 
-    /**
-     * The buffer size used to buffer the content received from the downstream subscriber
-     */
-    private final long maximumBufferInBytes;
-
     public ByteArraySplittingTransformer(AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>>
                                              upstreamResponseTransformer,
-                                         CompletableFuture<ResponseBytes<ResponseT>> resultFuture,
-                                         Long maximumBufferSizeInBytes) {
-        Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
-        this.maximumBufferInBytes = Validate.isPositive(
-            maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+                                         CompletableFuture<ResponseBytes<ResponseT>> resultFuture) {
         this.upstreamResponseTransformer = upstreamResponseTransformer;
         this.resultFuture = resultFuture;
         this.buffers = new ConcurrentHashMap<>();
@@ -233,7 +223,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            delegate.onStream(publisher, maximumBufferInBytes);
+            delegate.onStream(publisher);
             synchronized (lock) {
                 if (!onStreamCalled) {
                     onStreamCalled = true;

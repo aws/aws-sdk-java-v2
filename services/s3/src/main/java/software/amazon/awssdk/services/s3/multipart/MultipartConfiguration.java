@@ -90,6 +90,10 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
     /**
      * The maximum memory, in bytes, that the SDK will use to buffer requests content into memory.
+     * <p>
+     * This setting is not supported and will be ignored when downloading to a byte array, i.e., when providing a
+     * {@link ByteArrayAsyncResponseTransformer}.
+     *
      * @return the value of the configured maximum memory usage.
      */
     public Long apiCallBufferSizeInBytes() {
@@ -159,6 +163,9 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * Increasing this value may lead to better performance at the cost of using more memory.
          * <p>
          * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
+         * <p>
+         * This setting is not supported and will be ignored when downloading to a byte array, i.e., when providing a
+         * {@link ByteArrayAsyncResponseTransformer}.
          *
          * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.
