@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.21__ __2025-08-12__
+## __AWS Backup Search__
+  - ### Features
+    - Using recommended smithy trait to generate regional endpoints for Backup Search
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports PullRequestBuildPolicy in webhook object.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces 2 new APIs in Organizations: 1. ListAccountsWithInvalidEffectivePolicy 2. ListEffectivePolicyValidationErrors
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to allow route table association with a PublicIpv4Pool.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - IAM Identity Center trusted identity propagation is now supported in SageMaker Studio.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
 # __2.32.20__ __2025-08-11__
 ## __AWS Lambda__
   - ### Features
