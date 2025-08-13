@@ -51,4 +51,13 @@ public class MemberCopierTest {
 
         assertDoesNotThrow(() -> client.allTypes(request));
     }
+
+    @Test
+    public void stringListWithNulls_serializesWithoutNPE() {
+        AllTypesRequest request = AllTypesRequest.builder()
+                                                 .simpleList(Arrays.asList("Foo", null, "Bar"))
+                                                 .build();
+
+        assertDoesNotThrow(() -> client.allTypes(request));
+    }
 }
