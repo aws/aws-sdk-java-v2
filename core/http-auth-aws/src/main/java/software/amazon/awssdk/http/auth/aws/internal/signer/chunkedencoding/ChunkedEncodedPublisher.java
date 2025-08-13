@@ -106,7 +106,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
     private void resetState() {
         extensions.forEach(Resettable::reset);
         trailers.forEach(Resettable::reset);
-        chunkBuffer.clear();
+        chunkBuffer = ByteBuffer.allocate(chunkSize);
     }
 
     private Iterable<Iterable<ByteBuffer>> getTrailingChunks() {
@@ -116,6 +116,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
             chunkBuffer.flip();
             if (chunkBuffer.hasRemaining()) {
                 trailing.add(encodeChunk(chunkBuffer));
+                chunkBuffer = null;
             }
         }
 
