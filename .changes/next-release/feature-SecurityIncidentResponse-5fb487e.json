@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Security Incident Response",
+    "contributor": "",
+    "description": "Added support for Organizational Unit-level Membership configuration and the ability to resume a cancelled membership."
+}
