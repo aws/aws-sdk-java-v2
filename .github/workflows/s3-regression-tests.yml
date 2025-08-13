@@ -22,8 +22,10 @@ jobs:
       - name: Check for changes related to s3
         id: check-changes
         run: |
-          git fetch origin ${{ github.base_ref || github.event.merge_group.base_ref || github.ref }} --depth 1
-          CHANGED_FILES=$(git diff remotes/origin/${{ github.base_ref || github.event.merge_group.base_ref || github.ref }} --name-only)
+          BASE_REF=${{ github.base_ref || github.event.merge_group.base_ref || github.ref }}
+          BASE_REF=${BASE_REF#refs/heads/}
+          git fetch origin "$BASE_REF" --depth 1
+          CHANGED_FILES=$(git diff origin/"$BASE_REF" --name-only)
           if echo "$CHANGED_FILES" | grep -q -E '^core/|^services/s3/|^services-custom/s3-transfer-manager/|^http-client-spi/|^http-clients/'; then
             echo "Detected changes in S3, HTTP client, or core modules"
             echo "has_s3_related_changes=true" >> $GITHUB_OUTPUT
