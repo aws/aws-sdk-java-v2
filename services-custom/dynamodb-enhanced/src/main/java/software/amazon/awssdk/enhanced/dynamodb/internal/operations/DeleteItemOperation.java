@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinExpressions;
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinNames;
+import static software.amazon.awssdk.enhanced.dynamodb.Expression.joinValues;
+
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -26,7 +31,9 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
@@ -71,6 +78,17 @@ public class DeleteItemOperation<T>
         return OperationName.DELETE_ITEM;
     }
 
+    /**
+     * Builds the DeleteItemRequest, including optimistic delete check logic, if applicable.
+     * <p>
+     * This method is used by both:
+     * <ul>
+     *   <li>DeleteItemEnhancedRequest (table.deleteItem())</li>
+     *   <li>TransactDeleteItemEnhancedRequest (enhancedClient.transactWriteItems())</li>
+     * </ul>
+     * BatchWriteItem (batch delete) does not support conditions on individual requests
+     * or returning deleted items, so this logic is not applied in that context.
+     */
     @Override
     public DeleteItemRequest generateRequest(TableSchema<T> tableSchema,
                                              OperationContext operationContext,
@@ -93,6 +111,7 @@ public class DeleteItemOperation<T>
         }
 
         requestBuilder = addExpressionsIfExist(requestBuilder);
+        performBeforeDeleteChecks(tableSchema, operationContext, extension, requestBuilder);
 
         return requestBuilder.build();
     }
@@ -185,5 +204,39 @@ public class DeleteItemOperation<T>
         requestBuilder =
             requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
         return requestBuilder;
+    }
+
+    private void performBeforeDeleteChecks(TableSchema<T> tableSchema,
+                                           OperationContext operationContext,
+                                           DynamoDbEnhancedClientExtension extension,
+                                           DeleteItemRequest.Builder requestBuilder) {
+
+        Map<String, AttributeValue> itemMap =
+            request.left().map(DeleteItemEnhancedRequest::items)
+                   .orElseGet(() -> request.right().map(TransactDeleteItemEnhancedRequest::items)
+                                           .orElse(Collections.emptyMap()));
+
+        WriteModification beforeDeleteConditionExpression =
+            extension != null ? extension.beforeWrite(
+                DefaultDynamoDbExtensionContext.builder()
+                                               .items(itemMap)
+                                               .operationContext(operationContext)
+                                               .tableMetadata(tableSchema.tableMetadata())
+                                               .tableSchema(tableSchema)
+                                               .operationName(operationName())
+                                               .build())
+                              : null;
+
+        if (beforeDeleteConditionExpression != null) {
+            Expression expression = beforeDeleteConditionExpression.additionalConditionalExpression();
+            if (expression != null) {
+                requestBuilder.conditionExpression(joinExpressions(requestBuilder.build().conditionExpression(),
+                                                                   expression.expression(), " AND "))
+                              .expressionAttributeNames(joinNames(requestBuilder.build().expressionAttributeNames(),
+                                                                  expression.expressionNames()))
+                              .expressionAttributeValues(joinValues(requestBuilder.build().expressionAttributeValues(),
+                                                                    expression.expressionValues()));
+            }
+        }
     }
 }

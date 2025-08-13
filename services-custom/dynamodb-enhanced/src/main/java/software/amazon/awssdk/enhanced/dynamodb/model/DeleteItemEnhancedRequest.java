@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -42,6 +44,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public final class DeleteItemEnhancedRequest {
 
     private final Key key;
+    private final Map<String, AttributeValue> items;
     private final Expression conditionExpression;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
@@ -49,6 +52,7 @@ public final class DeleteItemEnhancedRequest {
 
     private DeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
+        this.items = builder.items;
         this.conditionExpression = builder.conditionExpression;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
@@ -67,6 +71,7 @@ public final class DeleteItemEnhancedRequest {
      */
     public Builder toBuilder() {
         return builder().key(key)
+                        .items(items)
                         .conditionExpression(conditionExpression)
                         .returnConsumedCapacity(returnConsumedCapacity)
                         .returnItemCollectionMetrics(returnItemCollectionMetrics)
@@ -78,6 +83,18 @@ public final class DeleteItemEnhancedRequest {
      */
     public Key key() {
         return key;
+    }
+
+    /**
+     * Returns the full attribute map for the item to delete, including any version attribute used for optimistic delete.
+     *
+     * <p>This map is supplied to both standard and transactional delete operations so that the extension hook can apply any
+     * conditional logic (for example, verifying the version matches to prevent stale deletes).</p>
+     *
+     * @return a map of all attribute names to their {@link AttributeValue}, including the version attribute
+     */
+    public Map<String, AttributeValue> items() {
+        return items;
     }
 
     /**
@@ -179,6 +196,7 @@ public final class DeleteItemEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private Key key;
+        private Map<String, AttributeValue> items;
         private Expression conditionExpression;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
@@ -195,6 +213,11 @@ public final class DeleteItemEnhancedRequest {
          */
         public Builder key(Key key) {
             this.key = key;
+            return this;
+        }
+
+        public Builder items(Map<String, AttributeValue> items) {
+            this.items = items;
             return this;
         }
 

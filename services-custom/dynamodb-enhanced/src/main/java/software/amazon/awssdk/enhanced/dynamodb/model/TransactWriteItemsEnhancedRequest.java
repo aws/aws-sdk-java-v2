@@ -272,17 +272,24 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
-         * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
-         * on the delete action, see the low-level operation description in for instance
-         * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
+         * Adds a conditional delete action to this transact-write builder for a single item.
          *
-         * @param mappedTableResource the table where the key is located
-         * @param keyItem             an item that will have its key fields used to match a record to retrieve from the database
-         * @param <T>                 the type of modelled objects in the table
-         * @return a builder of this type
+         * <p>This method extracts the item’s primary key *and* its version attribute (if one is defined via {@code
+         *
+         * @param mappedTableResource the table resource containing schema and key/version extraction logic
+         * @param keyItem             the model object whose key (and version) will be used to perform the conditional delete
+         * @param <T>                 the type of model objects in the table
+         * @return this builder for method chaining
+         * @DynamoDbVersionAttribute}) and automatically injects an optimistic‐delete check into the condition expression. If the
+         * stored record’s version doesn’t match the value on the model, the transaction will fail.</p>
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {
-            return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
+            return addDeleteItem(
+                mappedTableResource,
+                TransactDeleteItemEnhancedRequest.builder()
+                                                 .key(mappedTableResource.keyFrom(keyItem))
+                                                 .items(mappedTableResource.tableSchema().itemToMap(keyItem, true))
+                                                 .build());
         }
 
         /**

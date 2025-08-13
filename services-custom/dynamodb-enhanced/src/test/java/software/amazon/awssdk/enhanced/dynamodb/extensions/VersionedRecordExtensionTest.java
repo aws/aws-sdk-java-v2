@@ -41,6 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersi
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersionedStaticImmutableItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -324,6 +325,288 @@ public class VersionedRecordExtensionTest {
                    is("attribute_not_exists(#AMZN_MAPPED_version)"));
     }
 
+    // ---------- DELETE (optimistic locking) ----------
+    @Test
+    public void delete_versionNull_skipsCondition_evenWhenOptimisticLockingEnabled() {
+        Map<String, AttributeValue> map = new HashMap<>(FakeItem.getTableSchema()
+                                                                .itemToMap(createUniqueFakeItem(), true));
+        map.put("version", null);
+
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true)
+                                                                     .build();
+
+        WriteModification result = extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                             .builder()
+                                                             .items(map)
+                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                             .operationContext(PRIMARY_CONTEXT)
+                                                             .operationName(OperationName.DELETE_ITEM)
+                                                             .build());
+
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @Test
+    public void delete_versionWrongType_skipsCondition_evenWhenOptimisticLockingEnabled() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> map = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        map.put("version", AttributeValue.builder().s("bad").build());
+
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true)
+                                                                     .build();
+
+        WriteModification result = extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                             .builder()
+                                                             .items(map)
+                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                             .operationContext(PRIMARY_CONTEXT)
+                                                             .operationName(OperationName.DELETE_ITEM)
+                                                             .build());
+
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @Test
+    public void delete_versionMissingOrExplicitNull_skipsCondition_whenOptimisticLockingEnabled() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true)
+                                                                     .build();
+
+        Map<String, AttributeValue> mapMissing = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        mapMissing.remove("version");
+
+        WriteModification missing = extension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(mapMissing)
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.DELETE_ITEM)
+                                           .build());
+        assertThat(missing.additionalConditionalExpression(), is((Expression) null));
+
+        Map<String, AttributeValue> mapNull = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        mapNull.put("version", AttributeValue.builder().nul(true).build());
+
+        WriteModification explicitNull = extension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(mapNull)
+                                           .tableMetadata(FakeItem.getTableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.DELETE_ITEM)
+                                           .build());
+        assertThat(explicitNull.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @Test
+    public void delete_optimisticLockingEnabled_atExtension_versionPresent_addsEqualityCondition() {
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true)
+                                                                     .build();
+
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setVersion(7);
+
+        Map<String, AttributeValue> map = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+
+        WriteModification result = extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                             .builder()
+                                                             .items(map)
+                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                             .operationContext(PRIMARY_CONTEXT)
+                                                             .operationName(OperationName.DELETE_ITEM)
+                                                             .build());
+
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("#AMZN_MAPPED_version = :old_version_value")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .expressionValues(singletonMap(":old_version_value",
+                                                               AttributeValue.builder().n("7").build()))
+                                .build()));
+    }
+
+    @Test
+    public void delete_optimisticLockingDisabled_atExtension_versionPresent_skipsCondition() {
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(false)
+                                                                     .build();
+
+        FakeItem fakeItem = createUniqueFakeItem();
+        fakeItem.setVersion(5);
+
+        Map<String, AttributeValue> map = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+
+        WriteModification result = extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                             .builder()
+                                                             .items(map)
+                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                             .operationContext(PRIMARY_CONTEXT)
+                                                             .operationName(OperationName.DELETE_ITEM)
+                                                             .build());
+
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @Test
+    public void delete_optimisticLockingDisabled_atExtension_versionMissing_skipsCondition() {
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(false)
+                                                                     .build();
+
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> map = new HashMap<>(FakeItem.getTableSchema().itemToMap(fakeItem, true));
+        map.remove("version");
+
+        WriteModification result = extension.beforeWrite(DefaultDynamoDbExtensionContext
+                                                             .builder()
+                                                             .items(map)
+                                                             .tableMetadata(FakeItem.getTableMetadata())
+                                                             .operationContext(PRIMARY_CONTEXT)
+                                                             .operationName(OperationName.DELETE_ITEM)
+                                                             .build());
+
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    // ----- Annotation precedence over extension flag -----
+    @Test
+    public void delete_optimisticLockingEnabledOnAnnotation_overridesFalseFlagFromExtension_andAddsEqualityCondition() {
+        // Annotation explicitly sets optimisticLockingOnDelete = true
+        FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
+        item.setId(UUID.randomUUID().toString());
+        item.setVersion(1L);
+
+        TableSchema<FakeVersionedThroughAnnotationItem> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
+        Map<String, AttributeValue> itemMap = new HashMap<>(schema.itemToMap(item, true));
+
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(false) // overridden
+                                                                     .build();
+
+        WriteModification result = extension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(itemMap)
+                                           .tableMetadata(schema.tableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.DELETE_ITEM)
+                                           .build());
+
+        assertThat(result.additionalConditionalExpression(),
+                   is(Expression.builder()
+                                .expression("#AMZN_MAPPED_version = :old_version_value")
+                                .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
+                                .expressionValues(singletonMap(":old_version_value",
+                                                               AttributeValue.builder().n("1").build()))
+                                .build()));
+    }
+
+    @Test
+    public void delete_optimisticLockingDisabledOnAnnotation_overridesTrueFlagFromExtension_andSkipsCondition() {
+        // Annotation explicitly sets optimisticLockingOnDelete = false
+        FakeVersionedThroughAnnotationItemWithFalseDeleteLock item =
+            new FakeVersionedThroughAnnotationItemWithFalseDeleteLock();
+        item.setId(UUID.randomUUID().toString());
+        item.setVersion(1L);
+
+        TableSchema<FakeVersionedThroughAnnotationItemWithFalseDeleteLock> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItemWithFalseDeleteLock.class);
+        Map<String, AttributeValue> itemMap = new HashMap<>(schema.itemToMap(item, true));
+
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true) // overridden
+                                                                     .build();
+
+        WriteModification result = extension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(itemMap)
+                                           .tableMetadata(schema.tableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.DELETE_ITEM)
+                                           .build());
+
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @Test
+    public void delete_optimisticLockingDefaultFalseOnAnnotation_overridesTrueFlagFromExtension_andSkipsCondition() {
+        // Annotation does not specify the flag -> Bean tag writes default false into metadata
+        FakeVersionedThroughAnnotationItemWithoutDeleteLock item =
+            new FakeVersionedThroughAnnotationItemWithoutDeleteLock();
+        item.setId(UUID.randomUUID().toString());
+        item.setVersion(2L);
+
+        TableSchema<FakeVersionedThroughAnnotationItemWithoutDeleteLock> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItemWithoutDeleteLock.class);
+        Map<String, AttributeValue> itemMap = new HashMap<>(schema.itemToMap(item, true));
+
+        VersionedRecordExtension extension = VersionedRecordExtension.builder()
+                                                                     .optimisticLockingOnDelete(true)
+                                                                     .build();
+
+        WriteModification result = extension.beforeWrite(
+            DefaultDynamoDbExtensionContext.builder()
+                                           .items(itemMap)
+                                           .tableMetadata(schema.tableMetadata())
+                                           .operationContext(PRIMARY_CONTEXT)
+                                           .operationName(OperationName.DELETE_ITEM)
+                                           .build());
+
+        // Since annotation default 'false' is written to metadata, it overrides the extension flag.
+        assertThat(result.additionalConditionalExpression(), is((Expression) null));
+    }
+
+    @DynamoDbBean
+    public static class FakeVersionedThroughAnnotationItemWithFalseDeleteLock {
+        private String id;
+        private Long version;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDbVersionAttribute(startAt = 0, incrementBy = 1, optimisticLockingOnDelete = false)
+        public Long getVersion() {
+            return version;
+        }
+
+        public void setVersion(Long version) {
+            this.version = version;
+        }
+    }
+
+    @DynamoDbBean
+    public static class FakeVersionedThroughAnnotationItemWithoutDeleteLock {
+        private String id;
+        private Long version;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        // No optimisticLockingOnDelete specified -> default false written into metadata
+        @DynamoDbVersionAttribute(startAt = 0, incrementBy = 1)
+        public Long getVersion() {
+            return version;
+        }
+
+        public void setVersion(Long version) {
+            this.version = version;
+        }
+    }
 
     @DynamoDbBean
     public static class FakeVersionedThroughAnnotationItem {
@@ -337,7 +620,7 @@ public class VersionedRecordExtensionTest {
         public String getId() { return id; }
         public void setId(String id) { this.id = id; }
 
-        @DynamoDbVersionAttribute(startAt = 3, incrementBy = 2)
+        @DynamoDbVersionAttribute(startAt = 3, incrementBy = 2, optimisticLockingOnDelete = true)
         public Long getVersion() { return version; }
         public void setVersion(Long version) { this.version = version; }
     }
