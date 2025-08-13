@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "mrdziuban",
+    "description": "Update Netty to 4.1.124"
+}
