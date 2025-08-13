@@ -19,7 +19,6 @@ import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttrib
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
-import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -70,36 +69,14 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        // requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
-        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        Consumer<SdkHttpExecutionAttributes.Builder> attachProgress =
+            b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener());
 
-        Consumer<SdkHttpExecutionAttributes.Builder> attachObservable =
-            b -> b.put(METAREQUEST_PAUSE_OBSERVABLE, observable)
-                  .put(CRT_PROGRESS_LISTENER, progressUpdater.crtProgressListener());
+        PutObjectRequest putObjectRequest = attachCrtSdkAttribute(uploadRequest.putObjectRequest(), attachProgress);
 
-        PutObjectRequest putObjectRequest = attachCrtSdkAttribute(uploadRequest.putObjectRequest(), attachObservable);
-
-        progressUpdater.transferInitiated();
-        progressUpdater.registerCompletion(returnFuture);
-
-        try {
-            assertNotUnsupportedArn(uploadRequest.putObjectRequest().bucket(), "upload");
-
-            CompletableFuture<PutObjectResponse> future =
-                s3AsyncClient.putObject(putObjectRequest, requestBody);
-
-            // Forward upload cancellation to future
-            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
-
-            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
-                                                              r -> CompletedUpload.builder()
-                                                                                  .response(r)
-                                                                                  .build());
-        } catch (Throwable throwable) {
-            returnFuture.completeExceptionally(throwable);
-        }
+        doUpload(putObjectRequest, requestBody, returnFuture);
 
         return new DefaultUpload(returnFuture, progressUpdater.progress());
     }
