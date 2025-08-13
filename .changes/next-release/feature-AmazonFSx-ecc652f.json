@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon FSx",
+    "contributor": "",
+    "description": "Add Dual-Stack support for Amazon FSx for OpenZFS file systems"
+}
