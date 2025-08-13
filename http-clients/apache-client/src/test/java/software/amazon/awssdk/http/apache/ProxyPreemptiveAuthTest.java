@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.apache;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,13 +43,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  */
 public class ProxyPreemptiveAuthTest {
 
-    private WireMockServer proxyServer;
+    private WireMockServer mockProxy;
     private SdkHttpClient httpClient;
 
     @BeforeEach
     public void setup() {
-        proxyServer = new WireMockServer(WireMockConfiguration.options().dynamicPort());
-        proxyServer.start();
+        mockProxy = new WireMockServer(WireMockConfiguration.options().dynamicPort());
+        mockProxy.start();
     }
 
     @AfterEach
@@ -56,14 +57,14 @@ public class ProxyPreemptiveAuthTest {
         if (httpClient != null) {
             httpClient.close();
         }
-        if (proxyServer != null) {
-            proxyServer.stop();
+        if (mockProxy != null) {
+            mockProxy.stop();
         }
     }
 
     @Test
-    public void testPreemptiveAuthenticationSendsProxyAuthorizationHeader() throws Exception {
-        proxyServer.stubFor(any(anyUrl())
+    public void addPreemptiveAuthenticationProxy_whenPreemptiveAuthEnabled_shouldSendProxyAuthorizationHeader() throws Exception {
+        mockProxy.stubFor(any(anyUrl())
                 .withHeader("Proxy-Authorization", matching("Basic .+"))
                 .willReturn(aResponse()
                         .withStatus(200)
@@ -72,7 +73,7 @@ public class ProxyPreemptiveAuthTest {
         // Create HTTP client with preemptive proxy authentication enabled
         httpClient = ApacheHttpClient.builder()
                 .proxyConfiguration(ProxyConfiguration.builder()
-                        .endpoint(URI.create("http://localhost:" + proxyServer.port()))
+                        .endpoint(URI.create("http://localhost:" + mockProxy.port()))
                         .username("testuser")
                         .password("testpass")
                         .preemptiveBasicAuthenticationEnabled(true)
@@ -92,9 +93,56 @@ public class ProxyPreemptiveAuthTest {
         // Execute the request - should succeed with preemptive auth header
         HttpExecuteResponse response = httpClient.prepareRequest(executeRequest).call();
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
-        
-        // Verify that the proxy received the request with Proxy-Authorization header
-        proxyServer.verify(WireMock.getRequestedFor(anyUrl())
+
+        mockProxy.verify(1, anyRequestedFor(anyUrl()));
+        mockProxy.verify(WireMock.getRequestedFor(anyUrl())
                 .withHeader("Proxy-Authorization", matching("Basic .+")));
+    }
+
+    @Test
+    public void addPreemptiveAuthenticationProxy_whenPreemptiveAuthDisabled_shouldUseChallengeResponseAuth() throws Exception {
+        // First request without auth header should get 407
+        mockProxy.stubFor(any(anyUrl())
+                .willReturn(aResponse()
+                        .withStatus(407)
+                        .withHeader("Proxy-Authenticate", "Basic realm=\"proxy\"")));
+
+        // Second request with auth header should succeed
+        mockProxy.stubFor(any(anyUrl())
+                .withHeader("Proxy-Authorization", matching("Basic .+"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("Success")));
+
+        // Create HTTP client with preemptive proxy authentication disabled
+        httpClient = ApacheHttpClient.builder()
+                .proxyConfiguration(ProxyConfiguration.builder()
+                        .endpoint(URI.create("http://localhost:" + mockProxy.port()))
+                        .username("testuser")
+                        .password("testpass")
+                        .preemptiveBasicAuthenticationEnabled(false)
+                        .build())
+                .build();
+
+        // Create a request
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                .method(SdkHttpMethod.GET)
+                .uri(URI.create("http://example.com/test"))
+                .build();
+
+        HttpExecuteRequest executeRequest = HttpExecuteRequest.builder()
+                .request(request)
+                .build();
+
+        // Execute the request - should succeed after challenge-response
+        HttpExecuteResponse response = httpClient.prepareRequest(executeRequest).call();
+        assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+
+        // Verify challenge-response flow - 2 requests total
+        mockProxy.verify(2, anyRequestedFor(anyUrl()));
+        // First request without auth header
+        mockProxy.verify(1, anyRequestedFor(anyUrl()).withoutHeader("Proxy-Authorization"));
+        // Second request with auth header
+        mockProxy.verify(1, anyRequestedFor(anyUrl()).withHeader("Proxy-Authorization", matching("Basic .+")));
     }
 }

@@ -22,7 +22,6 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AUTH;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
-import org.apache.http.auth.MalformedChallengeException;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
@@ -157,7 +156,7 @@ public final class ApacheUtils {
                 authCache.put(targetHost, basicAuth);
                 clientContext.setAuthCache(authCache);
             } catch (Exception e) {
-                logger.warn(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
+                logger.debug(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
             }
 
             clientContext.setCredentialsProvider(credsProvider);
