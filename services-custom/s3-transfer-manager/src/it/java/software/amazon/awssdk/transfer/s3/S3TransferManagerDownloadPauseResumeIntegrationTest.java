@@ -57,7 +57,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
     // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    private static final long OBJ_SIZE = 100 * MB;
     private static File sourceFile;
 
     @BeforeAll
