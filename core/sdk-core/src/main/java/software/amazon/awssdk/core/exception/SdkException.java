@@ -19,7 +19,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.builder.Buildable;
 
 /**
- * Base class for all exceptions thrown by the SDK.
+ * Base class for SDK-specific exceptions. Note that underlying exceptions may be handled differently:
+ * IOExceptions are wrapped in UncheckedIOException.
  *
  * @see SdkServiceException
  * @see SdkClientException
