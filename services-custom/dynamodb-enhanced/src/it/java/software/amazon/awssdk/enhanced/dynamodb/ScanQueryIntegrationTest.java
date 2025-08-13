@@ -30,9 +30,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
@@ -49,17 +50,39 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
     private static DynamoDbClient dynamoDbClient;
     private static DynamoDbEnhancedClient enhancedClient;
     private static DynamoDbTable<Record> mappedTable;
+    private static CapturingInterceptor capturingInterceptor;
 
-    @BeforeClass
+    public static void main(String[] args) {
+        DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
+                                                                      .consistentRead(true)
+                                                                      .dynamoDbClient(dynamoDbClient)
+                                                                      .build();
+
+        mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
+
+    }
+
+    @BeforeAll
     public static void setup() {
-        dynamoDbClient = createDynamoDbClient();
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
+        capturingInterceptor = new CapturingInterceptor();
+        dynamoDbClient = dynamoDbClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
+            .build();
+        enhancedClient = DynamoDbEnhancedClient.builder()
+                                               .consistentRead(true)
+                                               .dynamoDbClient(dynamoDbClient)
+                                               .build();
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
         mappedTable.createTable();
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
     }
 
-    @AfterClass
+    @AfterEach
+    public void reset() {
+        capturingInterceptor.reset();
+    }
+
+    @AfterAll
     public static void teardown() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME));
@@ -100,7 +123,10 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         insertRecords();
 
         Iterator<Page<Record>> eventualConsistencyResult =
-            mappedTable.scan(ScanEnhancedRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build())
+            mappedTable.scan(ScanEnhancedRequest.builder()
+                                                .consistentRead(false)
+                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                .build())
                        .iterator();
 
         Page<Record> page = eventualConsistencyResult.next();
@@ -109,7 +135,10 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         assertThat(eventualConsumedCapacity, is(notNullValue()));
 
         Iterator<Page<Record>> strongConsistencyResult =
-            mappedTable.scan(ScanEnhancedRequest.builder().returnConsumedCapacity(ReturnConsumedCapacity.TOTAL).build())
+            mappedTable.scan(ScanEnhancedRequest.builder()
+                                                .consistentRead(true)
+                                                .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                .build())
                        .iterator();
 
         page = strongConsistencyResult.next();
@@ -155,6 +184,7 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
 
         Iterator<Page<Record>> eventualConsistencyResult =
             mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .consistentRead(false)
                                                   .queryConditional(sortGreaterThan(k -> k.partitionValue("id-value").sortValue(3)))
                                                   .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                                   .build())
@@ -167,6 +197,7 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
 
         Iterator<Page<Record>> strongConsistencyResult =
             mappedTable.query(QueryEnhancedRequest.builder()
+                                                  .consistentRead(true)
                                                   .queryConditional(sortGreaterThan(k -> k.partitionValue("id-value").sortValue(3)))
                                                   .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
                                                   .build())
@@ -178,6 +209,29 @@ public class ScanQueryIntegrationTest extends DynamoDbEnhancedIntegrationTestBas
         assertThat(strongConsumedCapacity, is(notNullValue()));
 
         assertThat(strongConsumedCapacity.capacityUnits(), is(greaterThanOrEqualTo(eventualConsumedCapacity.capacityUnits())));
+    }
+
+    @Test
+    public void scan_consistentReadNotSetOnRequest_usesClientValue() {
+        mappedTable.scan(ScanEnhancedRequest.builder().build())
+                   .items().stream().count();
+
+        assertThat(capturingInterceptor.scanRequests.size(), is(1));
+        Boolean consistentRead = capturingInterceptor.scanRequests.get(0).consistentRead();
+        assertThat(consistentRead, is(true));
+    }
+
+    @Test
+    public void query_consistentReadSetOnRequest_overridesClientValue() {
+        mappedTable.query(QueryEnhancedRequest.builder()
+                                              .consistentRead(false)
+                                              .queryConditional(sortGreaterThan(k -> k.partitionValue("id-value").sortValue(3)))
+                                              .build())
+                   .items().stream().count();
+
+        assertThat(capturingInterceptor.queryRequests.size(), is(1));
+        Boolean consistentRead = capturingInterceptor.queryRequests.get(0).consistentRead();
+        assertThat(consistentRead, is(false));
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

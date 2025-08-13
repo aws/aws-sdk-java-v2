@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
 import java.util.ArrayList;
@@ -62,15 +63,25 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     private final DynamoDbEnhancedClientExtension extension;
     private final TableSchema<T> tableSchema;
     private final String tableName;
+    private final Boolean consistentRead;
 
     DefaultDynamoDbAsyncTable(DynamoDbAsyncClient dynamoDbClient,
                               DynamoDbEnhancedClientExtension extension,
                               TableSchema<T> tableSchema,
                               String tableName) {
+        this(dynamoDbClient, extension, tableSchema, tableName, null);
+    }
+
+    DefaultDynamoDbAsyncTable(DynamoDbAsyncClient dynamoDbClient,
+                              DynamoDbEnhancedClientExtension extension,
+                              TableSchema<T> tableSchema,
+                              String tableName,
+                              Boolean consistentRead) {
         this.dynamoDbClient = dynamoDbClient;
         this.extension = extension;
         this.tableSchema = tableSchema;
         this.tableName = tableName;
+        this.consistentRead = consistentRead;
     }
 
     @Override
@@ -93,11 +104,16 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public Boolean consistentRead() {
+        return this.consistentRead;
+    }
+
+    @Override
     public DefaultDynamoDbAsyncIndex<T> index(String indexName) {
         // Force a check for the existence of the index
         tableSchema.tableMetadata().indexPartitionKey(indexName);
 
-        return new DefaultDynamoDbAsyncIndex<>(dynamoDbClient, extension, tableSchema, tableName, indexName);
+        return new DefaultDynamoDbAsyncIndex<>(this, indexName);
     }
 
     @Override
@@ -164,7 +180,8 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> getItem(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        GetItemEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(requestWithDefaults);
         CompletableFuture<GetItemEnhancedResponse<T>> future = operation.executeOnPrimaryIndexAsync(
             tableSchema, tableName, extension, dynamoDbClient
         );
@@ -190,7 +207,8 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<GetItemEnhancedResponse<T>> getItemWithResponse(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        GetItemEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -204,7 +222,8 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public PagePublisher<T> query(QueryEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?> operation = QueryOperation.create(request);
+        QueryEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        PaginatedTableOperation<T, ?, ?> operation = QueryOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -256,7 +275,8 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public PagePublisher<T> scan(ScanEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?> operation = ScanOperation.create(request);
+        ScanEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        PaginatedTableOperation<T, ?, ?> operation = ScanOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -348,6 +368,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         if (tableSchema != null ? ! tableSchema.equals(that.tableSchema) : that.tableSchema != null) {
             return false;
         }
+        if (consistentRead != null ? !consistentRead.equals(that.consistentRead) : that.consistentRead != null) {
+            return false;
+        }
         return tableName != null ? tableName.equals(that.tableName) : that.tableName == null;
     }
 
@@ -357,6 +380,7 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         result = 31 * result + (extension != null ? extension.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         result = 31 * result + (tableName != null ? tableName.hashCode() : 0);
+        result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         return result;
     }
 }

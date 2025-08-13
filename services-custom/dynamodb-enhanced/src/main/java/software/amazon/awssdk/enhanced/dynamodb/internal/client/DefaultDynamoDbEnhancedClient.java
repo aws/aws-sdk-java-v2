@@ -42,10 +42,12 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClient {
     private final DynamoDbClient dynamoDbClient;
     private final DynamoDbEnhancedClientExtension extension;
+    private final Boolean consistentRead;
 
     private DefaultDynamoDbEnhancedClient(Builder builder) {
         this.dynamoDbClient = builder.dynamoDbClient == null ? DynamoDbClient.create() : builder.dynamoDbClient;
         this.extension = ExtensionResolver.resolveExtensions(builder.dynamoDbEnhancedClientExtensions);
+        this.consistentRead = builder.consistentRead;
     }
 
     public static Builder builder() {
@@ -54,7 +56,7 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
 
     @Override
     public <T> DefaultDynamoDbTable<T> table(String tableName, TableSchema<T> tableSchema) {
-        return new DefaultDynamoDbTable<>(dynamoDbClient, extension, tableSchema, tableName);
+        return new DefaultDynamoDbTable<>(dynamoDbClient, extension, tableSchema, tableName, consistentRead);
     }
 
     @Override
@@ -134,8 +136,14 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         return extension;
     }
 
+    public Boolean consistentRead() {
+        return consistentRead;
+    }
+
     public Builder toBuilder() {
-        return builder().dynamoDbClient(this.dynamoDbClient).extensions(this.extension);
+        return builder().dynamoDbClient(this.dynamoDbClient)
+                        .extensions(this.extension)
+                        .consistentRead(this.consistentRead);
     }
 
     @Override
@@ -152,6 +160,9 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         if (dynamoDbClient != null ? !dynamoDbClient.equals(that.dynamoDbClient) : that.dynamoDbClient != null) {
             return false;
         }
+        if (consistentRead != null ? !consistentRead.equals(that.consistentRead) : that.consistentRead != null) {
+            return false;
+        }
         return extension != null ?
                extension.equals(that.extension) :
                that.extension == null;
@@ -160,8 +171,8 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
     @Override
     public int hashCode() {
         int result = dynamoDbClient != null ? dynamoDbClient.hashCode() : 0;
-        result = 31 * result + (extension != null ?
-                                extension.hashCode() : 0);
+        result = 31 * result + (extension != null ? extension.hashCode() : 0);
+        result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         return result;
     }
 
@@ -170,6 +181,7 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         private DynamoDbClient dynamoDbClient;
         private List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions =
             new ArrayList<>(ExtensionResolver.defaultExtensions());
+        private Boolean consistentRead;
 
         @Override
         public DefaultDynamoDbEnhancedClient build() {
@@ -191,6 +203,12 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         @Override
         public Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions) {
             this.dynamoDbEnhancedClientExtensions = new ArrayList<>(dynamoDbEnhancedClientExtensions);
+            return this;
+        }
+
+        @Override
+        public Builder consistentRead(Boolean consistentRead) {
+            this.consistentRead = consistentRead;
             return this;
         }
     }

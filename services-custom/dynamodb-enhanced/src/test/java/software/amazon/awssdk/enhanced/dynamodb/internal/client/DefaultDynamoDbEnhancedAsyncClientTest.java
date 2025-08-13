@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Arrays;
 import org.junit.Before;
@@ -28,7 +28,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.ChainExtension;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 
@@ -51,6 +50,7 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
             DefaultDynamoDbEnhancedAsyncClient.builder()
                                               .dynamoDbClient(mockDynamoDbAsyncClient)
                                               .extensions(mockDynamoDbEnhancedClientExtension)
+                                              .consistentRead(true)
                                               .build();
     }
 
@@ -62,6 +62,7 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
         assertThat(mappedTable.mapperExtension(), is(mockDynamoDbEnhancedClientExtension));
         assertThat(mappedTable.tableSchema(), is(mockTableSchema));
         assertThat(mappedTable.tableName(), is("table-name"));
+        assertThat(mappedTable.consistentRead(), is(true));
     }
 
     @Test
@@ -73,6 +74,7 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
 
         assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
         assertThat(builtObject.mapperExtension(), instanceOf(ChainExtension.class));
+        assertThat(builtObject.consistentRead(), is(nullValue()));
     }
 
     @Test
@@ -81,10 +83,12 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
             DefaultDynamoDbEnhancedAsyncClient.builder()
                                               .dynamoDbClient(mockDynamoDbAsyncClient)
                                               .extensions(mockDynamoDbEnhancedClientExtension)
+                                              .consistentRead(true)
                                               .build();
 
         assertThat(builtObject.dynamoDbAsyncClient(), is(mockDynamoDbAsyncClient));
         assertThat(builtObject.mapperExtension(), is(mockDynamoDbEnhancedClientExtension));
+        assertThat(builtObject.consistentRead(), is(true));
     }
 
     @Test

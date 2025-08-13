@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
 import java.util.function.Consumer;
@@ -40,22 +41,21 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
     private final TableSchema<T> tableSchema;
     private final String tableName;
     private final String indexName;
+    private final DefaultDynamoDbAsyncTable<T> table;
 
-    DefaultDynamoDbAsyncIndex(DynamoDbAsyncClient dynamoDbClient,
-                              DynamoDbEnhancedClientExtension extension,
-                              TableSchema<T> tableSchema,
-                              String tableName,
-                              String indexName) {
-        this.dynamoDbClient = dynamoDbClient;
-        this.extension = extension;
-        this.tableSchema = tableSchema;
-        this.tableName = tableName;
+    DefaultDynamoDbAsyncIndex(DefaultDynamoDbAsyncTable<T> table, String indexName) {
+        this.dynamoDbClient = table.dynamoDbClient();
+        this.extension = table.mapperExtension();
+        this.tableSchema = table.tableSchema();
+        this.tableName = table.tableName();
         this.indexName = indexName;
+        this.table = table;
     }
 
     @Override
     public SdkPublisher<Page<T>> query(QueryEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?> operation = QueryOperation.create(request);
+        QueryEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this.table);
+        PaginatedIndexOperation<T, ?, ?> operation = QueryOperation.create(requestWithDefaults);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
@@ -73,7 +73,8 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
 
     @Override
     public SdkPublisher<Page<T>> scan(ScanEnhancedRequest request) {
-        PaginatedIndexOperation<T, ?, ?> operation = ScanOperation.create(request);
+        ScanEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this.table);
+        PaginatedIndexOperation<T, ?, ?> operation = ScanOperation.create(requestWithDefaults);
         return operation.executeOnSecondaryIndexAsync(tableSchema, tableName, indexName, extension, dynamoDbClient);
     }
 
@@ -143,6 +144,9 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
         if (tableName != null ? ! tableName.equals(that.tableName) : that.tableName != null) {
             return false;
         }
+        if (table != null ? ! table.equals(that.table) : that.table != null) {
+            return false;
+        }
         return indexName != null ? indexName.equals(that.indexName) : that.indexName == null;
     }
 
@@ -153,6 +157,7 @@ public final class DefaultDynamoDbAsyncIndex<T> implements DynamoDbAsyncIndex<T>
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         result = 31 * result + (tableName != null ? tableName.hashCode() : 0);
         result = 31 * result + (indexName != null ? indexName.hashCode() : 0);
+        result = 31 * result + (table != null ? table.hashCode() : 0);
         return result;
     }
 }

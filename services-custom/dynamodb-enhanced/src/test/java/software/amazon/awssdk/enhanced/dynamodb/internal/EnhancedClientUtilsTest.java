@@ -16,20 +16,33 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.internal.client.DefaultDynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@ExtendWith(MockitoExtension.class)
 public class EnhancedClientUtilsTest {
     private static final AttributeValue PARTITION_VALUE = AttributeValue.builder().s("id123").build();
     private static final AttributeValue SORT_VALUE = AttributeValue.builder().s("sort123").build();
+
+    @Mock
+    private DefaultDynamoDbTable<?> mockTable;
 
     @Test
     public void createKeyFromMap_partitionOnly() {
@@ -63,5 +76,41 @@ public class EnhancedClientUtilsTest {
         String result = EnhancedClientUtils.cleanAttributeName("a*b.c-d:e#f+g:h/i(j)k&l<m>n?o=p!q@r%s$t|u");
         
         assertThat(result).isEqualTo("a_b_c_d_e_f_g_h_i_j_k_l_m_n_o_p_q_r_s_t_u");
+    }
+
+    @Test
+    public void applyClientDefaultsGetItem_consistentReadAbsentOnRequestAndClient_shouldDefaultToNull() {
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder().build();
+        when(mockTable.consistentRead()).thenReturn(null);
+        GetItemEnhancedRequest processedRequest = EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest(request, mockTable);
+
+        assertThat(processedRequest.consistentRead()).isNull();
+    }
+
+    @Test
+    public void applyClientDefaultsGetItem_consistentReadAbsentOnRequest_shouldAddClientValue() {
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder().build();
+        when(mockTable.consistentRead()).thenReturn(true);
+        GetItemEnhancedRequest processedRequest = EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest(request, mockTable);
+
+        assertThat(processedRequest.consistentRead()).isTrue();
+    }
+
+    @Test
+    public void applyClientDefaultsQuery_consistentReadFalseOnRequest_shouldNotAddClientValue() {
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder().consistentRead(false).build();
+        lenient().when(mockTable.consistentRead()).thenReturn(true);
+        QueryEnhancedRequest processedRequest = EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest(request, mockTable);
+
+        assertThat(processedRequest.consistentRead()).isFalse();
+    }
+
+    @Test
+    public void applyClientDefaultsScan_consistentReadTrueOnRequest_shouldNotAddClientValue() {
+        ScanEnhancedRequest request = ScanEnhancedRequest.builder().consistentRead(true).build();
+        lenient().when(mockTable.consistentRead()).thenReturn(false);
+        ScanEnhancedRequest processedRequest = EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest(request, mockTable);
+
+        assertThat(processedRequest.consistentRead()).isTrue();
     }
 }

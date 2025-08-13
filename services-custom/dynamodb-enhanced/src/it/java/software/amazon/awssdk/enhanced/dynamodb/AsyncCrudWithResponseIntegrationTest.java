@@ -15,15 +15,14 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.CompletionException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
@@ -56,17 +55,24 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
     private static DynamoDbAsyncClient dynamoDbClient;
     private static DynamoDbEnhancedAsyncClient enhancedClient;
     private static DynamoDbAsyncTable<Record> mappedTable;
+    private static CapturingInterceptor capturingInterceptor;
 
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
-        dynamoDbClient = createAsyncDynamoDbClient();
-        enhancedClient = DynamoDbEnhancedAsyncClient.builder().dynamoDbClient(dynamoDbClient).build();
+        capturingInterceptor = new CapturingInterceptor();
+        dynamoDbClient = dynamoDbAsyncClientBuilder()
+            .overrideConfiguration(o -> o.addExecutionInterceptor(capturingInterceptor))
+            .build();
+        enhancedClient = DynamoDbEnhancedAsyncClient.builder()
+                                                    .consistentRead(true)
+                                                    .dynamoDbClient(dynamoDbClient)
+                                                    .build();
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
         mappedTable.createTable(r -> r.localSecondaryIndices(LOCAL_SECONDARY_INDEX)).join();
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME)).join();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         mappedTable.scan()
                    .items()
@@ -74,7 +80,12 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
                    .join();
     }
 
-    @AfterClass
+    @AfterEach
+    public void reset() {
+        capturingInterceptor.reset();
+    }
+
+    @AfterAll
     public static void afterClass() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME)).join();
@@ -340,5 +351,22 @@ public class AsyncCrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegr
 
         GetItemEnhancedResponse<Record> response = mappedTable.getItemWithResponse(req -> req.key(key)).join();
         assertThat(response.consumedCapacity()).isNull();
+
+        assertThat(capturingInterceptor.getItemRequests.size()).isEqualTo(1);
+        assertThat(capturingInterceptor.getItemRequests.get(0).consistentRead()).isTrue();
+    }
+
+    @Test
+    public void getItem_consistentReadSetOnRequest_overridesClientValue() {
+        Record record = new Record().setId("101").setSort(102).setStringAttribute(getStringAttrValue(80_000));
+        Key key = Key.builder()
+                     .partitionValue(record.getId())
+                     .sortValue(record.getSort())
+                     .build();
+
+        mappedTable.getItemWithResponse(req -> req.consistentRead(false).key(key)).join();
+
+        assertThat(capturingInterceptor.getItemRequests.size()).isEqualTo(1);
+        assertThat(capturingInterceptor.getItemRequests.get(0).consistentRead()).isFalse();
     }
 }

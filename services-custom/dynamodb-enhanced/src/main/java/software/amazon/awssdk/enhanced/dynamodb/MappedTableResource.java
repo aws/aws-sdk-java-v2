@@ -54,4 +54,25 @@ public interface MappedTableResource<T> {
      * @return A key that has been initialized with the index values extracted from the modelled object.
      */
     Key keyFrom(T item);
+
+    /**
+     * The default read consistency model for single read operations (GetItem, Query, Scan). When set to true, these
+     * operations will use strongly consistent reads. By default, this is set to null/false, i.e., eventually consistent reads.
+     * <p>
+     * If set at the request level, e.g., {@code QueryEnhancedRequest}, the request level value will take precedence.
+     * <p>
+     * Note: This setting applies to single read operations only:
+     * <ul>
+     * <li>BatchGetItem: Eventually consistent by default, consistent read setting must be configured at the individual
+     * request level, i.e. {@code GetItemEnhancedRequest}s passed to {@code ReachBatch} on the {@code
+     * BatchGetItemEnhancedRequest}, when performing batch GET.
+     * </li>
+     * <li>TransactGetItems: Always uses strongly consistent reads by design, so this setting is not applicable.</li>
+     * </ul>
+     *
+     * @return The default consistent read setting on the table.
+     */
+    default Boolean consistentRead() {
+        throw new UnsupportedOperationException();
+    }
 }

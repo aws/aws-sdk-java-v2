@@ -20,15 +20,25 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondarySortKey;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClientBuilder;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
 public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegrationTestBase {
@@ -37,15 +47,21 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
     }
 
     protected static DynamoDbClient createDynamoDbClient() {
-        return DynamoDbClient.builder()
-                             .credentialsProvider(getCredentialsProvider())
-                             .build();
+        return dynamoDbClientBuilder().build();
     }
 
     protected static DynamoDbAsyncClient createAsyncDynamoDbClient() {
+        return dynamoDbAsyncClientBuilder().build();
+    }
+
+    protected static DynamoDbClientBuilder dynamoDbClientBuilder() {
+        return DynamoDbClient.builder()
+                             .credentialsProvider(getCredentialsProvider());
+    }
+
+    protected static DynamoDbAsyncClientBuilder dynamoDbAsyncClientBuilder() {
         return DynamoDbAsyncClient.builder()
-                                  .credentialsProvider(getCredentialsProvider())
-                                  .build();
+                                  .credentialsProvider(getCredentialsProvider());
     }
 
     protected static final TableSchema<Record> TABLE_SCHEMA =
@@ -102,4 +118,29 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
         return new String(chars);
     }
 
+    protected static class CapturingInterceptor implements ExecutionInterceptor {
+        public final List<GetItemRequest> getItemRequests = new ArrayList<>();
+        public final List<ScanRequest> scanRequests = new ArrayList<>();
+        public final List<QueryRequest> queryRequests = new ArrayList<>();
+
+        @Override
+        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+            SdkRequest sdkRequest = context.request();
+            if (sdkRequest instanceof GetItemRequest) {
+                getItemRequests.add((GetItemRequest) sdkRequest);
+            }
+            if (sdkRequest instanceof ScanRequest) {
+                scanRequests.add((ScanRequest) sdkRequest);
+            }
+            if (sdkRequest instanceof QueryRequest) {
+                queryRequests.add((QueryRequest) sdkRequest);
+            }
+        }
+
+        public void reset() {
+            getItemRequests.clear();
+            scanRequests.clear();
+            queryRequests.clear();
+        }
+    }
 }

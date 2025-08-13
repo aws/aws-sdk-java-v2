@@ -54,5 +54,28 @@ public interface DynamoDbEnhancedResource {
          * @param dynamoDbEnhancedClientExtensions a list of extensions to load with the enhanced client
          */
         Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions);
+
+        /**
+         * Sets the default read consistency model for single read operations (GetItem, Query, Scan). When set to true, these
+         * operations will use strongly consistent reads. By default, this is set to null/false, i.e., eventually consistent
+         * reads.
+         * <p>
+         * If set at the request level, e.g., {@code QueryEnhancedRequest}, the request level value will take precedence.
+         * <p>
+         * Note: This setting applies to single read operations only:
+         * <ul>
+         * <li>BatchGetItem: Eventually consistent by default, consistent read setting must be configured at the individual
+         * request level, i.e. {@code GetItemEnhancedRequest}s passed to {@code ReachBatch} on the {@code
+         * BatchGetItemEnhancedRequest}, when performing batch GET.
+         * </li>
+         * <li>TransactGetItems: Always uses strongly consistent reads by design, so this setting is not applicable.</li>
+         * </ul>
+         *
+         * @param consistentRead true for strongly consistent reads, null/false (default value) for eventually consistent reads
+         * @return this builder for method chaining
+         */
+        default Builder consistentRead(Boolean consistentRead) {
+            throw  new UnsupportedOperationException();
+        }
     }
 }

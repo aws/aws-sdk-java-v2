@@ -30,11 +30,15 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
@@ -203,5 +207,32 @@ public final class EnhancedClientUtils {
      */
     public static boolean isNullAttributeValue(AttributeValue attributeValue) {
         return attributeValue.nul() != null && attributeValue.nul();
+    }
+
+    public static GetItemEnhancedRequest applyClientDefaultsIfAbsentOnRequest(GetItemEnhancedRequest request,
+                                                                              MappedTableResource<?> table) {
+        if (request.consistentRead() == null) {
+            request = request.toBuilder().consistentRead(table.consistentRead()).build();
+        }
+
+        return request;
+    }
+
+    public static QueryEnhancedRequest applyClientDefaultsIfAbsentOnRequest(QueryEnhancedRequest request,
+                                                                            MappedTableResource<?> table) {
+        if (request.consistentRead() == null) {
+            request = request.toBuilder().consistentRead(table.consistentRead()).build();
+        }
+
+        return request;
+    }
+
+    public static ScanEnhancedRequest applyClientDefaultsIfAbsentOnRequest(ScanEnhancedRequest request,
+                                                                           MappedTableResource<?> table) {
+        if (request.consistentRead() == null) {
+            request = request.toBuilder().consistentRead(table.consistentRead()).build();
+        }
+
+        return request;
     }
 }

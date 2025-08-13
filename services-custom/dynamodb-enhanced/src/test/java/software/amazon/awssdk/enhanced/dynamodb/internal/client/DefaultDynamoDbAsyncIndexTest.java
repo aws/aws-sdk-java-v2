@@ -39,13 +39,11 @@ public class DefaultDynamoDbAsyncIndexTest {
 
     @Test
     public void keyFrom_secondaryIndex_partitionAndSort() {
+        DefaultDynamoDbAsyncTable<FakeItemWithIndices> table = createTable();
+
         FakeItemWithIndices item = FakeItemWithIndices.createUniqueFakeItemWithIndices();
         DefaultDynamoDbAsyncIndex<FakeItemWithIndices> dynamoDbMappedIndex =
-            new DefaultDynamoDbAsyncIndex<>(mockDynamoDbAsyncClient,
-                                            mockDynamoDbEnhancedClientExtension,
-                                            FakeItemWithIndices.getTableSchema(),
-                                            "test_table",
-                                            "gsi_1");
+            new DefaultDynamoDbAsyncIndex<>(table, "gsi_1");
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
@@ -55,17 +53,21 @@ public class DefaultDynamoDbAsyncIndexTest {
 
     @Test
     public void keyFrom_secondaryIndex_partitionOnly() {
+        DefaultDynamoDbAsyncTable<FakeItemWithIndices> table = createTable();
+
         FakeItemWithIndices item = FakeItemWithIndices.createUniqueFakeItemWithIndices();
         DefaultDynamoDbAsyncIndex<FakeItemWithIndices> dynamoDbMappedIndex =
-            new DefaultDynamoDbAsyncIndex<>(mockDynamoDbAsyncClient,
-                                            mockDynamoDbEnhancedClientExtension,
-                                            FakeItemWithIndices.getTableSchema(),
-                                            "test_table",
-                                            "gsi_2");
+            new DefaultDynamoDbAsyncIndex<>(table,"gsi_2");
 
         Key key = dynamoDbMappedIndex.keyFrom(item);
 
         assertThat(key.partitionKeyValue(), is(stringValue(item.getGsiId())));
         assertThat(key.sortKeyValue(), is(Optional.empty()));
+    }
+
+    private DefaultDynamoDbAsyncTable<FakeItemWithIndices> createTable() {
+        return new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                               mockDynamoDbEnhancedClientExtension,
+                                               FakeItemWithIndices.getTableSchema(), "test_table");
     }
 }

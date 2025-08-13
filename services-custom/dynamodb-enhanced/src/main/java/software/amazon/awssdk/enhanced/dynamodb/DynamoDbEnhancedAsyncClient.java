@@ -560,6 +560,9 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
         @Override
         Builder extensions(List<DynamoDbEnhancedClientExtension> dynamoDbEnhancedClientExtensions);
 
+        @Override
+        Builder consistentRead(Boolean consistentRead);
+
         /**
          * Builds an enhanced client based on the settings supplied to this builder
          *

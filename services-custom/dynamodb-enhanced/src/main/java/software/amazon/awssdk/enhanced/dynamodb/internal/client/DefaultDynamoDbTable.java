@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.applyClientDefaultsIfAbsentOnRequest;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
 
 import java.util.ArrayList;
@@ -61,15 +62,25 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     private final DynamoDbEnhancedClientExtension extension;
     private final TableSchema<T> tableSchema;
     private final String tableName;
+    private final Boolean consistentRead;
 
     DefaultDynamoDbTable(DynamoDbClient dynamoDbClient,
                          DynamoDbEnhancedClientExtension extension,
                          TableSchema<T> tableSchema,
                          String tableName) {
+        this(dynamoDbClient, extension, tableSchema, tableName, null);
+    }
+
+    DefaultDynamoDbTable(DynamoDbClient dynamoDbClient,
+                         DynamoDbEnhancedClientExtension extension,
+                         TableSchema<T> tableSchema,
+                         String tableName,
+                         Boolean consistentRead) {
         this.dynamoDbClient = dynamoDbClient;
         this.extension = extension;
         this.tableSchema = tableSchema;
         this.tableName = tableName;
+        this.consistentRead = consistentRead;
     }
 
     @Override
@@ -92,15 +103,16 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public Boolean consistentRead() {
+        return this.consistentRead;
+    }
+
+    @Override
     public DefaultDynamoDbIndex<T> index(String indexName) {
         // Force a check for the existence of the index
         tableSchema.tableMetadata().indexPartitionKey(indexName);
 
-        return new DefaultDynamoDbIndex<>(dynamoDbClient,
-                                          extension,
-                                          tableSchema,
-                                          tableName,
-                                          indexName);
+        return new DefaultDynamoDbIndex<>(this, indexName);
     }
 
     @Override
@@ -164,7 +176,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T getItem(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        GetItemEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
@@ -194,13 +207,15 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public GetItemEnhancedResponse<T> getItemWithResponse(GetItemEnhancedRequest request) {
-        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(request);
+        GetItemEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        TableOperation<T, ?, ?, GetItemEnhancedResponse<T>> operation = GetItemOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
     @Override
     public PageIterable<T> query(QueryEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?> operation = QueryOperation.create(request);
+        QueryEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        PaginatedTableOperation<T, ?, ?> operation = QueryOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -251,7 +266,8 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public PageIterable<T> scan(ScanEnhancedRequest request) {
-        PaginatedTableOperation<T, ?, ?> operation = ScanOperation.create(request);
+        ScanEnhancedRequest requestWithDefaults = applyClientDefaultsIfAbsentOnRequest(request, this);
+        PaginatedTableOperation<T, ?, ?> operation = ScanOperation.create(requestWithDefaults);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient);
     }
 
@@ -341,6 +357,9 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         if (tableSchema != null ? ! tableSchema.equals(that.tableSchema) : that.tableSchema != null) {
             return false;
         }
+        if (consistentRead != null ? !consistentRead.equals(that.consistentRead) : that.consistentRead != null) {
+            return false;
+        }
         return tableName != null ? tableName.equals(that.tableName) : that.tableName == null;
     }
 
@@ -351,6 +370,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
             extension.hashCode() : 0);
         result = 31 * result + (tableSchema != null ? tableSchema.hashCode() : 0);
         result = 31 * result + (tableName != null ? tableName.hashCode() : 0);
+        result = 31 * result + (consistentRead != null ? consistentRead.hashCode() : 0);
         return result;
     }
 }
