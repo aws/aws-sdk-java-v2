@@ -156,7 +156,8 @@ public final class ApacheUtils {
                 authCache.put(targetHost, basicAuth);
                 clientContext.setAuthCache(authCache);
             } catch (Exception e) {
-                logger.debug(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " + e.getMessage());
+                logger.debug(() -> "Failed to process synthetic challenge for preemptive proxy authentication: " +
+                                   e.getMessage());
             }
 
             clientContext.setCredentialsProvider(credsProvider);

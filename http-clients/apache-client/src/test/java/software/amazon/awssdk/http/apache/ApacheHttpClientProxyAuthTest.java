@@ -41,7 +41,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * Verifies that when preemptiveBasicAuthenticationEnabled(true) is configured,
  * the Proxy-Authorization header is sent with the first request to the proxy.
  */
-public class ProxyPreemptiveAuthTest {
+public class ApacheHttpClientProxyAuthTest {
 
     private WireMockServer mockProxy;
     private SdkHttpClient httpClient;
@@ -63,7 +63,7 @@ public class ProxyPreemptiveAuthTest {
     }
 
     @Test
-    public void addPreemptiveAuthenticationProxy_whenPreemptiveAuthEnabled_shouldSendProxyAuthorizationHeader() throws Exception {
+    public void proxyAuthentication_whenPreemptiveAuthEnabled_shouldSendProxyAuthorizationHeader() throws Exception {
         mockProxy.stubFor(any(anyUrl())
                 .withHeader("Proxy-Authorization", matching("Basic .+"))
                 .willReturn(aResponse()
@@ -100,7 +100,7 @@ public class ProxyPreemptiveAuthTest {
     }
 
     @Test
-    public void addPreemptiveAuthenticationProxy_whenPreemptiveAuthDisabled_shouldUseChallengeResponseAuth() throws Exception {
+    public void proxyAuthentication_whenPreemptiveAuthDisabled_shouldUseChallengeResponseAuth() throws Exception {
         // First request without auth header should get 407
         mockProxy.stubFor(any(anyUrl())
                 .willReturn(aResponse()
