@@ -56,8 +56,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
-    // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    // 50 * MB is chosen to make sure we have data written in the file already upon pausing.
+    private static final long OBJ_SIZE = 50 * MB;
     private static File sourceFile;
 
     @BeforeAll
@@ -131,36 +131,33 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         }
     }
 
-    //TODO: This test currently flakey. Fix this test to ensure that pause happens after bytes written but never before complete.
-    // depending on the timing of waitUntilFirstByteBufferDelivered, the entire file may have been downloaded
-    //
-    // @ParameterizedTest
-    // @MethodSource("transferManagers")
-    // void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
-    //     Path path = RandomTempFile.randomUncreatedFile().toPath();
-    //     TestDownloadListener testDownloadListener = new TestDownloadListener();
-    //     DownloadFileRequest request = DownloadFileRequest.builder()
-    //                                                      .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
-    //                                                      .destination(path)
-    //                                                      .addTransferListener(testDownloadListener)
-    //                                                      .build();
-    //     FileDownload download = tm.downloadFile(request);
-    //     waitUntilFirstByteBufferDelivered(download);
-    //
-    //     ResumableFileDownload resumableFileDownload = download.pause();
-    //     long bytesTransferred = resumableFileDownload.bytesTransferred();
-    //     log.debug(() -> "Paused: " + resumableFileDownload);
-    //     assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
-    //     assertThat(testDownloadListener.getObjectResponse).isNotNull();
-    //     assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
-    //     assertThat(bytesTransferred).isEqualTo(path.toFile().length());
-    //     assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
-    //     assertThat(bytesTransferred).isLessThan(sourceFile.length());
-    //     assertThat(download.completionFuture()).isCancelled();
-    //
-    //     log.debug(() -> "Resuming download ");
-    //     verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
-    // }
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_ObjectNotChanged_shouldResumeDownload(S3TransferManager tm) {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        TestDownloadListener testDownloadListener = new TestDownloadListener();
+        DownloadFileRequest request = DownloadFileRequest.builder()
+                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                         .destination(path)
+                                                         .addTransferListener(testDownloadListener)
+                                                         .build();
+        FileDownload download = tm.downloadFile(request);
+        waitUntilFirstByteBufferDelivered(download);
+
+        ResumableFileDownload resumableFileDownload = download.pause();
+        long bytesTransferred = resumableFileDownload.bytesTransferred();
+        log.debug(() -> "Paused: " + resumableFileDownload);
+        assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
+        assertThat(testDownloadListener.getObjectResponse).isNotNull();
+        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
+        assertThat(bytesTransferred).isEqualTo(path.toFile().length());
+        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
+        assertThat(bytesTransferred).isLessThan(sourceFile.length());
+        assertThat(download.completionFuture()).isCancelled();
+
+        log.debug(() -> "Resuming download ");
+        verifyFileDownload(path, resumableFileDownload, OBJ_SIZE - bytesTransferred, tm);
+    }
 
     private void assertEqualsBySdkFields(DownloadFileRequest actual, DownloadFileRequest expected) {
         // Transfer manager adds an execution attribute to the GetObjectRequest, so both objects are different.
@@ -244,7 +241,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE)
-                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(10))))
                                                         .build();
         waiter.run(() -> download.progress().snapshot());
     }
