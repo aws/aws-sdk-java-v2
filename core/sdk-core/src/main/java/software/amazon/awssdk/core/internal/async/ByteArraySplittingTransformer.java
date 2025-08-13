@@ -16,8 +16,6 @@
 package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +40,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
     private final AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> upstreamResponseTransformer;
     private final CompletableFuture<ResponseBytes<ResponseT>> resultFuture;
     private Subscriber<? super AsyncResponseTransformer<ResponseT, ResponseT>> downstreamSubscriber;
-    private final AtomicInteger onNextSignalsSent = new AtomicInteger(0);
+    private final AtomicInteger nextPartNumber = new AtomicInteger(1);
     private final AtomicReference<ResponseT> responseT = new AtomicReference<>();
 
     private final SimplePublisher<ByteBuffer> publisherToUpstream = new SimplePublisher<>();
@@ -138,7 +136,7 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
             }
             if (outstandingDemand.get() > 0) {
                 demand = outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(new IndividualTransformer(onNextSignalsSent.incrementAndGet()));
+                downstreamSubscriber.onNext(new IndividualTransformer(nextPartNumber.getAndIncrement()));
             }
         }
         return false;
@@ -193,25 +191,19 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
     }
 
     private final class IndividualTransformer implements AsyncResponseTransformer<ResponseT, ResponseT> {
-        private final int onNextCount;
+        private final int partNumber;
         private final ByteArrayAsyncResponseTransformer<ResponseT> delegate = new ByteArrayAsyncResponseTransformer<>();
 
-        private CompletableFuture<ResponseT> future;
-        private final List<CompletableFuture<ResponseBytes<ResponseT>>> delegatePrepareFutures = new ArrayList<>();
-
-        private IndividualTransformer(int onNextCount) {
-            this.onNextCount = onNextCount;
+        private IndividualTransformer(int partNumber) {
+            this.partNumber = partNumber;
         }
 
         @Override
         public CompletableFuture<ResponseT> prepare() {
-            future = new CompletableFuture<>();
             CompletableFuture<ResponseBytes<ResponseT>> prepare = delegate.prepare();
-            CompletableFutureUtils.forwardExceptionTo(prepare, future);
-            delegatePrepareFutures.add(prepare);
-            return prepare.thenApply(responseTResponseBytes -> {
-                buffers.put(onNextCount, responseTResponseBytes.asByteBuffer());
-                return responseTResponseBytes.response();
+            return prepare.thenApply(responseBytes -> {
+                buffers.put(partNumber, responseBytes.asByteBuffer());
+                return responseBytes.response();
             });
         }
 

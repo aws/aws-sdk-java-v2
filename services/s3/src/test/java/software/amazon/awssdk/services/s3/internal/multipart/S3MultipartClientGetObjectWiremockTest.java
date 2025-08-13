@@ -99,7 +99,7 @@ public class S3MultipartClientGetObjectWiremockTest {
 
     @ParameterizedTest
     @MethodSource("partSizeAndTransformerParams")
-    <T> void happyPath_shouldReceiveAllBodyPartInCorrectOrder(AsyncResponseTransformerTestSupplier<T> supplier,
+    public <T> void happyPath_shouldReceiveAllBodyPartInCorrectOrder(AsyncResponseTransformerTestSupplier<T> supplier,
                                                               int amountOfPartToTest,
                                                               int partSize) {
         byte[] expectedBody = util.stubAllParts(BUCKET, KEY, amountOfPartToTest, partSize);
@@ -114,7 +114,7 @@ public class S3MultipartClientGetObjectWiremockTest {
 
     @ParameterizedTest
     @MethodSource("partSizeAndTransformerParams")
-    <T> void nonRetryableErrorOnThirdPart_shouldCompleteExceptionallyOnlyPartsGreaterThanTwo(
+    public <T> void errorOnThirdPart_shouldCompleteExceptionallyOnlyPartsGreaterThanTwo(
         AsyncResponseTransformerTestSupplier<T> supplier,
         int amountOfPartToTest,
         int partSize) {
@@ -143,7 +143,7 @@ public class S3MultipartClientGetObjectWiremockTest {
 
     @ParameterizedTest
     @MethodSource("responseTransformers")
-    <T> void nonRetryableErrorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier) {
+    public <T> void errorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))).willReturn(
             aResponse()
                 .withStatus(400)
@@ -156,13 +156,13 @@ public class S3MultipartClientGetObjectWiremockTest {
 
     @ParameterizedTest
     @MethodSource("responseTransformers")
-    public void ioError_shouldFailAndNotRetry() {
+    public <T> void ioError_shouldFailAndNotRetry(AsyncResponseTransformerTestSupplier<T> supplier) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY)))
                     .willReturn(aResponse()
                                     .withFault(Fault.CONNECTION_RESET_BY_PEER)));
 
         assertThatThrownBy(() -> multipartClient.getObject(b -> b.bucket(BUCKET).key(KEY),
-                                                           AsyncResponseTransformer.toBlockingInputStream()).join())
+                                                           supplier.transformer()).join())
             .satisfiesAnyOf(
                 throwable -> assertThat(throwable)
                     .hasMessageContaining("The connection was closed during the request"),
@@ -248,7 +248,7 @@ public class S3MultipartClientGetObjectWiremockTest {
      * <p>
      *
      * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}, tested in
-     * {@link S3MultipartClientGetObjectToBytesWiremockTest}.
+     * {@link S3MultipartClientGetObjectRetryBehaviorWiremockTest}.
      */
     private static Stream<AsyncResponseTransformerTestSupplier<?>> responseTransformers() {
         return Stream.of(new AsyncResponseTransformerTestSupplier.InputStreamArtSupplier(),

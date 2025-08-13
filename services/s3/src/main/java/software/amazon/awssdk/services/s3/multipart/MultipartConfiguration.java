@@ -42,8 +42,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * This means the S3 client will only download multiple parts if the object itself was uploaded as a
  * {@link S3AsyncClient#createMultipartUpload(CreateMultipartUploadRequest) multipart object}
  * <p>
- * When performing multipart download, retry is only supported for downloading to byte array, i.e., when providing a
- * {@link ByteArrayAsyncResponseTransformer}
+ * When performing multipart download, retry is only supported when using an {@link AsyncResponseTransformer} implementation
+ * that downloads the object into memory such, as {@link AsyncResponseTransformer#toBytes()}
  */
 @SdkPublicApi
 public final class MultipartConfiguration implements ToCopyableBuilder<MultipartConfiguration.Builder, MultipartConfiguration> {
@@ -91,8 +91,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     /**
      * The maximum memory, in bytes, that the SDK will use to buffer requests content into memory.
      * <p>
-     * This setting is not supported and will be ignored when downloading to a byte array, i.e., when providing a
-     * {@link ByteArrayAsyncResponseTransformer}.
+     * This setting does not apply if you are using an {@link AsyncResponseTransformer} implementation that downloads the
+     * object into memory such as {@link AsyncResponseTransformer#toBytes}
      *
      * @return the value of the configured maximum memory usage.
      */
