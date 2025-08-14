@@ -60,4 +60,21 @@ class MultipartDownloadUtilsTest {
         assertThat(MultipartDownloadUtils.multipartDownloadResumeContext(req)).isPresent();
     }
 
+    @Test
+    void parseStartByteFromContentRange_shouldParseValidAndInvalidRanges() {
+        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("bytes 0-1023/2048")).isEqualTo(0);
+        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("bytes 1024-2047/2048")).isEqualTo(1024);
+
+        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange("invalid")).isEqualTo(-1);
+        assertThat(MultipartDownloadUtils.parseStartByteFromContentRange(null)).isEqualTo(-1);
+    }
+
+    @Test
+    void parseContentRangeForTotalSize_shouldParseValidAndInvalidRanges() {
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("bytes 0-1023/2048")).contains(2048L);
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("bytes 0-0/1")).contains(1L);
+
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize("invalid")).isEmpty();
+        assertThat(MultipartDownloadUtils.parseContentRangeForTotalSize(null)).isEmpty();
+    }
 }
