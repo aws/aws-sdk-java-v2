@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
 import software.amazon.awssdk.utils.Logger;
@@ -49,10 +50,14 @@ public class CodingConventionWithSuppressionTest {
         Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
                       ArchUtils.classNameToPattern(MetricEmfConverter.class),
                       ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
-                      ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter")));
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
-        Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class)));
+        Arrays.asList(
+            ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
+            ArchUtils.classWithInnerClassesToPattern(ResponseTransformer.class)));
 
     @Test
     void shouldNotAbuseWarnLog() {

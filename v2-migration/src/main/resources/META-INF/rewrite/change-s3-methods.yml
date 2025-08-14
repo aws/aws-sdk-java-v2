@@ -110,6 +110,9 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.AmazonS3 restoreObjectV2(com.amazonaws.services.s3.model.RestoreObjectRequest)
       newMethodName: restoreObject
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.AmazonS3 shutdown()
+      newMethodName: close
 
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.AmazonS3Client getObjectMetadata(com.amazonaws.services.s3.model.GetObjectMetadataRequest)
@@ -226,3 +229,9 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: com.amazonaws.services.s3.model.SetBucketPolicyRequest withPolicyText(String)
       newMethodName: withPolicy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.BucketPolicy getPolicyText()
+      newMethodName: policy
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: com.amazonaws.services.s3.model.VersionListing getVersionSummaries()
+      newMethodName: versions

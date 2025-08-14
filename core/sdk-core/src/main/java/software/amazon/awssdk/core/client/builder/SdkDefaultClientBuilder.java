@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOp
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ADDITIONAL_HTTP_HEADERS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.API_METADATA;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.ASYNC_HTTP_CLIENT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.CLIENT_USER_AGENT;
@@ -93,6 +94,7 @@ import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.internal.useragent.AppIdResolver;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
+import software.amazon.awssdk.core.internal.useragent.UserAgentConstant;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -402,6 +404,7 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
         String appId = config.get(USER_AGENT_APP_ID);
         String resolvedAppId = appId == null ? resolveAppId(config) : appId;
         clientProperties.putProperty(APP_ID, resolvedAppId);
+        clientProperties.putProperty(UserAgentConstant.API_METADATA, config.get(API_METADATA));
         return SdkUserAgentBuilder.buildClientUserAgentString(SystemUserAgent.getOrCreate(), clientProperties);
     }
 

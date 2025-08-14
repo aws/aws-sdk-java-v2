@@ -29,7 +29,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.RequestPayer;
 import software.amazon.awssdk.services.s3.model.Tag;
@@ -44,8 +43,8 @@ public class S3Streaming {
             .build());
         s3Object.close();
 
-        s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
-            .build(), file.toPath());
+        GetObjectResponse objectMetadata = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
+                .build(), file.toPath());
     }
 
     void putObject_bucketKeyContent(String bucket, String key, String content) {
@@ -125,7 +124,6 @@ public class S3Streaming {
             PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
                 .bucket("bucketName")
                 .websiteRedirectLocation("redirectLocation")
-                .acl(ObjectCannedACL.AWS_EXEC_READ)
                 .tagging(objectTagging)
             .build();
     }

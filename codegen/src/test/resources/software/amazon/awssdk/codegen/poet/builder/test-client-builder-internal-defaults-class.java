@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
@@ -49,9 +50,11 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false);
+        });
     }
 
     @Override
@@ -100,6 +103,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                                    c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
                 .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
                 .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+        builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         return builder.build();
     }
 

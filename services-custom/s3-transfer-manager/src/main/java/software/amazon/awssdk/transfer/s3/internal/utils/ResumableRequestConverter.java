@@ -60,15 +60,21 @@ public final class ResumableRequestConverter {
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
         Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
-        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
+        String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
 
+        String s3ObjectEtag = headObjectResponse.eTag();
+        boolean etagModified = resumableFileDownloadEtag != null &&
+                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
+
+
+        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
         boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
                                                 resumableFileDownload.fileLastModified(),
                                                 resumableFileDownload.downloadFileRequest().destination());
 
-        if (fileModified || s3ObjectModified) {
+        if (fileModified || s3ObjectModified || etagModified) {
             // modification detected: new download request for the whole object from the beginning
-            logIfNeeded(originalDownloadRequest, getObjectRequest, fileModified, s3ObjectModified);
+            logIfNeeded(originalDownloadRequest, getObjectRequest, fileModified, s3ObjectModified, etagModified);
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
 
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -128,7 +134,8 @@ public final class ResumableRequestConverter {
     private static void logIfNeeded(DownloadFileRequest downloadRequest,
                                     GetObjectRequest getObjectRequest,
                                     boolean fileModified,
-                                    boolean s3ObjectModified) {
+                                    boolean s3ObjectModified,
+                                    boolean s3ObjectEtagModified) {
         if (log.logger().isDebugEnabled()) {
             if (s3ObjectModified) {
                 log.debug(() -> String.format("The requested object in bucket (%s) with key (%s) "
@@ -149,6 +156,14 @@ public final class ResumableRequestConverter {
                                               getObjectRequest.bucket(),
                                               getObjectRequest.key()));
             }
+            if (s3ObjectEtagModified) {
+                log.debug(() -> String.format("The ETag of the requested object in bucket (%s) with key (%s) "
+                                              + "has changed since the last "
+                                              + "pause. The SDK will download the S3 object from "
+                                              + "the beginning",
+                                              getObjectRequest.bucket(), getObjectRequest.key()));
+            }
+
         }
     }
 

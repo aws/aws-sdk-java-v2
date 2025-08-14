@@ -86,6 +86,10 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
                         if (n > 0) {
                             int i = index.getAndIncrement();
 
+                            if (buffers.length == 0 && completed.compareAndSet(false, true)) {
+                                s.onComplete();
+                            }
+
                             if (i >= buffers.length) {
                                 return;
                             }
@@ -116,6 +120,11 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody {
         } catch (Throwable ex) {
             log.error(() -> s + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", ex);
         }
+    }
+
+    @Override
+    public String body() {
+        return BodyType.BYTES.getName();
     }
 
     public static ByteBuffersAsyncRequestBody of(ByteBuffer... buffers) {

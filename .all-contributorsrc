@@ -1039,6 +1039,42 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "greg-at-moderne",
+      "name": "Greg Oledzki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/192309513?v=4",
+      "profile": "https://github.com/greg-at-moderne",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kstich",
+      "name": "Kevin Stich",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26905335?v=4",
+      "profile": "https://github.com/kstich",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jencymaryjoseph",
+      "name": "Jency Joseph",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35571282?v=4",
+      "profile": "https://github.com/jencymaryjoseph",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "reifiedbeans",
+      "name": "Drew Davis",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9686215?v=4",
+      "profile": "https://github.com/reifiedbeans",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

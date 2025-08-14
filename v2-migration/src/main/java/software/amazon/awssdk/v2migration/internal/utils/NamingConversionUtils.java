@@ -164,19 +164,12 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("SetBucketVersioningConfigurationRequest", "PutBucketVersioningRequest");
 
         S3_POJO_MAPPING.put("CorsRule", "CORSRule");
-        S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
-        S3_POJO_MAPPING.put("BucketAccelerateConfiguration", "AccelerateConfiguration");
-        S3_POJO_MAPPING.put("BucketNotificationConfiguration", "NotificationConfiguration");
-        S3_POJO_MAPPING.put("BucketReplicationConfiguration", "ReplicationConfiguration");
-        S3_POJO_MAPPING.put("BucketTaggingConfiguration", "Tagging");
-        S3_POJO_MAPPING.put("BucketWebsiteConfiguration", "WebsiteConfiguration");
         S3_POJO_MAPPING.put("LifecycleFilter", "LifecycleRuleFilter");
         S3_POJO_MAPPING.put("LifecycleAndOperator", "LifecycleRuleAndOperator");
         S3_POJO_MAPPING.put("ReplicationFilter", "ReplicationRuleFilter");
         S3_POJO_MAPPING.put("ReplicationAndOperator", "ReplicationRuleAndOperator");
         S3_POJO_MAPPING.put("PartETag", "CompletedPart");
         S3_POJO_MAPPING.put("ObjectTagging", "Tagging");
-        S3_POJO_MAPPING.put("AccessControlList", "AccessControlPolicy");
         S3_POJO_MAPPING.put("BucketPolicy", "GetBucketPolicyResponse");
         S3_POJO_MAPPING.put("CanonicalGrantee", "Grantee");
         S3_POJO_MAPPING.put("EmailAddressGrantee", "Grantee");
@@ -188,17 +181,28 @@ public final class NamingConversionUtils {
         S3_POJO_MAPPING.put("ReplicationDestinationConfig", "Destination");
         S3_POJO_MAPPING.put("RoutingRuleCondition", "Condition");
         S3_POJO_MAPPING.put("S3ObjectSummary", "S3Object");
+        S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        S3_POJO_MAPPING.put("VersionListing", "ListObjectVersionsResponse");
+        S3_POJO_MAPPING.put("S3VersionSummary", "ObjectVersion");
+        S3_POJO_MAPPING.put("AmazonS3Exception", "S3Exception");
+        S3_POJO_MAPPING.put("CloudFunctionConfiguration", "LambdaFunctionConfiguration");
+        S3_POJO_MAPPING.put("LambdaConfiguration", "LambdaFunctionConfiguration");
 
         //Special Enum mapping
         S3_POJO_MAPPING.put("S3Event", "Event");
 
-        // TODO - maps 1 to many
-        // used as input to Request POJOs and returned as Response POJOs
+        // Maps 1 to many, e.g., used as input to Request POJOs and returned as Response POJOs
+        // Transform to one type here, convert others in S3TypesToV2 with ChangeMethodInvocationReturnType
         S3_POJO_MAPPING.put("ObjectMetadata", "HeadObjectResponse");
-        S3_POJO_MAPPING.put("ObjectListing", "ListObjectsResponse");
+        S3_POJO_MAPPING.put("AccessControlList", "AccessControlPolicy");
+        S3_POJO_MAPPING.put("BucketAccelerateConfiguration", "AccelerateConfiguration");
+        S3_POJO_MAPPING.put("BucketCrossOriginConfiguration", "CORSConfiguration");
+        S3_POJO_MAPPING.put("BucketNotificationConfiguration", "NotificationConfiguration");
+        S3_POJO_MAPPING.put("BucketReplicationConfiguration", "ReplicationConfiguration");
+        S3_POJO_MAPPING.put("BucketTaggingConfiguration", "Tagging");
+        S3_POJO_MAPPING.put("BucketWebsiteConfiguration", "WebsiteConfiguration");
         S3_POJO_MAPPING.put("BucketVersioningConfiguration", "VersioningConfiguration");
-        // v2 also has BucketCannedACL
-        S3_POJO_MAPPING.put("CannedAccessControlList", "ObjectCannedACL");
+        S3_POJO_MAPPING.put("BucketLoggingConfiguration", "BucketLoggingStatus");
     }
 
     static {

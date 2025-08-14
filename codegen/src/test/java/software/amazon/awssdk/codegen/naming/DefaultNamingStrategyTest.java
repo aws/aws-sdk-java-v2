@@ -338,6 +338,39 @@ public class DefaultNamingStrategyTest {
     }
 
     @Test
+    public void getSigningNameForEnvironmentVariables_convertsDashAndUppercases() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("signing-name");
+
+        assertThat(strat.getSigningNameForEnvironmentVariables()).isEqualTo("SIGNING_NAME");
+    }
+
+    @Test
+    public void getSigningNameForSystemProperties_convertsDashAndUppercasesWords() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("signing-name");
+
+        assertThat(strat.getSigningNameForSystemProperties()).isEqualTo("SigningName");
+    }
+
+    @Test
+    public void getSigningName_Uses_EndpointPrefix_whenSigningNameUnset() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn(null);
+        when(serviceMetadata.getEndpointPrefix()).thenReturn("EndpointPrefixFoo");
+
+        assertThat(strat.getSigningName()).isEqualTo("EndpointPrefixFoo");
+    }
+
+    @Test
+    public void getSigningName_Uses_SigningName() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("Foo");
+
+        assertThat(strat.getSigningName()).isEqualTo("Foo");
+    }
+
+    @Test
     public void validateServiceIdentifiersForEnvVarsAndProfileProperty() {
         when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
 

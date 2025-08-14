@@ -20,31 +20,29 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.Http;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 /**
  * This processor only runs for services using the <code>smithy-rpc-v2-cbor</code> protocol.
  *
- * Adds a request URI that conform to the Smithy RPCv2 protocol to each operation in the model, if there's no URI already
- * defined.
+ * Sets a request URI that conforms to the Smithy RPC v2 protocol to each operation in the model.
  */
 public class SmithyRpcV2CborProtocolProcessor implements CodegenCustomizationProcessor {
     @Override
     public void preprocess(ServiceModel serviceModel) {
-        if (!"smithy-rpc-v2-cbor".equals(serviceModel.getMetadata().getProtocol())) {
+        String protocol = ProtocolUtils.resolveProtocol(serviceModel.getMetadata());
+        if (!"smithy-rpc-v2-cbor".equals(protocol)) {
             return;
         }
         serviceModel.getOperations().forEach((name, op) -> setRequestUri(serviceModel, name, op));
     }
 
     private void setRequestUri(ServiceModel service, String name, Operation op) {
-        Http http = op.getHttp();
-        String requestUri = http.getRequestUri();
-        if (StringUtils.isNotBlank(requestUri) && !"/".equals(requestUri)) {
-            return;
-        }
         String uri = String.format("/service/%s/operation/%s", service.getMetadata().getTargetPrefix(), op.getName());
-        op.getHttp().setRequestUri(uri);
+        if (op.getHttp() == null) {
+            op.setHttp(new Http().withMethod("POST").withResponseCode("200"));
+        }
+        op.getHttp().withRequestUri(uri);
     }
 
     @Override

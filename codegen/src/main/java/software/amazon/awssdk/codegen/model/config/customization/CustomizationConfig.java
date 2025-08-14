@@ -356,6 +356,18 @@ public class CustomizationConfig {
      */
     private boolean enableFastUnmarshaller;
 
+    /**
+     * A boolean flag to indicate if support for configuring a bearer token sourced from the environment should be added to the
+     * generated service. When enabled, the generated client will use bearer auth with the token sourced from the
+     * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
+     */
+    private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
+
     private CustomizationConfig() {
     }
 
@@ -937,5 +949,21 @@ public class CustomizationConfig {
 
     public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
         this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean isEnableEnvironmentBearerToken() {
+        return enableEnvironmentBearerToken;
+    }
+
+    public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
+        this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
     }
 }

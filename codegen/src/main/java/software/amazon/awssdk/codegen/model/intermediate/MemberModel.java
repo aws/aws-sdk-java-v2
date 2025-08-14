@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.squareup.javapoet.ClassName;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
@@ -784,5 +785,99 @@ public class MemberModel extends DocumentationModel {
 
     public boolean ignoreDataTypeConversionFailures() {
         return ignoreDataTypeConversionFailures;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        MemberModel that = (MemberModel) o;
+        return deprecated == that.deprecated
+               && required == that.required
+               && synthetic == that.synthetic
+               && idempotencyToken == that.idempotencyToken
+               && isJsonValue == that.isJsonValue
+               && eventPayload == that.eventPayload
+               && eventHeader == that.eventHeader
+               && endpointDiscoveryId == that.endpointDiscoveryId
+               && sensitive == that.sensitive
+               && xmlAttribute == that.xmlAttribute
+               && ignoreDataTypeConversionFailures == that.ignoreDataTypeConversionFailures
+               && Objects.equals(name, that.name)
+               && Objects.equals(c2jName, that.c2jName)
+               && Objects.equals(c2jShape, that.c2jShape)
+               && Objects.equals(variable, that.variable)
+               && Objects.equals(setterModel, that.setterModel)
+               && Objects.equals(getterModel, that.getterModel)
+               && Objects.equals(http, that.http)
+               && Objects.equals(deprecatedMessage, that.deprecatedMessage)
+               && Objects.equals(listModel, that.listModel)
+               && Objects.equals(mapModel, that.mapModel)
+               && Objects.equals(enumType, that.enumType)
+               && Objects.equals(xmlNameSpaceUri, that.xmlNameSpaceUri)
+               && Objects.equals(shape, that.shape)
+               && Objects.equals(fluentGetterMethodName, that.fluentGetterMethodName)
+               && Objects.equals(fluentEnumGetterMethodName, that.fluentEnumGetterMethodName)
+               && Objects.equals(fluentSetterMethodName, that.fluentSetterMethodName)
+               && Objects.equals(fluentEnumSetterMethodName, that.fluentEnumSetterMethodName)
+               && Objects.equals(existenceCheckMethodName, that.existenceCheckMethodName)
+               && Objects.equals(beanStyleGetterName, that.beanStyleGetterName)
+               && Objects.equals(beanStyleSetterName, that.beanStyleSetterName)
+               && Objects.equals(unionEnumTypeName, that.unionEnumTypeName)
+               && Objects.equals(timestampFormat, that.timestampFormat)
+               && Objects.equals(deprecatedName, that.deprecatedName)
+               && Objects.equals(fluentDeprecatedGetterMethodName, that.fluentDeprecatedGetterMethodName)
+               && Objects.equals(fluentDeprecatedSetterMethodName, that.fluentDeprecatedSetterMethodName)
+               && Objects.equals(deprecatedBeanStyleSetterMethodName, that.deprecatedBeanStyleSetterMethodName)
+               && Objects.equals(contextParam, that.contextParam);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(c2jName);
+        result = 31 * result + Objects.hashCode(c2jShape);
+        result = 31 * result + Objects.hashCode(variable);
+        result = 31 * result + Objects.hashCode(setterModel);
+        result = 31 * result + Objects.hashCode(getterModel);
+        result = 31 * result + Objects.hashCode(http);
+        result = 31 * result + Boolean.hashCode(deprecated);
+        result = 31 * result + Objects.hashCode(deprecatedMessage);
+        result = 31 * result + Boolean.hashCode(required);
+        result = 31 * result + Boolean.hashCode(synthetic);
+        result = 31 * result + Objects.hashCode(listModel);
+        result = 31 * result + Objects.hashCode(mapModel);
+        result = 31 * result + Objects.hashCode(enumType);
+        result = 31 * result + Objects.hashCode(xmlNameSpaceUri);
+        result = 31 * result + Boolean.hashCode(idempotencyToken);
+        result = 31 * result + Objects.hashCode(shape);
+        result = 31 * result + Objects.hashCode(fluentGetterMethodName);
+        result = 31 * result + Objects.hashCode(fluentEnumGetterMethodName);
+        result = 31 * result + Objects.hashCode(fluentSetterMethodName);
+        result = 31 * result + Objects.hashCode(fluentEnumSetterMethodName);
+        result = 31 * result + Objects.hashCode(existenceCheckMethodName);
+        result = 31 * result + Objects.hashCode(beanStyleGetterName);
+        result = 31 * result + Objects.hashCode(beanStyleSetterName);
+        result = 31 * result + Objects.hashCode(unionEnumTypeName);
+        result = 31 * result + Boolean.hashCode(isJsonValue);
+        result = 31 * result + Objects.hashCode(timestampFormat);
+        result = 31 * result + Boolean.hashCode(eventPayload);
+        result = 31 * result + Boolean.hashCode(eventHeader);
+        result = 31 * result + Boolean.hashCode(endpointDiscoveryId);
+        result = 31 * result + Boolean.hashCode(sensitive);
+        result = 31 * result + Boolean.hashCode(xmlAttribute);
+        result = 31 * result + Objects.hashCode(deprecatedName);
+        result = 31 * result + Objects.hashCode(fluentDeprecatedGetterMethodName);
+        result = 31 * result + Objects.hashCode(fluentDeprecatedSetterMethodName);
+        result = 31 * result + Objects.hashCode(deprecatedBeanStyleSetterMethodName);
+        result = 31 * result + Objects.hashCode(contextParam);
+        result = 31 * result + Boolean.hashCode(ignoreDataTypeConversionFailures);
+        return result;
     }
 }

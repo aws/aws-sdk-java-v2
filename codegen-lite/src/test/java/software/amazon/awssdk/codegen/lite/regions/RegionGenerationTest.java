@@ -21,35 +21,42 @@ import java.io.File;
 import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.lite.regions.model.Partition;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsRegionsMetadata;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionRegionsMetadata;
 
 public class RegionGenerationTest {
 
     private static final String ENDPOINTS = "/software/amazon/awssdk/codegen/lite/test-endpoints.json";
+    private static final String PARTITIONS = "/software/amazon/awssdk/codegen/lite/test-partitions.json.resource";
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
     private static final String PARTITION_METADATA_BASE = "software.amazon.awssdk.regions.partitionmetadata";
     private static final String REGION_BASE = "software.amazon.awssdk.regions";
 
     private File endpoints;
+    private File partitionsFile;
     private Partitions partitions;
+    private PartitionsRegionsMetadata partitionsRegions;
+
 
     @BeforeEach
     public void before() throws Exception {
         this.endpoints = Paths.get(getClass().getResource(ENDPOINTS).toURI()).toFile();
+        this.partitionsFile = Paths.get(getClass().getResource(PARTITIONS).toURI()).toFile();
         this.partitions = RegionMetadataLoader.build(endpoints);
+        this.partitionsRegions = PartitionsRegionsMetadataLoader.build(partitionsFile);
     }
 
     @Test
     public void regionClass() {
-        RegionGenerator regions = new RegionGenerator(partitions, REGION_BASE);
+        RegionGenerator regions = new RegionGenerator(partitionsRegions, REGION_BASE);
         assertThat(regions, generatesTo("regions.java"));
     }
 
     @Test
     public void regionMetadataClass()  {
-        Partition partition = partitions.getPartitions().get(0);
+        PartitionRegionsMetadata partition = partitionsRegions.getPartitions().get(0);
         RegionMetadataGenerator metadataGenerator = new RegionMetadataGenerator(partition,
                                                                                 "us-east-1",
                                                                                 "US East (N. Virginia)",
@@ -61,7 +68,7 @@ public class RegionGenerationTest {
 
     @Test
     public void regionMetadataProviderClass() {
-        RegionMetadataProviderGenerator providerGenerator = new RegionMetadataProviderGenerator(partitions,
+        RegionMetadataProviderGenerator providerGenerator = new RegionMetadataProviderGenerator(partitionsRegions,
                                                                                                 REGION_METADATA_BASE,
                                                                                                 REGION_BASE);
         assertThat(providerGenerator, generatesTo("region-metadata-provider.java"));

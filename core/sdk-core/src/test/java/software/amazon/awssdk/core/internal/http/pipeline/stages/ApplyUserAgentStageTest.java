@@ -24,6 +24,7 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.I
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.RETRY_MODE;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
@@ -43,6 +44,7 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.useragent.SdkClientUserAgentProperties;
 import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.util.SystemUserAgent;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
@@ -121,6 +123,24 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
+    public void when_requestContainsMetadata_metadataIsPresent() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        RequestExecutionContext ctx = requestExecutionContext(
+            executionAttributes(Arrays.asList(
+                AdditionalMetadata.builder().name("name1").value("value1").build(),
+                AdditionalMetadata.builder().name("name2").value("value2").build()
+            )),
+            noOpRequest());
+        SdkHttpFullRequest.Builder request = stage.execute(SdkHttpFullRequest.builder(), ctx);
+
+        List<String> userAgentHeaders = request.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).contains("md/name1#value1");
+        assertThat(userAgentHeaders.get(0)).contains("md/name2#value2");
+    }
+
+    @Test
     public void when_identityContainsProvider_authSourceIsPresent() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
@@ -182,6 +202,12 @@ public class ApplyUserAgentStageTest {
                                          new SelectedAuthScheme<>(CompletableFuture.completedFuture(identity),
                                                          EMPTY_SELECTED_AUTH_SCHEME.signer(),
                                                          EMPTY_SELECTED_AUTH_SCHEME.authSchemeOption()));
+        return executionAttributes;
+    }
+
+    private static ExecutionAttributes executionAttributes(List<AdditionalMetadata> metadata) {
+        ExecutionAttributes executionAttributes = new ExecutionAttributes();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, metadata);
         return executionAttributes;
     }
 

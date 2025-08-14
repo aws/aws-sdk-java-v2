@@ -21,7 +21,6 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal client configuration resolver
@@ -80,10 +80,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             clientTlsContextOptions.withVerifyPeer(!builder.httpConfiguration.trustAllCertificatesEnabled());
         }
         this.tlsContext = new TlsContext(clientTlsContextOptions);
-        this.credentialProviderAdapter =
-            builder.credentialsProvider == null ?
-            new CrtCredentialsProviderAdapter(DefaultCredentialsProvider.create()) :
-            new CrtCredentialsProviderAdapter(builder.credentialsProvider);
+        this.credentialProviderAdapter = new CrtCredentialsProviderAdapter(
+            Validate.paramNotNull(builder.credentialsProvider, "credentialsProvider"));
 
         this.credentialsProvider = credentialProviderAdapter.crtCredentials();
 

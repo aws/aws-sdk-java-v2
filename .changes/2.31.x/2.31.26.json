@@ -1,0 +1,42 @@
+{
+    "version": "2.31.26",
+    "date": "2025-04-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS ARC - Zonal Shift",
+            "contributor": "",
+            "description": "Updates to documentation and exception types for Zonal Autoshift"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Releasing the new Budget FilterExpression and Metrics fields to support more granular filtering options. These new fields are intended to replace CostFilters and CostTypes, which are deprecated as of 2025/18/04."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Added support for Recurring Prefetch and Traffic Shaping on both Single and Recurring Prefetch. ListPrefetchSchedules now return single prefetchs by default and can be provided scheduleType of SINGLE, RECURRING, AND ALL."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Minor documentation update for the GetConfigurationPolicyAssociation example"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "Documentation update regarding the number of streams you can create using the CreateDeliveryStream API."
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "The CheckDocumentAccess API for Amazon Q Business is a self-service debugging API that allows administrators to verify document access permissions and review Access Control List (ACL) configurations."
+        }
+    ]
+}
