@@ -74,6 +74,7 @@ public class S3IntegrationTestBase extends AwsTestBase {
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
+                                     .maxConcurrency(1)
                                      .build();
         tmCrt = S3TransferManager.builder()
                                  .s3Client(s3CrtAsync)

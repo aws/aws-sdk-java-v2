@@ -1,4 +1,71 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.22__ __2025-08-13__
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for account pools and project profile account decoupling
+
+## __Amazon FSx__
+  - ### Features
+    - Add Dual-Stack support for Amazon FSx for OpenZFS file systems
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces compute quota for GPU, Trainium accelerators, vCPU, and vCPU memory utilization across teams in HyperPod clusters
+
+## __Braket__
+  - ### Features
+    - Add support for Braket program sets.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Add Tagging Support for Opportunity resources
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Extend [#5031](https://github.com/aws/aws-sdk-java-v2/pull/5031) by allowing user configuration of transferDirectoryMaxConcurrency during construction of S3TransferManager. This allows for more control of upper limits on JVM Heap memory allocation. See [#6330](https://github.com/aws/aws-sdk-java-v2/issues/6330).
+        - Contributed by: [@AndreKurait](https://github.com/AndreKurait)
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for Organizational Unit-level Membership configuration and the ability to resume a cancelled membership.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@AndreKurait](https://github.com/AndreKurait)
+# __2.32.21__ __2025-08-12__
+## __AWS Backup Search__
+  - ### Features
+    - Using recommended smithy trait to generate regional endpoints for Backup Search
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports PullRequestBuildPolicy in webhook object.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces 2 new APIs in Organizations: 1. ListAccountsWithInvalidEffectivePolicy 2. ListEffectivePolicyValidationErrors
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to allow route table association with a PublicIpv4Pool.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - IAM Identity Center trusted identity propagation is now supported in SageMaker Studio.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
 # __2.32.20__ __2025-08-11__
 ## __AWS Lambda__
   - ### Features
