@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
@@ -102,7 +101,10 @@ public class UploadDirectoryHelper {
 
         AsyncBufferingSubscriber<Path> bufferingSubscriber =
             new AsyncBufferingSubscriber<>(path -> uploadSingleFile(uploadDirectoryRequest, failedFileUploads, path),
-                                           allOfFutures, DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY);
+                                           allOfFutures, 
+                                           transferConfiguration.option(
+                                               TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
+                                           ));
 
         iterablePublisher.subscribe(bufferingSubscriber);
         CompletableFutureUtils.forwardExceptionTo(returnFuture, allOfFutures);

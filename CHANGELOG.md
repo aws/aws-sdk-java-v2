@@ -1,4 +1,210 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.22__ __2025-08-13__
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for account pools and project profile account decoupling
+
+## __Amazon FSx__
+  - ### Features
+    - Add Dual-Stack support for Amazon FSx for OpenZFS file systems
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces compute quota for GPU, Trainium accelerators, vCPU, and vCPU memory utilization across teams in HyperPod clusters
+
+## __Braket__
+  - ### Features
+    - Add support for Braket program sets.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Add Tagging Support for Opportunity resources
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Extend [#5031](https://github.com/aws/aws-sdk-java-v2/pull/5031) by allowing user configuration of transferDirectoryMaxConcurrency during construction of S3TransferManager. This allows for more control of upper limits on JVM Heap memory allocation. See [#6330](https://github.com/aws/aws-sdk-java-v2/issues/6330).
+        - Contributed by: [@AndreKurait](https://github.com/AndreKurait)
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for Organizational Unit-level Membership configuration and the ability to resume a cancelled membership.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@AndreKurait](https://github.com/AndreKurait)
+# __2.32.21__ __2025-08-12__
+## __AWS Backup Search__
+  - ### Features
+    - Using recommended smithy trait to generate regional endpoints for Backup Search
+
+## __AWS CodeBuild__
+  - ### Features
+    - AWS CodeBuild now supports PullRequestBuildPolicy in webhook object.
+
+## __AWS Organizations__
+  - ### Features
+    - This release introduces 2 new APIs in Organizations: 1. ListAccountsWithInvalidEffectivePolicy 2. ListEffectivePolicyValidationErrors
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release to allow route table association with a PublicIpv4Pool.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - IAM Identity Center trusted identity propagation is now supported in SageMaker Studio.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - AWS HealthScribe now supports specifying preferred patient pronouns through the MedicalScribeContext parameter for use in the generated clinical notes.
+
+# __2.32.20__ __2025-08-11__
+## __AWS Lambda__
+  - ### Features
+    - Doc-only update for Lambda that updates the maximum payload size for response streaming invocations to 200 MB.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add allowDuplicateKeys to ImmutableMap Builder
+    - Updated endpoint and partition metadata.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Added support for managing user background session for applications
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Adds support for Wait and Save feature in service-managed fleets
+
+## __Amazon Bedrock__
+  - ### Features
+    - This release includes model updates and enhanced SDK documentation for union fields in automated reasoning policy components. Added docs cover policy definitions, mutations (add/update for rules/types/variables), build assets, workflow sources, test results, and tag exception handling.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Remove SigV4 auth requirement for GetTokensFromRefreshToken
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updating SearchUserHierarchyGroups API
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateVolume, DescribeVolume, LaunchTemplates, RunInstances, DescribeInstances, CreateDefaultSubnet, SpotInstances, and CreateDefaultSubnet APIs.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Update for general availability of Amazon Elastic VMware Service (EVS).
+
+## __Amazon QuickSight__
+  - ### Features
+    - Add RowAxisDisplayOptions and ColumnAxisDisplayOptions to HeatMapConfiguration, add Actions to PluginVisual, increase limit for CalculatedFields list
+
+# __2.32.19__ __2025-08-08__
+## __AWS Backup Search__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Billing__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS Invoicing__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Adding DeleteConnection API to IoT Data Plane
+
+## __AWS Multi-party Approval__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS User Notifications__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __AWS User Notifications Contacts__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds a new API GetContactMetrics for Amazon Connect.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix a bug in the Java based multipart client with GetObject incorrect retry behavior
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for GB200 UltraServers in Amazon SageMaker training jobs, training plans, and HyperPod clusters
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Update documentation to use key ARN only in OutputEncryptionKMSKeyId request parameter
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Inspector2__
+  - ### Features
+    - Add CVSSV4 to Vulnerability Search API and update enable/disable account id list length to 5
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Network Flow Monitor__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Partner Central Selling API__
+  - ### Features
+    - Removed incorrect endpoint tests
+
+## __Security Incident Response__
+  - ### Features
+    - Removed incorrect endpoint tests
+
 # __2.32.18__ __2025-08-07__
 ## __AWS Batch__
   - ### Features
