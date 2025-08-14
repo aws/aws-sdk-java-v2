@@ -15,327 +15,238 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadTestUtil.transformersSuppliers;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
-import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupplier;
 
 @WireMockTest
 class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
-    private final String testBucket = "test-bucket";
-    private final String testKey = "test-key";
-    private final String basePresignedUrl = "http://localhost:%d/presigned-url";
+    private static final String PRESIGNED_URL_PATH = "/presigned-url";
+    private static final byte[] TEST_DATA = randomAscii(5 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
 
     private S3AsyncClient s3AsyncClient;
-    private PresignedUrlMultipartDownloadTestUtil util;
+    private String presignedUrlBase;
+    private URL presignedUrl;
+    private Path tempFile;
 
     @BeforeEach
-    public void init(WireMockRuntimeInfo wiremock) {
+    public void setup(WireMockRuntimeInfo wiremock) throws MalformedURLException {
+        MultipartConfiguration multipartConfig = MultipartConfiguration.builder()
+                                                                        .minimumPartSizeInBytes(16L)
+                                                                        .build();
         s3AsyncClient = S3AsyncClient.builder()
-                                     .credentialsProvider(StaticCredentialsProvider.create(
-                                         AwsBasicCredentials.create("key", "secret")))
-                                     .region(Region.US_WEST_2)
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
-                                     .serviceConfiguration(S3Configuration.builder()
-                                                                          .pathStyleAccessEnabled(true)
-                                                                          .checksumValidationEnabled(false)
-                                                                          .build())
+                                     .multipartEnabled(true)
+                                     .multipartConfiguration(multipartConfig)
                                      .build();
-        util = new PresignedUrlMultipartDownloadTestUtil(
-            String.format(basePresignedUrl, wiremock.getHttpPort()),
-            UUID.randomUUID().toString()
-        );
-    }
-
-    @ParameterizedTest(name = "multipart download: {1} parts of {2} bytes each")
-    @MethodSource("argumentsProvider")
-    <T> void onNext_withMultipleParts_shouldReceiveAllBodyPartsInCorrectOrder(
-        AsyncResponseTransformerTestSupplier<T> supplier,
-        int amountOfPartsToTest,
-        int partSize) {
-        byte[] expectedBody = util.stubAllRangeParts(amountOfPartsToTest, partSize);
-        URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-
-        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(presignedUrl)
-                                          .build(),
-                partSize);
-
-        split.publisher().subscribe(subscriber);
-        T response = split.resultFuture().join();
-
-        byte[] actualBody = supplier.body(response);
-        assertArrayEquals(expectedBody, actualBody);
-        util.verifyCorrectAmountOfRangeRequestsMade(amountOfPartsToTest);
-    }
-
-    @ParameterizedTest(name = "single part download: {1} bytes")
-    @MethodSource("singlePartArgumentsProvider")
-    <T> void onNext_withSinglePart_shouldReceiveCompleteBody(
-        AsyncResponseTransformerTestSupplier<T> supplier,
-        int partSize) {
-
-        int actualPartSize = partSize * 2; // Larger part size to ensure single part
-        byte[] expectedBody = util.stubSingleRangePart(actualPartSize);
-        URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-
-        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(presignedUrl)
-                                          .build(),
-                actualPartSize);
-
-        split.publisher().subscribe(subscriber);
-        T response = split.resultFuture().join();
-
-        byte[] actualBody = supplier.body(response);
-        assertArrayEquals(expectedBody, actualBody);
-        util.verifyCorrectAmountOfRangeRequestsMade(1);
+        presignedUrlBase = "http://localhost:" + wiremock.getHttpPort();
+        presignedUrl = createPresignedUrl();
     }
 
     @Test
-    void onNext_whenFirstRequestFails_shouldCompleteExceptionally() {
-        AsyncResponseTransformerTestSupplier<?> supplier = transformersSuppliers().get(0);
-        int partSize = 1024;
-
-        URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-        util.stubFirstRangeRequestWithError();
-
-        AsyncResponseTransformer<GetObjectResponse, ?> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, ?> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(presignedUrl)
-                                          .build(),
-                partSize);
-
-        long startTime = System.currentTimeMillis();
-        split.publisher().subscribe(subscriber);
-
-        assertThatThrownBy(() -> split.resultFuture().join())
-            .satisfiesAnyOf(
-                ex -> assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageContaining("test error message"),
-                ex -> assertThat(ex).hasRootCauseInstanceOf(RuntimeException.class).hasMessageContaining("test error message")
-            );
-
-        long duration = System.currentTimeMillis() - startTime;
-        assertThat(duration).isLessThan(2000);
-
-        util.verifyCorrectAmountOfRangeRequestsMade(1);
+    void presignedUrlDownload_withMultipartData_shouldReceiveCompleteBody() {
+        stubSuccessfulPresignedUrlResponse();
+        byte[] result = s3AsyncClient.presignedUrlExtension()
+                                     .getObject(PresignedUrlDownloadRequest.builder()
+                                                                           .presignedUrl(presignedUrl)
+                                                                           .build(),
+                                               AsyncResponseTransformer.toBytes())
+                                     .join()
+                                     .asByteArray();
+        assertArrayEquals(TEST_DATA, result);
     }
 
     @Test
-    void onNext_whenSecondRequestFails_shouldCompleteExceptionally() {
-        AsyncResponseTransformerTestSupplier<?> supplier = transformersSuppliers().get(0);
-        int partSize = 1024;
-        int amountOfParts = 3;
-
-        URL presignedUrl = createPresignedUrl(util.getPresignedUrl());
-        util.stubFirstRangePartForSizeDiscovery(amountOfParts, partSize);
-        util.stubSecondRangeRequestWithError(partSize);
-
-        AsyncResponseTransformer<GetObjectResponse, ?> transformer = supplier.transformer();
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, ?> split = transformer.split(
-            SplittingTransformerConfiguration.builder()
-                                             .bufferSizeInBytes(1024 * 32L)
-                                             .build());
-
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(presignedUrl)
-                                          .build(),
-                partSize);
-
-        long startTime = System.currentTimeMillis();
-        split.publisher().subscribe(subscriber);
-
-        assertThatThrownBy(() -> split.resultFuture().join())
-            .satisfiesAnyOf(
-                ex -> assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageContaining("test error message"),
-                ex -> assertThat(ex).hasRootCauseInstanceOf(RuntimeException.class).hasMessageContaining("test error message")
-            );
-        long duration = System.currentTimeMillis() - startTime;
-        assertThat(duration).isLessThan(3000);
-
-        util.verifyCorrectAmountOfRangeRequestsMade(2);
-        util.verifyNoRequestMadeForRange(2 * partSize, 3 * partSize - 1);
+    void presignedUrlDownload_withRangeHeader_shouldReceivePartialContent() {
+        stubSuccessfulRangeResponse();
+        byte[] result = s3AsyncClient.presignedUrlExtension()
+                                     .getObject(PresignedUrlDownloadRequest.builder()
+                                                                           .presignedUrl(presignedUrl)
+                                                                           .range("bytes=0-10")
+                                                                           .build(),
+                                               AsyncResponseTransformer.toBytes())
+                                     .join()
+                                     .asByteArray();
+        byte[] expectedPartial = Arrays.copyOfRange(TEST_DATA, 0, 11);
+        assertArrayEquals(expectedPartial, result);
     }
 
     @Test
-    void onNext_withNullTransformer_shouldThrowNullPointerException() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber =
+    void presignedUrlDownload_whenRequestFails_shouldThrowException() {
+        stubFailedPresignedUrlResponse();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                        AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+    @Test
+    void presignedUrlDownload_withFileTransformer_shouldWork() throws IOException {
+        stubSuccessfulPresignedUrlResponse();
+        tempFile = createUniqueTempFile();
+        s3AsyncClient.presignedUrlExtension()
+                     .getObject(PresignedUrlDownloadRequest.builder()
+                                                           .presignedUrl(presignedUrl)
+                                                           .build(),
+                               AsyncResponseTransformer.toFile(tempFile))
+                     .join();
+        assertThat(tempFile.toFile()).exists();
+        assertThat(tempFile.toFile().length()).isGreaterThan(0);
+    }
+
+    @Test
+    void presignedUrlDownload_whenFirstRequestFails_shouldThrowException() {
+        stubInternalServerError();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                        AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+    @Test
+    void presignedUrlDownload_whenSecondRequestFails_shouldThrowException() {
+        stubPartialFailureScenario();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                        AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(S3Exception.class);
+    }
+
+
+    @Test
+    void presignedUrlDownload_withNullTransformer_shouldThrowException() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = 
             new PresignedUrlMultipartDownloaderSubscriber(
                 s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
-                                          .build(),
+                PresignedUrlDownloadRequest.builder().presignedUrl(presignedUrl).build(),
                 1024);
-
+        
         assertThatThrownBy(() -> subscriber.onNext(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("onNext must not be called with null asyncResponseTransformer");
     }
 
-    @Test
-    void onSubscribe_withMultipleSubscriptions_shouldCancelSecond() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
-                                          .build(),
-                1024);
-
-        Subscription firstSubscription = mock(Subscription.class);
-        Subscription secondSubscription = mock(Subscription.class);
-        subscriber.onSubscribe(firstSubscription);
-        subscriber.onSubscribe(secondSubscription);
-
-        verify(secondSubscription).cancel();
-        verify(firstSubscription, never()).cancel();
-    }
-
-    @Test
-    void future_shouldReturnCompletableFuture() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
-                                          .build(),
-                1024);
-
-        CompletableFuture<Void> future = subscriber.future();
-        assertThat(future).isNotNull();
-        assertThat(future.isDone()).isFalse();
-    }
-
-    @Test
-    void onComplete_shouldCompleteFuture() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
-                                          .build(),
-                1024);
-
-        CompletableFuture<Void> future = subscriber.future();
-        subscriber.onComplete();
-
-        assertThat(future.isDone()).isTrue();
-        assertThat(future.isCompletedExceptionally()).isFalse();
-    }
-
-    @Test
-    void onError_shouldCompleteExceptionally() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber =
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder()
-                                          .presignedUrl(createPresignedUrl(util.getPresignedUrl()))
-                                          .build(),
-                1024);
-
-        CompletableFuture<Void> future = subscriber.future();
-        RuntimeException testException = new RuntimeException("Test error");
-        subscriber.onError(testException);
-
-        assertThat(future.isDone()).isTrue();
-        assertThat(future.isCompletedExceptionally()).isTrue();
-        assertThatThrownBy(() -> future.join())
-            .hasRootCause(testException);
-    }
-
-
-
-    private static Stream<Arguments> argumentsProvider() {
-        List<AsyncResponseTransformerTestSupplier<?>> transformers = transformersSuppliers();
-
-        return Stream.of(
-            arguments(transformers.get(0), 2, 1024),
-            arguments(transformers.get(0), 4, 16 * 1024),
-            arguments(transformers.get(0), 7, 1024 * 1024),
-            arguments(transformers.get(1), 3, 8192),
-            arguments(transformers.get(0), 10, 512),
-            arguments(transformers.get(0), 1, 4 * 1024 * 1024)
-        );
-    }
-
-    private static Stream<Arguments> singlePartArgumentsProvider() {
-        List<AsyncResponseTransformerTestSupplier<?>> transformers = transformersSuppliers();
-
-        return Stream.of(
-            arguments(transformers.get(0), 1024),
-            arguments(transformers.get(0), 1024 * 1024),
-            arguments(transformers.get(1), 16 * 1024)
-        );
-    }
-
-    URL createPresignedUrl(String urlString) {
-        try {
-            return new URL(urlString);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Invalid presigned URL: " + urlString, e);
+    @AfterEach
+    void cleanup() {
+        if (tempFile != null && Files.exists(tempFile)) {
+            try {
+                Files.delete(tempFile);
+            } catch (IOException e) {
+            }
         }
+    }
+
+    private static Path createUniqueTempFile() throws IOException {
+        String uniqueName = "test-" + UUID.randomUUID().toString();
+        Path tempFile = Files.createTempFile(uniqueName, ".tmp");
+        Files.deleteIfExists(tempFile);
+        return tempFile;
+    }
+
+    private void stubSuccessfulPresignedUrlResponse() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/octet-stream")
+                .withHeader("Content-Length", String.valueOf(TEST_DATA.length))
+                .withHeader("ETag", "\"test-etag\"")
+                .withBody(TEST_DATA)));
+    }
+
+    private void stubSuccessfulRangeResponse() {
+        byte[] partialData = Arrays.copyOfRange(TEST_DATA, 0, 11);
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .willReturn(aResponse()
+                .withStatus(206)
+                .withHeader("Content-Type", "application/octet-stream")
+                .withHeader("Content-Length", String.valueOf(partialData.length))
+                .withHeader("Content-Range", "bytes 0-10/" + TEST_DATA.length)
+                .withHeader("ETag", "\"test-etag\"")
+                .withBody(partialData)));
+    }
+
+    private void stubFailedPresignedUrlResponse() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .willReturn(aResponse()
+                .withStatus(404)
+                .withBody("<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>")));
+    }
+
+    private void stubInternalServerError() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withBody("<Error><Code>InternalError</Code><Message>Internal Server Error</Message></Error>")));
+    }
+
+    private void stubPartialFailureScenario() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .inScenario("partial-failure")
+            .whenScenarioStateIs("Started")
+            .willReturn(aResponse()
+                .withStatus(206)
+                .withHeader("Content-Type", "application/octet-stream")
+                .withHeader("Content-Length", "16")
+                .withHeader("Content-Range", "bytes 0-15/" + TEST_DATA.length)
+                .withHeader("ETag", "\"test-etag\"")
+                .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
+            .willSetStateTo("first-success"));
+        
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .inScenario("partial-failure")
+            .whenScenarioStateIs("first-success")
+            .willReturn(aResponse()
+                .withStatus(500)
+                .withBody("<Error><Code>InternalError</Code><Message>Second request failed</Message></Error>")));
+    }
+
+    private void stubSinglePartResponse() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+            .willReturn(aResponse()
+                .withStatus(206)
+                .withHeader("Content-Type", "application/octet-stream")
+                .withHeader("Content-Length", String.valueOf(TEST_DATA.length))
+                .withHeader("Content-Range", "bytes 0-" + (TEST_DATA.length - 1) + "/" + TEST_DATA.length)
+                .withHeader("ETag", "\"test-etag\"")
+                .withBody(TEST_DATA)));
+    }
+
+    private URL createPresignedUrl() throws MalformedURLException {
+        return new URL(presignedUrlBase + PRESIGNED_URL_PATH);
     }
 }

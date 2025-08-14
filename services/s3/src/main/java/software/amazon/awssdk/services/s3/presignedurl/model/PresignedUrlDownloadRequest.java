@@ -31,10 +31,12 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
     PresignedUrlDownloadRequest> {
     private final URL presignedUrl;
     private final String range;
+    private final String ifMatch;
 
     private PresignedUrlDownloadRequest(BuilderImpl builder) {
         this.presignedUrl = builder.presignedUrl;
         this.range = builder.range;
+        this.ifMatch = builder.ifMatch;
     }
 
     /**
@@ -65,6 +67,18 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         return range;
     }
 
+    /**
+     * <p>
+     * Return the object only if its entity tag (ETag) is the same as the one specified in this header,
+     * otherwise return a 412 (precondition failed) error.
+     * </p>
+     *
+     * @return The If-Match header value, or null if not specified.
+     */
+    public String ifMatch() {
+        return ifMatch;
+    }
+
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
@@ -83,6 +97,7 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         int hashCode = 1;
         hashCode = 31 * hashCode + Objects.hashCode(presignedUrl());
         hashCode = 31 * hashCode + Objects.hashCode(range());
+        hashCode = 31 * hashCode + Objects.hashCode(ifMatch());
         return hashCode;
     }
 
@@ -96,7 +111,8 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         }
         PresignedUrlDownloadRequest other = (PresignedUrlDownloadRequest) obj;
         return Objects.equals(presignedUrl(), other.presignedUrl()) &&
-               Objects.equals(range(), other.range());
+               Objects.equals(range(), other.range()) &&
+               Objects.equals(ifMatch(), other.ifMatch());
     }
 
     @Override
@@ -104,6 +120,7 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         return ToString.builder("PresignedUrlDownloadRequest")
                        .add("PresignedUrl", presignedUrl())
                        .add("Range", range())
+                       .add("IfMatch", ifMatch())
                        .build();
     }
 
@@ -121,11 +138,19 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
          * @return Returns a reference to this object so that method calls can be chained together.
          */
         Builder range(String range);
+
+        /**
+         * Return the object only if its entity tag (ETag) is the same as the one specified in this header.
+         * @param ifMatch The If-Match header value (ETag)
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        Builder ifMatch(String ifMatch);
     }
 
     static final class BuilderImpl implements Builder {
         private URL presignedUrl;
         private String range;
+        private String ifMatch;
 
         private BuilderImpl() {
         }
@@ -133,6 +158,7 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         private BuilderImpl(PresignedUrlDownloadRequest presignedUrlDownloadRequest) {
             presignedUrl(presignedUrlDownloadRequest.presignedUrl());
             range(presignedUrlDownloadRequest.range());
+            ifMatch(presignedUrlDownloadRequest.ifMatch());
         }
 
         @Override
@@ -144,6 +170,12 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
         @Override
         public Builder range(String range) {
             this.range = range;
+            return this;
+        }
+
+        @Override
+        public Builder ifMatch(String ifMatch) {
+            this.ifMatch = ifMatch;
             return this;
         }
 
