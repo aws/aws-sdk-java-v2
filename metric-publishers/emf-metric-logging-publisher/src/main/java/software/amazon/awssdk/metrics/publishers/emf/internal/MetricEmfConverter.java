@@ -179,8 +179,12 @@ public class MetricEmfConverter {
             return;
         }
 
-        if (Integer.class.isAssignableFrom(valueClass) || Long.class.isAssignableFrom(valueClass)) {
+        if (Integer.class.isAssignableFrom(valueClass)) {
             jsonWriter.writeValue((Integer) value);
+        }
+
+        if (Long.class.isAssignableFrom(valueClass)) {
+            jsonWriter.writeValue((Long) value);
         }
     }
 

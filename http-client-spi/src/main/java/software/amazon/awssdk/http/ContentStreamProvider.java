@@ -22,11 +22,14 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Provides the content stream of a request.
@@ -45,7 +48,7 @@ public interface ContentStreamProvider {
     static ContentStreamProvider fromByteArray(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
         byte[] copy = Arrays.copyOf(bytes, bytes.length);
-        return () -> new ByteArrayInputStream(copy);
+        return fromByteArrayUnsafe(copy);
     }
 
     /**
@@ -58,7 +61,17 @@ public interface ContentStreamProvider {
      */
     static ContentStreamProvider fromByteArrayUnsafe(byte[] bytes) {
         Validate.paramNotNull(bytes, "bytes");
-        return () -> new ByteArrayInputStream(bytes);
+        return new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                return new ByteArrayInputStream(bytes);
+            }
+
+            @Override
+            public String name() {
+                return ProviderType.BYTES.getName();
+            }
+        };
     }
 
     /**
@@ -67,7 +80,17 @@ public interface ContentStreamProvider {
     static ContentStreamProvider fromString(String string, Charset charset) {
         Validate.paramNotNull(string, "string");
         Validate.paramNotNull(charset, "charset");
-        return () -> new StringInputStream(string, charset);
+        return new ContentStreamProvider() {
+            @Override
+            public InputStream newStream() {
+                return new StringInputStream(string, charset);
+            }
+
+            @Override
+            public String name() {
+                return ProviderType.STRING.getName();
+            }
+        };
     }
 
     /**
@@ -105,6 +128,11 @@ public interface ContentStreamProvider {
                 throw new IllegalStateException("Content input stream does not support mark/reset, "
                                                 + "and was already read once.");
             }
+
+            @Override
+            public String name() {
+                return ProviderType.STREAM.getName();
+            }
         };
     }
 
@@ -125,6 +153,11 @@ public interface ContentStreamProvider {
                 lastStream = inputStreamSupplier.get();
                 return lastStream;
             }
+
+            @Override
+            public String name() {
+                return ProviderType.STREAM.getName();
+            }
         };
     }
 
@@ -132,4 +165,47 @@ public interface ContentStreamProvider {
      * @return The content stream.
      */
     InputStream newStream();
+
+    /**
+     * Each ContentStreamProvider should return a well-formed name that can be used to identify the implementation.
+     * The stream name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this ContentStreamProvider implementation.
+     */
+    default String name() {
+        return ProviderType.UNKNOWN.getName();
+    }
+
+    @SdkProtectedApi
+    enum ProviderType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STRING("String", "c"),
+        STREAM("Stream", "s"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, ProviderType> VALUE_MAP =
+            EnumUtils.uniqueIndex(ProviderType.class, ProviderType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+
+        ProviderType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
+    }
 }

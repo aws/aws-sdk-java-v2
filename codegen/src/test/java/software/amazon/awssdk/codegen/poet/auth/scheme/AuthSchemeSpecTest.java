@@ -66,6 +66,12 @@ public class AuthSchemeSpecTest {
                     .caseName("query")
                     .outputFileSuffix("default-params")
                     .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(PreferredAuthSchemeProviderSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("preferred-provider")
+                    .build(),
             // query-endpoint-auth-params
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
@@ -213,6 +219,13 @@ public class AuthSchemeSpecTest {
                     .modelProvider(ClientTestModels::opsWithSigv4a)
                     .classSpecProvider(AuthSchemeInterceptorSpec::new)
                     .caseName("ops-auth-sigv4a-value")
+                    .outputFileSuffix("interceptor")
+                    .build(),
+            // service with environment bearer token enabled
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::envBearerTokenServiceModels)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("env-bearer-token")
                     .outputFileSuffix("interceptor")
                     .build()
         );
