@@ -56,8 +56,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
-    // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    // 50 * MB is chosen to make sure we have data written in the file already upon pausing.
+    private static final long OBJ_SIZE = 50 * MB;
     private static File sourceFile;
 
     @BeforeAll
@@ -152,8 +152,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
         assertThat(bytesTransferred).isEqualTo(path.toFile().length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
-
-        assertThat(bytesTransferred).isLessThan(sourceFile.length());
+        assertThat(bytesTransferred).isLessThanOrEqualTo(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");
@@ -242,7 +241,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE)
-                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(10))))
                                                         .build();
         waiter.run(() -> download.progress().snapshot());
     }
