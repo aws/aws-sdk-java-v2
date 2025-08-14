@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Direct Connect",
-    "contributor": "",
-    "description": "Added pagination support for DescribeHostedConnections, DescribeVirtualInterfaces, DescribeConnections, DescribeInterconnects, DescribeLags. Added asnLong support for BGP peer operations which supports a large range."
-}
