@@ -60,6 +60,7 @@ import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransfor
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
 import software.amazon.awssdk.core.internal.async.PublisherAsyncResponseTransformer;
+import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -142,7 +143,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @ParameterizedTest
-    @MethodSource("responseTransformers")
+    @MethodSource("nonRetryableResponseTransformers")
     public <T> void errorOnFirstPart_shouldFail(AsyncResponseTransformerTestSupplier<T> supplier) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))).willReturn(
             aResponse()
@@ -155,8 +156,8 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @ParameterizedTest
-    @MethodSource("responseTransformers")
-    public <T> void ioError_shouldFailAndNotRetry(AsyncResponseTransformerTestSupplier<T> supplier) {
+    @MethodSource("nonRetryableResponseTransformers")
+    public <T> void nonRetryableResponseTransformers_ioErrorOnFirstPart_shouldFailAndNotRetry(AsyncResponseTransformerTestSupplier<T> supplier) {
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY)))
                     .willReturn(aResponse()
                                     .withFault(Fault.CONNECTION_RESET_BY_PEER)));
@@ -175,7 +176,7 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
     @ParameterizedTest
-    @MethodSource("responseTransformers")
+    @MethodSource("nonRetryableResponseTransformers")
     public void getObject_single500WithinMany200s_shouldNotRetryError(AsyncResponseTransformerTestSupplier<?> transformerSupplier) {
         List<CompletableFuture<?>> futures = new ArrayList<>();
 
@@ -243,14 +244,16 @@ public class S3MultipartClientGetObjectWiremockTest {
 
 
     /**
-     * Testing {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}, and
+     * Testing response transformers that are not retryable when
+     * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)} is invoked and used with
+     * {@link SplittingTransformer} - {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}, and
      * {@link FileAsyncResponseTransformer}
      * <p>
      *
      * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}, tested in
      * {@link S3MultipartClientGetObjectRetryBehaviorWiremockTest}.
      */
-    private static Stream<AsyncResponseTransformerTestSupplier<?>> responseTransformers() {
+    private static Stream<AsyncResponseTransformerTestSupplier<?>> nonRetryableResponseTransformers() {
         return Stream.of(new AsyncResponseTransformerTestSupplier.InputStreamArtSupplier(),
                          new AsyncResponseTransformerTestSupplier.PublisherArtSupplier(),
                          new AsyncResponseTransformerTestSupplier.FileArtSupplier());

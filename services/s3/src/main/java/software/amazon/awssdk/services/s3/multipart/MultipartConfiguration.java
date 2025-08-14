@@ -164,8 +164,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * <p>
          * Default value: If not specified, the SDK will use the equivalent of four parts worth of memory, so 32 Mib by default.
          * <p>
-         * This setting is not supported and will be ignored when downloading to a byte array, i.e., when providing a
-         * {@link ByteArrayAsyncResponseTransformer}.
+         * This setting does not apply if you are using an {@link AsyncResponseTransformer} implementation that downloads the
+         * object into memory such as {@link AsyncResponseTransformer#toBytes}
          *
          * @param apiCallBufferSizeInBytes the value of the maximum memory usage.
          * @return an instance of this builder.

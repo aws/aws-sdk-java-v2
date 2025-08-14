@@ -165,12 +165,12 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
                 return;
             }
 
-            CompletableFuture<ResponseBytes<ResponseT>> upstreamPrepareFuture = upstreamResponseTransformer.prepare();
-            CompletableFutureUtils.forwardResultTo(upstreamPrepareFuture, resultFuture);
-
-            upstreamResponseTransformer.onResponse(responseT.get());
-
             try {
+                CompletableFuture<ResponseBytes<ResponseT>> upstreamPrepareFuture = upstreamResponseTransformer.prepare();
+                CompletableFutureUtils.forwardResultTo(upstreamPrepareFuture, resultFuture);
+
+                upstreamResponseTransformer.onResponse(responseT.get());
+
                 buffers.keySet().stream().sorted().forEach(index -> {
                     publisherToUpstream.send(buffers.get(index)).exceptionally(ex -> {
                         resultFuture.completeExceptionally(SdkClientException.create("unexpected error occurred", ex));
