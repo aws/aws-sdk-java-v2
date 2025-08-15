@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ObjectMapBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleImmutable;
 
@@ -83,6 +85,13 @@ public class TableSchemaTest {
     public void fromClass_constructsImmutableTableSchema() {
         TableSchema<SimpleImmutable> tableSchema = TableSchema.fromClass(SimpleImmutable.class);
         assertThat(tableSchema).isInstanceOf(ImmutableTableSchema.class);
+    }
+
+    @Test
+    public void fromClass_missingObjectConverter_throwsIllegalStateException() {
+        assertThatIllegalStateException().isThrownBy(
+            () -> TableSchema.fromClass(ObjectMapBean.class)
+        ).withMessage("Converter not found for EnhancedType(java.lang.Object)");
     }
 
     @Test
