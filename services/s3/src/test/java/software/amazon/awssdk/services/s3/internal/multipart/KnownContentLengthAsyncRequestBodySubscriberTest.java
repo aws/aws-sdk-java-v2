@@ -17,7 +17,6 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -25,11 +24,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -39,9 +36,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -60,7 +57,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     private static final int TOTAL_NUM_PARTS = 4;
     private static final String UPLOAD_ID = "1234";
     private static RandomTempFile testFile;
-    
+
     private AsyncRequestBody asyncRequestBody;
     private PutObjectRequest putObjectRequest;
     private S3AsyncClient s3AsyncClient;
@@ -114,7 +111,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     void validateLastPartSize_withIncorrectSize_shouldFailRequest() {
         long expectedLastPartSize = MPU_CONTENT_SIZE % PART_SIZE;
         long incorrectLastPartSize = expectedLastPartSize + 1;
-        
+
         KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(createDefaultMpuRequestContext());
         lastPartSubscriber.onSubscribe(subscription);
 
@@ -130,12 +127,12 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     @Test
     void validateTotalPartNum_receivedMoreParts_shouldFail() {
         long expectedLastPartSize = MPU_CONTENT_SIZE % PART_SIZE;
-        
+
         KnownContentLengthAsyncRequestBodySubscriber lastPartSubscriber = createSubscriber(createDefaultMpuRequestContext());
         lastPartSubscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
-            AsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
+            ClosableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
             lastPartSubscriber.onNext(regularPart);
@@ -157,7 +154,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         subscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
-            AsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
+            ClosableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
             subscriber.onNext(regularPart);
@@ -175,7 +172,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     void pause_withOngoingCompleteMpuFuture_shouldReturnTokenAndCancelFuture() {
         CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture = new CompletableFuture<>();
         int numExistingParts = 2;
-        
+
         S3ResumeToken resumeToken = testPauseScenario(numExistingParts, completeMpuFuture);
 
         verifyResumeToken(resumeToken, numExistingParts);
@@ -187,7 +184,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture =
             CompletableFuture.completedFuture(CompleteMultipartUploadResponse.builder().build());
         int numExistingParts = 2;
-        
+
         S3ResumeToken resumeToken = testPauseScenario(numExistingParts, completeMpuFuture);
 
         assertThat(resumeToken).isNull();
@@ -196,15 +193,15 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
     @Test
     void pause_withUninitiatedCompleteMpuFuture_shouldReturnToken() {
         int numExistingParts = 2;
-        
+
         S3ResumeToken resumeToken = testPauseScenario(numExistingParts, null);
 
         verifyResumeToken(resumeToken, numExistingParts);
     }
-    
-    private S3ResumeToken testPauseScenario(int numExistingParts, 
+
+    private S3ResumeToken testPauseScenario(int numExistingParts,
                                            CompletableFuture<CompleteMultipartUploadResponse> completeMpuFuture) {
-        KnownContentLengthAsyncRequestBodySubscriber subscriber = 
+        KnownContentLengthAsyncRequestBodySubscriber subscriber =
             createSubscriber(createMpuRequestContextWithExistingParts(numExistingParts));
 
         when(multipartUploadHelper.completeMultipartUpload(any(CompletableFuture.class), any(String.class),
@@ -246,14 +243,14 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
     }
 
-    private AsyncRequestBody createMockAsyncRequestBody(long contentLength) {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private ClosableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
+        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.of(contentLength));
         return mockBody;
     }
 
-    private AsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private ClosableAsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
+        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.empty());
         return mockBody;
     }

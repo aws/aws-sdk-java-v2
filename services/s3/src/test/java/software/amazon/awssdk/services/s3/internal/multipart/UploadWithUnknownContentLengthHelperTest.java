@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +47,7 @@ import org.mockito.Mockito;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -114,14 +116,14 @@ public class UploadWithUnknownContentLengthHelperTest {
 
     @Test
     void uploadObject_withMissingContentLength_shouldFailRequest() {
-        AsyncRequestBody asyncRequestBody = createMockAsyncRequestBodyWithEmptyContentLength();
+        ClosableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBodyWithEmptyContentLength();
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
         verifyFailureWithMessage(future, "Content length is missing on the AsyncRequestBody for part number");
     }
 
     @Test
     void uploadObject_withPartSizeExceedingLimit_shouldFailRequest() {
-        AsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
+        ClosableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
         verifyFailureWithMessage(future, "Content length must not be greater than part size");
     }
@@ -139,27 +141,27 @@ public class UploadWithUnknownContentLengthHelperTest {
                 .collect(Collectors.toList());
     }
 
-    private AsyncRequestBody createMockAsyncRequestBody(long contentLength) {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private ClosableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
+        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.of(contentLength));
         return mockBody;
     }
 
-    private AsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
-        AsyncRequestBody mockBody = mock(AsyncRequestBody.class);
+    private ClosableAsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
+        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.empty());
         return mockBody;
     }
 
-    private CompletableFuture<PutObjectResponse> setupAndTriggerUploadFailure(AsyncRequestBody asyncRequestBody) {
-        SdkPublisher<AsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
-        when(asyncRequestBody.split(any(Consumer.class))).thenReturn(mockPublisher);
+    private CompletableFuture<PutObjectResponse> setupAndTriggerUploadFailure(ClosableAsyncRequestBody asyncRequestBody) {
+        SdkPublisher<ClosableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitV2(any(Consumer.class))).thenReturn(mockPublisher);
 
-        ArgumentCaptor<Subscriber<AsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
+        ArgumentCaptor<Subscriber<ClosableAsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), asyncRequestBody);
 
         verify(mockPublisher).subscribe(subscriberCaptor.capture());
-        Subscriber<AsyncRequestBody> subscriber = subscriberCaptor.getValue();
+        Subscriber<ClosableAsyncRequestBody> subscriber = subscriberCaptor.getValue();
 
         Subscription subscription = mock(Subscription.class);
         subscriber.onSubscribe(subscription);
