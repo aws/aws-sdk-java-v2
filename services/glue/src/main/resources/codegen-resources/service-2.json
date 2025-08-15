@@ -569,6 +569,24 @@
       ],
       "documentation":"<p>Creates a new development endpoint.</p>"
     },
+    "CreateGlueIdentityCenterConfiguration":{
+      "name":"CreateGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"CreateGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Creates a new Glue Identity Center configuration to enable integration between Glue and Amazon Web Services IAM Identity Center for authentication and authorization.</p>"
+    },
     "CreateIntegration":{
       "name":"CreateIntegration",
       "http":{
@@ -1109,6 +1127,24 @@
         {"shape":"InvalidInputException"}
       ],
       "documentation":"<p>Deletes a specified development endpoint.</p>"
+    },
+    "DeleteGlueIdentityCenterConfiguration":{
+      "name":"DeleteGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"DeleteGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Deletes the existing Glue Identity Center configuration, removing the integration between Glue and Amazon Web Services IAM Identity Center.</p>"
     },
     "DeleteIntegration":{
       "name":"DeleteIntegration",
@@ -2017,6 +2053,24 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>This API is used to query preview data from a given connection type or from a native Amazon S3 based Glue Data Catalog.</p> <p>Returns records as an array of JSON blobs. Each record is formatted using Jackson JsonNode based on the field type defined by the <code>DescribeEntity</code> API.</p> <p>Spark connectors generate schemas according to the same data type mapping as in the <code>DescribeEntity</code> API. Spark connectors convert data to the appropriate data types matching the schema when returning rows.</p>"
+    },
+    "GetGlueIdentityCenterConfiguration":{
+      "name":"GetGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"GetGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Retrieves the current Glue Identity Center configuration details, including the associated Identity Center instance and application information.</p>"
     },
     "GetIntegrationResourceProperty":{
       "name":"GetIntegrationResourceProperty",
@@ -4028,6 +4082,24 @@
       ],
       "documentation":"<p>Updates a specified development endpoint.</p>"
     },
+    "UpdateGlueIdentityCenterConfiguration":{
+      "name":"UpdateGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"UpdateGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Updates the existing Glue Identity Center configuration, allowing modification of scopes and permissions for the integration.</p>"
+    },
     "UpdateIntegrationResourceProperty":{
       "name":"UpdateIntegrationResourceProperty",
       "http":{
@@ -4700,6 +4772,11 @@
       "max":256,
       "min":1,
       "pattern":"[a-zA-Z0-9.-]*"
+    },
+    "ApplicationArn":{
+      "type":"string",
+      "max":1224,
+      "min":10
     },
     "ApplyMapping":{
       "type":"structure",
@@ -6422,6 +6499,10 @@
           "shape":"DataLakeAccessProperties",
           "documentation":"<p>A <code>DataLakeAccessProperties</code> object that specifies properties to configure data lake access for your catalog resource in the Glue Data Catalog.</p>"
         },
+        "IcebergOptimizationProperties":{
+          "shape":"IcebergOptimizationProperties",
+          "documentation":"<p>A structure that specifies Iceberg table optimization properties for the catalog. This includes configuration for compaction, retention, and orphan file deletion operations that can be applied to Iceberg tables in this catalog.</p>"
+        },
         "CustomProperties":{
           "shape":"ParametersMap",
           "documentation":"<p>Additional key-value properties for the catalog, such as column statistics optimizations.</p>"
@@ -6435,6 +6516,10 @@
         "DataLakeAccessProperties":{
           "shape":"DataLakeAccessPropertiesOutput",
           "documentation":"<p>A <code>DataLakeAccessProperties</code> object with input properties to configure data lake access for your catalog resource in the Glue Data Catalog.</p>"
+        },
+        "IcebergOptimizationProperties":{
+          "shape":"IcebergOptimizationPropertiesOutput",
+          "documentation":"<p>An <code>IcebergOptimizationPropertiesOutput</code> object that specifies Iceberg table optimization settings for the catalog, including configurations for compaction, retention, and orphan file deletion operations.</p>"
         },
         "CustomProperties":{
           "shape":"ParametersMap",
@@ -7693,6 +7778,13 @@
         }
       },
       "documentation":"<p>Specifies the values that an admin sets for each job or session parameter configured in a Glue usage profile.</p>"
+    },
+    "ConfigurationSource":{
+      "type":"string",
+      "enum":[
+        "catalog",
+        "table"
+      ]
     },
     "ConflictException":{
       "type":"structure",
@@ -9063,6 +9155,31 @@
           "documentation":"<p>The map of arguments used to configure this <code>DevEndpoint</code>.</p> <p>Valid arguments are:</p> <ul> <li> <p> <code>\"--enable-glue-datacatalog\": \"\"</code> </p> </li> </ul> <p>You can specify a version of Python support for development endpoints by using the <code>Arguments</code> parameter in the <code>CreateDevEndpoint</code> or <code>UpdateDevEndpoint</code> APIs. If no arguments are provided, the version defaults to Python 2.</p>"
         }
       }
+    },
+    "CreateGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"IdentityCenterInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center instance to be associated with the Glue configuration.</p>"
+        },
+        "Scopes":{
+          "shape":"IdentityCenterScopesList",
+          "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Request to create a new Glue Identity Center configuration.</p>"
+    },
+    "CreateGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center application that was created for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Response from creating a new Glue Identity Center configuration.</p>"
     },
     "CreateGrokClassifierRequest":{
       "type":"structure",
@@ -11543,6 +11660,16 @@
     "DeleteDevEndpointResponse":{
       "type":"structure",
       "members":{}
+    },
+    "DeleteGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Request to delete the existing Glue Identity Center configuration.</p>"
+    },
+    "DeleteGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Response from deleting the Glue Identity Center configuration.</p>"
     },
     "DeleteIntegrationRequest":{
       "type":"structure",
@@ -14698,6 +14825,29 @@
         }
       }
     },
+    "GetGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Request to retrieve the Glue Identity Center configuration.</p>"
+    },
+    "GetGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center application associated with the Glue configuration.</p>"
+        },
+        "InstanceArn":{
+          "shape":"IdentityCenterInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center instance associated with the Glue configuration.</p>"
+        },
+        "Scopes":{
+          "shape":"OrchestrationStringList",
+          "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Response containing the Glue Identity Center configuration details.</p>"
+    },
     "GetIntegrationResourcePropertyRequest":{
       "type":"structure",
       "required":["ResourceArn"],
@@ -16804,6 +16954,14 @@
         "strategy":{
           "shape":"CompactionStrategy",
           "documentation":"<p>The strategy to use for compaction. Valid values are:</p> <ul> <li> <p> <code>binpack</code>: Combines small files into larger files, typically targeting sizes over 100MB, while applying any pending deletes. This is the recommended compaction strategy for most use cases. </p> </li> <li> <p> <code>sort</code>: Organizes data based on specified columns which are sorted hierarchically during compaction, improving query performance for filtered operations. This strategy is recommended when your queries frequently filter on specific columns. To use this strategy, you must first define a sort order in your Iceberg table properties using the <code>sort_order</code> table property.</p> </li> <li> <p> <code>z-order</code>: Optimizes data organization by blending multiple attributes into a single scalar value that can be used for sorting, allowing efficient querying across multiple dimensions. This strategy is recommended when you need to query data across multiple dimensions simultaneously. To use this strategy, you must first define a sort order in your Iceberg table properties using the <code>sort_order</code> table property. </p> </li> </ul> <p>If an input is not provided, the default value 'binpack' will be used.</p>"
+        },
+        "minInputFiles":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The minimum number of data files that must be present in a partition before compaction will actually compact files. This parameter helps control when compaction is triggered, preventing unnecessary compaction operations on partitions with few files. If an input is not provided, the default value 100 will be used.</p>"
+        },
+        "deleteFileThreshold":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The minimum number of deletes that must be present in a data file to make it eligible for compaction. This parameter helps optimize compaction by focusing on files that contain a significant number of delete operations, which can improve query performance by removing deleted records. If an input is not provided, the default value 1 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg compaction optimizer. This configuration defines parameters for optimizing the layout of data files in Iceberg tables.</p>"
@@ -16865,6 +17023,54 @@
         "nulls-last"
       ]
     },
+    "IcebergOptimizationProperties":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that will be assumed to perform Iceberg table optimization operations.</p>"
+        },
+        "Compaction":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table compaction operations, which optimize the layout of data files to improve query performance.</p>"
+        },
+        "Retention":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table retention operations, which manage the lifecycle of table snapshots to control storage costs.</p>"
+        },
+        "OrphanFileDeletion":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg orphan file deletion operations, which identify and remove files that are no longer referenced by the table metadata.</p>"
+        }
+      },
+      "documentation":"<p>A structure that specifies Iceberg table optimization properties for the catalog, including configurations for compaction, retention, and orphan file deletion operations.</p>"
+    },
+    "IcebergOptimizationPropertiesOutput":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that is used to perform Iceberg table optimization operations.</p>"
+        },
+        "Compaction":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table compaction operations, which optimize the layout of data files to improve query performance.</p>"
+        },
+        "Retention":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table retention operations, which manage the lifecycle of table snapshots to control storage costs.</p>"
+        },
+        "OrphanFileDeletion":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg orphan file deletion operations, which identify and remove files that are no longer referenced by the table metadata.</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the Iceberg optimization properties were last updated.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the output properties of Iceberg table optimization configuration for your catalog resource in the Glue Data Catalog.</p>"
+    },
     "IcebergOrphanFileDeletionConfiguration":{
       "type":"structure",
       "members":{
@@ -16875,6 +17081,10 @@
         "location":{
           "shape":"MessageString",
           "documentation":"<p>Specifies a directory in which to look for files (defaults to the table's location). You may choose a sub-directory rather than the top-level table location.</p>"
+        },
+        "runRateInHours":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The interval in hours between orphan file deletion job runs. This parameter controls how frequently the orphan file deletion optimizer will run to clean up orphan files. The value must be between 3 and 168 hours (7 days). If an input is not provided, the default value 24 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg orphan file deletion optimizer.</p>"
@@ -16961,6 +17171,10 @@
         "cleanExpiredFiles":{
           "shape":"NullableBoolean",
           "documentation":"<p>If set to false, snapshots are only deleted from table metadata, and the underlying data and metadata files are not deleted.</p>"
+        },
+        "runRateInHours":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The interval in hours between retention job runs. This parameter controls how frequently the retention optimizer will run to clean up expired snapshots. The value must be between 3 and 168 hours (7 days). If an input is not provided, the default value 24 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg snapshot retention optimizer.</p>"
@@ -17201,6 +17415,21 @@
       },
       "documentation":"<p>The same unique identifier was associated with two different records.</p>",
       "exception":true
+    },
+    "IdentityCenterInstanceArn":{
+      "type":"string",
+      "max":1224,
+      "min":10
+    },
+    "IdentityCenterScope":{
+      "type":"string",
+      "max":50
+    },
+    "IdentityCenterScopesList":{
+      "type":"list",
+      "member":{"shape":"IdentityCenterScope"},
+      "max":50,
+      "min":1
     },
     "IdleTimeout":{
       "type":"integer",
@@ -25618,6 +25847,10 @@
         "lastRun":{
           "shape":"TableOptimizerRun",
           "documentation":"<p>A <code>TableOptimizerRun</code> object representing the last run of the table optimizer.</p>"
+        },
+        "configurationSource":{
+          "shape":"ConfigurationSource",
+          "documentation":"<p> Specifies the source of the optimizer configuration. This indicates how the table optimizer was configured and which entity or service initiated the configuration. </p>"
         }
       },
       "documentation":"<p>Contains details about an optimizer associated with a table.</p>"
@@ -27080,6 +27313,21 @@
       "type":"structure",
       "members":{}
     },
+    "UpdateGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{
+        "Scopes":{
+          "shape":"IdentityCenterScopesList",
+          "documentation":"<p>A list of Identity Center scopes that define the updated permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Request to update an existing Glue Identity Center configuration.</p>"
+    },
+    "UpdateGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Response from updating an existing Glue Identity Center configuration.</p>"
+    },
     "UpdateGrokClassifierRequest":{
       "type":"structure",
       "required":["Name"],
@@ -27123,7 +27371,7 @@
           "documentation":"<p>The list of table update operations that specify the changes to be made to the Iceberg table, including schema modifications, partition specifications, and table properties.</p>"
         }
       },
-      "documentation":"<p>Contains the update operations to be applied to an existing Iceberg table in AWS Glue Data Catalog, defining the new state of the table metadata. </p>"
+      "documentation":"<p>Contains the update operations to be applied to an existing Iceberg table inGlue Data Catalog, defining the new state of the table metadata. </p>"
     },
     "UpdateIntegrationResourcePropertyRequest":{
       "type":"structure",
