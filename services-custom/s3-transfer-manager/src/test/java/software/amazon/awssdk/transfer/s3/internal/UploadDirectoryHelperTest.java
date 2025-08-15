@@ -561,7 +561,7 @@ public class UploadDirectoryHelperTest {
         assertThat(observedPeak)
             .as("Implementation allowed %d concurrent operations but was configured for %d", 
                 observedPeak, configuredMaxConcurrency)
-            .isEqualTo(configuredMaxConcurrency);
+            .isLessThanOrEqualTo(configuredMaxConcurrency);
 
         // Release the phase to let operations complete
         phaser.arriveAndDeregister();

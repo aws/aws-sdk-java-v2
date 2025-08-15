@@ -1,4 +1,119 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.24__ __2025-08-15__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Zero ETL now supports On-demand snapshot load
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Avoid extra byte array copying when downloading to memory with AsyncResponseTransformer
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for saving Bedrock Flows while node configuration is still in progress, even if the Flow is not yet able to be invoked
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Resource-based Policy APIs for Amazon Prometheus
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix bug in progress reporting in upload when using the CRT client.
+
+# __2.32.23__ __2025-08-14__
+## __ARC - Region switch__
+  - ### Features
+    - Endpoint rule test and documentation update.
+
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - Initial SDK release for AWS Billing and Cost Management Recommended Actions.
+
+## __AWS Cloud Map__
+  - ### Features
+    - Added support for cross account through Id parameter overloading with ARN and allow owner account for some APIs instead of ARN
+
+## __AWS Direct Connect__
+  - ### Features
+    - Added pagination support for DescribeHostedConnections, DescribeVirtualInterfaces, DescribeConnections, DescribeInterconnects, DescribeLags. Added asnLong support for BGP peer operations which supports a large range.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - CMAF Ingest output groups in MediaLive can now accept one additional destination url for single pipeline channels and up to two additional destination urls for standard channels.
+
+## __AWS Glue__
+  - ### Features
+    - AWS Glue now supports Trusted Identity Propagation.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Updated the regex pattern and description of iamInstanceProfileArn in the CreateComputeNodeGroup and UpdateComputeNodeGroup API actions. Name and path requirements apply to the ARN of the IAM role associated with the instance profile and not the ARN of the instance profile.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed 407 Proxy Authentication error when preemptiveBasicAuthenticationEnabled is true. Fixes [#5884](https://github.com/aws/aws-sdk-java-v2/issues/5884).
+
+  - ### Documentations
+    - Improve EventStreamResponseHandler.Builder.onError method to mention the callback may be called multiple time, similarly to the exceptionOccurred method
+
+## __Amazon DynamoDB__
+  - ### Features
+    - This release 1/ Adds support for throttled keys mode for CloudWatch Contributor Insights, 2/ Adds throttling reasons to exceptions across dataplane APIs. 3/ Explicitly models ThrottlingException as a class in statically typed languages. Refer to the launch day blog post for more details.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds ModifyInstanceConnectEndpoint API to update configurations on existing EC2 Instance Connect Endpoints and improves IPv6 support through dualstack DNS names for EC2 Instance Connect Endpoints.
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx for NetApp ONTAP 2nd generation file systems now support decreasing SSD storage capacity.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added support for entity lists.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - New APIs introduced to import WorkSpaces BYOL image using a new process that leveraged EC2 Image Builder. WorkSpaces tests and fixes your image's compatibility issues and supports customized VM images.
+
+## __QApps__
+  - ### Features
+    - Documentation update for Amazon Q Apps API Reference
+
+# __2.32.22__ __2025-08-13__
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for account pools and project profile account decoupling
+
+## __Amazon FSx__
+  - ### Features
+    - Add Dual-Stack support for Amazon FSx for OpenZFS file systems
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release introduces compute quota for GPU, Trainium accelerators, vCPU, and vCPU memory utilization across teams in HyperPod clusters
+
+## __Braket__
+  - ### Features
+    - Add support for Braket program sets.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Add Tagging Support for Opportunity resources
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Extend [#5031](https://github.com/aws/aws-sdk-java-v2/pull/5031) by allowing user configuration of transferDirectoryMaxConcurrency during construction of S3TransferManager. This allows for more control of upper limits on JVM Heap memory allocation. See [#6330](https://github.com/aws/aws-sdk-java-v2/issues/6330).
+        - Contributed by: [@AndreKurait](https://github.com/AndreKurait)
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for Organizational Unit-level Membership configuration and the ability to resume a cancelled membership.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@AndreKurait](https://github.com/AndreKurait)
 # __2.32.21__ __2025-08-12__
 ## __AWS Backup Search__
   - ### Features
