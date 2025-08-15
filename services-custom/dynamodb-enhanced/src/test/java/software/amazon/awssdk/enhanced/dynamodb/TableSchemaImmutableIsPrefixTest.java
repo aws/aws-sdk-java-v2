@@ -23,10 +23,11 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 
 /**
  * Tests that TableSchema.fromImmutableClass() works correctly with immutable classes
- * that have boolean fields using "is" prefix.
+ * that have fields using "is" prefix.
  */
-public class ImmutableBooleanIsPrefixTest {
+public class TableSchemaImmutableIsPrefixTest {
 
+    // Test class for boolean fields with "is" prefix
     @DynamoDbImmutable(builder = Car.Builder.class)
     public static final class Car {
         private final String licensePlate;
@@ -90,6 +91,72 @@ public class ImmutableBooleanIsPrefixTest {
         // Verify all attributes are mapped correctly
         assertThat(schema.attributeNames()).containsExactlyInAnyOrder(
             "licensePlate", "rusty", "impounded"
+        );
+    }
+
+    // Test class for non-boolean fields with "is" prefix
+    @DynamoDbImmutable(builder = Vehicle.Builder.class)
+    public static final class Vehicle {
+        private final String licensePlate;
+        private final String isModel;
+        private final Integer isYear;
+
+        private Vehicle(Builder b) {
+            this.licensePlate = b.licensePlate;
+            this.isModel = b.isModel;
+            this.isYear = b.isYear;
+        }
+
+        @DynamoDbPartitionKey
+        public String licensePlate() {
+            return this.licensePlate;
+        }
+
+        public String isModel() {
+            return this.isModel;
+        }
+
+        public Integer isYear() {
+            return this.isYear;
+        }
+
+        public static final class Builder {
+            private String licensePlate;
+            private String isModel;
+            private Integer isYear;
+
+            public Builder licensePlate(String licensePlate) {
+                this.licensePlate = licensePlate;
+                return this;
+            }
+
+            public Builder isModel(String isModel) {
+                this.isModel = isModel;
+                return this;
+            }
+
+            public Builder isYear(Integer isYear) {
+                this.isYear = isYear;
+                return this;
+            }
+
+            public Vehicle build() {
+                return new Vehicle(this);
+            }
+        }
+    }
+
+    @Test
+    public void fromImmutableClass_withIsPrefixNonBooleanFields_shouldNotNormalizeIsPrefix() {
+        TableSchema<Vehicle> schema = TableSchema.fromImmutableClass(Vehicle.class);
+        
+        // Verify the schema was created successfully
+        assertThat(schema).isNotNull();
+        assertThat(schema.itemType().rawClass()).isEqualTo(Vehicle.class);
+        
+        // Verify non-boolean "is" prefix fields are not normalized
+        assertThat(schema.attributeNames()).containsExactlyInAnyOrder(
+            "licensePlate", "isModel", "isYear"
         );
     }
 }
