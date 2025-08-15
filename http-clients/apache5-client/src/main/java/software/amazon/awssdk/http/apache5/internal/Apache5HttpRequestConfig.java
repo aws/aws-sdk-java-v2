@@ -27,14 +27,12 @@ import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 public final class Apache5HttpRequestConfig {
 
     private final Duration socketTimeout;
-    private final Duration connectionTimeout;
     private final Duration connectionAcquireTimeout;
     private final boolean expectContinueEnabled;
     private final ProxyConfiguration proxyConfiguration;
 
     private Apache5HttpRequestConfig(Builder builder) {
         this.socketTimeout = builder.socketTimeout;
-        this.connectionTimeout = builder.connectionTimeout;
         this.connectionAcquireTimeout = builder.connectionAcquireTimeout;
         this.expectContinueEnabled = builder.expectContinueEnabled;
         this.proxyConfiguration = builder.proxyConfiguration;
@@ -42,10 +40,6 @@ public final class Apache5HttpRequestConfig {
 
     public Duration socketTimeout() {
         return socketTimeout;
-    }
-
-    public Duration connectionTimeout() {
-        return connectionTimeout;
     }
 
     public Duration connectionAcquireTimeout() {
@@ -73,7 +67,6 @@ public final class Apache5HttpRequestConfig {
     public static final class Builder {
 
         private Duration socketTimeout;
-        private Duration connectionTimeout;
         private Duration connectionAcquireTimeout;
         private boolean expectContinueEnabled;
         private ProxyConfiguration proxyConfiguration;
@@ -83,11 +76,6 @@ public final class Apache5HttpRequestConfig {
 
         public Builder socketTimeout(Duration socketTimeout) {
             this.socketTimeout = socketTimeout;
-            return this;
-        }
-
-        public Builder connectionTimeout(Duration connectionTimeout) {
-            this.connectionTimeout = connectionTimeout;
             return this;
         }
 

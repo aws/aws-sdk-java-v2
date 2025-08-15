@@ -7377,7 +7377,7 @@
     "CalculatedFields":{
       "type":"list",
       "member":{"shape":"CalculatedField"},
-      "max":500
+      "max":2000
     },
     "CalculatedMeasureField":{
       "type":"structure",
@@ -12229,6 +12229,10 @@
         "BigQueryParameters":{
           "shape":"BigQueryParameters",
           "documentation":"<p>The parameters that are required to connect to a Google BigQuery data source.</p>"
+        },
+        "ImpalaParameters":{
+          "shape":"ImpalaParameters",
+          "documentation":"<p>The parameters for Impala.</p>"
         }
       },
       "documentation":"<p>The parameters that Amazon QuickSight uses to connect to your underlying data source. This is a variant type structure. For this structure to be valid, only one of the attributes can be non-null.</p>"
@@ -20693,9 +20697,17 @@
           "shape":"HeatMapSortConfiguration",
           "documentation":"<p>The sort configuration of a heat map.</p>"
         },
+        "RowAxisDisplayOptions":{
+          "shape":"AxisDisplayOptions",
+          "documentation":"<p>The options that determine the presentation of the row axis label.</p>"
+        },
         "RowLabelOptions":{
           "shape":"ChartAxisLabelOptions",
           "documentation":"<p>The label options of the row that is displayed in a <code>heat map</code>.</p>"
+        },
+        "ColumnAxisDisplayOptions":{
+          "shape":"AxisDisplayOptions",
+          "documentation":"<p>The options that determine the presentation of the row axis label.</p>"
         },
         "ColumnLabelOptions":{
           "shape":"ChartAxisLabelOptions",
@@ -21279,6 +21291,33 @@
         }
       },
       "documentation":"<p>A static file that contains an image.</p>"
+    },
+    "ImpalaParameters":{
+      "type":"structure",
+      "required":[
+        "Host",
+        "Port",
+        "SqlEndpointPath"
+      ],
+      "members":{
+        "Host":{
+          "shape":"Host",
+          "documentation":"<p>The host name of the Impala data source.</p>"
+        },
+        "Port":{
+          "shape":"Port",
+          "documentation":"<p>The port of the Impala data source.</p>"
+        },
+        "Database":{
+          "shape":"Database",
+          "documentation":"<p>The database of the Impala data source.</p>"
+        },
+        "SqlEndpointPath":{
+          "shape":"SqlEndpointPath",
+          "documentation":"<p>The HTTP path of the Impala data source.</p>"
+        }
+      },
+      "documentation":"<p>The parameters that are required to connect to a Impala data source.</p>"
     },
     "IncludeFolderMembers":{
       "type":"string",
@@ -27122,6 +27161,10 @@
         "ChartConfiguration":{
           "shape":"PluginVisualConfiguration",
           "documentation":"<p> A description of the plugin field wells and their persisted properties. </p>"
+        },
+        "Actions":{
+          "shape":"VisualCustomActionList",
+          "documentation":"<p>The list of custom actions that are configured for a visual.</p>"
         },
         "VisualContentAltText":{
           "shape":"LongPlainText",

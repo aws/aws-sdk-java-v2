@@ -39,11 +39,13 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.ConnectionKeepAliveStrategy;
 import org.apache.hc.client5.http.DnsResolver;
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
 import org.apache.hc.client5.http.impl.DefaultSchemePortResolver;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
@@ -53,9 +55,11 @@ import org.apache.hc.client5.http.impl.routing.DefaultRoutePlanner;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
+import org.apache.hc.client5.http.routing.RoutingSupport;
 import org.apache.hc.client5.http.ssl.DefaultHostnameVerifier;
 import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
@@ -70,6 +74,7 @@ import org.apache.hc.core5.io.CloseMode;
 import org.apache.hc.core5.pool.PoolStats;
 import org.apache.hc.core5.ssl.SSLInitializationException;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import software.amazon.awssdk.annotations.SdkPreviewApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -285,11 +290,22 @@ public final class Apache5HttpClient implements SdkHttpClient {
         HttpClientContext localRequestContext = Apache5Utils.newClientContext(requestConfig.proxyConfiguration());
         THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.set(metricCollector);
         try {
-            HttpResponse httpResponse = httpClient.execute(apacheRequest, localRequestContext);
-            // Create a connection-aware input stream that closes the response when closed
+            HttpHost target = determineTarget(apacheRequest);
+            ClassicHttpResponse httpResponse = httpClient.executeOpen(target, apacheRequest, localRequestContext);
             return createResponse(httpResponse, apacheRequest);
         } finally {
             THREAD_LOCAL_REQUEST_METRIC_COLLECTOR.remove();
+        }
+    }
+
+    /**
+     * Determines the target host from the request using Apache HttpClient's official routing support utility.
+     */
+    private static HttpHost determineTarget(ClassicHttpRequest request) throws IOException {
+        try {
+            return RoutingSupport.determineHost(request);
+        } catch (HttpException ex) {
+            throw new ClientProtocolException(ex);
         }
     }
 
@@ -355,7 +371,6 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                                          AttributeMap resolvedOptions) {
         return Apache5HttpRequestConfig.builder()
                                        .socketTimeout(resolvedOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT))
-                                       .connectionTimeout(resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT))
                                        .connectionAcquireTimeout(
                                           resolvedOptions.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT))
                                        .proxyConfiguration(builder.proxyConfiguration)
@@ -464,12 +479,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
         Builder dnsResolver(DnsResolver dnsResolver);
 
         /**
-         * Configuration that defines a custom Socket factory. If set to a null value, a default factory is used.
-         * <p>
-         * When set to a non-null value, the use of a custom factory implies the configuration options TRUST_ALL_CERTIFICATES,
-         * TLS_TRUST_MANAGERS_PROVIDER, and TLS_KEY_MANAGERS_PROVIDER are ignored.
+         * Configure a custom TLS strategy for SSL/TLS connections.
+         * This is the preferred method over the ConnectionSocketFactory.
+         *
+         * @param tlsSocketStrategy The TLS strategy to use for upgrading connections to TLS.
+         *                    If null, default TLS configuration will be used.
+         * @return This builder for method chaining
+
          */
-        Builder socketFactory(SSLConnectionSocketFactory socketFactory);
+        Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy);
 
         /**
          * Configuration that defines an HTTP route planner that computes the route an HTTP request should take.
@@ -527,7 +545,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
         private HttpRoutePlanner httpRoutePlanner;
         private CredentialsProvider credentialsProvider;
         private DnsResolver dnsResolver;
-        private SSLConnectionSocketFactory socketFactory;
+        private TlsSocketStrategy tlsStrategy;
 
         private DefaultBuilder() {
         }
@@ -649,13 +667,9 @@ public final class Apache5HttpClient implements SdkHttpClient {
         }
 
         @Override
-        public Builder socketFactory(SSLConnectionSocketFactory socketFactory) {
-            this.socketFactory = socketFactory;
+        public Builder tlsSocketStrategy(TlsSocketStrategy tlsSocketStrategy) {
+            this.tlsStrategy = tlsSocketStrategy;
             return this;
-        }
-
-        public void setSocketFactory(SSLConnectionSocketFactory socketFactory) {
-            socketFactory(socketFactory);
         }
 
         @Override
@@ -731,31 +745,44 @@ public final class Apache5HttpClient implements SdkHttpClient {
     private static class ApacheConnectionManagerFactory {
 
         public PoolingHttpClientConnectionManager create(Apache5HttpClient.DefaultBuilder configuration,
-                                                  AttributeMap standardOptions) {
-            // TODO : Deprecated method needs to be removed with new replacements
-            SSLConnectionSocketFactory sslsf = getPreferredSocketFactory(configuration, standardOptions);
+                                                 AttributeMap standardOptions) {
+
+            TlsSocketStrategy tlsStrategy = getPreferredTlsStrategy(configuration, standardOptions);
 
             PoolingHttpClientConnectionManagerBuilder builder =
                 PoolingHttpClientConnectionManagerBuilder.create()
-                                                         .setSSLSocketFactory(sslsf)
+                                                         .setTlsSocketStrategy(tlsStrategy)
                                                          .setSchemePortResolver(DefaultSchemePortResolver.INSTANCE)
                                                          .setDnsResolver(configuration.dnsResolver);
-            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isZero()) {
-                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
-                builder.setConnectionTimeToLive(TimeValue.of(connectionTtl.toMillis(), TimeUnit.MILLISECONDS));
-            }
             builder.setMaxConnPerRoute(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setMaxConnTotal(standardOptions.get(SdkHttpConfigurationOption.MAX_CONNECTIONS));
             builder.setDefaultSocketConfig(buildSocketConfig(standardOptions));
+            builder.setDefaultConnectionConfig(getConnectionConfig(standardOptions));
             return builder.build();
         }
 
-        private SSLConnectionSocketFactory getPreferredSocketFactory(Apache5HttpClient.DefaultBuilder configuration,
-                                                                  AttributeMap standardOptions) {
-            return Optional.ofNullable(configuration.socketFactory)
-                           .orElseGet(() -> new SdkTlsSocketFactory(getSslContext(standardOptions),
-                                                                    getHostNameVerifier(standardOptions)));
+        private static ConnectionConfig getConnectionConfig(AttributeMap standardOptions) {
+            ConnectionConfig.Builder connectionConfigBuilder =
+                ConnectionConfig.custom()
+                                .setConnectTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT).toMillis()))
+                                .setSocketTimeout(Timeout.ofMilliseconds(
+                                    standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
+            Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
+            if (!connectionTtl.isZero()) {
+                // Skip TTL=0 to maintain backward compatibility (infinite in 4.x vs immediate expiration in 5.x)
+                connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
+            }
+            return connectionConfigBuilder.build();
+        }
+
+        private TlsSocketStrategy getPreferredTlsStrategy(Apache5HttpClient.DefaultBuilder configuration,
+                                                          AttributeMap standardOptions) {
+            if (configuration.tlsStrategy != null) {
+                return configuration.tlsStrategy;
+            }
+            return new SdkTlsSocketFactory(getSslContext(standardOptions),
+                                           getHostNameVerifier(standardOptions));
         }
 
 
