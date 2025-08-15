@@ -31,6 +31,7 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class EventStreamSharedEventProcessorTest {
@@ -76,7 +77,7 @@ public class EventStreamSharedEventProcessorTest {
                      .serviceModel(serviceModel)
                      .customizationConfig(emptyConfig)
                      .build()).build())
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("Event shape `Payload` is shared between multiple EventStreams");
     }
 
@@ -87,7 +88,7 @@ public class EventStreamSharedEventProcessorTest {
         EventStreamSharedEventProcessor processor =
             new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("Cannot find eventstream shape [MissingShape]");
     }
 
@@ -98,7 +99,7 @@ public class EventStreamSharedEventProcessorTest {
         EventStreamSharedEventProcessor processor =
             new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("Error: [Payload] must be an EventStream");
     }
 
@@ -110,7 +111,7 @@ public class EventStreamSharedEventProcessorTest {
         EventStreamSharedEventProcessor processor =
             new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("Cannot find event member [InvalidMember] in the eventstream [StreamB]");
     }
 
@@ -122,7 +123,7 @@ public class EventStreamSharedEventProcessorTest {
         EventStreamSharedEventProcessor processor =
             new EventStreamSharedEventProcessor(duplicateAndRenameSharedEvents);
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(IllegalStateException.class)
+            .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("Error: [Payload] is already in the model");
     }
 }

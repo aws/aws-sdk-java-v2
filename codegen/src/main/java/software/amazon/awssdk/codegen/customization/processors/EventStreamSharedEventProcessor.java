@@ -28,6 +28,10 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 
 /**
  * Processor for eventstreams with shared events.  This Processor does two things: 1. Apply the duplicateAndRenameSharedEvents
@@ -60,28 +64,34 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
                 Member eventMemberToModify = eventStreamMembers.get(eventEntry.getKey());
 
                 if (eventMemberToModify == null) {
-                    throw new IllegalStateException(
+                    throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                        ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                        ValidationErrorSeverity.DANGER,
                         String.format("Cannot find event member [%s] in the eventstream [%s] when processing "
                                       + "customization config duplicateAndRenameSharedEvents.%s",
-                                      eventEntry.getKey(), eventStreamName, eventStreamName));
+                                      eventEntry.getKey(), eventStreamName, eventStreamName)));
                 }
 
                 String shapeToDuplicate = eventMemberToModify.getShape();
                 Shape eventMemberShape = serviceModel.getShape(shapeToDuplicate);
 
                 if (eventMemberShape == null || !eventMemberShape.isEvent()) {
-                    throw new IllegalStateException(
+                    throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                        ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                        ValidationErrorSeverity.DANGER,
                         String.format("Error: [%s] must be an Event shape when processing "
                                       + "customization config duplicateAndRenameSharedEvents.%s",
-                                      eventEntry.getKey(), eventStreamName));
+                                      eventEntry.getKey(), eventStreamName)));
                 }
 
                 String newShapeName = eventEntry.getValue();
                 if (serviceModel.getShapes().containsKey(newShapeName)) {
-                    throw new IllegalStateException(
+                    throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                        ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                        ValidationErrorSeverity.DANGER,
                         String.format("Error: [%s] is already in the model when processing "
                                       + "customization config duplicateAndRenameSharedEvents.%s",
-                                      newShapeName, eventStreamName));
+                                      newShapeName, eventStreamName)));
                 }
                 serviceModel.getShapes().put(newShapeName, duplicateShape(eventMemberShape));
                 eventMemberToModify.setShape(newShapeName);
@@ -105,14 +115,18 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
 
     private static void validateIsEventStream(Shape shape, String name) {
         if (shape == null) {
-            throw new IllegalStateException(
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                ValidationErrorSeverity.DANGER,
                 String.format("Cannot find eventstream shape [%s] in the model when processing "
-                              + "customization config duplicateAndRenameSharedEvents.%s", name, name));
+                              + "customization config duplicateAndRenameSharedEvents.%s", name, name)));
         }
         if (!shape.isEventstream()) {
-            throw new IllegalStateException(
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                ValidationErrorSeverity.DANGER,
                 String.format("Error: [%s] must be an EventStream when processing "
-                              + "customization config duplicateAndRenameSharedEvents.%s", name, name));
+                              + "customization config duplicateAndRenameSharedEvents.%s", name, name)));
         }
     }
 
@@ -129,10 +143,13 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
                     if (memberShape != null && memberShape.isEvent()) {
                         if (seenEvents.containsKey(memberShape.getShapeName())
                             && !seenEvents.get(memberShape.getShapeName()).equals(shapeModel.getShapeName())) {
-                            throw new IllegalStateException(
+                            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                                ValidationErrorId.SHARED_EVENTSTREAM_EVENT,
+                                ValidationErrorSeverity.DANGER,
                                 String.format("Event shape `%s` is shared between multiple EventStreams. Apply the "
                                               + "duplicateAndRenameSharedEvents customization to resolve the issue.",
-                                              memberShape.getShapeName()));
+                                              memberShape.getShapeName())
+                            ));
                         }
                         seenEvents.put(memberShape.getShapeName(), shapeModel.getShapeName());
                     }
