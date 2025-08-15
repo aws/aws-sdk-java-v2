@@ -65,7 +65,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
 
         Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
                         "bufferSizeInBytes must be larger than or equal to " +
-                        "chunkSizeInBytes if the content length is unknown");
+                        "chunkSizeInBytes");
     }
 
     @Override
@@ -77,7 +77,10 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
     private class SplittingSubscriber implements Subscriber<ByteBuffer> {
         private Subscription upstreamSubscription;
         private final Long upstreamSize;
-        private final AtomicInteger chunkNumber = new AtomicInteger(0);
+        /**
+         * 1 based index number for each part/chunk
+         */
+        private final AtomicInteger partNumber = new AtomicInteger(1);
         private volatile DownstreamBody currentBody;
         private final AtomicBoolean hasOpenUpstreamDemand = new AtomicBoolean(false);
         private final AtomicLong dataBuffered = new AtomicLong(0);
@@ -97,15 +100,15 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
             this.upstreamSubscription = s;
             this.currentBody =
                 initializeNextDownstreamBody(upstreamSize != null, calculateChunkSize(upstreamSize),
-                                             chunkNumber.get());
+                                             partNumber.get());
             // We need to request subscription *after* we set currentBody because onNext could be invoked right away.
             upstreamSubscription.request(1);
         }
 
-        private DownstreamBody initializeNextDownstreamBody(boolean contentLengthKnown, long chunkSize, int chunkNumber) {
+        private DownstreamBody initializeNextDownstreamBody(boolean contentLengthKnown, long chunkSize, int partNumber) {
             currentBodySent.set(false);
-            log.debug(() -> "initializing next downstream body " + chunkNumber);
-            return new DownstreamBody(contentLengthKnown, chunkSize, chunkNumber);
+            log.debug(() -> "initializing next downstream body " + partNumber);
+            return new DownstreamBody(contentLengthKnown, chunkSize, partNumber);
         }
 
         @Override
@@ -155,7 +158,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
 
         private void completeCurrentBodyAndCreateNewIfNeeded(ByteBuffer byteBuffer) {
             completeCurrentBodyAndDeliver();
-            int currentChunk = chunkNumber.incrementAndGet();
+            int nextChunk = partNumber.incrementAndGet();
             boolean shouldCreateNewDownstreamRequestBody;
             Long dataRemaining = totalDataRemaining();
 
@@ -167,7 +170,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
 
             if (shouldCreateNewDownstreamRequestBody) {
                 long chunkSize = calculateChunkSize(dataRemaining);
-                currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, currentChunk);
+                currentBody = initializeNextDownstreamBody(upstreamSize != null, chunkSize, nextChunk);
             }
         }
 
@@ -181,7 +184,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
          */
         private void completeCurrentBodyAndDeliver() {
             if (currentBodySent.compareAndSet(false, true)) {
-                log.debug(() -> "completeCurrentBody for chunk " + currentBody.chunkNumber);
+                log.debug(() -> "completeCurrentBody for chunk " + currentBody.partNumber);
                 // For unknown content length, we always create a new DownstreamBody because we don't know if there is data
                 // left or not, so we need to only send the body if there is actually data
                 long bufferedLength = currentBody.bufferedLength;
@@ -218,7 +221,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
         }
 
         private void sendCurrentBody(DownstreamBody body) {
-            log.debug(() -> "sendCurrentBody for chunk " + body.chunkNumber);
+            log.debug(() -> "sendCurrentBody for chunk " + body.partNumber);
             downstreamPublisher.send(body).exceptionally(t -> {
                 downstreamPublisher.error(t);
                 upstreamSubscription.cancel();
@@ -252,7 +255,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
             if (upstreamSize == null) {
                 return null;
             }
-            return upstreamSize - (chunkNumber.get() * chunkSizeInBytes);
+            return upstreamSize - ((partNumber.get() - 1) * chunkSizeInBytes);
         }
 
         /**
@@ -267,15 +270,15 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
              */
             private final long maxLength;
             private final Long totalLength;
-            private final int chunkNumber;
+            private final int partNumber;
             private volatile long bufferedLength = 0;
             private volatile ByteBuffersAsyncRequestBody delegate;
             private final List<ByteBuffer> buffers = new ArrayList<>();
 
-            private DownstreamBody(boolean contentLengthKnown, long maxLength, int chunkNumber) {
+            private DownstreamBody(boolean contentLengthKnown, long maxLength, int partNumber) {
                 this.totalLength = contentLengthKnown ? maxLength : null;
                 this.maxLength = maxLength;
-                this.chunkNumber = chunkNumber;
+                this.partNumber = partNumber;
             }
 
             @Override
@@ -284,7 +287,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
             }
 
             public void send(ByteBuffer data) {
-                log.debug(() -> String.format("Sending bytebuffer %s to chunk %d", data, chunkNumber));
+                log.debug(() -> String.format("Sending bytebuffer %s to chunk %d", data, partNumber));
                 int length = data.remaining();
                 bufferedLength += length;
                 addDataBuffered(length);
@@ -292,13 +295,13 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
             }
 
             public void complete() {
-                log.debug(() -> "Received complete() for chunk number: " + chunkNumber + " length " + bufferedLength);
+                log.debug(() -> "Received complete() for chunk number: " + partNumber + " length " + bufferedLength);
                 this.delegate = ByteBuffersAsyncRequestBody.of(buffers);
             }
 
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
-                log.debug(() -> "Subscribe for chunk number: " + chunkNumber + " length " + bufferedLength);
+                log.debug(() -> "Subscribe for chunk number: " + partNumber + " length " + bufferedLength);
                 delegate.subscribe(s);
             }
 
@@ -311,7 +314,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
 
             @Override
             public void close() {
-                log.debug(() -> "Closing current body " + chunkNumber);
+                log.debug(() -> "Closing current body " + partNumber);
                 delegate.close();
                 addDataBuffered(-bufferedLength);
             }

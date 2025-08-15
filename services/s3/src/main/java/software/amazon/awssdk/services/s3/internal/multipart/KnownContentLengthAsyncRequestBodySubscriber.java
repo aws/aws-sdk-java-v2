@@ -151,6 +151,10 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         }
 
         int currentPartNum = partNumber.getAndIncrement();
+
+        log.debug(() -> String.format("Received asyncRequestBody for part number %d with length %s", currentPartNum,
+                                      asyncRequestBody.contentLength()));
+
         if (existingParts.containsKey(currentPartNum)) {
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
             asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
@@ -210,7 +214,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         }
 
         if (currentPartSize != partSize) {
-            return Optional.of(contentLengthMismatchForPart(partSize, currentPartSize));
+            return Optional.of(contentLengthMismatchForPart(partSize, currentPartSize, currentPartNum));
         }
         return Optional.empty();
     }

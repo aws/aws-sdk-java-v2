@@ -159,7 +159,7 @@ public final class UploadWithUnknownContentLengthHelper {
                 return;
             }
             int currentPartNum = partNumber.incrementAndGet();
-            log.debug(() -> String.format("Received asyncRequestBody for part number %d with length %d", currentPartNum,
+            log.debug(() -> String.format("Received asyncRequestBody for part number %d with length %s", currentPartNum,
                       asyncRequestBody.contentLength()));
             asyncRequestBodyInFlight.incrementAndGet();
 
@@ -209,7 +209,7 @@ public final class UploadWithUnknownContentLengthHelper {
 
             Long contentLengthCurrentPart = contentLength.get();
             if (contentLengthCurrentPart > partSizeInBytes) {
-                return Optional.of(contentLengthMismatchForPart(partSizeInBytes, contentLengthCurrentPart));
+                return Optional.of(contentLengthMismatchForPart(partSizeInBytes, contentLengthCurrentPart, currentPartNum));
 
             }
             return Optional.empty();
