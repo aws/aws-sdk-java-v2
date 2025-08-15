@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.codegen.customization.processors;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.Member;
@@ -80,11 +83,23 @@ public final class EventStreamSharedEventProcessor implements CodegenCustomizati
                                       + "customization config duplicateAndRenameSharedEvents.%s",
                                       newShapeName, eventStreamName));
                 }
-                serviceModel.getShapes().put(newShapeName, eventMemberShape);
+                serviceModel.getShapes().put(newShapeName, duplicateShape(eventMemberShape));
                 eventMemberToModify.setShape(newShapeName);
                 log.info("Duplicated and renamed event member on {} from {} -> {}",
                          eventStreamName, shapeToDuplicate, newShapeName);
             }
+        }
+    }
+
+    private Shape duplicateShape(Shape shape) {
+        StringWriter writer = new StringWriter();
+        try {
+            Jackson.writeWithObjectMapper(shape, writer);
+            Shape duplicated = Jackson.load(Shape.class, writer.toString());
+            duplicated.setSynthetic(true);
+            return duplicated;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

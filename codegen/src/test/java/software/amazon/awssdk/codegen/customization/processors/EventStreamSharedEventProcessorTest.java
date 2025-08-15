@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.customization.processors;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -56,7 +58,10 @@ public class EventStreamSharedEventProcessorTest {
 
         Shape newEventShape = serviceModel.getShape("PayloadB");
         assertNotNull(newEventShape);
-        assertEquals(serviceModel.getShape("Payload"), newEventShape);
+        assertNotEquals(serviceModel.getShape("Payload"), newEventShape); // shape is duplicated/deep copied
+        assertTrue(newEventShape.isSynthetic());
+        assertEquals(serviceModel.getShape("Payload").getType(), newEventShape.getType());
+        assertEquals(serviceModel.getShape("Payload").getMembers().keySet(), newEventShape.getMembers().keySet());
 
         Shape streamB = serviceModel.getShape("StreamB");
         assertEquals("PayloadB", streamB.getMembers().get("Payload").getShape());
