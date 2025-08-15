@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "AWS Glue Zero ETL now supports On-demand snapshot load"
+}
