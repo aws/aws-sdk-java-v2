@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fix bug in progress reporting in upload when using the CRT client."
+}
