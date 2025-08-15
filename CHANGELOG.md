@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.24__ __2025-08-15__
+## __AWS Glue__
+  - ### Features
+    - AWS Glue Zero ETL now supports On-demand snapshot load
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Avoid extra byte array copying when downloading to memory with AsyncResponseTransformer
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - This release adds support for saving Bedrock Flows while node configuration is still in progress, even if the Flow is not yet able to be invoked
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Resource-based Policy APIs for Amazon Prometheus
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fix bug in progress reporting in upload when using the CRT client.
+
 # __2.32.23__ __2025-08-14__
 ## __ARC - Region switch__
   - ### Features

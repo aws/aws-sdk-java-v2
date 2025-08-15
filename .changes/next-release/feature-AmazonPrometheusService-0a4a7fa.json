@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Prometheus Service",
-    "contributor": "",
-    "description": "Add Resource-based Policy APIs for Amazon Prometheus"
-}
