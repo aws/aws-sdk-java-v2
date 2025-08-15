@@ -211,6 +211,15 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to not duplicate event shapes to ensure that event stream shapes
+     * are unique
+     * <p>
+     * <b>NOTE</b>This customization is primarily here to preserve backwards compatibility with existing code before the
+     * EventStreamUniqueEventShapesProcessor was added.
+     */
+    private Map<String, List<String>> disableUniqueEventStreamShapePreprocessing = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -664,6 +673,15 @@ public class CustomizationConfig {
 
     public void setUseLegacyEventGenerationScheme(Map<String, List<String>> useLegacyEventGenerationScheme) {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
+    }
+
+    public Map<String, List<String>> getDisableUniqueEventStreamShapePreprocessing() {
+        return disableUniqueEventStreamShapePreprocessing;
+    }
+
+    public void setDisableUniqueEventStreamShapePreprocessing(
+        Map<String, List<String>> disableUniqueEventStreamShapePreprocessing) {
+        this.disableUniqueEventStreamShapePreprocessing = disableUniqueEventStreamShapePreprocessing;
     }
 
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {

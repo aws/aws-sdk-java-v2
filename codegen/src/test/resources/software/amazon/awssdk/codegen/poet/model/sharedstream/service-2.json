@@ -33,6 +33,26 @@
         "shape": "PeopleOutput"
       }
     },
+    "StreamBirthsInput" : {
+      "name": "StreamBirths",
+      "http": {
+        "method": "POST",
+        "requestUri": "/births"
+      },
+      "input": {
+        "shape": "StreamBirthsInputRequest"
+      }
+    },
+    "StreamDeathsInput" : {
+      "name": "StreamDeathsInput",
+      "http": {
+        "method": "POST",
+        "requestUri": "/deaths"
+      },
+      "input": {
+        "shape": "StreamDeathsInputRequest"
+      }
+    },
     "GetRandomPerson" : {
       "name" : "GetRandomPerson",
       "http": {
@@ -79,6 +99,40 @@
         }
       },
       "event": true
+    },
+    "StreamBirthsInputRequest": {
+      "type": "structure",
+      "members": {
+        "StreamBirthsInputEventStream": {
+          "shape": "StreamBirthsInputEventStream"
+        }
+      }
+    },
+    "StreamDeathsInputRequest": {
+      "type": "structure",
+      "members": {
+        "StreamDeathsInputEventStream": {
+          "shape": "StreamDeathsInputEventStream"
+        }
+      }
+    },
+    "StreamBirthsInputEventStream": {
+      "type": "structure",
+      "members": {
+        "Person": {
+          "shape": "Person"
+        }
+      },
+      "eventstream": true
+    },
+    "StreamDeathsInputEventStream": {
+      "type": "structure",
+      "members": {
+        "Person": {
+          "shape": "Person"
+        }
+      },
+      "eventstream": true
     }
   },
   "documentation": "A service that streams births and deaths"

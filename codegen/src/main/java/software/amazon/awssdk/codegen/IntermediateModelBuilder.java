@@ -94,7 +94,7 @@ public class IntermediateModelBuilder {
 
     public IntermediateModel build() {
         CodegenCustomizationProcessor customization = DefaultCustomizationProcessor
-            .getProcessorFor(customConfig);
+            .getProcessorFor(customConfig, namingStrategy);
 
         customization.preprocess(service);
 
