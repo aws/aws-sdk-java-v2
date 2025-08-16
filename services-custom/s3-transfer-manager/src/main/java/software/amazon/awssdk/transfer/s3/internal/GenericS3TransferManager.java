@@ -138,7 +138,6 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadRequest.putObjectRequest();
@@ -146,6 +145,8 @@ class GenericS3TransferManager implements S3TransferManager {
             Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
                 b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
             putObjectRequest = attachSdkAttribute(uploadRequest.putObjectRequest(), attachProgressListener);
+        } else {
+            requestBody = progressUpdater.wrapRequestBody(requestBody);
         }
 
         doUpload(putObjectRequest, requestBody, returnFuture);
@@ -192,7 +193,6 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(uploadFileRequest,
                                                                               requestBody.contentLength().orElse(null));
         progressUpdater.transferInitiated();
-        requestBody = progressUpdater.wrapRequestBody(requestBody);
         progressUpdater.registerCompletion(returnFuture);
 
         PutObjectRequest putObjectRequest = uploadFileRequest.putObjectRequest();
@@ -204,6 +204,7 @@ class GenericS3TransferManager implements S3TransferManager {
                       .putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
             putObjectRequest = attachSdkAttribute(uploadFileRequest.putObjectRequest(), attachObservableAndListener);
         } else {
+            requestBody = progressUpdater.wrapRequestBody(requestBody);
             pauseObservable = null;
         }
 

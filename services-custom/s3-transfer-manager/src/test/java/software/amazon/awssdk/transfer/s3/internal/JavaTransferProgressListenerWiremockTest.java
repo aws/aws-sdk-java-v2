@@ -35,18 +35,25 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionException;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.stream.Streams;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -61,7 +68,7 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 
 @WireMockTest
-public class S3JavaMultipartTransferProgressListenerTest {
+public class JavaTransferProgressListenerWiremockTest {
 
     public static final String ERROR_CODE = "NoSuchBucket";
     public static final String ERROR_MESSAGE = "We encountered an internal error. Please try again.";
@@ -80,6 +87,19 @@ public class S3JavaMultipartTransferProgressListenerTest {
     public static void init(WireMockRuntimeInfo wm) throws IOException {
         testEndpoint = URI.create(wm.getHttpBaseUrl());
         testFile = new RandomTempFile(TEST_KEY, OBJ_SIZE);
+    }
+
+    public static Stream<Arguments> testCases() {
+        byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(StandardCharsets.UTF_8);
+        return Streams.of(Arguments.of("multipartEnabled_fileAsyncRequestBody",
+                                       true, AsyncRequestBody.fromFile(testFile), 2),
+                          Arguments.of("multipartEnabled_byteBufferAsyncRequestBody",
+                                       true, AsyncRequestBody.fromBytes(bytes), 2),
+                          Arguments.of("multipartDisabled_fileAsyncRequestBody",
+                                       false, AsyncRequestBody.fromFile(testFile), 1024),
+                          Arguments.of("multipartDisabled_bytes",
+                                       false, AsyncRequestBody.fromBytes(bytes), 1)
+        );
     }
 
     @BeforeEach
@@ -189,18 +209,10 @@ public class S3JavaMultipartTransferProgressListenerTest {
 
     @ParameterizedTest(name = "multipartEnabled = {0}")
     @ValueSource(booleans = {true, false})
-    void listeners_reports_ProgressWhenSuccess(boolean multipartEnabled) {
-        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
-
-        TransferListener transferListenerMock = mock(TransferListener.class);
-        String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + TEST_KEY + "?uploads";
-        String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
-        stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
-        stubFor(any(anyUrl()).atPriority(6).willReturn(aResponse().withStatus(200).withBody("<body/>")));
-        S3TransferManager tm = new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
-                                                            mock(TransferManagerConfiguration.class),
-                                                            mock(DownloadDirectoryHelper.class));
+    void uploadFile_requestSucceed_shouldReportProgress(boolean multipartEnabled) {
+        S3TransferManager tm = setUpTM(multipartEnabled);
         CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
 
         tm.uploadFile(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
                             .source(testFile)
@@ -220,6 +232,45 @@ public class S3JavaMultipartTransferProgressListenerTest {
         // when false, the generic S3 TM will read 16KiB chunks, so OBJ_SIZE / 16KiB = 16MiB / 16KiB = 1024
         int numTimesBytesTransferred = multipartEnabled ? 2 : 1024;
         Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("testCases")
+    void uploadWithVariousRequestBodies_requestSucceed_shouldReportProgress(String description, boolean multipartEnabled,
+                                                                          AsyncRequestBody requestBody,
+                                                                          int numTimesBytesTransferred) {
+        S3TransferManager tm = setUpTM(multipartEnabled);
+
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+        TransferListener transferListenerMock = mock(TransferListener.class);
+
+        tm.upload(u -> u.putObjectRequest(p -> p.bucket(EXAMPLE_BUCKET).key(TEST_KEY))
+                        .requestBody(requestBody)
+                        .addTransferListener(transferListener)
+                        .addTransferListener(transferListenerMock)
+                        .build()).completionFuture().join();
+
+        assertTransferListenerCompletion(transferListener);
+        assertThat(transferListener.getExceptionCaught()).isNull();
+        assertThat(transferListener.isTransferComplete()).isTrue();
+        assertThat(transferListener.isTransferInitiated()).isTrue();
+        Mockito.verify(transferListenerMock, times(0)).transferFailed(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, times(1)).transferInitiated(ArgumentMatchers.any());
+        Mockito.verify(transferListenerMock, timeout(1000).times(1)).transferComplete(ArgumentMatchers.any());
+
+        Mockito.verify(transferListenerMock, times(numTimesBytesTransferred)).bytesTransferred(ArgumentMatchers.any());
+    }
+
+    private static S3TransferManager setUpTM(boolean multipartEnabled) {
+        S3AsyncClient s3Async = s3AsyncClient(multipartEnabled);
+
+        String createMpuUrl = "/" + EXAMPLE_BUCKET + "/" + TEST_KEY + "?uploads";
+        String createMpuResponse = "<CreateMultipartUploadResult><UploadId>1234</UploadId></CreateMultipartUploadResult>";
+        stubFor(post(urlEqualTo(createMpuUrl)).willReturn(aResponse().withStatus(200).withBody(createMpuResponse)));
+        stubFor(any(anyUrl()).atPriority(6).willReturn(aResponse().withStatus(200).withBody("<body/>")));
+        return new GenericS3TransferManager(s3Async, mock(UploadDirectoryHelper.class),
+                                            mock(TransferManagerConfiguration.class),
+                                            mock(DownloadDirectoryHelper.class));
     }
 
     @Test
