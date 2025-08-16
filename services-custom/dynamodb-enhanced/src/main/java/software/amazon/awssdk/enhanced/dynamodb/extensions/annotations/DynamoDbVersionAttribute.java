@@ -49,4 +49,11 @@ public @interface DynamoDbVersionAttribute {
      */
     long incrementBy() default 1;
 
+    /**
+     * Whether to enable optimistic locking for delete operations. When enabled, delete operations will include a condition to
+     * check the version attribute. Default value - {@code false} (for backward compatibility).
+     *
+     * @return true to enable optimistic locking on deletes, false to disable
+     */
+    boolean optimisticLockingOnDelete() default false;
 }

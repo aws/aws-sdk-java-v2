@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -40,11 +42,13 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public final class TransactDeleteItemEnhancedRequest {
 
     private final Key key;
+    private final Map<String, AttributeValue> items;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
 
     private TransactDeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
+        this.items = builder.items;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
     }
@@ -61,6 +65,7 @@ public final class TransactDeleteItemEnhancedRequest {
      */
     public Builder toBuilder() {
         return builder().key(key)
+                        .items(items)
                         .conditionExpression(conditionExpression)
                         .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
     }
@@ -70,6 +75,18 @@ public final class TransactDeleteItemEnhancedRequest {
      */
     public Key key() {
         return key;
+    }
+
+    /**
+     * Returns the full attribute map for the item to delete, including any version attribute used for optimistic delete.
+     *
+     * <p>This map is supplied to both standard and transactional delete operations so that the extension hook can apply any
+     * conditional logic (for example, verifying the version matches to prevent stale deletes).</p>
+     *
+     * @return a map of all attribute names to their {@link AttributeValue}, including the version attribute
+     */
+    public Map<String, AttributeValue> items() {
+        return items;
     }
 
     /**
@@ -143,6 +160,7 @@ public final class TransactDeleteItemEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private Key key;
+        private Map<String, AttributeValue> items;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
 
@@ -157,6 +175,11 @@ public final class TransactDeleteItemEnhancedRequest {
          */
         public Builder key(Key key) {
             this.key = key;
+            return this;
+        }
+
+        public Builder items(Map<String, AttributeValue> items) {
+            this.items = items;
             return this;
         }
 

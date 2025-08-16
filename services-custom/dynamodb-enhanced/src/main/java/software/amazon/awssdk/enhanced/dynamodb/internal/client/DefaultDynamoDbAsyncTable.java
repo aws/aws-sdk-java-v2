@@ -145,7 +145,9 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return deleteItem(DeleteItemEnhancedRequest.builder()
+                                                   .key(keyFrom(keyItem))
+                                                   .items(tableSchema.itemToMap(keyItem, true)).build());
     }
 
     @Override

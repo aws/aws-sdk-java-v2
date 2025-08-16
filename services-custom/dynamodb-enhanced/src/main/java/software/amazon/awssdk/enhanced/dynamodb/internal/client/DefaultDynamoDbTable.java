@@ -146,7 +146,9 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return deleteItem(DeleteItemEnhancedRequest.builder()
+                                                   .key(keyFrom(keyItem))
+                                                   .items(tableSchema.itemToMap(keyItem, true)).build());
     }
 
     @Override
