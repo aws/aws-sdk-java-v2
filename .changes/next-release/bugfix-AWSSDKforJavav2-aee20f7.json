@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add duplicateAndRenameSharedEvents customization to support event shapes shared with multiple evenstreams."
+}

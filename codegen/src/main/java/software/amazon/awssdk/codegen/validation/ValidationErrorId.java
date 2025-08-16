@@ -26,7 +26,9 @@ public enum ValidationErrorId {
     INVALID_CODEGEN_CUSTOMIZATION("A customization is enabled for this service that cannot be applied for the given service "
                                   + "model."),
     UNKNOWN_OPERATION("The model references an unknown operation."),
-    INVALID_IDENTIFIER_NAME("The model contains an invalid or non-idiomatic name or identifier.");
+    INVALID_IDENTIFIER_NAME("The model contains an invalid or non-idiomatic name or identifier."),
+    SHARED_EVENTSTREAM_EVENT("Event shape shared between multiple EventStreams. "
+                             + "Missing duplicateAndRenameSharedEvents customization.");
 
     private final String description;
 
