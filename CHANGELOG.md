@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.25__ __2025-08-18__
+## __AWS Batch__
+  - ### Features
+    - Added default_x86_64 and default_arm64 as values to the instanceTypes field.
+
+## __AWS Billing and Cost Management Dashboards__
+  - ### Features
+    - Billing and Cost Management Dashboards enables users to create dashboards that combine multiple visualizations of cost and usage data. Users can create, manage, and share dashboards. Tags are also available for dashboards.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for Compute checksum functionality in Amazon S3 Batch Operations. You can now calculate checksums for a list of objects using supported algorithms in Amazon S3, without requiring a restore or download
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update netty to 4.1.124
+
+  - ### Bugfixes
+    - Add duplicateAndRenameSharedEvents customization to support event shapes shared with multiple evenstreams.
+    - Fix DynamoDB Enhanced Client immutable class introspection fails for "is" prefix fields. Fixes [#4446](https://github.com/aws/aws-sdk-java-v2/issues/4446).
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Service Feature: Add support to enable multi-user in-app, web, and video calling.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Service Feature: Add support to enable multi-user in-app, web, and video calling.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Customer managed keys now available for volume encryption of SageMaker HyperPod clusters.
+
 # __2.32.24__ __2025-08-15__
 ## __AWS Glue__
   - ### Features
