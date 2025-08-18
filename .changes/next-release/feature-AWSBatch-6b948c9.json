@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "Added default_x86_64 and default_arm64 as values to the instanceTypes field."
+}
