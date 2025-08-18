@@ -183,12 +183,12 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
                 upstreamResponseTransformer.onResponse(responseT.get());
 
-                buffers.keySet().stream().sorted().forEach(index -> {
-                    publisherToUpstream.send(buffers.get(index)).exceptionally(ex -> {
+                for (int i = 1; i <= buffers.size(); ++i) {
+                    publisherToUpstream.send(buffers.get(i)).exceptionally(ex -> {
                         resultFuture.completeExceptionally(SdkClientException.create("unexpected error occurred", ex));
                         return null;
                     });
-                });
+                }
 
                 publisherToUpstream.complete().exceptionally(ex -> {
                     resultFuture.completeExceptionally(SdkClientException.create("unexpected error occurred", ex));
