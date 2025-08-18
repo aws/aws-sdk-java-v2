@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Customer managed keys now available for volume encryption of SageMaker HyperPod clusters."
+}
