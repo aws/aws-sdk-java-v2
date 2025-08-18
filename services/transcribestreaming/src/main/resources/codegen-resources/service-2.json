@@ -62,7 +62,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, medical scribe context, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
     },
     "StartMedicalStreamTranscription":{
       "name":"StartMedicalStreamTranscription",
@@ -875,10 +875,24 @@
         "PostStreamAnalyticsSettings":{
           "shape":"MedicalScribePostStreamAnalyticsSettings",
           "documentation":"<p>Specify settings for post-stream analytics.</p>"
+        },
+        "MedicalScribeContext":{
+          "shape":"MedicalScribeContext",
+          "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information used to generate customized clinical notes.</p>"
         }
       },
       "documentation":"<p>Specify details to configure the streaming session, including channel definitions, encryption settings, post-stream analytics settings, resource access role ARN and vocabulary settings. </p> <p>Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. If you are resuming a session, then this event must have the same configurations that you provided to start the session. </p>",
       "event":true
+    },
+    "MedicalScribeContext":{
+      "type":"structure",
+      "members":{
+        "PatientContext":{
+          "shape":"MedicalScribePatientContext",
+          "documentation":"<p>Contains patient-specific information used to customize the clinical note generation.</p>"
+        }
+      },
+      "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information which is used during clinical note generation to add relevant context to the note.</p>"
     },
     "MedicalScribeEncryptionSettings":{
       "type":"structure",
@@ -946,6 +960,16 @@
         "PATIENT",
         "CLINICIAN"
       ]
+    },
+    "MedicalScribePatientContext":{
+      "type":"structure",
+      "members":{
+        "Pronouns":{
+          "shape":"Pronouns",
+          "documentation":"<p>The patient's preferred pronouns that the user wants to provide as a context for clinical note generation .</p>"
+        }
+      },
+      "documentation":"<p>Contains patient-specific information. </p>"
     },
     "MedicalScribePostStreamAnalyticsResult":{
       "type":"structure",
@@ -1062,6 +1086,10 @@
         "PostStreamAnalyticsResult":{
           "shape":"MedicalScribePostStreamAnalyticsResult",
           "documentation":"<p>The result of post-stream analytics for the HealthScribe streaming session.</p>"
+        },
+        "MedicalScribeContextProvided":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether the <code>MedicalScribeContext</code> object was provided when the stream was started.</p>"
         }
       },
       "documentation":"<p>Contains details about a Amazon Web Services HealthScribe streaming session.</p>"
@@ -1282,6 +1310,15 @@
         }
       },
       "documentation":"<p>Allows you to specify additional settings for your Call Analytics post-call request, including output locations for your redacted transcript, which IAM role to use, and which encryption key to use.</p> <p> <code>DataAccessRoleArn</code> and <code>OutputLocation</code> are required fields.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
+    },
+    "Pronouns":{
+      "type":"string",
+      "enum":[
+        "HE_HIM",
+        "SHE_HER",
+        "THEY_THEM"
+      ],
+      "sensitive":true
     },
     "RequestId":{"type":"string"},
     "ResourceNotFoundException":{
