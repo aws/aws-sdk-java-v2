@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.naming;
 
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.core.SdkField;
 
@@ -201,6 +202,15 @@ public interface NamingStrategy {
     String getExistenceCheckMethodName(String memberName, Shape parentShape);
 
     /**
+     * Returns a unique shape name to use for an event member of an eventStream.
+     *
+     * @param eventMember The event member to get the shape name for.
+     * @param eventStreamName The name of the eventStream containing the member.
+     * @return Unique name for the event shape / eventStream combo.
+     */
+    String getUniqueEventStreamEventShapeName(Member eventMember, String eventStreamName);
+
+    /**
      * Retrieve the service's signing name that should be used based on the model.
      */
     String getSigningName();
@@ -214,6 +224,7 @@ public interface NamingStrategy {
      * Retrieve the service's signing name that should be used for system properties.
      */
     String getSigningNameForSystemProperties();
+
 
     /**
      * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.

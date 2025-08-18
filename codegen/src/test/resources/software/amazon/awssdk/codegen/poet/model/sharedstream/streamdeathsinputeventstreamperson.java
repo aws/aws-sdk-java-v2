@@ -27,13 +27,16 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 /**
  */
 @Generated("software.amazon.awssdk:codegen")
-public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.Builder, Person>, EventStream {
+public class StreamDeathsInputEventStreamPerson implements SdkPojo, Serializable,
+                                                           ToCopyableBuilder<StreamDeathsInputEventStreamPerson.Builder, StreamDeathsInputEventStreamPerson>,
+                                                           StreamDeathsInputEventStream {
     private static final SdkField<String> NAME_FIELD = SdkField.<String> builder(MarshallingType.STRING).memberName("Name")
-                                                               .getter(getter(Person::name)).setter(setter(Builder::name))
+                                                               .getter(getter(StreamDeathsInputEventStreamPerson::name)).setter(setter(Builder::name))
                                                                .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Name").build()).build();
 
     private static final SdkField<Instant> BIRTHDAY_FIELD = SdkField.<Instant> builder(MarshallingType.INSTANT)
-                                                                    .memberName("Birthday").getter(getter(Person::birthday)).setter(setter(Builder::birthday))
+                                                                    .memberName("Birthday").getter(getter(StreamDeathsInputEventStreamPerson::birthday))
+                                                                    .setter(setter(Builder::birthday))
                                                                     .traits(LocationTrait.builder().location(MarshallLocation.PAYLOAD).locationName("Birthday").build()).build();
 
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList(NAME_FIELD, BIRTHDAY_FIELD));
@@ -46,7 +49,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
 
     private final Instant birthday;
 
-    protected Person(BuilderImpl builder) {
+    protected StreamDeathsInputEventStreamPerson(BuilderImpl builder) {
         this.name = builder.name;
         this.birthday = builder.birthday;
     }
@@ -103,10 +106,10 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof Person)) {
+        if (!(obj instanceof StreamDeathsInputEventStreamPerson)) {
             return false;
         }
-        Person other = (Person) obj;
+        StreamDeathsInputEventStreamPerson other = (StreamDeathsInputEventStreamPerson) obj;
         return Objects.equals(name(), other.name()) && Objects.equals(birthday(), other.birthday());
     }
 
@@ -116,7 +119,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
      */
     @Override
     public final String toString() {
-        return ToString.builder("Person").add("Name", name()).add("Birthday", birthday()).build();
+        return ToString.builder("StreamDeathsInputEventStreamPerson").add("Name", name()).add("Birthday", birthday()).build();
     }
 
     public final <T> Optional<T> getValueForField(String fieldName, Class<T> clazz) {
@@ -131,7 +134,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
     }
 
     @Override
-    public final Person copy(Consumer<? super Builder> modifier) {
+    public final StreamDeathsInputEventStreamPerson copy(Consumer<? super Builder> modifier) {
         return ToCopyableBuilder.super.copy(modifier);
     }
 
@@ -152,39 +155,17 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         return Collections.unmodifiableMap(map);
     }
 
-    private static <T> Function<Object, T> getter(Function<Person, T> g) {
-        return obj -> g.apply((Person) obj);
+    private static <T> Function<Object, T> getter(Function<StreamDeathsInputEventStreamPerson, T> g) {
+        return obj -> g.apply((StreamDeathsInputEventStreamPerson) obj);
     }
 
     private static <T> BiConsumer<Object, T> setter(BiConsumer<Builder, T> s) {
         return (obj, val) -> s.accept((Builder) obj, val);
     }
 
-    /**
-     * Calls the appropriate visit method depending on the subtype of {@link Person}.
-     *
-     * @param visitor
-     *        Visitor to invoke.
-     */
-    @Override
-    public void accept(StreamBirthsResponseHandler.Visitor visitor) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Calls the appropriate visit method depending on the subtype of {@link Person}.
-     *
-     * @param visitor
-     *        Visitor to invoke.
-     */
-    @Override
-    public void accept(StreamDeathsResponseHandler.Visitor visitor) {
-        throw new UnsupportedOperationException();
-    }
-
     @Mutable
     @NotThreadSafe
-    public interface Builder extends SdkPojo, CopyableBuilder<Builder, Person> {
+    public interface Builder extends SdkPojo, CopyableBuilder<Builder, StreamDeathsInputEventStreamPerson> {
         /**
          * Sets the value of the Name property for this object.
          *
@@ -212,7 +193,7 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         protected BuilderImpl() {
         }
 
-        protected BuilderImpl(Person model) {
+        protected BuilderImpl(StreamDeathsInputEventStreamPerson model) {
             name(model.name);
             birthday(model.birthday);
         }
@@ -246,8 +227,8 @@ public class Person implements SdkPojo, Serializable, ToCopyableBuilder<Person.B
         }
 
         @Override
-        public Person build() {
-            return new Person(this);
+        public StreamDeathsInputEventStreamPerson build() {
+            return new StreamDeathsInputEventStreamPerson(this);
         }
 
         @Override
