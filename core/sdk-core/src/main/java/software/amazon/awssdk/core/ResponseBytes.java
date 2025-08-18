@@ -19,6 +19,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -66,6 +67,33 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
      */
     public static <ResponseT> ResponseBytes<ResponseT> fromByteArrayUnsafe(ResponseT response, byte[] bytes) {
         return new ResponseBytes<>(response, bytes);
+    }
+
+    /**
+     * Creates ResponseBytes from a ByteBuffer without copying the underlying data.
+     *
+     * @param response the response object containing metadata
+     * @param buffer the ByteBuffer containing the response body data
+     * @return ResponseBytes wrapping the buffer data
+     */
+    public static <ResponseT> ResponseBytes<ResponseT> fromByteBufferUnsafe(ResponseT response, ByteBuffer buffer) {
+        byte[] array;
+        if (buffer.hasArray()) {
+            array = buffer.array();
+            int offset = buffer.arrayOffset() + buffer.position();
+            int length = buffer.remaining();
+            if (offset == 0 && length == array.length) {
+                // Perfect match - use array directly
+            } else {
+                // Create view of the relevant portion
+                array = Arrays.copyOfRange(array, offset, offset + length);
+            }
+        } else {
+            // Direct buffer - must copy to array
+            array = new byte[buffer.remaining()];
+            buffer.get(array);
+        }
+        return new ResponseBytes<>(response, array);
     }
 
     /**

@@ -17,13 +17,14 @@ package software.amazon.awssdk.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.ByteBuffer;
 import org.junit.jupiter.api.Test;
 
 public class ResponseBytesTest {
     private static final Object OBJECT = new Object();
     @Test
     public void fromByteArrayCreatesCopy() {
-        byte[] input = new byte[] { 'a' };
+        byte[] input = {'a'};
         byte[] output = ResponseBytes.fromByteArray(OBJECT, input).asByteArrayUnsafe();
 
         input[0] = 'b';
@@ -32,7 +33,7 @@ public class ResponseBytesTest {
 
     @Test
     public void asByteArrayCreatesCopy() {
-        byte[] input = new byte[] { 'a' };
+        byte[] input = {'a'};
         byte[] output = ResponseBytes.fromByteArrayUnsafe(OBJECT, input).asByteArray();
 
         input[0] = 'b';
@@ -41,9 +42,27 @@ public class ResponseBytesTest {
 
     @Test
     public void fromByteArrayUnsafeAndAsByteArrayUnsafeDoNotCopy() {
-        byte[] input = new byte[] { 'a' };
+        byte[] input = {'a'};
         byte[] output = ResponseBytes.fromByteArrayUnsafe(OBJECT, input).asByteArrayUnsafe();
 
         assertThat(output).isSameAs(input);
+    }
+
+    @Test
+    public void fromByteBufferUnsafe_doNotCopy() {
+        byte[] inputBytes = {'a'};
+        ByteBuffer inputBuffer = ByteBuffer.wrap(inputBytes);
+
+        ResponseBytes<Object> responseBytes = ResponseBytes.fromByteBufferUnsafe(OBJECT, inputBuffer);
+
+        ByteBuffer outputBuffer = responseBytes.asByteBuffer();
+        byte[] outputBytes = responseBytes.asByteArrayUnsafe();
+
+        assertThat(outputBuffer).isEqualTo(inputBuffer);
+        assertThat(outputBytes).isSameAs(inputBytes);
+
+        inputBytes[0] = 'b';
+        assertThat(outputBuffer).isEqualTo(inputBuffer);
+        assertThat(outputBytes).isEqualTo(inputBytes);
     }
 }
