@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.ByteArrayOutputStream;
@@ -38,12 +37,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -236,7 +232,7 @@ public class FileAsyncRequestBodyTest {
 
     @Test
     public void positionNotZero_shouldReadFromPosition() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         long position = 20L;
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
                                                                 .path(smallFile)
@@ -249,7 +245,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(80L);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[80];
         try(FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
@@ -262,7 +260,7 @@ public class FileAsyncRequestBodyTest {
 
     @Test
     public void bothPositionAndNumBytesToReadConfigured_shouldHonor() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         long position = 20L;
         long numBytesToRead = 5L;
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
@@ -277,7 +275,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(numBytesToRead);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[5];
         try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
@@ -290,7 +290,7 @@ public class FileAsyncRequestBodyTest {
 
     @Test
     public void numBytesToReadConfigured_shouldHonor() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
                                                                 .path(smallFile)
                                                                 .numBytesToRead(5L)
@@ -302,7 +302,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(5L);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[5];
         try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {

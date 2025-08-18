@@ -34,6 +34,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
+/**
+ * A splitting transformer that creates individual {@link ByteArrayAsyncResponseTransformer} instances for each part of a
+ * multipart download. This is necessary to support retries of individual part downloads.
+ *
+ * <p>
+ * This class is created by {@link ByteArrayAsyncResponseTransformer#split} and used internally by the multipart
+ * download logic.
+ */
+
 @SdkInternalApi
 public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> {
     private static final Logger log = Logger.loggerFor(ByteArraySplittingTransformer.class);
@@ -56,6 +65,10 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
      */
     private final AtomicBoolean emitting = new AtomicBoolean(false);
 
+    /**
+     * Synchronization lock that protects the {@code onStreamCalled} flag and cancellation
+     * workflow from concurrent access. Ensures thread-safety of subscription cancellation.
+     */
     private final Object lock = new Object();
 
     /**
@@ -134,10 +147,9 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
             if (isCancelled.get()) {
                 return true;
             }
-            if (outstandingDemand.get() > 0) {
-                demand = outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(new IndividualTransformer(nextPartNumber.getAndIncrement()));
-            }
+
+            demand = outstandingDemand.decrementAndGet();
+            downstreamSubscriber.onNext(new IndividualTransformer(nextPartNumber.getAndIncrement()));
         }
         return false;
     }

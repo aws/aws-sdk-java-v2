@@ -42,19 +42,23 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
         AsyncResponseTransformer<ResponseT, ResponseBytes<ResponseT>> {
 
-    private volatile CompletableFuture<byte[]> cf;
+    private volatile CompletableFuture<ByteBuffer> cf;
     private volatile ResponseT response;
 
     @Override
     public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
         cf = new CompletableFuture<>();
-        // Using fromByteArrayUnsafe() to avoid unnecessary extra copying of byte array. The data writing has completed and the
+        // Using fromByteBufferUnsafe() to avoid unnecessary extra copying of byte array. The data writing has completed and the
         // byte array will not be further modified so this is safe
-        return cf.thenApply(arr -> ResponseBytes.fromByteArrayUnsafe(response, arr));
+        return cf.thenApply(buffer -> ResponseBytes.fromByteBufferUnsafe(response, buffer));
     }
 
     @Override
     public void onResponse(ResponseT response) {
+        if (response == null) {
+            return;
+        }
+
         this.response = response;
     }
 
@@ -85,13 +89,11 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     }
 
     static class BaosSubscriber implements Subscriber<ByteBuffer> {
-        private final CompletableFuture<byte[]> resultFuture;
-
-        private ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
+        private final CompletableFuture<ByteBuffer> resultFuture;
+        private DirectAccessByteArrayOutputStream directAccessOutputStream = new DirectAccessByteArrayOutputStream();
         private Subscription subscription;
 
-        BaosSubscriber(CompletableFuture<byte[]> resultFuture) {
+        BaosSubscriber(CompletableFuture<ByteBuffer> resultFuture) {
             this.resultFuture = resultFuture;
         }
 
@@ -107,19 +109,38 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
 
         @Override
         public void onNext(ByteBuffer byteBuffer) {
-            invokeSafely(() -> baos.write(BinaryUtils.copyBytesFrom(byteBuffer)));
-            subscription.request(1);
+            invokeSafely(() -> {
+                if (byteBuffer.hasArray()) {
+                    directAccessOutputStream.write(byteBuffer.array(), byteBuffer.arrayOffset() + byteBuffer.position(),
+                                                   byteBuffer.remaining());
+                } else {
+                    directAccessOutputStream.write(BinaryUtils.copyBytesFrom(byteBuffer));
+                }
+            });
         }
 
         @Override
         public void onError(Throwable throwable) {
-            baos = null;
+            directAccessOutputStream = null;
             resultFuture.completeExceptionally(throwable);
         }
 
         @Override
         public void onComplete() {
-            resultFuture.complete(baos.toByteArray());
+            resultFuture.complete(directAccessOutputStream.toByteBuffer());
+        }
+    }
+
+    /**
+     * Custom ByteArrayOutputStream that exposes internal buffer without copying
+     */
+    static class DirectAccessByteArrayOutputStream extends ByteArrayOutputStream {
+
+        /**
+         * Returns the internal buffer wrapped as ByteBuffer with length set to count.
+         */
+        ByteBuffer toByteBuffer() {
+            return ByteBuffer.wrap(buf, 0, count);
         }
     }
 }
