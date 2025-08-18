@@ -160,6 +160,32 @@ class MultipartDownloaderSubscriberWiremockTest {
         }
     }
 
+    @ParameterizedTest
+    @MethodSource("argumentsProvider")
+    <T> void wrongContentRangeOnSecondRequest_should(AsyncResponseTransformerTestSupplier<T> supplier,
+                                                     int amountOfPartToTest,
+                                                     int partSize) {
+        util.stubForPart(testBucket, testKey, 1, 3, partSize);
+        util.stubForPartwithWrongContentRange(testBucket, testKey, 2, 3, partSize);
+        util.stubForPart(testBucket, testKey, 3, 3, partSize);
+        //byte[] expectedBody = util.stubAllParts(testBucket, testKey, amountOfPartToTest, partSize);
+        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split = transformer.split(
+            SplittingTransformerConfiguration.builder()
+                                             .bufferSizeInBytes(1024 * 32L)
+                                             .build());
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = new MultipartDownloaderSubscriber(
+            s3AsyncClient,
+            GetObjectRequest.builder()
+                            .bucket(testBucket)
+                            .key(testKey)
+                            .build());
+
+        split.publisher().subscribe(subscriber);
+        T response = split.resultFuture().join();
+
+    }
+
     private static Stream<Arguments> argumentsProvider() {
         // amount of part, individual part size
         List<Pair<Integer, Integer>> partSizes = Arrays.asList(

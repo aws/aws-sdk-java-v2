@@ -23,6 +23,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -77,6 +78,16 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private volatile String eTag;
 
     /**
+     * The size of each part of the object being downloaded.
+     */
+    private volatile Long partSize;
+
+    /**
+     * The total size of the object being downloaded.
+     */
+    private volatile Long totalContentLength;
+
+    /**
      * The Subscription lock
      */
     private final Object lock = new Object();
@@ -117,6 +128,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
         synchronized (lock) {
             if (totalParts != null && nextPartToGet > totalParts) {
+                validatePartsCount(completedParts.get());
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
                 return;
@@ -162,10 +174,20 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             totalParts = partCount;
         }
 
+        String actualContentRange = response.contentRange();
+        if (actualContentRange != null && partSize == null) {
+            getRangeInfo(actualContentRange);
+            log.debug(() -> String.format("Part size of the object to download: " + partSize));
+            log.debug(() -> String.format("Total Content Length of the object to download: " + totalContentLength));
+        }
+
+        validateContentRange(totalComplete, actualContentRange);
+
         synchronized (lock) {
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
                 subscription.request(1);
             } else {
+                validatePartsCount(completedParts.get());
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
             }
@@ -197,5 +219,46 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
                 req.ifMatch(eTag);
             }
         });
+    }
+
+    private void validatePartsCount(int currentGetCount) {
+        if (totalParts != null && currentGetCount != totalParts) {
+            String errorMessage = "PartsCount validation failed. Expected " + totalParts + ", downloaded"
+                                  + " " + currentGetCount + " parts.";
+            log.error(() -> errorMessage);
+            subscription.cancel();
+            SdkClientException exception = SdkClientException.create(errorMessage);
+            onError(exception);
+        }
+    }
+
+    private void validateContentRange(int partNumber, String contentRange) {
+        if (contentRange == null) {
+            return;
+        }
+
+        long expectedStart = (partNumber - 1) * partSize;
+        long expectedEnd = partNumber == totalParts ? totalContentLength - 1 : expectedStart + partSize - 1;
+
+        String expectedContentRange = String.format("bytes %d-%d/%d", expectedStart, expectedEnd, totalContentLength);
+
+        if (!expectedContentRange.equals(contentRange)) {
+            String errorMessage = String.format(
+                "Content-Range validation failed for part %d. Expected: %s, Actual: %s",
+                partNumber, expectedContentRange, contentRange);
+            log.error(() -> errorMessage);
+            onError(SdkClientException.create(errorMessage));
+        }
+    }
+
+    private void getRangeInfo(String contentRange) {
+        String rangeInfo = contentRange.substring(6);
+        String[] parts = rangeInfo.split("/");
+
+        this.totalContentLength = Long.parseLong(parts[1]);
+        String[] rangeParts = parts[0].split("-");
+        long startByte = Long.parseLong(rangeParts[0]);
+        long endByte = Long.parseLong(rangeParts[1]);
+        this.partSize = endByte - startByte + 1;
     }
 }
