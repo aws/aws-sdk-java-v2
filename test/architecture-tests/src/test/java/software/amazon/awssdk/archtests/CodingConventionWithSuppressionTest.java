@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequest
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
+import software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloaderSubscriber;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -57,6 +58,7 @@ public class CodingConventionWithSuppressionTest {
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
             ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
+            ArchUtils.classNameToPattern(MultipartDownloaderSubscriber.class),
             ArchUtils.classWithInnerClassesToPattern(ResponseTransformer.class)));
 
     @Test
