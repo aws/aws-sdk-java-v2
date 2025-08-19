@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Polly",
+    "contributor": "",
+    "description": "Added support for new output format - Opus."
+}
