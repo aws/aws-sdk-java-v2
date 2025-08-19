@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -47,6 +49,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implem
     private final FileTransformerConfiguration initialConfig;
     private final long initialPosition;
     private Subscriber subscriber;
+    private AtomicLong transformerSent;
 
     public FileAsyncResponseTransformerPublisher(AsyncResponseTransformer<?, ?> responseTransformer) {
         Validate.isTrue(responseTransformer instanceof FileAsyncResponseTransformer,
@@ -55,6 +58,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implem
         this.path = Validate.paramNotNull(transformer.path(), "path");
         this.initialConfig = Validate.paramNotNull(transformer.config(), "fileTransformerConfiguration");
         this.initialPosition = transformer.initialPosition();
+        transformerSent = new AtomicLong();
     }
 
     @Override
@@ -74,7 +78,15 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implem
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {
-        AsyncResponseTransformer<T, T> delegate = AsyncResponseTransformer.toFile(path, initialConfig);
+        AsyncResponseTransformer<T, T> delegate;
+        // todo deal with APPEND mode
+        if (transformerSent.get() == 0) {
+            delegate = AsyncResponseTransformer.toFile(path, initialConfig);
+        } else {
+            delegate = AsyncResponseTransformer.toFile(path, initialConfig.copy(
+                c -> c.fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)));
+        }
+        transformerSent.incrementAndGet();
         return new IndividualFileTransformer((FileAsyncResponseTransformer<T>) delegate);
     }
 
@@ -107,8 +119,14 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implem
         @Override
         public void onResponse(T response) {
             log.info(() -> "Received response: " + response.toString());
-            ContentRangeParser.range(response.sdkHttpResponse().headers().get("Content-Range").get(0))
-                              .ifPresent(pair -> delegate.offsetPosition(initialPosition + pair.left()));
+            // todo: move to s3 package to use GetObjectResponse?
+            List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
+            if (!CollectionUtils.isNullOrEmpty(contentRangeList)) {
+                String contentRange = contentRangeList.get(0);
+                log.info(() -> "Setting offset to " + contentRange);
+                ContentRangeParser.range(contentRange)
+                                  .ifPresent(pair -> delegate.offsetPosition(initialPosition + pair.left()));
+            }
             delegate.onResponse(response);
         }
 

@@ -17,12 +17,11 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -30,9 +29,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
+@SdkInternalApi
 public class NonLinearMultipartDownloaderSubscriber
     implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private static final Logger log = Logger.loggerFor(NonLinearMultipartDownloaderSubscriber.class);
+    private static final int MAX_IN_FLIGHT = 8;
 
     /**
      * The s3 client used to make the individual part requests
@@ -95,6 +96,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest,
                                                   CompletableFuture<GetObjectResponse> resultFuture) {
+        System.out.println("[DEBUG] NonLinearMultipartDownloaderSubscriber constructor called");
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
@@ -112,6 +114,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+        log.info(() -> "onNext");
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
@@ -158,16 +161,24 @@ public class NonLinearMultipartDownloaderSubscriber
             if (completedParts.get() == totalParts) {
                 subscription.cancel();
                 resultFuture.complete(getObjectResponse);
+            } else {
+                requestMoreIfNeeded();
             }
         });
     }
 
-    // returns true if we actually sent the request
+    // returns true if the first request was sent, either by this call the this method, or previously
     private boolean sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         // we could have completed the first request while waiting on synchronized block, check again
         if (completedParts.get() != 0) {
-            // another thread sent the first request already
+            // another thread sent the first request already and it is completed.
+            // We know at this point if it is multipart or not
             return false;
+        }
+        if (inFlights.get() > 0) {
+            // We might not know if it is multipart or not
+            // first request is already in flight, wait for it to finish before requesting more
+            return true;
         }
         log.info(() -> "============== SENDING FIRST REQUEST ==============");
         GetObjectRequest request = nextRequest(1);
@@ -216,7 +227,8 @@ public class NonLinearMultipartDownloaderSubscriber
     }
 
     private void requestMoreIfNeeded() {
-        if (!allPartsCompletedOrInFlights()) {
+        if (!allPartsCompletedOrInFlights() && inFlights.get() < MAX_IN_FLIGHT) {
+            log.info(() -> "requesting next part");
             subscription.request(1);
         }
     }

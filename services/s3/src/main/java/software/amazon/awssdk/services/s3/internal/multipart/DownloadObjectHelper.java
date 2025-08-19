@@ -54,16 +54,18 @@ public class DownloadObjectHelper {
 
         // The publisher of AsyncResponseTransformer needs to know about s3 GetObjectResponse to write to the correct file offset.
         // The default publisher in the SplitResult may not be able to do so, so we need to create a new one that knows about s3
-        FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>(asyncResponseTransformer);
-        return downloadPartsNonLinear(getObjectRequest, publisher, split);
+        log.info(() -> "================= USING downloadPartsNonLinear ==================");
+        return downloadPartsNonLinear(getObjectRequest, asyncResponseTransformer, split);
 
     }
 
-    private <T> CompletableFuture<T> downloadPartsNonLinear(GetObjectRequest getObjectRequest,
-                                                            FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher,
-                                                            AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+    private <T> CompletableFuture<T> downloadPartsNonLinear(
+        GetObjectRequest getObjectRequest,
+        AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer,
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
         // TODO pause & resume
+        FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher =
+            new FileAsyncResponseTransformerPublisher<>(asyncResponseTransformer);
         NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
             s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture());
         publisher.subscribe(subscriber);

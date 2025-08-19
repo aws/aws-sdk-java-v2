@@ -146,7 +146,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     }
 
     void offsetPosition(Long offset) {
-        this.position = Validate.isPositive(offset, "Offset must be positive");
+        this.position = Validate.isNotNegative(offset, "Offset must be positive");
     }
 
     public FileTransformerConfiguration getConfiguration() {
@@ -193,4 +193,10 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return TransformerType.FILE.getName();
     }
 
+    @Override
+    public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
+        return AsyncResponseTransformer.super
+            .split(splitConfig)
+            .copy(res -> res.supportsParallel(true));
+    }
 }
