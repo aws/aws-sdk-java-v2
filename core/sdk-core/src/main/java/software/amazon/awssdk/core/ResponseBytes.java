@@ -70,11 +70,24 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
     }
 
     /**
-     * Creates ResponseBytes from a ByteBuffer without copying the underlying data.
+     * Create {@link ResponseBytes} from a {@link ByteBuffer} with minimal copying. This method attempts to avoid
+     * copying data when possible, but introduces concurrency risks in specific scenarios.
      *
-     * @param response the response object containing metadata
-     * @param buffer the ByteBuffer containing the response body data
-     * @return ResponseBytes wrapping the buffer data
+     * <p><b>Behavior by buffer type:</b>
+     * <ul>
+     *   <li><b>Array-backed ByteBuffer (perfect match):</b> When the buffer represents the entire backing array
+     *       (offset=0, remaining=array.length), the array is shared <b>without</b> copying. This introduces the same
+     *       concurrency risks as {@link #fromByteArrayUnsafe(Object, byte[])}: modifications to the original
+     *       backing array will affect the returned {@link ResponseBytes}.</li>
+     *   <li><b>Array-backed ByteBuffer (partial):</b> When the buffer represents only a portion of the backing array,
+     *       data is copied to a new array. No concurrency risks.</li>
+     *   <li><b>Direct ByteBuffer:</b> Data is always copied to a heap array. No concurrency risks.</li>
+     * </ul>
+     *
+     * <p>The buffer's position is preserved and not modified by this operation.
+     *
+     * <p>As the method name implies, this is unsafe in the first scenario. Use a safe alternative unless you're
+     * sure you know the risks.
      */
     public static <ResponseT> ResponseBytes<ResponseT> fromByteBufferUnsafe(ResponseT response, ByteBuffer buffer) {
         byte[] array;
@@ -91,7 +104,9 @@ public final class ResponseBytes<ResponseT> extends BytesWrapper {
         } else {
             // Direct buffer - must copy to array
             array = new byte[buffer.remaining()];
+            int originalPosition = buffer.position();
             buffer.get(array);
+            buffer.position(originalPosition);
         }
         return new ResponseBytes<>(response, array);
     }

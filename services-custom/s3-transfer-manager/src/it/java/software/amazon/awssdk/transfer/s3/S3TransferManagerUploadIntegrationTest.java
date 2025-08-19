@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
 
 import java.io.IOException;
@@ -214,5 +215,32 @@ public class S3TransferManagerUploadIntegrationTest extends S3IntegrationTestBas
         assertThat(transferListener.getExceptionCaught()).isInstanceOf(CancellationException.class);
         assertThat(transferListener.getRatioTransferredList().get(transferListener.getRatioTransferredList().size() - 1))
             .isNotEqualTo(100.0);
+    }
+
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void upload_asyncRequestBody_ReportsProgressCorrectly(S3TransferManager tm) throws IOException {
+        String content = RandomStringUtils.randomAscii(OBJ_SIZE);
+        CaptureTransferListener transferListener = new CaptureTransferListener();
+
+        Upload upload =
+            tm.upload(UploadRequest.builder()
+                                   .putObjectRequest(b -> b.bucket(TEST_BUCKET).key(TEST_KEY))
+                                   .requestBody(AsyncRequestBody.fromString(content))
+                                   .addTransferListener(LoggingTransferListener.create())
+                                   .addTransferListener(transferListener)
+                                   .build());
+
+        upload.completionFuture().join();
+        ResponseInputStream<GetObjectResponse> obj = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                  ResponseTransformer.toInputStream());
+
+        assertThat(ChecksumUtils.computeCheckSum(content.getBytes(StandardCharsets.UTF_8)))
+            .isEqualTo(ChecksumUtils.computeCheckSum(obj));
+
+        assertListenerForSuccessfulTransferComplete(transferListener);
+
+        // ensure intermediate progress is reported
+        assertThat(transferListener.getRatioTransferredList()).hasSizeGreaterThan(2);
     }
 }

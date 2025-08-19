@@ -49,16 +49,12 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     public CompletableFuture<ResponseBytes<ResponseT>> prepare() {
         cf = new CompletableFuture<>();
         // Using fromByteBufferUnsafe() to avoid unnecessary extra copying of byte array. The data writing has completed and the
-        // byte array will not be further modified so this is safe
+        // byte buffer will not be further modified so this is safe
         return cf.thenApply(buffer -> ResponseBytes.fromByteBufferUnsafe(response, buffer));
     }
 
     @Override
     public void onResponse(ResponseT response) {
-        if (response == null) {
-            return;
-        }
-
         this.response = response;
     }
 

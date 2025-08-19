@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Improve EventStreamResponseHandler.Builder.onError method to mention the callback may be called multiple time, similarly to the exceptionOccurred method"
-}
