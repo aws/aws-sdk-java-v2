@@ -35,6 +35,7 @@ public final class AwsStructuredPlainJsonFactory {
     private static final JsonFactory JSON_FACTORY = JsonFactory.builder()
                                                                .enable(StreamReadFeature.USE_FAST_BIG_NUMBER_PARSER)
                                                                .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
+                                                               .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
                                                                .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
                                                                .build();
 
