@@ -1,4 +1,24 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.26__ __2025-08-19__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Support error message configuration for analysis templates
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Avoid extra byte array copying when downloading to memory with AsyncResponseTransformer
+
+  - ### Bugfixes
+    - Fix a potential NullPointerException that may be thrown when API call timeout is configured
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add support for "warning" volume status.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for new output format - Opus.
+
 # __2.32.25__ __2025-08-18__
 ## __AWS Batch__
   - ### Features
