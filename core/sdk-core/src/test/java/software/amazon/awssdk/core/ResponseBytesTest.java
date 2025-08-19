@@ -49,20 +49,57 @@ public class ResponseBytesTest {
     }
 
     @Test
-    public void fromByteBufferUnsafe_doNotCopy() {
+    public void fromByteBufferUnsafe_fullBuffer_doesNotCopy() {
         byte[] inputBytes = {'a'};
         ByteBuffer inputBuffer = ByteBuffer.wrap(inputBytes);
 
         ResponseBytes<Object> responseBytes = ResponseBytes.fromByteBufferUnsafe(OBJECT, inputBuffer);
-
-        ByteBuffer outputBuffer = responseBytes.asByteBuffer();
         byte[] outputBytes = responseBytes.asByteArrayUnsafe();
 
-        assertThat(outputBuffer).isEqualTo(inputBuffer);
+        assertThat(inputBuffer.hasArray()).isTrue();
+        assertThat(inputBuffer.isDirect()).isFalse();
         assertThat(outputBytes).isSameAs(inputBytes);
 
         inputBytes[0] = 'b';
-        assertThat(outputBuffer).isEqualTo(inputBuffer);
+        assertThat(outputBytes[0]).isEqualTo((byte) 'b');
+    }
+
+    @Test
+    public void fromByteBufferUnsafe_directBuffer_createsCopy() {
+        byte[] inputBytes = {'a'};
+        ByteBuffer directBuffer = ByteBuffer.allocateDirect(1);
+        directBuffer.put(inputBytes);
+        directBuffer.flip();
+
+        ResponseBytes<Object> responseBytes = ResponseBytes.fromByteBufferUnsafe(OBJECT, directBuffer);
+        ByteBuffer outputBuffer = responseBytes.asByteBuffer();
+        byte[] outputBytes = responseBytes.asByteArrayUnsafe();
+
+        assertThat(directBuffer.hasArray()).isFalse();
+        assertThat(directBuffer.isDirect()).isTrue();
+        assertThat(outputBuffer.isDirect()).isFalse();
         assertThat(outputBytes).isEqualTo(inputBytes);
+        assertThat(outputBytes).isNotSameAs(inputBytes);
+
+        inputBytes[0] = 'b';
+        assertThat(outputBytes[0]).isNotEqualTo((byte) 'b');
+    }
+
+    @Test
+    public void fromByteBufferUnsafe_bufferWithOffset_createsCopy() {
+        byte[] inputBytes = "abcdefgh".getBytes();
+
+        ByteBuffer slicedBuffer = ByteBuffer.wrap(inputBytes, 2, 3); // "cde"
+
+        ResponseBytes<Object> responseBytes = ResponseBytes.fromByteBufferUnsafe(OBJECT, slicedBuffer);
+        byte[] outputBytes = responseBytes.asByteArrayUnsafe();
+
+        assertThat(slicedBuffer.hasArray()).isTrue();
+        assertThat(outputBytes).isEqualTo("cde".getBytes());
+        assertThat(outputBytes.length).isEqualTo(3);
+        assertThat(outputBytes).isNotSameAs(inputBytes);
+
+        inputBytes[0] = 'X';
+        assertThat(outputBytes[0]).isEqualTo((byte) 'c');
     }
 }
