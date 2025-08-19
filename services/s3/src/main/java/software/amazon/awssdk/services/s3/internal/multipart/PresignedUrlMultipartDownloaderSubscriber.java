@@ -119,11 +119,11 @@ public class PresignedUrlMultipartDownloaderSubscriber
                     handleError(error);
                     return;
                 }
-                requestMoreIfNeeded(response, partIndex);
+                validatePartAndRequestMore(response, partIndex);
             });
     }
 
-    private void requestMoreIfNeeded(GetObjectResponse response, int partIndex) {
+    private void validatePartAndRequestMore(GetObjectResponse response, int partIndex) {
         int totalComplete = completedParts.get();
         log.debug(() -> String.format("Completed part %d", totalComplete));
 
@@ -155,6 +155,10 @@ public class PresignedUrlMultipartDownloaderSubscriber
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
         }
 
+        requestMoreIfNeeded(totalComplete);
+    }
+
+    private void requestMoreIfNeeded(int totalComplete) {
         synchronized (lock) {
             if (hasMoreParts(totalComplete)) {
                 subscription.request(1);
@@ -209,8 +213,8 @@ public class PresignedUrlMultipartDownloaderSubscriber
         
         if (!contentLength.equals(expectedPartSize)) {
             return Optional.of(SdkClientException.create(
-                "Part content length validation failed for part " + partIndex + 
-                ". Expected: " + expectedPartSize + ", but got: " + contentLength));
+                String.format("Part content length validation failed for part %d. Expected: %d, but got: %d",
+                             partIndex, expectedPartSize, contentLength)));
         }
 
         long actualStartByte = MultipartDownloadUtils.parseStartByteFromContentRange(contentRange);
@@ -244,7 +248,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
                                                                                   .range(rangeHeader);
         if (partIndex > 0 && eTag != null) {
             builder.ifMatch(eTag);
-            log.debug(() -> "Setting IfMatch header to: " + eTag + " for part " + partIndex);
         }
         return builder.build();
     }
@@ -269,7 +272,4 @@ public class PresignedUrlMultipartDownloaderSubscriber
         future.complete(null);
     }
 
-    public CompletableFuture<Void> future() {
-        return future;
-    }
 }

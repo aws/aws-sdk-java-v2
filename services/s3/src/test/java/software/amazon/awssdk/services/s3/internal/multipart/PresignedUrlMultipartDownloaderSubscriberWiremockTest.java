@@ -34,12 +34,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
@@ -147,6 +150,18 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
             .hasRootCauseInstanceOf(S3Exception.class);
     }
 
+    @Test
+    void presignedUrlDownload_whenIOErrorOccurs_shouldThrowException() {
+        stubConnectionReset();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                        AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasCauseInstanceOf(IOException.class);
+    }
+
 
     @Test
     void presignedUrlDownload_withNullTransformer_shouldThrowException() {
@@ -159,6 +174,57 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         assertThatThrownBy(() -> subscriber.onNext(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("onNext must not be called with null asyncResponseTransformer");
+    }
+
+    @Test
+    void validateResponse_withMissingContentRange_shouldFailRequest() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
+        GetObjectResponse response = GetObjectResponse.builder()
+                                                      .contentLength(1024L)
+                                                      .eTag("test-etag")
+                                                      .build();
+        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
+        assertThat(error).isPresent();
+        assertThat(error.get().getMessage()).contains("No Content-Range header in response");
+    }
+
+    @Test
+    void validateResponse_withInvalidContentLength_shouldFailRequest() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
+        GetObjectResponse response = GetObjectResponse.builder()
+                                                      .contentLength(-1L)
+                                                      .contentRange("bytes 0-1023/5242880")
+                                                      .eTag("test-etag")
+                                                      .build();
+        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
+        assertThat(error).isPresent();
+        assertThat(error.get().getMessage()).contains("Invalid or missing Content-Length in response");
+    }
+
+    @Test
+    void validateResponse_withContentRangeMismatch_shouldFailRequest() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
+        GetObjectResponse response = GetObjectResponse.builder()
+                                                      .contentLength(1024L)
+                                                      .contentRange("bytes 5000-6023/5242880")
+                                                      .eTag("test-etag")
+                                                      .build();
+        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
+        assertThat(error).isPresent();
+        assertThat(error.get().getMessage()).contains("Content-Range mismatch");
+    }
+
+    @Test
+    void validateResponse_withContentLengthMismatch_shouldFailRequest() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
+        GetObjectResponse response = GetObjectResponse.builder()
+                                                      .contentLength(512L)
+                                                      .contentRange("bytes 0-1023/5242880")
+                                                      .eTag("test-etag")
+                                                      .build();
+        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
+        assertThat(error).isPresent();
+        assertThat(error.get().getMessage()).contains("Part content length validation failed");
     }
 
     @AfterEach
@@ -226,7 +292,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                 .withHeader("ETag", "\"test-etag\"")
                 .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
             .willSetStateTo("first-success"));
-        
+
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
             .inScenario("partial-failure")
             .whenScenarioStateIs("first-success")
@@ -235,18 +301,33 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                 .withBody("<Error><Code>InternalError</Code><Message>Second request failed</Message></Error>")));
     }
 
-    private void stubSinglePartResponse() {
+    private void stubConnectionReset() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
             .willReturn(aResponse()
-                .withStatus(206)
-                .withHeader("Content-Type", "application/octet-stream")
-                .withHeader("Content-Length", String.valueOf(TEST_DATA.length))
-                .withHeader("Content-Range", "bytes 0-" + (TEST_DATA.length - 1) + "/" + TEST_DATA.length)
-                .withHeader("ETag", "\"test-etag\"")
-                .withBody(TEST_DATA)));
+                .withFault(com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER)));
     }
 
     private URL createPresignedUrl() throws MalformedURLException {
         return new URL(presignedUrlBase + PRESIGNED_URL_PATH);
+    }
+
+    private PresignedUrlMultipartDownloaderSubscriber createTestSubscriber() {
+        return new PresignedUrlMultipartDownloaderSubscriber(
+            s3AsyncClient,
+            PresignedUrlDownloadRequest.builder().presignedUrl(presignedUrl).build(),
+            1024L);
+    }
+
+    private Optional<SdkClientException> invokeValidateResponse(PresignedUrlMultipartDownloaderSubscriber subscriber,
+                                                               GetObjectResponse response,
+                                                               int partIndex) {
+        try {
+            java.lang.reflect.Method validateMethod = subscriber.getClass()
+                .getDeclaredMethod("validateResponse", GetObjectResponse.class, int.class);
+            validateMethod.setAccessible(true);
+            return (Optional<SdkClientException>) validateMethod.invoke(subscriber, response, partIndex);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to invoke validateResponse method", e);
+        }
     }
 }
