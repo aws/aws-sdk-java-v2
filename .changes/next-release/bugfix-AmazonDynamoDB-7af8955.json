@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Enable fast unmarshaller for DynamoDB and DynamoDBStreams"
+}
