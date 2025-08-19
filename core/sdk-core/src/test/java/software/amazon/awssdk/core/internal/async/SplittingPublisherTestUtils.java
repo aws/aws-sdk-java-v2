@@ -15,23 +15,16 @@
 
 package software.amazon.awssdk.core.internal.async;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import java.io.File;
 import java.io.FileInputStream;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.assertj.core.api.Assertions;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
-import software.amazon.awssdk.core.internal.async.SplittingPublisherTest;
 
 public final class SplittingPublisherTestUtils {
 
@@ -39,9 +32,9 @@ public final class SplittingPublisherTestUtils {
                                                         Path file,
                                                         int chunkSize) throws Exception {
 
-        List<CompletableFuture<byte[]>> futures = new ArrayList<>();
+        List<CompletableFuture<ByteBuffer>> futures = new ArrayList<>();
         publisher.subscribe(requestBody -> {
-            CompletableFuture<byte[]> baosFuture = new CompletableFuture<>();
+            CompletableFuture<ByteBuffer> baosFuture = new CompletableFuture<>();
             ByteArrayAsyncResponseTransformer.BaosSubscriber subscriber =
                 new ByteArrayAsyncResponseTransformer.BaosSubscriber(baosFuture);
             requestBody.subscribe(subscriber);
@@ -62,7 +55,10 @@ public final class SplittingPublisherTestUtils {
                 }
                 fileInputStream.skip(i * chunkSize);
                 fileInputStream.read(expected);
-                byte[] actualBytes = futures.get(i).join();
+                ByteBuffer actualByteBuffer = futures.get(i).join();
+                byte[] actualBytes = new byte[actualByteBuffer.remaining()];
+                actualByteBuffer.get(actualBytes);
+
                 Assertions.assertThat(actualBytes).isEqualTo(expected);
             }
         }
