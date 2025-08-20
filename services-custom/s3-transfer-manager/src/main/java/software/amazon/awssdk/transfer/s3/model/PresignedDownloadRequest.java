@@ -34,8 +34,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
  * Represents the request to download an object using a pre-signed URL through the given
- * {@link AsyncResponseTransformer}. For
- * downloading to a file, you may use {@link PresignedDownloadFileRequest} instead.
+ * {@link AsyncResponseTransformer}. For downloading to a file,
+ * you may use {@link PresignedDownloadFileRequest} instead.
  *
  * @see S3TransferManager#downloadWithPresignedUrl(PresignedDownloadRequest)
  */
@@ -50,7 +50,8 @@ public final class PresignedDownloadRequest<ReturnT>
 
     private PresignedDownloadRequest(DefaultTypedBuilder<ReturnT> builder) {
         this.responseTransformer = Validate.paramNotNull(builder.responseTransformer, "responseTransformer");
-        this.presignedUrlDownloadRequest = Validate.paramNotNull(builder.presignedUrlDownloadRequest, "presignedUrlDownloadRequest");
+        this.presignedUrlDownloadRequest = Validate.paramNotNull(builder.presignedUrlDownloadRequest,
+                                                                        "presignedUrlDownloadRequest");
         this.transferListeners = builder.transferListeners;
     }
 
@@ -133,8 +134,8 @@ public final class PresignedDownloadRequest<ReturnT>
 
     /**
      * Initial calls to {@link PresignedDownloadRequest#builder()} return an {@link UntypedBuilder}, where the builder is not yet
-     * parameterized with the generic type associated with {@link PresignedDownloadRequest}. This prevents the otherwise awkward syntax of
-     * having to explicitly cast the builder type, e.g.,
+     * parameterized with the generic type associated with {@link PresignedDownloadRequest}.
+     * This prevents the otherwise awkward syntax of having to explicitly cast the builder type, e.g.,
      * <pre>
      * {@code PresignedDownloadRequest.<ResponseBytes<GetObjectResponse>>builder()}
      * </pre>
@@ -155,14 +156,15 @@ public final class PresignedDownloadRequest<ReturnT>
         /**
          * The {@link PresignedUrlDownloadRequest} request that should be used for the download
          * <p>
-         * This is a convenience method that creates an instance of the {@link PresignedUrlDownloadRequest} builder, avoiding the need to
-         * create one manually via {@link PresignedUrlDownloadRequest#builder()}.
+         * This is a convenience method that creates an instance of the {@link PresignedUrlDownloadRequest}
+         * builder, avoiding the need to create one manually via {@link PresignedUrlDownloadRequest#builder()}.
          *
          * @param presignedUrlDownloadRequestBuilder the presigned URL download request
          * @return a reference to this object so that method calls can be chained together.
          * @see #presignedUrlDownloadRequest(PresignedUrlDownloadRequest)
          */
-        default UntypedBuilder presignedUrlDownloadRequest(Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
+        default UntypedBuilder presignedUrlDownloadRequest(
+                Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
             PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                              .applyMutation(presignedUrlDownloadRequestBuilder)
                                                                              .build();
@@ -171,15 +173,17 @@ public final class PresignedDownloadRequest<ReturnT>
         }
 
         /**
-         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
-         * transferListeners that have already been set. Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method
+         * overrides and replaces any transferListeners that have already been set. Add an optional
+         * request override configuration.
          *
          * @param transferListeners     the collection of transferListeners
          * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
          * @see TransferListener
          */
-        UntypedBuilder transferListeners(Collection<TransferListener> transferListeners);
+        UntypedBuilder transferListeners(
+                Collection<TransferListener> transferListeners);
 
         /**
          * Adds a {@link TransferListener} that will be notified as part of this request.
@@ -191,18 +195,20 @@ public final class PresignedDownloadRequest<ReturnT>
         UntypedBuilder addTransferListener(TransferListener transferListener);
 
         /**
-         * Specifies the {@link AsyncResponseTransformer} that should be used for the download. This method also infers the
-         * generic type of {@link PresignedDownloadRequest} to create, inferred from the second type parameter of the provided {@link
-         * AsyncResponseTransformer}. E.g, specifying {@link AsyncResponseTransformer#toBytes()} would result in inferring the
-         * type of the {@link PresignedDownloadRequest} to be of {@code ResponseBytes<GetObjectResponse>}. See the static factory methods
-         * available in {@link AsyncResponseTransformer}.
+         * Specifies the {@link AsyncResponseTransformer} that should be used for the download. This
+         * method also infers the generic type of {@link PresignedDownloadRequest} to create,
+         * inferred from the second type parameter of the provided {@link AsyncResponseTransformer}.
+         * E.g, specifying {@link AsyncResponseTransformer#toBytes()} would result in inferring the
+         * type of the {@link PresignedDownloadRequest} to be of {@code ResponseBytes<GetObjectResponse>}.
+         * See the static factory methods available in {@link AsyncResponseTransformer}.
          *
          * @param responseTransformer the AsyncResponseTransformer
          * @param <T>                 the type of {@link PresignedDownloadRequest} to create
          * @return a reference to this object so that method calls can be chained together.
          * @see AsyncResponseTransformer
          */
-        <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
+        <T> TypedBuilder<T> responseTransformer(
+                AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
     }
 
     private static final class DefaultUntypedBuilder implements UntypedBuilder {
@@ -219,8 +225,10 @@ public final class PresignedDownloadRequest<ReturnT>
         }
 
         @Override
-        public UntypedBuilder transferListeners(Collection<TransferListener> transferListeners) {
-            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
+        public UntypedBuilder transferListeners(
+                Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ?
+                    new ArrayList<>(transferListeners) : null;
             return this;
         }
 
@@ -237,12 +245,14 @@ public final class PresignedDownloadRequest<ReturnT>
             return transferListeners;
         }
 
-        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+        public void setTransferListeners(
+                Collection<TransferListener> transferListeners) {
             transferListeners(transferListeners);
         }
 
         @Override
-        public <T> TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
+        public <T> TypedBuilder<T> responseTransformer(
+                AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
             return new DefaultTypedBuilder<T>()
                 .presignedUrlDownloadRequest(presignedUrlDownloadRequest)
                 .transferListeners(transferListeners)
@@ -269,14 +279,15 @@ public final class PresignedDownloadRequest<ReturnT>
         /**
          * The {@link PresignedUrlDownloadRequest} request that should be used for the download
          * <p>
-         * This is a convenience method that creates an instance of the {@link PresignedUrlDownloadRequest} builder, avoiding the need to
-         * create one manually via {@link PresignedUrlDownloadRequest#builder()}.
+         * This is a convenience method that creates an instance of the {@link PresignedUrlDownloadRequest} builder,
+         * avoiding the need to create one manually via {@link PresignedUrlDownloadRequest#builder()}.
          *
          * @param presignedUrlDownloadRequestBuilder the presigned URL download request
          * @return a reference to this object so that method calls can be chained together.
          * @see #presignedUrlDownloadRequest(PresignedUrlDownloadRequest)
          */
-        default TypedBuilder<T> presignedUrlDownloadRequest(Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
+        default TypedBuilder<T> presignedUrlDownloadRequest(
+                Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
             PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                              .applyMutation(presignedUrlDownloadRequestBuilder)
                                                                              .build();
@@ -285,15 +296,17 @@ public final class PresignedDownloadRequest<ReturnT>
         }
 
         /**
-         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and replaces any
-         * transferListeners that have already been set. Add an optional request override configuration.
+         * The {@link TransferListener}s that will be notified as part of this request. This method overrides and
+         * replaces any transferListeners that have already been set. Add an optional request override
+         * configuration.
          *
          * @param transferListeners     the collection of transferListeners
          * @return Returns a reference to this object so that method calls can be chained together.
          * @return This builder for method chaining.
          * @see TransferListener
          */
-        TypedBuilder<T> transferListeners(Collection<TransferListener> transferListeners);
+        TypedBuilder<T> transferListeners(
+                Collection<TransferListener> transferListeners);
 
         /**
          * Add a {@link TransferListener} that will be notified as part of this request.
@@ -313,7 +326,8 @@ public final class PresignedDownloadRequest<ReturnT>
          * @return a reference to this object so that method calls can be chained together.
          * @see AsyncResponseTransformer
          */
-        TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
+        TypedBuilder<T> responseTransformer(
+                AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
     }
     
     private static class DefaultTypedBuilder<T> implements TypedBuilder<T> {
@@ -337,14 +351,17 @@ public final class PresignedDownloadRequest<ReturnT>
         }
 
         @Override
-        public TypedBuilder<T> responseTransformer(AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
+        public TypedBuilder<T> responseTransformer(
+                AsyncResponseTransformer<GetObjectResponse, T> responseTransformer) {
             this.responseTransformer = responseTransformer;
             return this;
         }
 
         @Override
-        public TypedBuilder<T> transferListeners(Collection<TransferListener> transferListeners) {
-            this.transferListeners = transferListeners != null ? new ArrayList<>(transferListeners) : null;
+        public TypedBuilder<T> transferListeners(
+                Collection<TransferListener> transferListeners) {
+            this.transferListeners = transferListeners != null ?
+                    new ArrayList<>(transferListeners) : null;
             return this;
         }
 
@@ -361,7 +378,8 @@ public final class PresignedDownloadRequest<ReturnT>
             return transferListeners;
         }
 
-        public void setTransferListeners(Collection<TransferListener> transferListeners) {
+        public void setTransferListeners(
+                Collection<TransferListener> transferListeners) {
             transferListeners(transferListeners);
         }
 

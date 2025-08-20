@@ -48,7 +48,8 @@ public final class PresignedDownloadFileRequest
 
     private PresignedDownloadFileRequest(DefaultBuilder builder) {
         this.destination = Validate.paramNotNull(builder.destination, "destination");
-        this.presignedUrlDownloadRequest = Validate.paramNotNull(builder.presignedUrlDownloadRequest, "presignedUrlDownloadRequest");
+        this.presignedUrlDownloadRequest = Validate.paramNotNull(builder.presignedUrlDownloadRequest,
+                                                                        "presignedUrlDownloadRequest");
         this.transferListeners = builder.transferListeners;
     }
 
@@ -181,7 +182,8 @@ public final class PresignedDownloadFileRequest
          * @return a reference to this object so that method calls can be chained together.
          * @see #presignedUrlDownloadRequest(PresignedUrlDownloadRequest)
          */
-        default Builder presignedUrlDownloadRequest(Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
+        default Builder presignedUrlDownloadRequest(
+                Consumer<PresignedUrlDownloadRequest.Builder> presignedUrlDownloadRequestBuilder) {
             PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                              .applyMutation(presignedUrlDownloadRequestBuilder)
                                                                              .build();
