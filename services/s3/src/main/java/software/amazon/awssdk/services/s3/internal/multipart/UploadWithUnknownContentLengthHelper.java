@@ -54,10 +54,12 @@ import software.amazon.awssdk.utils.Pair;
 public final class UploadWithUnknownContentLengthHelper {
     private static final Logger log = Logger.loggerFor(UploadWithUnknownContentLengthHelper.class);
 
+    private final S3AsyncClient s3AsyncClient;
     private final long partSizeInBytes;
     private final GenericMultipartHelper<PutObjectRequest, PutObjectResponse> genericMultipartHelper;
 
     private final long maxMemoryUsageInBytes;
+    private final long multipartUploadThresholdInBytes;
 
     private final MultipartUploadHelper multipartUploadHelper;
 
@@ -65,11 +67,13 @@ public final class UploadWithUnknownContentLengthHelper {
                                                 long partSizeInBytes,
                                                 long multipartUploadThresholdInBytes,
                                                 long maxMemoryUsageInBytes) {
+        this.s3AsyncClient = s3AsyncClient;
         this.partSizeInBytes = partSizeInBytes;
         this.genericMultipartHelper = new GenericMultipartHelper<>(s3AsyncClient,
                                                                    SdkPojoConversionUtils::toAbortMultipartUploadRequest,
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.maxMemoryUsageInBytes = maxMemoryUsageInBytes;
+        this.multipartUploadThresholdInBytes = multipartUploadThresholdInBytes;
         this.multipartUploadHelper = new MultipartUploadHelper(s3AsyncClient, multipartUploadThresholdInBytes,
                                                                maxMemoryUsageInBytes);
     }
@@ -79,8 +83,8 @@ public final class UploadWithUnknownContentLengthHelper {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
         SdkPublisher<ClosableAsyncRequestBody> splitAsyncRequestBodyResponse =
-            asyncRequestBody.splitV2(b -> b.chunkSizeInBytes(partSizeInBytes)
-                                         .bufferSizeInBytes(maxMemoryUsageInBytes));
+            asyncRequestBody.splitClosable(b -> b.chunkSizeInBytes(partSizeInBytes)
+                                                 .bufferSizeInBytes(maxMemoryUsageInBytes));
 
         splitAsyncRequestBodyResponse.subscribe(new UnknownContentLengthAsyncRequestBodySubscriber(partSizeInBytes,
                                                                                                    putObjectRequest,
@@ -89,6 +93,10 @@ public final class UploadWithUnknownContentLengthHelper {
     }
 
     private class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<ClosableAsyncRequestBody> {
+        /**
+         * Indicates whether this is the first async request body or not.
+         */
+        private final AtomicBoolean isFirstAsyncRequestBody = new AtomicBoolean(true);
 
         /**
          * Indicates whether CreateMultipartUpload has been initiated or not
@@ -120,7 +128,7 @@ public final class UploadWithUnknownContentLengthHelper {
         private final CompletableFuture<PutObjectResponse> returnFuture;
         private final PublisherListener<Long> progressListener;
         private Subscription subscription;
-        private AsyncRequestBody firstRequestBody;
+        private ClosableAsyncRequestBody firstRequestBody;
 
         private String uploadId;
         private volatile boolean isDone;
@@ -159,8 +167,7 @@ public final class UploadWithUnknownContentLengthHelper {
                 return;
             }
             int currentPartNum = partNumber.incrementAndGet();
-            log.debug(() -> String.format("Received asyncRequestBody for part number %d with length %s", currentPartNum,
-                      asyncRequestBody.contentLength()));
+            log.trace(() -> "Received asyncRequestBody " + asyncRequestBody.contentLength());
             asyncRequestBodyInFlight.incrementAndGet();
 
             Optional<SdkClientException> sdkClientException = validatePart(asyncRequestBody, currentPartNum);
@@ -168,6 +175,14 @@ public final class UploadWithUnknownContentLengthHelper {
                 multipartUploadHelper.failRequestsElegantly(futures, sdkClientException.get(), uploadId, returnFuture,
                                                             putObjectRequest);
                 subscription.cancel();
+                return;
+            }
+
+            if (isFirstAsyncRequestBody.compareAndSet(true, false)) {
+                log.trace(() -> "Received first async request body");
+                // If this is the first AsyncRequestBody received, request another one because we don't know if there is more
+                firstRequestBody = asyncRequestBody;
+                subscription.request(1);
                 return;
             }
 
@@ -187,7 +202,8 @@ public final class UploadWithUnknownContentLengthHelper {
                         uploadId = createMultipartUploadResponse.uploadId();
                         log.debug(() -> "Initiated a new multipart upload, uploadId: " + uploadId);
 
-                        sendUploadPartRequest(uploadId, asyncRequestBody, currentPartNum);
+                        sendUploadPartRequest(uploadId, firstRequestBody, 1);
+                        sendUploadPartRequest(uploadId, asyncRequestBody, 2);
 
                         // We need to complete the uploadIdFuture *after* the first two requests have been sent
                         uploadIdFuture.complete(uploadId);
@@ -228,14 +244,13 @@ public final class UploadWithUnknownContentLengthHelper {
                     asyncRequestBody.close();
                     if (t != null) {
                         if (failureActionInitiated.compareAndSet(false, true)) {
-                            subscription.cancel();
                             multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture, putObjectRequest);
                         }
                     } else {
                         completeMultipartUploadIfFinish(asyncRequestBodyInFlight.decrementAndGet());
                     }
                 });
-            synchronized (subscription) {
+            synchronized (this) {
                 subscription.request(1);
             };
         }

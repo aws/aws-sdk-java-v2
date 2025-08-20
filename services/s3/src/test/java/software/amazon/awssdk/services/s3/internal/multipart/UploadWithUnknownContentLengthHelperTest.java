@@ -26,12 +26,9 @@ import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils
 import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.stubSuccessfulCreateMultipartCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.MpuTestUtils.stubSuccessfulUploadPartCalls;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -54,12 +51,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
-import software.amazon.awssdk.utils.StringInputStream;
 
 public class UploadWithUnknownContentLengthHelperTest {
     private static final String BUCKET = "bucket";
@@ -155,7 +150,7 @@ public class UploadWithUnknownContentLengthHelperTest {
 
     private CompletableFuture<PutObjectResponse> setupAndTriggerUploadFailure(ClosableAsyncRequestBody asyncRequestBody) {
         SdkPublisher<ClosableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
-        when(asyncRequestBody.splitV2(any(Consumer.class))).thenReturn(mockPublisher);
+        when(asyncRequestBody.splitClosable(any(Consumer.class))).thenReturn(mockPublisher);
 
         ArgumentCaptor<Subscriber<ClosableAsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
         CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), asyncRequestBody);

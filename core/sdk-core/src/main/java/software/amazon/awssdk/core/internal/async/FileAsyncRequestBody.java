@@ -88,7 +88,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public SdkPublisher<ClosableAsyncRequestBody> splitV2(AsyncRequestBodySplitConfiguration splitConfiguration) {
+    public SdkPublisher<ClosableAsyncRequestBody> splitClosable(AsyncRequestBodySplitConfiguration splitConfiguration) {
         return split(splitConfiguration).map(body -> new ClosableAsyncRequestBodyWrapper(body));
     }
 
@@ -444,24 +444,30 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     private static class ClosableAsyncRequestBodyWrapper implements ClosableAsyncRequestBody {
-        private final AsyncRequestBody body;
+        private final AsyncRequestBody delegate;
 
         ClosableAsyncRequestBodyWrapper(AsyncRequestBody body) {
-            this.body = body;
+            this.delegate = body;
         }
 
         @Override
         public Optional<Long> contentLength() {
-            return body.contentLength();
+            return delegate.contentLength();
         }
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            body.subscribe(s);
+            delegate.subscribe(s);
         }
 
         @Override
         public void close() {
+            // no op
+        }
+
+        @Override
+        public String body() {
+            return delegate.body();
         }
     }
 }

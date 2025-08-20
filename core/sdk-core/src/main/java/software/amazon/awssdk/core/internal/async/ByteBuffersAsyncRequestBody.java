@@ -123,6 +123,10 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody, SdkA
         return BodyType.BYTES.getName();
     }
 
+    public static ByteBuffersAsyncRequestBody of(List<ByteBuffer> buffers, long length) {
+        return new ByteBuffersAsyncRequestBody(Mimetype.MIMETYPE_OCTET_STREAM, length, buffers);
+    }
+
     public static ByteBuffersAsyncRequestBody of(List<ByteBuffer> buffers) {
         long length = buffers.stream()
                             .mapToLong(ByteBuffer::remaining)
@@ -131,7 +135,11 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody, SdkA
     }
 
     public static ByteBuffersAsyncRequestBody of(ByteBuffer... buffers) {
-        return of(Arrays.asList(buffers));
+        List<ByteBuffer> byteBuffers = Arrays.asList(buffers);
+        long length = byteBuffers.stream()
+                             .mapToLong(ByteBuffer::remaining)
+                             .sum();
+        return of(byteBuffers, length);
     }
 
     public static ByteBuffersAsyncRequestBody of(Long length, ByteBuffer... buffers) {

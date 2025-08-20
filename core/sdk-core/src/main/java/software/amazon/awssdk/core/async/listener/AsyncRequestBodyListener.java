@@ -78,14 +78,14 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         }
 
         @Override
-        public SdkPublisher<ClosableAsyncRequestBody> splitV2(AsyncRequestBodySplitConfiguration splitConfiguration) {
-            return delegate.splitV2(splitConfiguration);
+        public SdkPublisher<ClosableAsyncRequestBody> splitClosable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+            return delegate.splitClosable(splitConfiguration);
         }
 
         @Override
-        public SdkPublisher<ClosableAsyncRequestBody> splitV2(
+        public SdkPublisher<ClosableAsyncRequestBody> splitClosable(
             Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
-            return delegate.splitV2(splitConfiguration);
+            return delegate.splitClosable(splitConfiguration);
         }
 
         @Override

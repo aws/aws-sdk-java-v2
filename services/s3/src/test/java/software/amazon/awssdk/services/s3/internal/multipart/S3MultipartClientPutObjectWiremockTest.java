@@ -55,7 +55,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -76,13 +78,13 @@ public class S3MultipartClientPutObjectWiremockTest {
 
     public static Stream<Arguments> retryableErrorTestCase() {
         return Stream.of(
-            Arguments.of("unknownContentLength_failOfConnectionReset_shouldRetry", null,
+            Arguments.of("unknownContentLength_failOfConnectionReset", null,
                          aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
-            Arguments.of("unknownContentLength_failOf500_shouldRetry", null,
+            Arguments.of("unknownContentLength_failOf500", null,
                          aResponse().withStatus(500)),
-            Arguments.of("knownContentLength_failOfConnectionReset_shouldRetry", 20L,
+            Arguments.of("knownContentLength_failOfConnectionReset", 20L,
                          aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
-            Arguments.of("knownContentLength_failOf500_shouldRetry", 20L,
+            Arguments.of("knownContentLength_failOf500", 20L,
                          aResponse().withStatus(500))
         );
     }
@@ -95,8 +97,8 @@ public class S3MultipartClientPutObjectWiremockTest {
                                      .credentialsProvider(
                                          StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
                                      .multipartEnabled(true)
-                                     .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(10L))
-                                     .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                     .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(20L))
+                                     .httpClientBuilder(NettyNioAsyncHttpClient.builder())
                                      .build();
     }
 
@@ -144,10 +146,10 @@ public class S3MultipartClientPutObjectWiremockTest {
 
     @ParameterizedTest
     @MethodSource("retryableErrorTestCase")
-    void mpu_partsFailOfRetryableError_shouldRetry(String description,
+    void mpuWithBufferedSplittableAsyncRequestBody_partsFailOfRetryableError_shouldRetry(String description,
                                                    Long contentLength,
                                                    ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubUploadPartFailsInitialAttemptCalls(responseDefinitionBuilder);
+        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
         List<ByteBuffer> buffers = new ArrayList<>();
         buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
         buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
@@ -163,14 +165,45 @@ public class S3MultipartClientPutObjectWiremockTest {
             }
         };
 
-        s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody).join();
+        s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), BufferedSplittableAsyncRequestBody.create(asyncRequestBody))
+                     .join();
 
         verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
         verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
 
+    @ParameterizedTest
+    @MethodSource("retryableErrorTestCase")
+    void mpuDefaultSplitImpl_partsFailOfRetryableError_shouldFail(String description,
+                                                                  Long contentLength,
+                                                                  ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
+        List<ByteBuffer> buffers = new ArrayList<>();
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.ofNullable(contentLength);
+            }
 
-    private void stubUploadPartFailsInitialAttemptCalls(ResponseDefinitionBuilder responseDefinitionBuilder) {
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                Flowable.fromIterable(buffers).subscribe(s);
+            }
+        };
+
+        assertThatThrownBy(() -> s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody)
+                     .join())
+            .hasCauseInstanceOf(NonRetryableException.class)
+            .hasMessageContaining("A retry was attempted, but");
+
+        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+    }
+
+
+    private void stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(ResponseDefinitionBuilder responseDefinitionBuilder) {
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
         stubUploadFailsInitialAttemptCalls(1, responseDefinitionBuilder);
         stubUploadFailsInitialAttemptCalls(2, responseDefinitionBuilder);
