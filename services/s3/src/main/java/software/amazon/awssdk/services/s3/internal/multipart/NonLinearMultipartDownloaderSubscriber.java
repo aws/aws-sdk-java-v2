@@ -19,6 +19,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -92,7 +93,9 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicInteger inFlights = new AtomicInteger();
 
-    private final Object lock = new Object();
+    private final ReentrantLock firstPartLock = new ReentrantLock();
+    private final Queue<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingTransformers = new ArrayDeque<>();
+    private volatile boolean firstRequestSent = false;
 
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest,
                                                   CompletableFuture<GetObjectResponse> resultFuture) {
@@ -109,7 +112,7 @@ public class NonLinearMultipartDownloaderSubscriber
             return;
         }
         this.subscription = s;
-        this.subscription.request(1);
+        this.subscription.request(MAX_IN_FLIGHT);
     }
 
     @Override
@@ -120,28 +123,42 @@ public class NonLinearMultipartDownloaderSubscriber
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
-        // Handle first request case
-        if (completedParts.get() == 0) {
-            synchronized (lock) {
-                if (sendFirstRequest(asyncResponseTransformer)) {
-                    // we don't know yet if we can request more. We can only request more if the object requested has multiple
-                    // parts, and we can only know that by looking at the 'totalParts' field of the response.
-                    // So we return for now without requesting more, and only request more when the first request completes.
-                    // Note that this may be long, since calling GetObject with a FileAsyncResponseTransformer returns a future
-                    // that is completed only when the body has been written to the file. This means the subsequent requests
-                    // can only be sent after the first part is fully written to the file.
-                    return;
-                }
-
-            }
+        if (handleFirstRequest(asyncResponseTransformer)) {
+            return;
         }
+
         sendNextRequest(asyncResponseTransformer);
         requestMoreIfNeeded();
     }
 
+    // Handle first request.
+    // We need to wait for the first request to finish so we know if it is aa multipart object or not.
+    // While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
+    private boolean handleFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+        if (completedParts.get() == 0) {
+            firstPartLock.lock();
+            try {
+                if (!firstRequestSent) {
+                    sendFirstRequest(asyncResponseTransformer);
+                    firstRequestSent = true;
+                    return true;
+                }
+
+                // First request already sent, queue this transformer
+                synchronized (pendingTransformers) {
+                    pendingTransformers.offer(asyncResponseTransformer);
+                }
+            } finally {
+                firstPartLock.unlock();
+            }
+            return true;
+        }
+        return false;
+    }
+
     private void sendNextRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+        // guardrails: we shouldn't send more requests than
         if (inFlights.get() + completedParts.get() >= totalParts) {
-            // all requests are already being processed
             return;
         }
 
@@ -167,19 +184,8 @@ public class NonLinearMultipartDownloaderSubscriber
         });
     }
 
-    // returns true if the first request was sent, either by this call the this method, or previously
-    private boolean sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        // we could have completed the first request while waiting on synchronized block, check again
-        if (completedParts.get() != 0) {
-            // another thread sent the first request already and it is completed.
-            // We know at this point if it is multipart or not
-            return false;
-        }
-        if (inFlights.get() > 0) {
-            // We might not know if it is multipart or not
-            // first request is already in flight, wait for it to finish before requesting more
-            return true;
-        }
+    // returns true if the first request was sent and is still in flight
+    private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         log.info(() -> "============== SENDING FIRST REQUEST ==============");
         GetObjectRequest request = nextRequest(1);
         inFlights.incrementAndGet();
@@ -191,7 +197,7 @@ public class NonLinearMultipartDownloaderSubscriber
         responseFuture.whenComplete((res, e) -> {
             inFlights.decrementAndGet();
             if (e != null) {
-                // note on retries: When this future completed exceptionally, it means we did all retries and still failed
+                // Note on retries: When this future completed exceptionally, it means we did all retries and still failed
                 // we need to report back the failure to the user.
                 resultFuture.completeExceptionally(e);
                 return;
@@ -206,24 +212,37 @@ public class NonLinearMultipartDownloaderSubscriber
                 totalParts = partCount;
             }
 
+            // it is a multipart object?
             if (totalParts == null || totalParts == 1) {
-                // Single part object, skip multipart and complete everything now
+                // Single part object detected, skip multipart and complete everything now
                 log.info(() -> "Single Part object detected, skipping multipart download");
                 subscription.cancel();
                 resultFuture.complete(res);
                 return;
             }
-            // it is a multipart object
+
             log.info(() -> "Multipart object detected, performing multipart download");
             // part 1 already completed, so skip it
             for (int i = 2; i <= totalParts; i++) {
                 allRemainingParts.add(i);
             }
             getObjectResponse = res;
-            // request the next part, which will start the whole multipart dl in parallel
+            
+            // Process pending transformers
+            processPendingTransformers();
+            
             subscription.request(1);
         });
-        return true;
+    }
+
+    private void processPendingTransformers() {
+        synchronized (pendingTransformers) {
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =  pendingTransformers.poll();
+            while (transformer != null) {
+                sendNextRequest(transformer);
+                transformer = pendingTransformers.poll();
+            }
+        }
     }
 
     private void requestMoreIfNeeded() {
