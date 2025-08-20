@@ -172,7 +172,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
                 }
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
-                onComplete();
             }
         }
     }
