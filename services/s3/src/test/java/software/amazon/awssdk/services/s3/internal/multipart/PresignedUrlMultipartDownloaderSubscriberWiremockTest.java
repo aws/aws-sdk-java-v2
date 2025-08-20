@@ -19,7 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.apache.commons.lang3.RandomStringUtils.randomAscii;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
@@ -51,7 +49,7 @@ import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloa
 class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
 
     private static final String PRESIGNED_URL_PATH = "/presigned-url";
-    private static final byte[] TEST_DATA = randomAscii(5 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
+    private static final byte[] TEST_DATA = "This is exactly a 32 byte string".getBytes(StandardCharsets.UTF_8);
 
     private S3AsyncClient s3AsyncClient;
     private String presignedUrlBase;
@@ -61,8 +59,8 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
     @BeforeEach
     public void setup(WireMockRuntimeInfo wiremock) throws MalformedURLException {
         MultipartConfiguration multipartConfig = MultipartConfiguration.builder()
-                                                                        .minimumPartSizeInBytes(16L)
-                                                                        .build();
+                                                                       .minimumPartSizeInBytes(16L)
+                                                                       .build();
         s3AsyncClient = S3AsyncClient.builder()
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                      .multipartEnabled(true)
@@ -79,7 +77,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                      .getObject(PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(presignedUrl)
                                                                            .build(),
-                                               AsyncResponseTransformer.toBytes())
+                                                AsyncResponseTransformer.toBytes())
                                      .join()
                                      .asByteArray();
         assertArrayEquals(TEST_DATA, result);
@@ -93,7 +91,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                                                            .presignedUrl(presignedUrl)
                                                                            .range("bytes=0-10")
                                                                            .build(),
-                                               AsyncResponseTransformer.toBytes())
+                                                AsyncResponseTransformer.toBytes())
                                      .join()
                                      .asByteArray();
         byte[] expectedPartial = Arrays.copyOfRange(TEST_DATA, 0, 11);
@@ -107,7 +105,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                               .getObject(PresignedUrlDownloadRequest.builder()
                                                                                     .presignedUrl(presignedUrl)
                                                                                     .build(),
-                                                        AsyncResponseTransformer.toBytes())
+                                                         AsyncResponseTransformer.toBytes())
                                               .join())
             .hasRootCauseInstanceOf(S3Exception.class);
     }
@@ -120,7 +118,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                      .getObject(PresignedUrlDownloadRequest.builder()
                                                            .presignedUrl(presignedUrl)
                                                            .build(),
-                               AsyncResponseTransformer.toFile(tempFile))
+                                AsyncResponseTransformer.toFile(tempFile))
                      .join();
         assertThat(tempFile.toFile()).exists();
         assertThat(tempFile.toFile().length()).isGreaterThan(0);
@@ -133,7 +131,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                               .getObject(PresignedUrlDownloadRequest.builder()
                                                                                     .presignedUrl(presignedUrl)
                                                                                     .build(),
-                                                        AsyncResponseTransformer.toBytes())
+                                                         AsyncResponseTransformer.toBytes())
                                               .join())
             .hasRootCauseInstanceOf(S3Exception.class);
     }
@@ -145,7 +143,7 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                               .getObject(PresignedUrlDownloadRequest.builder()
                                                                                     .presignedUrl(presignedUrl)
                                                                                     .build(),
-                                                        AsyncResponseTransformer.toBytes())
+                                                         AsyncResponseTransformer.toBytes())
                                               .join())
             .hasRootCauseInstanceOf(S3Exception.class);
     }
@@ -157,74 +155,71 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                               .getObject(PresignedUrlDownloadRequest.builder()
                                                                                     .presignedUrl(presignedUrl)
                                                                                     .build(),
-                                                        AsyncResponseTransformer.toBytes())
+                                                         AsyncResponseTransformer.toBytes())
                                               .join())
             .hasCauseInstanceOf(IOException.class);
     }
 
 
     @Test
-    void presignedUrlDownload_withNullTransformer_shouldThrowException() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber = 
-            new PresignedUrlMultipartDownloaderSubscriber(
-                s3AsyncClient,
-                PresignedUrlDownloadRequest.builder().presignedUrl(presignedUrl).build(),
-                1024);
-        
+    void onNext_withNullTransformer_shouldThrowException() {
+        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
+
         assertThatThrownBy(() -> subscriber.onNext(null))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("onNext must not be called with null asyncResponseTransformer");
     }
 
     @Test
-    void validateResponse_withMissingContentRange_shouldFailRequest() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
-        GetObjectResponse response = GetObjectResponse.builder()
-                                                      .contentLength(1024L)
-                                                      .eTag("test-etag")
-                                                      .build();
-        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
-        assertThat(error).isPresent();
-        assertThat(error.get().getMessage()).contains("No Content-Range header in response");
+    void presignedUrlDownload_withMissingContentRange_shouldFailRequest() {
+        stubResponseWithMissingContentRange();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                         AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("No Content-Range header in response");
     }
 
     @Test
-    void validateResponse_withInvalidContentLength_shouldFailRequest() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
-        GetObjectResponse response = GetObjectResponse.builder()
-                                                      .contentLength(-1L)
-                                                      .contentRange("bytes 0-1023/5242880")
-                                                      .eTag("test-etag")
-                                                      .build();
-        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
-        assertThat(error).isPresent();
-        assertThat(error.get().getMessage()).contains("Invalid or missing Content-Length in response");
+    void presignedUrlDownload_withInvalidContentLength_shouldFailRequest() {
+        stubResponseWithInvalidContentLength();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                         AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid or missing Content-Length in response");
     }
 
     @Test
-    void validateResponse_withContentRangeMismatch_shouldFailRequest() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
-        GetObjectResponse response = GetObjectResponse.builder()
-                                                      .contentLength(1024L)
-                                                      .contentRange("bytes 5000-6023/5242880")
-                                                      .eTag("test-etag")
-                                                      .build();
-        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
-        assertThat(error).isPresent();
-        assertThat(error.get().getMessage()).contains("Content-Range mismatch");
+    void presignedUrlDownload_withContentRangeMismatch_shouldFailRequest() {
+        stubResponseWithContentRangeMismatch();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                         AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Content-Range mismatch");
     }
 
     @Test
-    void validateResponse_withContentLengthMismatch_shouldFailRequest() {
-        PresignedUrlMultipartDownloaderSubscriber subscriber = createTestSubscriber();
-        GetObjectResponse response = GetObjectResponse.builder()
-                                                      .contentLength(512L)
-                                                      .contentRange("bytes 0-1023/5242880")
-                                                      .eTag("test-etag")
-                                                      .build();
-        Optional<SdkClientException> error = invokeValidateResponse(subscriber, response, 0);
-        assertThat(error).isPresent();
-        assertThat(error.get().getMessage()).contains("Part content length validation failed");
+    void presignedUrlDownload_withContentLengthMismatch_shouldFailRequest() {
+        stubResponseWithContentLengthMismatch();
+        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
+                                              .getObject(PresignedUrlDownloadRequest.builder()
+                                                                                    .presignedUrl(presignedUrl)
+                                                                                    .build(),
+                                                        AsyncResponseTransformer.toBytes())
+                                              .join())
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Part content length validation failed");
     }
 
     @AfterEach
@@ -245,66 +240,80 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
     }
 
     private void stubSuccessfulPresignedUrlResponse() {
+        // Stub for first part (bytes 0-15)
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/octet-stream")
-                .withHeader("Content-Length", String.valueOf(TEST_DATA.length))
-                .withHeader("ETag", "\"test-etag\"")
-                .withBody(TEST_DATA)));
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+        
+        // Stub for second part (bytes 16-31)
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=16-31"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 16-31/32")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 16, 32))));
     }
 
     private void stubSuccessfulRangeResponse() {
         byte[] partialData = Arrays.copyOfRange(TEST_DATA, 0, 11);
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .willReturn(aResponse()
-                .withStatus(206)
-                .withHeader("Content-Type", "application/octet-stream")
-                .withHeader("Content-Length", String.valueOf(partialData.length))
-                .withHeader("Content-Range", "bytes 0-10/" + TEST_DATA.length)
-                .withHeader("ETag", "\"test-etag\"")
-                .withBody(partialData)));
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", String.valueOf(partialData.length))
+                                    .withHeader("Content-Range", "bytes 0-10/" + TEST_DATA.length)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(partialData)));
     }
 
     private void stubFailedPresignedUrlResponse() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .willReturn(aResponse()
-                .withStatus(404)
-                .withBody("<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>")));
+                    .willReturn(aResponse()
+                                    .withStatus(404)
+                                    .withBody("<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message></Error>")));
     }
 
     private void stubInternalServerError() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .willReturn(aResponse()
-                .withStatus(500)
-                .withBody("<Error><Code>InternalError</Code><Message>Internal Server Error</Message></Error>")));
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal Server Error</Message></Error>")));
     }
 
     private void stubPartialFailureScenario() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .inScenario("partial-failure")
-            .whenScenarioStateIs("Started")
-            .willReturn(aResponse()
-                .withStatus(206)
-                .withHeader("Content-Type", "application/octet-stream")
-                .withHeader("Content-Length", "16")
-                .withHeader("Content-Range", "bytes 0-15/" + TEST_DATA.length)
-                .withHeader("ETag", "\"test-etag\"")
-                .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
-            .willSetStateTo("first-success"));
+                    .inScenario("partial-failure")
+                    .whenScenarioStateIs("Started")
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 0-15/" + TEST_DATA.length)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16)))
+                    .willSetStateTo("first-success"));
 
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .inScenario("partial-failure")
-            .whenScenarioStateIs("first-success")
-            .willReturn(aResponse()
-                .withStatus(500)
-                .withBody("<Error><Code>InternalError</Code><Message>Second request failed</Message></Error>")));
+                    .inScenario("partial-failure")
+                    .whenScenarioStateIs("first-success")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Second request failed</Message></Error>")));
     }
 
     private void stubConnectionReset() {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
-            .willReturn(aResponse()
-                .withFault(com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER)));
+                    .willReturn(aResponse()
+                                    .withFault(com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER)));
     }
 
     private URL createPresignedUrl() throws MalformedURLException {
@@ -318,16 +327,45 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
             1024L);
     }
 
-    private Optional<SdkClientException> invokeValidateResponse(PresignedUrlMultipartDownloaderSubscriber subscriber,
-                                                               GetObjectResponse response,
-                                                               int partIndex) {
-        try {
-            java.lang.reflect.Method validateMethod = subscriber.getClass()
-                .getDeclaredMethod("validateResponse", GetObjectResponse.class, int.class);
-            validateMethod.setAccessible(true);
-            return (Optional<SdkClientException>) validateMethod.invoke(subscriber, response, partIndex);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to invoke validateResponse method", e);
-        }
+    private void stubResponseWithMissingContentRange() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+    }
+
+    private void stubResponseWithInvalidContentLength() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Range", "bytes 0-15/" + TEST_DATA.length)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+    }
+
+    private void stubResponseWithContentRangeMismatch() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", "bytes 5000-5015/" + TEST_DATA.length)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
+    }
+
+    private void stubResponseWithContentLengthMismatch() {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "8")
+                                    .withHeader("Content-Range", "bytes 0-15/" + TEST_DATA.length)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 8))));
     }
 }

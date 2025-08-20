@@ -119,12 +119,13 @@ public class PresignedUrlMultipartDownloaderSubscriber
                     handleError(error);
                     return;
                 }
-                validatePart(response, partIndex);
+                validatePart(response, partIndex, asyncResponseTransformer);
                 requestMoreIfNeeded(completedParts.get());
             });
     }
 
-    private void validatePart(GetObjectResponse response, int partIndex) {
+    private void validatePart(GetObjectResponse response, int partIndex,
+                              AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         int totalComplete = completedParts.get();
         log.debug(() -> String.format("Completed part %d", totalComplete));
 
@@ -138,6 +139,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         Optional<SdkClientException> validationError = validateResponse(response, partIndex);
         if (validationError.isPresent()) {
             log.debug(() -> "Response validation failed", validationError.get());
+            asyncResponseTransformer.exceptionOccurred(validationError.get());
             handleError(validationError.get());
             return;
         }
@@ -147,10 +149,11 @@ public class PresignedUrlMultipartDownloaderSubscriber
             if (!parsedContentLength.isPresent()) {
                 SdkClientException error = PresignedUrlDownloadHelper.invalidContentRangeHeader(responseContentRange);
                 log.debug(() -> "Failed to parse content range", error);
+                asyncResponseTransformer.exceptionOccurred(error);
                 handleError(error);
                 return;
             }
-            
+
             this.totalContentLength = parsedContentLength.get();
             this.totalParts = calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
@@ -169,6 +172,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
                 }
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
+                onComplete();
             }
         }
     }
@@ -177,7 +181,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
         if (response == null) {
             return Optional.of(SdkClientException.create("Response cannot be null"));
         }
-        
         String contentRange = response.contentRange();
         if (contentRange == null) {
             return Optional.of(PresignedUrlDownloadHelper.missingContentRangeHeader());
@@ -195,7 +198,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
         } else {
             expectedEndByte = expectedStartByte + configuredPartSizeInBytes - 1;
         }
-        
         String expectedRange = "bytes " + expectedStartByte + "-" + expectedEndByte + "/";
         if (!contentRange.startsWith(expectedRange)) {
             return Optional.of(SdkClientException.create(
@@ -209,7 +211,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
         } else {
             expectedPartSize = configuredPartSizeInBytes;
         }
-        
         if (!contentLength.equals(expectedPartSize)) {
             return Optional.of(SdkClientException.create(
                 String.format("Part content length validation failed for part %d. Expected: %d, but got: %d",
@@ -231,7 +232,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
     }
 
     private boolean hasMoreParts(int completedPartsCount) {
-        return totalParts != null && totalParts > 1 && completedPartsCount < totalParts;
+        return totalParts != null && completedPartsCount < totalParts;
     }
 
     private PresignedUrlDownloadRequest createRangedGetRequest(int partIndex) {
