@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Add a `setNull(Boolean)` setter for the serializable builder class returned by `AttributeValue.serializableBuilderClass()`. This allows successfully converting from a JSON blob such as `{\"NULL\": true}`."
+}
