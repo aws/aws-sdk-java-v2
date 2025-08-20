@@ -1,4 +1,92 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.27__ __2025-08-20__
+## __AWS Billing__
+  - ### Features
+    - Clarify IPv4 and IPv6 endpoints
+
+## __AWS Budgets__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Network Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Updated codegen to add the null check and pass it in instead of throw NPE when serializing enum to string
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Launch CountTokens API to allow token counting
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - This release adds support for the new Terms APIs which allow displaying Terms of Use and Privacy Policy on the Managed Login user-registration page.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release supports policy grant identifier for cloud formation integration
+
+## __Amazon Detective__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - EKS Add-ons Custom Namespace Support
+
+## __Amazon Kinesis__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Adds Key Management Service (KMS) support allowing customer-managed key (CMK) encryption for Flink application data.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This change added InternationalSendingEnbaled as part of describe/Update/Request phone number API response, and as part of update/Request phone number API request
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds 1/ Launch ml.p5.4xlarge instance in Processing jobs, Training jobs and Training Plan 2/ Makes S3Uri to be required for S3FileSystem and S3FileSystemConfig.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
 # __2.32.26__ __2025-08-19__
 ## __AWS Clean Rooms Service__
   - ### Features

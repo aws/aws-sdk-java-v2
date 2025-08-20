@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Launch CountTokens API to allow token counting"
-}

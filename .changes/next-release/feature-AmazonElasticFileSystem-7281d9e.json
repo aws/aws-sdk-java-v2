@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic File System",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

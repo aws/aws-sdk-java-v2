@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Updated codegen to add the null check and pass it in instead of throw NPE when serializing enum to string"
-}
