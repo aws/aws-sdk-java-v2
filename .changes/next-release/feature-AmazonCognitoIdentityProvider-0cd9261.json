@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Cognito Identity Provider",
+    "contributor": "",
+    "description": "This release adds support for the new Terms APIs which allow displaying Terms of Use and Privacy Policy on the Managed Login user-registration page."
+}
