@@ -119,11 +119,12 @@ public class PresignedUrlMultipartDownloaderSubscriber
                     handleError(error);
                     return;
                 }
-                validatePartAndRequestMore(response, partIndex);
+                validatePart(response, partIndex);
+                requestMoreIfNeeded(completedParts.get());
             });
     }
 
-    private void validatePartAndRequestMore(GetObjectResponse response, int partIndex) {
+    private void validatePart(GetObjectResponse response, int partIndex) {
         int totalComplete = completedParts.get();
         log.debug(() -> String.format("Completed part %d", totalComplete));
 
@@ -154,8 +155,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
             this.totalParts = calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
         }
-
-        requestMoreIfNeeded(totalComplete);
     }
 
     private void requestMoreIfNeeded(int totalComplete) {
