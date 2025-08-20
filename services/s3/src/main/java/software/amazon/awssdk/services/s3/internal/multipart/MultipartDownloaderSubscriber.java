@@ -114,12 +114,13 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
-        int nextPartToGet = completedParts.get() + 1;
+        int currentPart = completedParts.get();
+        int nextPartToGet =  currentPart + 1;
 
         synchronized (lock) {
             if (totalParts != null && nextPartToGet > totalParts) {
-                validatePartsCount(completedParts.get());
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
+                validatePartsCount(currentPart);
                 subscription.cancel();
                 return;
             }
@@ -168,7 +169,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
                 subscription.request(1);
             } else {
-                validatePartsCount(completedParts.get());
+                validatePartsCount(totalComplete);
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
             }
@@ -204,9 +205,8 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     private void validatePartsCount(int currentGetCount) {
         if (totalParts != null && currentGetCount != totalParts) {
-            String errorMessage = "PartsCount validation failed. Expected " + totalParts + ", downloaded"
-                                  + " " + currentGetCount + " parts.";
-            log.error(() -> errorMessage);
+            String errorMessage = String.format("PartsCount validation failed. Expected %d, downloaded %d parts.", totalParts,
+                                                 currentGetCount);
             subscription.cancel();
             SdkClientException exception = SdkClientException.create(errorMessage);
             onError(exception);
