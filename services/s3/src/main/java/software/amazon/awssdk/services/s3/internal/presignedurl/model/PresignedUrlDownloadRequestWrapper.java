@@ -48,18 +48,27 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("Range")
                              .unmarshallLocationName("Range").build()).build();
 
+    private static final SdkField<String> IF_MATCH_FIELD = SdkField
+        .<String>builder(MarshallingType.STRING)
+        .memberName("IfMatch")
+        .getter(getter(PresignedUrlDownloadRequestWrapper::ifMatch))
+        .traits(LocationTrait.builder().location(MarshallLocation.HEADER).locationName("If-Match")
+                             .unmarshallLocationName("If-Match").build()).build();
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(
-        Arrays.asList(RANGE_FIELD));
+        Arrays.asList(RANGE_FIELD, IF_MATCH_FIELD));
 
     private static final Map<String, SdkField<?>> SDK_NAME_TO_FIELD = memberNameToFieldInitializer();
 
     private final URL url;
     private final String range;
+    private final String ifMatch;
 
     private PresignedUrlDownloadRequestWrapper(Builder builder) {
         super(builder);
         this.url = builder.url;
         this.range = builder.range;
+        this.ifMatch = builder.ifMatch;
     }
 
     public URL url() {
@@ -68,6 +77,10 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
 
     public String range() {
         return range;
+    }
+
+    public String ifMatch() {
+        return ifMatch;
     }
 
     @Override
@@ -87,6 +100,7 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
     private static Map<String, SdkField<?>> memberNameToFieldInitializer() {
         Map<String, SdkField<?>> map = new HashMap<>();
         map.put("Range", RANGE_FIELD);
+        map.put("IfMatch", IF_MATCH_FIELD);
         return Collections.unmodifiableMap(map);
     }
 
@@ -111,7 +125,7 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             return false;
         }
         PresignedUrlDownloadRequestWrapper that = (PresignedUrlDownloadRequestWrapper) obj;
-        return Objects.equals(url, that.url) && Objects.equals(range, that.range);
+        return Objects.equals(url, that.url) && Objects.equals(range, that.range) && Objects.equals(ifMatch, that.ifMatch);
     }
 
     @Override
@@ -119,12 +133,14 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
         int result = Objects.hashCode(super.hashCode());
         result = 31 * result + Objects.hashCode(url);
         result = 31 * result + Objects.hashCode(range);
+        result = 31 * result + Objects.hashCode(ifMatch);
         return result;
     }
 
     public static final class Builder extends S3Request.BuilderImpl {
         private URL url;
         private String range;
+        private String ifMatch;
 
         public Builder() {
         }
@@ -133,6 +149,7 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
             super(request);
             this.url = request.url();
             this.range = request.range();
+            this.ifMatch = request.ifMatch();
         }
 
         public Builder url(URL url) {
@@ -142,6 +159,11 @@ public final class PresignedUrlDownloadRequestWrapper extends S3Request {
 
         public Builder range(String range) {
             this.range = range;
+            return this;
+        }
+
+        public Builder ifMatch(String ifMatch) {
+            this.ifMatch = ifMatch;
             return this;
         }
 
