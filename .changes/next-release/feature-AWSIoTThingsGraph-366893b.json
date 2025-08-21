@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Things Graph",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
