@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
