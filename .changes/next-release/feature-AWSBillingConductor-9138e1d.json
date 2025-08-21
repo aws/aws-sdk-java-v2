@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSBillingConductor",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
