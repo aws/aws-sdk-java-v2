@@ -86,7 +86,7 @@ public interface SdkHttpFullResponse
         Builder statusCode(int statusCode);
 
         /**
-         * The query parameters, exactly as they were configured with {@link #headers(Map)},
+         * The headers, exactly as they were configured with {@link #headers(Map)},
          * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
          */
         @Override
