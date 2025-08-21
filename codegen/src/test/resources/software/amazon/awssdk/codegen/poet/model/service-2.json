@@ -128,6 +128,14 @@
         "requestUri":"/2016-03-11/queryParameterOperation/{PathParam}"
       },
       "input":{"shape":"QueryParameterOperationRequest"}
+    },
+    "OperationWithReservedKeywordMember": {
+      "name": "DeprecatedRename",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "OperationWithReservedKeywordMemberRequest"}
     }
   },
   "shapes":{
@@ -263,6 +271,14 @@
         },
         "MemberModifiedAsDeprecated":{"shape": "String"},
         "UndeprecatedMember": {"shape": "String"}
+      }
+    },
+    "OperationWithReservedKeywordMemberRequest": {
+      "type": "structure",
+      "members": {
+        "ReservedKeywordMember": {
+          "shape": "ContainsReservedKeyword"
+        }
       }
     },
     "Double":{"type":"double"},
@@ -656,6 +672,14 @@
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "ContainsReservedKeyword": {
+      "type": "structure",
+      "members": {
+        "NULL": {
+          "shape": "String"
+        }
+      }
     }
   }
 }
