@@ -119,13 +119,14 @@ public class PresignedUrlMultipartDownloaderSubscriber
                     handleError(error);
                     return;
                 }
-                validatePart(response, partIndex, asyncResponseTransformer);
-                requestMoreIfNeeded(completedParts.get());
+                if (validatePart(response, partIndex, asyncResponseTransformer)) {
+                    requestMoreIfNeeded(completedParts.get());
+                }
             });
     }
 
-    private void validatePart(GetObjectResponse response, int partIndex,
-                              AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+    private boolean validatePart(GetObjectResponse response, int partIndex,
+                                 AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         int totalComplete = completedParts.get();
         log.debug(() -> String.format("Completed part %d", totalComplete));
 
@@ -141,7 +142,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
             log.debug(() -> "Response validation failed", validationError.get());
             asyncResponseTransformer.exceptionOccurred(validationError.get());
             handleError(validationError.get());
-            return;
+            return false;
         }
         
         if (totalContentLength == null && responseContentRange != null) {
@@ -151,13 +152,14 @@ public class PresignedUrlMultipartDownloaderSubscriber
                 log.debug(() -> "Failed to parse content range", error);
                 asyncResponseTransformer.exceptionOccurred(error);
                 handleError(error);
-                return;
+                return false;
             }
 
             this.totalContentLength = parsedContentLength.get();
             this.totalParts = calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
         }
+        return true;
     }
 
     private void requestMoreIfNeeded(int totalComplete) {
