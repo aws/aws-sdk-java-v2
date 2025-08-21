@@ -86,7 +86,7 @@ public abstract class AsyncPresignedUrlExtensionTestSuite extends S3IntegrationT
         testGetObjectKey = generateRandomObjectKey();
         testLargeObjectKey = generateRandomObjectKey() + "-large";
         testObjectContent = "Hello AsyncPresignedUrlExtension Integration Test";
-        testLargeObjectContent = randomAscii(5 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
+        testLargeObjectContent = randomAscii(15 * 1024 * 1024).getBytes(StandardCharsets.UTF_8);
 
         try (ByteArrayInputStream originalStream = new ByteArrayInputStream(testLargeObjectContent)) {
             expectedLargeObjectMd5 = Md5Utils.md5AsBase64(originalStream);
