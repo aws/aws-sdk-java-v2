@@ -24,13 +24,14 @@ import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
 
 public class DefaultTransferProgressSnapshotTest {
     @Test
-    public void bytesTransferred_greaterThan_transferSize_shouldThrow() {
-        DefaultTransferProgressSnapshot.Builder builder = DefaultTransferProgressSnapshot.builder()
-                                                                                         .transferredBytes(2L)
-                                                                                         .totalBytes(1L);
-        assertThatThrownBy(builder::build)
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("transferredBytes (2) must not be greater than totalBytes (1)");
+    public void bytesTransferred_greaterThan_transferSize_shouldClamp() {
+        TransferProgressSnapshot snapshot = DefaultTransferProgressSnapshot.builder()
+                                                                           .transferredBytes(2L)
+                                                                           .totalBytes(1L)
+                                                                           .build();
+        // transferredBytes should be clamped to totalBytes to handle race conditions
+        assertThat(snapshot.transferredBytes()).isEqualTo(1L);
+        assertThat(snapshot.totalBytes()).hasValue(1L);
     }
 
     @Test

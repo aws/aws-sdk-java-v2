@@ -78,6 +78,8 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -237,7 +239,6 @@ class GenericS3TransferManager implements S3TransferManager {
         // TODO use configuration getter when available
         return s3AsyncClient instanceof MultipartS3AsyncClient;
     }
-
 
     /**
      * Can be overridden by subclasses to provide different implementation
@@ -426,8 +427,8 @@ class GenericS3TransferManager implements S3TransferManager {
         Optional<MultipartDownloadResumeContext> optCtx =
             multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
         if (optCtx.map(MultipartDownloadResumeContext::isComplete).orElse(false)) {
-            log.debug(() -> "The multipart download associated to the provided ResumableFileDownload is already completed, "
-                            + "nothing to resume");
+            log.debug(() -> "The multipart download associated to the provided ResumableFileDownload is already "
+                            + "completed, nothing to resume");
             return completedDownload(resumableFileDownload, optCtx.get());
         }
 
@@ -560,6 +561,76 @@ class GenericS3TransferManager implements S3TransferManager {
         }
 
         return new DefaultCopy(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final FileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        Validate.paramNotNull(presignedDownloadFileRequest, "presignedDownloadFileRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            AsyncResponseTransformer.toFile(presignedDownloadFileRequest.destination(),
+                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadFileRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              ? progressUpdater.wrapResponseTransformerForMultipartDownload(
+            responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<GetObjectResponse> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadFileRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              res -> CompletedFileDownload.builder()
+                                                                                          .response(res)
+                                                                                          .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> null, null);
+    }
+
+    @Override
+    public final <ResultT> Download<ResultT> downloadWithPresignedUrl(
+            PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        Validate.paramNotNull(presignedDownloadRequest, "presignedDownloadRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer =
+            presignedDownloadRequest.responseTransformer();
+
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              ? progressUpdater.wrapResponseTransformerForMultipartDownload(
+            responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<ResultT> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder()
+                                                                                    .result(r)
+                                                                                    .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
     @Override
