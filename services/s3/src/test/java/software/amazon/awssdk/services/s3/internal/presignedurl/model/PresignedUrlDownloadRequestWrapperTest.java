@@ -39,10 +39,12 @@ class PresignedUrlDownloadRequestWrapperTest {
         PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
                                                                                          .url(new URL("https://example.com"))
                                                                                          .range("bytes=0-100")
+                                                                                         .ifMatch("\"etag-123\"")
                                                                                          .build();
 
         assertThat(request.url()).isEqualTo(new URL("https://example.com"));
         assertThat(request.range()).isEqualTo("bytes=0-100");
+        assertThat(request.ifMatch()).isEqualTo("\"etag-123\"");
     }
 
     @Test
@@ -54,12 +56,15 @@ class PresignedUrlDownloadRequestWrapperTest {
 
         List<SdkField<?>> fields = request.sdkFields();
 
-        assertThat(fields).hasSize(1);
-        assertThat(fields.get(0).memberName()).isEqualTo("Range");
-        assertThat(fields.get(0).location()).isEqualTo(MarshallLocation.HEADER);
-
-        // Assert that range value is present
-        Object rangeValue = fields.get(0).getValueOrDefault(request);
+        assertThat(fields).hasSize(2);
+        assertThat(fields).extracting(SdkField::memberName)
+                          .containsExactlyInAnyOrder("Range", "IfMatch");
+        assertThat(fields).allMatch(field -> field.location() == MarshallLocation.HEADER);
+        SdkField<?> rangeField = fields.stream()
+                                       .filter(f -> "Range".equals(f.memberName()))
+                                       .findFirst()
+                                       .orElseThrow(() -> new AssertionError("Range field not found"));
+        Object rangeValue = rangeField.getValueOrDefault(request);
         assertThat(rangeValue).isNotNull();
         assertThat(rangeValue).isEqualTo("bytes=0-100");
     }
@@ -73,9 +78,10 @@ class PresignedUrlDownloadRequestWrapperTest {
         Map<String, SdkField<?>> fieldMap = request.sdkFieldNameToField();
 
         assertThat(fieldMap)
-            .hasSize(1)
-            .containsKey("Range");
+            .hasSize(2)
+            .containsKeys("Range", "IfMatch");
         assertThat(fieldMap.get("Range").memberName()).isEqualTo("Range");
+        assertThat(fieldMap.get("IfMatch").memberName()).isEqualTo("IfMatch");
     }
 
     @Test
@@ -85,10 +91,28 @@ class PresignedUrlDownloadRequestWrapperTest {
                                                                                          .range("bytes=0-1023")
                                                                                          .build();
 
-        // Test that the SdkField can extract the range value
-        SdkField<?> rangeField = request.sdkFields().get(0);
+        SdkField<?> rangeField = request.sdkFields().stream()
+                                        .filter(f -> "Range".equals(f.memberName()))
+                                        .findFirst()
+                                        .orElseThrow(() -> new AssertionError("Range field not found"));
         Object extractedValue = rangeField.getValueOrDefault(request);
 
         assertThat(extractedValue).isEqualTo("bytes=0-1023");
+    }
+
+    @Test
+    void ifMatchField_shouldMarshalCorrectly() throws Exception {
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(new URL("https://example.com"))
+                                                                                         .ifMatch("\"etag-value\"")
+                                                                                         .build();
+
+        SdkField<?> ifMatchField = request.sdkFields().stream()
+                                          .filter(f -> "IfMatch".equals(f.memberName()))
+                                          .findFirst()
+                                          .orElseThrow(() -> new AssertionError("IfMatch field not found"));
+        Object extractedValue = ifMatchField.getValueOrDefault(request);
+
+        assertThat(extractedValue).isEqualTo("\"etag-value\"");
     }
 }

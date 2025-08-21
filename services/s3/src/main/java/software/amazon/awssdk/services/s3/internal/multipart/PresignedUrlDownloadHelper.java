@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
@@ -63,15 +64,25 @@ public class PresignedUrlDownloadHelper {
                                                                                              .build();
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split =
             asyncResponseTransformer.split(splittingConfig);
-        // TODO: PresignedUrlMultipartDownloaderSubscriber needs to be implemented in next PR
-        // PresignedUrlMultipartDownloaderSubscriber subscriber =
-        //     new PresignedUrlMultipartDownloaderSubscriber(
-        //         s3AsyncClient,
-        //         presignedRequest,
-        //         configuredPartSizeInBytes);
-        //
-        // split.publisher().subscribe(subscriber);
-        // return split.resultFuture();
-        throw new UnsupportedOperationException("Multipart presigned URL download not yet implemented - TODO in next PR");
+        PresignedUrlMultipartDownloaderSubscriber subscriber =
+            new PresignedUrlMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                presignedRequest,
+                configuredPartSizeInBytes);
+
+        split.publisher().subscribe(subscriber);
+        return split.resultFuture();
+    }
+
+    static SdkClientException invalidContentRangeHeader(String contentRange) {
+        return SdkClientException.create("Invalid Content-Range header: " + contentRange);
+    }
+
+    static SdkClientException missingContentRangeHeader() {
+        return SdkClientException.create("No Content-Range header in response");
+    }
+
+    static SdkClientException invalidContentLength() {
+        return SdkClientException.create("Invalid or missing Content-Length in response");
     }
 }
