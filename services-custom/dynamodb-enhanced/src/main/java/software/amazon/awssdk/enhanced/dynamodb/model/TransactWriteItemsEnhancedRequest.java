@@ -258,6 +258,30 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
+         * Adds a delete operation to the transaction for the supplied item in the given table.
+         * <p>
+         * Unlike {@link #addDeleteItem(MappedTableResource, TransactDeleteItemEnhancedRequest)}, this variant allows you to
+         * provide the full item being deleted. If the table is configured with a version attribute (for example, when using the
+         * {@code VersionedRecordExtension}), the enhanced client will apply
+         * <strong>optimistic locking</strong> semantics to ensure that the delete operation only succeeds if the
+         * provided item’s version matches the one currently stored in the table.
+         * <p>
+         * For more information on the delete action, see the low-level operation description in
+         * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)} and how to construct the low-level request in
+         * {@link TransactDeleteCompleteItemEnhancedRequest}.
+         *
+         * @param mappedTableResource the table from which the item will be deleted
+         * @param request             a {@link TransactDeleteCompleteItemEnhancedRequest} containing the item to delete
+         * @param <T>                 the type of modeled objects in the table
+         * @return a builder of this type
+         */
+        public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource,
+                                         TransactDeleteCompleteItemEnhancedRequest<T> request) {
+            itemSupplierList.add(() -> generateTransactWriteItem(mappedTableResource, DeleteItemOperation.create(request)));
+            return this;
+        }
+
+        /**
          * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
          * on the delete action, see the low-level operation description in for instance
          * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
@@ -272,17 +296,30 @@ public final class TransactWriteItemsEnhancedRequest {
         }
 
         /**
-         * Adds a primary lookup key for the item to delete, and it's associated table, to the transaction. For more information
-         * on the delete action, see the low-level operation description in for instance
+         * Adds the supplied item and its associated table to the transaction for deletion.
+         * <p>
+         * Unlike {@link #addDeleteItem(MappedTableResource, Key)}, this variant allows you to provide the full modeled item
+         * instead of only its primary key. If the table is configured with a version attribute (for example, when using the
+         * {@code VersionedRecordExtension}), the enhanced client will apply
+         * <strong>optimistic locking</strong> semantics to ensure that the delete operation only succeeds if the
+         * provided item’s version matches the one currently stored in the table.
+         * <p>
+         * For more information on the delete action, see the low-level operation description in for instance
          * {@link DynamoDbTable#deleteItem(DeleteItemEnhancedRequest)}.
          *
-         * @param mappedTableResource the table where the key is located
-         * @param keyItem             an item that will have its key fields used to match a record to retrieve from the database
-         * @param <T>                 the type of modelled objects in the table
+         * @param mappedTableResource the table where the item is located
+         * @param keyItem             the modeled item to be deleted as part of the transaction
+         * @param <T>                 the type of modeled objects in the table
          * @return a builder of this type
          */
         public <T> Builder addDeleteItem(MappedTableResource<T> mappedTableResource, T keyItem) {
-            return addDeleteItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
+            TransactDeleteCompleteItemEnhancedRequest<T> request =
+                TransactDeleteCompleteItemEnhancedRequest.builder()
+                                                         .key(mappedTableResource.keyFrom(keyItem))
+                                                         .item(keyItem)
+                                                         .build();
+
+            return addDeleteItem(mappedTableResource, request);
         }
 
         /**
