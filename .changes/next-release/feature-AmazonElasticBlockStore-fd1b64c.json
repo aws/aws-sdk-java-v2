@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Block Store",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
