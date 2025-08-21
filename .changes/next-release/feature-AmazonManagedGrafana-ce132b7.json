@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Managed Grafana",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

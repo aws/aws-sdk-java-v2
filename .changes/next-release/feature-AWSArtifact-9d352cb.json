@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Artifact",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

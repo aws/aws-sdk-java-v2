@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GameLift Streams",
-    "contributor": "",
-    "description": "The default application in a stream group can now be changed at any time using UpdateStreamGroup to update the DefaultApplicationIdentifier."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Directory Service Data",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

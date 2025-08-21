@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Added support for preprocessing queries in Data Quality operations through new DataQualityGlueTable structure."
-}

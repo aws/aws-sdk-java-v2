@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Events Data",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

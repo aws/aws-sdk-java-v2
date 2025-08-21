@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Signaling Channels",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

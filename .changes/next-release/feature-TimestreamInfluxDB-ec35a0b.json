@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Timestream InfluxDB",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

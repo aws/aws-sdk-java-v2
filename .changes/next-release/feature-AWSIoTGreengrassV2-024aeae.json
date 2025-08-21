@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Greengrass V2",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}
