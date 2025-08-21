@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudTrail",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
