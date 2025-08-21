@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonApiGatewayManagementApi",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
