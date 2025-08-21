@@ -122,7 +122,7 @@ public class GetAttr extends Fn {
                 .argv(
                         Arrays.asList(
                                 builder.target,
-                                Literal.fromStr(String.join(".", builder.path))))
+                                Literal.fromStr(builder.path)))
                 .build());
     }
 
