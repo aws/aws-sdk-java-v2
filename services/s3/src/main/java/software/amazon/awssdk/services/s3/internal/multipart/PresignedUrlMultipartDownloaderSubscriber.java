@@ -109,20 +109,20 @@ public class PresignedUrlMultipartDownloaderSubscriber
                                       GetObjectResponse> asyncResponseTransformer) {
         PresignedUrlDownloadRequest partRequest = createRangedGetRequest(partIndex);
         log.debug(() -> "Sending range request for part " + partIndex + " with range=" + partRequest.range());
-        
+
         requestsSent.incrementAndGet();
         s3AsyncClient.presignedUrlExtension()
-            .getObject(partRequest, asyncResponseTransformer)
-            .whenComplete((response, error) -> {
-                if (error != null) {
-                    log.debug(() -> "Error encountered during part request for part " + partIndex);
-                    handleError(error);
-                    return;
-                }
-                if (validatePart(response, partIndex, asyncResponseTransformer)) {
-                    requestMoreIfNeeded(completedParts.get());
-                }
-            });
+                     .getObject(partRequest, asyncResponseTransformer)
+                     .whenComplete((response, error) -> {
+                         if (error != null) {
+                             log.debug(() -> "Error encountered during part request for part " + partIndex);
+                             handleError(error);
+                             return;
+                         }
+                         if (validatePart(response, partIndex, asyncResponseTransformer)) {
+                             requestMoreIfNeeded(completedParts.get());
+                         }
+                     });
     }
 
     private boolean validatePart(GetObjectResponse response, int partIndex,
@@ -144,7 +144,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
             handleError(validationError.get());
             return false;
         }
-        
+
         if (totalContentLength == null && responseContentRange != null) {
             Optional<Long> parsedContentLength = MultipartDownloadUtils.parseContentRangeForTotalSize(responseContentRange);
             if (!parsedContentLength.isPresent()) {
@@ -186,13 +186,33 @@ public class PresignedUrlMultipartDownloaderSubscriber
         if (contentRange == null) {
             return Optional.of(PresignedUrlDownloadHelper.missingContentRangeHeader());
         }
-        
+
         Long contentLength = response.contentLength();
         if (contentLength == null || contentLength < 0) {
             return Optional.of(PresignedUrlDownloadHelper.invalidContentLength());
         }
 
         long expectedStartByte = partIndex * configuredPartSizeInBytes;
+
+        // For the first part, we need to determine the actual object size from the response
+        if (partIndex == 0 && totalContentLength == null) {
+            // Parse total content length from the Content-Range header for validation
+            Optional<Long> parsedContentLength = MultipartDownloadUtils.parseContentRangeForTotalSize(contentRange);
+            if (parsedContentLength.isPresent()) {
+                long actualTotalLength = parsedContentLength.get();
+                // If the object is smaller than our part size, we should expect the full object
+                if (actualTotalLength <= configuredPartSizeInBytes) {
+                    String expectedRange = "bytes 0-" + (actualTotalLength - 1) + "/";
+                    if (!contentRange.startsWith(expectedRange)) {
+                        return Optional.of(SdkClientException.create(
+                            "Content-Range mismatch for small object. Expected range starting with: " + expectedRange +
+                            ", but got: " + contentRange));
+                    }
+                    return Optional.empty(); // Skip further validation for small objects
+                }
+            }
+        }
+
         long expectedEndByte;
         if (totalContentLength != null) {
             expectedEndByte = Math.min(expectedStartByte + configuredPartSizeInBytes - 1, totalContentLength - 1);
@@ -202,8 +222,22 @@ public class PresignedUrlMultipartDownloaderSubscriber
         String expectedRange = "bytes " + expectedStartByte + "-" + expectedEndByte + "/";
         if (!contentRange.startsWith(expectedRange)) {
             return Optional.of(SdkClientException.create(
-                "Content-Range mismatch. Expected range starting with: " + expectedRange + 
+                "Content-Range mismatch. Expected range starting with: " + expectedRange +
                 ", but got: " + contentRange));
+        }
+
+        // Skip part size validation if we already handled small object case above
+        if (partIndex == 0 && totalContentLength == null) {
+            Optional<Long> parsedContentLength = MultipartDownloadUtils.parseContentRangeForTotalSize(contentRange);
+            if (parsedContentLength.isPresent() && parsedContentLength.get() <= configuredPartSizeInBytes) {
+                // For small objects, the content length should match the actual object size
+                if (!contentLength.equals(parsedContentLength.get())) {
+                    return Optional.of(SdkClientException.create(
+                        String.format("Small object content length validation failed. Expected: %d, but got: %d",
+                                      parsedContentLength.get(), contentLength)));
+                }
+                return Optional.empty(); // Skip remaining validation
+            }
         }
 
         long expectedPartSize;
@@ -215,19 +249,19 @@ public class PresignedUrlMultipartDownloaderSubscriber
         if (!contentLength.equals(expectedPartSize)) {
             return Optional.of(SdkClientException.create(
                 String.format("Part content length validation failed for part %d. Expected: %d, but got: %d",
-                             partIndex, expectedPartSize, contentLength)));
+                              partIndex, expectedPartSize, contentLength)));
         }
 
         long actualStartByte = MultipartDownloadUtils.parseStartByteFromContentRange(contentRange);
         if (actualStartByte != expectedStartByte) {
             return Optional.of(SdkClientException.create(
-                "Content range offset mismatch for part " + partIndex + 
+                "Content range offset mismatch for part " + partIndex +
                 ". Expected start: " + expectedStartByte + ", but got: " + actualStartByte));
         }
-        
+
         return Optional.empty();
     }
-    
+
     private int calculateTotalParts(long contentLength, long partSize) {
         return (int) Math.ceil((double) contentLength / partSize);
     }
@@ -246,7 +280,7 @@ public class PresignedUrlMultipartDownloaderSubscriber
         }
         String rangeHeader = BYTES_RANGE_PREFIX + startByte + "-" + endByte;
         PresignedUrlDownloadRequest.Builder builder = presignedUrlDownloadRequest.toBuilder()
-                                                                                  .range(rangeHeader);
+                                                                                 .range(rangeHeader);
         if (partIndex > 0 && eTag != null) {
             builder.ifMatch(eTag);
         }

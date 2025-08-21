@@ -55,11 +55,13 @@ public class S3IntegrationTestBase extends AwsTestBase {
     protected static S3Client s3;
 
     protected static S3AsyncClient s3Async;
+    protected static S3AsyncClient s3multiAsync;
 
     protected static S3AsyncClient s3CrtAsync;
 
     protected static S3TransferManager tmCrt;
     protected static S3TransferManager tmJava;
+    protected static S3TransferManager tmMultipartJava;
 
     /**
      * Loads the AWS account info for the integration tests and creates an S3
@@ -71,6 +73,8 @@ public class S3IntegrationTestBase extends AwsTestBase {
         System.setProperty("aws.crt.debugnative", "true");
         s3 = s3ClientBuilder().build();
         s3Async = s3AsyncClientBuilder().build();
+        s3multiAsync = s3AsyncClientBuilder().multipartEnabled(true).build();
+
         s3CrtAsync = S3CrtAsyncClient.builder()
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .region(DEFAULT_REGION)
@@ -81,6 +85,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
         tmJava = S3TransferManager.builder()
                                   .s3Client(s3Async)
                                   .build();
+        tmMultipartJava = S3TransferManager.builder()
+                                           .s3Client(s3multiAsync)
+                                           .build();
 
     }
 
@@ -88,8 +95,11 @@ public class S3IntegrationTestBase extends AwsTestBase {
     public static void cleanUpForAllIntegTests() {
         s3.close();
         s3Async.close();
+        s3multiAsync.close();
         s3CrtAsync.close();
         tmCrt.close();
+        tmJava.close();
+        tmMultipartJava.close();
         CrtResource.waitForNoResources();
     }
 
@@ -181,4 +191,9 @@ public class S3IntegrationTestBase extends AwsTestBase {
             Arguments.of(tmJava));
     }
 
+    static Stream<Arguments> javaTransferManagerOnly() {
+        return Stream.of(
+            Arguments.of(tmJava),
+            Arguments.of(tmMultipartJava));
+    }
 }
