@@ -348,7 +348,11 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          */
         CompletableFuture<ResultT> resultFuture();
 
-        default Boolean supportParallel() {
+        /**
+         * TODO javadoc
+         * @return
+         */
+        default Boolean supportsNonSerial() {
             return false;
         }
 
@@ -390,14 +394,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * parallel streaming of multiple content body concurrently
              * @return
              */
-            Boolean supportsParallel();
+            Boolean supportsNonSerial();
 
             /**
              * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
              * parallel streaming of multiple content body concurrently
              * @return
              */
-            Builder<ResponseT, ResultT> supportsParallel(Boolean supportsParallel);
+            Builder<ResponseT, ResultT> supportsNonSerial(Boolean supportsParallel);
         }
     }
 

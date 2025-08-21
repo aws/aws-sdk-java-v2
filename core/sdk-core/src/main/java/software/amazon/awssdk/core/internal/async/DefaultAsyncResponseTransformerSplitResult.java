@@ -27,14 +27,14 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
-    private final Boolean supportParallel;
+    private final Boolean supportsNonSerial;
 
     private DefaultAsyncResponseTransformerSplitResult(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
             builder.resultFuture(), "future");
-        this.supportParallel = Validate.getOrDefault(builder.supportsParallel(), () -> false);
+        this.supportsNonSerial = Validate.getOrDefault(builder.supportsNonSerial(), () -> false);
     }
 
     /**
@@ -55,8 +55,8 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
     }
 
     @Override
-    public Boolean supportParallel() {
-        return this.supportParallel;
+    public Boolean supportsNonSerial() {
+        return this.supportsNonSerial;
     }
 
     @Override
@@ -100,20 +100,22 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         }
 
         @Override
-        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future) {
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> resultFuture(
+            CompletableFuture<ResultT> future) {
             this.future = future;
             return this;
         }
 
         @Override
-        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> supportsParallel(Boolean supportsParallel) {
-            this.suppressParallelism = supportsParallel;
-            return this;
+        public Boolean supportsNonSerial() {
+            return suppressParallelism;
         }
 
         @Override
-        public Boolean supportsParallel() {
-            return suppressParallelism;
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> supportsNonSerial(
+            Boolean supportsParallel) {
+            this.suppressParallelism = supportsParallel;
+            return this;
         }
 
         @Override

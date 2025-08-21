@@ -20,8 +20,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 
+@SdkInternalApi
 public class ThreadSafeEmittingSubscription<T> implements Subscription {
 
     private final AtomicBoolean emitting = new AtomicBoolean(false);

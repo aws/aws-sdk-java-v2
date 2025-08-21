@@ -18,31 +18,38 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A publisher of {@link FileAsyncResponseTransformer} that uses the Content-Range header of a {@link SdkResponse} to write to
- * the offset defined in the range of the Content-Range. Correspond to the {@link SplittingTransformer} for non-linear write
- * cases. Will only work for {@link FileAsyncResponseTransformer} and will throw {@link IllegalArgumentException} if other
- * subclasses of AsyncResponseTransformer is used with it.
+ * A publisher of {@link FileAsyncResponseTransformer} that uses the Content-Range header of a {@link SdkResponse} to write to the
+ * offset defined in the range of the Content-Range. Correspond to the {@link SplittingTransformer} for non-linear write cases.
+ * Will only work for {@link FileAsyncResponseTransformer} and will throw {@link IllegalArgumentException} if other subclasses of
+ * AsyncResponseTransformer is used with it.
  * <p>
  * Note: Marked as protected API because the s3 multipart logic in the s3 module needs to know about this type.
+ *
  * @param <T>
  */
-@SdkProtectedApi
-public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implements SdkPublisher<AsyncResponseTransformer<T, T>> {
+@SdkInternalApi
+public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
+    implements SdkPublisher<AsyncResponseTransformer<T, T>> {
     private static final Logger log = Logger.loggerFor(FileAsyncResponseTransformerPublisher.class);
 
     private final Path path;
@@ -78,66 +85,89 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse> implem
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {
-        AsyncResponseTransformer<T, T> delegate;
-        // todo deal with APPEND mode
-        if (transformerSent.get() == 0) {
-            delegate = AsyncResponseTransformer.toFile(path, initialConfig);
-        } else {
-            delegate = AsyncResponseTransformer.toFile(path, initialConfig.copy(
-                c -> c.fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)));
-        }
-        transformerSent.incrementAndGet();
-        return new IndividualFileTransformer((FileAsyncResponseTransformer<T>) delegate);
+        return new IndividualFileTransformer();
     }
 
     /**
      * This is the AsyncResponseTransformer that will be used for each individual requests.
      * <p>
-     * We delegate to new instances of the already existing class {@link FileAsyncResponseTransformer} to perform the
-     * individual requests. This FileAsyncResponseTransformer will write the content of the request to the file at the
-     * offset taken from the Content-Range header. As such, we don't need to manually manage the state of the
+     * We delegate to new instances of the already existing class {@link FileAsyncResponseTransformer} to perform the individual
+     * requests. This FileAsyncResponseTransformer will write the content of the request to the file at the offset taken from the
+     * Content-Range header ('x-amz-content-range'). As such, we don't need to manually manage the state of the
      * AsyncResponseTransformer passed by the user, like we do for {@link SplittingTransformer}. Here, we know it is a
-     * FileAsyncResponseTransformer, so we can just ignore it, and instead rely on the individual FileAsyncResponseTransformer
-     * of every part.
+     * FileAsyncResponseTransformer, so we can just ignore it, and instead rely on the individual FileAsyncResponseTransformer of
+     * every part.
      * <p>
      * Note on retries: since we are delegating requests to {@link FileAsyncResponseTransformer}, each request made with this
-     * transformer will retry independently based on the retry configuration of the client it is used with. We only need to
-     * verify the completion state of the future of each individually
+     * transformer will retry independently based on the retry configuration of the client it is used with. We only need to verify
+     * the completion state of the future of each individually
      */
     class IndividualFileTransformer implements AsyncResponseTransformer<T, T> {
-        private final FileAsyncResponseTransformer<T> delegate;
-
-        IndividualFileTransformer(FileAsyncResponseTransformer<T> delegate) {
-            this.delegate = delegate;
-        }
+        private AsyncResponseTransformer<T, T> delegate;
+        private CompletableFuture<T> future;
 
         @Override
         public CompletableFuture<T> prepare() {
-            return delegate.prepare(); // this future will be completed once the body has been written to file
+            this.future = new CompletableFuture<>();
+            return this.future;
         }
 
         @Override
         public void onResponse(T response) {
-            log.info(() -> "Received response: " + response.toString());
-            // todo: move to s3 package to use GetObjectResponse?
+            // log.info(() -> "Received response: " + response.toString());
             List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
-            if (!CollectionUtils.isNullOrEmpty(contentRangeList)) {
-                String contentRange = contentRangeList.get(0);
-                log.info(() -> "Setting offset to " + contentRange);
-                ContentRangeParser.range(contentRange)
-                                  .ifPresent(pair -> delegate.offsetPosition(initialPosition + pair.left()));
+            if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
+                // Bad state! This is intended to cancel everything, no retries!
+                subscriber.onError(new IllegalStateException("Content range header is missing"));
+                return;
             }
+
+            String contentRange = contentRangeList.get(0);
+            Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
+            if (!contentRangePair.isPresent()) {
+                // Bad state! This is intended to cancel everything, no retries!
+                subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
+                return;
+            }
+
+            this.delegate = getDelegateTransformer(contentRangePair.get().left());
+            CompletableFuture<T> delegateFuture = delegate.prepare();
+            CompletableFutureUtils.forwardResultTo(delegateFuture, future);
+            CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
+            transformerSent.incrementAndGet();
             delegate.onResponse(response);
+        }
+
+        private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
+            // todo deal with APPEND mode
+            if (transformerSent.get() == 0) {
+                return AsyncResponseTransformer.toFile(path, initialConfig);
+            }
+            FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
+                .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
+                .position(startAt));
+            return AsyncResponseTransformer.toFile(path, newConfig);
         }
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            delegate.onStream(publisher);
+            if (delegate != null) {
+                delegate.onStream(publisher);
+            }
         }
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            delegate.exceptionOccurred(error);
+            log.error(() -> "error detected", error);
+            if (delegate != null) {
+                // do not call onError, because exceptionOccurred may be called multiple times due to retries, simply forward the
+                // error to the delegate
+                delegate.exceptionOccurred(error);
+            } else {
+                // If we received an error without even having a delegate, this means we have thrown an error before even calling
+                // onStream on it something really wrong is happening, signal the subscriber to just shut down completely
+                subscriber.onError(error);
+            }
         }
     }
 

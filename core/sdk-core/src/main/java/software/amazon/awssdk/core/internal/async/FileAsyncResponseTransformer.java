@@ -56,7 +56,6 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
-    private final long initialPosition;
     private long position;
     private final FileTransformerConfiguration configuration;
 
@@ -71,20 +70,19 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileTransformerConfiguration, long position) {
         this.path = path;
         this.configuration = fileTransformerConfiguration;
-        this.initialPosition = position;
         this.position = position;
     }
 
-    FileTransformerConfiguration config() {
-        return configuration;
+    public FileTransformerConfiguration config() {
+        return configuration.toBuilder().build();
     }
 
-    Path path() {
+    public Path path() {
         return path;
     }
 
-    Long initialPosition() {
-        return initialPosition;
+    public Long initialPosition() {
+        return position;
     }
 
     private static long determineFilePositionToWrite(Path path, FileTransformerConfiguration fileConfiguration) {
@@ -145,10 +143,6 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.response = response;
     }
 
-    void offsetPosition(Long offset) {
-        this.position = Validate.isNotNegative(offset, "Offset must be positive");
-    }
-
     public FileTransformerConfiguration getConfiguration() {
         return this.configuration;
     }
@@ -197,6 +191,8 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
         return AsyncResponseTransformer.super
             .split(splitConfig)
-            .copy(res -> res.supportsParallel(true));
+            .copy(
+                res -> res.supportsNonSerial(true)
+                          .publisher(new FileAsyncResponseTransformerPublisher(this)));
     }
 }

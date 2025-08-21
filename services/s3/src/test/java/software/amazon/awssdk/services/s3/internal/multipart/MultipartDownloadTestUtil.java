@@ -95,4 +95,15 @@ public class MultipartDownloadTestUtil {
                             .withBody(body)));
         return body;
     }
+
+    public byte[] stubSinglePart(String testBucket, String testKey, int partSize) {
+        byte[] body = new byte[partSize];
+        random.nextBytes(body);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))).willReturn(
+            aResponse()
+                .withHeader("x-amz-mp-parts-count", "1")
+                .withHeader("ETag", eTag)
+                .withBody(body)));
+        return body;
+    }
 }

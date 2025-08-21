@@ -48,32 +48,31 @@ public class DownloadObjectHelper {
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
-        if (!split.supportParallel()) {
-            return downloadPartsLinear(getObjectRequest, split);
+        if (!split.supportsNonSerial()) {
+            return downloadPartsSerially(getObjectRequest, split);
         }
 
-        // The publisher of AsyncResponseTransformer needs to know about s3 GetObjectResponse to write to the correct file offset.
-        // The default publisher in the SplitResult may not be able to do so, so we need to create a new one that knows about s3
         log.info(() -> "================= USING downloadPartsNonLinear ==================");
-        return downloadPartsNonLinear(getObjectRequest, asyncResponseTransformer, split);
+        return downloadPartsNonSerially(getObjectRequest, split);
 
     }
 
-    private <T> CompletableFuture<T> downloadPartsNonLinear(
+    private <T> CompletableFuture<T> downloadPartsNonSerially(
         GetObjectRequest getObjectRequest,
-        AsyncResponseTransformer<GetObjectResponse, T> asyncResponseTransformer,
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
         // TODO pause & resume
-        FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>(asyncResponseTransformer);
+        // The publisher of AsyncResponseTransformer needs to know about s3 GetObjectResponse to write to the correct file offset.
+        // The default publisher in the SplitResult may not be able to do so, so we need to create a new one that knows about s3
+        // FileAsyncResponseTransformerPublisher<GetObjectResponse> publisher =
+        //     new FileAsyncResponseTransformerPublisher<>(asyncResponseTransformer);
         NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
             s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture());
-        publisher.subscribe(subscriber);
+        split.publisher().subscribe(subscriber);
         return split.resultFuture();
     }
 
-    private <T> CompletableFuture<T> downloadPartsLinear(GetObjectRequest getObjectRequest,
-                                                         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+    private <T> CompletableFuture<T> downloadPartsSerially(GetObjectRequest getObjectRequest,
+                                                           AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
         MultipartDownloaderSubscriber subscriber = subscriber(getObjectRequest);
         split.publisher().subscribe(subscriber);
         return split.resultFuture();
