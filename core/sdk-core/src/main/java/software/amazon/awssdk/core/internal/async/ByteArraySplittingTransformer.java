@@ -183,7 +183,15 @@ public class ByteArraySplittingTransformer<ResponseT> implements SdkPublisher<As
 
                 upstreamResponseTransformer.onResponse(responseT.get());
 
-                for (int i = 1; i <= buffers.size(); ++i) {
+                int totalPartCount = nextPartNumber.get() - 1;
+                if (buffers.size() != totalPartCount) {
+                    resultFuture.completeExceptionally(
+                        SdkClientException.create(String.format("Number of parts in buffer [%d] does not match total part count"
+                                                                + " [%d], some parts did not complete successfully.",
+                                                                buffers.size(), totalPartCount)));
+                    return;
+                }
+                for (int i = 1; i <= totalPartCount; ++i) {
                     publisherToUpstream.send(buffers.get(i)).exceptionally(ex -> {
                         resultFuture.completeExceptionally(SdkClientException.create("unexpected error occurred", ex));
                         return null;
