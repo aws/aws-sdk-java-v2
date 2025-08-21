@@ -186,8 +186,8 @@ public final class UploadWithKnownContentLengthHelper {
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
 
         mpuRequestContext.request().right()
-            .splitClosable(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
-                                 .bufferSizeInBytes(maxMemoryUsageInBytes))
+            .splitCloseable(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
+                                  .bufferSizeInBytes(maxMemoryUsageInBytes))
             .subscribe(subscriber);
     }
 

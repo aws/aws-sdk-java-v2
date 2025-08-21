@@ -34,7 +34,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -48,7 +48,7 @@ import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
-public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<ClosableAsyncRequestBody>  {
+public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody>  {
 
     private static final Logger log = Logger.loggerFor(KnownContentLengthAsyncRequestBodySubscriber.class);
 
@@ -145,7 +145,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     @Override
-    public void onNext(ClosableAsyncRequestBody asyncRequestBody) {
+    public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
         if (isPaused || isDone) {
             return;
         }

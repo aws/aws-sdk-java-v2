@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 
 public final class SplittingPublisherTestUtils {
@@ -39,8 +39,8 @@ public final class SplittingPublisherTestUtils {
                 new ByteArrayAsyncResponseTransformer.BaosSubscriber(baosFuture);
             requestBody.subscribe(subscriber);
             baosFuture.whenComplete((baos, throwable) -> {
-                if (requestBody instanceof ClosableAsyncRequestBody) {
-                    ((ClosableAsyncRequestBody) requestBody).close();
+                if (requestBody instanceof CloseableAsyncRequestBody) {
+                    ((CloseableAsyncRequestBody) requestBody).close();
                 }
             });
             futures.add(baosFuture);

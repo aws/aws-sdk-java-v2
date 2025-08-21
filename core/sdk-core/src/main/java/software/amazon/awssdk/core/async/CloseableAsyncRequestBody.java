@@ -22,5 +22,5 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  * An extension of {@link AsyncRequestBody} that is closable.
  */
 @SdkPublicApi
-public interface ClosableAsyncRequestBody extends AsyncRequestBody, SdkAutoCloseable {
+public interface CloseableAsyncRequestBody extends AsyncRequestBody, SdkAutoCloseable {
 }

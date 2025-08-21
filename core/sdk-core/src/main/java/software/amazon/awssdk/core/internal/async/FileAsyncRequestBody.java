@@ -34,7 +34,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
@@ -88,7 +88,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
-    public SdkPublisher<ClosableAsyncRequestBody> splitClosable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+    public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
         return split(splitConfiguration).map(body -> new ClosableAsyncRequestBodyWrapper(body));
     }
 
@@ -443,7 +443,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
     }
 
-    private static class ClosableAsyncRequestBodyWrapper implements ClosableAsyncRequestBody {
+    private static class ClosableAsyncRequestBodyWrapper implements CloseableAsyncRequestBody {
         private final AsyncRequestBody delegate;
 
         ClosableAsyncRequestBodyWrapper(AsyncRequestBody body) {

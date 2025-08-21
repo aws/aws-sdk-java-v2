@@ -62,11 +62,11 @@ public final class NonRetryableSubAsyncRequestBody implements SubAsyncRequestBod
 
     public void send(ByteBuffer data) {
         log.debug(() -> String.format("Sending bytebuffer %s to part %d", data, partNumber));
-        int length = data.remaining();
+        long length = data.remaining();
         bufferedLength += length;
-        onNumBytesReceived.accept((long) length);
+        onNumBytesReceived.accept(length);
         delegate.send(data).whenComplete((r, t) -> {
-            onNumBytesConsumed.accept((long) length);
+            onNumBytesConsumed.accept(length);
             if (t != null) {
                 error(t);
             }
@@ -93,11 +93,6 @@ public final class NonRetryableSubAsyncRequestBody implements SubAsyncRequestBod
     }
 
     @Override
-    public boolean contentLengthKnown() {
-        return contentLengthKnown;
-    }
-
-    @Override
     public int partNumber() {
         return partNumber;
     }
@@ -113,8 +108,10 @@ public final class NonRetryableSubAsyncRequestBody implements SubAsyncRequestBod
         } else {
             s.onSubscribe(new NoopSubscription(s));
             s.onError(NonRetryableException.create(
-                "A retry was attempted, but the provided source AsyncRequestBody does not "
-                + "support splitting to retryable AsyncRequestBody. Consider using BufferedSplittableAsyncRequestBody."));
+                "Multiple subscribers detected. This could happen due to a retry attempt. The AsyncRequestBody implementation"
+                + " provided does not support splitting to retryable/resubscribable AsyncRequestBody. If you need retry "
+                + "capability or multiple subscriptions, consider using BufferedSplittableAsyncRequestBody to wrap your "
+                + "AsyncRequestBody."));
         }
     }
 

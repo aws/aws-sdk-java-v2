@@ -75,10 +75,10 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
     @Override
     public void send(ByteBuffer data) {
         log.trace(() -> String.format("Sending bytebuffer %s to part number %d", data, partNumber));
-        int length = data.remaining();
+        long length = data.remaining();
         bufferedLength += length;
 
-        onNumBytesReceived.accept((long) length);
+        onNumBytesReceived.accept(length);
         delegate.send(data.asReadOnlyBuffer()).whenComplete((r, t) -> {
             if (t != null) {
                 delegate.error(t);
@@ -94,7 +94,9 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
         log.debug(() -> "Received complete() for part number: " + partNumber);
         // ByteBuffersAsyncRequestBody MUST be created before we complete the current
         // request because retry may happen right after
-        bufferedAsyncRequestBody = ByteBuffersAsyncRequestBody.of(buffers, bufferedLength);
+        synchronized (buffersLock) {
+            bufferedAsyncRequestBody = ByteBuffersAsyncRequestBody.of(buffers, bufferedLength);
+        }
         delegate.complete().exceptionally(e -> {
             delegate.error(e);
             return null;
@@ -121,7 +123,7 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
             if (bufferedAsyncRequestBody == null) {
                 s.onSubscribe(new NoopSubscription(s));
                 s.onError(NonRetryableException.create(
-                    "A retry was attempted, but data is not buffered successfully for retry, partNumber " + partNumber));
+                    "A retry was attempted, but data is not buffered successfully for retry for partNumber: " + partNumber));
                 return;
             }
             bufferedAsyncRequestBody.subscribe(s);
@@ -139,17 +141,12 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
                     buffers = null;
                 }
                 bufferedAsyncRequestBody.close();
-                log.debug(() -> "requesting data after closing" + partNumber);
+                bufferedAsyncRequestBody = null;
             }
         } catch (Throwable e) {
             log.warn(() -> String.format("Unexpected error thrown from cleaning up AsyncRequestBody for part number %d, "
                                          + "resource may be leaked", partNumber));
         }
-    }
-
-    @Override
-    public boolean contentLengthKnown() {
-        return contentLengthKnown;
     }
 
     @Override

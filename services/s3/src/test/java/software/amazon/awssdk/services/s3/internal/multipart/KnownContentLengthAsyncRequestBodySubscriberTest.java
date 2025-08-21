@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -132,7 +132,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         lastPartSubscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
-            ClosableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
+            CloseableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
             lastPartSubscriber.onNext(regularPart);
@@ -154,7 +154,7 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         subscriber.onSubscribe(subscription);
 
         for (int i = 0; i < TOTAL_NUM_PARTS - 1; i++) {
-            ClosableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
+            CloseableAsyncRequestBody regularPart = createMockAsyncRequestBody(PART_SIZE);
             when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
                 .thenReturn(CompletableFuture.completedFuture(null));
             subscriber.onNext(regularPart);
@@ -243,14 +243,14 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         return new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
     }
 
-    private ClosableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
-        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
+    private CloseableAsyncRequestBody createMockAsyncRequestBody(long contentLength) {
+        CloseableAsyncRequestBody mockBody = mock(CloseableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.of(contentLength));
         return mockBody;
     }
 
-    private ClosableAsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
-        ClosableAsyncRequestBody mockBody = mock(ClosableAsyncRequestBody.class);
+    private CloseableAsyncRequestBody createMockAsyncRequestBodyWithEmptyContentLength() {
+        CloseableAsyncRequestBody mockBody = mock(CloseableAsyncRequestBody.class);
         when(mockBody.contentLength()).thenReturn(Optional.empty());
         return mockBody;
     }

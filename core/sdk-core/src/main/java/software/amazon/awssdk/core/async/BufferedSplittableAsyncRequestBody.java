@@ -20,10 +20,43 @@ import java.util.Optional;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.internal.async.SplittingPublisher;
+import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link AsyncRequestBody} decorator that can be split into buffered sub {@link AsyncRequestBody}s. Each sub
- * {@link AsyncRequestBody} can be retried/resubscribed if all data has been successfully been published to first subscriber.
+ * An {@link AsyncRequestBody} decorator that enables splitting into retryable sub-request bodies.
+ *
+ * <p>This wrapper allows any {@link AsyncRequestBody} to be split into multiple parts where each part
+ * can be retried independently. When split, each sub-body buffers its portion of data, enabling
+ * resubscription if a retry is needed (e.g., due to network failures or service errors).</p>
+ *
+ * <p><b>Retry Requirements:</b></p>
+ * <p>Retry is only possible if all the data has been successfully buffered during the first subscription.
+ * If the first subscriber fails to consume all the data (e.g., due to early cancellation or errors),
+ * subsequent retry attempts will fail since the complete data set is not available for resubscription.</p>
+ *
+ * <p><b>Usage Example:</b></p>
+ * <pre>{@code
+ * AsyncRequestBody originalBody = AsyncRequestBody.fromString("Hello World");
+ * BufferedSplittableAsyncRequestBody retryableBody =
+ *     BufferedSplittableAsyncRequestBody.create(originalBody);
+ *
+ * AsyncRequestBodySplitConfiguration config = AsyncRequestBodySplitConfiguration.builder()
+ *     .chunkSizeInBytes(1024)
+ *     .bufferSizeInBytes(2048)
+ *     .build();
+ *
+ * SdkPublisher<ClosableAsyncRequestBody> parts = retryableBody.splitClosable(config);
+ * }</pre>
+ *
+ * <p><b>Performance Considerations:</b></p>
+ * <p>This implementation buffers data in memory to enable retries, but memory usage is controlled by
+ * the {@code bufferSizeInBytes} configuration. However, this buffering limits the ability to request
+ * more data from the original AsyncRequestBody until buffered data is consumed (i.e., when subscribers
+ * closes sub-body), which may increase latency compared to non-buffered implementations.
+ *
+ * @see AsyncRequestBody
+ * @see AsyncRequestBodySplitConfiguration
+ * @see CloseableAsyncRequestBody
  */
 @SdkPublicApi
 public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBody {
@@ -33,7 +66,15 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
         this.delegate = delegate;
     }
 
+    /**
+     * Creates a new {@link BufferedSplittableAsyncRequestBody} that wraps the provided {@link AsyncRequestBody}.
+     *
+     * @param delegate the {@link AsyncRequestBody} to wrap and make retryable. Must not be null.
+     * @return a new {@link BufferedSplittableAsyncRequestBody} instance
+     * @throws NullPointerException if delegate is null
+     */
     public static BufferedSplittableAsyncRequestBody create(AsyncRequestBody delegate) {
+        Validate.paramNotNull(delegate, "delegate");
         return new BufferedSplittableAsyncRequestBody(delegate);
     }
 
@@ -42,9 +83,29 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
         return delegate.contentLength();
     }
 
+    /**
+     * Splits this request body into multiple retryable parts based on the provided configuration.
+     *
+     * <p>Each part returned by the publisher will be a {@link CloseableAsyncRequestBody} that buffers
+     * its portion of data, enabling resubscription for retry scenarios. This is the key difference from non-buffered splitting -
+     * each part can be safely retried without data loss.
+     *
+     * <p>The splitting process respects the chunk size and buffer size specified in the configuration
+     * to optimize memory usage.
+     *
+     * <p>The subscriber MUST close each {@link CloseableAsyncRequestBody} to ensure resource is released
+     *
+     * @param splitConfiguration configuration specifying how to split the request body
+     * @return a publisher that emits retryable closable request body parts
+     * @see AsyncRequestBodySplitConfiguration
+     */
     @Override
-    public SdkPublisher<ClosableAsyncRequestBody> splitClosable(AsyncRequestBodySplitConfiguration splitConfiguration) {
-        return new SplittingPublisher(this, splitConfiguration, true);
+    public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        return SplittingPublisher.builder()
+                .asyncRequestBody(this)
+                .splitConfiguration(splitConfiguration)
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .build();
     }
 
     @Override

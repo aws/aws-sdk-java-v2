@@ -24,7 +24,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -38,34 +38,33 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  * Otherwise, it is sent after the entire content for that chunk is buffered. This is required to get content length.
  */
 @SdkInternalApi
-public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody> {
+public class SplittingPublisher implements SdkPublisher<CloseableAsyncRequestBody> {
     private static final Logger log = Logger.loggerFor(SplittingPublisher.class);
     private final AsyncRequestBody upstreamPublisher;
     private final SplittingSubscriber splittingSubscriber;
-    private final SimplePublisher<ClosableAsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
+    private final SimplePublisher<CloseableAsyncRequestBody> downstreamPublisher = new SimplePublisher<>();
     private final long chunkSizeInBytes;
     private final long bufferSizeInBytes;
-    private final boolean enableRetryableSubAsyncRequestBody;
+    private final boolean retryableSubAsyncRequestBodyEnabled;
     private final AtomicBoolean currentBodySent = new AtomicBoolean(false);
     private final String sourceBodyName;
 
-    public SplittingPublisher(AsyncRequestBody asyncRequestBody,
-                              AsyncRequestBodySplitConfiguration splitConfiguration,
-                              boolean enableRetryableSubAsyncRequestBody) {
-        this.upstreamPublisher = Validate.paramNotNull(asyncRequestBody, "asyncRequestBody");
-        Validate.notNull(splitConfiguration, "splitConfiguration");
-        this.chunkSizeInBytes = splitConfiguration.chunkSizeInBytes() == null ?
+    private SplittingPublisher(Builder builder) {
+        this.upstreamPublisher = Validate.paramNotNull(builder.asyncRequestBody, "asyncRequestBody");
+        Validate.notNull(builder.splitConfiguration, "splitConfiguration");
+        this.chunkSizeInBytes = builder.splitConfiguration.chunkSizeInBytes() == null ?
                                 AsyncRequestBodySplitConfiguration.defaultConfiguration().chunkSizeInBytes() :
-                                splitConfiguration.chunkSizeInBytes();
+                                builder.splitConfiguration.chunkSizeInBytes();
 
-        this.bufferSizeInBytes = splitConfiguration.bufferSizeInBytes() == null ?
+        this.bufferSizeInBytes = builder.splitConfiguration.bufferSizeInBytes() == null ?
                                  AsyncRequestBodySplitConfiguration.defaultConfiguration().bufferSizeInBytes() :
-                                 splitConfiguration.bufferSizeInBytes();
+                                 builder.splitConfiguration.bufferSizeInBytes();
 
         this.splittingSubscriber = new SplittingSubscriber(upstreamPublisher.contentLength().orElse(null));
 
-        this.enableRetryableSubAsyncRequestBody = enableRetryableSubAsyncRequestBody;
-        this.sourceBodyName = asyncRequestBody.body();
+        this.retryableSubAsyncRequestBodyEnabled = Validate.paramNotNull(builder.retryableSubAsyncRequestBodyEnabled,
+                                                                         "retryableSubAsyncRequestBodyEnabled");
+        this.sourceBodyName = builder.asyncRequestBody.body();
         if (!upstreamPublisher.contentLength().isPresent()) {
             Validate.isTrue(bufferSizeInBytes >= chunkSizeInBytes,
                             "bufferSizeInBytes must be larger than or equal to " +
@@ -73,8 +72,15 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
         }
     }
 
+    /**
+     * Returns a newly initialized builder object for a {@link SplittingPublisher}
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
     @Override
-    public void subscribe(Subscriber<? super ClosableAsyncRequestBody> downstreamSubscriber) {
+    public void subscribe(Subscriber<? super CloseableAsyncRequestBody> downstreamSubscriber) {
         downstreamPublisher.subscribe(downstreamSubscriber);
         upstreamPublisher.subscribe(splittingSubscriber);
     }
@@ -123,7 +129,7 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
                     .sourceBodyName(sourceBodyName)
                     .build();
             
-            if (enableRetryableSubAsyncRequestBody) {
+            if (retryableSubAsyncRequestBodyEnabled) {
                 body = new RetryableSubAsyncRequestBody(config);
             } else {
                 body = new NonRetryableSubAsyncRequestBody(config);
@@ -206,15 +212,16 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
 
         private void completeCurrentBody() {
             log.debug(() -> "completeCurrentBody for part " + currentBody.partNumber());
-            // For unknown content length, we always create a new DownstreamBody because we don't know if there is data
-            // left or not, so we need to only send the body if there is actually data
             long bufferedLength = currentBody.receivedBytesLength();
+            // For unknown content length, we always create a new DownstreamBody once the current one is sent
+            // because we don't know if there is data
+            // left or not, so we need to check the length and only send the body if there is actually data
             if (bufferedLength == 0) {
                 return;
             }
 
             Long totalLength = currentBody.maxLength();
-            if (currentBody.contentLengthKnown() && totalLength != bufferedLength) {
+            if (upstreamSize != null && totalLength != bufferedLength) {
                 upstreamSubscription.cancel();
                 downstreamPublisher.error(new IllegalStateException(
                     String.format("Content length of buffered data mismatches "
@@ -292,6 +299,46 @@ public class SplittingPublisher implements SdkPublisher<ClosableAsyncRequestBody
             if (length < 0) {
                 maybeRequestMoreUpstreamData();
             }
+        }
+    }
+
+    public static final class Builder {
+        private AsyncRequestBody asyncRequestBody;
+        private AsyncRequestBodySplitConfiguration splitConfiguration;
+        private Boolean retryableSubAsyncRequestBodyEnabled;
+
+        private Builder() {
+        }
+
+        /**
+         * Sets the AsyncRequestBody to be split.
+         */
+        public Builder asyncRequestBody(AsyncRequestBody asyncRequestBody) {
+            this.asyncRequestBody = asyncRequestBody;
+            return this;
+        }
+
+        /**
+         * Sets the split configuration.
+         */
+        public Builder splitConfiguration(AsyncRequestBodySplitConfiguration splitConfiguration) {
+            this.splitConfiguration = splitConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets whether to enable retryable sub async request bodies.
+         */
+        public Builder retryableSubAsyncRequestBodyEnabled(Boolean retryableSubAsyncRequestBodyEnabled) {
+            this.retryableSubAsyncRequestBodyEnabled = retryableSubAsyncRequestBodyEnabled;
+            return this;
+        }
+
+        /**
+         * Builds a {@link SplittingPublisher} object based on the values held by this builder.
+         */
+        public SplittingPublisher build() {
+            return new SplittingPublisher(this);
         }
     }
 }

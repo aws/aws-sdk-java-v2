@@ -33,7 +33,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -82,9 +82,9 @@ public final class UploadWithUnknownContentLengthHelper {
                                                              AsyncRequestBody asyncRequestBody) {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
 
-        SdkPublisher<ClosableAsyncRequestBody> splitAsyncRequestBodyResponse =
-            asyncRequestBody.splitClosable(b -> b.chunkSizeInBytes(partSizeInBytes)
-                                                 .bufferSizeInBytes(maxMemoryUsageInBytes));
+        SdkPublisher<CloseableAsyncRequestBody> splitAsyncRequestBodyResponse =
+            asyncRequestBody.splitCloseable(b -> b.chunkSizeInBytes(partSizeInBytes)
+                                                  .bufferSizeInBytes(maxMemoryUsageInBytes));
 
         splitAsyncRequestBodyResponse.subscribe(new UnknownContentLengthAsyncRequestBodySubscriber(partSizeInBytes,
                                                                                                    putObjectRequest,
@@ -92,7 +92,7 @@ public final class UploadWithUnknownContentLengthHelper {
         return returnFuture;
     }
 
-    private class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<ClosableAsyncRequestBody> {
+    private class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody> {
         /**
          * Indicates whether this is the first async request body or not.
          */
@@ -128,7 +128,7 @@ public final class UploadWithUnknownContentLengthHelper {
         private final CompletableFuture<PutObjectResponse> returnFuture;
         private final PublisherListener<Long> progressListener;
         private Subscription subscription;
-        private ClosableAsyncRequestBody firstRequestBody;
+        private CloseableAsyncRequestBody firstRequestBody;
 
         private String uploadId;
         private volatile boolean isDone;
@@ -162,7 +162,7 @@ public final class UploadWithUnknownContentLengthHelper {
         }
 
         @Override
-        public void onNext(ClosableAsyncRequestBody asyncRequestBody) {
+        public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
             if (isDone) {
                 return;
             }
@@ -232,7 +232,7 @@ public final class UploadWithUnknownContentLengthHelper {
         }
 
         private void sendUploadPartRequest(String uploadId,
-                                           ClosableAsyncRequestBody asyncRequestBody,
+                                           CloseableAsyncRequestBody asyncRequestBody,
                                            int currentPartNum) {
             Long contentLengthCurrentPart = asyncRequestBody.contentLength().get();
             this.contentLength.getAndAdd(contentLengthCurrentPart);

@@ -18,13 +18,13 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 
 /**
  * Represent a sub {@link AsyncRequestBody} that publishes a portion of the source {@link AsyncRequestBody}
  */
 @SdkInternalApi
-public interface SubAsyncRequestBody extends ClosableAsyncRequestBody {
+public interface SubAsyncRequestBody extends CloseableAsyncRequestBody {
 
     /**
      * Send a byte buffer.
@@ -54,8 +54,6 @@ public interface SubAsyncRequestBody extends ClosableAsyncRequestBody {
     default void close() {
         // no op
     }
-
-    boolean contentLengthKnown();
 
     /**
      * The part number associated with this SubAsyncRequestBody

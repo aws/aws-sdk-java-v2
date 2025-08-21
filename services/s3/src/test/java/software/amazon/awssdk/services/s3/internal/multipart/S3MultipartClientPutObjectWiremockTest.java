@@ -196,7 +196,7 @@ public class S3MultipartClientPutObjectWiremockTest {
         assertThatThrownBy(() -> s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody)
                      .join())
             .hasCauseInstanceOf(NonRetryableException.class)
-            .hasMessageContaining("A retry was attempted, but");
+            .hasMessageContaining("Multiple subscribers detected.");
 
         verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
         verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));

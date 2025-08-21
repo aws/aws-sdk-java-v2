@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
-import software.amazon.awssdk.core.async.ClosableAsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -78,14 +78,14 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         }
 
         @Override
-        public SdkPublisher<ClosableAsyncRequestBody> splitClosable(AsyncRequestBodySplitConfiguration splitConfiguration) {
-            return delegate.splitClosable(splitConfiguration);
+        public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+            return delegate.splitCloseable(splitConfiguration);
         }
 
         @Override
-        public SdkPublisher<ClosableAsyncRequestBody> splitClosable(
+        public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(
             Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
-            return delegate.splitClosable(splitConfiguration);
+            return delegate.splitCloseable(splitConfiguration);
         }
 
         @Override

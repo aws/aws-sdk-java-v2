@@ -415,7 +415,7 @@ public class AsyncRequestBodyTest {
     void splitV2_nullConfig_shouldThrowException() {
         AsyncRequestBody  requestBody = AsyncRequestBody.fromString("hello world");
         AsyncRequestBodySplitConfiguration config = null;
-        assertThatThrownBy(() -> requestBody.splitClosable(config))
+        assertThatThrownBy(() -> requestBody.splitCloseable(config))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("splitConfig");
     }
