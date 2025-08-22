@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Orchestrator",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
