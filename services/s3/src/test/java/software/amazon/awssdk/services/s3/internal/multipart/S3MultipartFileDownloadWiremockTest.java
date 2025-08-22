@@ -219,7 +219,7 @@ class S3MultipartFileDownloadWiremockTest {
                     .whenScenarioStateIs("Started")
                     .willReturn(aResponse()
                                     .withStatus(500)
-                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error</Message></Error>"))
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 1</Message></Error>"))
                     .willSetStateTo("retry1"));
 
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
@@ -227,7 +227,7 @@ class S3MultipartFileDownloadWiremockTest {
                     .whenScenarioStateIs("retry1")
                     .willReturn(aResponse()
                                     .withStatus(500)
-                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error</Message></Error>"))
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 2</Message></Error>"))
                     .willSetStateTo("retry2"));
 
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
@@ -235,15 +235,30 @@ class S3MultipartFileDownloadWiremockTest {
                     .whenScenarioStateIs("retry2")
                     .willReturn(aResponse()
                                     .withStatus(500)
-                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error</Message></Error>")));
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 3</Message></Error>"))
+                    .willSetStateTo("retry3")
+        );
 
-        assertThatThrownBy(() -> s3AsyncClient.getObject(
-            GetObjectRequest.builder()
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build(),
-            AsyncResponseTransformer.toFile(testFile)
-        ).join()).hasMessageContaining("Internal error");
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry3")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 4</Message></Error>")));
+
+        CompletableFuture<GetObjectResponse> resp = s3AsyncClient.getObject(b -> b
+                                                                                .bucket(testBucket)
+                                                                                .key(testKey)
+                                                                                .build(),
+                                                                            AsyncResponseTransformer.toFile(testFile));
+
+        assertThat(resp).failsWithin(Duration.of(10, ChronoUnit.SECONDS))
+                        .withThrowableOfType(ExecutionException.class)
+                        .withCauseInstanceOf(S3Exception.class)
+                        .withMessageContaining("Internal error 4");
+
+        verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))));
+        verify(exactly(4), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey))));
     }
 
     @Test
