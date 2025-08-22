@@ -190,8 +190,8 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(partToGet);
             log.info(() -> "Total in flight parts: " + inFlightRequests.size());
             if (e != null) {
-                inFlightRequests.values().forEach(future -> future.cancel(true));
                 resultFuture.completeExceptionally(e);
+                inFlightRequests.values().forEach(future -> future.cancel(true));
                 return;
             }
             completedParts.incrementAndGet();
@@ -220,8 +220,8 @@ public class NonLinearMultipartDownloaderSubscriber
             if (e != null) {
                 // Note on retries: When this future completed exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
-                inFlightRequests.values().forEach(future -> future.cancel(true));
                 resultFuture.completeExceptionally(e);
+                inFlightRequests.values().forEach(future -> future.cancel(true));
                 return;
             }
             Integer partCount = res.partsCount();

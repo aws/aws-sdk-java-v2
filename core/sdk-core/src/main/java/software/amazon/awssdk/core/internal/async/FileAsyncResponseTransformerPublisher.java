@@ -108,16 +108,17 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public CompletableFuture<T> prepare() {
+            log.info(() -> "prepare() called");
             this.future = new CompletableFuture<>();
             return this.future;
         }
 
         @Override
         public void onResponse(T response) {
-            // log.info(() -> "Received response: " + response.toString());
+            log.info(() -> "Received response: " + response.toString());
             List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
             if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
-                // Bad state! This is intended to cancel everything, no retries!
+                // Bad state! This is intended to cancel everything
                 subscriber.onError(new IllegalStateException("Content range header is missing"));
                 return;
             }
@@ -125,7 +126,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             String contentRange = contentRangeList.get(0);
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
-                // Bad state! This is intended to cancel everything, no retries!
+                // Bad state! This is intended to cancel everything
                 subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
                 return;
             }
@@ -151,6 +152,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            log.info(() -> "onStream() called");
             if (delegate != null) {
                 delegate.onStream(publisher);
             }
@@ -165,8 +167,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 delegate.exceptionOccurred(error);
             } else {
                 // If we received an error without even having a delegate, this means we have thrown an error before even calling
-                // onStream on it something really wrong is happening, signal the subscriber to just shut down completely
-                subscriber.onError(error);
+                // onResponse.
+                if (future != null) {
+                    future.completeExceptionally(error);
+                }
             }
         }
     }
