@@ -89,14 +89,13 @@ class S3MultipartFileDownloadWiremockTest {
         int partSize = 1024;
         byte[] expectedBody = util.stubSinglePart(testBucket, testKey, partSize);
 
-        GetObjectResponse response = s3AsyncClient.getObject(
-            GetObjectRequest.builder()
+        CompletableFuture<GetObjectResponse> response = s3AsyncClient.getObject(b -> b
                             .bucket(testBucket)
                             .key(testKey)
                             .build(),
-            AsyncResponseTransformer.toFile(testFile)
-        ).join();
+            AsyncResponseTransformer.toFile(testFile));
 
+        assertThat(response).succeedsWithin(Duration.of(10, ChronoUnit.SECONDS));
         assertThat(Files.exists(testFile)).isTrue();
         byte[] actualBody = Files.readAllBytes(testFile);
         assertThat(actualBody).isEqualTo(expectedBody);
@@ -110,15 +109,13 @@ class S3MultipartFileDownloadWiremockTest {
         int partSize = 1024;
         byte[] expectedBody = util.stubAllParts(testBucket, testKey, numParts, partSize);
 
-        GetObjectResponse response = s3AsyncClient.getObject(
-            GetObjectRequest.builder()
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build(),
-            AsyncResponseTransformer.toFile(testFile)
-        ).join();
+        CompletableFuture<GetObjectResponse> response = s3AsyncClient.getObject(b -> b
+                                                                                    .bucket(testBucket)
+                                                                                    .key(testKey)
+                                                                                    .build(),
+                                                                                AsyncResponseTransformer.toFile(testFile));
 
-        assertThat(Files.exists(testFile)).isTrue();
+        assertThat(response).succeedsWithin(Duration.of(10, ChronoUnit.SECONDS));
         byte[] actualBody = Files.readAllBytes(testFile);
         assertThat(actualBody).isEqualTo(expectedBody);
         assertThat(response).isNotNull();
@@ -247,5 +244,27 @@ class S3MultipartFileDownloadWiremockTest {
                             .build(),
             AsyncResponseTransformer.toFile(testFile)
         ).join()).hasMessageContaining("Internal error");
+    }
+
+    @Test
+    void veryHighPartCount_shouldSucceed() throws Exception {
+        // 10_000_000 bytes -> 10MB total
+        int numParts = 10_000;
+        int partSize = 1000;
+
+        byte[] expectedBody = util.stubAllParts(testBucket, testKey, numParts, partSize);
+
+        CompletableFuture<GetObjectResponse> response = s3AsyncClient.getObject(b -> b
+                                                                                    .bucket(testBucket)
+                                                                                    .key(testKey)
+                                                                                    .build(),
+                                                                                AsyncResponseTransformer.toFile(testFile));
+
+        assertThat(response).succeedsWithin(Duration.of(2, ChronoUnit.MINUTES));
+        byte[] actualBody = Files.readAllBytes(testFile);
+        assertThat(actualBody).isEqualTo(expectedBody);
+        assertThat(response).isNotNull();
+        util.verifyCorrectAmountOfRequestsMade(numParts);
+
     }
 }

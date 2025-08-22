@@ -286,7 +286,8 @@ public class NonLinearMultipartDownloaderSubscriber
 
     @Override
     public void onError(Throwable t) {
-        // signal received from the publisher this is subscribed to
+        // Signal received from the publisher this is subscribed to, in the case of file download, that's
+        // FileAsyncResponseTransformerPublisher.
         // failed state, something really wrong has happened, cancel everything
         resultFuture.completeExceptionally(t);
     }

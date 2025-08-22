@@ -154,6 +154,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             log.info(() -> "onStream() called");
             if (delegate != null) {
+                // should never be null as per AsyncResponseTransformer runtime contract, but we never know
                 delegate.onStream(publisher);
             }
         }
@@ -163,11 +164,12 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             log.error(() -> "error detected", error);
             if (delegate != null) {
                 // do not call onError, because exceptionOccurred may be called multiple times due to retries, simply forward the
-                // error to the delegate
+                // error to the delegate async response transformer which will let the service call pipeline handle the error.
                 delegate.exceptionOccurred(error);
             } else {
-                // If we received an error without even having a delegate, this means we have thrown an error before even calling
-                // onResponse.
+                // If we received an error without even having a delegate, this means we have thrown an error before even
+                // getting a onResponse signal. We complete the prepared future, to let the
+                // service call pipeline handle the error
                 if (future != null) {
                     future.completeExceptionally(error);
                 }
