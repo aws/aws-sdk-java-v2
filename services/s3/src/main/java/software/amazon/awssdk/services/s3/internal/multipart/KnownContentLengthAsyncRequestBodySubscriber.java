@@ -34,6 +34,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -47,7 +48,7 @@ import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
-public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<AsyncRequestBody>  {
+public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody>  {
 
     private static final Logger log = Logger.loggerFor(KnownContentLengthAsyncRequestBodySubscriber.class);
 
@@ -144,16 +145,21 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     @Override
-    public void onNext(AsyncRequestBody asyncRequestBody) {
+    public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
         if (isPaused || isDone) {
             return;
         }
 
         int currentPartNum = partNumber.getAndIncrement();
+
+        log.debug(() -> String.format("Received asyncRequestBody for part number %d with length %s", currentPartNum,
+                                      asyncRequestBody.contentLength()));
+
         if (existingParts.containsKey(currentPartNum)) {
             asyncRequestBody.subscribe(new CancelledSubscriber<>());
-            subscription.request(1);
             asyncRequestBody.contentLength().ifPresent(progressListener::subscriberOnNext);
+            asyncRequestBody.close();
+            subscription.request(1);
             return;
         }
 
@@ -178,10 +184,12 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
                                                               Pair.of(uploadRequest, asyncRequestBody), progressListener)
                              .whenComplete((r, t) -> {
+                                 asyncRequestBody.close();
                                  if (t != null) {
                                      if (shouldFailRequest()) {
                                          multipartUploadHelper.failRequestsElegantly(futures, t, uploadId, returnFuture,
                                                                                      putObjectRequest);
+                                         subscription.cancel();
                                      }
                                  } else {
                                      completeMultipartUploadIfFinished(asyncRequestBodyInFlight.decrementAndGet());
@@ -206,7 +214,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         }
 
         if (currentPartSize != partSize) {
-            return Optional.of(contentLengthMismatchForPart(partSize, currentPartSize));
+            return Optional.of(contentLengthMismatchForPart(partSize, currentPartSize, currentPartNum));
         }
         return Optional.empty();
     }

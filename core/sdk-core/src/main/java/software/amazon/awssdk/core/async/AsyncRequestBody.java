@@ -500,7 +500,6 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
         return fromBytes(new byte[0]);
     }
 
-
     /**
      * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
      * portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk size
@@ -513,12 +512,45 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
      * interface overrides this method.
      *
-     * @see AsyncRequestBodySplitConfiguration
+     * @deprecated use {@link #splitCloseable(AsyncRequestBodySplitConfiguration)} instead.
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
+        return SplittingPublisher.builder()
+                .asyncRequestBody(this)
+                .splitConfiguration(splitConfiguration)
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build()
+                .map(r -> r);
+    }
 
-        return new SplittingPublisher(this, splitConfiguration);
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link CloseableAsyncRequestBody}s, each of which publishes
+     * specific portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk
+     * size is 2MB and the default buffer size is 8MB.
+     *
+     * <p>
+     * The default implementation behaves the same as {@link #split(AsyncRequestBodySplitConfiguration)}. This behavior may
+     * vary in different implementations.
+     *
+     * <p>
+     * Caller is responsible for closing {@link CloseableAsyncRequestBody} when it is ready to be disposed to release any
+     * resources.
+     *
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(Consumer)
+     * @see AsyncRequestBodySplitConfiguration
+     */
+    default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return SplittingPublisher.builder()
+                .asyncRequestBody(this)
+                .splitConfiguration(splitConfiguration)
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build();
     }
 
     /**
@@ -526,10 +558,27 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
      *
      * @see #split(AsyncRequestBodySplitConfiguration)
+     * @deprecated use {@link #splitCloseable(Consumer)} instead
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(AsyncRequestBodySplitConfiguration)
+     */
+    default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(
+        Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return splitCloseable(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
     }
 
     @SdkProtectedApi
