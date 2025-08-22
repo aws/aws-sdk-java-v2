@@ -66,6 +66,6 @@ Initially considered separate discovery request (bytes=0-0) followed by download
 
 ### Decisions Addressed
 
-1. **API Names**: Finalized `downloadWithPresignedUrl` and `downloadFileWithPresignedUrl` for Transfer Manager methods during Surface API Review.
+1. **API Names**: Finalize `downloadWithPresignedUrl` and `downloadFileWithPresignedUrl` for Transfer Manager methods during Surface API Review later.
 
 2. **Pause/Resume Support**: Decided not to support pause/resume capability for presigned URL downloads, maintaining consistency with AWS SDK for Java v1 which also lacks this feature for presigned URLs.
