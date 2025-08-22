@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemC
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Put;
@@ -632,5 +635,28 @@ public class PutItemOperationTest {
                                                             .build();
         assertThat(actualResult, is(expectedResult));
         verify(putItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        PutItemEnhancedRequest<FakeItem> putItemEnhancedRequest = PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                                       .item(fakeItem)
+                                                                                       .overrideConfiguration(overrideConfiguration)
+                                                                                       .build();
+
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(putItemEnhancedRequest);
+
+        PutItemRequest putItemRequest = putItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                                  PRIMARY_CONTEXT,
+                                                                                  null);
+
+        assertThat(putItemRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 }
