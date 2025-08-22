@@ -512,8 +512,9 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
      * interface overrides this method.
      *
-     * @see AsyncRequestBodySplitConfiguration
+     * @deprecated use {@link #splitCloseable(AsyncRequestBodySplitConfiguration)} instead.
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return SplittingPublisher.builder()
@@ -537,6 +538,10 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * Caller is responsible for closing {@link CloseableAsyncRequestBody} when it is ready to be disposed to release any
      * resources.
      *
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(Consumer)
      * @see AsyncRequestBodySplitConfiguration
      */
     default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
@@ -553,7 +558,9 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
      *
      * @see #split(AsyncRequestBodySplitConfiguration)
+     * @deprecated use {@link #splitCloseable(Consumer)} instead
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
@@ -563,7 +570,10 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
      * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
      *
-     * @see #splitCloseable(Consumer)
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(AsyncRequestBodySplitConfiguration)
      */
     default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(
         Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {

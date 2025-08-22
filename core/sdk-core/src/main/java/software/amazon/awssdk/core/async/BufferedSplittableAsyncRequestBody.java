@@ -35,18 +35,11 @@ import software.amazon.awssdk.utils.Validate;
  * subsequent retry attempts will fail since the complete data set is not available for resubscription.</p>
  *
  * <p><b>Usage Example:</b></p>
- * <pre>{@code
+ * {@snippet :
  * AsyncRequestBody originalBody = AsyncRequestBody.fromString("Hello World");
  * BufferedSplittableAsyncRequestBody retryableBody =
  *     BufferedSplittableAsyncRequestBody.create(originalBody);
- *
- * AsyncRequestBodySplitConfiguration config = AsyncRequestBodySplitConfiguration.builder()
- *     .chunkSizeInBytes(1024)
- *     .bufferSizeInBytes(2048)
- *     .build();
- *
- * SdkPublisher<ClosableAsyncRequestBody> parts = retryableBody.splitClosable(config);
- * }</pre>
+ * }
  *
  * <p><b>Performance Considerations:</b></p>
  * <p>This implementation buffers data in memory to enable retries, but memory usage is controlled by
