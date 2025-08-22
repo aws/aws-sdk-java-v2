@@ -71,20 +71,6 @@ public class MultipartDownloadTestUtil {
                 .withHeader("x-amz-mp-parts-count", totalPart + "")
                 .withHeader("ETag", eTag)
                 .withHeader("Content-Length", String.valueOf(body.length))
-                .withHeader("Content-Range", contentRange(part, totalPart, partSize))
-                .withBody(body)));
-        return body;
-    }
-
-    public byte[] stubForPartwithWrongContentRange(String testBucket, String testKey,int part, int totalPart, int partSize) {
-        byte[] body = new byte[partSize];
-        random.nextBytes(body);
-        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, part))).willReturn(
-            aResponse()
-                .withHeader("x-amz-mp-parts-count", totalPart + "")
-                .withHeader("ETag", eTag)
-                .withHeader("Content-Length", String.valueOf(body.length))
-                .withHeader("Content-Range", contentRange(part, totalPart, partSize + 1))
                 .withBody(body)));
         return body;
     }
@@ -109,17 +95,5 @@ public class MultipartDownloadTestUtil {
                             .withHeader("ETag", eTag)
                             .withBody(body)));
         return body;
-    }
-
-    private String contentRange(int part, int totalPart, int partSize) {
-        long totalObjectSize = (long) totalPart * partSize;
-        long startByte = (long) (part - 1) * partSize;
-        long endByte = startByte + partSize - 1;
-
-        if (part == totalPart) {
-            endByte = totalObjectSize - 1;
-        }
-
-        return String.format("bytes %d-%d/%d", startByte, endByte, totalObjectSize);
     }
 }
