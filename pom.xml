@@ -684,12 +684,11 @@
                             <includeModule>polly</includeModule>
                         </includeModules>
                         <excludes>
-                            <!-- TODO remove after release -->
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute#incrementBy()</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute#startAt()</exclude>
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <!-- TODO remove after release -->
+                            <exclude>software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
