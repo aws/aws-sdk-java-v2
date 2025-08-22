@@ -15,23 +15,16 @@
 
 package software.amazon.awssdk.core.internal.async;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.assertj.core.api.Assertions;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
-import software.amazon.awssdk.core.internal.async.SplittingPublisherTest;
 
 public final class SplittingPublisherTestUtils {
 
@@ -45,6 +38,11 @@ public final class SplittingPublisherTestUtils {
             ByteArrayAsyncResponseTransformer.BaosSubscriber subscriber =
                 new ByteArrayAsyncResponseTransformer.BaosSubscriber(baosFuture);
             requestBody.subscribe(subscriber);
+            baosFuture.whenComplete((baos, throwable) -> {
+                if (requestBody instanceof CloseableAsyncRequestBody) {
+                    ((CloseableAsyncRequestBody) requestBody).close();
+                }
+            });
             futures.add(baosFuture);
         }).get(5, TimeUnit.SECONDS);
 
