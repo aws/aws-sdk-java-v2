@@ -1,4 +1,173 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.29__ __2025-08-22__
+## __AWS Account__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Cloud Map__
+  - ### Features
+    - Updating SDK examples after launch of shared AWS Cloud Map namespaces
+
+## __AWS CodePipeline__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Data Exchange__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now has a field called "SubtitleRows" for controlling subtitle row count for DVB-Sub and Burn-In captions outputs
+
+## __AWS IoT Analytics__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Launch Wizard__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Migration Hub Orchestrator__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Organizations__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Price List Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Proton__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Route53 Recovery Readiness__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SimSpace Weaver__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS WAFV2__
+  - ### Features
+    - test and verified, safe to release
+
+## __Amazon API Gateway__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Augmented AI Runtime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Cognito Sync__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DynamoDB__
+  - ### Bugfixes
+    - Add a `setNull(Boolean)` setter for the serializable builder class returned by `AttributeValue.serializableBuilderClass()`. This allows successfully converting from a JSON blob such as `{"NULL": true}`.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Location Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Macie 2__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Q Connect__
+  - ### Features
+    - Releasing model ID support for UpdateAIPrompt
+
+## __Amazon QLDB__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updates Amazon RDS documentation for Db2 read-only replicas.
+
+## __Amazon SageMaker Metrics Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Launch SageMaker Notebook Instances support for AL2023 along with P6-B200 instance type and Rootless Docker support for SageMaker Studio.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __CloudWatch RUM__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __EMR Serverless__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Elastic Load Balancing__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Redshift Data API Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Synthetics__
+  - ### Features
+    - Added multi browser support for synthetics canaries, Increased ephemeral storage limit from 5GB to 10GB
+
 # __2.32.28__ __2025-08-21__
 ## __AWS Artifact__
   - ### Features
