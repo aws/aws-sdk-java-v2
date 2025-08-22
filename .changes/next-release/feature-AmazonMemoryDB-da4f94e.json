@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon MemoryDB",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QLDB",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}
