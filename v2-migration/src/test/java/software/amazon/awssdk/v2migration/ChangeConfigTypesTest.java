@@ -29,6 +29,7 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 public class ChangeConfigTypesTest implements RewriteTest {
 
@@ -46,7 +47,8 @@ public class ChangeConfigTypesTest implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"));
+        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"))
+            .typeValidationOptions(TypeValidation.all().immutableExecutionContext(false));
     }
 
     @Test
