@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Storage Gateway",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
