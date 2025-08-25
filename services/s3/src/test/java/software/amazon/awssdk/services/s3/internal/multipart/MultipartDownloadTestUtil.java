@@ -75,7 +75,7 @@ public class MultipartDownloadTestUtil {
         return body;
     }
 
-    private String contentRangeHeader(int part, int totalPart, int partSize) {
+    public static String contentRangeHeader(int part, int totalPart, int partSize) {
         long start = (part - 1) * (long) partSize;
         long end = start + partSize - 1;
         long total = totalPart * (long) partSize;

@@ -21,10 +21,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadTestUtil.contentRangeHeader;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -36,6 +35,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.AfterEach;
@@ -47,7 +49,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -90,10 +91,10 @@ class S3MultipartFileDownloadWiremockTest {
         byte[] expectedBody = util.stubSinglePart(testBucket, testKey, partSize);
 
         CompletableFuture<GetObjectResponse> response = s3AsyncClient.getObject(b -> b
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build(),
-            AsyncResponseTransformer.toFile(testFile));
+                                                                                    .bucket(testBucket)
+                                                                                    .key(testKey)
+                                                                                    .build(),
+                                                                                AsyncResponseTransformer.toFile(testFile));
 
         assertThat(response).succeedsWithin(Duration.of(10, ChronoUnit.SECONDS));
         assertThat(Files.exists(testFile)).isTrue();
@@ -130,14 +131,14 @@ class S3MultipartFileDownloadWiremockTest {
                 .withBody("<Error><Code>AccessDenied</Code><Message>Test: Access denied!</Message></Error>")));
 
         CompletableFuture<GetObjectResponse> resp = s3AsyncClient.getObject(b -> b
-                            .bucket(testBucket)
-                            .key(testKey)
-                            .build(),
-            AsyncResponseTransformer.toFile(testFile));
+                                                                                .bucket(testBucket)
+                                                                                .key(testKey)
+                                                                                .build(),
+                                                                            AsyncResponseTransformer.toFile(testFile));
         assertThat(resp).failsWithin(Duration.of(10, ChronoUnit.SECONDS))
-            .withThrowableOfType(ExecutionException.class)
-            .withCauseInstanceOf(S3Exception.class)
-            .withMessageContaining("Test: Access denied!");
+                        .withThrowableOfType(ExecutionException.class)
+                        .withCauseInstanceOf(S3Exception.class)
+                        .withMessageContaining("Test: Access denied!");
         verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))));
     }
 
@@ -165,7 +166,7 @@ class S3MultipartFileDownloadWiremockTest {
                     .willReturn(aResponse()
                                     .withStatus(500)
                                     .withBody("<Error><Code>InternalError</Code><Message>Internal error 3</Message></Error>"))
-        .willSetStateTo("retry3"));
+                    .willSetStateTo("retry3"));
 
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey)))
                     .inScenario("retry")
@@ -260,6 +261,91 @@ class S3MultipartFileDownloadWiremockTest {
         verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))));
         verify(exactly(4), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey))));
     }
+
+    @Test
+    void errorOnMiddlePart_retryable_thenSucceeds() throws Exception {
+        int partSize = 1024;
+        int totalPart = 3;
+        List<Byte> expectedData = new ArrayList<>();
+        byte[] part1Data = util.stubForPart(testBucket, testKey, 1, totalPart, partSize);
+        for (byte b: part1Data) {
+            expectedData.add(b);
+        }
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("Started")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 1</Message></Error>"))
+                    .willSetStateTo("retry1"));
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry1")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 2</Message></Error>"))
+                    .willSetStateTo("retry2"));
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry2")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 3</Message></Error>"))
+                    .willSetStateTo("retry3")
+        );
+
+        byte[] part2Data = new byte[partSize];
+        new Random().nextBytes(part2Data);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 2)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry3")
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", totalPart + "")
+                                    .withHeader("x-amz-content-range", contentRangeHeader(2, totalPart, partSize))
+                                    .withHeader("ETag", "test-etag")
+                                    .withBody(part2Data)));
+        for (byte b: part2Data) {
+            expectedData.add(b);
+        }
+
+        byte[] part3Data = new byte[partSize];
+        new Random().nextBytes(part3Data);
+        for (byte b: part3Data) {
+            expectedData.add(b);
+        }
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 3)))
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", totalPart + "")
+                                    .withHeader("x-amz-content-range", contentRangeHeader(3, totalPart, partSize))
+                                    .withHeader("ETag", "test-etag")
+                                    .withBody(part3Data)));
+
+        CompletableFuture<GetObjectResponse> resp = s3AsyncClient.getObject(b -> b
+                                                                                .bucket(testBucket)
+                                                                                .key(testKey)
+                                                                                .build(),
+                                                                            AsyncResponseTransformer.toFile(testFile));
+
+        assertThat(resp).succeedsWithin(Duration.of(10, ChronoUnit.SECONDS));
+
+        verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))));
+        verify(exactly(4), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey))));
+        verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=3", testBucket, testKey))));
+
+        assertThat(Files.exists(testFile)).isTrue();
+        byte[] actualBody = Files.readAllBytes(testFile);
+        byte[] expectedBody = new byte[partSize * totalPart];
+        System.arraycopy(part1Data, 0, expectedBody, 0, partSize);
+        System.arraycopy(part2Data, 0, expectedBody, partSize, partSize);
+        System.arraycopy(part3Data, 0, expectedBody, partSize * 2, partSize);
+        assertThat(actualBody).isEqualTo(expectedBody);
+
+    }
+
 
     @Test
     void veryHighPartCount_shouldSucceed() throws Exception {

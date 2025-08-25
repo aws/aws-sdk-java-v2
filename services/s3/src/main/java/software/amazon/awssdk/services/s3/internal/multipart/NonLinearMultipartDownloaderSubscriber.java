@@ -173,14 +173,12 @@ public class NonLinearMultipartDownloaderSubscriber
     }
 
     private void sendNextRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        // guardrails: we shouldn't send more requests than
         if (inFlightRequests.size() + completedParts.get() >= totalParts) {
             return;
         }
 
         int partToGet = nextPart();
         GetObjectRequest request = nextRequest(partToGet);
-        // inFlights.incrementAndGet();
         log.info(() -> "Sending next request for part: '" + partToGet);
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
         inFlightRequests.put(partToGet, response);
@@ -190,6 +188,8 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(partToGet);
             log.info(() -> "Total in flight parts: " + inFlightRequests.size());
             if (e != null) {
+                // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
+                // that part. We need to report back the failure to the user.
                 resultFuture.completeExceptionally(e);
                 inFlightRequests.values().forEach(future -> future.cancel(true));
                 return;
@@ -208,7 +208,6 @@ public class NonLinearMultipartDownloaderSubscriber
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         log.info(() -> "Sending first request");
         GetObjectRequest request = nextRequest(1);
-        // inFlights.incrementAndGet();
         CompletableFuture<GetObjectResponse> responseFuture = s3.getObject(request, asyncResponseTransformer);
         inFlightRequests.put(1, responseFuture);
 
@@ -218,7 +217,7 @@ public class NonLinearMultipartDownloaderSubscriber
         responseFuture.whenComplete((res, e) -> {
             inFlightRequests.remove(1);
             if (e != null) {
-                // Note on retries: When this future completed exceptionally, it means we did all retries and still failed for
+                // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
                 resultFuture.completeExceptionally(e);
                 inFlightRequests.values().forEach(future -> future.cancel(true));

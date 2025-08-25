@@ -24,7 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -40,12 +39,6 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * A publisher of {@link FileAsyncResponseTransformer} that uses the Content-Range header of a {@link SdkResponse} to write to the
  * offset defined in the range of the Content-Range. Correspond to the {@link SplittingTransformer} for non-linear write cases.
- * Will only work for {@link FileAsyncResponseTransformer} and will throw {@link IllegalArgumentException} if other subclasses of
- * AsyncResponseTransformer is used with it.
- * <p>
- * Note: Marked as protected API because the s3 multipart logic in the s3 module needs to know about this type.
- *
- * @param <T>
  */
 @SdkInternalApi
 public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
@@ -55,33 +48,21 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     private final Path path;
     private final FileTransformerConfiguration initialConfig;
     private final long initialPosition;
-    private Subscriber subscriber;
-    private AtomicLong transformerSent;
+    private final AtomicLong amountOfTransformerSent;
+    private Subscriber<?> subscriber;
 
-    public FileAsyncResponseTransformerPublisher(AsyncResponseTransformer<?, ?> responseTransformer) {
-        Validate.isTrue(responseTransformer instanceof FileAsyncResponseTransformer,
-                        "Only FileAsyncResponseTransformer is supported for FileAsyncResponseTransformerPublisher");
-        FileAsyncResponseTransformer<SdkResponse> transformer = (FileAsyncResponseTransformer<SdkResponse>) responseTransformer;
-        this.path = Validate.paramNotNull(transformer.path(), "path");
-        this.initialConfig = Validate.paramNotNull(transformer.config(), "fileTransformerConfiguration");
-        this.initialPosition = transformer.initialPosition();
-        transformerSent = new AtomicLong();
+    public FileAsyncResponseTransformerPublisher(FileAsyncResponseTransformer<?> responseTransformer) {
+        this.path = Validate.paramNotNull(responseTransformer.path(), "path");
+        this.initialConfig = Validate.paramNotNull(responseTransformer.config(), "fileTransformerConfiguration");
+        this.initialPosition = responseTransformer.initialPosition();
+        this.amountOfTransformerSent = new AtomicLong(0);
     }
 
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<T, T>> s) {
         this.subscriber = s;
         s.onSubscribe(new ThreadSafeEmittingSubscription<>(
-            s, new AtomicLong(0), this::onCancel, new AtomicBoolean(), log, this::createTransformer));
-    }
-
-    /**
-     * Signal received from {@link Subscriber} (the one receive from the subscribe method) to stop sending
-     * IndividualFileTransformer and clean-up resources. Not necessarily an error state.
-     */
-    private void onCancel() {
-        // do nothing. We have no resources to clean and the demand is managed by ThreadSafeEmittingSubscription which will
-        // already fulfill previously signaled demand
+            s, new AtomicLong(0), () -> {}, new AtomicBoolean(), log, this::createTransformer));
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {
@@ -135,19 +116,37 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             CompletableFuture<T> delegateFuture = delegate.prepare();
             CompletableFutureUtils.forwardResultTo(delegateFuture, future);
             CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
-            transformerSent.incrementAndGet();
+            amountOfTransformerSent.incrementAndGet();
             delegate.onResponse(response);
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
-            // todo deal with APPEND mode
-            if (transformerSent.get() == 0) {
+            if (amountOfTransformerSent.get() == 0) {
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
-            FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
-                .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
-                .position(startAt));
-            return AsyncResponseTransformer.toFile(path, newConfig);
+            switch (initialConfig.fileWriteOption()) {
+                case CREATE_NEW:
+                case CREATE_OR_REPLACE_EXISTING: {
+                    FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
+                        .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
+                        .position(startAt));
+                    return AsyncResponseTransformer.toFile(path, newConfig);
+                }
+                case CREATE_OR_APPEND_TO_EXISTING: {
+                    // APPEND mode is not supported for non-serial operations,
+                    // we can just reuse the same config (with CREATE_OR_APPEND_TO_EXISTING) which will work serially
+                    return AsyncResponseTransformer.toFile(path, initialConfig);
+                }
+                case WRITE_TO_POSITION: {
+                    long initialOffset = initialConfig.position();
+                    FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
+                        .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
+                        .position(initialOffset + startAt));
+                    return AsyncResponseTransformer.toFile(path, newConfig);
+                }
+                default:
+                    throw new UnsupportedOperationException("Unsupported fileWriteOption: " + initialConfig.fileWriteOption());
+            }
         }
 
         @Override
