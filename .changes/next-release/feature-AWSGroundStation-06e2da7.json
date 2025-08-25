@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Ground Station",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
