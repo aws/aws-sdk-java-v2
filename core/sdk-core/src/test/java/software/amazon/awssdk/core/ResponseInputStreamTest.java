@@ -123,6 +123,16 @@ class ResponseInputStreamTest {
         assertThat(responseInputStream.hasTimeoutTask()).isFalse();
     }
 
+    @Test
+    void negativeTimeout_disablesTimeout() throws Exception {
+        ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ofSeconds(-1));
+        Thread.sleep(2000);
+
+        verify(abortable, never()).abort();
+        verify(stream, never()).close();
+        assertThat(responseInputStream.hasTimeoutTask()).isFalse();
+    }
+
     private ResponseInputStream<Object> responseInputStream(Duration timeout) {
         return new ResponseInputStream<>(new Object(), abortableInputStream, timeout);
     }

@@ -35,12 +35,12 @@ import software.amazon.awssdk.utils.Validate;
  * An {@link SdkPublisher} that publishes response body content and also contains a reference to the {@link SdkResponse} returned
  * by the service.
  * <p>
- * <b>NOTE:</b> You must subscribe to this publisher promptly to avoid automatic cancellation. The default timeout
- * for subscribing is 60 seconds. If {@link #subscribe(Subscriber)} is not invoked before the timeout, the publisher
- * will automatically cancel the underlying subscription to prevent resource leakage.
+ * <b>NOTE:</b> You must subscribe to this publisher promptly to avoid automatic cancellation. The default timeout for
+ * subscribing is 60 seconds, which starts when the response body begins streaming. If {@link #subscribe(Subscriber)} is not
+ * invoked before the timeout, the publisher will automatically cancel the underlying subscription to prevent resource leakage.
  * <p>
  * The timeout can be customized by passing a {@link Duration} to the constructor, or disabled entirely by
- * passing {@link Duration#ZERO}.
+ * passing {@link Duration#ZERO} or a negative {@link Duration}.
  *
  * @param <ResponseT> Pojo response type.
  * @see AsyncResponseTransformer#toPublisher()
@@ -85,7 +85,7 @@ public final class ResponsePublisher<ResponseT extends SdkResponse> implements S
     }
 
     private void scheduleTimeoutTask(Duration timeout) {
-        if (timeout.equals(Duration.ZERO)) {
+        if (timeout.equals(Duration.ZERO) ||  timeout.isNegative()) {
             return;
         }
 

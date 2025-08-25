@@ -272,8 +272,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
-     * The publisher has a default timeout of 60 seconds. If no subscriber is registered within this time, the subscription
-     * will be automatically cancelled. Use {@link #toPublisher(Duration)} to specify a custom timeout.
+     * The publisher has a default timeout of 60 seconds that starts when the response body begins streaming. If no subscriber is
+     * registered within this time, the subscription will be automatically cancelled. Use {@link #toPublisher(Duration)} to
+     * specify a custom timeout.
      * <p>
      * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
      * transformer is only recommended for advanced use cases.
@@ -307,13 +308,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
-     * If no subscriber is registered within the specified timeout, the subscription will be automatically cancelled. To
-     * disable the timeout, pass {@link Duration#ZERO}.
+     * The timeout starts when the response body begins streaming. If no subscriber is registered within the specified timeout,
+     * the subscription will be automatically cancelled. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
      * <p>
      * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
      * transformer is only recommended for advanced use cases.
      *
-     * @param timeout Maximum time to wait for subscription before cancelling. Use {@link Duration#ZERO} to disable timeout.
+     * @param timeout Maximum time to wait for subscription before cancelling. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
      * @param <ResponseT> Pojo response type.
      * @return AsyncResponseTransformer instance.
      * @see #toPublisher()

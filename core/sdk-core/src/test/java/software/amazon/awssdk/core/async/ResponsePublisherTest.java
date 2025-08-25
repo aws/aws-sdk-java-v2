@@ -94,6 +94,15 @@ class ResponsePublisherTest {
         assertThat(responsePublisher.hasTimeoutTask()).isFalse();
     }
 
+    @Test
+    void negativeTimeout_disablesTimeout() throws Exception {
+        responsePublisher = responsePublisher(Duration.ofSeconds(-1));
+        Thread.sleep(2000);
+
+        verify(publisher, never()).subscribe(any(Subscriber.class));
+        assertThat(responsePublisher.hasTimeoutTask()).isFalse();
+    }
+
     private ResponsePublisher<SdkResponse> responsePublisher(Duration timeout) {
         return new ResponsePublisher<>(response, publisher, timeout);
     }

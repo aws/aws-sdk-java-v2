@@ -234,8 +234,9 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
      * ResponseInputStream#response()} method.
      * <p>
-     * The stream has a default timeout of 60 seconds. If no read operation occurs within this time, the connection
-     * will be automatically aborted. Use {@link #toInputStream(Duration)} to specify a custom timeout.
+     * The stream has a default timeout of 60 seconds that starts when the response stream is ready. If no read operation occurs
+     * within this time, the connection will be automatically aborted. Use {@link #toInputStream(Duration)} to specify a custom
+     * timeout.
      * <p>
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
      * of the client. No retries will be performed in the event of a socket read failure or connection reset.
@@ -262,10 +263,12 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * Creates a response transformer that returns an unmanaged input stream with the response content and a custom timeout.
      * This input stream must be explicitly closed to release the connection.
      * <p>
-     * If no read operation occurs within the specified timeout, the connection will be automatically aborted.
-     * Pass {@link Duration#ZERO} to disable the timeout.
+     * The timeout starts when the response stream is ready. If no read operation occurs within the specified timeout, the
+     * connection will be automatically aborted. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
      *
-     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} to disable timeout.
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
      * @see #toInputStream()

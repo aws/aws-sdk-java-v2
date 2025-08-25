@@ -37,10 +37,11 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>
  * <b>NOTE:</b> You must read this stream promptly to avoid automatic cancellation. The default timeout for reading is 60
- * seconds. If {@link #read()} is not invoked before the timeout, the stream will automatically abort to prevent resource leakage.
+ * seconds, which starts when the response stream is ready. If {@link #read()} is not invoked before the timeout, the stream will
+ * automatically abort to prevent resource leakage.
  * <p>
  * The timeout can be customized by passing a {@link Duration} to the constructor, or disabled entirely by
- * passing {@link Duration#ZERO}.
+ * passing {@link Duration#ZERO} or a negative {@link Duration}.
  * <p>
  * Note about the Apache http client: This input stream can be used to leverage a feature of the Apache http client where
  * connections are released back to the connection pool to be reused. As such, calling {@link ResponseInputStream#close() close}
@@ -79,10 +80,16 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     public ResponseInputStream(ResponseT resp, InputStream in) {
+        this(resp, in, null);
+    }
+
+    public ResponseInputStream(ResponseT resp, InputStream in, Duration timeout) {
         super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = in instanceof Abortable ? (Abortable) in : null;
-        scheduleTimeoutTask(DEFAULT_TIMEOUT);
+
+        Duration resolvedTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
+        scheduleTimeoutTask(resolvedTimeout);
     }
 
     /**
@@ -111,14 +118,14 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     private void cancelTimeoutTask() {
-        hasRead = true;
-        if (timeoutTask != null) {
+        if (!hasRead && timeoutTask != null) {
             timeoutTask.cancel(false);
         }
+        hasRead = true;
     }
 
     private void scheduleTimeoutTask(Duration timeout) {
-        if (timeout.equals(Duration.ZERO)) {
+        if (timeout.equals(Duration.ZERO) || timeout.isNegative()) {
             return;
         }
 
