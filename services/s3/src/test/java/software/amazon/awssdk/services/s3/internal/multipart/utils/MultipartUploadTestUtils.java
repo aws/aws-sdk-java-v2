@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.internal.multipart;
+package software.amazon.awssdk.services.s3.internal.multipart.utils;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -33,9 +33,9 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartResponse;
 import software.amazon.awssdk.services.s3.multipart.S3ResumeToken;
 
-public final class MpuTestUtils {
+public final class MultipartUploadTestUtils {
 
-    private MpuTestUtils() {
+    private MultipartUploadTestUtils() {
     }
 
     public static void stubSuccessfulHeadObjectCall(long contentLength, S3AsyncClient s3AsyncClient) {
