@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cloud Control API",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
