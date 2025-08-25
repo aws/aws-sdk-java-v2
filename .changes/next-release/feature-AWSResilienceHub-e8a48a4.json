@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resilience Hub",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
