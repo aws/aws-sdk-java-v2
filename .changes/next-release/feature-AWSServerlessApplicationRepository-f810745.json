@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSServerlessApplicationRepository",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

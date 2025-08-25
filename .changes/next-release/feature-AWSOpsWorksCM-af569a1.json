@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS OpsWorks CM",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

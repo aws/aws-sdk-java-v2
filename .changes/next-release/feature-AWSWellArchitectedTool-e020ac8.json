@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Well-Architected Tool",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

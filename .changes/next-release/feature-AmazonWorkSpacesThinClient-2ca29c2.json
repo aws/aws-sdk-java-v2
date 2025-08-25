@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces Thin Client",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

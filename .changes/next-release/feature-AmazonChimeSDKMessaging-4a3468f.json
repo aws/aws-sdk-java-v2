@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Chime SDK Messaging",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

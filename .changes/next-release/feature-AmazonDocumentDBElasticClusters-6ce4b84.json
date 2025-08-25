@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DocumentDB Elastic Clusters",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}
