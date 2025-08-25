@@ -180,14 +180,6 @@ public class ImmutableIntrospector {
             return Character.toLowerCase(setterName.charAt(3)) + setterName.substring(4);
         }
 
-        if (setterName.length() > 2
-            && Character.isUpperCase(setterName.charAt(2))
-            && setterName.startsWith(IS_PREFIX)
-            && isSetterMethodBoolean(setter)) {
-
-            return Character.toLowerCase(setterName.charAt(2)) + setterName.substring(3);
-        }
-
         return setterName;
     }
 
@@ -214,11 +206,6 @@ public class ImmutableIntrospector {
 
     private boolean isMethodBoolean(Method method) {
         return method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class;
-    }
-
-    private boolean isSetterMethodBoolean(Method setter) {
-        return setter.getParameterCount() == 1 && 
-               (setter.getParameterTypes()[0] == boolean.class || setter.getParameterTypes()[0] == Boolean.class);
     }
 
     private Optional<Method> extractBuildMethod(Map<String, Method> indexedBuilderMethods, Class<?> immutableClass) {
