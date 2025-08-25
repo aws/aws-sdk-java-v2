@@ -26,6 +26,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -233,17 +234,47 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
      * ResponseInputStream#response()} method.
      * <p>
+     * The stream has a default timeout of 60 seconds. If no read operation occurs within this time, the connection
+     * will be automatically aborted. Use {@link #toInputStream(Duration)} to specify a custom timeout.
+     * <p>
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
      * of the client. No retries will be performed in the event of a socket read failure or connection reset.
      *
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
+     * @see #toInputStream(Duration)
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
         return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
             @Override
             public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
                 return new ResponseInputStream<>(response, inputStream);
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.STREAM.getName();
+            }
+        });
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream with the response content and a custom timeout.
+     * This input stream must be explicitly closed to release the connection.
+     * <p>
+     * If no read operation occurs within the specified timeout, the connection will be automatically aborted.
+     * Pass {@link Duration#ZERO} to disable the timeout.
+     *
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} to disable timeout.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toInputStream()
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(Duration timeout) {
+        return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
+            @Override
+            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
+                return new ResponseInputStream<>(response, inputStream, timeout);
             }
 
             @Override
