@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
@@ -151,7 +152,7 @@ public final class SdkPojoConversionUtils {
     public static UploadPartRequest toUploadPartRequest(PutObjectRequest putObjectRequest, int partNumber, String uploadId) {
 
         UploadPartRequest.Builder builder = UploadPartRequest.builder();
-        validateRequestFields(putObjectRequest, builder, PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
+        validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest, PUT_OBJECT_REQUEST_TO_UPLOAD_PART_FIELDS_TO_IGNORE);
         return builder.uploadId(uploadId).partNumber(partNumber).build();
     }
@@ -160,7 +161,7 @@ public final class SdkPojoConversionUtils {
                                                                                   String uploadId, CompletedPart[] parts,
                                                                                   long contentLength) {
         CompleteMultipartUploadRequest.Builder builder = CompleteMultipartUploadRequest.builder();
-        validateRequestFields(putObjectRequest, builder, PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
+        validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
 
         builder.mpuObjectSize(contentLength);
@@ -175,7 +176,7 @@ public final class SdkPojoConversionUtils {
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(PutObjectRequest putObjectRequest) {
 
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
-        validateRequestFields(putObjectRequest, builder, PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
+        validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
 
         if (S3ChecksumUtils.checksumValueSpecified(putObjectRequest)) {
@@ -225,14 +226,14 @@ public final class SdkPojoConversionUtils {
 
     public static ListPartsRequest toListPartsRequest(String uploadId, PutObjectRequest putObjectRequest) {
         ListPartsRequest.Builder builder = ListPartsRequest.builder();
-        validateRequestFields(putObjectRequest, builder, PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
+        validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
         return builder.uploadId(uploadId).build();
     }
 
     public static CreateMultipartUploadRequest toCreateMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
         CreateMultipartUploadRequest.Builder builder = CreateMultipartUploadRequest.builder();
-        validateRequestFields(copyObjectRequest, builder, COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS);
+        validateRequestFields(copyObjectRequest, builder.build(), COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS);
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
@@ -260,7 +261,7 @@ public final class SdkPojoConversionUtils {
 
     public static AbortMultipartUploadRequest.Builder toAbortMultipartUploadRequest(CopyObjectRequest copyObjectRequest) {
         AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
-        validateRequestFields(copyObjectRequest, builder, COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS);
+        validateRequestFields(copyObjectRequest, builder.build(), COPY_OBJECT_TO_COPY_OBJECT_ALLOWED_FIELDS);
         setSdkFields(builder, copyObjectRequest);
         builder.bucket(copyObjectRequest.destinationBucket());
         builder.key(copyObjectRequest.destinationKey());
@@ -269,7 +270,7 @@ public final class SdkPojoConversionUtils {
 
     public static AbortMultipartUploadRequest.Builder toAbortMultipartUploadRequest(PutObjectRequest putObjectRequest) {
         AbortMultipartUploadRequest.Builder builder = AbortMultipartUploadRequest.builder();
-        validateRequestFields(putObjectRequest, builder, PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
+        validateRequestFields(putObjectRequest, builder.build(), PUT_OBJECT_TO_UPLOAD_PART_ALLOWED_FIELDS);
         setSdkFields(builder, putObjectRequest);
         return builder;
     }
@@ -324,7 +325,7 @@ public final class SdkPojoConversionUtils {
         }
     }
 
-    private static void validateRequestFields(SdkPojo sourceObject, SdkPojo targetBuilder, Set<String> allowedFields) {
+    private static void validateRequestFields(SdkPojo sourceObject, SdkPojo targetObject, Set<String> allowedFields) {
         Set<String> invalidFields = new HashSet<>();
 
         for (SdkField<?> sourceField : sourceObject.sdkFields()) {
@@ -332,12 +333,12 @@ public final class SdkPojoConversionUtils {
             Object sourceValue = sourceField.getValueOrDefault(sourceObject);
 
             if (!allowedFields.contains(fieldName)) {
-                SdkField<?> targetField = targetBuilder.sdkFields()
+                SdkField<?> targetField = targetObject.sdkFields()
                                                        .stream()
                                                        .filter(field -> field.memberName().equals(fieldName))
                                                        .findFirst()
                                                        .orElse(null);
-                if (targetField != null && !targetField.getValueOrDefault(targetBuilder).equals(sourceValue)) {
+                if (targetField != null && !Objects.equals(sourceValue, targetField.getValueOrDefault(targetObject))) {
                     invalidFields.add(fieldName);
                 }
             }
