@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS ARC - Zonal Shift",
+    "contributor": "",
+    "description": "This release adds new API options to enable allowed windows and multiple alarms for practice runs."
+}
