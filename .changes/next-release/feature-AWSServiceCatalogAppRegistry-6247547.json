@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Service Catalog App Registry",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

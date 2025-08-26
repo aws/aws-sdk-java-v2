@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service Routes V2",
-    "contributor": "",
-    "description": "Added RouteFerryNotice PotentialViolatedVehicleRestrictionUsage value for CalculateRoutes. This value indicates when the Route is potentially forbidden for the given vehicle profile."
-}

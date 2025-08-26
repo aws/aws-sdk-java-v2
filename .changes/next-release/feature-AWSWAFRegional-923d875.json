@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS WAF Regional",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

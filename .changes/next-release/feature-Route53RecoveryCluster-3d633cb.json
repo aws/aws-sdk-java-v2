@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Route53 Recovery Cluster",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Private CA Connector for SCEP",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

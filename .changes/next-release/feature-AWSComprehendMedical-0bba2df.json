@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Comprehend Medical",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}
