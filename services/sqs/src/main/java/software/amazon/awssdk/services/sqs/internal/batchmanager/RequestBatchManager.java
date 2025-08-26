@@ -107,10 +107,9 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
 
     private void manualFlushBuffer(String batchKey,
                                    Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests) {
-        requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
         flushBuffer(batchKey, flushableRequests);
-        requestsAndResponsesMaps.putScheduledFlush(batchKey,
-                                                   scheduleBufferFlush(batchKey,
+        requestsAndResponsesMaps.cancelAndReplaceScheduledFlush(batchKey,
+                                                                scheduleBufferFlush(batchKey,
                                                                        sendRequestFrequency.toMillis(),
                                                                        scheduledExecutor));
     }
