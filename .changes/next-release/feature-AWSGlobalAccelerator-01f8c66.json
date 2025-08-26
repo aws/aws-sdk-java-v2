@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Global Accelerator",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
