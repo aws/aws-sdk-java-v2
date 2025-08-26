@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT TwinMaker",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
