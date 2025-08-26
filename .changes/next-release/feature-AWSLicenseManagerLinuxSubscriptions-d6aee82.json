@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS License Manager Linux Subscriptions",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
