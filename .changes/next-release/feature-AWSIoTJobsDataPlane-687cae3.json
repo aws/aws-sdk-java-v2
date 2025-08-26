@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Jobs Data Plane",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
