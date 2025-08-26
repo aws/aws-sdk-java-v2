@@ -523,13 +523,23 @@
       "type": "structure",
       "members": {
         "InputEventOne": {
-          "shape": "InputEvent"
+          "shape": "InputEventOne"
         },
         "InputEventTwo": {
           "shape": "InputEventTwo"
         }
       },
       "eventstream": true
+    },
+    "InputEventOne": {
+      "type": "structure",
+      "members": {
+        "ExplicitPayloadMember": {
+          "shape":"ExplicitPayloadMember",
+          "eventpayload":true
+        }
+      },
+      "event": true
     },
     "InputEventTwo": {
       "type": "structure",

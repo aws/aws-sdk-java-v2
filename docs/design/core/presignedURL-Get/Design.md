@@ -16,7 +16,7 @@ The Java SDK team has decided to implement a separate `AsyncPresignedUrlExtensio
 
 The design introduces a new helper API `AsyncPresignedUrlExtension` which can be instantiated via the existing `S3AsyncClient`. This extension provides a clean abstraction layer that preserves SDK benefits while handling the unique requirements of pre-signed URL requests.
 
-This design will implement only the GET /download function for presigned URLs for the S3AsyncClient. The synchronous S3Client implementation is deferred to future work.
+This design implements GET/download functionality for presigned URLs for the S3AsyncClient, including multipart download support for large objects. The synchronous S3Client implementation is deferred to future work.
 
 
 
@@ -47,6 +47,32 @@ S3AsyncClient s3Client = S3AsyncClient.create();
 AsyncPresignedUrlExtension presignedUrlExtension = s3Client.presignedUrlExtension();
 CompletableFuture<GetObjectResponse> response = presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 ```
+
+### Multipart Download Support
+
+For objects with size greater than minimumPartSizeInBytes, the SDK automatically uses multipart downloads with HTTP Range headers when multipart is enabled:
+
+```java
+// Enable multipart downloads
+S3AsyncClient s3Client = S3AsyncClient.builder()
+    .multipartEnabled(true)
+    .build();
+
+// Or with custom configuration
+MultipartConfiguration config = MultipartConfiguration.builder()
+    .minimumPartSizeInBytes(8 * 1024 * 1024)   // 8MB parts
+    .build();
+
+S3AsyncClient multipartClient = S3AsyncClient.builder()
+    .multipartConfiguration(config)
+    .build();
+
+// Download automatically uses multipart for objects larger than the configured part size
+CompletableFuture<ResponseBytes<GetObjectResponse>> response = 
+    multipartClient.presignedUrlExtension().getObject(request, AsyncResponseTransformer.toBytes());
+```
+
+The multipart implementation uses Range headers (e.g., `bytes=0-8388607`) instead of partNumber parameters to preserve presigned URL signatures. The first request downloads the initial part while discovering total object size from the Content-Range header.
 
 ### AsyncPresignedUrlExtension Interface
 

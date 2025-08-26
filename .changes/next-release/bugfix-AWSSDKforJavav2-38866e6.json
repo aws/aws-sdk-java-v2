@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fix DynamoDB Enhanced Client immutable class introspection fails for \"is\" prefix fields. Fixes [#4446](https://github.com/aws/aws-sdk-java-v2/issues/4446)."
-}
