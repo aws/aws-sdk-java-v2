@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EC2 Image Builder",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
