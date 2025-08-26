@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Catalog",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
