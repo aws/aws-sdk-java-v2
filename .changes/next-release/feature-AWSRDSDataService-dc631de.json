@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS RDS DataService",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
