@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Telco Network Builder",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
