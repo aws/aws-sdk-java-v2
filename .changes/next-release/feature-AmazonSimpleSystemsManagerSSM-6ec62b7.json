@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Systems Manager (SSM)",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
