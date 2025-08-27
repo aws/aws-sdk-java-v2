@@ -37,7 +37,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-public class MultipartDownloaderSubscriberMockClientTest {
+public class MultipartDownloaderSubscriberPartCountValidationTest {
     @Mock
     private S3AsyncClient s3Client;
 
@@ -60,7 +60,7 @@ public class MultipartDownloaderSubscriberMockClientTest {
     }
 
     @Test
-    void testValidationPassesWhenCallCountMatchesTotalParts() throws InterruptedException {
+    void callCountMatchesTotalParts_shouldPass() throws InterruptedException {
         subscriber = new MultipartDownloaderSubscriber(s3Client, getObjectRequest);
         GetObjectResponse response1 = createMockResponse(3, "etag1");
         GetObjectResponse response2 = createMockResponse(3, "etag2");
@@ -85,7 +85,7 @@ public class MultipartDownloaderSubscriberMockClientTest {
     }
 
     @Test
-    void testValidationFailsWhenCallCountExceedsTotalParts() throws InterruptedException {
+    void callCountLessThanTotalParts_shouldThrowException() throws InterruptedException {
         subscriber = new MultipartDownloaderSubscriber(s3Client, getObjectRequest);
         GetObjectResponse response1 = createMockResponse(3, "etag1");
         GetObjectResponse response2 = createMockResponse(3, "etag2");
