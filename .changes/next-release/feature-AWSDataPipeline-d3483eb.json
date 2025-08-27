@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Data Pipeline",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
