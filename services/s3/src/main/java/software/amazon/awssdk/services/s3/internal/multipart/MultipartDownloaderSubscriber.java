@@ -62,6 +62,11 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     private final AtomicInteger completedParts;
 
     /**
+     * The total number of getObject calls made. This tracks how many times we've actually called getObject.
+     */
+    private final AtomicInteger getObjectCallCount;
+
+    /**
      * The subscription received from the publisher this subscriber subscribes to.
      */
     private Subscription subscription;
@@ -95,6 +100,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.completedParts = new AtomicInteger(completedParts);
+        this.getObjectCallCount = new AtomicInteger(completedParts);
     }
 
     @Override
@@ -120,7 +126,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         synchronized (lock) {
             if (totalParts != null && nextPartToGet > totalParts) {
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
-                validatePartsCount(currentPart);
                 subscription.cancel();
                 return;
             }
@@ -129,6 +134,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         GetObjectRequest actualRequest = nextRequest(nextPartToGet);
         log.debug(() -> "Sending GetObjectRequest for next part with partNumber=" + nextPartToGet);
         CompletableFuture<GetObjectResponse> getObjectFuture = s3.getObject(actualRequest, asyncResponseTransformer);
+        getObjectCallCount.incrementAndGet();
         getObjectFutures.add(getObjectFuture);
         getObjectFuture.whenComplete((response, error) -> {
             if (error != null) {
@@ -169,7 +175,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
                 subscription.request(1);
             } else {
-                validatePartsCount(totalComplete);
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
             }
@@ -187,6 +192,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onComplete() {
+        validatePartsCount();
         future.complete(null);
     }
 
@@ -203,10 +209,11 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         });
     }
 
-    private void validatePartsCount(int currentGetCount) {
-        if (totalParts != null && currentGetCount != totalParts) {
+    private void validatePartsCount() {
+        int actualGetCount = getObjectCallCount.get();
+        if (totalParts != null && actualGetCount != totalParts) {
             String errorMessage = String.format("PartsCount validation failed. Expected %d, downloaded %d parts.", totalParts,
-                                                 currentGetCount);
+                                                actualGetCount);
             subscription.cancel();
             SdkClientException exception = SdkClientException.create(errorMessage);
             onError(exception);
