@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Migration Hub Config",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

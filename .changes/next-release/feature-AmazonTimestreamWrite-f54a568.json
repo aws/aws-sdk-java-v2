@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Timestream Write",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Streams Media",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}
