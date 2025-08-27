@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune Graph",
+    "contributor": "",
+    "description": "Add StartGraph and StopGraph operations to Neptune Analytics"
+}
