@@ -157,6 +157,17 @@ public final class BucketUtils {
     }
 
     /**
+     * Determines if the given bucket name is an S3 Express bucket.
+     * S3 Express buckets follow the naming pattern: bucketname--azid--x-s3
+     *
+     * @param bucketName The bucket name to check.
+     * @return true if the bucket name is an S3 Express bucket, false otherwise.
+     */
+    public static boolean isS3ExpressBucket(String bucketName) {
+        return bucketName != null && bucketName.endsWith("--x-s3");
+    }
+
+    /**
      * If 'exception' is true, throw an IllegalArgumentException with the given
      * message. Otherwise, silently return false.
      *
