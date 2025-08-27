@@ -120,8 +120,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
-        int currentPart = completedParts.get();
-        int nextPartToGet =  currentPart + 1;
+        int nextPartToGet =  completedParts.get() + 1;
 
         synchronized (lock) {
             if (totalParts != null && nextPartToGet > totalParts) {
