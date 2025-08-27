@@ -775,27 +775,6 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>${maven-javadoc-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>generate-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                                <configuration>
-                                    <detectJavaApiLink>false</detectJavaApiLink>
-                                    <source>8</source>
-                                    <notree>true</notree>
-                                    <includeDependencySources>false</includeDependencySources>
-                                    <doclint>none</doclint>
-                                    <excludePackageNames>software.amazon.awssdk.services.*:*.codegen</excludePackageNames>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>${maven-gpg-plugin.version}</version>
                         <executions>
