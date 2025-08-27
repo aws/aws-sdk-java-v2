@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeConnections",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
