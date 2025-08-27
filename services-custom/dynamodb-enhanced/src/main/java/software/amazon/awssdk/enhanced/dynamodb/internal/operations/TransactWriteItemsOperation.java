@@ -52,6 +52,7 @@ public class TransactWriteItemsOperation
                                         .clientRequestToken(this.request.clientRequestToken())
                                         .returnConsumedCapacity(this.request.returnConsumedCapacity())
                                         .returnItemCollectionMetrics(this.request.returnItemCollectionMetrics())
+                                        .overrideConfiguration(this.request.overrideConfiguration())
                                         .build();
     }
 

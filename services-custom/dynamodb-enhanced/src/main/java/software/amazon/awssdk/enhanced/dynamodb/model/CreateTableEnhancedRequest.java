@@ -23,8 +23,10 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.StreamSpecification;
 
@@ -42,12 +44,14 @@ public final class CreateTableEnhancedRequest {
     private final StreamSpecification streamSpecification;
     private final Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
     private final Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private CreateTableEnhancedRequest(Builder builder) {
         this.provisionedThroughput = builder.provisionedThroughput;
         this.streamSpecification = builder.streamSpecification;
         this.localSecondaryIndices = builder.localSecondaryIndices;
         this.globalSecondaryIndices = builder.globalSecondaryIndices;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -64,7 +68,8 @@ public final class CreateTableEnhancedRequest {
         return builder().provisionedThroughput(provisionedThroughput)
                         .streamSpecification(streamSpecification)
                         .localSecondaryIndices(localSecondaryIndices)
-                        .globalSecondaryIndices(globalSecondaryIndices);
+                        .globalSecondaryIndices(globalSecondaryIndices)
+                        .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -95,6 +100,18 @@ public final class CreateTableEnhancedRequest {
         return globalSecondaryIndices;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link CreateTableRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -118,6 +135,10 @@ public final class CreateTableEnhancedRequest {
             that.localSecondaryIndices != null) {
             return false;
         }
+        if (overrideConfiguration != null ? ! overrideConfiguration.equals(that.overrideConfiguration) :
+            that.overrideConfiguration != null) {
+            return false;
+        }
         return globalSecondaryIndices != null ? globalSecondaryIndices.equals(that.globalSecondaryIndices) :
             that.globalSecondaryIndices == null;
     }
@@ -128,6 +149,7 @@ public final class CreateTableEnhancedRequest {
         result = 31 * result + (streamSpecification != null ? streamSpecification.hashCode() : 0);
         result = 31 * result + (localSecondaryIndices != null ? localSecondaryIndices.hashCode() : 0);
         result = 31 * result + (globalSecondaryIndices != null ? globalSecondaryIndices.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -140,6 +162,7 @@ public final class CreateTableEnhancedRequest {
         private StreamSpecification streamSpecification;
         private Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
         private Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -253,6 +276,30 @@ public final class CreateTableEnhancedRequest {
                 gsi.accept(builder);
                 return builder.build();
             }).collect(Collectors.toList()));
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link CreateTableRequest}.
+         *
+         * @see CreateTableRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link CreateTableRequest}.
+         *
+         * @see CreateTableRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
+            return this;
         }
 
         public CreateTableEnhancedRequest build() {

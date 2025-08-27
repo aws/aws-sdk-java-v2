@@ -20,10 +20,12 @@ import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -42,11 +44,13 @@ public final class TransactDeleteItemEnhancedRequest {
     private final Key key;
     private final Expression conditionExpression;
     private final String returnValuesOnConditionCheckFailure;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private TransactDeleteItemEnhancedRequest(Builder builder) {
         this.key = builder.key;
         this.conditionExpression = builder.conditionExpression;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -62,7 +66,8 @@ public final class TransactDeleteItemEnhancedRequest {
     public Builder toBuilder() {
         return builder().key(key)
                         .conditionExpression(conditionExpression)
-                        .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
+                        .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                        .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -107,6 +112,18 @@ public final class TransactDeleteItemEnhancedRequest {
         return returnValuesOnConditionCheckFailure;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link DeleteItemRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -124,6 +141,9 @@ public final class TransactDeleteItemEnhancedRequest {
         if (!Objects.equals(conditionExpression, that.conditionExpression)) {
             return false;
         }
+        if (!Objects.equals(overrideConfiguration, that.overrideConfiguration)) {
+            return false;
+        }
         return Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
     }
 
@@ -132,6 +152,7 @@ public final class TransactDeleteItemEnhancedRequest {
         int result = Objects.hashCode(key);
         result = 31 * result + Objects.hashCode(conditionExpression);
         result = 31 * result + Objects.hashCode(returnValuesOnConditionCheckFailure);
+        result = 31 * result + Objects.hashCode(overrideConfiguration);
         return result;
     }
 
@@ -145,6 +166,7 @@ public final class TransactDeleteItemEnhancedRequest {
         private Key key;
         private Expression conditionExpression;
         private String returnValuesOnConditionCheckFailure;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -215,6 +237,29 @@ public final class TransactDeleteItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Sets the override configuration to apply to the low-level {@link DeleteItemRequest}.
+         *
+         * @see DeleteItemRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link DeleteItemRequest}.
+         *
+         * @see DeleteItemRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
+            return this;
+        }
 
         public TransactDeleteItemEnhancedRequest build() {
             return new TransactDeleteItemEnhancedRequest(this);
