@@ -90,8 +90,6 @@
         <module>marketplaceentitlement</module>
         <module>marketplacemetering</module>
         <module>mturk</module>
-        <module>opsworks</module>
-        <module>opsworkscm</module>
         <module>organizations</module>
         <module>pinpoint</module>
         <module>polly</module>
