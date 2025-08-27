@@ -1458,10 +1458,6 @@
                                     <packages>software.amazon.awssdk.services.xray*</packages>
                                 </group>
                                 <group>
-                                    <title>OpsWorks for Chef Automate</title>
-                                    <packages>software.amazon.awssdk.services.opsworkscm*</packages>
-                                </group>
-                                <group>
                                     <title>Pinpoint</title>
                                     <packages>software.amazon.awssdk.services.pinpoint*</packages>
                                 </group>
