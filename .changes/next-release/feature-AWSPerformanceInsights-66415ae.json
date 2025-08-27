@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Performance Insights",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
