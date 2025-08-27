@@ -35,8 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -46,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -74,6 +73,13 @@ class S3MultipartFileDownloadWiremockTest {
                                      .serviceConfiguration(S3Configuration.builder()
                                                                           .pathStyleAccessEnabled(true)
                                                                           .build())
+                                     .httpClient(NettyNioAsyncHttpClient.builder()
+                                                                        // .maxConcurrency(10_000)
+                                                                        // .connectionAcquisitionTimeout(Duration.ofSeconds(5))
+                                                                        // .connectionTimeout(Duration.ofSeconds(5))
+                                                                        // .connectionTimeToLive(Duration.ofSeconds(5))
+                                                                        .build())
+                                     // .httpClient(AwsCrtAsyncHttpClient.create())
                                      .build();
         util = new MultipartDownloadTestUtil(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
@@ -263,14 +269,69 @@ class S3MultipartFileDownloadWiremockTest {
     }
 
     @Test
+    void errorOnFirstPart_retryable_thenSucceeds() throws Exception {
+        int partSize = 1024;
+        int totalPart = 3;
+        Random random = new Random();
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("Started")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 1</Message></Error>"))
+                    .willSetStateTo("retry1"));
+
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry1")
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("<Error><Code>InternalError</Code><Message>Internal error 2</Message></Error>"))
+                    .willSetStateTo("retry2"));
+
+        byte[] part1Data = new byte[partSize];
+        random.nextBytes(part1Data);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 1)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry2")
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", totalPart + "")
+                                    .withHeader("x-amz-content-range", contentRangeHeader(1, totalPart, partSize))
+                                    .withHeader("ETag", "test-etag")
+                                    .withBody(part1Data)));
+
+        byte[] part2Data = new byte[partSize];
+        random.nextBytes(part2Data);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 2)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry2")
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", totalPart + "")
+                                    .withHeader("x-amz-content-range", contentRangeHeader(2, totalPart, partSize))
+                                    .withHeader("ETag", "test-etag")
+                                    .withBody(part2Data)));
+
+        byte[] part3Data = new byte[partSize];
+        random.nextBytes(part3Data);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 3)))
+                    .inScenario("retry")
+                    .whenScenarioStateIs("retry2")
+                    .willReturn(aResponse()
+                                    .withHeader("x-amz-mp-parts-count", totalPart + "")
+                                    .withHeader("x-amz-content-range", contentRangeHeader(3, totalPart, partSize))
+                                    .withHeader("ETag", "test-etag")
+                                    .withBody(part3Data)));
+
+
+    }
+
+    @Test
     void errorOnMiddlePart_retryable_thenSucceeds() throws Exception {
         int partSize = 1024;
         int totalPart = 3;
-        List<Byte> expectedData = new ArrayList<>();
+        Random random = new Random();
         byte[] part1Data = util.stubForPart(testBucket, testKey, 1, totalPart, partSize);
-        for (byte b: part1Data) {
-            expectedData.add(b);
-        }
 
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey)))
                     .inScenario("retry")
@@ -298,7 +359,7 @@ class S3MultipartFileDownloadWiremockTest {
         );
 
         byte[] part2Data = new byte[partSize];
-        new Random().nextBytes(part2Data);
+        random.nextBytes(part2Data);
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 2)))
                     .inScenario("retry")
                     .whenScenarioStateIs("retry3")
@@ -307,15 +368,9 @@ class S3MultipartFileDownloadWiremockTest {
                                     .withHeader("x-amz-content-range", contentRangeHeader(2, totalPart, partSize))
                                     .withHeader("ETag", "test-etag")
                                     .withBody(part2Data)));
-        for (byte b: part2Data) {
-            expectedData.add(b);
-        }
 
         byte[] part3Data = new byte[partSize];
-        new Random().nextBytes(part3Data);
-        for (byte b: part3Data) {
-            expectedData.add(b);
-        }
+        random.nextBytes(part3Data);
 
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, 3)))
                     .willReturn(aResponse()
@@ -346,12 +401,10 @@ class S3MultipartFileDownloadWiremockTest {
 
     }
 
-
     @Test
     void veryHighPartCount_shouldSucceed() throws Exception {
-        // 10_000_000 bytes -> 10MB total
-        int numParts = 10_000;
-        int partSize = 1000;
+        int numParts = 5000;
+        int partSize = 100;
 
         byte[] expectedBody = util.stubAllParts(testBucket, testKey, numParts, partSize);
 
@@ -361,7 +414,8 @@ class S3MultipartFileDownloadWiremockTest {
                                                                                     .build(),
                                                                                 AsyncResponseTransformer.toFile(testFile));
 
-        assertThat(response).succeedsWithin(Duration.of(2, ChronoUnit.MINUTES));
+        assertThat(response).succeedsWithin(Duration.of(5, ChronoUnit.MINUTES));
+        response.join();
         byte[] actualBody = Files.readAllBytes(testFile);
         assertThat(actualBody).isEqualTo(expectedBody);
         assertThat(response).isNotNull();

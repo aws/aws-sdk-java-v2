@@ -89,14 +89,12 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public CompletableFuture<T> prepare() {
-            log.info(() -> "prepare() called");
             this.future = new CompletableFuture<>();
             return this.future;
         }
 
         @Override
         public void onResponse(T response) {
-            log.info(() -> "Received response: " + response.toString());
             List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
             if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
                 // Bad state! This is intended to cancel everything
@@ -151,7 +149,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            log.info(() -> "onStream() called");
             if (delegate != null) {
                 // should never be null as per AsyncResponseTransformer runtime contract, but we never know
                 delegate.onStream(publisher);

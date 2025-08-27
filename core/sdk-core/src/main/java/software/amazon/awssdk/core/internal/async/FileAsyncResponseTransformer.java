@@ -60,7 +60,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile AsynchronousFileChannel fileChannel;
     private volatile CompletableFuture<Void> cf;
     private volatile ResponseT response;
-    private long position;
+    private final long position;
     private final FileTransformerConfiguration configuration;
 
     public FileAsyncResponseTransformer(Path path) {
@@ -198,6 +198,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private final Path path;
         private final CompletableFuture<Void> future;
         private final Consumer<Throwable> onErrorMethod;
+        private final Object closeLock = new Object();
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
@@ -243,7 +244,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                     if (byteBuffer.hasRemaining()) {
                         performWrite(byteBuffer);
                     } else {
-                        synchronized (this) {
+                        synchronized (closeLock) {
                             writeInProgress = false;
                             if (closeOnLastWrite) {
                                 close();
@@ -271,7 +272,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         public void onComplete() {
             log.trace(() -> "onComplete");
             // if write in progress, tell write to close on finish.
-            synchronized (this) {
+            synchronized (closeLock) {
                 if (writeInProgress) {
                     log.trace(() -> "writeInProgress = true, not closing");
                     closeOnLastWrite = true;

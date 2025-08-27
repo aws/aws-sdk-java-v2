@@ -33,7 +33,7 @@ import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
 
 /**
- * TCK verification test for {@link FileSubscriber}.
+ * TCK verification test for {@link FileAsyncResponseTransformer.FileSubscriber}.
  */
 public class FileSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBuffer> {
     private static final byte[] CONTENT = new byte[16];
@@ -46,7 +46,7 @@ public class FileSubscriberTckTest extends SubscriberWhiteboxVerification<ByteBu
     @Override
     public Subscriber<ByteBuffer> createSubscriber(WhiteboxSubscriberProbe<ByteBuffer> whiteboxSubscriberProbe) {
         Path tempFile = getNewTempFile();
-        return new FileSubscriber(openChannel(tempFile), tempFile, new CompletableFuture<>(), (t) -> {}, 0) {
+        return new FileAsyncResponseTransformer.FileSubscriber(openChannel(tempFile), tempFile, new CompletableFuture<>(), (t) -> {}, 0) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

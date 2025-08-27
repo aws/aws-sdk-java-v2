@@ -67,7 +67,7 @@ class FileAsyncResponseTransformerPublisherTest {
         AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(testFile);
 
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>(initialTransformer);
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer);
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<AsyncResponseTransformer<SdkResponse, SdkResponse>> receivedTransformer = new AtomicReference<>();
@@ -149,7 +149,7 @@ class FileAsyncResponseTransformerPublisherTest {
         // Given
         AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(testFile);
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>(initialTransformer);
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer);
 
         int numTransformers = 8;
         CountDownLatch latch = new CountDownLatch(numTransformers);
