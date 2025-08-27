@@ -815,11 +815,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>opsworks</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>opsworkscm</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>

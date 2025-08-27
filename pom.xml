@@ -1274,10 +1274,6 @@
                                     <packages>software.amazon.awssdk.services.elastictranscoder*</packages>
                                 </group>
                                 <group>
-                                    <title>OpsWorks</title>
-                                    <packages>software.amazon.awssdk.services.opsworks*</packages>
-                                </group>
-                                <group>
                                     <title>CloudFormation</title>
                                     <packages>software.amazon.awssdk.services.cloudformation*</packages>
                                 </group>
