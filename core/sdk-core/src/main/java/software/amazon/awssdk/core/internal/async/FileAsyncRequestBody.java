@@ -34,6 +34,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
@@ -84,6 +85,11 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return new FileAsyncRequestBodySplitHelper(this, splitConfiguration).split();
+    }
+
+    @Override
+    public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        return split(splitConfiguration).map(body -> new ClosableAsyncRequestBodyWrapper(body));
     }
 
     public Path path() {
@@ -435,5 +441,33 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
     private static AsynchronousFileChannel openInputChannel(Path path) throws IOException {
         return AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+    }
+
+    private static class ClosableAsyncRequestBodyWrapper implements CloseableAsyncRequestBody {
+        private final AsyncRequestBody delegate;
+
+        ClosableAsyncRequestBodyWrapper(AsyncRequestBody body) {
+            this.delegate = body;
+        }
+
+        @Override
+        public Optional<Long> contentLength() {
+            return delegate.contentLength();
+        }
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> s) {
+            delegate.subscribe(s);
+        }
+
+        @Override
+        public void close() {
+            // no op
+        }
+
+        @Override
+        public String body() {
+            return delegate.body();
+        }
     }
 }
