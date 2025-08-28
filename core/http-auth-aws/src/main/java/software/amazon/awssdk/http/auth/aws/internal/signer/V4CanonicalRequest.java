@@ -209,9 +209,8 @@ public final class V4CanonicalRequest {
             headersString.append(header.left()).append(';');
         }
 
-        int len = headersString.length();
-        if (len > 0) {
-            headersString.setLength(len - 1); // remove last semicolon
+        if (headersString.length() > 0) {
+            headersString.setLength(headersString.length() - 1); // remove last semicolon
         }
 
         return headersString.toString();
