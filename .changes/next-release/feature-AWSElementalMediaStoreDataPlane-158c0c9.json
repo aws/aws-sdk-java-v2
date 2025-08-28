@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaStore Data Plane",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
