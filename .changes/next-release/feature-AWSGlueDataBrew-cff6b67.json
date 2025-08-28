@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue DataBrew",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

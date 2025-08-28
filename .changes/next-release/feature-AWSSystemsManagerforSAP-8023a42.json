@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Systems Manager for SAP",
-    "contributor": "",
-    "description": "Added support for Configuration Checks on SAP HANA Applications."
-}

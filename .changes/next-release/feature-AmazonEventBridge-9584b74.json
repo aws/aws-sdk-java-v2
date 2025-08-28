@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EventBridge",
-    "contributor": "",
-    "description": "Remove incorrect endpoint tests"
-}

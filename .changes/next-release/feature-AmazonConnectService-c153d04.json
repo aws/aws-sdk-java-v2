@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "AgentStatusDrillDown feature in GetCurrentMetricData API. Adding AGENT_STATUS as filter and grouping in GetCurrentMetricData API"
-}

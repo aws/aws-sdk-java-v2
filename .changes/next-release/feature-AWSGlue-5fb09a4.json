@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Adding support to fetch TargetDatabase field during GetDatabases with AttributesToGet"
-}
