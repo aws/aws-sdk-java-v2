@@ -44,8 +44,8 @@ public class RetryModeTest {
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
             // Test defaults
-            new TestData(null, null, null, null, RetryMode.LEGACY),
-            new TestData(null, null, "PropertyNotSet", null, RetryMode.LEGACY),
+            new TestData(null, null, null, null, RetryMode.STANDARD),
+            new TestData(null, null, "PropertyNotSet", null, RetryMode.STANDARD),
 
             // Test resolution
             new TestData("legacy", null, null, null, RetryMode.LEGACY),
