@@ -20,6 +20,7 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
@@ -44,9 +45,22 @@ public class EndpointResolverInterceptorSpecTest {
     }
 
     @Test
-    void endpointResolverInterceptorClassWithSigv4aMultiAuth() {
-        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.opsWithSigv4a());
+    void endpointResolverInterceptorClassWithSigv4aMultiAuth_withRegionParameter() {
+        IntermediateModel intermediateModel = ClientTestModels.opsWithSigv4a();
+
+        ParameterModel region = new ParameterModel();
+        region.setType("string");
+        intermediateModel.getEndpointRuleSetModel().getParameters().put("region", region);
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(intermediateModel);
+
         assertThat(endpointProviderInterceptor, generatesTo("endpoint-resolve-interceptor-with-multiauthsigv4a.java"));
+    }
+
+    @Test
+    void endpointResolverInterceptorClassWithSigv4aMultiAuth_noRegionParameter() {
+        ClassSpec endpointProviderInterceptor = new EndpointResolverInterceptorSpec(ClientTestModels.opsWithSigv4a());
+        assertThat(endpointProviderInterceptor,
+                   generatesTo("endpoint-resolve-interceptor-with-multiauthsigv4a-noregionparam.java"));
     }
 
     @Test

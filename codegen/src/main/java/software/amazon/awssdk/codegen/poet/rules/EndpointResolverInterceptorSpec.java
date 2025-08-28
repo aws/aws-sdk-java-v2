@@ -234,8 +234,22 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                                AwsV4aAuthScheme.class, AwsV4aHttpSigner.class);
             b.addStatement("$T optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder()",
                            AuthSchemeOption.Builder.class);
-            b.addStatement("$T regionSet = $T.create(endpointParams.region().id())",
-                           RegionSet.class, RegionSet.class);
+
+            // Note: initially, we assumed that endpointParams contains a region() member, but endpoint rules does not require
+            // this.
+            //
+            // For backwards compatibility reasons, we first check if the endpoint params has an explicit "region" parameter.
+            // If so, use that. Note that a "region" ruleset param *may not* match the region set on the client.
+            //
+            // Otherwise, fallback to the client region.
+            CodeBlock regionExpr;
+            if (endpointRulesSpecUtils.isDeclaredParam("region")) {
+                regionExpr = CodeBlock.of("endpointParams.region().id()");
+            } else {
+                regionExpr = CodeBlock.of("executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION).id()");
+            }
+
+            b.addStatement("$T regionSet = $T.create($L)", RegionSet.class, RegionSet.class, regionExpr);
             b.addStatement("optionBuilder.putSignerProperty($T.REGION_SET, regionSet)", AwsV4aHttpSigner.class);
             b.addStatement("selectedAuthScheme = new $T(selectedAuthScheme.identity(), selectedAuthScheme.signer(), "
                            + "optionBuilder.build())", SelectedAuthScheme.class);
