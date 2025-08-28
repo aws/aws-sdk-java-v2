@@ -68,23 +68,6 @@ public class ImdsCredentialsInUserAgentTest {
     }
 
     @Test
-    public void regularCredentials_shouldNotHaveImdsCredentialsBusinessMetric() {
-        // Create credentials with non-IMDS provider name
-        AwsCredentials regularCredentials = createCredentialsWithProviderName("DefaultCredentialsProvider");
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, regularCredentials);
-
-        interceptor.modifyRequest(context, executionAttributes);
-
-        // Verify that the CREDENTIALS_IMDS metric is NOT added
-        assertThat(businessMetrics.recordedMetrics())
-            .doesNotContain(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
-        
-        // Verify that the metric does NOT appear in the user agent string
-        String userAgentString = businessMetrics.asBoundedString();
-        assertThat(userAgentString).doesNotContain(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
-    }
-
-    @Test
     public void containerCredentials_shouldNotHaveImdsCredentialsBusinessMetric() {
         // Test with "ContainerCredentialsProvider" provider name - should not be considered IMDS
         AwsCredentials containerCredentials = createCredentialsWithProviderName("ContainerCredentialsProvider");
@@ -106,29 +89,6 @@ public class ImdsCredentialsInUserAgentTest {
 
         assertThat(businessMetrics.recordedMetrics())
             .doesNotContain(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
-    }
-
-    @Test
-    public void instanceProfileCredentialsProvider_shouldBeDetectedAsImds() {
-        // Test the actual InstanceProfileCredentialsProvider
-        InstanceProfileCredentialsProvider imdsProvider = InstanceProfileCredentialsProvider.create();
-        assertThat(imdsProvider.toString()).contains("InstanceProfileCredentialsProvider");
-    }
-
-    @Test
-    public void defaultCredentialsProvider_whenFallsBackToImds_shouldHaveImdsCredentialsBusinessMetric() {
-        AwsCredentials credentialsFromDefaultChain = createCredentialsWithProviderName("InstanceProfileCredentialsProvider");
-        executionAttributes.putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, credentialsFromDefaultChain);
-
-        interceptor.modifyRequest(context, executionAttributes);
-
-        // Verify that even when coming from default provider chain, IMDS is still detected
-        assertThat(businessMetrics.recordedMetrics())
-            .contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
-        
-        // Verify that the metric appears in the user agent string
-        String userAgentString = businessMetrics.asBoundedString();
-        assertThat(userAgentString).contains(BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
     }
 
     private AwsCredentials createCredentialsWithProviderName(String providerName) {

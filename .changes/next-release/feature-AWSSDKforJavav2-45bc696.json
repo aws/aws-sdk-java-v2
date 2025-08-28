@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Implemented the CREDENTIALS_IMDS business metric feature that tracks when Instance Metadata Service (IMDS) credentials are being used in AWS SDK requests."
+}
