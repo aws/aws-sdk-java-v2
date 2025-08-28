@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CloudHSM V2",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
