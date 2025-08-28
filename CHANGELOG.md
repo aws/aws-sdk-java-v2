@@ -1,4 +1,887 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.32.32__ __2025-08-27__
+## __AWS Amplify UI Builder__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS AppConfig Data__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Application Discovery Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Batch__
+  - ### Features
+    - Added ECS_AL2023_NVIDIA as an option for Ec2Configuration.imageType.
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CodeBuild__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CodeConnections__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Data Pipeline__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Directory Service__
+  - ### Features
+    - Add APIs for CA AutoEnrollment support: DescribeCAEnrollmentPolicy, EnableCAEnrollmentPolicy and DisableCAEnrollmentPolicy.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT FleetWise__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Key Management Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Lake Formation__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Mainframe Modernization Application Testing__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Migration Hub Config__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Performance Insights__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS RoboMaker__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Adds timeouts to ResponsePublisher and ResponseInputStream to close connection if response not consumed
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Added allowlist when copying PutObjectRequest and CopyObjectRequest to transfer manager request
+
+## __AWS Snow Device Management__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Supply Chain__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime SDK Identity__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CodeGuru Profiler__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Add support for on-demand refresh of EKS cluster insights
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Inspector__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Interactive Video Service Chat__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Neptune__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add StartGraph and StopGraph operations to Neptune Analytics
+
+## __Amazon Omics__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Personalize__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon QLDB Session__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Redshift__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds support for AutoScaling on SageMaker HyperPod.
+
+## __Amazon Simple Notification Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Textract__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Timestream Write__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Voice ID__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon WorkDocs__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon WorkMail__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AmplifyBackend__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Application Migration Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __QApps__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Schemas__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+# __2.32.31__ __2025-08-26__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - This release adds new API options to enable allowed windows and multiple alarms for practice runs.
+
+## __AWS App Mesh__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS App Runner__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CodeCommit__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CodeStar connections__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Comprehend Medical__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Control Catalog__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS DataSync__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Global Accelerator__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Greengrass__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT Jobs Data Plane__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT Secure Tunneling__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS License Manager Linux Subscriptions__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Migration Hub__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS RDS DataService__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SSO OIDC__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SecurityHub__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Signer__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Telco Network Builder__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Transfer Family__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS WAF Regional__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon AppConfig__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect Participant Service: Remove unused fields from WebRTCConnection
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add new APIs for viewing how your shared AMIs are used by other accounts, and identify resources in your account that are dependent on particular AMIs
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon GameLift__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Glacier__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - Added RouteFerryNotice PotentialViolatedVehicleRestrictionUsage value for CalculateRoutes. This value indicates when the Route is potentially forbidden for the given vehicle profile.
+
+## __Amazon Lookout for Vision__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Pinpoint__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Polly__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Route 53__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon SageMaker geospatial capabilities__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AmazonMQ__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __EC2 Image Builder__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Private CA Connector for SCEP__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Route53 Recovery Cluster__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+# __2.32.30__ __2025-08-25__
+## __AWS AI Ops__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS AppSync__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS B2B Data Interchange__
+  - ### Features
+    - Updated APIs to support custom validation rules.
+
+## __AWS Certificate Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Chatbot__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Cloud Control API__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CloudFormation__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CloudTrail Data Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS CodeStar Notifications__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Control Tower__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Device Farm__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Direct Connect__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for input rendition selection for HLS input, adds new Share API to enable sharing jobs with AWS Support for support investigations, and adds INCLUDE_AS_TS to iFrameOnlyManifest setting for HLS outputs.
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Elemental MediaStore__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Ground Station__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT Fleet Hub__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Lambda__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS License Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS OpsWorks CM__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Outposts__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Service Catalog__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Shield__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Step Functions__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Support__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Support App__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWS re:Post Private__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Appflow__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Athena__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Bedrock__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime SDK Media Pipelines__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - Documentation update to notify users of the discontinuation of Amazon CodeGuru Security.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DataZone__
+  - ### Features
+    - Releasing the following features - Asset classification that lets users use restricted terms for classifying assets if they have the right permissions. Also adding a new enum value "Moving" to project status.
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DocumentDB Elastic Clusters__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon DynamoDB Accelerator (DAX)__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added IPv6 support for AWS Client VPN.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon FSx__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Forecast Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Import/Export Snowball__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Analytics__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Lex Runtime Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon S3__
+  - ### Features
+    - Add retry support for Java based S3 multipart client download to Byte array
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Sagemaker Edge Manager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Documentation update for Amazon SQS Supports Large Payload Message feature
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon Translate__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Amazon WorkSpaces Thin Client__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Auto Scaling__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Braket__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __CodeArtifact__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Revert problematic change from [#6349](https://github.com/aws/aws-sdk-java-v2/issues/6349).
+
+## __FinSpace Public API__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __MailManager__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Migration Hub Strategy Recommendations__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __PcaConnectorAd__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __QBusiness__
+  - ### Features
+    - The Amazon Q Business GetDocumentContent operation now supports retrieval of the extracted text content in JSON format.
+
+## __Redshift Serverless__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Tax Settings__
+  - ### Features
+    - Remove incorrect endpoint tests
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Add MAINTENANCE status for DbInstance and DbCluster
+
+## __odb__
+  - ### Features
+    - Remove incorrect endpoint tests
+
 # __2.32.29__ __2025-08-22__
 ## __AWS Account__
   - ### Features
