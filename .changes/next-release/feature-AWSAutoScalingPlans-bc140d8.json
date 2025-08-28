@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Auto Scaling Plans",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
