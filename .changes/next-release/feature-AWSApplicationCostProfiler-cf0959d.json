@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Application Cost Profiler",
+    "contributor": "",
+    "description": "Remove incorrect endpoint tests"
+}
