@@ -688,82 +688,56 @@ builder pattern.
 
 
 
+## Polymorphic Types Support
 
-### Using subtypes to assist with single-table design
-It's considered a best practice in some situations to combine entities of various types into a single table in DynamoDb
-to enable the querying of multiple related entities without the need to actually join data across multiple tables. The
-enhanced client assists with this by supporting polymorphic mapping into distinct subtypes.
+The Enhanced Client now supports **polymorphic type hierarchies**, allowing multiple subclasses to be stored in the same table.
 
-Let's say you have a customer:
+### Usage Example: Person Hierarchy
 
 ```java
-public class Customer {
-    String getCustomerId();
-    void setId(String id);
-    
-    String getName();
-    void setName(String name);
-}
-```
-
-And an order that's associated with a customer:
-
-```java
-public class Order {
-    String getOrderId();
-    void setOrderId();
-    
-    String getCustomerId();
-    void setCustomerId();
-}
-```
-
-You could choose to store both of these in a single table that is indexed by customer ID, and create a TableSchema that
-is capable of mapping both types of entities into a common supertype:
-
-```java
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
+@DynamoDbBean
+@DynamoDbSupertype(
+    value = {
+        @DynamoDbSupertype.Subtype(discriminatorValue = "EMPLOYEE", subtypeClass = Employee.class),
+        @DynamoDbSupertype.Subtype(discriminatorValue = "CUSTOMER", subtypeClass = Customer.class)
+    },
+    discriminatorAttributeName = "discriminatorType" // optional, defaults to "type"
+)
+public class Person {}
 
 @DynamoDbBean
-@DynamoDbSupertype({
-        @Subtype(discriminatorValue = "CUSTOMER", subtypeClass = Customer.class),
-        @Subtype(discriminatorValue = "ORDER", subtypeClass = Order.class)})
-public class CustomerRelatedEntity {
-   @DynamoDbSubtypeDiscriminator
-   String getEntityType();
-   void setEntityType();
-
-   @DynamoDbPartitionKey
-   String getCustomerId();
-   void setCustomerId();
+public class Employee extends Person {
+    private String employeeId;
+    public String getEmployeeId() { return employeeId; }
+    public void setEmployeeId(String id) { this.employeeId = id; }
 }
 
 @DynamoDbBean
-public class Customer extends CustomerRelatedEntity {
-   String getName();
-   void setName(String name);
-}
-
-@DynamoDbBean
-public class Order extends CustomerRelatedEntity {
-   String getOrderId();
-   void setOrderId();
+public class Customer extends Person {
+    private String customerId;
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String id) { this.customerId = id; }
 }
 ```
 
-Now all you have to do is create a TableSchema that maps the supertype class:
+**Notes:**
+- By default, the discriminator attribute is `"type"` unless overridden.
+
+### Static/Immutable Schema Support
+
+Polymorphism works for both **bean-style** and **immutable/builder-based** classes.
+
 ```java
-TableSchema<CustomerRelatedEntity> tableSchema = TableSchema.fromClass(CustomerRelatedEntity.class);
-```
-Now you have a `TableSchema` that can map any objects of both `Customer` and `Order` and write them to the table,
-and can also read any record from the table and correctly instantiate it using the subtype class. So it's now possible
-to write a single query that will return both the customer record and all order records associated with a specific
-customer ID.
+// Obtain schema for Person hierarchy
+TableSchema<Person> schema = TableSchema.fromClass(Person.class);
 
-As with all the other `TableSchema` implementations, a static version is provided that allows reflective introspection
-to be skipped entirely and is recommended for applications where cold-start latency is critical. See the javadocs for
-`StaticPolymorphicTableSchema` for an example of how to use this.
+// Serialize Employee → DynamoDB item
+Employee e = new Employee();
+e.setEmployeeId("E123");
+Map<String, AttributeValue> item = schema.itemToMap(e, false);
+// → {"employeeId":"E123", "discriminatorType":"EMPLOYEE"}
+
+// Deserialize back
+Person restored = schema.mapToItem(item);
+// → returns Employee instance
+```
