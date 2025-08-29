@@ -2,8 +2,6 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions:
-      java: corretto8
     commands:
       - pip install awscli --upgrade --user
 
@@ -46,13 +44,13 @@ phases:
           mvn clean deploy -B -s $SETTINGS_XML -Pcentral-portal-publishing -DperformRelease -DautoPublish=true -DdeploymentName="software.amazon.awssdk-$RELEASE_VERSION" -Dspotbugs.skip -DskipTests -Dcheckstyle.skip -Djapicmp.skip -Ddoclint=none -DstagingProgressTimeoutMinutes=30 -Dmaven.wagon.httpconnectionManager.ttlSeconds=120 -Dmaven.wagon.http.retryHandler.requestSentEnabled=true -pl $MODULES_TO_SKIP_FORMATTED
 
           # Report staging folder size to CloudWatch
-          if [ -d "/target/central-staging" ]; then
+          if [ -d "target/central-staging" ]; then
             STAGING_SIZE_MB=$(du -sm target/central-staging | cut -f1)
             aws cloudwatch put-metric-data \
               --namespace "AwsJavaSdkRelease" \
-              --metric-data MetricName=StagingFolderSize,Value=$STAGING_SIZE_KB,Unit=Kilobytes,Dimensions=Name=ReleaseVersion,Value=$RELEASE_VERSION
+              --metric-data MetricName=StagingFolderSize,Value=$STAGING_SIZE_MB,Unit=Megabytes,Dimensions=Name=ReleaseVersion,Value=$RELEASE_VERSION
           else
-            echo "Staging folder /target/central-staging not found"
+            echo "Staging folder target/central-staging not found"
           fi
         else
           echo "This version was already released."
