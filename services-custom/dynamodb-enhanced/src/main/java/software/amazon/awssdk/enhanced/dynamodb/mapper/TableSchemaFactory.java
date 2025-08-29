@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Arrays;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
@@ -26,7 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 
 /**
- * This class is responsible for constructing {@link TableSchema} objects from annotated classes.
+ * Constructs {@link TableSchema} instances from annotated classes.
  */
 @SdkPublicApi
 public class TableSchemaFactory {
@@ -34,19 +35,18 @@ public class TableSchemaFactory {
     }
 
     /**
-     * Scans a class that has been annotated with DynamoDb enhanced client annotations and then returns an appropriate
-     * {@link TableSchema} implementation that can map records to and from items of that class. Currently supported top level
-     * annotations (see documentation on those classes for more information on how to use them):
-     * <p>
-     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean}<br>
-     * {@link software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable}
-     * <p>
-     * This is a moderately expensive operation, and should be performed sparingly. This is usually done once at application
-     * startup.
+     * Build a {@link TableSchema} by inspecting annotations on the given class.
      *
-     * @param annotatedClass A class that has been annotated with DynamoDb enhanced client annotations.
-     * @param <T>            The type of the item this {@link TableSchema} will map records to.
-     * @return An initialized {@link TableSchema}
+     * <p>Supported top-level annotations:
+     * <ul>
+     *   <li>{@link DynamoDbBean}</li>
+     *   <li>{@link DynamoDbImmutable}</li>
+     *   <li>{@link DynamoDbSupertype}</li>
+     * </ul>
+     *
+     * @param annotatedClass the annotated class
+     * @param <T>            item type
+     * @return initialized {@link TableSchema}
      */
     public static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
         return fromClass(annotatedClass, MethodHandles.lookup(), new MetaTableSchemaCache());
@@ -58,13 +58,11 @@ public class TableSchemaFactory {
         if (isImmutableClass(annotatedClass)) {
             return ImmutableTableSchema.createWithoutUsingCache(annotatedClass, lookup, metaTableSchemaCache);
         }
-
         if (isBeanClass(annotatedClass)) {
             return BeanTableSchema.createWithoutUsingCache(annotatedClass, lookup, metaTableSchemaCache);
         }
-
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                           "\"" + annotatedClass + "\"]");
+        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. " +
+                                           "[class = \"" + annotatedClass + "\"]");
     }
 
     static <T> TableSchema<T> fromClass(Class<T> annotatedClass,
@@ -72,21 +70,15 @@ public class TableSchemaFactory {
                                         MetaTableSchemaCache metaTableSchemaCache) {
         Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(annotatedClass);
 
-        // If we get a cache hit...
         if (metaTableSchema.isPresent()) {
-            // Either: use the cached concrete TableSchema if we have one
             if (metaTableSchema.get().isInitialized()) {
                 return metaTableSchema.get().concreteTableSchema();
             }
-
-            // Or: return the uninitialized MetaTableSchema as this must be a recursive reference and it will be
-            // initialized later as the chain completes
             return metaTableSchema.get();
         }
 
-        // Otherwise: cache doesn't know about this class; create a new one from scratch
         if (isPolymorphicClass(annotatedClass)) {
-            return PolymorphicTableSchema.create(annotatedClass, lookup, metaTableSchemaCache);
+            return buildPolymorphicFromAnnotations(annotatedClass, lookup, metaTableSchemaCache);
         }
 
         if (isImmutableClass(annotatedClass)) {
@@ -101,10 +93,78 @@ public class TableSchemaFactory {
             return BeanTableSchema.create(beanTableSchemaParams, metaTableSchemaCache);
         }
 
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                           "\"" + annotatedClass + "\"]");
+        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. " +
+                                           "[class = \"" + annotatedClass + "\"]");
     }
 
+    // -----------------------------
+    // Polymorphic builder
+    // -----------------------------
+    private static <T> TableSchema<T> buildPolymorphicFromAnnotations(Class<T> polymorphicClass,
+                                                                      MethodHandles.Lookup lookup,
+                                                                      MetaTableSchemaCache cache) {
+        MetaTableSchema<T> meta = cache.getOrCreate(polymorphicClass);
+
+        // Root must be a valid bean/immutable schema (not polymorphic)
+        TableSchema<T> root = fromMonomorphicClassWithoutUsingCache(polymorphicClass, lookup, cache);
+
+        DynamoDbSupertype supertypeAnnotation = polymorphicClass.getAnnotation(DynamoDbSupertype.class);
+        validateSupertypeAnnotationUsage(polymorphicClass, supertypeAnnotation);
+
+        PolymorphicTableSchema.Builder<T> builder =
+            PolymorphicTableSchema.builder(polymorphicClass)
+                                  .rootTableSchema(root)
+                                  .discriminatorAttributeName(supertypeAnnotation.discriminatorAttributeName());
+
+        Arrays.stream(supertypeAnnotation.value())
+              .forEach(sub -> builder.addStaticSubtype(
+                  resolvePolymorphicSubtype(polymorphicClass, lookup, sub, cache)));
+
+        PolymorphicTableSchema<T> result = builder.build();
+        meta.initialize(result);
+        return result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> StaticSubtype<? extends T> resolvePolymorphicSubtype(Class<T> rootClass,
+                                                                            MethodHandles.Lookup lookup,
+                                                                            DynamoDbSupertype.Subtype sub,
+                                                                            MetaTableSchemaCache cache) {
+        Class<?> subtypeClass = sub.subtypeClass();
+
+        // VALIDATION: subtype must be assignable to root
+        if (!rootClass.isAssignableFrom(subtypeClass)) {
+            throw new IllegalArgumentException(
+                "A subtype class [" + subtypeClass.getSimpleName()
+                + "] listed in the @DynamoDbSupertype annotation is not extending the root class.");
+        }
+
+        Class<T> typed = (Class<T>) subtypeClass;
+
+        // The subtype may itself be bean/immutable or polymorphic; reuse the factory path.
+        TableSchema<T> subtypeSchema = fromClass(typed, lookup, cache);
+
+        return StaticSubtype.builder(typed)
+                            .tableSchema(subtypeSchema)
+                            .name(sub.discriminatorValue())
+                            .build();
+    }
+
+    private static <T> void validateSupertypeAnnotationUsage(Class<T> polymorphicClass,
+                                                             DynamoDbSupertype supertypeAnnotation) {
+        if (supertypeAnnotation == null) {
+            throw new IllegalArgumentException("A DynamoDb polymorphic class [" + polymorphicClass.getSimpleName()
+                                               + "] must be annotated with @DynamoDbSupertype");
+        }
+        if (supertypeAnnotation.value().length == 0) {
+            throw new IllegalArgumentException("A DynamoDb polymorphic class [" + polymorphicClass.getSimpleName()
+                                               + "] must declare at least one subtype in @DynamoDbSupertype");
+        }
+    }
+
+    // -----------------------------
+    // Annotation detection helpers
+    // -----------------------------
     static boolean isDynamoDbAnnotatedClass(Class<?> clazz) {
         return isBeanClass(clazz) || isImmutableClass(clazz);
     }

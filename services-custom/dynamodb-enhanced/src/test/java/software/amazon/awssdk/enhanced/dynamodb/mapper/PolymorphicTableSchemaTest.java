@@ -132,40 +132,42 @@ public class PolymorphicTableSchemaTest {
         assertThat(tableSchema.mapToItem(itemMap)).isEqualTo(record);
     }
 
+    // ------------------------------
+    // Negative validation tests
+    // ------------------------------
     @DynamoDbSupertype(@DynamoDbSupertype.Subtype(discriminatorValue = "one", subtypeClass = SimpleBean.class))
-    public static class InvalidParentMissingAnnotation extends SimpleBean {
+    public static class InvalidParentMissingDynamoDbBeanAnnotation extends SimpleBean {
     }
 
     @Test
     public void shouldThrowException_ifPolymorphicParentNotAnnotatedAsDynamoDbBean() {
-        assertThatThrownBy(() -> PolymorphicTableSchema.create(InvalidParentMissingAnnotation.class, null))
+        assertThatThrownBy(() -> TableSchemaFactory.fromClass(InvalidParentMissingDynamoDbBeanAnnotation.class))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Class does not appear to be a valid DynamoDb annotated class. [class = \"class software.amazon.awssdk"
-                        + ".enhanced.dynamodb.mapper.PolymorphicTableSchemaTest$InvalidParentMissingAnnotation\"]");
+            .hasMessageContaining("Class does not appear to be a valid DynamoDb annotated class");
     }
 
-    @DynamoDbSupertype(@DynamoDbSupertype.Subtype(discriminatorValue = "one", subtypeClass = SimpleBean.class))
     @DynamoDbBean
-    public static class ValidParentSubtypeNotExtendingParent {
+    @DynamoDbSupertype(@DynamoDbSupertype.Subtype(discriminatorValue = "one", subtypeClass = SimpleBean.class))
+    public static class SubtypeNotExtendingDeclaredParent {
     }
 
     @Test
     public void shouldThrowException_ifSubtypeNotExtendingParent() {
-        assertThatThrownBy(() -> PolymorphicTableSchema.create(ValidParentSubtypeNotExtendingParent.class, null))
+        assertThatThrownBy(() -> TableSchemaFactory.fromClass(SubtypeNotExtendingDeclaredParent.class))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("A subtype class [SimpleBean] listed in the @DynamoDbSupertype annotation is not extending the root "
-                        + "class.");
+            .hasMessage("A subtype class [SimpleBean] listed in the @DynamoDbSupertype annotation "
+                        + "is not extending the root class.");
     }
 
     @DynamoDbBean
-    public static class InvalidParentNoSubtypeAnnotation {
+    @DynamoDbSupertype( {})
+    public static class PolymorphicParentWithNoSubtypes {
     }
 
     @Test
-    public void shouldThrowException_ifNoSubtypeAnnotation() {
-        assertThatThrownBy(() -> PolymorphicTableSchema.create(InvalidParentNoSubtypeAnnotation.class, null))
+    public void shouldThrowException_ifNoSubtypeDeclared() {
+        assertThatThrownBy(() -> TableSchemaFactory.fromClass(PolymorphicParentWithNoSubtypes.class))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("A DynamoDb polymorphic class [InvalidParentNoSubtypeAnnotation] "
-                        + "must be annotated with @DynamoDbSupertype");
+            .hasMessageContaining("must declare at least one subtype in @DynamoDbSupertype");
     }
 }

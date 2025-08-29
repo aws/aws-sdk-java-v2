@@ -15,89 +15,101 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import java.util.Map;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.MetaTableSchemaCache;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * A polymorphic wrapper that reads the {@link DynamoDbSupertype#discriminatorAttributeName()} and wires up each declared
- * subtype.
+ * A polymorphic {@link TableSchema} that routes items to subtypes based on a discriminator attribute
+ * (see {@link DynamoDbSupertype}).
+ * <p>
+ * Typically constructed automatically via {@link TableSchemaFactory#fromClass(Class)}
+ * when a class is annotated with {@link DynamoDbSupertype}. For manual assembly, use {@link #builder(Class)}.
  */
 @SdkPublicApi
 public final class PolymorphicTableSchema<T> extends WrappedTableSchema<T, StaticPolymorphicTableSchema<T>> {
-    private final StaticPolymorphicTableSchema<T> staticPolymorphicTableSchema;
 
-    private PolymorphicTableSchema(StaticPolymorphicTableSchema<T> staticPolymorphicTableSchema) {
-        super(staticPolymorphicTableSchema);
-        this.staticPolymorphicTableSchema = staticPolymorphicTableSchema;
+    private PolymorphicTableSchema(Builder<T> builder) {
+        super(builder.delegate.build());
     }
 
-    public static <T> PolymorphicTableSchema<T> create(Class<T> polymorphicClass, MethodHandles.Lookup lookup) {
-        return create(polymorphicClass, lookup, new MetaTableSchemaCache());
-    }
-
-    static <T> PolymorphicTableSchema<T> create(Class<T> polymorphicClass,
-                                                MethodHandles.Lookup lookup,
-                                                MetaTableSchemaCache cache) {
-
-        MetaTableSchema<T> metaTableSchema = cache.getOrCreate(polymorphicClass);
-        TableSchema<T> root = TableSchemaFactory.fromMonomorphicClassWithoutUsingCache(polymorphicClass, lookup, cache);
-
-        DynamoDbSupertype dynamoDbSupertype = polymorphicClass.getAnnotation(DynamoDbSupertype.class);
-        if (dynamoDbSupertype == null) {
-            throw new IllegalArgumentException("A DynamoDb polymorphic class [" + polymorphicClass.getSimpleName()
-                                               + "] must be annotated with @DynamoDbSupertype");
-        }
-
-        StaticPolymorphicTableSchema.Builder<T> staticBuilder =
-            StaticPolymorphicTableSchema.builder(polymorphicClass)
-                                        .rootTableSchema(root)
-                                        .discriminatorAttributeName(dynamoDbSupertype.discriminatorAttributeName());
-
-        Arrays.stream(dynamoDbSupertype.value())
-              .forEach(sub -> staticBuilder.addStaticSubtype(resolveSubtype(polymorphicClass, lookup, sub, cache)));
-
-        PolymorphicTableSchema<T> result = new PolymorphicTableSchema<>(staticBuilder.build());
-        metaTableSchema.initialize(result);
-        return result;
-    }
-
-    private static <T> StaticSubtype<? extends T> resolveSubtype(Class<T> rootClass,
-                                                                 MethodHandles.Lookup lookup,
-                                                                 DynamoDbSupertype.Subtype subtype,
-                                                                 MetaTableSchemaCache cache) {
-        Class<?> subtypeClass = subtype.subtypeClass();
-        if (!rootClass.isAssignableFrom(subtypeClass)) {
-            throw new IllegalArgumentException("A subtype class [" + subtypeClass.getSimpleName() + "] listed in the "
-                                               + "@DynamoDbSupertype annotation is not extending the root class.");
-        }
-        Class<T> typed = (Class<T>) subtypeClass;
-
-        //if the discriminator values is provided, it will be used; if not, we'll use the name of the class
-        String subtypeName = StringUtils.isEmpty(subtype.discriminatorValue())
-                             ? subtype.subtypeClass().getSimpleName()
-                             : subtype.discriminatorValue();
-
-        return StaticSubtype.builder(typed)
-                            .tableSchema(TableSchemaFactory.fromClass(typed, lookup, cache))
-                            .name(subtypeName)
-                            .build();
+    /**
+     * Returns a builder for manually creating a {@link PolymorphicTableSchema}.
+     *
+     * @param rootClass the root type that all subtypes must extend
+     */
+    public static <T> Builder<T> builder(Class<T> rootClass) {
+        return new Builder<>(rootClass);
     }
 
     @Override
     public TableSchema<? extends T> subtypeTableSchema(T itemContext) {
-        return staticPolymorphicTableSchema.subtypeTableSchema(itemContext);
+        return delegateTableSchema().subtypeTableSchema(itemContext);
     }
 
     @Override
     public TableSchema<? extends T> subtypeTableSchema(Map<String, AttributeValue> itemContext) {
-        return staticPolymorphicTableSchema.subtypeTableSchema(itemContext);
+        return delegateTableSchema().subtypeTableSchema(itemContext);
+    }
+
+    @NotThreadSafe
+    public static final class Builder<T> {
+        private final StaticPolymorphicTableSchema.Builder<T> delegate;
+
+        private Builder(Class<T> rootClass) {
+            this.delegate = StaticPolymorphicTableSchema.builder(rootClass);
+        }
+
+        /**
+         * Sets the schema for the root class.
+         */
+        public Builder<T> rootTableSchema(TableSchema<T> root) {
+            delegate.rootTableSchema(root);
+            return this;
+        }
+
+        /**
+         * Sets the discriminator attribute name (defaults to {@code "type"}).
+         */
+        public Builder<T> discriminatorAttributeName(String name) {
+            delegate.discriminatorAttributeName(name);
+            return this;
+        }
+
+        /**
+         * Adds a fully constructed static subtype.
+         */
+        public Builder<T> addStaticSubtype(StaticSubtype<? extends T> subtype) {
+            delegate.addStaticSubtype(subtype);
+            return this;
+        }
+
+        /**
+         * Convenience for adding a subtype with its schema and discriminator value.
+         *
+         * @param subtypeClass       the Java class of the subtype
+         * @param tableSchema        the schema for the subtype
+         * @param discriminatorValue the discriminator value used in DynamoDB
+         */
+        public <S extends T> Builder<T> addSubtype(Class<S> subtypeClass,
+                                                   TableSchema<S> tableSchema,
+                                                   String discriminatorValue) {
+            delegate.addStaticSubtype(
+                StaticSubtype.builder(subtypeClass)
+                             .tableSchema(tableSchema)
+                             .name(discriminatorValue)
+                             .build());
+            return this;
+        }
+
+        /**
+         * Builds the {@link PolymorphicTableSchema}.
+         */
+        public PolymorphicTableSchema<T> build() {
+            return new PolymorphicTableSchema<>(this);
+        }
     }
 }
