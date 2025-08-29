@@ -86,6 +86,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     private final EnhancedType<T> itemType;
     private final AttributeConverterProvider attributeConverterProvider;
     private final Map<String, FlattenedMapper<T, B, ?>> indexedFlattenedMappers;
+    private final FlattenedMapperForMaps<T, B> indexedFlattenedMapperForMaps;
     private final List<String> attributeNames;
 
     private static class FlattenedMapper<T, B, T1> {
@@ -144,7 +145,57 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return isNullAttributeValue(attributeValue) ? null : attributeValue;
         }
     }
-    
+
+    private static final class FlattenedMapperForMaps<T, B> {
+        private final String name;
+        private final Function<T, Map<String, String>> mapItemGetter;
+        private final BiConsumer<B, Map<String, String>> mapItemSetter;
+
+        private FlattenedMapperForMaps(String name,
+                                       Function<T, Map<String, String>> mapItemGetter,
+                                       BiConsumer<B, Map<String, String>> mapItemSetter) {
+            this.name = name;
+            this.mapItemGetter = mapItemGetter;
+            this.mapItemSetter = mapItemSetter;
+        }
+
+        public String getItemName() {
+            return name;
+        }
+
+        private B mapToItem(B thisBuilder,
+                            Supplier<B> thisBuilderConstructor,
+                            Map<String, String> flattenedMap) {
+
+            if (thisBuilder == null) {
+                thisBuilder = thisBuilderConstructor.get();
+            }
+            this.mapItemSetter.accept(thisBuilder, flattenedMap);
+
+            return thisBuilder;
+        }
+
+        private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, List<String> attributeNames) {
+            Map<String, String> mapItem = this.mapItemGetter.apply(item);
+
+            Map<String, AttributeValue> result  = new HashMap<>();
+
+            if (mapItem != null) {
+                mapItem.forEach((key, value) -> {
+                    if (attributeNames.contains(key)) {
+                        throw new IllegalArgumentException(
+                            "Attempt to add an attribute to a mapper that already has one with the same name. " +
+                            "[Attribute name: " + key + "]");
+                    }
+                    if (!ignoreNulls || value != null) {
+                        result.put(key, AttributeValue.builder().s(value).build());
+                    }
+                });
+            }
+            return result;
+        }
+    }
+
     private StaticImmutableTableSchema(Builder<T, B> builder) {
         StaticTableMetadata.Builder tableMetadataBuilder = StaticTableMetadata.builder();
 
@@ -198,6 +249,11 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             }
         );
 
+        FlattenedMapperForMaps<T, B> mutableFlattenedMapperForMaps = null;
+        if(builder.flattenedMap != null) {
+            mutableFlattenedMapperForMaps= builder.flattenedMap;
+        }
+
         // Apply table-tags to table metadata
         if (builder.tags != null) {
             builder.tags.forEach(staticTableTag -> staticTableTag.modifyMetadata().accept(tableMetadataBuilder));
@@ -207,6 +263,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         this.indexedMappers = Collections.unmodifiableMap(mutableIndexedMappers);
         this.attributeNames = Collections.unmodifiableList(new ArrayList<>(mutableAttributeNames));
         this.indexedFlattenedMappers = Collections.unmodifiableMap(mutableFlattenedMappers);
+        this.indexedFlattenedMapperForMaps = mutableFlattenedMapperForMaps;
         this.newBuilderSupplier = builder.newBuilderSupplier;
         this.buildItemFunction = builder.buildItemFunction;
         this.tableMetadata = tableMetadataBuilder.build();
@@ -246,6 +303,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private final List<ResolvedImmutableAttribute<T, B>> additionalAttributes = new ArrayList<>();
         private final List<FlattenedMapper<T, B, ?>> flattenedMappers = new ArrayList<>();
 
+        private FlattenedMapperForMaps<T, B> flattenedMap;
         private List<ImmutableAttribute<T, B, ?>> attributes;
         private Supplier<B> newBuilderSupplier;
         private Function<B, T> buildItemFunction;
@@ -366,9 +424,21 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                                                        "TableSchema that is able to create items");
             }
 
-            FlattenedMapper<T, B, T1> flattenedMapper = 
+            FlattenedMapper<T, B, T1> flattenedMapper =
                 new FlattenedMapper<>(otherItemGetter, otherItemSetter, otherTableSchema);
             this.flattenedMappers.add(flattenedMapper);
+            return this;
+        }
+
+        /**
+         * Flattens all the attributes defined in a Map into the database record this schema
+         * maps to. Functions to get and set an object that the flattened schema maps to is required.
+         */
+        public <T1> Builder<T, B> flatten(String mapName, Function<T, Map<String, String>> mapItemGetter,
+                                          BiConsumer<B, Map<String, String>> mapItemSetter) {
+            FlattenedMapperForMaps<T, B> flattenedMap =
+                new FlattenedMapperForMaps<>(mapName, mapItemGetter, mapItemSetter);
+            this.flattenedMap = flattenedMap;
             return this;
         }
 
@@ -463,7 +533,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         }
 
         Map<FlattenedMapper<T, B, ?>, Map<String, AttributeValue>> flattenedAttributeValuesMap = new LinkedHashMap<>();
-        
+        Map<FlattenedMapperForMaps<T, B>, Map<String, String>> flattenedMapAttributeValues = new LinkedHashMap<>();
+
         for (Map.Entry<String, AttributeValue> entry : attributeMap.entrySet()) {
             String key = entry.getKey();
             AttributeValue value = entry.getValue();
@@ -490,6 +561,19 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                         
                         flattenedAttributeValues.put(key, value);
                         flattenedAttributeValuesMap.put(flattenedMapper, flattenedAttributeValues);
+
+                    } else {
+                        if (indexedFlattenedMapperForMaps != null) {
+                            Map<String, String> flattenedAttributeValues =
+                                flattenedMapAttributeValues.get(indexedFlattenedMapperForMaps);
+
+                            if (flattenedAttributeValues == null) {
+                                flattenedAttributeValues = new HashMap<>();
+                            }
+
+                            flattenedAttributeValues.put(key, value.s());
+                                flattenedMapAttributeValues.put(indexedFlattenedMapperForMaps, flattenedAttributeValues);
+                            }
                     }
                 }
             }
@@ -499,7 +583,12 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 flattenedAttributeValuesMap.entrySet()) {
             builder = entry.getKey().mapToItem(builder, this::constructNewBuilder, entry.getValue());
         }
-        
+
+        for (Map.Entry<FlattenedMapperForMaps<T, B>, Map<String, String>> entry :
+            flattenedMapAttributeValues.entrySet()) {
+            builder = entry.getKey().mapToItem(builder, this::constructNewBuilder, entry.getValue());
+        }
+
         return builder == null ? null : buildItemFunction.apply(builder);
     }
 
@@ -525,6 +614,10 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         indexedFlattenedMappers.forEach((name, flattenedMapper) -> {
             attributeValueMap.putAll(flattenedMapper.itemToMap(item, ignoreNulls));
         });
+
+        if (indexedFlattenedMapperForMaps != null) {
+            attributeValueMap.putAll(indexedFlattenedMapperForMaps.itemToMap(item, ignoreNulls, attributeNames));
+        }
 
         return unmodifiableMap(attributeValueMap);
     }
