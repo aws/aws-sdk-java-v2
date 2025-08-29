@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 import java.util.zip.CRC32;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,6 +55,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -61,6 +65,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -75,6 +80,7 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.utils.ChecksumUtils;
@@ -93,7 +99,9 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
     private static File testFile;
     private static S3AsyncClient mpuS3Client;
-    private static ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private static byte[] bytes;
+    private static byte[] expectedChecksum;
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -101,6 +109,8 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         createBucket(TEST_BUCKET);
 
         testFile = new RandomTempFile(OBJ_SIZE);
+        bytes = Files.readAllBytes(testFile.toPath());
+        expectedChecksum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
         mpuS3Client = S3AsyncClient
             .builder()
             .region(DEFAULT_REGION)
@@ -117,6 +127,18 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         testFile.delete();
         deleteBucketAndAllContents(TEST_BUCKET);
         executorService.shutdown();
+    }
+
+    public static Stream<Arguments> asyncRequestBodies() {
+        return Stream.of(Arguments.of("file", AsyncRequestBody.fromFile(testFile)),
+                         Arguments.of("bytes", AsyncRequestBody.fromBytes(bytes)),
+                         Arguments.of("inputStream_knownLength",
+                                      AsyncRequestBody.fromInputStream(new ByteArrayInputStream(bytes), (long) bytes.length,
+                                                                       executorService)),
+                         Arguments.of("inputStream_unknownLength",
+                                      AsyncRequestBody.fromInputStream(new ByteArrayInputStream(bytes), null,
+                                                                       executorService))
+        );
     }
 
     @BeforeEach
@@ -144,9 +166,27 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         assertEquals(expectedMd5, actualMd5);
     }
 
-    @Test
-    void putObject_fileRequestBody_objectSentCorrectly() throws Exception {
-        AsyncRequestBody body = AsyncRequestBody.fromFile(testFile.toPath());
+    @ParameterizedTest
+    @MethodSource("asyncRequestBodies")
+    void putObject_variousRequestBody_objectSentCorrectly(String description, AsyncRequestBody body) throws Exception {
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                         ResponseTransformer.toInputStream());
+
+        assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
+        assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");
+
+        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksum);
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("asyncRequestBodies")
+    void putObject_wrapWithBufferedSplittableAsyncRequestBody_objectSentCorrectly(String description,
+                                                                          AsyncRequestBody asyncRequestBody) throws Exception {
+        AsyncRequestBody body = BufferedSplittableAsyncRequestBody.create(asyncRequestBody);
         mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
 
         assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
@@ -156,74 +196,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
                                                                          ResponseTransformer.toInputStream());
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
-        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
-    }
-
-    @Test
-    void putObject_inputStreamAsyncRequestBody_objectSentCorrectly() throws Exception {
-        AsyncRequestBody body = AsyncRequestBody.fromInputStream(
-            new FileInputStream(testFile),
-            Long.valueOf(OBJ_SIZE),
-            executorService);
-        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET)
-                                    .key(TEST_KEY)
-                                    .contentLength(Long.valueOf(OBJ_SIZE)), body).join();
-
-        assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
-        assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");
-
-        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                                                                         ResponseTransformer.toInputStream());
-
-        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
-        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
-    }
-
-    @Test
-    void putObject_byteAsyncRequestBody_objectSentCorrectly() throws Exception {
-        byte[] bytes = RandomStringUtils.randomAscii(OBJ_SIZE).getBytes(Charset.defaultCharset());
-        AsyncRequestBody body = AsyncRequestBody.fromBytes(bytes);
-        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
-
-        assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
-        assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");
-
-        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                                                                         ResponseTransformer.toInputStream());
-
-        assertThat(objContent.response().contentLength()).isEqualTo(OBJ_SIZE);
-        byte[] expectedSum = ChecksumUtils.computeCheckSum(new ByteArrayInputStream(bytes));
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
-    }
-
-    @Test
-    void putObject_unknownContentLength_objectSentCorrectly() throws Exception {
-        AsyncRequestBody body = FileAsyncRequestBody.builder()
-                                                    .path(testFile.toPath())
-                                                    .build();
-        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.empty();
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                body.subscribe(s);
-            }
-        }).get(30, SECONDS);
-
-        assertThat(CAPTURING_INTERCEPTOR.createMpuChecksumAlgorithm).isEqualTo("CRC32");
-        assertThat(CAPTURING_INTERCEPTOR.uploadPartChecksumAlgorithm).isEqualTo("CRC32");
-
-        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
-                                                                         ResponseTransformer.toInputStream());
-
-        assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
-        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksum);
     }
 
     @Test
@@ -251,8 +224,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
                                                                          ResponseTransformer.toInputStream());
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
-        byte[] expectedSum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
-        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedSum);
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksum);
     }
 
     @Test

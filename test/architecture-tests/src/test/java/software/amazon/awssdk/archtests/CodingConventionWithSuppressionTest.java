@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.internal.async.RetryableSubAsyncRequestBody;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
@@ -52,7 +53,8 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
-                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer")));
+                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
+                      ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class)));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(

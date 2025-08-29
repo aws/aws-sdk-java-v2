@@ -18,14 +18,20 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import io.reactivex.rxjava3.core.Flowable;
 import java.io.InputStream;
 import java.net.URI;
@@ -46,20 +52,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
-import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
+import software.amazon.awssdk.core.exception.NonRetryableException;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 
 @WireMockTest
-@Timeout(100)
+@Timeout(120)
 public class S3MultipartClientPutObjectWiremockTest {
 
     private static final String BUCKET = "Example-Bucket";
@@ -71,52 +76,43 @@ public class S3MultipartClientPutObjectWiremockTest {
                                                            + "</InitiateMultipartUploadResult>";
     private S3AsyncClient s3AsyncClient;
 
-    public static Stream<Arguments> invalidAsyncRequestBodies() {
+    public static Stream<Arguments> retryableErrorTestCase() {
         return Stream.of(
-            Arguments.of("knownContentLength_nullPartSize", new TestPublisherWithIncorrectSplitImpl(20L, null),
-                         "Content length is missing on the AsyncRequestBody for part number"),
-            Arguments.of("unknownContentLength_nullPartSize", new TestPublisherWithIncorrectSplitImpl(null, null),
-                         "Content length is missing on the AsyncRequestBody for part number"),
-            Arguments.of("knownContentLength_partSizeIncorrect", new TestPublisherWithIncorrectSplitImpl(20L, 11L),
-                         "Content length must not be greater than part size"),
-            Arguments.of("unknownContentLength_partSizeIncorrect", new TestPublisherWithIncorrectSplitImpl(null, 11L),
-                         "Content length must not be greater than part size"),
-            Arguments.of("knownContentLength_sendMoreParts", new TestPublisherWithIncorrectSplitImpl(20L, 10L, 3),
-                         "The number of parts divided is not equal to the expected number of parts"),
-            Arguments.of("knownContentLength_sendFewerParts", new TestPublisherWithIncorrectSplitImpl(20L, 10L, 1),
-                     "The number of parts divided is not equal to the expected number of parts"));
+            Arguments.of("unknownContentLength_failOfConnectionReset", null,
+                         aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+            Arguments.of("unknownContentLength_failOf500", null,
+                         aResponse().withStatus(500)),
+            Arguments.of("knownContentLength_failOfConnectionReset", 20L,
+                         aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+            Arguments.of("knownContentLength_failOf500", 20L,
+                         aResponse().withStatus(500))
+        );
     }
 
     @BeforeEach
     public void setup(WireMockRuntimeInfo wiremock) {
-        stubFailedPutObjectCalls();
         s3AsyncClient = S3AsyncClient.builder()
                                      .region(Region.US_EAST_1)
                                      .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
                                      .credentialsProvider(
                                          StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
                                      .multipartEnabled(true)
-                                     .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(10L))
-                                     .httpClientBuilder(AwsCrtAsyncHttpClient.builder())
+                                     .multipartConfiguration(b -> b.minimumPartSizeInBytes(10L).apiCallBufferSizeInBytes(20L))
+                                     .httpClientBuilder(NettyNioAsyncHttpClient.builder())
                                      .build();
     }
 
-    private void stubFailedPutObjectCalls() {
+    private void stubPutObject404Calls() {
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
         stubFor(put(anyUrl()).willReturn(aResponse().withStatus(404)));
         stubFor(put(urlEqualTo("/Example-Bucket/Example-Object?partNumber=1&uploadId=string")).willReturn(aResponse().withStatus(200)));
         stubFor(delete(anyUrl()).willReturn(aResponse().withStatus(200)));
     }
 
-    private void stubSuccessfulPutObjectCalls() {
-        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
-        stubFor(put(anyUrl()).willReturn(aResponse().withStatus(200)));
-    }
-
-
     // https://github.com/aws/aws-sdk-java-v2/issues/4801
     @Test
     void uploadWithUnknownContentLength_onePartFails_shouldCancelUpstream() {
+        stubPutObject404Calls();
         BlockingInputStreamAsyncRequestBody blockingInputStreamAsyncRequestBody = AsyncRequestBody.forBlockingInputStream(null);
         CompletableFuture<PutObjectResponse> putObjectResponse = s3AsyncClient.putObject(
             r -> r.bucket(BUCKET).key(KEY), blockingInputStreamAsyncRequestBody);
@@ -132,6 +128,7 @@ public class S3MultipartClientPutObjectWiremockTest {
 
     @Test
     void uploadWithKnownContentLength_onePartFails_shouldCancelUpstream() {
+        stubPutObject404Calls();
         BlockingInputStreamAsyncRequestBody blockingInputStreamAsyncRequestBody =
             AsyncRequestBody.forBlockingInputStream(1024L * 20); // must be larger than the buffer used in
         // InputStreamConsumingPublisher to trigger the error
@@ -147,18 +144,86 @@ public class S3MultipartClientPutObjectWiremockTest {
         assertThatThrownBy(() -> putObjectResponse.join()).hasRootCauseInstanceOf(S3Exception.class);
     }
 
-    @ParameterizedTest(name = "{index} {0}")
-    @MethodSource("invalidAsyncRequestBodies")
-    void uploadWithIncorrectAsyncRequestBodySplit_contentLengthMismatch_shouldThrowException(String description,
-                                                                                             TestPublisherWithIncorrectSplitImpl asyncRequestBody,
-                                                                                             String errorMsg) {
-        stubSuccessfulPutObjectCalls();
-        CompletableFuture<PutObjectResponse> putObjectResponse = s3AsyncClient.putObject(
-            r -> r.bucket(BUCKET).key(KEY), asyncRequestBody);
+    @ParameterizedTest
+    @MethodSource("retryableErrorTestCase")
+    void mpuWithBufferedSplittableAsyncRequestBody_partsFailOfRetryableError_shouldRetry(String description,
+                                                   Long contentLength,
+                                                   ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
+        List<ByteBuffer> buffers = new ArrayList<>();
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.ofNullable(contentLength);
+            }
 
-        assertThatThrownBy(() -> putObjectResponse.join()).hasMessageContaining(errorMsg)
-                                                          .hasRootCauseInstanceOf(SdkClientException.class);
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                Flowable.fromIterable(buffers).subscribe(s);
+            }
+        };
+
+        s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), BufferedSplittableAsyncRequestBody.create(asyncRequestBody))
+                     .join();
+
+        verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
+
+    @ParameterizedTest
+    @MethodSource("retryableErrorTestCase")
+    void mpuDefaultSplitImpl_partsFailOfRetryableError_shouldFail(String description,
+                                                                  Long contentLength,
+                                                                  ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
+        List<ByteBuffer> buffers = new ArrayList<>();
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+        AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.ofNullable(contentLength);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                Flowable.fromIterable(buffers).subscribe(s);
+            }
+        };
+
+        assertThatThrownBy(() -> s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody)
+                     .join())
+            .hasCauseInstanceOf(NonRetryableException.class)
+            .hasMessageContaining("Multiple subscribers detected.");
+
+        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+    }
+
+
+    private void stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
+        stubUploadFailsInitialAttemptCalls(1, responseDefinitionBuilder);
+        stubUploadFailsInitialAttemptCalls(2, responseDefinitionBuilder);
+    }
+
+    private void stubUploadFailsInitialAttemptCalls(int partNumber, ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubFor(put(anyUrl())
+                    .withQueryParam("partNumber", matching(String.valueOf(partNumber)))
+                    .inScenario(String.valueOf(partNumber))
+                    .whenScenarioStateIs(Scenario.STARTED)
+                    .willReturn(responseDefinitionBuilder)
+                    .willSetStateTo("SecondAttempt" + partNumber));
+
+        stubFor(put(anyUrl())
+                    .withQueryParam("partNumber", matching(String.valueOf(partNumber)))
+                    .inScenario(String.valueOf(partNumber))
+                    .whenScenarioStateIs("SecondAttempt" + partNumber)
+                    .willReturn(aResponse().withStatus(200)));
+    }
+
 
     private InputStream createUnlimitedInputStream() {
         return new InputStream() {
@@ -168,65 +233,5 @@ public class S3MultipartClientPutObjectWiremockTest {
             }
         };
     }
-
-    private static class TestPublisherWithIncorrectSplitImpl implements AsyncRequestBody {
-        private SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
-        private Long totalSize;
-        private Long partSize;
-        private Integer numParts;
-
-        private TestPublisherWithIncorrectSplitImpl(Long totalSize, Long partSize) {
-            this.totalSize = totalSize;
-            this.partSize = partSize;
-        }
-
-        private TestPublisherWithIncorrectSplitImpl(Long totalSize, long partSize, int numParts) {
-            this.totalSize = totalSize;
-            this.partSize = partSize;
-            this.numParts = numParts;
-        }
-
-        @Override
-        public Optional<Long> contentLength() {
-            return Optional.ofNullable(totalSize);
-        }
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> s) {
-            simplePublisher.subscribe(s);
-        }
-
-        @Override
-        public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
-            List<AsyncRequestBody> requestBodies = new ArrayList<>();
-            int numAsyncRequestBodies = numParts == null ? 1 : numParts;
-            for (int i = 0; i < numAsyncRequestBodies; i++) {
-                requestBodies.add(new TestAsyncRequestBody(partSize));
-            }
-
-            return SdkPublisher.adapt(Flowable.fromArray(requestBodies.toArray(new AsyncRequestBody[requestBodies.size()])));
-        }
-    }
-
-    private static class TestAsyncRequestBody implements AsyncRequestBody {
-        private Long partSize;
-        private SimplePublisher<ByteBuffer> simplePublisher = new SimplePublisher<>();
-
-        public TestAsyncRequestBody(Long partSize) {
-            this.partSize = partSize;
-        }
-
-        @Override
-        public Optional<Long> contentLength() {
-            return Optional.ofNullable(partSize);
-        }
-
-        @Override
-        public void subscribe(Subscriber<? super ByteBuffer> s) {
-            simplePublisher.subscribe(s);
-            simplePublisher.send(ByteBuffer.wrap(
-                RandomStringUtils.randomAscii(Math.toIntExact(partSize)).getBytes()));
-            simplePublisher.complete();
-        }
-    }
 }
+

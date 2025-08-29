@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.32.32-SNAPSHOT</version>
+    <version>2.33.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -102,8 +102,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.32.31</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.32.30</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.32.33</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.32.32</awsjavasdk.previous-previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.17.3</jacksonjr.version>
@@ -1274,10 +1274,6 @@
                                     <packages>software.amazon.awssdk.services.elastictranscoder*</packages>
                                 </group>
                                 <group>
-                                    <title>OpsWorks</title>
-                                    <packages>software.amazon.awssdk.services.opsworks*</packages>
-                                </group>
-                                <group>
                                     <title>CloudFormation</title>
                                     <packages>software.amazon.awssdk.services.cloudformation*</packages>
                                 </group>
@@ -1460,10 +1456,6 @@
                                 <group>
                                     <title>X-Ray</title>
                                     <packages>software.amazon.awssdk.services.xray*</packages>
-                                </group>
-                                <group>
-                                    <title>OpsWorks for Chef Automate</title>
-                                    <packages>software.amazon.awssdk.services.opsworkscm*</packages>
                                 </group>
                                 <group>
                                     <title>Pinpoint</title>
