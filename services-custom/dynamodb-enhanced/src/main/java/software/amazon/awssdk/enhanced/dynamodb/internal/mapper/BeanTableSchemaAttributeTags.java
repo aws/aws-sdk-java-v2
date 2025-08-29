@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 
 /**
  * Static provider class for core {@link BeanTableSchema} attribute tags. Each of the implemented annotations has a
@@ -61,5 +62,9 @@ public final class BeanTableSchemaAttributeTags {
 
     public static StaticAttributeTag attributeTagFor(DynamoDbAtomicCounter annotation) {
         return StaticAttributeTags.atomicCounter(annotation.delta(), annotation.startValue());
+    }
+
+    public static StaticAttributeTag attributeTagFor(DynamoDbSubtypeDiscriminator annotation) {
+        return StaticAttributeTags.subtypeName();
     }
 }
