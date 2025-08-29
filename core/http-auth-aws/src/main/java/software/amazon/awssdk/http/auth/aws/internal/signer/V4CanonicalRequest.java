@@ -94,8 +94,6 @@ public final class V4CanonicalRequest {
         return canonicalRequestString;
     }
 
-
-
     private SortedMap<String, List<String>> canonicalQueryParams() {
         if (canonicalParams == null) {
             canonicalParams = getCanonicalQueryParams(request);
