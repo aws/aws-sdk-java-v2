@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS X-Ray",
+    "contributor": "",
+    "description": "AWS X-Ray Features: Support Sampling Rate Boost On Anomaly"
+}
