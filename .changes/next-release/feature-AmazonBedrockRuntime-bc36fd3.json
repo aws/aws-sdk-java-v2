@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "Fixed stop sequence limit for converse API."
-}
