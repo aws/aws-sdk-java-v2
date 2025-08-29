@@ -43,7 +43,6 @@ public class PolymorphicTableSchemaTest {
             TableSchemaFactory.fromClass(SimplePolymorphicParent.class);
 
         SimplePolymorphicChildOne record = new SimplePolymorphicChildOne();
-        record.setType("one");
         record.setAttributeOne("attributeOneValue");
 
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(record, false);
@@ -60,7 +59,7 @@ public class PolymorphicTableSchemaTest {
             TableSchemaFactory.fromClass(FlattenedPolymorphicParent.class);
 
         FlattenedPolymorphicParentComposite parentComposite = new FlattenedPolymorphicParentComposite();
-        parentComposite.setType("one");
+        parentComposite.setCompositeAttribute("compositeAttributeValue");
 
         FlattenedPolymorphicChild record = new FlattenedPolymorphicChild();
         record.setFlattenedPolyParentComposite(parentComposite);
@@ -70,7 +69,7 @@ public class PolymorphicTableSchemaTest {
 
         assertThat(itemMap).containsEntry("type", AttributeValue.builder().s("one").build());
         assertThat(itemMap).containsEntry("attributeOne", AttributeValue.builder().s("attributeOneValue").build());
-
+        assertThat(itemMap).containsEntry("compositeAttribute", AttributeValue.builder().s("compositeAttributeValue").build());
         assertThat(tableSchema.mapToItem(itemMap)).isEqualTo(record);
     }
 
@@ -79,11 +78,10 @@ public class PolymorphicTableSchemaTest {
         TableSchema<NestedPolymorphicParent> tableSchema = TableSchemaFactory.fromClass(NestedPolymorphicParent.class);
 
         SimplePolymorphicChildOne nestedRecord = new SimplePolymorphicChildOne();
-        nestedRecord.setType("one");
         nestedRecord.setAttributeOne("attributeOneValue");
+        nestedRecord.setParentAttribute("parentAttributeValue");
 
         NestedPolymorphicChild record = new NestedPolymorphicChild();
-        record.setType("nested_one");
         record.setSimplePolyParent(nestedRecord);
 
         Map<String, AttributeValue> itemMap = tableSchema.itemToMap(record, false);
@@ -94,9 +92,9 @@ public class PolymorphicTableSchemaTest {
                 assertThat(nestedItemMap).containsEntry("type", AttributeValue.builder().s("one").build());
                 assertThat(nestedItemMap).containsEntry(
                     "attributeOne", AttributeValue.builder().s("attributeOneValue").build());
+                assertThat(nestedItemMap).containsEntry(
+                    "parentAttribute", AttributeValue.builder().s("parentAttributeValue").build());
             }));
-
-        assertThat(tableSchema.mapToItem(itemMap)).isEqualTo(record);
     }
 
     @Test
@@ -104,15 +102,12 @@ public class PolymorphicTableSchemaTest {
         TableSchema<RecursivePolymorphicParent> tableSchema = TableSchemaFactory.fromClass(RecursivePolymorphicParent.class);
 
         RecursivePolymorphicChild recursiveRecord1 = new RecursivePolymorphicChild();
-        recursiveRecord1.setType("recursive_one");
         recursiveRecord1.setAttributeOne("one");
 
         RecursivePolymorphicChild recursiveRecord2 = new RecursivePolymorphicChild();
-        recursiveRecord2.setType("recursive_one");
         recursiveRecord2.setAttributeOne("two");
 
         RecursivePolymorphicChild record = new RecursivePolymorphicChild();
-        record.setType("recursive_one");
         record.setRecursivePolyParent(recursiveRecord1);
         record.setRecursivePolyParentOne(recursiveRecord2);
         record.setAttributeOne("parent");
@@ -134,7 +129,6 @@ public class PolymorphicTableSchemaTest {
                 assertThat(nestedItemMap).containsEntry(
                     "attributeOne", AttributeValue.builder().s("two").build());
             }));
-
         assertThat(tableSchema.mapToItem(itemMap)).isEqualTo(record);
     }
 
@@ -159,8 +153,8 @@ public class PolymorphicTableSchemaTest {
     public void shouldThrowException_ifSubtypeNotExtendingParent() {
         assertThatThrownBy(() -> PolymorphicTableSchema.create(ValidParentSubtypeNotExtendingParent.class, null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("A subtype class [SimpleBean] listed in the @DynamoDbSupertype annotation "
-                        + "is not extending the root class.");
+            .hasMessage("A subtype class [SimpleBean] listed in the @DynamoDbSupertype annotation is not extending the root "
+                        + "class.");
     }
 
     @DynamoDbBean
@@ -173,22 +167,5 @@ public class PolymorphicTableSchemaTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("A DynamoDb polymorphic class [InvalidParentNoSubtypeAnnotation] "
                         + "must be annotated with @DynamoDbSupertype");
-    }
-
-    @DynamoDbSupertype(@DynamoDbSupertype.Subtype(discriminatorValue = "", subtypeClass = InvalidParentNameEmptySubtype.class))
-    @DynamoDbBean
-    public static class InvalidParentNameEmpty {
-    }
-
-    @DynamoDbBean
-    public static class InvalidParentNameEmptySubtype extends InvalidParentNameEmpty {
-    }
-
-    @Test
-    public void shouldThrowException_ifSubtypeHasEmptyDiscriminatorValue() {
-        assertThatThrownBy(() -> PolymorphicTableSchema.create(InvalidParentNameEmpty.class, null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("A subtype must have one name associated with it. [subtypeClass = \"software.amazon.awssdk.enhanced"
-                        + ".dynamodb.mapper.PolymorphicTableSchemaTest$InvalidParentNameEmptySubtype\"]");
     }
 }

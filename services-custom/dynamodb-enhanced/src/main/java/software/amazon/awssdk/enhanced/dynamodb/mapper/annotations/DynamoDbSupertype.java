@@ -22,27 +22,8 @@ import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * Denotes this class as mapping to a number of different subtype classes. Determination of which subtype to use in any given
- * situation is made based on a single attribute that is designated as the 'subtype discriminator' (see
- * {@link DynamoDbSubtypeDiscriminator}). This annotation may only be applied to a class that is also a valid DynamoDb annotated
- * class (either {@link DynamoDbBean} or {@link DynamoDbImmutable}), and likewise every subtype class must also be a valid
- * DynamoDb annotated class.
- * <p>
- * Example:
- * <p><pre>
- * {@code
- * @DynamoDbBean
- * @DynamoDbSupertype( {
- *   @Subtype(discriminatorValue = "CAT", subtypeClass = Cat.class),
- *   @Subtype(discriminatorValue = "DOG", subtypeClass = Dog.class) } )
- * public class Animal {
- *    @DynamoDbSubtypeDiscriminator
- *    String getType() { ... }
- *
- *    ...
- * }
- * }
- * </pre>
+ * Denotes this class as mapping to multiple subtype classes. Determination of which subtype to use is based on a single
+ * attribute (the 'discriminator'). The attribute name is configured per-subtype, defaulting to "type".
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -50,9 +31,18 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 public @interface DynamoDbSupertype {
     Subtype[] value();
 
-    @interface Subtype {
-        String discriminatorValue();
+    /** DynamoDB attribute name which holds the discriminator value; defaults to "type" */
+    String discriminatorAttributeName() default "type";
 
+    /**
+     * Declare one concrete subtype: its discriminator value, the attribute name (defaults to "type"),
+     * and the subtype’s Java class.
+     */
+    @interface Subtype {
+        /** Value stored in the discriminator attribute for this subtype */
+        String discriminatorValue() default "";
+
+        /** The concrete Java class for this subtype */
         Class<?> subtypeClass();
     }
 }

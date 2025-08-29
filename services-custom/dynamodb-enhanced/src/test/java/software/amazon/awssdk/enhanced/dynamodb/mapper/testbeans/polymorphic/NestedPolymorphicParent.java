@@ -15,37 +15,11 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.polymorphic;
 
-import java.util.Objects;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
 
 @DynamoDbBean
 @DynamoDbSupertype(@Subtype(discriminatorValue = "nested_one", subtypeClass = NestedPolymorphicChild.class))
-public abstract class NestedPolymorphicParent {
-    String type;
-
-    @DynamoDbSubtypeDiscriminator
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        NestedPolymorphicParent that = (NestedPolymorphicParent) o;
-        return Objects.equals(type, that.type);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(type);
-    }
+public class NestedPolymorphicParent {
 }

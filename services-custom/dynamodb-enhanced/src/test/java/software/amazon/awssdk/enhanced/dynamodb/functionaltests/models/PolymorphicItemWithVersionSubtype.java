@@ -19,7 +19,6 @@ import java.util.Objects;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
 
@@ -27,9 +26,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSuper
 @DynamoDbSupertype( {
     @Subtype(discriminatorValue = "no_version", subtypeClass = PolymorphicItemWithVersionSubtype.SubtypeWithoutVersion.class),
     @Subtype(discriminatorValue = "with_version", subtypeClass = PolymorphicItemWithVersionSubtype.SubtypeWithVersion.class)})
-public abstract class PolymorphicItemWithVersionSubtype {
+public class PolymorphicItemWithVersionSubtype {
     private String id;
-    private String type;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -38,15 +36,6 @@ public abstract class PolymorphicItemWithVersionSubtype {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    @DynamoDbSubtypeDiscriminator
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     @DynamoDbBean
@@ -136,12 +125,12 @@ public abstract class PolymorphicItemWithVersionSubtype {
             return false;
         }
         PolymorphicItemWithVersionSubtype that = (PolymorphicItemWithVersionSubtype) o;
-        return Objects.equals(id, that.id) && Objects.equals(type, that.type);
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, type);
+        return Objects.hashCode(id);
     }
 }
 

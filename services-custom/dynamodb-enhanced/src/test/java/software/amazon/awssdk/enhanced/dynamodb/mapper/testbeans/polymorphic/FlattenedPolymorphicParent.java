@@ -23,7 +23,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSuper
 
 @DynamoDbBean
 @DynamoDbSupertype(@Subtype(discriminatorValue = "one", subtypeClass = FlattenedPolymorphicChild.class))
-public abstract class FlattenedPolymorphicParent {
+public class FlattenedPolymorphicParent {
     FlattenedPolymorphicParentComposite flattenedPolymorphicParentComposite;
 
     @DynamoDbFlatten

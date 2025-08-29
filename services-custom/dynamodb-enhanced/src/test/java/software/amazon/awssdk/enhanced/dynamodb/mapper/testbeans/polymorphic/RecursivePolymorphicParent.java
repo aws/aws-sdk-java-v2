@@ -17,24 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.polymorphic;
 
 import java.util.Objects;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
 
 @DynamoDbBean
 @DynamoDbSupertype(@Subtype(discriminatorValue = "recursive_one", subtypeClass = RecursivePolymorphicChild.class))
-public abstract class RecursivePolymorphicParent {
-    String type;
+public class RecursivePolymorphicParent {
     RecursivePolymorphicParent recursivePolymorphicParent;
-
-    @DynamoDbSubtypeDiscriminator
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public RecursivePolymorphicParent getRecursivePolyParent() {
         return recursivePolymorphicParent;
@@ -50,12 +39,12 @@ public abstract class RecursivePolymorphicParent {
             return false;
         }
         RecursivePolymorphicParent that = (RecursivePolymorphicParent) o;
-        return Objects.equals(type, that.type) && Objects.equals(recursivePolymorphicParent, that.recursivePolymorphicParent);
+        return Objects.equals(recursivePolymorphicParent, that.recursivePolymorphicParent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, recursivePolymorphicParent);
+        return Objects.hashCode(recursivePolymorphicParent);
     }
 }
 

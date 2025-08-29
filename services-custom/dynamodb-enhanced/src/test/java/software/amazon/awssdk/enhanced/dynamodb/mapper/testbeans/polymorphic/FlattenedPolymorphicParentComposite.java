@@ -15,38 +15,33 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.polymorphic;
 
+import java.util.Objects;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 
 @DynamoDbBean
 public class FlattenedPolymorphicParentComposite {
-    String type;
+    String compositeAttribute;
 
-    @DynamoDbSubtypeDiscriminator
-    public String getType() {
-        return type;
+    public String getCompositeAttribute() {
+        return compositeAttribute;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public FlattenedPolymorphicParentComposite setCompositeAttribute(String compositeAttribute) {
+        this.compositeAttribute = compositeAttribute;
+        return this;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         FlattenedPolymorphicParentComposite that = (FlattenedPolymorphicParentComposite) o;
-
-        return type != null ? type.equals(that.type) : that.type == null;
+        return Objects.equals(compositeAttribute, that.compositeAttribute);
     }
 
     @Override
     public int hashCode() {
-        return type != null ? type.hashCode() : 0;
+        return Objects.hashCode(compositeAttribute);
     }
 }

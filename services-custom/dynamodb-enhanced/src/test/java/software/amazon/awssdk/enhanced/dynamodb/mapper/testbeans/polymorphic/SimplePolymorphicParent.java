@@ -17,7 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.polymorphic;
 
 import java.util.Objects;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSubtypeDiscriminator;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSupertype.Subtype;
 
@@ -26,16 +25,17 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSuper
     @Subtype(discriminatorValue = "one", subtypeClass = SimplePolymorphicChildOne.class),
     @Subtype(discriminatorValue = "two", subtypeClass = SimplePolymorphicChildTwo.class)
 })
-public abstract class SimplePolymorphicParent {
-    String type;
+public class SimplePolymorphicParent {
 
-    @DynamoDbSubtypeDiscriminator
-    public String getType() {
-        return type;
+    private String parentAttribute;
+
+    public String getParentAttribute() {
+        return parentAttribute;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public SimplePolymorphicParent setParentAttribute(String parentAttribute) {
+        this.parentAttribute = parentAttribute;
+        return this;
     }
 
     @Override
@@ -44,11 +44,11 @@ public abstract class SimplePolymorphicParent {
             return false;
         }
         SimplePolymorphicParent that = (SimplePolymorphicParent) o;
-        return Objects.equals(type, that.type);
+        return Objects.equals(parentAttribute, that.parentAttribute);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(type);
+        return Objects.hashCode(parentAttribute);
     }
 }

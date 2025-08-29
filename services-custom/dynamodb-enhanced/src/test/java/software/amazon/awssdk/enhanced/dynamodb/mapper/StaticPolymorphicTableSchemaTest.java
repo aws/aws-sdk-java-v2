@@ -18,15 +18,13 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
-import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.subtypeName;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.junit.Test;
-import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -43,8 +41,7 @@ public class StaticPolymorphicTableSchemaTest {
                                   .addAttribute(String.class,
                                                 a -> a.name("species")
                                                       .getter(Animal::species)
-                                                      .setter(Animal.Builder::species)
-                                                      .tags(subtypeName()))
+                                                      .setter(Animal.Builder::species))
                                   .build();
 
     private static final TableSchema<Cat> CAT_TABLE_SCHEMA =
@@ -70,12 +67,16 @@ public class StaticPolymorphicTableSchemaTest {
     private static final TableSchema<Animal> ANIMAL_TABLE_SCHEMA =
         StaticPolymorphicTableSchema.builder(Animal.class)
                                     .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
-                                    .staticSubtypes(StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
-                                                    StaticSubtype.builder(Snake.class).name("SNAKE").tableSchema(SNAKE_TABLE_SCHEMA).build())
+                                    .discriminatorAttributeName("species")
+                                    .addStaticSubtype(
+                                        StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
+                                        StaticSubtype.builder(Snake.class).name("SNAKE").tableSchema(SNAKE_TABLE_SCHEMA).build())
                                     .build();
 
-    private static final Cat CAT = Cat.builder().id("cat:1").species("CAT").breed("persian").build();
-    private static final Snake SNAKE = Snake.builder().id("snake:1").species("SNAKE").isVenomous(true).build();
+    private static final Cat CAT =
+        Cat.builder().id("cat:1").species("CAT").breed("persian").build();
+    private static final Snake SNAKE =
+        Snake.builder().id("snake:1").species("SNAKE").isVenomous(true).build();
 
     private static final Map<String, AttributeValue> CAT_MAP;
     private static final Map<String, AttributeValue> SNAKE_MAP;
@@ -95,146 +96,97 @@ public class StaticPolymorphicTableSchemaTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenBuildingPolymorphicTableSchema_givenNoSubtypes() {
+    public void shouldThrowWhenNoSubtypes() {
         assertThatThrownBy(() -> StaticPolymorphicTableSchema.builder(Animal.class)
                                                              .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
-                                                             .build())
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("A polymorphic TableSchema must have at least one associated subtype");
+                                                             .discriminatorAttributeName("species")
+                                                             .addStaticSubtype()
+                                                             .build()
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("A polymorphic TableSchema must have at least one subtype");
     }
 
     @Test
-    public void shouldThrowExceptionWhenBuildingPolymorphicTableSchema_givenNoRootTableSchema() {
+    public void shouldThrowWhenNoRootSchema() {
         assertThatThrownBy(() -> StaticPolymorphicTableSchema.builder(Animal.class)
-                                                             .staticSubtypes(StaticSubtype.builder(Cat.class)
-                                                                                          .name("CAT")
-                                                                                          .tableSchema(CAT_TABLE_SCHEMA)
-                                                                                          .build(),
-                                                                             StaticSubtype.builder(Snake.class)
-                                                                                          .name("SNAKE")
-                                                                                          .tableSchema(SNAKE_TABLE_SCHEMA)
-                                                                                          .build())
-                                                             .build())
+                                                             .discriminatorAttributeName("species")
+                                                             .addStaticSubtype(
+                                                                 StaticSubtype.builder(Cat.class)
+                                                                              .name("CAT")
+                                                                              .tableSchema(CAT_TABLE_SCHEMA)
+                                                                              .build()
+                                                             )
+                                                             .build()
+        )
             .isInstanceOf(NullPointerException.class)
             .hasMessage("rootTableSchema must not be null.");
-
     }
 
     @Test
-    public void shouldThrowExceptionWhenBuildingPolymorphicTableSchema_givenDuplicateSubtypeName() {
+    public void shouldThrowOnDuplicateNames() {
         assertThatThrownBy(() -> StaticPolymorphicTableSchema.builder(Animal.class)
                                                              .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
-                                                             .staticSubtypes(StaticSubtype.builder(Cat.class)
-                                                                                          .name("CAT")
-                                                                                          .tableSchema(CAT_TABLE_SCHEMA)
-                                                                                          .build(),
-                                                                             StaticSubtype.builder(Snake.class)
-                                                                                          .name("CAT")
-                                                                                          .tableSchema(SNAKE_TABLE_SCHEMA)
-                                                                                          .build())
-                                                             .build())
+                                                             .discriminatorAttributeName("species")
+                                                             .addStaticSubtype(
+                                                                 StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
+                                                                 StaticSubtype.builder(Snake.class).name("CAT").tableSchema(SNAKE_TABLE_SCHEMA).build()
+                                                             )
+                                                             .build()
+        )
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Duplicate subtype names are not permitted. [name = \"CAT\"]");
-
     }
 
     @Test
-    public void shouldSerializePolymorphicObjectToAttributesMap() {
+    public void shouldSerializeToMap() {
         assertThat(ANIMAL_TABLE_SCHEMA.itemToMap(CAT, false)).isEqualTo(CAT_MAP);
         assertThat(ANIMAL_TABLE_SCHEMA.itemToMap(SNAKE, false)).isEqualTo(SNAKE_MAP);
+        // discriminator is injected even when ignoreNulls == true
         assertThat(ANIMAL_TABLE_SCHEMA.itemToMap(CAT, true)).isEqualTo(CAT_MAP);
         assertThat(ANIMAL_TABLE_SCHEMA.itemToMap(SNAKE, true)).isEqualTo(SNAKE_MAP);
     }
 
     @Test
-    public void shouldSerializePolymorphicObjectToSpecificAttributesMap_givenListOfAttributes() {
-        Map<String, AttributeValue> result = ANIMAL_TABLE_SCHEMA.itemToMap(CAT, Arrays.asList("id", "breed"));
-
-        assertThat(result).hasSize(2);
-        assertThat(result).containsEntry("id", AttributeValue.builder().s("cat:1").build());
-        assertThat(result).containsEntry("breed", AttributeValue.builder().s("persian").build());
+    public void shouldSerializePartialAttributes() {
+        Map<String, AttributeValue> result =
+            ANIMAL_TABLE_SCHEMA.itemToMap(CAT, Arrays.asList("id", "breed"));
+        assertThat(result)
+            .containsOnlyKeys("id", "breed")
+            .containsEntry("id", AttributeValue.builder().s("cat:1").build())
+            .containsEntry("breed", AttributeValue.builder().s("persian").build());
     }
 
     @Test
-    public void shouldThrowCastException_whenSerializingPolymorphicObjectWithMismatchedType() {
-        Cat cat = Cat.builder().id("cat:1").species("SNAKE").breed("persian").build();
-
-        assertThatThrownBy(() -> ANIMAL_TABLE_SCHEMA.itemToMap(cat, false))
-            .isInstanceOf(ClassCastException.class)
-            .hasMessage("Cannot cast software.amazon.awssdk.enhanced.dynamodb.mapper.StaticPolymorphicTableSchemaTest$Cat to "
-                        + "software.amazon.awssdk.enhanced.dynamodb.mapper.StaticPolymorphicTableSchemaTest$Snake");
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenSerializingPolymorphicObject_GivenInvalidDiscriminatorValue() {
-        Cat cat = Cat.builder().id("cat:1").species("DOG").breed("persian").build();
-
-        assertThatThrownBy(() -> ANIMAL_TABLE_SCHEMA.itemToMap(cat, false))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("The subtype name 'DOG' could not be matched to any declared subtypes of the polymorphic table schema.");
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenSerializingPolymorphicObject_GivenNullDiscriminatorValue() {
-        Cat cat = Cat.builder().id("cat:1").breed("persian").build();
-
-        assertThatThrownBy(() -> ANIMAL_TABLE_SCHEMA.itemToMap(cat, false))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("The subtype name could not be read from the item, either because it is missing "
-                        + "or because it is not a string.");
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenSerializingPolymorphicObject_GivenEmptyDiscriminatorValue() {
-        Cat cat = Cat.builder().id("cat:1").species("").breed("persian").build();
-
-        assertThatThrownBy(() -> ANIMAL_TABLE_SCHEMA.itemToMap(cat, false))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("The subtype name could not be read from the item, either because it is missing "
-                        + "or because it is not a string.");
-    }
-
-    @Test
-    public void shouldDeserializeDatabaseRecordsToPolymorphicObjects() {
+    public void shouldDeserializeFromMap() {
         assertThat(ANIMAL_TABLE_SCHEMA.mapToItem(CAT_MAP)).isEqualTo(CAT);
         assertThat(ANIMAL_TABLE_SCHEMA.mapToItem(SNAKE_MAP)).isEqualTo(SNAKE);
     }
 
     @Test
-    public void shouldDeserializeDatabaseRecordsToPolymorphicObjects_givenSubtypeCollection() {
-        List<StaticSubtype<? extends Animal>> subtypeCollection =
-            Arrays.asList(
-                StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
-                StaticSubtype.builder(Snake.class).name("SNAKE").tableSchema(SNAKE_TABLE_SCHEMA).build());
-
-        TableSchema<Animal> tableSchema =
-            StaticPolymorphicTableSchema.builder(Animal.class)
-                                        .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
-                                        .staticSubtypes(subtypeCollection)
-                                        .build();
-
-        assertThat(tableSchema.mapToItem(CAT_MAP)).isEqualTo(CAT);
-        assertThat(tableSchema.mapToItem(SNAKE_MAP)).isEqualTo(SNAKE);
+    public void shouldResolveSubtypeCollection() {
+        StaticSubtype<? extends Animal>[] subs = new StaticSubtype[] {
+            StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
+            StaticSubtype.builder(Snake.class).name("SNAKE").tableSchema(SNAKE_TABLE_SCHEMA).build()};
+        TableSchema<Animal> schema = StaticPolymorphicTableSchema.builder(Animal.class)
+                                                                 .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
+                                                                 .discriminatorAttributeName("species")
+                                                                 .addStaticSubtype(subs)
+                                                                 .build();
+        assertThat(schema.mapToItem(CAT_MAP)).isEqualTo(CAT);
+        assertThat(schema.mapToItem(SNAKE_MAP)).isEqualTo(SNAKE);
     }
 
     @Test
-    public void shouldBringTheCorrectAttributeValuePolymorphic_givenAttributeName() {
+    public void shouldReturnCorrectAttributeValue() {
         assertThat(ANIMAL_TABLE_SCHEMA.attributeValue(CAT, "breed"))
             .isEqualTo(AttributeValue.builder().s("persian").build());
     }
 
     @Test
-    public void polymorphicTableSchemaShouldHaveTheCorrectItemType() {
-        assertThat(ANIMAL_TABLE_SCHEMA.itemType()).isEqualTo(EnhancedType.of(Animal.class));
-    }
-
-    @Test
-    public void polymorphicTableSchemaShouldHaveTheCorrectAttributeNames() {
+    public void metadataAndTypeChecks() {
+        assertThat(ANIMAL_TABLE_SCHEMA.itemType().rawClass()).isEqualTo(Animal.class);
         assertThat(ANIMAL_TABLE_SCHEMA.attributeNames()).containsExactlyInAnyOrder("id", "species");
-    }
-
-    @Test
-    public void polymorphicTableSchemaShouldNotBeAbstract() {
         assertThat(ANIMAL_TABLE_SCHEMA.isAbstract()).isFalse();
     }
 
@@ -253,11 +205,11 @@ public class StaticPolymorphicTableSchemaTest {
         }
 
         public String id() {
-            return this.id;
+            return id;
         }
 
         public String species() {
-            return this.species;
+            return species;
         }
 
         @Override
@@ -265,26 +217,19 @@ public class StaticPolymorphicTableSchemaTest {
             if (this == o) {
                 return true;
             }
-            if (o == null || getClass() != o.getClass()) {
+            if (!(o instanceof Animal)) {
                 return false;
             }
-
-            Animal animal = (Animal) o;
-
-            if (id != null ? !id.equals(animal.id) : animal.id != null) {
-                return false;
-            }
-            return species != null ? species.equals(animal.species) : animal.species == null;
+            Animal that = (Animal) o;
+            return Objects.equals(id, that.id) &&
+                   Objects.equals(species, that.species);
         }
 
         @Override
         public int hashCode() {
-            int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (species != null ? species.hashCode() : 0);
-            return result;
+            return Objects.hash(id, species);
         }
 
-        @SuppressWarnings("unchecked")
         public static class Builder<T extends Builder<T>> {
             private String id;
             private String species;
@@ -292,13 +237,13 @@ public class StaticPolymorphicTableSchemaTest {
             protected Builder() {
             }
 
-            public T species(String species) {
-                this.species = species;
+            public T id(String id) {
+                this.id = id;
                 return (T) this;
             }
 
-            public T id(String id) {
-                this.id = id;
+            public T species(String sp) {
+                this.species = sp;
                 return (T) this;
             }
         }
@@ -313,31 +258,7 @@ public class StaticPolymorphicTableSchemaTest {
         }
 
         public String breed() {
-            return this.breed;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            if (!super.equals(o)) {
-                return false;
-            }
-
-            Cat cat = (Cat) o;
-
-            return breed != null ? breed.equals(cat.breed) : cat.breed == null;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (breed != null ? breed.hashCode() : 0);
-            return result;
+            return breed;
         }
 
         public static Builder builder() {
@@ -347,14 +268,28 @@ public class StaticPolymorphicTableSchemaTest {
         public static class Builder extends Animal.Builder<Builder> {
             private String breed;
 
-            public Builder breed(String breed) {
-                this.breed = breed;
+            public Builder breed(String b) {
+                this.breed = b;
                 return this;
             }
 
             public Cat build() {
                 return new Cat(this);
             }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!super.equals(o)) {
+                return false;
+            }
+            Cat that = (Cat) o;
+            return Objects.equals(breed, that.breed);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), breed);
         }
     }
 
@@ -367,31 +302,7 @@ public class StaticPolymorphicTableSchemaTest {
         }
 
         public Boolean isVenomous() {
-            return this.isVenomous;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            if (!super.equals(o)) {
-                return false;
-            }
-
-            Snake snake = (Snake) o;
-
-            return isVenomous != null ? isVenomous.equals(snake.isVenomous) : snake.isVenomous == null;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (isVenomous != null ? isVenomous.hashCode() : 0);
-            return result;
+            return isVenomous;
         }
 
         public static Builder builder() {
@@ -401,14 +312,28 @@ public class StaticPolymorphicTableSchemaTest {
         public static class Builder extends Animal.Builder<Builder> {
             private Boolean isVenomous;
 
-            public Builder isVenomous(Boolean isVenomous) {
-                this.isVenomous = isVenomous;
+            public Builder isVenomous(Boolean v) {
+                this.isVenomous = v;
                 return this;
             }
 
             public Snake build() {
                 return new Snake(this);
             }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!super.equals(o)) {
+                return false;
+            }
+            Snake that = (Snake) o;
+            return Objects.equals(isVenomous, that.isVenomous);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), isVenomous);
         }
     }
 }

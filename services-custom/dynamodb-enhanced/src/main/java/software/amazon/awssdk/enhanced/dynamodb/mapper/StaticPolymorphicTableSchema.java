@@ -16,255 +16,218 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
+import java.util.Optional;
 import java.util.function.Function;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.SubtypeNameTag;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * Implementation of {@link TableSchema} that provides polymorphic mapping to and from various subtypes as denoted by a single
- * property of the object that represents the 'subtype discriminator'. In order to build this class, an abstract root
- * {@link TableSchema} must be provided that maps the supertype class, and then a separate concrete {@link TableSchema} that maps
- * each subtype. Each subtype is named, and a string attribute on the root class must be tagged with
- * {@link StaticAttributeTags#subtypeName()} so that any instance of that supertype can have its subtype determined just by
- * looking at the value of that attribute.
- * <p>
- * Example:
- * <p><pre>
- * {@code
- * TableSchema<Animal> ANIMAL_TABLE_SCHEMA =
- *         StaticPolymorphicTableSchema.builder(Animal.class)
- *             .rootTableSchema(ROOT_ANIMAL_TABLE_SCHEMA)
- *             .staticSubtypes(StaticSubtype.builder(Cat.class).name("CAT").tableSchema(CAT_TABLE_SCHEMA).build(),
- *                             StaticSubtype.builder(Snake.class).name("SNAKE").tableSchema(SNAKE_TABLE_SCHEMA).build())
- *             .build();
- * }
- * </pre>
- *
- * @param <T>
- */
 @SdkPublicApi
-public class StaticPolymorphicTableSchema<T> implements TableSchema<T> {
+public final class StaticPolymorphicTableSchema<T> implements TableSchema<T> {
     private final TableSchema<T> rootTableSchema;
-    private final String subtypeAttribute;
-    private final Map<String, StaticSubtype<? extends T>> subtypeMap;
+    private final String discriminatorAttributeName;
+    private final Map<String, StaticSubtype<? extends T>> subtypeByName;
+    private final List<StaticSubtype<? extends T>> subtypes;
 
     private StaticPolymorphicTableSchema(Builder<T> builder) {
-        Validate.notEmpty(builder.staticSubtypes, "A polymorphic TableSchema must have at least one associated subtype");
-
         this.rootTableSchema = Validate.paramNotNull(builder.rootTableSchema, "rootTableSchema");
-        this.subtypeAttribute = SubtypeNameTag.resolve(this.rootTableSchema.tableMetadata()).orElseThrow(
-            () -> new IllegalArgumentException("The root TableSchema of a polymorphic TableSchema must tag an attribute to use "
-                                               + "as the subtype name so records can be identified as their correct subtype"));
+        this.discriminatorAttributeName = Validate.notEmpty(builder.discriminatorAttributeName, "discriminatorAttributeName");
+        Validate.notEmpty(builder.staticSubtypes, "A polymorphic TableSchema must have at least one subtype");
 
-        Map<String, StaticSubtype<? extends T>> subtypeMap = new HashMap<>();
-
-        builder.staticSubtypes.forEach(
-            staticSubtype -> subtypeMap.compute(staticSubtype.name(), (key, existingValue) -> {
-                if (existingValue != null) {
-                    throw new IllegalArgumentException("Duplicate subtype names are not permitted. " +
-                                                       "[name = \"" + key + "\"]");
+        Map<String, StaticSubtype<? extends T>> map = new LinkedHashMap<>();
+        for (StaticSubtype<? extends T> subtype : builder.staticSubtypes) {
+            map.compute(subtype.name(), (name, existing) -> {
+                if (existing != null) {
+                    throw new IllegalArgumentException("Duplicate subtype names are not permitted. [name = \"" + name + "\"]");
                 }
+                return subtype;
+            });
+        }
 
-                return staticSubtype;
-            }));
-
-
-        this.subtypeMap = Collections.unmodifiableMap(subtypeMap);
+        this.subtypeByName = Collections.unmodifiableMap(map);
+        this.subtypes = Collections.unmodifiableList(new ArrayList<>(builder.staticSubtypes));
     }
 
-    @Override
-    public T mapToItem(Map<String, AttributeValue> attributeMap) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(attributeMap);
-        return returnWithSubtypeCast(subtype, tableSchema -> tableSchema.mapToItem(attributeMap));
+    public static <T> Builder<T> builder(Class<T> itemClass) {
+        return new Builder<>(itemClass);
     }
 
     @Override
     public Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(item);
-        return executeWithSubtypeCast(
-            item, subtype, (tableSchema, subtypeItem) -> tableSchema.itemToMap(subtypeItem, ignoreNulls));
+        StaticSubtype<T> subtype = (StaticSubtype<T>) resolveByInstance(item);
+        T castItem = subtype.tableSchema()
+                            .itemType()
+                            .rawClass()
+                            .cast(item);
+
+        // copy into a mutable map
+        Map<String, AttributeValue> result = new HashMap<>(subtype.tableSchema().itemToMap(castItem, ignoreNulls));
+
+        // inject discriminator
+        result.put(discriminatorAttributeName, AttributeValue.builder().s(subtype.name()).build());
+        return result;
     }
 
     @Override
     public Map<String, AttributeValue> itemToMap(T item, Collection<String> attributes) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(item);
-        return executeWithSubtypeCast(
-            item, subtype, (tableSchema, subtypeItem) -> tableSchema.itemToMap(subtypeItem, attributes));
+        StaticSubtype<T> subtype = (StaticSubtype<T>) resolveByInstance(item);
+        T castItem = subtype.tableSchema()
+                            .itemType()
+                            .rawClass()
+                            .cast(item);
+
+        // Copy into a mutable map so we can inject the discriminator
+        Map<String, AttributeValue> result = new HashMap<>(subtype.tableSchema().itemToMap(castItem, attributes));
+
+        // Only inject if they explicitly requested the discriminator field
+        if (attributes.contains(discriminatorAttributeName)) {
+            result.put(discriminatorAttributeName, AttributeValue.builder().s(subtype.name()).build());
+        }
+
+        return result;
+    }
+
+    @Override
+    public T mapToItem(Map<String, AttributeValue> attributeMap) {
+        String discriminator = Optional.ofNullable(attributeMap.get(discriminatorAttributeName))
+                              .map(AttributeValue::s)
+                              .orElseThrow(() -> new IllegalArgumentException(
+                                  "Missing discriminator '" + discriminatorAttributeName + "' in item map"));
+
+        StaticSubtype<? extends T> subtype = subtypeByName.get(discriminator);
+        if (subtype == null) {
+            throw new IllegalArgumentException("Unknown discriminator '" + discriminator + "'");
+        }
+        return returnWithSubtypeCast(subtype, ts -> ts.mapToItem(attributeMap));
     }
 
     @Override
     public AttributeValue attributeValue(T item, String attributeName) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(item);
-        return executeWithSubtypeCast(
-            item, subtype, (tableSchema, subtypeItem) -> tableSchema.attributeValue(subtypeItem, attributeName));
+        // If we want to get the discriminator itself, just return it
+        if (discriminatorAttributeName.equals(attributeName)) {
+            StaticSubtype<? extends T> raw = resolveByInstance(item);
+            return AttributeValue.builder().s(raw.name()).build();
+        }
+
+        // Otherwise delegate to the concrete subtype
+        StaticSubtype<T> subtype = (StaticSubtype<T>) resolveByInstance(item);
+
+        // Cast the item into the subtype's class
+        T castItem = subtype.tableSchema()
+                            .itemType()
+                            .rawClass()
+                            .cast(item);
+
+        return subtype.tableSchema().attributeValue(castItem, attributeName);
     }
 
     @Override
     public TableMetadata tableMetadata() {
-        return this.rootTableSchema.tableMetadata();
+        return rootTableSchema.tableMetadata();
     }
 
     @Override
     public TableSchema<? extends T> subtypeTableSchema(T itemContext) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(itemContext);
-        return subtype.tableSchema();
+        return resolveByInstance(itemContext).tableSchema();
     }
 
     @Override
     public TableSchema<? extends T> subtypeTableSchema(Map<String, AttributeValue> itemContext) {
-        StaticSubtype<? extends T> subtype = resolveSubtype(itemContext);
+        String discriminator = Optional.ofNullable(itemContext.get(discriminatorAttributeName))
+                              .map(AttributeValue::s)
+                              .orElseThrow(() -> new IllegalArgumentException(
+                                  "Missing discriminator '" + discriminatorAttributeName + "' in item map"));
+
+        StaticSubtype<? extends T> subtype = subtypeByName.get(discriminator);
+        if (subtype == null) {
+            throw new IllegalArgumentException("Unknown discriminator '" + discriminator + "'");
+        }
         return subtype.tableSchema();
     }
 
     @Override
     public EnhancedType<T> itemType() {
-        return this.rootTableSchema.itemType();
+        return rootTableSchema.itemType();
     }
 
     @Override
     public List<String> attributeNames() {
-        return this.rootTableSchema.attributeNames();
+        return rootTableSchema.attributeNames();
     }
 
     @Override
     public boolean isAbstract() {
-        // A polymorphic table schema must always be concrete as Java does not permit multiple class inheritance
         return false;
     }
 
-    private StaticSubtype<? extends T> resolveSubtype(AttributeValue subtypeNameAv) {
-        if (subtypeNameAv == null || subtypeNameAv.s() == null || subtypeNameAv.s().isEmpty()) {
-            throw new IllegalArgumentException("The subtype name could not be read from the item, either because it is missing "
-                                               + "or because it is not a string.");
-        }
-
-        String subtypeName = subtypeNameAv.s();
-        StaticSubtype<? extends T> subtype = subtypeMap.get(subtypeName);
-
-        if (subtype == null) {
-            throw new IllegalArgumentException("The subtype name '" + subtypeName + "' could not be matched to any declared "
-                                               + "subtypes of the polymorphic table schema.");
-        }
-
-        return subtype;
-    }
-
-    private StaticSubtype<? extends T> resolveSubtype(T item) {
-        AttributeValue subtypeNameAv = this.rootTableSchema.attributeValue(item, this.subtypeAttribute);
-        return resolveSubtype(subtypeNameAv);
-    }
-
-    private StaticSubtype<? extends T> resolveSubtype(Map<String, AttributeValue> itemMap) {
-        AttributeValue subtypeNameAv = itemMap.get(this.subtypeAttribute);
-        return resolveSubtype(subtypeNameAv);
-    }
-
-    private static <T, S extends T> S returnWithSubtypeCast(StaticSubtype<S> subtype, Function<TableSchema<S>, S> function) {
-        S result = function.apply(subtype.tableSchema());
-        return subtype.tableSchema().itemType().rawClass().cast(result);
-    }
-
-    private static <T, S extends T, R> R executeWithSubtypeCast(T item,
-                                                                StaticSubtype<S> subtype,
-                                                                BiFunction<TableSchema<S>, S, R> function) {
-        S castItem = subtype.tableSchema().itemType().rawClass().cast(item);
-        return function.apply(subtype.tableSchema(), castItem);
-    }
-
-    /**
-     * Create a builder for a {@link StaticPolymorphicTableSchema}.
-     *
-     * @param itemClass the class which the {@link StaticPolymorphicTableSchema} will map.
-     * @param <T>       the type mapped by the table schema.
-     * @return A newly initialized builder.
-     */
-    public static <T> Builder<T> builder(Class<T> itemClass) {
-        return new Builder<>();
-    }
-
-    /**
-     * Builder for a {@link StaticPolymorphicTableSchema}.
-     *
-     * @param <T> the type that will be mapped by the {@link StaticPolymorphicTableSchema}.
-     */
-    public static class Builder<T> {
-        private List<StaticSubtype<? extends T>> staticSubtypes;
-        private TableSchema<T> rootTableSchema;
-
-        private Builder() {
-        }
-
-        /**
-         * The complete list of subtypes that are mapped by the resulting table schema. Will overwrite any previously specified
-         * subtypes.
-         */
-        @SafeVarargs
-        public final Builder<T> staticSubtypes(StaticSubtype<? extends T>... staticSubtypes) {
-            this.staticSubtypes = Arrays.asList(staticSubtypes);
-            return this;
-        }
-
-        /**
-         * The complete list of subtypes that are mapped by the resulting table schema. Will overwrite any previously specified
-         * subtypes.
-         */
-        public Builder<T> staticSubtypes(Collection<StaticSubtype<? extends T>> staticSubtypes) {
-            this.staticSubtypes = new ArrayList<>(staticSubtypes);
-            return this;
-        }
-
-        /**
-         * Adds a subtype to be mapped by the resulting table schema. Will append to, and not overwrite any previously specified
-         * subtypes.
-         */
-        public Builder<T> addStaticSubtype(StaticSubtype<? extends T> staticSubtype) {
-            if (this.staticSubtypes == null) {
-                this.staticSubtypes = new ArrayList<>();
-            }
-
-            this.staticSubtypes.add(staticSubtype);
-            return this;
-        }
-
-        /**
-         * Specifies the {@link TableSchema} that can be used to map objects of the supertype. It is expected, although not
-         * required, that this table schema will be abstract. The root table schema must include a string attribute that is tagged
-         * with {@link StaticAttributeTags#subtypeName()} so that the subtype can be determined for any mappable object.
-         */
-        public Builder<T> rootTableSchema(TableSchema<T> rootTableSchema) {
-            this.rootTableSchema = rootTableSchema;
-            return this;
-        }
-
-        /**
-         * Builds an instance of {@link StaticPolymorphicTableSchema} based on the properties of the builder.
-         */
-        public StaticPolymorphicTableSchema<T> build() {
-            return new StaticPolymorphicTableSchema<>(this);
-        }
-    }
-
-    /**
-     * Delegate converter lookups to the underlying root schema so that any
-     *
-     * @DynamoDbConvertedBy annotations are honored.
-     */
     @Override
     public AttributeConverter<T> converterForAttribute(Object key) {
         return rootTableSchema.converterForAttribute(key);
     }
 
+    private StaticSubtype<? extends T> resolveByInstance(T item) {
+        for (StaticSubtype<? extends T> s : subtypes) {
+            if (s.tableSchema().itemType().rawClass().isInstance(item)) {
+                return s;
+            }
+        }
+
+        throw new IllegalArgumentException("Cannot serialize item of type " + item.getClass().getName());
+    }
+
+    private static <T, S extends T> S returnWithSubtypeCast(StaticSubtype<S> subtype, Function<TableSchema<S>, S> fn) {
+        S r = fn.apply(subtype.tableSchema());
+        return subtype.tableSchema().itemType().rawClass().cast(r);
+    }
+
+    public static final class Builder<T> {
+        private TableSchema<T> rootTableSchema;
+        private String discriminatorAttributeName;
+        private List<StaticSubtype<? extends T>> staticSubtypes;
+
+        private Builder(Class<T> itemClass) {
+        }
+
+        /**
+         * The root (monomorphic) schema for the supertype.
+         */
+        public Builder<T> rootTableSchema(TableSchema<T> root) {
+            this.rootTableSchema = root;
+            return this;
+        }
+
+        /**
+         * Optional: override the attribute name used for the discriminator. Defaults to `"type"`.
+         */
+        public Builder<T> discriminatorAttributeName(String name) {
+            this.discriminatorAttributeName = Validate.notEmpty(name, "discriminatorAttributeName");
+            return this;
+        }
+
+        /**
+         * Register one or more (discriminatorValue → subtypeSchema) pairs.
+         */
+        public Builder<T> addStaticSubtype(StaticSubtype<? extends T>... subs) {
+            if (this.staticSubtypes == null) {
+                this.staticSubtypes = new ArrayList<>();
+            }
+            Collections.addAll(this.staticSubtypes, subs);
+            return this;
+        }
+
+        public StaticPolymorphicTableSchema<T> build() {
+            return new StaticPolymorphicTableSchema<>(this);
+        }
+    }
 }

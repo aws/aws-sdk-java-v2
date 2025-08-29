@@ -32,6 +32,7 @@ public class StaticSubtype<T> {
     private StaticSubtype(Builder<T> builder) {
         this.tableSchema = Validate.notNull(builder.tableSchema, "A subtype must have a tableSchema associated with " +
                                                                  "it. [subtypeClass = \"%s\"]", builder.subtypeClass.getName());
+
         this.name = Validate.notEmpty(builder.name,
                                       "A subtype must have one name associated with it. "
                                       + "[subtypeClass = \"" +

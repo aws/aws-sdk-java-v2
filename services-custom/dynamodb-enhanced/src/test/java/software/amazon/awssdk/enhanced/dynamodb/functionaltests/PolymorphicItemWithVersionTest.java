@@ -36,12 +36,6 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.Polymorph
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
-/**
- * These functional tests are designed to ensure that the correct subtype TableMetadata is passed to extensions on beforeWrite for
- * a polymorphic TableSchema. This is done at the operation level, so it's the operations that are really being tested. Since the
- * versioned record extension only uses the beforeWrite hook, the other hooks are tested with a fake extension that captures the
- * context.
- */
 public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
 
     private static final String VERSION_ATTRIBUTE_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
@@ -106,7 +100,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void putItem_givenPolymorphicObjectWithVersion_shouldUpdateVersionInTheDatabase() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value");
 
         mappedTable.putItem(record);
@@ -116,7 +109,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
         assertThat(result).isInstanceOf(SubtypeWithVersion.class);
         assertThat((SubtypeWithVersion) result).satisfies(typedResult -> {
             assertThat(typedResult.getId()).isEqualTo("123");
-            assertThat(typedResult.getType()).isEqualTo("with_version");
             assertThat(typedResult.getAttributeTwo()).isEqualTo("value");
             assertThat(typedResult.getVersion()).isEqualTo(1);
         });
@@ -126,7 +118,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void putItem_beforeWrite_providesCorrectSubtypeTableSchema() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value");
 
         mappedTable.putItem(record);
@@ -139,7 +130,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void updateItem_beforeWrite_providesCorrectSubtypeTableSchema() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value");
 
         mappedTable.updateItem(record);
@@ -152,7 +142,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void updateItem_subtypeWithVersion_updatesVersion() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value");
 
         mappedTable.updateItem(record);
@@ -162,7 +151,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
         assertThat(result).isInstanceOf(SubtypeWithVersion.class);
         assertThat((SubtypeWithVersion) result).satisfies(typedResult -> {
             assertThat(typedResult.getId()).isEqualTo("123");
-            assertThat(typedResult.getType()).isEqualTo("with_version");
             assertThat(typedResult.getAttributeTwo()).isEqualTo("value");
             assertThat(typedResult.getVersion()).isEqualTo(1);
         });
@@ -172,7 +160,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void getItem_subtypeWithVersion_hasCorrectMetadataAfterReadContext() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value");
 
         mappedTable.putItem(record);
@@ -193,7 +180,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
     public void putItem_returnsExistingRecord_andHasCorrectMetadataAfterReadContext() {
         SubtypeWithVersion record = new SubtypeWithVersion();
         record.setId("123");
-        record.setType("with_version");
         record.setAttributeTwo("value1");
 
         mappedTable.putItem(record);
@@ -201,7 +187,6 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
 
         SubtypeWithoutVersion newRecord = new SubtypeWithoutVersion();
         newRecord.setId("123");
-        newRecord.setType("no_version");
         newRecord.setAttributeOne("value2");
 
         PutItemEnhancedRequest<PolymorphicItemWithVersionSubtype> enhancedRequest =
@@ -211,6 +196,7 @@ public class PolymorphicItemWithVersionTest extends LocalDynamoDbSyncTestBase {
                                   .build();
 
         mappedTable.putItem(enhancedRequest);
+
         assertThat(fakeExtension.getAfterReadContext().tableMetadata().customMetadata())
             .containsEntry(VERSION_ATTRIBUTE_METADATA_KEY, "version");
     }
