@@ -92,9 +92,11 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link SdkHttpClient} that uses Apache HTTP client to communicate with the service. This is the most
- * powerful synchronous client that adds an extra dependency and additional startup latency in exchange for more functionality,
- * like support for HTTP proxies.
+ *
+ * An implementation of {@link SdkHttpClient} that uses Apache HttpClient 4.x to communicate with the service. This is a
+ * full-featured synchronous client that adds an extra dependency and higher startup latency compared to
+ * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
+ * in exchange for more functionality, like support for HTTP proxies.
  *
  * <p>See software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient for an alternative implementation.</p>
  *

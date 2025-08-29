@@ -30,12 +30,16 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -457,7 +461,6 @@ public class UploadDirectoryHelperTest {
 
         assertThatThrownBy(uploadFuture::join).getCause().hasCause(exception);
     }
-
 
     private DefaultFileUpload completedUpload() {
         return new DefaultFileUpload(CompletableFuture.completedFuture(CompletedFileUpload.builder()

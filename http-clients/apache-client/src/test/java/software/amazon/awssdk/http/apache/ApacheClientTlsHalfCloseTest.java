@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.apache;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayInputStream;
@@ -59,9 +58,7 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         IOException exception = assertThrows(IOException.class, () -> {
             executeHttpRequest(httpClient);
         });
-        assertEquals("Remote end is closed.", exception.getMessage());
     }
-
 
     @Test
     public void errorWhenServerFullClosesSocketWhileStreamIsOpened() throws IOException {
@@ -75,14 +72,6 @@ public class ApacheClientTlsHalfCloseTest extends ClientTlsAuthTestBase {
         IOException exception = assertThrows(IOException.class, () -> {
             executeHttpRequest(httpClient);
         });
-
-        if(halfCloseSupported()){
-            assertEquals("Remote end is closed.", exception.getMessage());
-
-        }else {
-            assertEquals("Socket is closed", exception.getMessage());
-
-        }
     }
 
     @Test

@@ -1,0 +1,35 @@
+[
+  {
+    "name": "import software.amazon.awssdk.http.apache5.ApacheSdkHttpService",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "org.apache.commons.logging.LogFactory",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredClasses": true,
+    "allPublicClasses": true
+  },
+  {
+    "name":"org.apache.commons.logging.impl.Jdk14Logger",
+    "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
+  },
+  {
+    "name":"org.apache.commons.logging.impl.Log4JLogger"
+  },
+  {
+    "name":"org.apache.commons.logging.impl.LogFactoryImpl",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  },
+  {
+    "name":"org.apache.commons.logging.impl.WeakHashtable",
+    "methods":[{"name":"<init>","parameterTypes":[] }]
+  }  
+]

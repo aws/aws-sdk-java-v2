@@ -20,6 +20,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.Http;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 /**
  * This processor only runs for services using the <code>smithy-rpc-v2-cbor</code> protocol.
@@ -29,7 +30,8 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 public class SmithyRpcV2CborProtocolProcessor implements CodegenCustomizationProcessor {
     @Override
     public void preprocess(ServiceModel serviceModel) {
-        if (!"smithy-rpc-v2-cbor".equals(serviceModel.getMetadata().getProtocol())) {
+        String protocol = ProtocolUtils.resolveProtocol(serviceModel.getMetadata());
+        if (!"smithy-rpc-v2-cbor".equals(protocol)) {
             return;
         }
         serviceModel.getOperations().forEach((name, op) -> setRequestUri(serviceModel, name, op));

@@ -1,0 +1,54 @@
+{
+    "version": "2.32.9",
+    "date": "2025-07-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Adds IPv6 and PrivateLink support for AWS Budgets in IAD."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Documentation improvements have been made to the EvaluationModel and DescribeConfigurationRecorders APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds support for specifying a preferred input for channels using CMAF ingest."
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "This release introduces new WhatsApp template management APIs that enable customers to programmatically create and submit templates for approval, monitor approval status, and manage the complete template lifecycle"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Doc only update: fixed grammatical errors."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppIntegrations Service",
+            "contributor": "",
+            "description": "Amazon AppIntegrations introduces new configuration capabilities to enable customers to manage iframe permissions, control application refresh behavior (per contact or per browser/cross-contact), and run background applications (service)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Transit Gateway native integration with AWS Network Firewall. Adding new enum value for the new Transit Gateway Attachment type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation updates for Amazon SQS fair queues feature."
+        }
+    ]
+}

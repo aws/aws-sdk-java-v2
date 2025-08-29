@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
@@ -45,6 +47,8 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.utils.StringUtils;
 
 public final class TestGeneratorUtils {
+    private static final Logger log = LoggerFactory.getLogger(TestGeneratorUtils.class);
+
     private TestGeneratorUtils() {
     }
 
@@ -111,14 +115,38 @@ public final class TestGeneratorUtils {
                                                   Map<String, KeyTypePair> knownEndpointAttributes) {
         if ("authSchemes".equals(attrName)) {
             addAuthSchemesBlock(builder, attrValue);
+        } else if ("metricValues".equals(attrName)) {
+            addMetricValuesBlock(builder, attrValue);
         } else if (knownEndpointAttributes.containsKey(attrName)) {
             addAttributeBlock(builder, attrValue, knownEndpointAttributes.get(attrName));
         } else {
-            throw new RuntimeException(
-                String.format("Encountered unknown expected endpoint attribute: %s. Known attributes: %s.",
+            log.warn("Ignoring unknown expected endpoint attribute: {}. Known attributes: {}.",
                               attrName,
-                              knownEndpointAttributes));
+                              knownEndpointAttributes);
         }
+    }
+
+    private static void addMetricValuesBlock(CodeBlock.Builder builder, TreeNode attrValue) {
+        CodeBlock keyExpr = CodeBlock.builder()
+                                     .add("$T.METRIC_VALUES", AwsEndpointAttribute.class)
+                                     .build();
+
+        CodeBlock.Builder schemesListExpr = CodeBlock.builder()
+                                                     .add("$T.asList(", Arrays.class);
+
+        JrsArray schemesArray = (JrsArray) attrValue;
+
+        Iterator<JrsValue> elementsIter = schemesArray.elements();
+        while (elementsIter.hasNext()) {
+            schemesListExpr.add("$S", elementsIter.next().asText());
+
+            if (elementsIter.hasNext()) {
+                schemesListExpr.add(",");
+            }
+        }
+        schemesListExpr.add(")");
+
+        builder.add(".putAttribute($L, $L)", keyExpr, schemesListExpr.build());
     }
 
     private static void addAttributeBlock(CodeBlock.Builder builder, TreeNode attrValue, KeyTypePair keyType) {

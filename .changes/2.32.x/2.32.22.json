@@ -1,0 +1,48 @@
+{
+    "version": "2.32.22",
+    "date": "2025-08-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Adds support for account pools and project profile account decoupling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Add Dual-Stack support for Amazon FSx for OpenZFS file systems"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release introduces compute quota for GPU, Trainium accelerators, vCPU, and vCPU memory utilization across teams in HyperPod clusters"
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "Add support for Braket program sets."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Add Tagging Support for Opportunity resources"
+        },
+        {
+            "type": "feature",
+            "category": "S3 Transfer Manager",
+            "contributor": "AndreKurait",
+            "description": "Extend [#5031](https://github.com/aws/aws-sdk-java-v2/pull/5031) by allowing user configuration of transferDirectoryMaxConcurrency during construction of S3TransferManager. This allows for more control of upper limits on JVM Heap memory allocation. See [#6330](https://github.com/aws/aws-sdk-java-v2/issues/6330)."
+        },
+        {
+            "type": "feature",
+            "category": "Security Incident Response",
+            "contributor": "",
+            "description": "Added support for Organizational Unit-level Membership configuration and the ability to resume a cancelled membership."
+        }
+    ]
+}

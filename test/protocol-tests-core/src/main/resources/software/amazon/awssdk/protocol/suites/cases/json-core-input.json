@@ -640,5 +640,28 @@
         }
       }
     }
+  },
+  {
+    "description": "List of enums with null values are marshalled correctly without NPE",
+    "given": {
+      "input": {
+        "ListOfEnums": [
+          "EnumValue1",
+          null,
+          "EnumValue2"
+        ]
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "AllTypes"
+    },
+    "then": {
+      "serializedAs": {
+        "body": {
+          "jsonEquals": "{\"ListOfEnums\": [\"EnumValue1\", null, \"EnumValue2\"]}"
+        }
+      }
+    }
   }
 ]

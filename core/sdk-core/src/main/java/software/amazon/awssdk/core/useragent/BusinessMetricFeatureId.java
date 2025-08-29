@@ -41,6 +41,7 @@ public enum BusinessMetricFeatureId {
     ACCOUNT_ID_MODE_REQUIRED("R"),
     RESOLVED_ACCOUNT_ID("T"),
     DDB_MAPPER("d"),
+    BEARER_SERVICE_ENV_VARS("3"),
     UNKNOWN("Unknown");
 
     private static final Map<String, BusinessMetricFeatureId> VALUE_MAP =

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import json
 import os
@@ -14,8 +14,9 @@ SERVICE_DIR = os.path.join(
 
 def load_all_service_modules():
     service_mapping = {}
-    for f in [f for f in os.listdir(SERVICE_DIR) if os.path.isdir(os.path.join(SERVICE_DIR, f)) & os.path.exists(os.path.join(SERVICE_DIR, f, 'target'))]:
-        for s in [s for s in os.listdir(os.path.join(SERVICE_DIR, f, 'target', 'generated-sources/sdk/software/amazon/awssdk/services', f)) if s.endswith('AsyncClient.java') & s.startswith('Default')]:
+    # Use logical AND (and) instead of bitwise AND (&) for boolean operations
+    for f in [f for f in os.listdir(SERVICE_DIR) if os.path.isdir(os.path.join(SERVICE_DIR, f)) and os.path.exists(os.path.join(SERVICE_DIR, f, 'target'))]:
+        for s in [s for s in os.listdir(os.path.join(SERVICE_DIR, f, 'target', 'generated-sources/sdk/software/amazon/awssdk/services', f)) if s.endswith('AsyncClient.java') and s.startswith('Default')]:
             service_mapping[f] = find_client_prefix(s)
     return service_mapping
 

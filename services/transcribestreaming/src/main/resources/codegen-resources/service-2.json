@@ -62,7 +62,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, medical scribe context, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
     },
     "StartMedicalStreamTranscription":{
       "name":"StartMedicalStreamTranscription",
@@ -361,7 +361,7 @@
         },
         "NoteTemplate":{
           "shape":"MedicalScribeNoteTemplate",
-          "documentation":"<p>Specify one of the following templates to use for the clinical note summary. The default is <code>HISTORY_AND_PHYSICAL</code>.</p> <ul> <li> <p>HISTORY_AND_PHYSICAL: Provides summaries for key sections of the clinical documentation. Sections include Chief Complaint, History of Present Illness, Review of Systems, Past Medical History, Assessment, and Plan.</p> </li> <li> <p>GIRPP: Provides summaries based on the patients progress toward goals. Sections include Goal, Intervention, Response, Progress, and Plan.</p> </li> </ul>"
+          "documentation":"<p>Specify one of the following templates to use for the clinical note summary. The default is <code>HISTORY_AND_PHYSICAL</code>.</p> <ul> <li> <p>HISTORY_AND_PHYSICAL: Provides summaries for key sections of the clinical documentation. Examples of sections include Chief Complaint, History of Present Illness, Review of Systems, Past Medical History, Assessment, and Plan. </p> </li> <li> <p>GIRPP: Provides summaries based on the patients progress toward goals. Examples of sections include Goal, Intervention, Response, Progress, and Plan.</p> </li> <li> <p>BIRP: Focuses on the patient's behavioral patterns and responses. Examples of sections include Behavior, Intervention, Response, and Plan.</p> </li> <li> <p>SIRP: Emphasizes the situational context of therapy. Examples of sections include Situation, Intervention, Response, and Plan.</p> </li> <li> <p>DAP: Provides a simplified format for clinical documentation. Examples of sections include Data, Assessment, and Plan.</p> </li> <li> <p>BEHAVIORAL_SOAP: Behavioral health focused documentation format. Examples of sections include Subjective, Objective, Assessment, and Plan.</p> </li> <li> <p>PHYSICAL_SOAP: Physical health focused documentation format. Examples of sections include Subjective, Objective, Assessment, and Plan.</p> </li> </ul>"
         }
       },
       "documentation":"<p>The output configuration for aggregated transcript and clinical note generation.</p>"
@@ -421,11 +421,11 @@
       "members":{
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the utterance that was identified as PII.</p>"
+          "documentation":"<p>The start time of the utterance that was identified as PII in seconds, with millisecond precision (e.g., 1.056)</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the utterance that was identified as PII.</p>"
+          "documentation":"<p>The end time of the utterance that was identified as PII in seconds, with millisecond precision (e.g., 1.056)</p>"
         },
         "Category":{
           "shape":"String",
@@ -507,11 +507,11 @@
       "members":{
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the transcribed item.</p>"
+          "documentation":"<p>The start time of the transcribed item in seconds, with millisecond precision (e.g., 1.056)</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the transcribed item.</p>"
+          "documentation":"<p>The end time of the transcribed item in seconds, with millisecond precision (e.g., 1.056)</p>"
         },
         "Type":{
           "shape":"ItemType",
@@ -706,11 +706,11 @@
       "members":{
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the utterance that was identified as PHI.</p>"
+          "documentation":"<p>The start time, in seconds, of the utterance that was identified as PHI.</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the utterance that was identified as PHI.</p>"
+          "documentation":"<p>The end time, in seconds, of the utterance that was identified as PHI.</p>"
         },
         "Category":{
           "shape":"String",
@@ -736,11 +736,11 @@
       "members":{
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the transcribed item.</p>"
+          "documentation":"<p>The start time, in seconds, of the transcribed item.</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the transcribed item.</p>"
+          "documentation":"<p>The end time, in seconds, of the transcribed item.</p>"
         },
         "Type":{
           "shape":"ItemType",
@@ -774,11 +774,11 @@
         },
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the <code>Result</code>.</p>"
+          "documentation":"<p>The start time, in seconds, of the <code>Result</code>.</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the <code>Result</code>.</p>"
+          "documentation":"<p>The end time, in seconds, of the <code>Result</code>.</p>"
         },
         "IsPartial":{
           "shape":"Boolean",
@@ -875,10 +875,24 @@
         "PostStreamAnalyticsSettings":{
           "shape":"MedicalScribePostStreamAnalyticsSettings",
           "documentation":"<p>Specify settings for post-stream analytics.</p>"
+        },
+        "MedicalScribeContext":{
+          "shape":"MedicalScribeContext",
+          "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information used to generate customized clinical notes.</p>"
         }
       },
       "documentation":"<p>Specify details to configure the streaming session, including channel definitions, encryption settings, post-stream analytics settings, resource access role ARN and vocabulary settings. </p> <p>Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. If you are resuming a session, then this event must have the same configurations that you provided to start the session. </p>",
       "event":true
+    },
+    "MedicalScribeContext":{
+      "type":"structure",
+      "members":{
+        "PatientContext":{
+          "shape":"MedicalScribePatientContext",
+          "documentation":"<p>Contains patient-specific information used to customize the clinical note generation.</p>"
+        }
+      },
+      "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information which is used during clinical note generation to add relevant context to the note.</p>"
     },
     "MedicalScribeEncryptionSettings":{
       "type":"structure",
@@ -932,7 +946,12 @@
       "type":"string",
       "enum":[
         "HISTORY_AND_PHYSICAL",
-        "GIRPP"
+        "GIRPP",
+        "DAP",
+        "SIRP",
+        "BIRP",
+        "BEHAVIORAL_SOAP",
+        "PHYSICAL_SOAP"
       ]
     },
     "MedicalScribeParticipantRole":{
@@ -941,6 +960,16 @@
         "PATIENT",
         "CLINICIAN"
       ]
+    },
+    "MedicalScribePatientContext":{
+      "type":"structure",
+      "members":{
+        "Pronouns":{
+          "shape":"Pronouns",
+          "documentation":"<p>The patient's preferred pronouns that the user wants to provide as a context for clinical note generation .</p>"
+        }
+      },
+      "documentation":"<p>Contains patient-specific information. </p>"
     },
     "MedicalScribePostStreamAnalyticsResult":{
       "type":"structure",
@@ -1057,6 +1086,10 @@
         "PostStreamAnalyticsResult":{
           "shape":"MedicalScribePostStreamAnalyticsResult",
           "documentation":"<p>The result of post-stream analytics for the HealthScribe streaming session.</p>"
+        },
+        "MedicalScribeContextProvided":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether the <code>MedicalScribeContext</code> object was provided when the stream was started.</p>"
         }
       },
       "documentation":"<p>Contains details about a Amazon Web Services HealthScribe streaming session.</p>"
@@ -1278,6 +1311,15 @@
       },
       "documentation":"<p>Allows you to specify additional settings for your Call Analytics post-call request, including output locations for your redacted transcript, which IAM role to use, and which encryption key to use.</p> <p> <code>DataAccessRoleArn</code> and <code>OutputLocation</code> are required fields.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
     },
+    "Pronouns":{
+      "type":"string",
+      "enum":[
+        "HE_HIM",
+        "SHE_HER",
+        "THEY_THEM"
+      ],
+      "sensitive":true
+    },
     "RequestId":{"type":"string"},
     "ResourceNotFoundException":{
       "type":"structure",
@@ -1297,11 +1339,11 @@
         },
         "StartTime":{
           "shape":"Double",
-          "documentation":"<p>The start time, in milliseconds, of the <code>Result</code>.</p>"
+          "documentation":"<p>The start time of the <code>Result</code> in seconds, with millisecond precision (e.g., 1.056).</p>"
         },
         "EndTime":{
           "shape":"Double",
-          "documentation":"<p>The end time, in milliseconds, of the <code>Result</code>.</p>"
+          "documentation":"<p>The end time of the <code>Result</code> in seconds, with millisecond precision (e.g., 1.056).</p>"
         },
         "IsPartial":{
           "shape":"Boolean",

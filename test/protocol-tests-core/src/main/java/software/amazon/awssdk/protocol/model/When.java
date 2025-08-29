@@ -26,6 +26,9 @@ public class When {
     @JsonProperty(value = "operation")
     private String operationName;
 
+    @JsonProperty(value = "error")
+    private String errorName;
+
     public WhenAction getAction() {
         return action;
     }
@@ -40,5 +43,13 @@ public class When {
 
     public void setOperationName(String operationName) {
         this.operationName = operationName;
+    }
+
+    public void setErrorName(String errorName) {
+        this.errorName = errorName;
+    }
+
+    public String getErrorName() {
+        return errorName;
     }
 }
