@@ -45,7 +45,7 @@ public final class ImdsCredentialsBusinessMetricInterceptor implements Execution
 
     private boolean isImdsCredentials(AwsCredentials credentials) {
         return credentials.providerName()
-                          .map(name -> name.contains("InstanceProfile"))
+                          .map(name -> name.contains("InstanceProfileCredentialsProvider"))
                           .orElse(false);
     }
 }
