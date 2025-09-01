@@ -24,6 +24,8 @@ public class Given {
 
     private GivenResponse response;
 
+    private String host;
+
     public JsonNode getInput() {
         return input;
     }
@@ -38,5 +40,13 @@ public class Given {
 
     public void setResponse(GivenResponse response) {
         this.response = response;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 }

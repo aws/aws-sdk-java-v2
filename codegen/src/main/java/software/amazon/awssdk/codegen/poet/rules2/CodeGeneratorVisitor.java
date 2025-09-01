@@ -22,29 +22,37 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
+    private static final Logger log = LoggerFactory.getLogger(CodeGeneratorVisitor.class);
+
     private final CodeBlock.Builder builder;
     private final RuleRuntimeTypeMirror typeMirror;
     private final SymbolTable symbolTable;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
     private final Map<String, ComputeScopeTree.Scope> ruleIdToScope;
+    private final boolean endpointCaching;
 
     public CodeGeneratorVisitor(RuleRuntimeTypeMirror typeMirror,
                                 SymbolTable symbolTable,
                                 Map<String, KeyTypePair> knownEndpointAttributes,
                                 Map<String, ComputeScopeTree.Scope> ruleIdToScope,
+                                boolean endpointCaching,
                                 CodeBlock.Builder builder) {
         this.builder = builder;
         this.symbolTable = symbolTable;
         this.knownEndpointAttributes = knownEndpointAttributes;
         this.ruleIdToScope = ruleIdToScope;
         this.typeMirror = typeMirror;
+        this.endpointCaching = endpointCaching;
     }
 
     @Override
@@ -325,7 +333,11 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+        if (endpointCaching) {
+            builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
+        } else {
+            builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+        }
         e.url().accept(this);
         builder.add("))");
         e.headers().accept(this);
@@ -341,10 +353,12 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
         properties.forEach((k, v) -> {
             if ("authSchemes".equals(k)) {
                 addAuthSchemesBlock(v);
+            } else if ("metricValues".equals(k)) {
+                addMetricValuesBlock(v);
             } else if (knownEndpointAttributes.containsKey(k)) {
                 addAttributeBlock(k, v);
             } else {
-                throw new RuntimeException("unknown endpoint property: " + k);
+                log.warn("Ignoring unknown endpoint property: {}", k);
             }
         });
         return null;
@@ -422,6 +436,12 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             default:
                 throw new RuntimeException("Unknown auth scheme: " + name);
         }
+    }
+
+    private void addMetricValuesBlock(RuleExpression v) {
+        builder.add(".putAttribute($T.METRIC_VALUES, ", AwsEndpointAttribute.class);
+        v.accept(this);
+        builder.add(")");
     }
 
     private void addAttributeBlock(String k, RuleExpression v) {

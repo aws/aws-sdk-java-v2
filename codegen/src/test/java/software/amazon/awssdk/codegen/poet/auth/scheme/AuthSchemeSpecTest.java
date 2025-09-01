@@ -220,6 +220,13 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(AuthSchemeInterceptorSpec::new)
                     .caseName("ops-auth-sigv4a-value")
                     .outputFileSuffix("interceptor")
+                    .build(),
+            // service with environment bearer token enabled
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::envBearerTokenServiceModels)
+                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
+                    .caseName("env-bearer-token")
+                    .outputFileSuffix("interceptor")
                     .build()
         );
     }

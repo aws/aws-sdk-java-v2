@@ -1,0 +1,90 @@
+{
+    "version": "2.31.65",
+    "date": "2025-06-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java V2",
+            "contributor": "",
+            "description": "Fix a bug in ConstructorCache when classes are GC'ed but not removed from cache"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "AWS Backup is adding support for integration of its logically air-gapped vaults with the AWS Organizations Multi-party approval capability."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager",
+            "contributor": "",
+            "description": "Adds support for Exportable Public Certificates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Add \"Virtual\" field to Data Provider as well as \"S3Path\" and \"S3AccessRoleArn\" fields to DataProvider settings"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Multi-party Approval",
+            "contributor": "",
+            "description": "This release enables customers to create Multi-party approval teams and approval requests to protect supported operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Release of Active Threat Defense in Network Firewall"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Add support for policy operations on the SECURITYHUB_POLICY policy type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Adds operations, structures, and exceptions required for public preview release of Security Hub V2."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "The AWS Security Token Service APIs AssumeRoleWithSAML and AssumeRoleWithWebIdentity can now be invoked without pre-configured AWS credentials in the SDK configuration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF can now suggest protection packs for you based on the application information you provide when you create a webACL."
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "We are launching a new analyzer type, internal access analyzer. The new analyzer will generate internal access findings, which help customers understand who within their AWS organization or AWS Account has access to their critical AWS resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "This release of the SDK has the API and documentation for the createcustommodel API. This feature lets you copy a trained model into Amazon Bedrock for inference."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Adding support for extended threat detection for EKS Audit Logs and EKS Runtime Monitoring."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Add Code Repository Scanning as part of AWS InspectorV2"
+        }
+    ]
+}

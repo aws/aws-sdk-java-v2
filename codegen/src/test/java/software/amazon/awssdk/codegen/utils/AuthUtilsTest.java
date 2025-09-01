@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.utils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,15 +31,17 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 public class AuthUtilsTest {
 
     @ParameterizedTest
     @MethodSource("serviceValues")
     public void testIfServiceHasBearerAuth(AuthType serviceAuthType,
+                                           List<AuthType> serviceAuthTypes,
                                            List<AuthType> opAuthTypes,
                                            Boolean expectedResult) {
-        IntermediateModel model = modelWith(serviceAuthType);
+        IntermediateModel model = modelWith(serviceAuthType, serviceAuthTypes);
         model.setOperations(createOperations(opAuthTypes));
         assertThat(AuthUtils.usesBearerAuth(model)).isEqualTo(expectedResult);
     }
@@ -47,10 +50,11 @@ public class AuthUtilsTest {
         List<AuthType> oneBearerOp = Arrays.asList(AuthType.BEARER, AuthType.S3V4, AuthType.NONE);
         List<AuthType> noBearerOp = Arrays.asList(AuthType.S3V4, AuthType.S3V4, AuthType.NONE);
 
-        return Stream.of(Arguments.of(AuthType.BEARER, noBearerOp, true),
-                         Arguments.of(AuthType.BEARER, oneBearerOp, true),
-                         Arguments.of(AuthType.S3V4, noBearerOp, false),
-                         Arguments.of(AuthType.S3V4, oneBearerOp, true));
+        return Stream.of(Arguments.of(AuthType.BEARER, Collections.emptyList(), noBearerOp, true),
+                         Arguments.of(AuthType.BEARER, Collections.emptyList(), oneBearerOp, true),
+                         Arguments.of(AuthType.S3V4, Collections.emptyList(), noBearerOp, false),
+                         Arguments.of(AuthType.S3V4, Collections.emptyList(), oneBearerOp, true),
+                         Arguments.of(AuthType.S3V4, oneBearerOp, noBearerOp, true));
     }
 
     @ParameterizedTest
@@ -75,21 +79,30 @@ public class AuthUtilsTest {
 
     @ParameterizedTest
     @MethodSource("opValues")
-    public void testIfOperationIsBearerAuth(AuthType serviceAuthType, AuthType opAuthType, Boolean expectedResult) {
-        IntermediateModel model = modelWith(serviceAuthType);
-        OperationModel opModel = opModelWith(opAuthType);
-        assertThat(AuthUtils.isOpBearerAuth(model, opModel)).isEqualTo(expectedResult);
+    public void testIfOperationIsBearerAuthPreferred(AuthType serviceAuthType, List<AuthType> serviceAuth,
+                                                     AuthType opAuthType, List<AuthType> opAuth,
+                                                     Boolean expectedResult) {
+        IntermediateModel model = modelWith(serviceAuthType, serviceAuth);
+        OperationModel opModel = opModelWith(opAuthType, opAuth);
+        assertThat(AuthUtils.isOpBearerAuthPreferred(model, opModel)).isEqualTo(expectedResult);
     }
 
     private static Stream<Arguments> opValues() {
-        return Stream.of(Arguments.of(AuthType.BEARER, AuthType.BEARER, true),
-                         Arguments.of(AuthType.BEARER, AuthType.S3V4, false),
-                         Arguments.of(AuthType.BEARER, AuthType.NONE, true),
-                         Arguments.of(AuthType.BEARER, null, true),
-                         Arguments.of(AuthType.S3V4, AuthType.BEARER, true),
-                         Arguments.of(AuthType.S3V4, AuthType.S3V4, false),
-                         Arguments.of(AuthType.S3V4, AuthType.NONE, false),
-                         Arguments.of(AuthType.S3V4, null, false));
+        return Stream.of(
+            Arguments.of(AuthType.BEARER, null, AuthType.BEARER, null, true),
+            Arguments.of(AuthType.BEARER, null, AuthType.S3V4, null, false),
+            Arguments.of(AuthType.BEARER, null, AuthType.NONE, null, true),
+            Arguments.of(AuthType.BEARER, null, null, null, true),
+            Arguments.of(AuthType.S3V4, null, AuthType.BEARER, null, true),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.NONE, null, false),
+            Arguments.of(AuthType.S3V4, null, null, null, false),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.S3V4, AuthType.BEARER), AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, Arrays.asList(AuthType.S3V4, AuthType.BEARER), false),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), null, null, true),
+            Arguments.of(AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), AuthType.S3V4, null, false),
+            Arguments.of(AuthType.S3V4, null, AuthType.S3V4, Arrays.asList(AuthType.BEARER, AuthType.S3V4), true)
+        );
     }
 
     private static OperationModel opModelWith(AuthType authType) {
@@ -98,11 +111,23 @@ public class AuthUtilsTest {
         return opModel;
     }
 
+    private static OperationModel opModelWith(AuthType authType, List<AuthType> auth) {
+        OperationModel opModel = opModelWith(authType);
+        opModel.setAuth(auth);
+        return opModel;
+    }
+
     private static IntermediateModel modelWith(AuthType authType) {
         IntermediateModel model = new IntermediateModel();
         Metadata metadata = new Metadata();
         metadata.setAuthType(authType);
         model.setMetadata(metadata);
+        return model;
+    }
+
+    private static IntermediateModel modelWith(AuthType authType, List<AuthType> authTypes) {
+        IntermediateModel model = modelWith(authType);
+        model.getMetadata().setAuth(authTypes);
         return model;
     }
 

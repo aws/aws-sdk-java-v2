@@ -97,6 +97,8 @@ import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -105,11 +107,15 @@ import software.amazon.awssdk.services.s3.presigner.model.CompleteMultipartUploa
 import software.amazon.awssdk.services.s3.presigner.model.CreateMultipartUploadPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.DeleteObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadBucketPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.HeadObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -120,6 +126,8 @@ import software.amazon.awssdk.services.s3.transform.CompleteMultipartUploadReque
 import software.amazon.awssdk.services.s3.transform.CreateMultipartUploadRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.DeleteObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.GetObjectRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.HeadBucketRequestMarshaller;
+import software.amazon.awssdk.services.s3.transform.HeadObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.PutObjectRequestMarshaller;
 import software.amazon.awssdk.services.s3.transform.UploadPartRequestMarshaller;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -141,6 +149,8 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
     private final S3Configuration serviceConfiguration;
     private final List<ExecutionInterceptor> clientInterceptors;
     private final GetObjectRequestMarshaller getObjectRequestMarshaller;
+    private final HeadObjectRequestMarshaller headObjectRequestMarshaller;
+    private final HeadBucketRequestMarshaller headBucketRequestMarshaller;
     private final PutObjectRequestMarshaller putObjectRequestMarshaller;
     private final CreateMultipartUploadRequestMarshaller createMultipartUploadRequestMarshaller;
     private final UploadPartRequestMarshaller uploadPartRequestMarshaller;
@@ -192,6 +202,10 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         // Copied from DefaultS3Client#getObject
         this.getObjectRequestMarshaller = new GetObjectRequestMarshaller(protocolFactory);
+
+        this.headObjectRequestMarshaller = new HeadObjectRequestMarshaller(protocolFactory);
+
+        this.headBucketRequestMarshaller = new HeadBucketRequestMarshaller(protocolFactory);
 
         // Copied from DefaultS3Client#putObject
         this.putObjectRequestMarshaller = new PutObjectRequestMarshaller(protocolFactory);
@@ -270,6 +284,28 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                        GetObjectRequest.class,
                        getObjectRequestMarshaller::marshall,
                        "GetObject")
+            .build();
+    }
+
+    @Override
+    public PresignedHeadObjectRequest presignHeadObject(HeadObjectPresignRequest request) {
+        return presign(PresignedHeadObjectRequest.builder(),
+                       request,
+                       request.headObjectRequest(),
+                       HeadObjectRequest.class,
+                       headObjectRequestMarshaller::marshall,
+                       "HeadObject")
+            .build();
+    }
+
+    @Override
+    public PresignedHeadBucketRequest presignHeadBucket(HeadBucketPresignRequest request) {
+        return presign(PresignedHeadBucketRequest.builder(),
+                       request,
+                       request.headBucketRequest(),
+                       HeadBucketRequest.class,
+                       headBucketRequestMarshaller::marshall,
+                       "HeadBucket")
             .build();
     }
 

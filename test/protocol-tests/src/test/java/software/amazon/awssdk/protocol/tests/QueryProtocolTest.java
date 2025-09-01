@@ -41,7 +41,7 @@ public class QueryProtocolTest extends ProtocolTestBase {
 
     @BeforeClass
     public static void setupFixture() {
-        testRunner = new ProtocolTestRunner("/models/query-2016-03-11-intermediate.json");
+        testRunner = new ProtocolTestRunner("/models/awsquery-2020-01-08-intermediate.json");
     }
 
     @Test

@@ -1,0 +1,54 @@
+{
+    "version": "2.31.66",
+    "date": "2025-06-18",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AI Ops",
+            "contributor": "",
+            "description": "This is the initial SDK release for Amazon AI Operations (AIOps). AIOps is a generative AI-powered assistant that helps you respond to incidents in your system by scanning your system's telemetry and quickly surface suggestions that might be related to your issue."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3",
+            "contributor": "tmccombs",
+            "description": "Adds the ability to presign HeadObject and HeadBucket requests with the S3 Presigner"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adding a new method of constructing ARNs without exceptions as control flow"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Added CloudWatch Logs Transformer support for converting CloudTrail, VPC Flow, EKS Audit, AWS WAF and Route53 Resolver logs to OCSF v1.1 format."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Add support for p6-b200 instance type for SageMaker Hyperpod"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Added support for renaming objects within the same bucket using the new RenameObject API."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Add IncludeInstances parameter to DescribeAutoScalingGroups API"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

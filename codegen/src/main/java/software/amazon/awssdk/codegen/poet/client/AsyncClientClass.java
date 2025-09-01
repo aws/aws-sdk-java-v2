@@ -26,6 +26,8 @@ import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -76,8 +78,6 @@ import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -180,7 +180,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             }
         }
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          model));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
         protocolSpec.createEventstreamErrorResponseHandler().ifPresent(type::addMethod);
     }
@@ -229,7 +230,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".build()", SdkClientOption.class);
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
+                                      + ".build()",
+                                      SdkClientOption.class,
+                                      SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
+                                      ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                    "ServiceVersionInfo"));
+
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -301,32 +309,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .addStatement("return new $T(this.clientConfiguration.toBuilder()).build()",
                                        this.configurationUtils.serviceClientConfigurationBuilderClassName())
                          .build();
-    }
-
-    protected static MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
-                                               .addModifiers(PRIVATE)
-                                               .addParameter(SdkRequest.class, "request")
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .returns(SdkClientConfiguration.class);
-
-        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
-                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
-                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
-
-        builder.beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return configuration.build()")
-               .endControlFlow()
-               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
-               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
-               .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
-        builder.addStatement("return configuration.build()");
-
-        return builder.build();
     }
 
     @Override

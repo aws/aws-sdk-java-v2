@@ -42,6 +42,7 @@ import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -57,6 +58,7 @@ import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -72,6 +74,8 @@ import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -80,6 +84,9 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
+    public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
+    public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
+        new ExecutionAttribute<>("responseFileOption");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -104,6 +111,22 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         return putObject(putObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(),
                          new CrtContentLengthOnlyAsyncFileRequestBody(sourcePath));
+    }
+
+    @Override
+    public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            new CrtResponseFileResponseTransformer<>();
+
+        AwsRequestOverrideConfiguration overrideConfig =
+            getObjectRequest.overrideConfiguration()
+                            .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
+                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
+                                                                            .putExecutionAttribute(RESPONSE_FILE_PATH,
+                                                                                                   destinationPath))
+                            .build();
+
+        return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
     }
 
     @Override
@@ -243,7 +266,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(
-                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
@@ -396,6 +419,10 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
                        .put(RESPONSE_CHECKSUM_VALIDATION,
                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
+                            executionAttributes.getAttribute(RESPONSE_FILE_PATH))
+                       .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
+                            executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
                        .build();
 
             // We rely on CRT to perform checksum validation, disable SDK flexible checksum implementation

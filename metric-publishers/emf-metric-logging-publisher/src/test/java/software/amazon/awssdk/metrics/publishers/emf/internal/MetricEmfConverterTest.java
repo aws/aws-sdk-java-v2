@@ -233,4 +233,21 @@ public class MetricEmfConverterTest {
 
         assertThat(errors).isEmpty();
     }
+
+    @Test
+    void ConvertMetricCollectionToEMF_longValueShouldSucceed() {
+        SdkMetric<Long> metric = SdkMetric.create("TestMetric",
+                                                  Long.class,
+                                                  MetricLevel.INFO,
+                                                  MetricCategory.CUSTOM);
+
+        MetricCollector metricCollector = MetricCollector.create("test");
+        Long metricValue = 42L;
+        metricCollector.reportMetric(metric, metricValue);
+        List<String> emfLogs = metricEmfConverterDefault.convertMetricCollectionToEmf(metricCollector.collect());
+
+        assertThat(emfLogs).containsOnly("{\"_aws\":{\"Timestamp\":12345678,\"LogGroupName\":\"my_log_group_name\","
+                                         + "\"CloudWatchMetrics\":[{\"Namespace\":\"AwsSdk/JavaSdk2\",\"Dimensions\":[[]],"
+                                         + "\"Metrics\":[{\"Name\":\"TestMetric\"}]}]},\"TestMetric\":42}");
+    }
 }

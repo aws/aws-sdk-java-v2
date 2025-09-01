@@ -284,7 +284,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Creates a privacy budget template for a specified membership. Each membership can have only one privacy budget template, but it can be deleted and recreated. If you need to change the privacy budget template for a membership, use the <a>UpdatePrivacyBudgetTemplate</a> operation.</p>"
+      "documentation":"<p>Creates a privacy budget template for a specified collaboration. Each collaboration can have only one privacy budget template. If you need to change the privacy budget template, use the <a>UpdatePrivacyBudgetTemplate</a> operation.</p>"
     },
     "DeleteAnalysisTemplate":{
       "name":"DeleteAnalysisTemplate",
@@ -516,7 +516,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Deletes a privacy budget template for a specified membership.</p>",
+      "documentation":"<p>Deletes a privacy budget template for a specified collaboration.</p>",
       "idempotent":true
     },
     "GetAnalysisTemplate":{
@@ -1384,6 +1384,7 @@
       "output":{"shape":"UpdateConfiguredTableOutput"},
       "errors":[
         {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"},
@@ -1521,7 +1522,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Updates the privacy budget template for the specified membership.</p>"
+      "documentation":"<p>Updates the privacy budget template for the specified collaboration.</p>"
     },
     "UpdateProtectedJob":{
       "name":"UpdateProtectedJob",
@@ -2097,6 +2098,10 @@
         "validations":{
           "shape":"AnalysisTemplateValidationStatusDetailList",
           "documentation":"<p>Information about the validations performed on the analysis template.</p>"
+        },
+        "errorMessageConfiguration":{
+          "shape":"ErrorMessageConfiguration",
+          "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
         }
       },
       "documentation":"<p>The analysis template.</p>"
@@ -2668,7 +2673,7 @@
         },
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
-          "documentation":"<p> The analytics engine for the collaboration.</p>"
+          "documentation":"<p> The analytics engine for the collaboration.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
         }
       },
       "documentation":"<p>The multi-party data share environment. The collaboration contains metadata about its purpose and participants.</p>"
@@ -2747,6 +2752,10 @@
         "validations":{
           "shape":"AnalysisTemplateValidationStatusDetailList",
           "documentation":"<p>The validations that were performed.</p>"
+        },
+        "errorMessageConfiguration":{
+          "shape":"ErrorMessageConfiguration",
+          "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
         }
       },
       "documentation":"<p>The analysis template within a collaboration.</p>"
@@ -3320,7 +3329,7 @@
         },
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
-          "documentation":"<p> The analytics engine.</p>"
+          "documentation":"<p> The analytics engine.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
         }
       },
       "documentation":"<p>The metadata of the collaboration.</p>"
@@ -4237,7 +4246,7 @@
         },
         "source":{
           "shape":"AnalysisSource",
-          "documentation":"<p>The information in the analysis template. Currently supports <code>text</code>, the query text for the analysis template.</p>"
+          "documentation":"<p>The information in the analysis template.</p>"
         },
         "tags":{
           "shape":"TagMap",
@@ -4247,7 +4256,11 @@
           "shape":"AnalysisParameterList",
           "documentation":"<p>The parameters of the analysis template.</p>"
         },
-        "schema":{"shape":"AnalysisSchema"}
+        "schema":{"shape":"AnalysisSchema"},
+        "errorMessageConfiguration":{
+          "shape":"ErrorMessageConfiguration",
+          "documentation":"<p>The configuration that specifies the level of detail in error messages returned by analyses using this template. When set to <code>DETAILED</code>, error messages include more information to help troubleshoot issues with PySpark jobs. Detailed error messages may expose underlying data, including sensitive information. Recommended for faster troubleshooting in development and testing environments.</p>"
+        }
       }
     },
     "CreateAnalysisTemplateOutput":{
@@ -4317,7 +4330,7 @@
         },
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
-          "documentation":"<p> The analytics engine.</p>"
+          "documentation":"<p> The analytics engine.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
         }
       }
     },
@@ -4794,8 +4807,7 @@
     },
     "DeleteAnalysisTemplateOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCollaborationInput":{
       "type":"structure",
@@ -4811,8 +4823,7 @@
     },
     "DeleteCollaborationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteConfiguredAudienceModelAssociationInput":{
       "type":"structure",
@@ -4837,8 +4848,7 @@
     },
     "DeleteConfiguredAudienceModelAssociationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteConfiguredTableAnalysisRuleInput":{
       "type":"structure",
@@ -4863,8 +4873,7 @@
     },
     "DeleteConfiguredTableAnalysisRuleOutput":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An empty response that indicates a successful delete.</p>"
     },
     "DeleteConfiguredTableAssociationAnalysisRuleInput":{
@@ -4897,8 +4906,7 @@
     },
     "DeleteConfiguredTableAssociationAnalysisRuleOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteConfiguredTableAssociationInput":{
       "type":"structure",
@@ -4923,8 +4931,7 @@
     },
     "DeleteConfiguredTableAssociationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteConfiguredTableInput":{
       "type":"structure",
@@ -4940,8 +4947,7 @@
     },
     "DeleteConfiguredTableOutput":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The empty output for a successful deletion.</p>"
     },
     "DeleteIdMappingTableInput":{
@@ -4967,8 +4973,7 @@
     },
     "DeleteIdMappingTableOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteIdNamespaceAssociationInput":{
       "type":"structure",
@@ -4993,8 +4998,7 @@
     },
     "DeleteIdNamespaceAssociationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteMemberInput":{
       "type":"structure",
@@ -5019,8 +5023,7 @@
     },
     "DeleteMemberOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteMembershipInput":{
       "type":"structure",
@@ -5036,8 +5039,7 @@
     },
     "DeleteMembershipOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePrivacyBudgetTemplateInput":{
       "type":"structure",
@@ -5062,8 +5064,7 @@
     },
     "DeletePrivacyBudgetTemplateOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DifferentialPrivacyAggregationExpression":{
       "type":"string",
@@ -5337,8 +5338,7 @@
     },
     "Document":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "document":true
     },
     "Double":{
@@ -5350,6 +5350,21 @@
       "box":true,
       "max":20,
       "min":1
+    },
+    "ErrorMessageConfiguration":{
+      "type":"structure",
+      "required":["type"],
+      "members":{
+        "type":{
+          "shape":"ErrorMessageType",
+          "documentation":"<p>The level of detail for error messages returned by the PySpark job. When set to DETAILED, error messages include more information to help troubleshoot issues with your PySpark job.</p> <p>Because this setting may expose sensitive data, it is recommended for development and testing environments.</p>"
+        }
+      },
+      "documentation":"<p>A structure that defines the level of detail included in error messages returned by PySpark jobs. This configuration allows you to control the verbosity of error messages to help with troubleshooting PySpark jobs while maintaining appropriate security controls.</p>"
+    },
+    "ErrorMessageType":{
+      "type":"string",
+      "enum":["DETAILED"]
     },
     "FilterableMemberStatus":{
       "type":"string",
@@ -9639,8 +9654,7 @@
     },
     "TagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -9697,8 +9711,7 @@
     },
     "UntagResourceOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAnalysisTemplateInput":{
       "type":"structure",
@@ -9755,7 +9768,7 @@
         },
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
-          "documentation":"<p>The analytics engine.</p>"
+          "documentation":"<p>The analytics engine.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
         }
       }
     },
@@ -9943,6 +9956,11 @@
         "description":{
           "shape":"TableDescription",
           "documentation":"<p>A new description for the configured table.</p>"
+        },
+        "tableReference":{"shape":"TableReference"},
+        "allowedColumns":{
+          "shape":"AllowedColumnList",
+          "documentation":"<p>The columns of the underlying table that can be used by collaborations or analysis rules.</p>"
         },
         "analysisMethod":{
           "shape":"AnalysisMethod",

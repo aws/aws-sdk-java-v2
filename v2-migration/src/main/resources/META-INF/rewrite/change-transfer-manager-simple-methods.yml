@@ -26,3 +26,21 @@ recipeList:
   - org.openrewrite.java.ChangeMethodName:
       methodPattern: software.amazon.awssdk.transfer.s3.S3TransferManager shutdownNow()
       newMethodName: close
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.Transfer getProgress()
+      newMethodName: progress
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.ResumableTransfer serialize()
+      newMethodName: serializeToString
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.model.ResumableTransfer serialize(java.io.OutputStream)
+      newMethodName: serializeToOutputStream
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getBytesTransferred()
+      newMethodName: snapshot().transferredBytes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getTotalBytesToTransfer()
+      newMethodName: snapshot().totalBytes
+  - org.openrewrite.java.ChangeMethodName:
+      methodPattern: software.amazon.awssdk.transfer.s3.progress.TransferProgress getPercentTransferred()
+      newMethodName: snapshot().ratioTransferred

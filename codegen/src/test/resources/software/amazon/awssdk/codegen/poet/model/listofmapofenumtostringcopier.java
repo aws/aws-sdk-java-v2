@@ -53,7 +53,7 @@ final class ListOfMapOfEnumToStringCopier {
                 } else {
                     Map<String, String> modifiableMap = new LinkedHashMap<>(entry.size());
                     entry.forEach((key, value) -> {
-                        String result = key.toString();
+                        String result = key == null ? null : key.toString();
                         modifiableMap.put(result, value);
                     });
                     map = Collections.unmodifiableMap(modifiableMap);
