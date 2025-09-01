@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
@@ -255,9 +254,12 @@ public final class StaticPolymorphicTableSchema<T> implements TableSchema<T> {
                 }
             }
 
-            // Sort subtypes: deeper (more specific) before shallower
+            // Sort subtypes so that deeper subclasses (more specific) are checked first by resolveByInstance.
             List<StaticSubtype<? extends T>> ordered = new ArrayList<>(staticSubtypes);
-            sortSubtypesMostSpecificFirst(ordered, root);
+            ordered.sort((first, second) -> Integer.compare(
+                inheritanceDepthFromRoot(second.tableSchema().itemType().rawClass(), root),
+                inheritanceDepthFromRoot(first.tableSchema().itemType().rawClass(), root)
+            ));
 
             return new StaticPolymorphicTableSchema<>(
                 rootTableSchema,
@@ -269,18 +271,9 @@ public final class StaticPolymorphicTableSchema<T> implements TableSchema<T> {
         }
 
         /**
-         * Orders subtypes so that deeper subclasses (more specific) are checked first by resolveByInstance.
-         */
-        private static <T> void sortSubtypesMostSpecificFirst(List<StaticSubtype<? extends T>> subs, Class<?> root) {
-            subs.sort((first, second) -> Integer.compare(
-                inheritanceDepthFromRoot(second.tableSchema().itemType().rawClass(), root),
-                inheritanceDepthFromRoot(first.tableSchema().itemType().rawClass(), root)
-            ));
-        }
-
-        /**
-         * Counts how many superclass steps it takes to reach the given root. Example: if Manager extends Employee extends Person
-         * (root), then Manager → depth 2, Employee → depth 1, Person → depth 0.
+         * Counts how many superclass steps it takes to reach the given root.
+         * Example: if Manager extends Employee extends Person (root), then:
+         * Manager → depth 2, Employee → depth 1, Person → depth 0.
          */
         private static int inheritanceDepthFromRoot(Class<?> type, Class<?> root) {
             int depth = 0;
