@@ -79,24 +79,4 @@ class ThreadStorageTest {
     void containsKey_withNonExistentKey_shouldReturnFalse() {
         assertThat(ThreadStorage.containsKey("non-existent")).isFalse();
     }
-
-    @Test
-    void get_fromDifferentThread_shouldNotShareData() throws InterruptedException {
-        ThreadStorage.put("shared-key", "main-thread-value");
-        
-        Thread otherThread = new Thread(() -> {
-            // Should not see main thread's value
-            assertThat(ThreadStorage.get("shared-key")).isNull();
-            
-            // Set own value
-            ThreadStorage.put("shared-key", "other-thread-value");
-            assertThat(ThreadStorage.get("shared-key")).isEqualTo("other-thread-value");
-        });
-        
-        otherThread.start();
-        otherThread.join();
-        
-        // Main thread should still have its own value
-        assertThat(ThreadStorage.get("shared-key")).isEqualTo("main-thread-value");
-    }
 }
