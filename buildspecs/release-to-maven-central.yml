@@ -48,7 +48,7 @@ phases:
             STAGING_SIZE_MB=$(du -sm target/central-staging | cut -f1)
             aws cloudwatch put-metric-data \
               --namespace "AwsJavaSdkRelease" \
-              --metric-data MetricName=StagingFolderSize,Value=$STAGING_SIZE_MB,Unit=Megabytes,Dimensions=Name=ReleaseVersion,Value=$RELEASE_VERSION
+              --metric-data "MetricName=StagingFolderSize,Value=$STAGING_SIZE_MB,Unit=Megabytes,Dimensions=[{Name=ReleaseVersion,Value=$RELEASE_VERSION}]"
           else
             echo "Staging folder target/central-staging not found"
           fi
