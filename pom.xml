@@ -72,6 +72,7 @@
         <module>archetypes</module>
         <module>third-party</module>
         <module>v2-migration</module>
+        <module>thread-context</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -95,7 +96,6 @@
         <module>test/crt-unavailable-tests</module>
         <module>test/architecture-tests</module>
         <module>test/s3-tests</module>
-        <module>thread-context</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
