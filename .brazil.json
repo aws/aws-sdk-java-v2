@@ -32,6 +32,7 @@
         "s3-transfer-manager": { "packageName": "AwsJavaSdk-S3-TransferManager" },
         "s3-event-notifications": { "packageName": "AwsJavaSdk-S3-EventNotifications" },
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
+        "thread-context": { "packageName": "AwsJavaSdk-ThreadContext" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
