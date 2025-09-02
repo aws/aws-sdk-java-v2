@@ -21,9 +21,9 @@ phases:
   build:
     commands:
       - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
-      - SONATYPE_URL="https://repo1.maven.org/maven2/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
+      - ARTIFACT_URL="https://repo1.maven.org/maven2/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
       - |
-        if ! curl -f --head $SONATYPE_URL; then
+        if ! curl -f --head $ARTIFACT_URL; then
           SONATYPE_USERNAME=`aws secretsmanager get-secret-value --secret-id $SONATYPE_USERNAME_ARN --query SecretString --output text`
           SONATYPE_PASSWORD=`aws secretsmanager get-secret-value --secret-id $SONATYPE_PASSWORD_ARN --query SecretString --output text`
           SDK_SIGNING_GPG_KEYNAME=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_KEYNAME_ARN --query SecretString --output text`
