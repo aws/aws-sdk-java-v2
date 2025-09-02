@@ -162,11 +162,12 @@ public final class MultipartUploadHelper {
         return SdkClientException.create("Content length is missing on the AsyncRequestBody for part number " + currentPartNum);
     }
 
-    static SdkClientException contentLengthMismatchForPart(long expected, long actual) {
+    static SdkClientException contentLengthMismatchForPart(long expected, long actual, int partNum) {
         return SdkClientException.create(String.format("Content length must not be greater than "
-                                                       + "part size. Expected: %d, Actual: %d",
+                                                       + "part size. Expected: %d, Actual: %d, partNum: %d",
                                                        expected,
-                                                       actual));
+                                                       actual,
+                                                       partNum));
     }
 
     static SdkClientException partNumMismatch(int expectedNumParts, int actualNumParts) {
