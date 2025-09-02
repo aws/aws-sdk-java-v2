@@ -95,6 +95,7 @@
         <module>test/crt-unavailable-tests</module>
         <module>test/architecture-tests</module>
         <module>test/s3-tests</module>
+        <module>thread-context</module>
     </modules>
     <scm>
         <url>${scm.github.url}</url>
