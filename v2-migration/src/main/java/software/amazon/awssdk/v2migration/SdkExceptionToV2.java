@@ -91,6 +91,4 @@ public class SdkExceptionToV2 extends Recipe {
             return super.visitMethodInvocation(method, executionContext);
         }
     }
-
-
 }

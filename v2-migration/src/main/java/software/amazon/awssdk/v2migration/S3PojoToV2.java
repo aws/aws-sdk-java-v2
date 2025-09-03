@@ -26,7 +26,6 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.AddImport;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.RemoveImport;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
@@ -64,10 +63,7 @@ public class S3PojoToV2 extends Recipe {
             }
 
             if (type.isAssignableFrom(COMPETE_MPU) && newClass.getArguments().size() == 4) {
-                addV2S3ModelImport("CompleteMultipartUploadRequest");
                 addV2S3ModelImport("CompletedMultipartUpload");
-                removeV1S3ModelImport("CompleteMultipartUploadRequest");
-
                 List<Expression> params = newClass.getArguments();
                 String v2Builder = "CompleteMultipartUploadRequest.builder().bucket(#{any()}).key(#{any()}).uploadId(#{any()})"
                                    + ".multipartUpload(CompletedMultipartUpload.builder().parts(#{any()}).build()).build()";
@@ -76,18 +72,12 @@ public class S3PojoToV2 extends Recipe {
                                                   params.get(0), params.get(1), params.get(2),  params.get(3));
             }
             if (type.isAssignableFrom(OBJECT_TAGGING) && newClass.getArguments().size() == 1) {
-                addV2S3ModelImport("Tagging");
-                removeV1S3ModelImport("ObjectTagging");
-
                 String v2Builder = "Tagging.builder().tagSet(#{any()}).build();";
                 return JavaTemplate.builder(v2Builder)
                                    .build().apply(getCursor(), newClass.getCoordinates().replace(),
                                                   newClass.getArguments().get(0));
             }
             if (type.isAssignableFrom(GET_OBJECT_TAGGING_RESULT) && newClass.getArguments().size() == 1) {
-                addV2S3ModelImport("GetObjectTaggingResponse");
-                removeV1S3ModelImport("GetObjectTaggingResponse");
-
                 String v2Builder = "GetObjectTaggingResponse.builder().tagSet(#{any()}).build();";
                 return JavaTemplate.builder(v2Builder)
                                    .build().apply(getCursor(), newClass.getCoordinates().replace(),
@@ -95,10 +85,6 @@ public class S3PojoToV2 extends Recipe {
             }
 
             return super.visitNewClass(newClass, executionContext);
-        }
-
-        private void removeV1S3ModelImport(String className) {
-            doAfterVisit(new RemoveImport<>(V1_S3_MODEL_PKG + className, true));
         }
 
         private void addV2S3ModelImport(String className) {
