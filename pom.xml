@@ -748,6 +748,9 @@
             </properties>
         </profile>
         <profile>
+            <!-- This is the new maven publishing profile. It's similar to the "publishing" profile except
+            for the fact that it uses the maven central publishing plugin instead of the nexus publishing plugin. 
+            Once OSSRH is disabled we can rename this "publishing", and remove the existing publishing profile -->
             <id>central-portal-publishing</id>
             <build>
                 <plugins>
