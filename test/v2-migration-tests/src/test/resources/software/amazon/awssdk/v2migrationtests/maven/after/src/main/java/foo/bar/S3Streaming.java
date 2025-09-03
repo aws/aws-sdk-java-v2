@@ -117,8 +117,7 @@ public class S3Streaming {
 
     void putObjectSetters() {
         List<Tag> tags = new ArrayList<>();
-        Tagging objectTagging = Tagging.builder().tagSet(tags)
-            .build();
+        Tagging objectTagging = Tagging.builder().tagSet(tags).build();
 
         PutObjectRequest putObjectRequest =
             PutObjectRequest.builder().bucket("bucket").key("key").websiteRedirectLocation("location")
