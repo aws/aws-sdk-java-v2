@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "Adding an optional field IpAddressType in CustomOriginConfig"
+}
