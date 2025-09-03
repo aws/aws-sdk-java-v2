@@ -24,27 +24,28 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  */
 @SdkInternalApi
 public final class ThreadStorage {
-    private static final ThreadLocal<Map<String, String>> storage = ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<String, String>> STORAGE = ThreadLocal.withInitial(HashMap::new);
 
-    private ThreadStorage() {}
+    private ThreadStorage() {
+    }
 
     public static void put(String key, String value) {
-        storage.get().put(key, value);
+        STORAGE.get().put(key, value);
     }
 
     public static String get(String key) {
-        return storage.get().get(key);
+        return STORAGE.get().get(key);
     }
 
     public static String remove(String key) {
-        return storage.get().remove(key);
+        return STORAGE.get().remove(key);
     }
 
     public static void clear() {
-        storage.get().clear();
+        STORAGE.get().clear();
     }
 
     public static boolean containsKey(String key) {
-        return storage.get().containsKey(key);
+        return STORAGE.get().containsKey(key);
     }
 }
