@@ -15,6 +15,10 @@
 
 package foo.bar;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.Duration;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -41,18 +45,13 @@ import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.time.Duration;
-
 public class TransferManagerS3 {
 
     File file = new File("path/to/file.txt");
 
     void tmConstructor(AwsCredentials credentials, AwsCredentialsProvider credentialsProvider) {
         S3TransferManager tm = S3TransferManager.builder()
-                .build();
+            .build();
         S3TransferManager tmBuilderDefault = S3TransferManager.create();
         S3TransferManager tmBuilderWithS3 = S3TransferManager.builder().build();
         S3TransferManager tmConstructorWithCred = S3TransferManager.builder().s3Client(S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(credentials)).build()).build();
@@ -66,7 +65,7 @@ public class TransferManagerS3 {
         FileDownload download2 = tm.downloadFile(DownloadFileRequest.builder().getObjectRequest(GetObjectRequest.builder().bucket(bucket).key(key).overrideConfiguration(AwsRequestOverrideConfiguration.builder().apiCallTimeout(Duration.ofMillis(timeout)).build()).build()).destination(file).build());
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(key)
-                .build();
+            .build();
 
         FileDownload download3 = tm.downloadFile(DownloadFileRequest.builder().getObjectRequest(getObjectRequest).destination(file).build());
 
@@ -78,11 +77,11 @@ public class TransferManagerS3 {
 
         File file = new File("file1.txt");
         PutObjectRequest requestWithFile = PutObjectRequest.builder().bucket(bucket).key(key)
-                .build();
+            .build();
         tm.uploadFile(UploadFileRequest.builder().putObjectRequest(requestWithFile).source(file).build());
 
         PutObjectRequest requestWithoutPayload = PutObjectRequest.builder().bucket(bucket).key(key).websiteRedirectLocation("location")
-                .build();
+            .build();
         tm.upload(UploadRequest.builder().putObjectRequest(requestWithoutPayload).requestBody(AsyncRequestBody.empty()).build());
     }
 
@@ -90,7 +89,7 @@ public class TransferManagerS3 {
         Copy copy = tm.copy(CopyRequest.builder().copyObjectRequest(CopyObjectRequest.builder().sourceBucket(sourceBucket).sourceKey(sourceKey).destinationBucket(destinationBucket).destinationKey(destinationKey).build()).build());
 
         CopyObjectRequest copyRequest = CopyObjectRequest.builder().sourceBucket(sourceBucket).sourceKey(sourceKey).destinationBucket(destinationBucket).destinationKey(destinationKey)
-                .build();
+            .build();
         Copy copy2 = tm.copy(CopyRequest.builder().copyObjectRequest(copyRequest).build());
     }
 
