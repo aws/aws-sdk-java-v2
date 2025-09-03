@@ -23,8 +23,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.threadcontext.ThreadStorage;
 import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal;
 
 /**
  * The {@code TraceIdExecutionInterceptor} copies the trace details to the {@link #TRACE_ID_HEADER} header, assuming we seem to
@@ -39,7 +39,7 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        String traceId = ThreadStorage.get(CONCURRENT_TRACE_ID_KEY);
+        String traceId = software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.get(CONCURRENT_TRACE_ID_KEY);
         if (traceId != null) {
             executionAttributes.putAttribute(TRACE_ID, traceId);
         }
@@ -72,7 +72,7 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
     private static void saveTraceId(ExecutionAttributes executionAttributes) {
         String traceId = executionAttributes.getAttribute(TRACE_ID);
         if (traceId != null) {
-            ThreadStorage.put(CONCURRENT_TRACE_ID_KEY, executionAttributes.getAttribute(TRACE_ID));
+            SdkInternalThreadLocal.put(CONCURRENT_TRACE_ID_KEY, executionAttributes.getAttribute(TRACE_ID));
         }
     }
 

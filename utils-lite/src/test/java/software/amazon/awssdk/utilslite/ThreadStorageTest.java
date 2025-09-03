@@ -13,58 +13,59 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.threadcontext;
+package software.amazon.awssdk.utilslite;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ThreadStorageTest {
+class SdkInternalThreadLocalTest {
 
     @AfterEach
     void cleanup() {
-        ThreadStorage.clear();
+        SdkInternalThreadLocal.clear();
     }
 
     @Test
     void putAndGet_shouldStoreAndRetrieveValue() {
-        ThreadStorage.put("test-key", "test-value");
+        SdkInternalThreadLocal.put("test-key", "test-value");
         
-        assertThat(ThreadStorage.get("test-key")).isEqualTo("test-value");
+        assertThat(SdkInternalThreadLocal.get("test-key")).isEqualTo("test-value");
     }
 
     @Test
     void get_withNonExistentKey_shouldReturnNull() {
-        assertThat(ThreadStorage.get("non-existent")).isNull();
+        assertThat(SdkInternalThreadLocal.get("non-existent")).isNull();
     }
 
     @Test
     void put_withValidKeyValue_shouldStoreValue() {
-        ThreadStorage.put("test-key", "test-value");
+        SdkInternalThreadLocal.put("test-key", "test-value");
         
-        String removed = ThreadStorage.remove("test-key");
+        String removed = SdkInternalThreadLocal.remove("test-key");
         
         assertThat(removed).isEqualTo("test-value");
-        assertThat(ThreadStorage.get("test-key")).isNull();
+        assertThat(SdkInternalThreadLocal.get("test-key")).isNull();
     }
 
     @Test
     void remove_withExistingKey_shouldRemoveAndReturnValue() {
-        ThreadStorage.put("test-key", "test-value");
-        ThreadStorage.put("test-key", null);
+        SdkInternalThreadLocal.put("test-key", "test-value");
+        SdkInternalThreadLocal.put("test-key", null);
         
-        assertThat(ThreadStorage.get("test-key")).isNull();
+        assertThat(SdkInternalThreadLocal.get("test-key")).isNull();
     }
 
     @Test
     void clear_withMultipleValues_shouldRemoveAllValues() {
-        ThreadStorage.put("key1", "value1");
-        ThreadStorage.put("key2", "value2");
+        SdkInternalThreadLocal.put("key1", "value1");
+        SdkInternalThreadLocal.put("key2", "value2");
         
-        ThreadStorage.clear();
+        SdkInternalThreadLocal.clear();
         
-        assertThat(ThreadStorage.get("key1")).isNull();
-        assertThat(ThreadStorage.get("key2")).isNull();
+        assertThat(SdkInternalThreadLocal.get("key1")).isNull();
+        assertThat(SdkInternalThreadLocal.get("key2")).isNull();
     }
 }

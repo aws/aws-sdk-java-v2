@@ -254,7 +254,7 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>thread-context</artifactId>
+                <artifactId>utils-lite</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <!-- Services -->

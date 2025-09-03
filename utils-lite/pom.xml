@@ -23,10 +23,10 @@
         <artifactId>aws-sdk-java-pom</artifactId>
         <version>2.33.2-SNAPSHOT</version>
     </parent>
-    <artifactId>thread-context</artifactId>
-    <name>AWS Java SDK :: Thread Context</name>
+    <artifactId>utils-lite</artifactId>
+    <name>AWS Java SDK :: Utils Lite</name>
     <description>
-        Provides thread-local context storage utilities for sharing data across components.
+        A package providing minimal external utils.
     </description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
@@ -68,7 +68,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>software.amazon.awssdk.threadcontext</Automatic-Module-Name>
+                            <Automatic-Module-Name>software.amazon.awssdk.utilslite</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

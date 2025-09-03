@@ -72,7 +72,7 @@
         <module>archetypes</module>
         <module>third-party</module>
         <module>v2-migration</module>
-        <module>thread-context</module>
+        <module>utils-lite</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -659,7 +659,7 @@
                             <includeModule>protocols</includeModule>
                             <includeModule>regions</includeModule>
                             <includeModule>sdk-core</includeModule>
-                            <includeModule>thread-context</includeModule>
+                            <includeModule>utils-lite</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
