@@ -67,12 +67,12 @@
         <module>metric-publishers</module>
         <module>release-scripts</module>
         <module>utils</module>
+        <module>utils-lite</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
         <module>third-party</module>
         <module>v2-migration</module>
-        <module>utils-lite</module>
         <module>test/http-client-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
@@ -659,7 +659,6 @@
                             <includeModule>protocols</includeModule>
                             <includeModule>regions</includeModule>
                             <includeModule>sdk-core</includeModule>
-                            <includeModule>utils-lite</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
@@ -667,6 +666,7 @@
                             <includeModule>cloudwatch-metric-publisher</includeModule>
                             <includeModule>emf-metric-logging-publisher</includeModule>
                             <includeModule>utils</includeModule>
+                            <includeModule>utils-lite</includeModule>
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
                             <includeModule>retries-spi</includeModule>
