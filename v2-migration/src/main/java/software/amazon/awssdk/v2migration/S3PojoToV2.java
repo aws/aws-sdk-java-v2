@@ -63,6 +63,7 @@ public class S3PojoToV2 extends Recipe {
             }
 
             if (type.isAssignableFrom(COMPETE_MPU) && newClass.getArguments().size() == 4) {
+                addV2S3ModelImport("CompleteMultipartUploadRequest");
                 addV2S3ModelImport("CompletedMultipartUpload");
                 List<Expression> params = newClass.getArguments();
                 String v2Builder = "CompleteMultipartUploadRequest.builder().bucket(#{any()}).key(#{any()}).uploadId(#{any()})"
