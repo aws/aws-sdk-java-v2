@@ -113,11 +113,11 @@ public class TraceIdExecutionInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_whenMultiConcurrencyModeWithMdc_shouldAddTraceIdHeader() {
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithThreadStorage_shouldAddTraceIdHeader() {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            ThreadStorage.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+            ThreadStorage.put("AWS_LAMBDA_X_TRACE_ID", "ThreadStorage-trace-123");
 
             try {
                 TraceIdExecutionInterceptor interceptor = new TraceIdExecutionInterceptor();
@@ -127,7 +127,7 @@ public class TraceIdExecutionInterceptorTest {
                 Context.ModifyHttpRequest context = context();
 
                 SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
-                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("ThreadStorage-trace-123");
             } finally {
                 ThreadStorage.remove("AWS_LAMBDA_X_TRACE_ID");
             }
@@ -135,12 +135,12 @@ public class TraceIdExecutionInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_whenMultiConcurrencyModeWithBothMdcAndSystemProperty_shouldUseMdcValue() {
+    public void modifyHttpRequest_whenMultiConcurrencyModeWithBothThreadStorageAndSystemProperty_shouldUseThreadStorageValue() {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
 
-            ThreadStorage.put("AWS_LAMBDA_X_TRACE_ID", "mdc-trace-123");
+            ThreadStorage.put("AWS_LAMBDA_X_TRACE_ID", "ThreadStorage-trace-123");
             Properties props = System.getProperties();
             props.setProperty("com.amazonaws.xray.traceHeader", "sys-prop-345");
 
@@ -153,7 +153,7 @@ public class TraceIdExecutionInterceptorTest {
                 Context.ModifyHttpRequest context = context();
                 SdkHttpRequest request = interceptor.modifyHttpRequest(context, executionAttributes);
 
-                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("mdc-trace-123");
+                assertThat(request.firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("ThreadStorage-trace-123");
             } finally {
                 ThreadStorage.remove("AWS_LAMBDA_X_TRACE_ID");
                 props.remove("com.amazonaws.xray.traceHeader");
@@ -162,7 +162,7 @@ public class TraceIdExecutionInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_whenNotInLambdaEnvironmentWithMdc_shouldNotAddHeader() {
+    public void modifyHttpRequest_whenNotInLambdaEnvironmentWithThreadStorage_shouldNotAddHeader() {
         EnvironmentVariableHelper.run(env -> {
             resetRelevantEnvVars(env);
 
