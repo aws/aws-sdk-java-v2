@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "This release adds support for automatic language identification in AWS Transcribe Call Analytics"
-}
