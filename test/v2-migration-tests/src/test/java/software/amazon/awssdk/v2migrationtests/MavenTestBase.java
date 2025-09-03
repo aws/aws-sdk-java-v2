@@ -47,12 +47,8 @@ public class MavenTestBase {
         FileUtils.deleteDirectory(mavenExpected.toFile());
     }
 
-    protected static void verifyTransformation(boolean experimental) throws IOException {
+    protected static void verifyTransformation() throws IOException {
         String recipeCmd = "-Drewrite.activeRecipes=software.amazon.awssdk.v2migration.AwsSdkJavaV1ToV2";
-        if (experimental) {
-            recipeCmd += "Experimental";
-        }
-
         List<String> rewriteArgs = new ArrayList<>();
         // pin version since updates have broken tests
         String rewriteMavenPluginVersion = "5.46.0";
