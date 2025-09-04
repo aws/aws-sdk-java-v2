@@ -392,7 +392,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
 
             /**
              * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
-             * parallel streaming of multiple content body concurrently
+             * parallel streaming of multiple content body concurrently.
              * @return
              */
             Boolean supportsNonSerial();

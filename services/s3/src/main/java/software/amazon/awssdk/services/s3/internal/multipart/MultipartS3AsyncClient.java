@@ -63,9 +63,10 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         long minPartSizeInBytes = resolver.minimalPartSizeInBytes();
         long threshold = resolver.thresholdInBytes();
         long apiCallBufferSize = resolver.apiCallBufferSize();
+        int maxInFLight = resolver.maxInFlight();
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
-        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize);
+        downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize, maxInFLight);
         this.checksumEnabled = checksumEnabled;
     }
 

@@ -60,6 +60,9 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<T, T>> s) {
+        if (s == null) {
+            throw new NullPointerException("Subscription must not be null");
+        }
         this.subscriber = s;
         s.onSubscribe(new ThreadSafeEmittingSubscription<>(
             s, new AtomicLong(0), () -> {}, new AtomicBoolean(), log, this::createTransformer));
@@ -83,7 +86,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
      * transformer will retry independently based on the retry configuration of the client it is used with. We only need to verify
      * the completion state of the future of each individually
      */
-    class IndividualFileTransformer implements AsyncResponseTransformer<T, T> {
+    private class IndividualFileTransformer implements AsyncResponseTransformer<T, T> {
         private AsyncResponseTransformer<T, T> delegate;
         private CompletableFuture<T> future;
 

@@ -44,11 +44,13 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long apiCallBufferSizeInBytes;
+    private final Integer maxInflightDownloads;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.apiCallBufferSizeInBytes = builder.apiCallBufferSizeInBytes;
+        this.maxInflightDownloads = builder.maxInflightDownloads;
     }
 
     public static Builder builder() {
@@ -87,6 +89,10 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
      */
     public Long apiCallBufferSizeInBytes() {
         return this.apiCallBufferSizeInBytes;
+    }
+
+    public Integer maxInflightDownloads() {
+        return this.maxInflightDownloads;
     }
 
     /**
@@ -163,12 +169,27 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return the value of the maximum memory usage.
          */
         Long apiCallBufferSizeInBytes();
+
+        /**
+         * todo
+         * @param maxInflightDownloads
+         * @return
+         */
+        Builder maxInflightDownloads(Integer maxInflightDownloads);
+
+        /**
+         * todo
+         * @return
+         */
+        Integer maxInflightDownloads();
+
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long apiCallBufferSizeInBytes;
+        private Integer maxInflightDownloads;
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
@@ -186,6 +207,17 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         public Long minimumPartSizeInBytes() {
             return this.minimumPartSizeInBytes;
+        }
+
+        @Override
+        public Builder maxInflightDownloads(Integer maxInflightDownloads) {
+            this.maxInflightDownloads = maxInflightDownloads;
+            return this;
+        }
+
+        @Override
+        public Integer maxInflightDownloads() {
+            return this.maxInflightDownloads;
         }
 
         @Override

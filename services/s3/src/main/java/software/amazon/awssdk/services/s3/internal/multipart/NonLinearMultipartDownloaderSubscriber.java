@@ -37,7 +37,9 @@ import software.amazon.awssdk.utils.Logger;
 public class NonLinearMultipartDownloaderSubscriber
     implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private static final Logger log = Logger.loggerFor(NonLinearMultipartDownloaderSubscriber.class);
-    private static final int MAX_IN_FLIGHT = 50;
+    // private static final int MAX_IN_FLIGHT = 50;
+
+    private final int maxInFlight;
 
     /**
      * The s3 client used to make the individual part requests
@@ -118,11 +120,14 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicInteger transformersRequested = new AtomicInteger(0);
 
-    public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3, GetObjectRequest getObjectRequest,
-                                                  CompletableFuture<GetObjectResponse> resultFuture) {
+    public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
+                                                  GetObjectRequest getObjectRequest,
+                                                  CompletableFuture<GetObjectResponse> resultFuture,
+                                                  int maxInFLight) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
+        this.maxInFlight = maxInFLight;
     }
 
     @Override
@@ -159,7 +164,7 @@ public class NonLinearMultipartDownloaderSubscriber
             return;
         }
 
-        if (inFlightRequests.size() >= MAX_IN_FLIGHT) {
+        if (inFlightRequests.size() >= maxInFlight) {
             pendingTransformers.offer(asyncResponseTransformer);
             return;
         }
@@ -321,17 +326,24 @@ public class NonLinearMultipartDownloaderSubscriber
 
         // Only request more if we have capacity and remaining parts
         int remainingParts = allRemainingParts.size();
-        if (remainingParts > 0 && inFlightRequests.size() < MAX_IN_FLIGHT) {
-            int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
-                                       MAX_IN_FLIGHT - inFlightRequests.size());
-            if (partsNeeded > 0) {
-                // todo change trace log
-                log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
-                               + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
-                               + ". InFlight: " + inFlightRequests.size());
-                request(partsNeeded);
-            }
+        if (remainingParts == 0) {
+            return;
         }
+
+        if (inFlightRequests.size() >= maxInFlight) {
+            return;
+        }
+
+        int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
+                                   maxInFlight- inFlightRequests.size());
+        if (partsNeeded > 0) {
+            // todo change trace log
+            log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
+                           + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
+                           + ". InFlight: " + inFlightRequests.size());
+            request(partsNeeded);
+        }
+
     }
 
     private Integer nextPart() {
@@ -345,6 +357,8 @@ public class NonLinearMultipartDownloaderSubscriber
         // Signal received from the publisher this is subscribed to, in the case of file download, that's
         // FileAsyncResponseTransformerPublisher.
         // failed state, something really wrong has happened, cancel everything
+        inFlightRequests.values().forEach(future -> future.cancel(true));
+        inFlightRequests.clear();
         resultFuture.completeExceptionally(t);
     }
 

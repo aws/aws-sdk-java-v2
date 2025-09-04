@@ -31,10 +31,12 @@ public class DownloadObjectHelper {
 
     private final S3AsyncClient s3AsyncClient;
     private final long bufferSizeInBytes;
+    private final long maxInFlight;
 
-    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes) {
+    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes, int maxInFlight) {
         this.s3AsyncClient = s3AsyncClient;
         this.bufferSizeInBytes = bufferSizeInBytes;
+        this.maxInFlight = maxInFlight;
     }
 
     public <T> CompletableFuture<T> downloadObject(
@@ -51,17 +53,17 @@ public class DownloadObjectHelper {
             return downloadPartsSerially(getObjectRequest, split);
         }
 
-        log.info(() -> "================= USING downloadPartsNonLinear ==================");
-        return downloadPartsNonSerially(getObjectRequest, split);
+        return downloadPartsNonSerially(getObjectRequest, split, maxInFlight);
 
     }
 
     private <T> CompletableFuture<T> downloadPartsNonSerially(
         GetObjectRequest getObjectRequest,
-        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split,
+        int maxInFlight) {
         // TODO pause & resume
         NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
-            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture());
+            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture(), maxInFlight);
         split.publisher().subscribe(subscriber);
         return split.resultFuture();
     }
