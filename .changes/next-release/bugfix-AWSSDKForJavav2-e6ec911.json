@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK For Java v2",
+    "contributor": "",
+    "description": "Set default value for credentialProvider archetype parameter."
+}
