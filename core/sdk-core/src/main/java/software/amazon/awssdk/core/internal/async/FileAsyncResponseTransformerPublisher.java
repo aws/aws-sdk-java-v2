@@ -65,7 +65,12 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
         this.subscriber = s;
         s.onSubscribe(new ThreadSafeEmittingSubscription<>(
-            s, new AtomicLong(0), () -> {}, new AtomicBoolean(), log, this::createTransformer));
+            s,
+            new AtomicLong(0),
+            () -> log.info(() -> "received onCancel (do nothing)"),
+            new AtomicBoolean(),
+            log,
+            this::createTransformer));
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {

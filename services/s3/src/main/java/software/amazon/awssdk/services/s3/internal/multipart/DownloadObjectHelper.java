@@ -62,10 +62,11 @@ public class DownloadObjectHelper {
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split,
         int maxInFlight) {
         // TODO pause & resume
+        CompletableFuture<T> returnFuture = split.resultFuture();
         NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
-            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture(), maxInFlight);
+            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) returnFuture, maxInFlight);
         split.publisher().subscribe(subscriber);
-        return split.resultFuture();
+        return returnFuture;
     }
 
     private <T> CompletableFuture<T> downloadPartsSerially(GetObjectRequest getObjectRequest,

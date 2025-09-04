@@ -37,8 +37,10 @@ import software.amazon.awssdk.utils.Logger;
 public class NonLinearMultipartDownloaderSubscriber
     implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private static final Logger log = Logger.loggerFor(NonLinearMultipartDownloaderSubscriber.class);
-    // private static final int MAX_IN_FLIGHT = 50;
 
+    /**
+     * Maximum number of concurrent GetObject requests
+     */
     private final int maxInFlight;
 
     /**
@@ -148,10 +150,11 @@ public class NonLinearMultipartDownloaderSubscriber
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         // todo change to trace log
-        log.info(() -> "Total in flight parts: " + inFlightRequests.size()
-                       + ". Total completed parts: " + completedParts + ". Transformers requested: "
-                       + transformersRequested.get() + ". Total pending transformers: "
-                       + pendingTransformers.size() + ". Current in flight requests: " + inFlightRequests);
+        log.info(() -> "\nTotal in flight parts: " + inFlightRequests.size()
+                       + "\nTotal completed parts: " + completedParts
+                       + "\nTransformers requested: " + transformersRequested.get()
+                       + "\nTotal pending transformers: " + pendingTransformers.size()
+                       + "\nCurrent in flight requests: " + inFlightRequests.keySet());
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
@@ -216,8 +219,7 @@ public class NonLinearMultipartDownloaderSubscriber
         inFlightRequests.put(partToGet, response);
 
         response.whenComplete((res, e) -> {
-            // Defensive: ensure we only process completion once
-            CompletableFuture<GetObjectResponse> removed = inFlightRequests.remove(partToGet);
+            inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
             if (e != null) {
@@ -231,8 +233,12 @@ public class NonLinearMultipartDownloaderSubscriber
             if (completedParts.get() == totalParts) {
                 // todo remove log
                 log.info(() -> "================= ALL PARTS COMPLETED ==================");
+                log.info(() -> "remaining in flight (should be empty): " + inFlightRequests.keySet().toString());
+                log.info(() -> "calling cancel");
                 subscription.cancel();
+                log.info(() -> "completing future");
                 resultFuture.complete(getObjectResponse);
+                log.info(() -> "all done in NonLinearMultipartDownloaderSubscriber");
             } else {
                 processPendingTransformers();
                 requestMoreIfNeeded();
@@ -251,8 +257,7 @@ public class NonLinearMultipartDownloaderSubscriber
         CompletableFutureUtils.forwardExceptionTo(resultFuture, responseFuture);
 
         responseFuture.whenComplete((res, e) -> {
-            // Defensive: ensure we only process completion once
-            CompletableFuture<GetObjectResponse> removed = inFlightRequests.remove(1);
+           inFlightRequests.remove(1);
 
             completedParts.incrementAndGet();
             if (e != null) {
