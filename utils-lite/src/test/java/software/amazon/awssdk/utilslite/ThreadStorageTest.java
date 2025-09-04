@@ -17,7 +17,6 @@ package software.amazon.awssdk.utilslite;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

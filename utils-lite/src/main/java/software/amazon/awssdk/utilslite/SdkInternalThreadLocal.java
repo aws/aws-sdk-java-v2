@@ -13,16 +13,16 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.utilslite.internal;
+package software.amazon.awssdk.utilslite;
 
 import java.util.HashMap;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Utility for thread-local context storage.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class SdkInternalThreadLocal {
     private static final ThreadLocal<Map<String, String>> STORAGE = ThreadLocal.withInitial(HashMap::new);
 

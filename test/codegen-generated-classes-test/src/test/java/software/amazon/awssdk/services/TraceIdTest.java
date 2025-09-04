@@ -35,7 +35,7 @@ import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
-import software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal;
+import software.amazon.awssdk.utilslite.SdkInternalThreadLocal;
 
 /**
  * Verifies that the {@link TraceIdExecutionInterceptor} is actually wired up for AWS services.
@@ -69,7 +69,7 @@ public class TraceIdTest {
     public void traceIdInterceptorPreservesTraceIdAcrossRetries() {
         EnvironmentVariableHelper.run(env -> {
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
 
             try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
                  ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
@@ -110,7 +110,7 @@ public class TraceIdTest {
     public void traceIdInterceptorPreservesTraceIdAcrossChainedFutures() {
         EnvironmentVariableHelper.run(env -> {
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
 
             try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
                  ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
@@ -144,7 +144,7 @@ public class TraceIdTest {
                 assertThat(requests.get(1).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
 
             } finally {
-                software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.clear();
+                SdkInternalThreadLocal.clear();
             }
         });
     }
@@ -153,7 +153,7 @@ public class TraceIdTest {
     public void traceIdInterceptorPreservesTraceIdAcrossExceptionallyCompletedFutures() {
         EnvironmentVariableHelper.run(env -> {
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
 
             try (MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
                  ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
@@ -187,7 +187,7 @@ public class TraceIdTest {
                 assertThat(requests.get(1).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
 
             } finally {
-                software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.clear();
+                SdkInternalThreadLocal.clear();
             }
         });
     }
@@ -196,7 +196,7 @@ public class TraceIdTest {
     public void traceIdInterceptorPreservesTraceIdAcrossExceptionallyCompletedFuturesThrownInPreExecution() {
         EnvironmentVariableHelper.run(env -> {
             env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-            software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
 
             ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
                 private boolean hasThrown = false;
@@ -237,7 +237,7 @@ public class TraceIdTest {
                 assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
 
             } finally {
-                software.amazon.awssdk.utilslite.internal.SdkInternalThreadLocal.clear();
+                SdkInternalThreadLocal.clear();
             }
         });
     }
