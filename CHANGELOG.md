@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.3__ __2025-09-04__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Add support for configurable compute sizes for PySpark jobs.
+
+## __AWS CloudFormation__
+  - ### Features
+    - ListHookResults API now supports retrieving invocation results for all CloudFormation Hooks (previously limited to create change set and Cloud Control operations) with new optional parameters for filtering by Hook status and ARN.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add m8i, m8i-flex and i8ge instance types.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added new EndpointNetworkType and TargetConnectionNetworkType fields in Proxy APIs to support IPv6
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for datetime and duration attribute values.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Add support for Federal Information Processing Standards (FIPS) and Federal Risk and Authorization Management Program (FedRAMP) compliance
+
 # __2.33.2__ __2025-09-03__
 ## __AWS Clean Rooms ML__
   - ### Features
