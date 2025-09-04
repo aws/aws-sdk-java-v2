@@ -31,7 +31,7 @@ public class DownloadObjectHelper {
 
     private final S3AsyncClient s3AsyncClient;
     private final long bufferSizeInBytes;
-    private final long maxInFlight;
+    private final int maxInFlight;
 
     public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes, int maxInFlight) {
         this.s3AsyncClient = s3AsyncClient;

@@ -29,6 +29,8 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -72,9 +74,9 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         fileSystem.close();
     }
 
-    @Test
-    void happyPath_multipartDownload() throws Exception {
-        int numParts = 4;
+    @ParameterizedTest
+    @ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10})
+    void happyPath_multipartDownload(int numParts) throws Exception {
         int partSize = 1024;
         byte[] expectedBody = util.stubAllParts(testBucket, testKey, numParts, partSize);
 
@@ -85,13 +87,14 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
                                              .build());
 
         CompletableFuture<GetObjectResponse> resultFuture = new CompletableFuture<>();
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new NonLinearMultipartDownloaderSubscriber(s3AsyncClient,
-                                                      GetObjectRequest.builder()
-                                                                      .bucket(testBucket)
-                                                                      .key(testKey)
-                                                                      .build(),
-                                                      resultFuture);
+                                                       GetObjectRequest.builder()
+                                                                       .bucket(testBucket)
+                                                                       .key(testKey)
+                                                                       .build(),
+                                                       resultFuture,
+                                                       50);
 
         split.publisher().subscribe(subscriber);
         GetObjectResponse getObjectResponse = resultFuture.join();
@@ -115,13 +118,14 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
                                              .build());
 
         CompletableFuture<GetObjectResponse> resultFuture = new CompletableFuture<>();
-        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber = 
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
             new NonLinearMultipartDownloaderSubscriber(s3AsyncClient,
-                                                      GetObjectRequest.builder()
-                                                                      .bucket(testBucket)
-                                                                      .key(testKey)
-                                                                      .build(),
-                                                      resultFuture);
+                                                       GetObjectRequest.builder()
+                                                                       .bucket(testBucket)
+                                                                       .key(testKey)
+                                                                       .build(),
+                                                       resultFuture,
+                                                       50);
 
         split.publisher().subscribe(subscriber);
         GetObjectResponse getObjectResponse = resultFuture.join();
