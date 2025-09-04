@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Added new EndpointNetworkType and TargetConnectionNetworkType fields in Proxy APIs to support IPv6"
+}
