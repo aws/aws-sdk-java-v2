@@ -101,6 +101,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils-lite</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>retries-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
