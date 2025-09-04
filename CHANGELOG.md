@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.2__ __2025-09-03__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - AWS Clean Rooms ML adds log sanitization for privacy-enhanced error summaries, supports new instance types for custom models providing better performance and lower costs, and deprecates P3-series instances.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Added support for adding new data provider members to an existing collaboration.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adding an optional field IpAddressType in CustomOriginConfig
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for MasterUserAuthenticationType parameter on CreateDBInstance, ModifyDBInstance, CreateDBCluster, and ModifyDBCluster operations.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (New Zealand) Region (ap-southeast-6) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Added new ExtraParams AU_ELIGIBILITY_TYPE, AU_POLICY_REASON, and AU_REGISTRANT_NAME
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for automatic language identification in AWS Transcribe Call Analytics
+
+## __AmazonMQ__
+  - ### Features
+    - Add CONFIG_MANAGED as a supported AuthenticationStrategy for Amazon MQ for RabbitMQ brokers. Make username and password optional on broker creation for CONFIG_MANAGED brokers.
+
+# __2.33.1__ __2025-09-02__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS User Notifications__
+  - ### Features
+    - Added Org support for notifications: - `ListMemberAccounts` gets member accounts list, `AssociateOrganizationalUnit` links OU to notification configuration, `DisassociateOrganizationalUnit` removes OU from notification configuration, `ListOrganizationalUnits` shows OUs configured for notifications.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - MaximumEbsAttachments and AttachmentLimitType fields added to DescribeInstanceTypesResponse. G6f, Gr6f, R8i, R8i-flex and p5.4xlarge instance types added to InstanceTypes enum.
+
+## __Amazon Neptune__
+  - ### Features
+    - Removed the deprecated marker from publiclyAccessible parameter from DbInstance, CreateDbInstance and ModifyDbInstance and added relevant usage information for the parameter.
+
+## __Amazon WorkMail__
+  - ### Features
+    - Make RoleArn an optional parameter for the PutEmailMonitoringConfiguration API, and add UnsupportedOperationException to RegisterToWorkMail.
+
 # __2.33.0__ __2025-08-29__
 ## __AWS SDK for Java v2__
   - ### Features
