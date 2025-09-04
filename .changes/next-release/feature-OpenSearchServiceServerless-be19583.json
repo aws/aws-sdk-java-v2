@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "OpenSearch Service Serverless",
+    "contributor": "",
+    "description": "Add support for Federal Information Processing Standards (FIPS) and Federal Risk and Authorization Management Program (FedRAMP) compliance"
+}
