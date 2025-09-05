@@ -65,7 +65,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConve
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -100,7 +99,7 @@ import software.amazon.awssdk.utils.StringUtils;
  *     public Instant getCreatedDate() { return this.createdDate; }
  *     public void setCreatedDate(Instant createdDate) { this.createdDate = createdDate; }
  * }
- *
+ * </code>
  * </pre>
  *
  * Creating an {@link BeanTableSchema} is a moderately expensive operation, and should be performed sparingly. This is
@@ -167,39 +166,21 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                                                                           new MetaTableSchemaCache()));
     }
 
-    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache) {
+    static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache) {
         Class<T> beanClass = params.beanClass();
         debugLog(beanClass, () -> "Creating bean schema");
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
         MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(beanClass);
 
-        BeanTableSchema<T> newTableSchema =
-            new BeanTableSchema<>(createStaticTableSchema(params.beanClass(), params.lookup(), metaTableSchemaCache));
+        BeanTableSchema<T> newTableSchema = createWithoutUsingCache(beanClass, params.lookup(), metaTableSchemaCache);
         metaTableSchema.initialize(newTableSchema);
         return newTableSchema;
     }
 
-    // Called when creating an immutable TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
-    // recursion
-    static <T> TableSchema<T> recursiveCreate(Class<T> beanClass, MethodHandles.Lookup lookup,
-                                              MetaTableSchemaCache metaTableSchemaCache) {
-        Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(beanClass);
-
-        // If we get a cache hit...
-        if (metaTableSchema.isPresent()) {
-            // Either: use the cached concrete TableSchema if we have one
-            if (metaTableSchema.get().isInitialized()) {
-                return metaTableSchema.get().concreteTableSchema();
-            }
-
-            // Or: return the uninitialized MetaTableSchema as this must be a recursive reference and it will be
-            // initialized later as the chain completes
-            return metaTableSchema.get();
-        }
-
-        // Otherwise: cache doesn't know about this class; create a new one from scratch
-        return create(BeanTableSchemaParams.builder(beanClass).lookup(lookup).build());
-
+    static <T> BeanTableSchema<T> createWithoutUsingCache(Class<T> beanClass,
+                                                          MethodHandles.Lookup lookup,
+                                                          MetaTableSchemaCache metaTableSchemaCache) {
+        return new BeanTableSchema<>(createStaticTableSchema(beanClass, lookup, metaTableSchemaCache));
     }
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass,
@@ -363,22 +344,15 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             clazz = (Class<?>) type;
         }
 
-        if (clazz != null) {
+        if (clazz != null && TableSchemaFactory.isDynamoDbAnnotatedClass(clazz)) {
             Consumer<EnhancedTypeDocumentConfiguration.Builder> attrConfiguration =
                 b -> b.preserveEmptyObject(attributeConfiguration.preserveEmptyObject())
                       .ignoreNulls(attributeConfiguration.ignoreNulls());
 
-            if (clazz.getAnnotation(DynamoDbImmutable.class) != null) {
-                return EnhancedType.documentOf(
-                    (Class<Object>) clazz,
-                    (TableSchema<Object>) ImmutableTableSchema.recursiveCreate(clazz, lookup, metaTableSchemaCache),
-                    attrConfiguration);
-            } else if (clazz.getAnnotation(DynamoDbBean.class) != null) {
-                return EnhancedType.documentOf(
-                    (Class<Object>) clazz,
-                    (TableSchema<Object>) BeanTableSchema.recursiveCreate(clazz, lookup, metaTableSchemaCache),
-                    attrConfiguration);
-            }
+            return EnhancedType.documentOf(
+                (Class<Object>) clazz,
+                (TableSchema<Object>) TableSchemaFactory.fromClass(clazz, lookup, metaTableSchemaCache),
+                attrConfiguration);
         }
 
         return EnhancedType.of(type);
