@@ -1,4 +1,66 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.3__ __2025-09-04__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Add support for configurable compute sizes for PySpark jobs.
+
+## __AWS CloudFormation__
+  - ### Features
+    - ListHookResults API now supports retrieving invocation results for all CloudFormation Hooks (previously limited to create change set and Cloud Control operations) with new optional parameters for filtering by Hook status and ARN.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add m8i, m8i-flex and i8ge instance types.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Added new EndpointNetworkType and TargetConnectionNetworkType fields in Proxy APIs to support IPv6
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for datetime and duration attribute values.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Add support for Federal Information Processing Standards (FIPS) and Federal Risk and Authorization Management Program (FedRAMP) compliance
+
+# __2.33.2__ __2025-09-03__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - AWS Clean Rooms ML adds log sanitization for privacy-enhanced error summaries, supports new instance types for custom models providing better performance and lower costs, and deprecates P3-series instances.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Added support for adding new data provider members to an existing collaboration.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Adding an optional field IpAddressType in CustomOriginConfig
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - This release adds support for MasterUserAuthenticationType parameter on CreateDBInstance, ModifyDBInstance, CreateDBCluster, and ModifyDBCluster operations.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the Asia Pacific (New Zealand) Region (ap-southeast-6) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Added new ExtraParams AU_ELIGIBILITY_TYPE, AU_POLICY_REASON, and AU_REGISTRANT_NAME
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - This release adds support for automatic language identification in AWS Transcribe Call Analytics
+
+## __AmazonMQ__
+  - ### Features
+    - Add CONFIG_MANAGED as a supported AuthenticationStrategy for Amazon MQ for RabbitMQ brokers. Make username and password optional on broker creation for CONFIG_MANAGED brokers.
+
 # __2.33.1__ __2025-09-02__
 ## __AWS SDK for Java v2__
   - ### Features
