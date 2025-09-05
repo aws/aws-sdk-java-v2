@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * An enum class representing a short form of identity providers to record in the UA string.
  *
- * Unimplemented metrics: I,J,K,M,O,S,U-c,e-[latest]
+ * Unimplemented metrics: I,M,O,S,U-c,e-[latest]
  * Unsupported metrics (these will never be added): A,H
  */
 @SdkProtectedApi
@@ -34,6 +34,8 @@ public enum BusinessMetricFeatureId {
     RETRY_MODE_STANDARD("E"),
     RETRY_MODE_ADAPTIVE("F"),
     S3_TRANSFER("G"),
+    S3_EXPRESS_BUCKET("J"),
+    S3_ACCESS_GRANTS("K"),
     GZIP_REQUEST_COMPRESSION("L"), //TODO(metrics): Not working, compression happens after header
     ENDPOINT_OVERRIDE("N"),
     ACCOUNT_ID_MODE_PREFERRED("P"),
@@ -42,6 +44,7 @@ public enum BusinessMetricFeatureId {
     RESOLVED_ACCOUNT_ID("T"),
     DDB_MAPPER("d"),
     BEARER_SERVICE_ENV_VARS("3"),
+    CREDENTIALS_IMDS("0"),
     UNKNOWN("Unknown");
 
     private static final Map<String, BusinessMetricFeatureId> VALUE_MAP =
