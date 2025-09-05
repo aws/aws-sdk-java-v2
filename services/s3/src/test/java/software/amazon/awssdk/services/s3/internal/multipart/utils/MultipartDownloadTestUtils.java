@@ -66,6 +66,7 @@ public class MultipartDownloadTestUtils {
             aResponse()
                 .withHeader("x-amz-mp-parts-count", totalPart + "")
                 .withHeader("ETag", eTag)
+                .withHeader("Content-Length", String.valueOf(body.length))
                 .withBody(body)));
         return body;
     }
