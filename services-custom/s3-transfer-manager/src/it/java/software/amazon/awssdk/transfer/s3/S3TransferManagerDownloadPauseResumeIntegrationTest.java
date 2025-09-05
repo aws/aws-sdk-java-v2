@@ -31,6 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -149,8 +150,13 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         log.debug(() -> "Paused: " + resumableFileDownload);
         assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
         assertThat(testDownloadListener.getObjectResponse).isNotNull();
+
+        // Skip the test if everything has been downloaded.
+        Assumptions.assumeTrue(resumableFileDownload.bytesTransferred() < sourceFile.length());
+
         assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
-        assertThat(bytesTransferred).isEqualTo(path.toFile().length());
+        // Request may not be cancelled right away when pause is invoked, so there may be more bytes written to the file
+        assertThat(bytesTransferred).isLessThanOrEqualTo(path.toFile().length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
         assertThat(bytesTransferred).isLessThanOrEqualTo(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
