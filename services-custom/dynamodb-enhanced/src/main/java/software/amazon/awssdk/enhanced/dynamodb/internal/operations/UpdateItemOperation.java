@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
@@ -156,6 +157,8 @@ public class UpdateItemOperation<T>
         if (CollectionUtils.isNotEmpty(expressionValues)) {
             requestBuilder = requestBuilder.expressionAttributeValues(expressionValues);
         }
+
+        applyOverrideConfiguration(requestBuilder, request);
 
         return requestBuilder.build();
     }
@@ -353,5 +356,20 @@ public class UpdateItemOperation<T>
             expressionValues = Expression.joinValues(expressionValues, secondExpression.expressionValues());
         }
         return expressionValues;
+    }
+
+    private UpdateItemRequest.Builder applyOverrideConfiguration(UpdateItemRequest.Builder requestBuilder,
+                                                                 Either<UpdateItemEnhancedRequest<T>,
+                                                                     TransactUpdateItemEnhancedRequest<T>> req) {
+        AwsRequestOverrideConfiguration overrideConfiguration = null;
+        if (req.left().isPresent()) {
+            overrideConfiguration = req.left().get().overrideConfiguration();
+        } else if (req.right().isPresent()) {
+            overrideConfiguration = req.right().get().overrideConfiguration();
+        }
+        if (overrideConfiguration != null) {
+            requestBuilder.overrideConfiguration(overrideConfiguration);
+        }
+        return requestBuilder;
     }
 }
