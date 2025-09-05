@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Documentation-only update to add AccountingStorageEnforce to SlurmCustomSetting."
+}
