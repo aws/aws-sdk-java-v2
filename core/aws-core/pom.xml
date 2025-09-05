@@ -113,6 +113,10 @@
             <groupId>software.amazon.eventstream</groupId>
             <artifactId>eventstream</artifactId>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils-lite</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
