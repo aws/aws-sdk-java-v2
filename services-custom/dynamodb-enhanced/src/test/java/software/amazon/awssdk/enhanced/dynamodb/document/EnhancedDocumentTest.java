@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -302,6 +303,32 @@ class EnhancedDocumentTest {
             enhancedDocument.toBuilder().attributeConverterProviders(CustomAttributeForDocumentConverterProvider.create(),
                                                                      defaultProvider()).build();
         assertThat(docWithCustomProvider.get("customMapValue", EnhancedType.of(CustomClassForDocumentAPI.class))).isNotNull();
+    }
+
+    @Test
+    void listUsed_missingTypeParameter_throwsIllegalStateException() {
+        EnhancedDocument enhancedDocument = EnhancedDocument.builder()
+                                                            .attributeConverterProviders(defaultProvider())
+                                                            .put("list", Collections.singletonList(new Object()),
+                                                                 EnhancedType.of(List.class))
+                                                            .build();
+
+        assertThatIllegalStateException().isThrownBy(
+            () -> enhancedDocument.toJson()
+        ).withMessage("Type parameter is missing for EnhancedType(java.util.List)");
+    }
+
+    @Test
+    void mapUsed_missingTypeParameters_throwsIllegalStateException() {
+        EnhancedDocument enhancedDocument = EnhancedDocument.builder()
+                                                            .attributeConverterProviders(defaultProvider())
+                                                            .put("map", Collections.singletonMap("key1", new Object()),
+                                                                 EnhancedType.of(Map.class))
+                                                            .build();
+
+        assertThatIllegalStateException().isThrownBy(
+            () -> enhancedDocument.toJson()
+        ).withMessage("Type parameters are missing for EnhancedType(java.util.Map)");
     }
 
     @Test
