@@ -21,6 +21,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
@@ -56,5 +58,19 @@ public final class S3ExpressUtils {
             return S3ExpressAuthScheme.SCHEME_ID.equals(authSchemeOption.schemeId());
         }
         return false;
+    }
+
+    /**
+     * Adds S3 Express business metric if applicable for the current operation.
+     */
+    public static void addS3ExpressBusinessMetricIfApplicable(ExecutionAttributes executionAttributes) {
+        if (useS3Express(executionAttributes) && useS3ExpressAuthScheme(executionAttributes)) {
+            BusinessMetricCollection businessMetrics = 
+                executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+            
+            if (businessMetrics != null) {
+                businessMetrics.addMetric(BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value());
+            }
+        }
     }
 }

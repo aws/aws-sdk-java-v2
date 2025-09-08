@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Implemented business metrics tracking for S3_Express_Bucket (featureID \"J\") through User-Agent header."
+}
