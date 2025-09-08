@@ -72,8 +72,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     private final int chunkSizeInBytes;
     private final long position;
     private final long numBytesToRead;
-    private final FileTime modifiedTimeAtStart;
-    private final long sizeAtStart;
+    private FileTime modifiedTimeAtStart;
+    private Long sizeAtStart;
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
@@ -82,22 +82,25 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         this.position = builder.position == null ? 0 : Validate.isNotNegative(builder.position, "position");
         this.numBytesToRead = builder.numBytesToRead == null ? fileLength - this.position :
                               Validate.isNotNegative(builder.numBytesToRead, "numBytesToRead");
-        try {
-            if (builder.modifiedTimeAtStart != null) {
-                this.modifiedTimeAtStart = builder.modifiedTimeAtStart;
-            } else {
+        if (builder.modifiedTimeAtStart != null) {
+            this.modifiedTimeAtStart = builder.modifiedTimeAtStart;
+        } else {
+            try {
                 this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
+            } catch (IOException e) {
+                this.modifiedTimeAtStart = null;
             }
-
-            if (builder.sizeAtStart != null) {
-                this.sizeAtStart = builder.sizeAtStart;
-            } else {
-                this.sizeAtStart = Files.size(path);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
 
+        if (builder.sizeAtStart != null) {
+            this.sizeAtStart = builder.sizeAtStart;
+        } else {
+            try {
+                this.sizeAtStart = Files.size(path);
+            } catch (IOException e) {
+                this.sizeAtStart = null;
+            }
+        }
     }
 
     @Override
@@ -135,7 +138,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         return modifiedTimeAtStart;
     }
 
-    public long sizeAtStart() {
+    public Long sizeAtStart() {
         return sizeAtStart;
     }
 
@@ -323,13 +326,22 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
         private FileSubscription(AsynchronousFileChannel inputChannel,
                                  Subscriber<? super ByteBuffer> subscriber,
-                                 FileTime modifiedTimeAtStart, long sizeAtStart) throws IOException {
+                                 FileTime modifiedTimeAtStart, Long sizeAtStart) throws IOException {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
-            this.sizeAtStart = sizeAtStart;
-            this.modifiedTimeAtStart = modifiedTimeAtStart;
             this.remainingBytes = new AtomicLong(numBytesToRead);
             this.currentPosition = new AtomicLong(position);
+            if (sizeAtStart != null) {
+                this.sizeAtStart = sizeAtStart;
+            } else {
+                this.sizeAtStart = Files.size(path);
+            }
+
+            if (modifiedTimeAtStart != null) {
+                this.modifiedTimeAtStart = modifiedTimeAtStart;
+            } else {
+                this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
+            }
         }
 
         @Override
