@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLO
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.function.Consumer;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
@@ -45,6 +46,10 @@ public final class TestUtils {
     private TestUtils() {
     }
 
+    public static byte[] testPayload() {
+        return "Hello world".getBytes(StandardCharsets.UTF_8);
+    }
+
     // Helpers for generating test requests
     public static <T extends AwsCredentialsIdentity> SignRequest<T> generateBasicRequest(
         T credentials,
@@ -60,7 +65,7 @@ public final class TestUtils {
                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                          .payload(() -> new ByteArrayInputStream("Hello world".getBytes()))
+                          .payload(() -> new ByteArrayInputStream(testPayload()))
                           .putProperty(REGION_SET, RegionSet.create("aws-global"))
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
