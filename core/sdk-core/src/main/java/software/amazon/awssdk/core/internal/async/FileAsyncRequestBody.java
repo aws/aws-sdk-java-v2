@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
@@ -469,31 +470,30 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 long sizeAtEnd = Files.size(path);
                 if (sizeAtStart != sizeAtEnd) {
-                    signalOnError(new RuntimeException("File size changed after reading started. Initial size: "
-                                                       + sizeAtStart + ". Current size: " + sizeAtEnd));
+                    signalOnError(SdkClientException.create("File size changed after reading started. Initial size: "
+                                                         + sizeAtStart + ". Current size: " + sizeAtEnd));
                     return false;
                 }
 
                 if (remainingBytes.get() > 0) {
-                    signalOnError(new RuntimeException("Fewer bytes were read than were expected, was the file modified after "
-                                                  + "reading started?"));
+                    signalOnError(SdkClientException.create("Fewer bytes were read than were expected, was the file modified "
+                                                           + "after reading started?"));
                     return false;
                 }
 
                 FileTime modifiedTimeAtEnd = Files.getLastModifiedTime(path);
                 if (modifiedTimeAtStart.compareTo(modifiedTimeAtEnd) != 0) {
-                    signalOnError(
-                        new RuntimeException("File last-modified time changed after reading started. Initial modification "
-                                             + "time: " + modifiedTimeAtStart + ". Current modification time: " +
-                                             modifiedTimeAtEnd));
+                    signalOnError(SdkClientException.create("File last-modified time changed after reading started. "
+                                                            + "Initial modification time: " + modifiedTimeAtStart
+                                                            + ". Current modification time: " + modifiedTimeAtEnd));
                     return false;
                 }
             } catch (NoSuchFileException e) {
-                signalOnError(new IOException("Unable to check file status after read. Was the file deleted or were its "
-                                              + "permissions changed?", e));
+                signalOnError(SdkClientException.create("Unable to check file status after read. Was the file deleted"
+                                                        + " or were its permissions changed?", e));
                 return false;
             } catch (IOException e) {
-                signalOnError(new IOException("Unable to check file status after read.", e));
+                signalOnError(SdkClientException.create("Unable to check file status after read.", e));
                 return false;
             }
             return true;

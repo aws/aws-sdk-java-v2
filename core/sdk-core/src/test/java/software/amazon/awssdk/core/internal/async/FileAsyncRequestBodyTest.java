@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -128,7 +129,7 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -154,7 +155,7 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -180,7 +181,7 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -204,7 +205,7 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
@@ -227,7 +228,7 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class);
     }
 
     @Test
