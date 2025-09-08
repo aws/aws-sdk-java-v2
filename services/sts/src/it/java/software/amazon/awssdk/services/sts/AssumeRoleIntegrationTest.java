@@ -109,7 +109,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
             Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
                                                   .assumeRolePolicyDocument(rolePolicyDoc)))
                   .ignoringException(MalformedPolicyDocumentException.class)
-                  .orFailAfter(Duration.ofMinutes(2));
+                  .orFailAfter(Duration.ofMinutes(4));
         } catch (EntityAlreadyExistsException e) {
             // Role already exists - awesome.
         }
@@ -129,11 +129,17 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         StsClient userCredentialSts = StsClient.builder()
                                                .credentialsProvider(() -> userCredentials)
                                                .build();
+
+        // Ensure the new credentials have propagated and are valid.
+        Waiter.run(userCredentialSts::getCallerIdentity)
+              .ignoringException(StsException.class)
+              .orFailAfter(Duration.ofMinutes(2));
+
         Waiter.run(() -> userCredentialSts.assumeRole(r -> r.durationSeconds(SESSION_DURATION)
                                                             .roleArn(ROLE_ARN)
                                                             .roleSessionName("Test")))
               .ignoringException(StsException.class)
-              .orFailAfter(Duration.ofMinutes(5));
+              .orFailAfter(Duration.ofMinutes(8));
     }
 
     @AfterClass
