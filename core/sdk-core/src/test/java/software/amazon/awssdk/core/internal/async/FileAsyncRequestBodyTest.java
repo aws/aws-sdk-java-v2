@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
@@ -30,6 +31,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
@@ -205,6 +208,57 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void preset_modifiedTime_failsBecauseUpdatedModificationTime() throws Exception {
+        FileTime initialModifiedTime = Files.getLastModifiedTime(testFile);
+        // Change the file to be updated
+        Thread.sleep(1_000); // Wait for 1 second so that we are definitely in a different second than when the file was created
+        Files.setLastModifiedTime(testFile, FileTime.from(Instant.now()));
+
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(testFile)
+                                                                .modifiedTimeAtStart(initialModifiedTime)
+                                                                .build();
+        ControllableSubscriber subscriber = new ControllableSubscriber();
+
+        // Start reading file
+        asyncRequestBody.subscribe(subscriber);
+        subscriber.sub.request(Long.MAX_VALUE);
+
+        assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class);
+    }
+
+    @Test
+    public void split_changingFile_fileGetsTouched_failsBecauseUpdatedModificationTime() throws Exception {
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(testFile)
+                                                                .build();
+        List<AsyncRequestBody> splits = new ArrayList<>();
+        asyncRequestBody.splitCloseable(s -> s.chunkSizeInBytes(8 * MiB)).subscribe(splits::add);
+        assertEquals(2, splits.size());
+
+        ControllableSubscriber subscriber1 = new ControllableSubscriber();
+
+        // read the first chunk fully
+        splits.get(0).subscribe(subscriber1);
+        subscriber1.sub.request(Long.MAX_VALUE);
+        assertTrue(subscriber1.onNextSemaphore.tryAcquire(5, TimeUnit.SECONDS));
+
+        // Change the file to be updated
+        Thread.sleep(1_000); // Wait for 1 second so that we are definitely in a different second than when the file was created
+        Files.setLastModifiedTime(testFile, FileTime.from(Instant.now()));
+
+
+        // read the second chunk which should now detect the file modification
+        ControllableSubscriber subscriber2 = new ControllableSubscriber();
+        splits.get(1).subscribe(subscriber2);
+        subscriber2.sub.request(Long.MAX_VALUE);
+
+        assertThatThrownBy(() -> subscriber2.completed.get(5, TimeUnit.SECONDS))
             .hasCauseInstanceOf(SdkClientException.class);
     }
 
