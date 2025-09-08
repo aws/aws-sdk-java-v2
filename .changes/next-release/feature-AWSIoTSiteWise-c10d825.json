@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT SiteWise",
-    "contributor": "",
-    "description": "Add ComputationModelVersion support in IoT SiteWise APIs"
-}

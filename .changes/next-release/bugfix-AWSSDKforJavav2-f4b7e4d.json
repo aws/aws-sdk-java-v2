@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "brandondahler",
-    "description": "X-Forwarded-For headers will no longer be signed during SigV4 authentication"
-}
