@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.5__ __2025-09-08__
+## __AWS IoT SiteWise__
+  - ### Features
+    - Add ComputationModelVersion support in IoT SiteWise APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - X-Forwarded-For headers will no longer be signed during SigV4 authentication
+        - Contributed by: [@brandondahler](https://github.com/brandondahler)
+
+## __AWS SecurityHub__
+  - ### Features
+    - This release adds the RESOURCE_NOT_FOUND error code as a possible value in responses to the following operations: BatchGetStandardsControlAssociations, BatchUpdateStandardsControlAssociations, and BatchGetSecurityControls.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release includes backward compatibility work on the "Expires" parameter.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@brandondahler](https://github.com/brandondahler)
 # __2.33.4__ __2025-09-05__
 ## __AWS Parallel Computing Service__
   - ### Features
