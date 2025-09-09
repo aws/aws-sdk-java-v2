@@ -204,4 +204,15 @@ public final class EnhancedClientUtils {
     public static boolean isNullAttributeValue(AttributeValue attributeValue) {
         return attributeValue.nul() != null && attributeValue.nul();
     }
+
+    /**
+     * Retrieves the {@link TableSchema} for a nested attribute within the given parent schema.
+     *
+     * @param parentSchema  the schema of the parent bean class
+     * @param attributeName the name of the nested attribute
+     * @return an {@link Optional} containing the nested attribute's {@link TableSchema}, or empty if unavailable
+     */
+    public static Optional<? extends TableSchema<?>> getNestedSchema(TableSchema<?> parentSchema, String attributeName) {
+        return parentSchema.converterForAttribute(attributeName).type().tableSchema();
+    }
 }
