@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage v2",
-    "contributor": "",
-    "description": "Added CUE tag SCTE output to MediaPackageV2 HLS and LL-HLS manifests."
-}
