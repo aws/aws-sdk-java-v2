@@ -63,14 +63,13 @@ public final class S3ExpressUtils {
     /**
      * Adds S3 Express business metric if applicable for the current operation.
      */
-    public static void addS3ExpressBusinessMetricIfApplicable(ExecutionAttributes executionAttributes) {
-        if (useS3Express(executionAttributes) && useS3ExpressAuthScheme(executionAttributes)) {
-            BusinessMetricCollection businessMetrics = 
-                executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
-            
-            if (businessMetrics != null) {
-                businessMetrics.addMetric(BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value());
+    public static void addS3ExpressBusinessMetricIfApplicable(ExecutionAttributes executionAttributes){
+        if(executionAttributes != null && useS3Express(executionAttributes) && useS3ExpressAuthScheme(executionAttributes)){
+                executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS)
+                                   .ifPresent(businessMetrics ->
+                                              businessMetrics.addMetric(BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value())
+                                   );
             }
-        }
+
     }
 }

@@ -17,20 +17,13 @@ package software.amazon.awssdk.services.s3.s3express;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -51,8 +44,10 @@ public class S3ExpressUserAgentTest {
     private static final String CONTENTS = "test content for feature id validation";
     private static final String S3_EXPRESS_BUCKET = "my-test-bucket--use1-az4--x-s3";
     private static final String REGULAR_BUCKET = "my-test-bucket-regular";
+
+    public static final UnaryOperator<String> METRIC_SEARCH_PATTERN = 
+        metric -> ".*m/[a-zA-Z0-9+-,]*" + metric + ".*";
     
-    private final UserAgentCapturingInterceptor userAgentInterceptor = new UserAgentCapturingInterceptor();
     private MockSyncHttpClient mockHttpClient;
     private S3Client s3Client;
 
@@ -101,10 +96,7 @@ public class S3ExpressUserAgentTest {
                 .region(Region.US_EAST_1)
                 .credentialsProvider(AnonymousCredentialsProvider.create())
                 .httpClient(mockHttpClient)
-                .overrideConfiguration(o -> o.addExecutionInterceptor(userAgentInterceptor))
                 .build();
-        
-        userAgentInterceptor.reset();
     }
 
     @Test
@@ -116,18 +108,13 @@ public class S3ExpressUserAgentTest {
 
         s3Client.putObject(putRequest, RequestBody.fromString(CONTENTS));
 
-        List<String> capturedUserAgents = userAgentInterceptor.getCapturedUserAgents();
-        assertThat(capturedUserAgents).hasSize(2); // CreateSession + PutObject calls
-        
-        // The second User-Agent is from the actual PutObject call
-        String userAgent = capturedUserAgents.get(1);
-        assertThat(userAgent).isNotNull();
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-        String expectedFeatureId = BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value();
-        String businessMetrics = extractBusinessMetrics(userAgent);
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
 
-        assertThat(businessMetrics).contains(expectedFeatureId);
-        assertThat(userAgent).contains(" m/" + businessMetrics);
+        assertThat(userAgentHeaders.get(0)).matches(METRIC_SEARCH_PATTERN.apply("J"));
     }
 
     @Test
@@ -139,18 +126,13 @@ public class S3ExpressUserAgentTest {
 
         s3Client.getObject(getRequest, ResponseTransformer.toBytes());
 
-        List<String> capturedUserAgents = userAgentInterceptor.getCapturedUserAgents();
-        assertThat(capturedUserAgents).hasSize(2);
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-        String userAgent = capturedUserAgents.get(1);
-        assertThat(userAgent).isNotNull();
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
 
-        String expectedFeatureId = BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value();
-        String businessMetrics = extractBusinessMetrics(userAgent);
-
-        assertThat(businessMetrics).isNotNull();
-        assertThat(businessMetrics).contains(expectedFeatureId);
-        assertThat(userAgent).contains(" m/" + businessMetrics);
+        assertThat(userAgentHeaders.get(0)).matches(METRIC_SEARCH_PATTERN.apply("J"));
     }
 
     @Test
@@ -162,19 +144,13 @@ public class S3ExpressUserAgentTest {
 
         s3Client.putObject(putRequest, RequestBody.fromString(CONTENTS));
 
-        List<String> capturedUserAgents = userAgentInterceptor.getCapturedUserAgents();
-        assertThat(capturedUserAgents).hasSize(1);
-        
-        String userAgent = capturedUserAgents.get(0);
-        assertThat(userAgent).isNotNull();
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-        String s3ExpressFeatureId = BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value();
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
 
-        String businessMetrics = extractBusinessMetrics(userAgent);
-        if (businessMetrics != null) {
-            assertThat(businessMetrics).doesNotContain(s3ExpressFeatureId);
-        }
-
+        assertThat(userAgentHeaders.get(0)).doesNotMatch(METRIC_SEARCH_PATTERN.apply("J"));
     }
 
     @Test
@@ -186,71 +162,13 @@ public class S3ExpressUserAgentTest {
 
         s3Client.getObject(getRequest, ResponseTransformer.toBytes());
 
-        List<String> capturedUserAgents = userAgentInterceptor.getCapturedUserAgents();
-        assertThat(capturedUserAgents).hasSize(1);
-        
-        String userAgent = capturedUserAgents.get(0);
-        assertThat(userAgent).isNotNull();
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-        String s3ExpressFeatureId = BusinessMetricFeatureId.S3_EXPRESS_BUCKET.value();
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
 
-        String businessMetrics = extractBusinessMetrics(userAgent);
-        if (businessMetrics != null) {
-            assertThat(businessMetrics).doesNotContain(s3ExpressFeatureId);
-        }
-
+        assertThat(userAgentHeaders.get(0)).doesNotMatch(METRIC_SEARCH_PATTERN.apply("J"));
     }
 
-    /**
-     * Extracts the business metrics section from a User-Agent string.
-     * Business metrics appear as "m/D,J" where D and J are feature IDs.
-     */
-    private String extractBusinessMetrics(String userAgent) {
-        if (userAgent == null) {
-            return null;
-        }
-        
-        // Pattern to match business metrics: " m/feature1,feature2"
-        Pattern pattern = Pattern.compile(" m/([A-Za-z0-9+\\-,]+)");
-        Matcher matcher = pattern.matcher(userAgent);
-        
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        
-        return null;
-    }
-
-    /**
-     * Interceptor to capture User-Agent headers from HTTP requests
-     */
-    private static class UserAgentCapturingInterceptor implements ExecutionInterceptor {
-        private final List<String> capturedUserAgents = new ArrayList<>();
-        private final AtomicReference<String> lastUserAgent = new AtomicReference<>();
-
-        @Override
-        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            SdkHttpRequest httpRequest = context.httpRequest();
-            List<String> userAgentHeaders = httpRequest.headers().get("User-Agent");
-            
-            if (userAgentHeaders != null && !userAgentHeaders.isEmpty()) {
-                String userAgent = userAgentHeaders.get(0);
-                capturedUserAgents.add(userAgent);
-                lastUserAgent.set(userAgent);
-            }
-        }
-
-        public List<String> getCapturedUserAgents() {
-            return new ArrayList<>(capturedUserAgents);
-        }
-
-        public String getLastUserAgent() {
-            return lastUserAgent.get();
-        }
-
-        public void reset() {
-            capturedUserAgents.clear();
-            lastUserAgent.set(null);
-        }
-    }
 }
