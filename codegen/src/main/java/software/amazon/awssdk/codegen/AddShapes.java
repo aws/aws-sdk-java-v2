@@ -204,6 +204,14 @@ abstract class AddShapes {
         memberModel.setRequired(isRequiredMember(c2jMemberName, parentShape));
         memberModel.setSynthetic(shape.isSynthetic());
 
+        if (c2jMemberDefinition.getAlternateBeanPropertyName() != null) {
+            String alternatePropertyName = c2jMemberDefinition.getAlternateBeanPropertyName();
+
+            String setter = String.format("set%s", alternatePropertyName);
+
+            memberModel.setAdditionalBeanStyleSetterName(setter);
+        }
+
 
         // Pass the xmlNameSpace from the member reference
         if (c2jMemberDefinition.getXmlNamespace() != null) {

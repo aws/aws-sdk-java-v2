@@ -53,3 +53,10 @@ The team has decided to implement functionality only for S3 async client and def
 2. Remove the consumer builder pattern from Get Request Model.
 
 3. throw UnsupportedOperationException for Multipart S3 Client and S3 CRT Client for now.
+
+## Design Review: 07/31/2025
+**Source**: Design : Multipart Download Support for Pre-signed URLs  
+**Attendees**: John Viegas, Zoe Wang, Dongie Agnir, Bole Yi, Ran Vaknin, Saranya Somepalli, David Ho, Olivier Lepage Applin
+
+### Decision Addressed
+Initially considered separate discovery request (bytes=0-0) followed by download, but decided to follow AWS Transfer Manager SEP specification using Range: bytes=0-{partSizeInBytes-1} to download first part AND discover total object size simultaneously from Content-Range header response.

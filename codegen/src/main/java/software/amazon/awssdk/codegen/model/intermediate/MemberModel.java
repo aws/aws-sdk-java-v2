@@ -90,6 +90,8 @@ public class MemberModel extends DocumentationModel {
 
     private String beanStyleSetterName;
 
+    private String additionalBeanStyleSetterName;
+
     private String unionEnumTypeName;
 
     private boolean isJsonValue;
@@ -787,6 +789,19 @@ public class MemberModel extends DocumentationModel {
         return ignoreDataTypeConversionFailures;
     }
 
+    public String getAdditionalBeanStyleSetterName() {
+        return additionalBeanStyleSetterName;
+    }
+
+    public void setAdditionalBeanStyleSetterName(String additionalBeanStyleSetterName) {
+        this.additionalBeanStyleSetterName = additionalBeanStyleSetterName;
+    }
+
+    public MemberModel withAdditionalBeanStyleSetterName(String additionalBeanStyleSetterName) {
+        setAdditionalBeanStyleSetterName(additionalBeanStyleSetterName);
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -834,6 +849,7 @@ public class MemberModel extends DocumentationModel {
                && Objects.equals(fluentDeprecatedGetterMethodName, that.fluentDeprecatedGetterMethodName)
                && Objects.equals(fluentDeprecatedSetterMethodName, that.fluentDeprecatedSetterMethodName)
                && Objects.equals(deprecatedBeanStyleSetterMethodName, that.deprecatedBeanStyleSetterMethodName)
+               && Objects.equals(additionalBeanStyleSetterName, that.additionalBeanStyleSetterName)
                && Objects.equals(contextParam, that.contextParam);
     }
 
@@ -878,6 +894,8 @@ public class MemberModel extends DocumentationModel {
         result = 31 * result + Objects.hashCode(deprecatedBeanStyleSetterMethodName);
         result = 31 * result + Objects.hashCode(contextParam);
         result = 31 * result + Boolean.hashCode(ignoreDataTypeConversionFailures);
+        result = 31 * result + Objects.hashCode(additionalBeanStyleSetterName);
+
         return result;
     }
 }

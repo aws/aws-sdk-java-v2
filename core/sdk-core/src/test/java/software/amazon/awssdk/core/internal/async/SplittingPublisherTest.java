@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -24,17 +23,20 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterAll;
@@ -42,12 +44,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Pair;
 
 public class SplittingPublisherTest {
     private static final int CHUNK_SIZE = 5;
@@ -75,10 +77,15 @@ public class SplittingPublisherTest {
     public void split_contentUnknownMaxMemorySmallerThanChunkSize_shouldThrowException() {
         AsyncRequestBody body = AsyncRequestBody.fromPublisher(s -> {
         });
-        assertThatThrownBy(() -> new SplittingPublisher(body, AsyncRequestBodySplitConfiguration.builder()
-                                                                                                .chunkSizeInBytes(10L)
-                                                                                                .bufferSizeInBytes(5L)
-                                                                                                .build()))
+        AsyncRequestBodySplitConfiguration configuration = AsyncRequestBodySplitConfiguration.builder()
+                                                                                             .chunkSizeInBytes(10L)
+                                                                                             .bufferSizeInBytes(5L)
+                                                                                             .build();
+        assertThatThrownBy(() -> SplittingPublisher.builder()
+                .asyncRequestBody(body)
+                .splitConfiguration(configuration)
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build())
             .hasMessageContaining("must be larger than or equal");
     }
 
@@ -91,16 +98,24 @@ public class SplittingPublisherTest {
                                                                         .chunkSizeInBytes(chunkSize)
                                                                         .build();
         verifySplitContent(fileAsyncRequestBody, chunkSize);
+        fileAsyncRequestBody = FileAsyncRequestBody.builder()
+                                                   .path(testFile.toPath())
+                                                   .chunkSizeInBytes(chunkSize)
+                                                   .build();
+        verifyRetryableSplitContent(fileAsyncRequestBody, chunkSize);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {CHUNK_SIZE, CHUNK_SIZE * 2 - 1, CHUNK_SIZE * 2})
     void differentChunkSize_byteArrayShouldSplitAsyncRequestBodyCorrectly(int chunkSize) throws Exception {
         verifySplitContent(AsyncRequestBody.fromBytes(CONTENT), chunkSize);
+        verifyRetryableSplitContent(AsyncRequestBody.fromBytes(CONTENT), chunkSize);
     }
 
-    @Test
-    void contentLengthNotPresent_shouldHandle() throws Exception {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void contentLengthNotPresent_shouldHandle(boolean enableRetryableSubAsyncRequestBody) throws Exception {
         CompletableFuture<Void> future = new CompletableFuture<>();
         TestAsyncRequestBody asyncRequestBody = new TestAsyncRequestBody() {
             @Override
@@ -108,10 +123,14 @@ public class SplittingPublisherTest {
                 return Optional.empty();
             }
         };
-        SplittingPublisher splittingPublisher = new SplittingPublisher(asyncRequestBody, AsyncRequestBodySplitConfiguration.builder()
-                                                                  .chunkSizeInBytes((long) CHUNK_SIZE)
-                                                                  .bufferSizeInBytes(10L)
-                                                                  .build());
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(asyncRequestBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes((long) CHUNK_SIZE)
+                        .bufferSizeInBytes(10L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(enableRetryableSubAsyncRequestBody)
+                .build();
 
 
         List<CompletableFuture<byte[]>> futures = new ArrayList<>();
@@ -147,29 +166,93 @@ public class SplittingPublisherTest {
 
     }
 
-    @Test
-    void downStreamFailed_shouldPropagateCancellation() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void downStreamFailed_shouldPropagateCancellation(boolean enableRetryableSubAsyncRequestBody) throws Exception {
         CompletableFuture<Void> future = new CompletableFuture<>();
         TestAsyncRequestBody asyncRequestBody = new TestAsyncRequestBody();
-        SplittingPublisher splittingPublisher = new SplittingPublisher(asyncRequestBody, AsyncRequestBodySplitConfiguration.builder()
-                                                                                                                           .chunkSizeInBytes((long) CHUNK_SIZE)
-                                                                                                                           .bufferSizeInBytes(10L)
-                                                                                                                           .build());
-
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(asyncRequestBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes((long) CHUNK_SIZE)
+                        .bufferSizeInBytes(10L)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(enableRetryableSubAsyncRequestBody)
+                .build();
         assertThatThrownBy(() -> splittingPublisher.subscribe(requestBody -> {
             throw new RuntimeException("foobar");
         }).get(5, TimeUnit.SECONDS)).hasMessageContaining("foobar");
         assertThat(asyncRequestBody.cancelled).isTrue();
     }
 
-    private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
-        SplittingPublisher splittingPublisher = new SplittingPublisher(asyncRequestBody,
-                                                                       AsyncRequestBodySplitConfiguration.builder()
-                                                                                                         .chunkSizeInBytes((long) chunkSize)
-                                                                                                         .bufferSizeInBytes((long) chunkSize * 4)
-                                                                                                         .build());
+    @Test
+    void retryableSubAsyncRequestBodyEnabled_shouldBeAbleToResubscribe() throws ExecutionException, InterruptedException, TimeoutException {
+        int chunkSize = 5;
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                   .path(testFile.toPath())
+                                                   .chunkSizeInBytes(chunkSize)
+                                                   .build();
 
-        verifyIndividualAsyncRequestBody(splittingPublisher, testFile.toPath(), chunkSize);
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(asyncRequestBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes((long) chunkSize)
+                        .bufferSizeInBytes((long) chunkSize * 4)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(true)
+                .build();
+
+
+
+        Map<Integer, Pair<CompletableFuture<byte[]>, CompletableFuture<byte[]>>> futures = new HashMap<>();
+        AtomicInteger index = new AtomicInteger();
+        splittingPublisher.subscribe(requestBody -> {
+            int i = index.getAndIncrement();
+            CompletableFuture<byte[]> future = new CompletableFuture<>();
+            BaosSubscriber subscriber = new BaosSubscriber(future);
+            requestBody.subscribe(subscriber);
+
+            future.whenComplete((r, t) -> {
+                CompletableFuture<byte[]> future2 = new CompletableFuture<>();
+                BaosSubscriber anotherSubscriber = new BaosSubscriber(future2);
+                requestBody.subscribe(anotherSubscriber);
+                futures.put(i, Pair.of(future, future2));
+
+                future2.whenComplete((res, throwable) -> {
+                    requestBody.close();
+                });
+            });
+        }).get(5, TimeUnit.SECONDS);
+
+        for (int i = 0; i < futures.size(); i++) {
+            assertThat(futures.get(i).left().join()).containsExactly( futures.get(i).right().join());
+        }
+    }
+
+    private static void verifySplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(asyncRequestBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes((long) chunkSize)
+                        .bufferSizeInBytes((long) chunkSize * 4)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build();
+
+        verifyIndividualAsyncRequestBody(splittingPublisher.map(m -> m), testFile.toPath(), chunkSize);
+    }
+
+    private static void verifyRetryableSplitContent(AsyncRequestBody asyncRequestBody, int chunkSize) throws Exception {
+        SplittingPublisher splittingPublisher = SplittingPublisher.builder()
+                .asyncRequestBody(asyncRequestBody)
+                .splitConfiguration(AsyncRequestBodySplitConfiguration.builder()
+                        .chunkSizeInBytes((long) chunkSize)
+                        .bufferSizeInBytes((long) chunkSize * 4)
+                        .build())
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build();
+
+        verifyIndividualAsyncRequestBody(splittingPublisher.map(m -> m), testFile.toPath(), chunkSize);
     }
 
     private static class TestAsyncRequestBody implements AsyncRequestBody {
@@ -200,30 +283,6 @@ public class SplittingPublisherTest {
                     cancelled = true;
                 }
             });
-
-        }
-    }
-
-    private static final class OnlyRequestOnceSubscriber implements Subscriber<AsyncRequestBody> {
-        private List<AsyncRequestBody> asyncRequestBodies = new ArrayList<>();
-
-        @Override
-        public void onSubscribe(Subscription s) {
-            s.request(1);
-        }
-
-        @Override
-        public void onNext(AsyncRequestBody requestBody) {
-            asyncRequestBodies.add(requestBody);
-        }
-
-        @Override
-        public void onError(Throwable t) {
-
-        }
-
-        @Override
-        public void onComplete() {
 
         }
     }

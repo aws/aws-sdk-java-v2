@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.regression.upload;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.crc32;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingInputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.async.BufferedSplittableAsyncRequestBody;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -356,6 +358,23 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                                                                 contentSize.precalculatedCrc32(),
                                                                 bodyType);
             }
+            case BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH: {
+                byte[] content = contentSize.byteContent();
+
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(
+                    new ByteArrayInputStream(content),
+                    (long) content.length, ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(BufferedSplittableAsyncRequestBody.create(asyncRequestBody), content.length,
+                                         contentSize.precalculatedCrc32(), bodyType);
+            }
+            case BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH: {
+                byte[] content = contentSize.byteContent();
+
+                AsyncRequestBody asyncRequestBody = AsyncRequestBody.fromInputStream(
+                    new ByteArrayInputStream(content), null, ASYNC_REQUEST_BODY_EXECUTOR);
+                return new TestAsyncBody(BufferedSplittableAsyncRequestBody.create(asyncRequestBody), content.length,
+                                         contentSize.precalculatedCrc32(), bodyType);
+            }
             default:
                 throw new RuntimeException("Unsupported async body type: " + bodyType);
         }
@@ -398,7 +417,9 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
         BUFFERS_REMAINING,
 
         BLOCKING_INPUT_STREAM,
-        BLOCKING_OUTPUT_STREAM
+        BLOCKING_OUTPUT_STREAM,
+        BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH,
+        BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH
     }
 
     protected enum ContentSize {
