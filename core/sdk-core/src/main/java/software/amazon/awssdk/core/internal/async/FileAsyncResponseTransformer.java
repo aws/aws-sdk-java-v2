@@ -77,15 +77,15 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.position = position;
     }
 
-    public FileTransformerConfiguration config() {
+    FileTransformerConfiguration config() {
         return configuration.toBuilder().build();
     }
 
-    public Path path() {
+    Path path() {
         return path;
     }
 
-    public Long initialPosition() {
+    Long initialPosition() {
         return position;
     }
 

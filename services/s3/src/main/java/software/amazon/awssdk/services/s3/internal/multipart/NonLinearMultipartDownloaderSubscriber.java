@@ -122,6 +122,11 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicInteger transformersRequested = new AtomicInteger(0);
 
+    /**
+     * Amount of demand requested but not yet fulfilled by the subscription
+     */
+    private final AtomicInteger outstandingDemand = new AtomicInteger(0);
+
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
                                                   GetObjectRequest getObjectRequest,
                                                   CompletableFuture<GetObjectResponse> resultFuture,
@@ -143,6 +148,7 @@ public class NonLinearMultipartDownloaderSubscriber
     }
 
     private void request(int amount) {
+        outstandingDemand.addAndGet(amount);
         transformersRequested.addAndGet(amount);
         subscription.request(amount);
     }
@@ -150,9 +156,11 @@ public class NonLinearMultipartDownloaderSubscriber
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         // todo change to trace log
-        log.info(() -> "\nTotal in flight parts: " + inFlightRequests.size()
+        outstandingDemand.decrementAndGet();
+        log.info(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
+                       + "\nOutstanding Demand : " + outstandingDemand.get()
                        + "\nTotal completed parts: " + completedParts
-                       + "\nTransformers requested: " + transformersRequested.get()
+                       + "\nTotal transformers requested: " + transformersRequested.get()
                        + "\nTotal pending transformers: " + pendingTransformers.size()
                        + "\nCurrent in flight requests: " + inFlightRequests.keySet());
         if (asyncResponseTransformer == null) {
@@ -219,6 +227,7 @@ public class NonLinearMultipartDownloaderSubscriber
         inFlightRequests.put(partToGet, response);
 
         response.whenComplete((res, e) -> {
+            log.info(() -> "Completed part: " + partToGet);
             inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
@@ -230,7 +239,7 @@ public class NonLinearMultipartDownloaderSubscriber
                 inFlightRequests.values().forEach(future -> future.cancel(true));
                 return;
             }
-            if (completedParts.get() == totalParts) {
+            if (completedParts.get() >= totalParts) {
                 // todo remove log
                 log.info(() -> "================= ALL PARTS COMPLETED ==================");
                 log.info(() -> "remaining in flight (should be empty): " + inFlightRequests.keySet().toString());
@@ -335,12 +344,18 @@ public class NonLinearMultipartDownloaderSubscriber
             return;
         }
 
+        // don't request if we already have enough work in progress
         if (inFlightRequests.size() >= maxInFlight) {
             return;
         }
 
+        // don't request if we have already requested more work than we can handle
+        if (outstandingDemand.get() >= maxInFlight) {
+            return;
+        }
+
         int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
-                                   maxInFlight- inFlightRequests.size());
+                                   maxInFlight - inFlightRequests.size());
         if (partsNeeded > 0) {
             // todo change trace log
             log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
