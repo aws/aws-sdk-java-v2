@@ -88,6 +88,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
             } catch (IOException e) {
+                log.debug(() -> "Failed to get last modified time for path " + path, e);
                 this.modifiedTimeAtStart = null;
             }
         }
@@ -98,6 +99,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             try {
                 this.sizeAtStart = Files.size(path);
             } catch (IOException e) {
+                log.debug(() -> "Failed to get file size for path " + path, e);
                 this.sizeAtStart = null;
             }
         }
@@ -413,7 +415,9 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                             // been received.  Validating here ensures errors are correctly signaled.
                             if (remaining == 0) {
                                 closeFile();
-                                validateFileUnchanged();
+                                if (!validateFileUnchangedAndSignalErrors()) {
+                                    return;
+                                }
                             }
 
                             signalOnNext(attachment);
@@ -466,7 +470,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         }
 
         private void signalOnComplete() {
-            if (!validateFileUnchanged()) {
+            if (!validateFileUnchangedAndSignalErrors()) {
                 return;
             }
 
@@ -478,7 +482,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             }
         }
 
-        private boolean validateFileUnchanged() {
+        private boolean validateFileUnchangedAndSignalErrors() {
             try {
                 long sizeAtEnd = Files.size(path);
                 if (sizeAtStart != sizeAtEnd) {

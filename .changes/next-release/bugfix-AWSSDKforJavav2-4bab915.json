@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Ensure that file modification exceptions in FileAsyncRequestBody are propogated correctly."
+    "description": "Ensure that file modification exceptions in AsyncRequestBody#fromFile are propagated correctly."
 }

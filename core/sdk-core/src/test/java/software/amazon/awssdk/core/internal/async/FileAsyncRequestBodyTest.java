@@ -132,7 +132,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -158,7 +159,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -184,7 +186,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -208,7 +211,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
     }
 
     @Test
@@ -229,7 +233,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
     }
 
     @Test
@@ -259,7 +264,8 @@ public class FileAsyncRequestBodyTest {
         subscriber2.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber2.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
     }
 
     @Test
@@ -282,7 +288,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(SdkClientException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Unable to check file status after read. Was the file deleted");
     }
 
     @Test
