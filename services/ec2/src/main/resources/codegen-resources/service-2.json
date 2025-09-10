@@ -102,7 +102,7 @@
       },
       "input":{"shape":"AdvertiseByoipCidrRequest"},
       "output":{"shape":"AdvertiseByoipCidrResult"},
-      "documentation":"<p>Advertises an IPv4 or IPv6 address range that is provisioned for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP).</p> <p>You can perform this operation at most once every 10 seconds, even if you specify different address ranges each time.</p> <p>We recommend that you stop advertising the BYOIP CIDR from other locations when you advertise it from Amazon Web Services. To minimize down time, you can configure your Amazon Web Services resources to use an address from a BYOIP CIDR before it is advertised, and then simultaneously stop advertising it from the current location and start advertising it through Amazon Web Services.</p> <p>It can take a few minutes before traffic to the specified addresses starts routing to Amazon Web Services because of BGP propagation delays.</p> <p>To stop advertising the BYOIP CIDR, use <a>WithdrawByoipCidr</a>.</p>"
+      "documentation":"<p>Advertises an IPv4 or IPv6 address range that is provisioned for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP).</p> <p>You can perform this operation at most once every 10 seconds, even if you specify different address ranges each time.</p> <p>We recommend that you stop advertising the BYOIP CIDR from other locations when you advertise it from Amazon Web Services. To minimize down time, you can configure your Amazon Web Services resources to use an address from a BYOIP CIDR before it is advertised, and then simultaneously stop advertising it from the current location and start advertising it through Amazon Web Services.</p> <p>It can take a few minutes before traffic to the specified addresses starts routing to Amazon Web Services because of BGP propagation delays.</p>"
     },
     "AllocateAddress":{
       "name":"AllocateAddress",
@@ -598,7 +598,7 @@
       },
       "input":{"shape":"CopyImageRequest"},
       "output":{"shape":"CopyImageResult"},
-      "documentation":"<p>Initiates an AMI copy operation. You can copy an AMI from one Region to another, or from a Region to an Outpost. You can't copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost. To copy an AMI to another partition, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html\">CreateStoreImageTask</a>.</p> <p>When you copy an AMI from one Region to another, the destination Region is the current Region.</p> <p>When you copy an AMI from a Region to an Outpost, specify the ARN of the Outpost as the destination. Backing snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region or the key that you specify. Outposts do not support unencrypted snapshots.</p> <p>For information about the prerequisites when copying an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html\">Copy an Amazon EC2 AMI</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Initiates an AMI copy operation. You must specify the source AMI ID and both the source and destination locations. The copy operation must be initiated in the destination Region.</p> <p class=\"title\"> <b>CopyImage supports the following source to destination copies:</b> </p> <ul> <li> <p>Region to Region</p> </li> <li> <p>Region to Outpost</p> </li> <li> <p>Parent Region to Local Zone</p> </li> <li> <p>Local Zone to parent Region</p> </li> <li> <p>Between Local Zones with the same parent Region (only supported for certain Local Zones)</p> </li> </ul> <p class=\"title\"> <b>CopyImage does not support the following source to destination copies:</b> </p> <ul> <li> <p>Local Zone to non-parent Regions</p> </li> <li> <p>Between Local Zones with different parent Regions</p> </li> <li> <p>Local Zone to Outpost</p> </li> <li> <p>Outpost to Local Zone</p> </li> <li> <p>Outpost to Region</p> </li> <li> <p>Between Outposts</p> </li> <li> <p>Within same Outpost</p> </li> <li> <p>Cross-partition copies (use <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateStoreImageTask.html\">CreateStoreImageTask</a> instead)</p> </li> </ul> <p class=\"title\"> <b>Destination specification</b> </p> <ul> <li> <p>Region to Region: The destination Region is the Region in which you initiate the copy operation.</p> </li> <li> <p>Region to Outpost: Specify the destination using the <code>DestinationOutpostArn</code> parameter (the ARN of the Outpost)</p> </li> <li> <p>Region to Local Zone, and Local Zone to Local Zone copies: Specify the destination using the <code>DestinationAvailabilityZone</code> parameter (the name of the destination Local Zone) or <code>DestinationAvailabilityZoneId</code> parameter (the ID of the destination Local Zone).</p> </li> </ul> <p class=\"title\"> <b>Snapshot encryption</b> </p> <ul> <li> <p>Region to Outpost: Backing snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region or the key that you specify. Outposts do not support unencrypted snapshots.</p> </li> <li> <p>Region to Local Zone, and Local Zone to Local Zone: Not all Local Zones require encrypted snapshots. In Local Zones that require encrypted snapshots, backing snapshots are automatically encrypted during copy. In Local Zones where encryption is not required, snapshots retain their original encryption state (encrypted or unencrypted) by default.</p> </li> </ul> <p>For more information, including the required permissions for copying an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/CopyingAMIs.html\">Copy an Amazon EC2 AMI</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CopySnapshot":{
       "name":"CopySnapshot",
@@ -608,7 +608,7 @@
       },
       "input":{"shape":"CopySnapshotRequest"},
       "output":{"shape":"CopySnapshotResult"},
-      "documentation":"<p>Copies a point-in-time snapshot of an EBS volume and stores it in Amazon S3. You can copy a snapshot within the same Region, from one Region to another, or from a Region to an Outpost. You can't copy a snapshot from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>You can use the snapshot to create EBS volumes or Amazon Machine Images (AMIs).</p> <p>When copying snapshots to a Region, copies of encrypted EBS snapshots remain encrypted. Copies of unencrypted snapshots remain unencrypted, unless you enable encryption for the snapshot copy operation. By default, encrypted snapshot copies use the default KMS key; however, you can specify a different KMS key. To copy an encrypted snapshot that has been shared from another account, you must have permissions for the KMS key used to encrypt the snapshot.</p> <p>Snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region, or a different key that you specify in the request using <b>KmsKeyId</b>. Outposts do not support unencrypted snapshots. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#ami\">Amazon EBS local snapshots on Outposts</a> in the <i>Amazon EBS User Guide</i>.</p> <p>Snapshots created by copying another snapshot have an arbitrary volume ID that should not be used for any purpose.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html\">Copy an Amazon EBS snapshot</a> in the <i>Amazon EBS User Guide</i>.</p>"
+      "documentation":"<p>Creates an exact copy of an Amazon EBS snapshot.</p> <p>The location of the source snapshot determines whether you can copy it or not, and the allowed destinations for the snapshot copy.</p> <ul> <li> <p>If the source snapshot is in a Region, you can copy it within that Region, to another Region, to an Outpost associated with that Region, or to a Local Zone in that Region.</p> </li> <li> <p>If the source snapshot is in a Local Zone, you can copy it within that Local Zone, to another Local Zone in the same zone group, or to the parent Region of the Local Zone.</p> </li> <li> <p>If the source snapshot is on an Outpost, you can't copy it.</p> </li> </ul> <p>When copying snapshots to a Region, copies of encrypted EBS snapshots remain encrypted. Copies of unencrypted snapshots remain unencrypted, unless you enable encryption for the snapshot copy operation. By default, encrypted snapshot copies use the default KMS key; however, you can specify a different KMS key. To copy an encrypted snapshot that has been shared from another account, you must have permissions for the KMS key used to encrypt the snapshot.</p> <p>Snapshots copied to an Outpost are encrypted by default using the default encryption key for the Region, or a different key that you specify in the request using <b>KmsKeyId</b>. Outposts do not support unencrypted snapshots. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#ami\">Amazon EBS local snapshots on Outposts</a> in the <i>Amazon EBS User Guide</i>.</p> <note> <p>Snapshots copies have an arbitrary source volume ID. Do not use this volume ID for any purpose.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html\">Copy an Amazon EBS snapshot</a> in the <i>Amazon EBS User Guide</i>.</p>"
     },
     "CreateCapacityReservation":{
       "name":"CreateCapacityReservation",
@@ -789,6 +789,16 @@
       "input":{"shape":"CreateImageRequest"},
       "output":{"shape":"CreateImageResult"},
       "documentation":"<p>Creates an Amazon EBS-backed AMI from an Amazon EBS-backed instance that is either running or stopped.</p> <p>If you customized your instance with instance store volumes or Amazon EBS volumes in addition to the root device volume, the new AMI contains block device mapping information for those volumes. When you launch an instance from this new AMI, the instance automatically launches with those additional volumes.</p> <p>The location of the source instance determines where you can create the snapshots of the AMI:</p> <ul> <li> <p>If the source instance is in a Region, you must create the snapshots in the same Region as the instance.</p> </li> <li> <p>If the source instance is in a Local Zone, you can create the snapshots in the same Local Zone or in its parent Region.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html\">Create an Amazon EBS-backed AMI</a> in the <i>Amazon Elastic Compute Cloud User Guide</i>.</p>"
+    },
+    "CreateImageUsageReport":{
+      "name":"CreateImageUsageReport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateImageUsageReportRequest"},
+      "output":{"shape":"CreateImageUsageReportResult"},
+      "documentation":"<p>Creates a report that shows how your image is used across other Amazon Web Services accounts. The report provides visibility into which accounts are using the specified image, and how many resources (EC2 instances or launch templates) are referencing it.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html\">View your AMI usage</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "CreateInstanceConnectEndpoint":{
       "name":"CreateInstanceConnectEndpoint",
@@ -1635,6 +1645,16 @@
       "output":{"shape":"DeleteFpgaImageResult"},
       "documentation":"<p>Deletes the specified Amazon FPGA Image (AFI).</p>"
     },
+    "DeleteImageUsageReport":{
+      "name":"DeleteImageUsageReport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteImageUsageReportRequest"},
+      "output":{"shape":"DeleteImageUsageReportResult"},
+      "documentation":"<p>Deletes the specified image usage report.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html\">View your AMI usage</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
     "DeleteInstanceConnectEndpoint":{
       "name":"DeleteInstanceConnectEndpoint",
       "http":{
@@ -2327,7 +2347,7 @@
       },
       "input":{"shape":"DeprovisionByoipCidrRequest"},
       "output":{"shape":"DeprovisionByoipCidrResult"},
-      "documentation":"<p>Releases the specified address range that you provisioned for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP) and deletes the corresponding address pool.</p> <p>Before you can release an address range, you must stop advertising it using <a>WithdrawByoipCidr</a> and you must not have any IP addresses allocated from its address range.</p>"
+      "documentation":"<p>Releases the specified address range that you provisioned for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP) and deletes the corresponding address pool.</p> <p>Before you can release an address range, you must stop advertising it and you must not have any IP addresses allocated from its address range.</p>"
     },
     "DeprovisionIpamByoasn":{
       "name":"DeprovisionIpamByoasn",
@@ -2487,7 +2507,7 @@
       },
       "input":{"shape":"DescribeByoipCidrsRequest"},
       "output":{"shape":"DescribeByoipCidrsResult"},
-      "documentation":"<p>Describes the IP address ranges that were specified in calls to <a>ProvisionByoipCidr</a>.</p> <p>To describe the address pools that were created when you provisioned the address ranges, use <a>DescribePublicIpv4Pools</a> or <a>DescribeIpv6Pools</a>.</p>"
+      "documentation":"<p>Describes the IP address ranges that were provisioned for use with Amazon Web Services resources through through bring your own IP addresses (BYOIP).</p>"
     },
     "DescribeCapacityBlockExtensionHistory":{
       "name":"DescribeCapacityBlockExtensionHistory",
@@ -2879,6 +2899,36 @@
       "output":{"shape":"ImageAttribute"},
       "documentation":"<p>Describes the specified attribute of the specified AMI. You can specify only one attribute at a time.</p> <note> <p>The order of the elements in the response, including those within nested structures, might vary. Applications should not assume the elements appear in a particular order.</p> </note>"
     },
+    "DescribeImageReferences":{
+      "name":"DescribeImageReferences",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeImageReferencesRequest"},
+      "output":{"shape":"DescribeImageReferencesResult"},
+      "documentation":"<p>Describes your Amazon Web Services resources that are referencing the specified images.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-ami-references.html\">Identify your resources referencing specified AMIs</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
+    "DescribeImageUsageReportEntries":{
+      "name":"DescribeImageUsageReportEntries",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeImageUsageReportEntriesRequest"},
+      "output":{"shape":"DescribeImageUsageReportEntriesResult"},
+      "documentation":"<p>Describes the entries in image usage reports, showing how your images are used across other Amazon Web Services accounts.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html\">View your AMI usage</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
+    "DescribeImageUsageReports":{
+      "name":"DescribeImageUsageReports",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeImageUsageReportsRequest"},
+      "output":{"shape":"DescribeImageUsageReportsResult"},
+      "documentation":"<p>Describes the configuration and status of image usage reports, filtered by report IDs or image IDs.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/your-ec2-ami-usage.html\">View your AMI usage</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
     "DescribeImages":{
       "name":"DescribeImages",
       "http":{
@@ -2887,7 +2937,7 @@
       },
       "input":{"shape":"DescribeImagesRequest"},
       "output":{"shape":"DescribeImagesResult"},
-      "documentation":"<p>Describes the specified images (AMIs, AKIs, and ARIs) available to you or all of the images available to you.</p> <p>The images available to you include public images, private images that you own, and private images owned by other Amazon Web Services accounts for which you have explicit launch permissions.</p> <p>Recently deregistered images appear in the returned results for a short interval and then return empty results. After all instances that reference a deregistered AMI are terminated, specifying the ID of the image will eventually return an error indicating that the AMI ID cannot be found.</p> <p>When Allowed AMIs is set to <code>enabled</code>, only allowed images are returned in the results, with the <code>imageAllowed</code> field set to <code>true</code> for each image. In <code>audit-mode</code>, the <code>imageAllowed</code> field is set to <code>true</code> for images that meet the account's Allowed AMIs criteria, and <code>false</code> for images that don't meet the criteria. For more information, see <a>EnableAllowedImagesSettings</a>.</p> <p>The Amazon EC2 API follows an eventual consistency model. This means that the result of an API command you run that creates or modifies resources might not be immediately available to all subsequent commands you run. For guidance on how to manage eventual consistency, see <a href=\"https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html\">Eventual consistency in the Amazon EC2 API</a> in the <i>Amazon EC2 Developer Guide</i>.</p> <important> <p>We strongly recommend using only paginated requests. Unpaginated requests are susceptible to throttling and timeouts.</p> </important> <note> <p>The order of the elements in the response, including those within nested structures, might vary. Applications should not assume the elements appear in a particular order.</p> </note>"
+      "documentation":"<p>Describes the specified images (AMIs, AKIs, and ARIs) available to you or all of the images available to you.</p> <p>The images available to you include public images, private images that you own, and private images owned by other Amazon Web Services accounts for which you have explicit launch permissions.</p> <p>Recently deregistered images appear in the returned results for a short interval and then return empty results. After all instances that reference a deregistered AMI are terminated, specifying the ID of the image will eventually return an error indicating that the AMI ID cannot be found.</p> <p>When Allowed AMIs is set to <code>enabled</code>, only allowed images are returned in the results, with the <code>imageAllowed</code> field set to <code>true</code> for each image. In <code>audit-mode</code>, the <code>imageAllowed</code> field is set to <code>true</code> for images that meet the account's Allowed AMIs criteria, and <code>false</code> for images that don't meet the criteria. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-allowed-amis.html\">Allowed AMIs</a>.</p> <p>The Amazon EC2 API follows an eventual consistency model. This means that the result of an API command you run that creates or modifies resources might not be immediately available to all subsequent commands you run. For guidance on how to manage eventual consistency, see <a href=\"https://docs.aws.amazon.com/ec2/latest/devguide/eventual-consistency.html\">Eventual consistency in the Amazon EC2 API</a> in the <i>Amazon EC2 Developer Guide</i>.</p> <important> <p>We strongly recommend using only paginated requests. Unpaginated requests are susceptible to throttling and timeouts.</p> </important> <note> <p>The order of the elements in the response, including those within nested structures, might vary. Applications should not assume the elements appear in a particular order.</p> </note>"
     },
     "DescribeImportImageTasks":{
       "name":"DescribeImportImageTasks",
@@ -3237,7 +3287,7 @@
       },
       "input":{"shape":"DescribeManagedPrefixListsRequest"},
       "output":{"shape":"DescribeManagedPrefixListsResult"},
-      "documentation":"<p>Describes your managed prefix lists and any Amazon Web Services-managed prefix lists.</p> <p>To view the entries for your prefix list, use <a>GetManagedPrefixListEntries</a>.</p>"
+      "documentation":"<p>Describes your managed prefix lists and any Amazon Web Services-managed prefix lists.</p>"
     },
     "DescribeMovingAddresses":{
       "name":"DescribeMovingAddresses",
@@ -3367,7 +3417,7 @@
       },
       "input":{"shape":"DescribePrefixListsRequest"},
       "output":{"shape":"DescribePrefixListsResult"},
-      "documentation":"<p>Describes available Amazon Web Services services in a prefix list format, which includes the prefix list name and prefix list ID of the service and the IP address range for the service.</p> <p>We recommend that you use <a>DescribeManagedPrefixLists</a> instead.</p>"
+      "documentation":"<p>Describes available Amazon Web Services services in a prefix list format, which includes the prefix list name and prefix list ID of the service and the IP address range for the service.</p>"
     },
     "DescribePrincipalIdFormat":{
       "name":"DescribePrincipalIdFormat",
@@ -4601,7 +4651,7 @@
       },
       "input":{"shape":"EnableImageDeregistrationProtectionRequest"},
       "output":{"shape":"EnableImageDeregistrationProtectionResult"},
-      "documentation":"<p>Enables deregistration protection for an AMI. When deregistration protection is enabled, the AMI can't be deregistered.</p> <p>To allow the AMI to be deregistered, you must first disable deregistration protection using <a>DisableImageDeregistrationProtection</a>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html\">Protect an Amazon EC2 AMI from deregistration</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Enables deregistration protection for an AMI. When deregistration protection is enabled, the AMI can't be deregistered.</p> <p>To allow the AMI to be deregistered, you must first disable deregistration protection.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html\">Protect an Amazon EC2 AMI from deregistration</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "EnableIpamOrganizationAdminAccount":{
       "name":"EnableIpamOrganizationAdminAccount",
@@ -5547,6 +5597,16 @@
       "output":{"shape":"ModifyInstanceCapacityReservationAttributesResult"},
       "documentation":"<p>Modifies the Capacity Reservation settings for a stopped instance. Use this action to configure an instance to target a specific Capacity Reservation, run in any <code>open</code> Capacity Reservation with matching attributes, run in On-Demand Instance capacity, or only run in a Capacity Reservation.</p>"
     },
+    "ModifyInstanceConnectEndpoint":{
+      "name":"ModifyInstanceConnectEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ModifyInstanceConnectEndpointRequest"},
+      "output":{"shape":"ModifyInstanceConnectEndpointResult"},
+      "documentation":"<p>Modifies the specified EC2 Instance Connect Endpoint.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/modify-ec2-instance-connect-endpoint.html\">Modify an EC2 Instance Connect Endpoint</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
     "ModifyInstanceCpuOptions":{
       "name":"ModifyInstanceCpuOptions",
       "http":{
@@ -6120,7 +6180,7 @@
       },
       "input":{"shape":"MoveAddressToVpcRequest"},
       "output":{"shape":"MoveAddressToVpcResult"},
-      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC platform. The Elastic IP address must be allocated to your account for more than 24 hours, and it must not be associated with an instance. After the Elastic IP address is moved, it is no longer available for use in the EC2-Classic platform, unless you move it back using the <a>RestoreAddressToClassic</a> request. You cannot move an Elastic IP address that was originally allocated for use in the EC2-VPC platform to the EC2-Classic platform.</p>"
+      "documentation":"<note> <p>This action is deprecated.</p> </note> <p>Moves an Elastic IP address from the EC2-Classic platform to the EC2-VPC platform. The Elastic IP address must be allocated to your account for more than 24 hours, and it must not be associated with an instance. After the Elastic IP address is moved, it is no longer available for use in the EC2-Classic platform. You cannot move an Elastic IP address that was originally allocated for use in the EC2-VPC platform to the EC2-Classic platform.</p>"
     },
     "MoveByoipCidrToIpam":{
       "name":"MoveByoipCidrToIpam",
@@ -6150,7 +6210,7 @@
       },
       "input":{"shape":"ProvisionByoipCidrRequest"},
       "output":{"shape":"ProvisionByoipCidrResult"},
-      "documentation":"<p>Provisions an IPv4 or IPv6 address range for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP) and creates a corresponding address pool. After the address range is provisioned, it is ready to be advertised using <a>AdvertiseByoipCidr</a>.</p> <p>Amazon Web Services verifies that you own the address range and are authorized to advertise it. You must ensure that the address range is registered to you and that you created an RPKI ROA to authorize Amazon ASNs 16509 and 14618 to advertise the address range. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html\">Bring your own IP addresses (BYOIP)</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>Provisioning an address range is an asynchronous operation, so the call returns immediately, but the address range is not ready to use until its status changes from <code>pending-provision</code> to <code>provisioned</code>. To monitor the status of an address range, use <a>DescribeByoipCidrs</a>. To allocate an Elastic IP address from your IPv4 address pool, use <a>AllocateAddress</a> with either the specific address from the address pool or the ID of the address pool.</p>"
+      "documentation":"<p>Provisions an IPv4 or IPv6 address range for use with your Amazon Web Services resources through bring your own IP addresses (BYOIP) and creates a corresponding address pool. After the address range is provisioned, it is ready to be advertised.</p> <p>Amazon Web Services verifies that you own the address range and are authorized to advertise it. You must ensure that the address range is registered to you and that you created an RPKI ROA to authorize Amazon ASNs 16509 and 14618 to advertise the address range. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-byoip.html\">Bring your own IP addresses (BYOIP)</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>Provisioning an address range is an asynchronous operation, so the call returns immediately, but the address range is not ready to use until its status changes from <code>pending-provision</code> to <code>provisioned</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/byoip-onboard.html\">Onboard your address range</a>.</p>"
     },
     "ProvisionIpamByoasn":{
       "name":"ProvisionIpamByoasn",
@@ -6249,7 +6309,7 @@
       },
       "input":{"shape":"RegisterImageRequest"},
       "output":{"shape":"RegisterImageResult"},
-      "documentation":"<p>Registers an AMI. When you're creating an instance-store backed AMI, registering the AMI is the final step in the creation process. For more information about creating AMIs, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create an AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-instance-store.html\">Create an instance-store backed AMI</a> in the <i>Amazon EC2 User Guide</i>.</p> <note> <p>For Amazon EBS-backed instances, <a>CreateImage</a> creates and registers the AMI in a single request, so you don't have to register the AMI yourself. We recommend that you always use <a>CreateImage</a> unless you have a specific reason to use RegisterImage.</p> </note> <p>If needed, you can deregister an AMI at any time. Any modifications you make to an AMI backed by an instance store volume invalidates its registration. If you make changes to an image, deregister the previous image and register the new image.</p> <p> <b>Register a snapshot of a root device volume</b> </p> <p>You can use <code>RegisterImage</code> to create an Amazon EBS-backed Linux AMI from a snapshot of a root device volume. You specify the snapshot using a block device mapping. You can't set the encryption state of the volume using the block device mapping. If the snapshot is encrypted, or encryption by default is enabled, the root volume of an instance launched from the AMI is encrypted.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create an AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with EBS-backed AMIs</a> in the <i>Amazon EC2 User Guide</i>.</p> <p> <b>Amazon Web Services Marketplace product codes</b> </p> <p>If any snapshots have Amazon Web Services Marketplace product codes, they are copied to the new AMI.</p> <p>In most cases, AMIs for Windows, RedHat, SUSE, and SQL Server require correct licensing information to be present on the AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon EC2 User Guide</i>. When creating an AMI from a snapshot, the <code>RegisterImage</code> operation derives the correct billing information from the snapshot's metadata, but this requires the appropriate metadata to be present. To verify if the correct billing information was applied, check the <code>PlatformDetails</code> field on the new AMI. If the field is empty or doesn't match the expected operating system code (for example, Windows, RedHat, SUSE, or SQL), the AMI creation was unsuccessful, and you should discard the AMI and instead create the AMI from an instance using <a>CreateImage</a>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#how-to-create-ebs-ami\">Create an AMI from an instance </a> in the <i>Amazon EC2 User Guide</i>.</p> <p>If you purchase a Reserved Instance to apply to an On-Demand Instance that was launched from an AMI with a billing product code, make sure that the Reserved Instance has the matching billing product code. If you purchase a Reserved Instance without the matching billing product code, the Reserved Instance will not be applied to the On-Demand Instance. For information about how to obtain the platform details and billing information of an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+      "documentation":"<p>Registers an AMI. When you're creating an instance-store backed AMI, registering the AMI is the final step in the creation process. For more information about creating AMIs, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create an AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-instance-store.html\">Create an instance-store backed AMI</a> in the <i>Amazon EC2 User Guide</i>.</p> <p>If needed, you can deregister an AMI at any time. Any modifications you make to an AMI backed by an instance store volume invalidates its registration. If you make changes to an image, deregister the previous image and register the new image.</p> <p> <b>Register a snapshot of a root device volume</b> </p> <p>You can use <code>RegisterImage</code> to create an Amazon EBS-backed Linux AMI from a snapshot of a root device volume. You specify the snapshot using a block device mapping. You can't set the encryption state of the volume using the block device mapping. If the snapshot is encrypted, or encryption by default is enabled, the root volume of an instance launched from the AMI is encrypted.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#creating-launching-ami-from-snapshot\">Create an AMI from a snapshot</a> and <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with EBS-backed AMIs</a> in the <i>Amazon EC2 User Guide</i>.</p> <p> <b>Amazon Web Services Marketplace product codes</b> </p> <p>If any snapshots have Amazon Web Services Marketplace product codes, they are copied to the new AMI.</p> <p>In most cases, AMIs for Windows, RedHat, SUSE, and SQL Server require correct licensing information to be present on the AMI. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon EC2 User Guide</i>. When creating an AMI from a snapshot, the <code>RegisterImage</code> operation derives the correct billing information from the snapshot's metadata, but this requires the appropriate metadata to be present. To verify if the correct billing information was applied, check the <code>PlatformDetails</code> field on the new AMI. If the field is empty or doesn't match the expected operating system code (for example, Windows, RedHat, SUSE, or SQL), the AMI creation was unsuccessful, and you should discard the AMI and instead create the AMI from an instance. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html#how-to-create-ebs-ami\">Create an AMI from an instance </a> in the <i>Amazon EC2 User Guide</i>.</p> <p>If you purchase a Reserved Instance to apply to an On-Demand Instance that was launched from an AMI with a billing product code, make sure that the Reserved Instance has the matching billing product code. If you purchase a Reserved Instance without the matching billing product code, the Reserved Instance is not applied to the On-Demand Instance. For information about how to obtain the platform details and billing information of an AMI, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-billing-info.html\">Understand AMI billing information</a> in the <i>Amazon EC2 User Guide</i>.</p>"
     },
     "RegisterInstanceEventNotificationAttributes":{
       "name":"RegisterInstanceEventNotificationAttributes",
@@ -6348,7 +6408,7 @@
         "requestUri":"/"
       },
       "input":{"shape":"ReleaseAddressRequest"},
-      "documentation":"<p>Releases the specified Elastic IP address.</p> <p>[Default VPC] Releasing an Elastic IP address automatically disassociates it from any instance that it's associated with. To disassociate an Elastic IP address without releasing it, use <a>DisassociateAddress</a>.</p> <p>[Nondefault VPC] You must use <a>DisassociateAddress</a> to disassociate the Elastic IP address before you can release it. Otherwise, Amazon EC2 returns an error (<code>InvalidIPAddress.InUse</code>).</p> <p>After releasing an Elastic IP address, it is released to the IP address pool. Be sure to update your DNS records and any servers or devices that communicate with the address. If you attempt to release an Elastic IP address that you already released, you'll get an <code>AuthFailure</code> error if the address is already allocated to another Amazon Web Services account.</p> <p>After you release an Elastic IP address, you might be able to recover it. For more information, see <a>AllocateAddress</a>.</p>"
+      "documentation":"<p>Releases the specified Elastic IP address.</p> <p>[Default VPC] Releasing an Elastic IP address automatically disassociates it from any instance that it's associated with. Alternatively, you can disassociate an Elastic IP address without releasing it.</p> <p>[Nondefault VPC] You must disassociate the Elastic IP address before you can release it. Otherwise, Amazon EC2 returns an error (<code>InvalidIPAddress.InUse</code>).</p> <p>After releasing an Elastic IP address, it is released to the IP address pool. Be sure to update your DNS records and any servers or devices that communicate with the address. If you attempt to release an Elastic IP address that you already released, you'll get an <code>AuthFailure</code> error if the address is already allocated to another Amazon Web Services account.</p> <p>After you release an Elastic IP address, you might be able to recover it. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing-eips-releasing.html\">Release an Elastic IP address</a>.</p>"
     },
     "ReleaseHosts":{
       "name":"ReleaseHosts",
@@ -6690,7 +6750,7 @@
       },
       "input":{"shape":"StartDeclarativePoliciesReportRequest"},
       "output":{"shape":"StartDeclarativePoliciesReportResult"},
-      "documentation":"<p>Generates an account status report. The report is generated asynchronously, and can take several hours to complete.</p> <p>The report provides the current status of all attributes supported by declarative policies for the accounts within the specified scope. The scope is determined by the specified <code>TargetId</code>, which can represent an individual account, or all the accounts that fall under the specified organizational unit (OU) or root (the entire Amazon Web Services Organization).</p> <p>The report is saved to your specified S3 bucket, using the following path structure (with the <i>italicized placeholders</i> representing your specific values):</p> <p> <code>s3://<i>amzn-s3-demo-bucket</i>/<i>your-optional-s3-prefix</i>/ec2_<i>targetId</i>_<i>reportId</i>_<i>yyyyMMdd</i>T<i>hhmm</i>Z.csv</code> </p> <p class=\"title\"> <b>Prerequisites for generating a report</b> </p> <ul> <li> <p>The <code>StartDeclarativePoliciesReport</code> API can only be called by the management account or delegated administrators for the organization.</p> </li> <li> <p>An S3 bucket must be available before generating the report (you can create a new one or use an existing one), it must be in the same Region where the report generation request is made, and it must have an appropriate bucket policy. For a sample S3 policy, see <i>Sample Amazon S3 policy</i> under <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StartDeclarativePoliciesReport.html#API_StartDeclarativePoliciesReport_Examples\">Examples</a>.</p> </li> <li> <p>Trusted access must be enabled for the service for which the declarative policy will enforce a baseline configuration. If you use the Amazon Web Services Organizations console, this is done automatically when you enable declarative policies. The API uses the following service principal to identify the EC2 service: <code>ec2.amazonaws.com</code>. For more information on how to enable trusted access with the Amazon Web Services CLI and Amazon Web Services SDKs, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Using Organizations with other Amazon Web Services services</a> in the <i>Amazon Web Services Organizations User Guide</i>.</p> </li> <li> <p>Only one report per organization can be generated at a time. Attempting to generate a report while another is in progress will result in an error.</p> </li> </ul> <p>For more information, including the required IAM permissions to run this API, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html\">Generating the account status report for declarative policies</a> in the <i>Amazon Web Services Organizations User Guide</i>.</p>"
+      "documentation":"<p>Generates an account status report. The report is generated asynchronously, and can take several hours to complete.</p> <p>The report provides the current status of all attributes supported by declarative policies for the accounts within the specified scope. The scope is determined by the specified <code>TargetId</code>, which can represent an individual account, or all the accounts that fall under the specified organizational unit (OU) or root (the entire Amazon Web Services Organization).</p> <p>The report is saved to your specified S3 bucket, using the following path structure (with the capitalized placeholders representing your specific values):</p> <p> <code>s3://AMZN-S3-DEMO-BUCKET/YOUR-OPTIONAL-S3-PREFIX/ec2_TARGETID_REPORTID_YYYYMMDDTHHMMZ.csv</code> </p> <p class=\"title\"> <b>Prerequisites for generating a report</b> </p> <ul> <li> <p>The <code>StartDeclarativePoliciesReport</code> API can only be called by the management account or delegated administrators for the organization.</p> </li> <li> <p>An S3 bucket must be available before generating the report (you can create a new one or use an existing one), it must be in the same Region where the report generation request is made, and it must have an appropriate bucket policy. For a sample S3 policy, see <i>Sample Amazon S3 policy</i> under <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_StartDeclarativePoliciesReport.html#API_StartDeclarativePoliciesReport_Examples\">Examples</a>.</p> </li> <li> <p>Trusted access must be enabled for the service for which the declarative policy will enforce a baseline configuration. If you use the Amazon Web Services Organizations console, this is done automatically when you enable declarative policies. The API uses the following service principal to identify the EC2 service: <code>ec2.amazonaws.com</code>. For more information on how to enable trusted access with the Amazon Web Services CLI and Amazon Web Services SDKs, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_integrate_services.html\">Using Organizations with other Amazon Web Services services</a> in the <i>Amazon Web Services Organizations User Guide</i>.</p> </li> <li> <p>Only one report per organization can be generated at a time. Attempting to generate a report while another is in progress will result in an error.</p> </li> </ul> <p>For more information, including the required IAM permissions to run this API, see <a href=\"https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_declarative_status-report.html\">Generating the account status report for declarative policies</a> in the <i>Amazon Web Services Organizations User Guide</i>.</p>"
     },
     "StartInstances":{
       "name":"StartInstances",
@@ -9136,6 +9196,10 @@
           "shape":"RouteGatewayId",
           "documentation":"<p>The ID of the internet gateway or virtual private gateway.</p>"
         },
+        "PublicIpv4Pool":{
+          "shape":"Ipv4PoolEc2Id",
+          "documentation":"<p>The ID of a public IPv4 pool. A public IPv4 pool is a pool of IPv4 addresses that you've brought to Amazon Web Services with BYOIP.</p>"
+        },
         "DryRun":{
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
@@ -9840,6 +9904,13 @@
       },
       "documentation":"<p>ENA Express is compatible with both TCP and UDP transport protocols. When it's enabled, TCP traffic automatically uses it. However, some UDP-based applications are designed to handle network packets that are out of order, without a need for retransmission, such as live video broadcasting or other near-real-time applications. For UDP traffic, you can specify whether to use ENA Express, based on your application environment needs.</p>"
     },
+    "AttachmentLimitType":{
+      "type":"string",
+      "enum":[
+        "shared",
+        "dedicated"
+      ]
+    },
     "AttachmentStatus":{
       "type":"string",
       "enum":[
@@ -10430,7 +10501,7 @@
         },
         "DeviceName":{
           "shape":"String",
-          "documentation":"<p>The device name (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p>",
+          "documentation":"<p>The device name. For available device names, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html\">Device names for volumes</a>.</p>",
           "locationName":"deviceName"
         },
         "VirtualName":{
@@ -12652,6 +12723,11 @@
           "documentation":"<p>The IP address of the client.</p>",
           "locationName":"clientIp"
         },
+        "ClientIpv6Address":{
+          "shape":"String",
+          "documentation":"<p>The IPv6 address assigned to the client connection when using a dual-stack Client VPN endpoint. This field is only populated when the endpoint is configured for dual-stack addressing, and the client is using IPv6 for connectivity.</p>",
+          "locationName":"clientIpv6Address"
+        },
         "CommonName":{
           "shape":"String",
           "documentation":"<p>The common name associated with the client. This is either the name of the client certificate, or the Active Directory user name.</p>",
@@ -12836,6 +12912,16 @@
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the client VPN session is disconnected after the maximum <code>sessionTimeoutHours</code> is reached. If <code>true</code>, users are prompted to reconnect client VPN. If <code>false</code>, client VPN attempts to reconnect automatically. The default value is <code>true</code>.</p>",
           "locationName":"disconnectOnSessionTimeout"
+        },
+        "EndpointIpAddressType":{
+          "shape":"EndpointIpAddressType",
+          "documentation":"<p>The IP address type of the Client VPN endpoint. Possible values are <code>ipv4</code> for IPv4 addressing only, <code>ipv6</code> for IPv6 addressing only, or <code>dual-stack </code>for both IPv4 and IPv6 addressing.</p>",
+          "locationName":"endpointIpAddressType"
+        },
+        "TrafficIpAddressType":{
+          "shape":"TrafficIpAddressType",
+          "documentation":"<p>The IP address type of the Client VPN endpoint. Possible values are either <code>ipv4</code> for IPv4 addressing only, <code>ipv6</code> for IPv6 addressing only, or <code>dual-stack</code> for both IPv4 and IPv6 addressing.</p>",
+          "locationName":"trafficIpAddressType"
         }
       },
       "documentation":"<p>Describes a Client VPN endpoint.</p>"
@@ -13488,11 +13574,11 @@
         },
         "Description":{
           "shape":"String",
-          "documentation":"<p>A description for the new AMI in the destination Region.</p>"
+          "documentation":"<p>A description for the new AMI.</p>"
         },
         "Encrypted":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies whether the destination snapshots of the copied image should be encrypted. You can encrypt a copy of an unencrypted snapshot, but you cannot create an unencrypted copy of an encrypted snapshot. The default KMS key for Amazon EBS is used unless you specify a non-default Key Management Service (KMS) KMS key using <code>KmsKeyId</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with EBS-backed AMIs</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "documentation":"<p>Specifies whether to encrypt the snapshots of the copied image.</p> <p>You can encrypt a copy of an unencrypted snapshot, but you cannot create an unencrypted copy of an encrypted snapshot. The default KMS key for Amazon EBS is used unless you specify a non-default Key Management Service (KMS) KMS key using <code>KmsKeyId</code>. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIEncryption.html\">Use encryption with EBS-backed AMIs</a> in the <i>Amazon EC2 User Guide</i>.</p>",
           "locationName":"encrypted"
         },
         "KmsKeyId":{
@@ -13502,7 +13588,7 @@
         },
         "Name":{
           "shape":"String",
-          "documentation":"<p>The name of the new AMI in the destination Region.</p>"
+          "documentation":"<p>The name of the new AMI.</p>"
         },
         "SourceImageId":{
           "shape":"String",
@@ -13514,11 +13600,11 @@
         },
         "DestinationOutpostArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost to which to copy the AMI. Only specify this parameter when copying an AMI from an Amazon Web Services Region to an Outpost. The AMI must be in the Region of the destination Outpost. You cannot copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#copy-amis\">Copy AMIs from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon EBS User Guide</i>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost for the new AMI.</p> <p>Only specify this parameter when copying an AMI from an Amazon Web Services Region to an Outpost. The AMI must be in the Region of the destination Outpost. You can't copy an AMI from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#copy-amis\">Copy AMIs from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon EBS User Guide</i>.</p> <p>Only one of <code>DestinationAvailabilityZone</code>, <code>DestinationAvailabilityZoneId</code>, or <code>DestinationOutpostArn</code> can be specified.</p>"
         },
         "CopyImageTags":{
           "shape":"Boolean",
-          "documentation":"<p>Indicates whether to include your user-defined AMI tags when copying the AMI.</p> <p>The following tags will not be copied:</p> <ul> <li> <p>System tags (prefixed with <code>aws:</code>)</p> </li> <li> <p>For public and shared AMIs, user-defined tags that are attached by other Amazon Web Services accounts</p> </li> </ul> <p>Default: Your user-defined AMI tags are not copied.</p>"
+          "documentation":"<p>Specifies whether to copy your user-defined AMI tags to the new AMI.</p> <p>The following tags are not be copied:</p> <ul> <li> <p>System tags (prefixed with <code>aws:</code>)</p> </li> <li> <p>For public and shared AMIs, user-defined tags that are attached by other Amazon Web Services accounts</p> </li> </ul> <p>Default: Your user-defined AMI tags are not copied.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -13527,7 +13613,15 @@
         },
         "SnapshotCopyCompletionDurationMinutes":{
           "shape":"Long",
-          "documentation":"<p>Specify a completion duration, in 15 minute increments, to initiate a time-based AMI copy. The specified completion duration applies to each of the snapshots associated with the AMI. Each snapshot associated with the AMI will be completed within the specified completion duration, with copy throughput automatically adjusted for each snapshot based on its size to meet the timing target.</p> <p>If you do not specify a value, the AMI copy operation is completed on a best-effort basis.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html\">Time-based copies for Amazon EBS snapshots and EBS-backed AMIs</a>.</p>"
+          "documentation":"<p>Specify a completion duration, in 15 minute increments, to initiate a time-based AMI copy. The specified completion duration applies to each of the snapshots associated with the AMI. Each snapshot associated with the AMI will be completed within the specified completion duration, with copy throughput automatically adjusted for each snapshot based on its size to meet the timing target.</p> <p>If you do not specify a value, the AMI copy operation is completed on a best-effort basis.</p> <note> <p>This parameter is not supported when copying an AMI to or from a Local Zone, or to an Outpost.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html\">Time-based copies for Amazon EBS snapshots and EBS-backed AMIs</a>.</p>"
+        },
+        "DestinationAvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Local Zone for the new AMI (for example, <code>cn-north-1-pkx-1a</code>).</p> <p>Only one of <code>DestinationAvailabilityZone</code>, <code>DestinationAvailabilityZoneId</code>, or <code>DestinationOutpostArn</code> can be specified.</p>"
+        },
+        "DestinationAvailabilityZoneId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Local Zone for the new AMI (for example, <code>cnn1-pkx1-az1</code>).</p> <p>Only one of <code>DestinationAvailabilityZone</code>, <code>DestinationAvailabilityZoneId</code>, or <code>DestinationOutpostArn</code> can be specified.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -13561,7 +13655,7 @@
         },
         "DestinationOutpostArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost to which to copy the snapshot. Only specify this parameter when copying a snapshot from an Amazon Web Services Region to an Outpost. The snapshot must be in the Region for the destination Outpost. You cannot copy a snapshot from an Outpost to a Region, from one Outpost to another, or within the same Outpost.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#copy-snapshots\"> Copy snapshots from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon EBS User Guide</i>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Outpost to which to copy the snapshot.</p> <note> <p>Only supported when copying a snapshot to an Outpost.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/snapshots-outposts.html#copy-snapshots\"> Copy snapshots from an Amazon Web Services Region to an Outpost</a> in the <i>Amazon EBS User Guide</i>.</p>"
         },
         "DestinationRegion":{
           "shape":"String",
@@ -13598,7 +13692,11 @@
         },
         "CompletionDurationMinutes":{
           "shape":"SnapshotCompletionDurationMinutesRequest",
-          "documentation":"<p>Specify a completion duration, in 15 minute increments, to initiate a time-based snapshot copy. Time-based snapshot copy operations complete within the specified duration. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html\"> Time-based copies</a>.</p> <p>If you do not specify a value, the snapshot copy operation is completed on a best-effort basis.</p>"
+          "documentation":"<note> <p>Not supported when copying snapshots to or from Local Zones or Outposts.</p> </note> <p>Specify a completion duration, in 15 minute increments, to initiate a time-based snapshot copy. Time-based snapshot copy operations complete within the specified duration. For more information, see <a href=\"https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html\"> Time-based copies</a>.</p> <p>If you do not specify a value, the snapshot copy operation is completed on a best-effort basis.</p>"
+        },
+        "DestinationAvailabilityZone":{
+          "shape":"String",
+          "documentation":"<p>The Local Zone, for example, <code>cn-north-1-pkx-1a</code> to which to copy the snapshot.</p> <note> <p>Only supported when copying a snapshot to a Local Zone.</p> </note>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -14009,7 +14107,6 @@
     "CreateClientVpnEndpointRequest":{
       "type":"structure",
       "required":[
-        "ClientCidrBlock",
         "ServerCertificateArn",
         "AuthenticationOptions",
         "ConnectionLogOptions"
@@ -14098,6 +14195,14 @@
         "DisconnectOnSessionTimeout":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the client VPN session is disconnected after the maximum timeout specified in <code>SessionTimeoutHours</code> is reached. If <code>true</code>, users are prompted to reconnect client VPN. If <code>false</code>, client VPN attempts to reconnect automatically. The default value is <code>true</code>.</p>"
+        },
+        "EndpointIpAddressType":{
+          "shape":"EndpointIpAddressType",
+          "documentation":"<p>The IP address type for the Client VPN endpoint. Valid values are <code>ipv4</code> (default) for IPv4 addressing only, <code>ipv6</code> for IPv6 addressing only, or <code>dual-stack</code> for both IPv4 and IPv6 addressing. When set to <code>dual-stack,</code> clients can connect to the endpoint using either IPv4 or IPv6 addresses..</p>"
+        },
+        "TrafficIpAddressType":{
+          "shape":"TrafficIpAddressType",
+          "documentation":"<p>The IP address type for traffic within the Client VPN tunnel. Valid values are <code>ipv4</code> (default) for IPv4 traffic only, <code>ipv6</code> for IPv6 addressing only, or <code>dual-stack</code> for both IPv4 and IPv6 traffic. When set to <code>dual-stack</code>, clients can access both IPv4 and IPv6 resources through the VPN .</p>"
         }
       }
     },
@@ -14780,7 +14885,7 @@
         },
         "BlockDeviceMappings":{
           "shape":"BlockDeviceMappingRequestList",
-          "documentation":"<p>The block device mappings.</p> <p>When using the CreateImage action:</p> <ul> <li> <p>You can't change the volume size using the VolumeSize parameter. If you want a different volume size, you must first change the volume size of the source instance.</p> </li> <li> <p>You can't modify the encryption status of existing volumes or snapshots. To create an AMI with volumes or snapshots that have a different encryption status (for example, where the source volume and snapshots are unencrypted, and you want to create an AMI with encrypted volumes or snapshots), use the <a>CopyImage</a> action.</p> </li> <li> <p>The only option that can be changed for existing mappings or snapshots is <code>DeleteOnTermination</code>.</p> </li> </ul>",
+          "documentation":"<p>The block device mappings.</p> <p>When using the CreateImage action:</p> <ul> <li> <p>You can't change the volume size using the VolumeSize parameter. If you want a different volume size, you must first change the volume size of the source instance.</p> </li> <li> <p>You can't modify the encryption status of existing volumes or snapshots. To create an AMI with volumes or snapshots that have a different encryption status (for example, where the source volume and snapshots are unencrypted, and you want to create an AMI with encrypted volumes or snapshots), copy the image instead.</p> </li> <li> <p>The only option that can be changed for existing mappings or snapshots is <code>DeleteOnTermination</code>.</p> </li> </ul>",
           "locationName":"blockDeviceMapping"
         }
       }
@@ -14792,6 +14897,53 @@
           "shape":"String",
           "documentation":"<p>The ID of the new AMI.</p>",
           "locationName":"imageId"
+        }
+      }
+    },
+    "CreateImageUsageReportRequest":{
+      "type":"structure",
+      "required":[
+        "ImageId",
+        "ResourceTypes"
+      ],
+      "members":{
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the image to report on.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "ResourceTypes":{
+          "shape":"ImageUsageResourceTypeRequestList",
+          "documentation":"<p>The resource types to include in the report.</p>",
+          "locationName":"ResourceType"
+        },
+        "AccountIds":{
+          "shape":"ImageUsageReportUserIdStringList",
+          "documentation":"<p>The Amazon Web Services account IDs to include in the report. To include all accounts, omit this parameter.</p>",
+          "locationName":"AccountId"
+        },
+        "ClientToken":{
+          "shape":"String",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p>The tags to apply to the report on creation. The <code>ResourceType</code> must be set to <code>image-usage-report</code>; any other value will cause the report creation to fail.</p> <p>To tag a report after it has been created, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateTags.html\">CreateTags</a>.</p>",
+          "locationName":"TagSpecification"
+        }
+      }
+    },
+    "CreateImageUsageReportResult":{
+      "type":"structure",
+      "members":{
+        "ReportId":{
+          "shape":"ImageUsageReportId",
+          "documentation":"<p>The ID of the report.</p>",
+          "locationName":"reportId"
         }
       }
     },
@@ -19332,6 +19484,30 @@
         }
       }
     },
+    "DeleteImageUsageReportRequest":{
+      "type":"structure",
+      "required":["ReportId"],
+      "members":{
+        "ReportId":{
+          "shape":"ImageUsageReportId",
+          "documentation":"<p>The ID of the report to delete.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DeleteImageUsageReportResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
+          "locationName":"return"
+        }
+      }
+    },
     "DeleteInstanceConnectEndpointRequest":{
       "type":"structure",
       "required":["InstanceConnectEndpointId"],
@@ -23590,7 +23766,7 @@
       "members":{
         "Attribute":{
           "shape":"ImageAttributeName",
-          "documentation":"<p>The AMI attribute.</p> <p> <b>Note</b>: The <code>blockDeviceMapping</code> attribute is deprecated. Using this attribute returns the <code>Client.AuthFailure</code> error. To get information about the block device mappings for an AMI, use the <a>DescribeImages</a> action.</p>"
+          "documentation":"<p>The AMI attribute.</p> <p> <b>Note</b>: The <code>blockDeviceMapping</code> attribute is deprecated. Using this attribute returns the <code>Client.AuthFailure</code> error. To get information about the block device mappings for an AMI, describe the image instead.</p>"
         },
         "ImageId":{
           "shape":"ImageId",
@@ -23603,6 +23779,171 @@
         }
       },
       "documentation":"<p>Contains the parameters for DescribeImageAttribute.</p>"
+    },
+    "DescribeImageReferencesImageIdStringList":{
+      "type":"list",
+      "member":{"shape":"ImageId"},
+      "max":10,
+      "min":1
+    },
+    "DescribeImageReferencesMaxResults":{
+      "type":"integer",
+      "min":5
+    },
+    "DescribeImageReferencesRequest":{
+      "type":"structure",
+      "required":["ImageIds"],
+      "members":{
+        "ImageIds":{
+          "shape":"DescribeImageReferencesImageIdStringList",
+          "documentation":"<p>The IDs of the images to check for resource references.</p>",
+          "locationName":"ImageId"
+        },
+        "IncludeAllResourceTypes":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to check all supported Amazon Web Services resource types for image references. When specified, default values are applied for <code>ResourceTypeOptions</code>. For the default values, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/how-ami-references-works.html\">How AMI reference checks work</a> in the <i>Amazon EC2 User Guide</i>. If you also specify <code>ResourceTypes</code> with <code>ResourceTypeOptions</code>, your specified values override the default values.</p> <p>Supported resource types: <code>ec2:Instance</code> | <code>ec2:LaunchTemplate</code> | <code>ssm:Parameter</code> | <code>imagebuilder:ImageRecipe</code> | <code>imagebuilder:ContainerRecipe</code> </p> <p>Either <code>IncludeAllResourceTypes</code> or <code>ResourceTypes</code> must be specified.</p>"
+        },
+        "ResourceTypes":{
+          "shape":"ResourceTypeRequestList",
+          "documentation":"<p>The Amazon Web Services resource types to check for image references.</p> <p>Either <code>IncludeAllResourceTypes</code> or <code>ResourceTypes</code> must be specified.</p>",
+          "locationName":"ResourceType"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeImageReferencesMaxResults",
+          "documentation":"<p> The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>. </p>"
+        }
+      }
+    },
+    "DescribeImageReferencesResult":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "locationName":"nextToken"
+        },
+        "ImageReferences":{
+          "shape":"ImageReferenceList",
+          "documentation":"<p>The resources that are referencing the specified images.</p>",
+          "locationName":"imageReferenceSet"
+        }
+      }
+    },
+    "DescribeImageUsageReportEntriesMaxResults":{
+      "type":"integer",
+      "min":1
+    },
+    "DescribeImageUsageReportEntriesRequest":{
+      "type":"structure",
+      "members":{
+        "ImageIds":{
+          "shape":"DescribeImageUsageReportsImageIdStringList",
+          "documentation":"<p>The IDs of the images for filtering the report entries. If specified, only report entries containing these images are returned.</p>",
+          "locationName":"ImageId"
+        },
+        "ReportIds":{
+          "shape":"ImageUsageReportIdStringList",
+          "documentation":"<p>The IDs of the usage reports.</p>",
+          "locationName":"ReportId"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>account-id</code> - A 12-digit Amazon Web Services account ID.</p> </li> <li> <p> <code>creation-time</code> - The time when the report was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2025-11-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2025-11-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>resource-type</code> - The resource type (<code>ec2:Instance</code> | <code>ec2:LaunchTemplate</code>).</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeImageUsageReportEntriesMaxResults",
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+        }
+      }
+    },
+    "DescribeImageUsageReportEntriesResult":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "locationName":"nextToken"
+        },
+        "ImageUsageReportEntries":{
+          "shape":"ImageUsageReportEntryList",
+          "documentation":"<p>The content of the usage reports.</p>",
+          "locationName":"imageUsageReportEntrySet"
+        }
+      }
+    },
+    "DescribeImageUsageReportsImageIdStringList":{
+      "type":"list",
+      "member":{"shape":"ImageId"},
+      "max":200,
+      "min":0
+    },
+    "DescribeImageUsageReportsMaxResults":{
+      "type":"integer",
+      "min":1
+    },
+    "DescribeImageUsageReportsRequest":{
+      "type":"structure",
+      "members":{
+        "ImageIds":{
+          "shape":"DescribeImageUsageReportsImageIdStringList",
+          "documentation":"<p>The IDs of the images for filtering the reports. If specified, only reports containing these images are returned.</p>",
+          "locationName":"ImageId"
+        },
+        "ReportIds":{
+          "shape":"ImageUsageReportIdStringList",
+          "documentation":"<p>The IDs of the image usage reports.</p>",
+          "locationName":"ReportId"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token returned from a previous paginated request. Pagination continues from the end of the items returned by the previous request.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>creation-time</code> - The time when the report was created, in the ISO 8601 format in the UTC time zone (YYYY-MM-DDThh:mm:ss.sssZ), for example, <code>2025-11-29T11:04:43.305Z</code>. You can use a wildcard (<code>*</code>), for example, <code>2025-11-29T*</code>, which matches an entire day.</p> </li> <li> <p> <code>state</code> - The state of the report (<code>available</code> | <code>pending</code> | <code>error</code>).</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeImageUsageReportsMaxResults",
+          "documentation":"<p>The maximum number of items to return for this request. To get the next page of items, make another request with the token returned in the output. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/Query-Requests.html#api-pagination\">Pagination</a>.</p>"
+        }
+      }
+    },
+    "DescribeImageUsageReportsResult":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "locationName":"nextToken"
+        },
+        "ImageUsageReports":{
+          "shape":"ImageUsageReportList",
+          "documentation":"<p>The image usage reports.</p>",
+          "locationName":"imageUsageReportSet"
+        }
+      }
     },
     "DescribeImagesRequest":{
       "type":"structure",
@@ -24132,7 +24473,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether Amazon CloudWatch action based recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether the instance type is a burstable performance T instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>dedicated-hosts-supported</code> - Indicates whether the instance type supports Dedicated Hosts. (<code>true</code> | <code>false</code>)</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - A Boolean that indicates whether this instance type can be used under the Amazon Web Services Free Tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.encryption-support</code> - Indicates whether data is encrypted at rest (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.bandwidth-weightings</code> - For instances that support bandwidth weighting to boost performance (<code>default</code>, <code>vpc-1</code>, <code>ebs-1</code>).</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.flexible-ena-queues-support</code> - Indicates whether an instance supports flexible ENA queues (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-cards</code> - The maximum number of network cards per instance.</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>nitro-enclaves-support</code> - Indicates whether Nitro Enclaves is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>nitro-tpm-support</code> - Indicates whether NitroTPM is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>nitro-tpm-info.supported-versions</code> - The supported NitroTPM version (<code>2.0</code>).</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>processor-info.supported-features</code> - The supported CPU features (<code>amd-sev-snp</code>).</p> </li> <li> <p> <code>reboot-migration-support</code> - Indicates whether enabling reboot migration is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code> | <code>capacity-block</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
+          "documentation":"<p>One or more filters. Filter names and values are case-sensitive.</p> <ul> <li> <p> <code>auto-recovery-supported</code> - Indicates whether Amazon CloudWatch action based recovery is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>bare-metal</code> - Indicates whether it is a bare metal instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>burstable-performance-supported</code> - Indicates whether the instance type is a burstable performance T instance type (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>current-generation</code> - Indicates whether this instance type is the latest generation instance type of an instance family (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>dedicated-hosts-supported</code> - Indicates whether the instance type supports Dedicated Hosts. (<code>true</code> | <code>false</code>)</p> </li> <li> <p> <code>ebs-info.attachment-limit-type</code> - The type of Amazon EBS volume attachment limit (<code>shared</code> | <code>dedicated</code>).</p> </li> <li> <p> <code>ebs-info.maximum-ebs-attachments</code> - The maximum number of Amazon EBS volumes that can be attached to the instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-bandwidth-in-mbps</code> - The baseline bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-iops</code> - The baseline input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.baseline-throughput-in-mbps</code> - The baseline throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-bandwidth-in-mbps</code> - The maximum bandwidth performance for an EBS-optimized instance type, in Mbps.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-iops</code> - The maximum input/output storage operations per second for an EBS-optimized instance type.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-info.maximum-throughput-in-mbps</code> - The maximum throughput performance for an EBS-optimized instance type, in MB/s.</p> </li> <li> <p> <code>ebs-info.ebs-optimized-support</code> - Indicates whether the instance type is EBS-optimized (<code>supported</code> | <code>unsupported</code> | <code>default</code>).</p> </li> <li> <p> <code>ebs-info.encryption-support</code> - Indicates whether EBS encryption is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>ebs-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for EBS volumes (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>free-tier-eligible</code> - A Boolean that indicates whether this instance type can be used under the Amazon Web Services Free Tier (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hibernation-supported</code> - Indicates whether On-Demand hibernation is supported (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>hypervisor</code> - The hypervisor (<code>nitro</code> | <code>xen</code>).</p> </li> <li> <p> <code>instance-storage-info.disk.count</code> - The number of local disks.</p> </li> <li> <p> <code>instance-storage-info.disk.size-in-gb</code> - The storage size of each instance storage disk, in GB.</p> </li> <li> <p> <code>instance-storage-info.disk.type</code> - The storage technology for the local instance storage disks (<code>hdd</code> | <code>ssd</code>).</p> </li> <li> <p> <code>instance-storage-info.encryption-support</code> - Indicates whether data is encrypted at rest (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.nvme-support</code> - Indicates whether non-volatile memory express (NVMe) is supported for instance store (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>instance-storage-info.total-size-in-gb</code> - The total amount of storage available from all local instance storage, in GB.</p> </li> <li> <p> <code>instance-storage-supported</code> - Indicates whether the instance type has local instance storage (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>instance-type</code> - The instance type (for example <code>c5.2xlarge</code> or c5*).</p> </li> <li> <p> <code>memory-info.size-in-mib</code> - The memory size.</p> </li> <li> <p> <code>network-info.bandwidth-weightings</code> - For instances that support bandwidth weighting to boost performance (<code>default</code>, <code>vpc-1</code>, <code>ebs-1</code>).</p> </li> <li> <p> <code>network-info.efa-info.maximum-efa-interfaces</code> - The maximum number of Elastic Fabric Adapters (EFAs) per instance.</p> </li> <li> <p> <code>network-info.efa-supported</code> - Indicates whether the instance type supports Elastic Fabric Adapter (EFA) (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ena-support</code> - Indicates whether Elastic Network Adapter (ENA) is supported or required (<code>required</code> | <code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.flexible-ena-queues-support</code> - Indicates whether an instance supports flexible ENA queues (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>network-info.encryption-in-transit-supported</code> - Indicates whether the instance type automatically encrypts in-transit traffic between instances (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.ipv4-addresses-per-interface</code> - The maximum number of private IPv4 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-addresses-per-interface</code> - The maximum number of private IPv6 addresses per network interface.</p> </li> <li> <p> <code>network-info.ipv6-supported</code> - Indicates whether the instance type supports IPv6 (<code>true</code> | <code>false</code>).</p> </li> <li> <p> <code>network-info.maximum-network-cards</code> - The maximum number of network cards per instance.</p> </li> <li> <p> <code>network-info.maximum-network-interfaces</code> - The maximum number of network interfaces per instance.</p> </li> <li> <p> <code>network-info.network-performance</code> - The network performance (for example, \"25 Gigabit\").</p> </li> <li> <p> <code>nitro-enclaves-support</code> - Indicates whether Nitro Enclaves is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>nitro-tpm-support</code> - Indicates whether NitroTPM is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>nitro-tpm-info.supported-versions</code> - The supported NitroTPM version (<code>2.0</code>).</p> </li> <li> <p> <code>processor-info.supported-architecture</code> - The CPU architecture (<code>arm64</code> | <code>i386</code> | <code>x86_64</code>).</p> </li> <li> <p> <code>processor-info.sustained-clock-speed-in-ghz</code> - The CPU clock speed, in GHz.</p> </li> <li> <p> <code>processor-info.supported-features</code> - The supported CPU features (<code>amd-sev-snp</code>).</p> </li> <li> <p> <code>reboot-migration-support</code> - Indicates whether enabling reboot migration is supported (<code>supported</code> | <code>unsupported</code>).</p> </li> <li> <p> <code>supported-boot-mode</code> - The boot mode (<code>legacy-bios</code> | <code>uefi</code>).</p> </li> <li> <p> <code>supported-root-device-type</code> - The root device type (<code>ebs</code> | <code>instance-store</code>).</p> </li> <li> <p> <code>supported-usage-class</code> - The usage class (<code>on-demand</code> | <code>spot</code> | <code>capacity-block</code>).</p> </li> <li> <p> <code>supported-virtualization-type</code> - The virtualization type (<code>hvm</code> | <code>paravirtual</code>).</p> </li> <li> <p> <code>vcpu-info.default-cores</code> - The default number of cores for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-threads-per-core</code> - The default number of threads per core for the instance type.</p> </li> <li> <p> <code>vcpu-info.default-vcpus</code> - The default number of vCPUs for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-cores</code> - The number of cores that can be configured for the instance type.</p> </li> <li> <p> <code>vcpu-info.valid-threads-per-core</code> - The number of threads per core that can be configured for the instance type. For example, \"1\" or \"1,2\".</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -28507,7 +28848,7 @@
         },
         "Filters":{
           "shape":"FilterList",
-          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>vpc-endpoint-id</code> - The ID of the VPC endpoint.</p> </li> <li> <p> <code>associated-resource-accessibility</code> - The association state. When the state is <code>accessible</code>, it returns <code>AVAILABLE</code>. When the state is <code>inaccessible</code>, it returns <code>PENDING</code> or <code>FAILED</code>.</p> </li> <li> <p> <code>association-id</code> - The ID of the VPC endpoint association.</p> </li> <li> <p> <code>associated-resource-id</code> - The ID of the associated resource configuration.</p> </li> <li> <p> <code>service-network-arn</code> - The Amazon Resource Name (ARN) of the associated service network. Only VPC endpoints of type service network will be returned.</p> </li> <li> <p> <code>resource-configuration-group-arn</code> - The Amazon Resource Name (ARN) of the resource configuration of type GROUP.</p> </li> <li> <p> <code>service-network-resource-association-id</code> - The ID of the association.</p> </li> </ul>",
+          "documentation":"<p>The filters.</p> <ul> <li> <p> <code>vpc-endpoint-id</code> - The ID of the VPC endpoint.</p> </li> <li> <p> <code>associated-resource-accessibility</code> - The association state. When the state is <code>accessible</code>, it returns <code>AVAILABLE</code>. When the state is <code>inaccessible</code>, it returns <code>PENDING</code> or <code>FAILED</code>.</p> </li> <li> <p> <code>association-id</code> - The ID of the VPC endpoint association.</p> </li> <li> <p> <code>associated-resource-id</code> - The ID of the associated resource configuration.</p> </li> <li> <p> <code>service-network-arn</code> - The Amazon Resource Name (ARN) of the associated service network. Only VPC endpoints of type service network will be returned.</p> </li> <li> <p> <code>resource-configuration-group-arn</code> - The Amazon Resource Name (ARN) of the resource configuration of type GROUP.</p> </li> </ul>",
           "locationName":"Filter"
         },
         "MaxResults":{
@@ -30835,6 +31176,16 @@
           "shape":"EbsNvmeSupport",
           "documentation":"<p>Indicates whether non-volatile memory express (NVMe) is supported.</p>",
           "locationName":"nvmeSupport"
+        },
+        "MaximumEbsAttachments":{
+          "shape":"MaximumEbsAttachments",
+          "documentation":"<p>Indicates the maximum number of Amazon EBS volumes that can be attached to the instance type. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html\">Amazon EBS volume limits for Amazon EC2 instances</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "locationName":"maximumEbsAttachments"
+        },
+        "AttachmentLimitType":{
+          "shape":"AttachmentLimitType",
+          "documentation":"<p>Indicates whether the instance type features a shared or dedicated Amazon EBS volume attachment limit. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html\">Amazon EBS volume limits for Amazon EC2 instances</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "locationName":"attachmentLimitType"
         }
       },
       "documentation":"<p>Describes the Amazon EBS features supported by the instance type.</p>"
@@ -31074,6 +31425,11 @@
           "shape":"IpAddressType",
           "documentation":"<p>The IP address type of the endpoint.</p>",
           "locationName":"ipAddressType"
+        },
+        "PublicDnsNames":{
+          "shape":"InstanceConnectEndpointPublicDnsNames",
+          "documentation":"<p>The public DNS names of the endpoint.</p>",
+          "locationName":"publicDnsNames"
         }
       },
       "documentation":"<p>The EC2 Instance Connect Endpoint.</p>"
@@ -31086,7 +31442,10 @@
         "create-failed",
         "delete-in-progress",
         "delete-complete",
-        "delete-failed"
+        "delete-failed",
+        "update-in-progress",
+        "update-complete",
+        "update-failed"
       ]
     },
     "EfaInfo":{
@@ -32157,6 +32516,14 @@
       "enum":[
         "unlimited",
         "limited"
+      ]
+    },
+    "EndpointIpAddressType":{
+      "type":"string",
+      "enum":[
+        "ipv4",
+        "ipv6",
+        "dual-stack"
       ]
     },
     "EndpointSet":{
@@ -33414,7 +33781,7 @@
       "members":{
         "ActivityStatus":{
           "shape":"FleetActivityStatus",
-          "documentation":"<p>The progress of the EC2 Fleet. If there is an error, the status is <code>error</code>. After all requests are placed, the status is <code>pending_fulfillment</code>. If the size of the EC2 Fleet is equal to or greater than its target capacity, the status is <code>fulfilled</code>. If the size of the EC2 Fleet is decreased, the status is <code>pending_termination</code> while instances are terminating.</p>",
+          "documentation":"<p>The progress of the EC2 Fleet.</p> <p>For fleets of type <code>instant</code>, the status is <code>fulfilled</code> after all requests are placed, regardless of whether target capacity is met (this is the only possible status for <code>instant</code> fleets).</p> <p>For fleets of type <code>request</code> or <code>maintain</code>, the status is <code>pending_fulfillment</code> after all requests are placed, <code>fulfilled</code> when the fleet size meets or exceeds target capacity, <code>pending_termination</code> while instances are terminating when fleet size is decreased, and <code>error</code> if there's an error.</p>",
           "locationName":"activityStatus"
         },
         "CreateTime":{
@@ -37345,12 +37712,12 @@
         },
         "SourceImageId":{
           "shape":"String",
-          "documentation":"<p>The ID of the source AMI from which the AMI was created.</p> <p>The ID only appears if the AMI was created using <a>CreateImage</a>, <a>CopyImage</a>, or <a>CreateRestoreImageTask</a>. The ID does not appear if the AMI was created using any other API. For some older AMIs, the ID might not be available. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify-source-ami-used-to-create-new-ami.html\">Identify the source AMI used to create a new Amazon EC2 AMI</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "documentation":"<p>The ID of the source AMI from which the AMI was created.</p>",
           "locationName":"sourceImageId"
         },
         "SourceImageRegion":{
           "shape":"String",
-          "documentation":"<p>The Region of the source AMI. </p> <p>The Region only appears if the AMI was created using <a>CreateImage</a>, <a>CopyImage</a>, or <a>CreateRestoreImageTask</a>. The Region does not appear if the AMI was created using any other API. For some older AMIs, the Region might not be available. For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/identify-source-ami-used-to-create-new-ami.html\">Identify the source AMI used to create a new Amazon EC2 AMI</a> in the <i>Amazon EC2 User Guide</i>.</p>",
+          "documentation":"<p>The Region of the source AMI.</p>",
           "locationName":"sourceImageRegion"
         },
         "FreeTierEligible":{
@@ -37723,6 +38090,51 @@
         "locationName":"item"
       }
     },
+    "ImageReference":{
+      "type":"structure",
+      "members":{
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the referenced image.</p>",
+          "locationName":"imageId"
+        },
+        "ResourceType":{
+          "shape":"ImageReferenceResourceType",
+          "documentation":"<p>The type of resource referencing the image.</p>",
+          "locationName":"resourceType"
+        },
+        "Arn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the resource referencing the image.</p>",
+          "locationName":"arn"
+        }
+      },
+      "documentation":"<p>A resource that is referencing an image.</p>"
+    },
+    "ImageReferenceList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageReference",
+        "locationName":"item"
+      }
+    },
+    "ImageReferenceOptionName":{
+      "type":"string",
+      "enum":[
+        "state-name",
+        "version-depth"
+      ]
+    },
+    "ImageReferenceResourceType":{
+      "type":"string",
+      "enum":[
+        "ec2:Instance",
+        "ec2:LaunchTemplate",
+        "ssm:Parameter",
+        "imagebuilder:ImageRecipe",
+        "imagebuilder:ContainerRecipe"
+      ]
+    },
     "ImageState":{
       "type":"string",
       "enum":[
@@ -37743,6 +38155,218 @@
         "kernel",
         "ramdisk"
       ]
+    },
+    "ImageUsageReport":{
+      "type":"structure",
+      "members":{
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the image that was specified when the report was created.</p>",
+          "locationName":"imageId"
+        },
+        "ReportId":{
+          "shape":"ImageUsageReportId",
+          "documentation":"<p>The ID of the report.</p>",
+          "locationName":"reportId"
+        },
+        "ResourceTypes":{
+          "shape":"ImageUsageResourceTypeList",
+          "documentation":"<p>The resource types that were specified when the report was created.</p>",
+          "locationName":"resourceTypeSet"
+        },
+        "AccountIds":{
+          "shape":"UserIdList",
+          "documentation":"<p>The IDs of the Amazon Web Services accounts that were specified when the report was created.</p>",
+          "locationName":"accountIdSet"
+        },
+        "State":{
+          "shape":"ImageUsageReportState",
+          "documentation":"<p>The current state of the report. Possible values:</p> <ul> <li> <p> <code>available</code> - The report is available to view.</p> </li> <li> <p> <code>pending</code> - The report is being created and not available to view.</p> </li> <li> <p> <code>error</code> - The report could not be created.</p> </li> </ul>",
+          "locationName":"state"
+        },
+        "StateReason":{
+          "shape":"ImageUsageReportStateReason",
+          "documentation":"<p>Provides additional details when the report is in an <code>error</code> state.</p>",
+          "locationName":"stateReason"
+        },
+        "CreationTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time when the report was created.</p>",
+          "locationName":"creationTime"
+        },
+        "ExpirationTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time when Amazon EC2 will delete the report (30 days after the report was created).</p>",
+          "locationName":"expirationTime"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Any tags assigned to the report.</p>",
+          "locationName":"tagSet"
+        }
+      },
+      "documentation":"<p>The configuration and status of an image usage report.</p>"
+    },
+    "ImageUsageReportEntry":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ImageUsageResourceTypeName",
+          "documentation":"<p>The type of resource (<code>ec2:Instance</code> or <code>ec2:LaunchTemplate</code>).</p>",
+          "locationName":"resourceType"
+        },
+        "ReportId":{
+          "shape":"ImageUsageReportId",
+          "documentation":"<p>The ID of the report.</p>",
+          "locationName":"reportId"
+        },
+        "UsageCount":{
+          "shape":"Long",
+          "documentation":"<p>The number of times resources of this type reference this image in the account.</p>",
+          "locationName":"usageCount"
+        },
+        "AccountId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the account that uses the image.</p>",
+          "locationName":"accountId"
+        },
+        "ImageId":{
+          "shape":"ImageId",
+          "documentation":"<p>The ID of the image.</p>",
+          "locationName":"imageId"
+        },
+        "ReportCreationTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time the report creation was initiated.</p>",
+          "locationName":"reportCreationTime"
+        }
+      },
+      "documentation":"<p>A single entry in an image usage report, detailing how an image is being used by a specific Amazon Web Services account and resource type.</p>"
+    },
+    "ImageUsageReportEntryList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageUsageReportEntry",
+        "locationName":"item"
+      }
+    },
+    "ImageUsageReportId":{"type":"string"},
+    "ImageUsageReportIdStringList":{
+      "type":"list",
+      "member":{"shape":"ImageUsageReportId"},
+      "max":200,
+      "min":0
+    },
+    "ImageUsageReportList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageUsageReport",
+        "locationName":"item"
+      }
+    },
+    "ImageUsageReportState":{"type":"string"},
+    "ImageUsageReportStateReason":{"type":"string"},
+    "ImageUsageReportUserIdStringList":{
+      "type":"list",
+      "member":{
+        "shape":"String",
+        "locationName":"UserId"
+      },
+      "max":200,
+      "min":0
+    },
+    "ImageUsageResourceType":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ImageUsageResourceTypeName",
+          "documentation":"<p>The resource type.</p> <p>Valid values: <code>ec2:Instance</code> | <code>ec2:LaunchTemplate</code> </p>",
+          "locationName":"resourceType"
+        },
+        "ResourceTypeOptions":{
+          "shape":"ImageUsageResourceTypeOptionList",
+          "documentation":"<p>The options that affect the scope of the report. Valid only when <code>ResourceType</code> is <code>ec2:LaunchTemplate</code>.</p>",
+          "locationName":"resourceTypeOptionSet"
+        }
+      },
+      "documentation":"<p>A resource type to include in the report. Associated options can also be specified if the resource type is a launch template.</p>"
+    },
+    "ImageUsageResourceTypeList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageUsageResourceType",
+        "locationName":"item"
+      }
+    },
+    "ImageUsageResourceTypeName":{"type":"string"},
+    "ImageUsageResourceTypeOption":{
+      "type":"structure",
+      "members":{
+        "OptionName":{
+          "shape":"String",
+          "documentation":"<p>The name of the option.</p>",
+          "locationName":"optionName"
+        },
+        "OptionValues":{
+          "shape":"ImageUsageResourceTypeOptionValuesList",
+          "documentation":"<p>The number of launch template versions to check.</p>",
+          "locationName":"optionValueSet"
+        }
+      },
+      "documentation":"<p>The options that affect the scope of the report.</p>"
+    },
+    "ImageUsageResourceTypeOptionList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageUsageResourceTypeOption",
+        "locationName":"item"
+      }
+    },
+    "ImageUsageResourceTypeOptionRequest":{
+      "type":"structure",
+      "members":{
+        "OptionName":{
+          "shape":"String",
+          "documentation":"<p>The name of the option.</p> <p>Valid value: <code>version-depth</code> - The number of launch template versions to check.</p>"
+        },
+        "OptionValues":{
+          "shape":"ImageUsageResourceTypeOptionValuesList",
+          "documentation":"<p>A value for the specified option.</p> <p>Valid values: Integers between <code>1</code> and <code>10000</code> </p> <p>Default: <code>20</code> </p>",
+          "locationName":"OptionValue"
+        }
+      },
+      "documentation":"<p>The options that affect the scope of the report.</p>"
+    },
+    "ImageUsageResourceTypeOptionRequestList":{
+      "type":"list",
+      "member":{"shape":"ImageUsageResourceTypeOptionRequest"}
+    },
+    "ImageUsageResourceTypeOptionValue":{"type":"string"},
+    "ImageUsageResourceTypeOptionValuesList":{
+      "type":"list",
+      "member":{
+        "shape":"ImageUsageResourceTypeOptionValue",
+        "locationName":"item"
+      }
+    },
+    "ImageUsageResourceTypeRequest":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ImageUsageResourceTypeName",
+          "documentation":"<p>The resource type.</p> <p>Valid values: <code>ec2:Instance</code> | <code>ec2:LaunchTemplate</code> </p>"
+        },
+        "ResourceTypeOptions":{
+          "shape":"ImageUsageResourceTypeOptionRequestList",
+          "documentation":"<p>The options that affect the scope of the report. Valid only when <code>ResourceType</code> is <code>ec2:LaunchTemplate</code>.</p>",
+          "locationName":"ResourceTypeOption"
+        }
+      },
+      "documentation":"<p>A resource type to include in the report. Associated options can also be specified if the resource type is a launch template.</p>"
+    },
+    "ImageUsageResourceTypeRequestList":{
+      "type":"list",
+      "member":{"shape":"ImageUsageResourceTypeRequest"}
     },
     "ImdsSupportValues":{
       "type":"string",
@@ -39070,7 +39694,7 @@
       "members":{
         "DeviceName":{
           "shape":"String",
-          "documentation":"<p>The device name (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p>",
+          "documentation":"<p>The device name.</p>",
           "locationName":"deviceName"
         },
         "Ebs":{
@@ -39093,7 +39717,7 @@
       "members":{
         "DeviceName":{
           "shape":"String",
-          "documentation":"<p>The device name (for example, <code>/dev/sdh</code> or <code>xvdh</code>).</p>",
+          "documentation":"<p>The device name. For available device names, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html\">Device names for volumes</a>.</p>",
           "locationName":"deviceName"
         },
         "Ebs":{
@@ -39149,11 +39773,43 @@
       },
       "documentation":"<p>Information about the number of instances that can be launched onto the Dedicated Host.</p>"
     },
+    "InstanceConnectEndpointDnsNames":{
+      "type":"structure",
+      "members":{
+        "DnsName":{
+          "shape":"String",
+          "documentation":"<p>The DNS name of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"dnsName"
+        },
+        "FipsDnsName":{
+          "shape":"String",
+          "documentation":"<p>The Federal Information Processing Standards (FIPS) compliant DNS name of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"fipsDnsName"
+        }
+      },
+      "documentation":"<p>The DNS names of the endpoint.</p>"
+    },
     "InstanceConnectEndpointId":{"type":"string"},
     "InstanceConnectEndpointMaxResults":{
       "type":"integer",
       "max":50,
       "min":1
+    },
+    "InstanceConnectEndpointPublicDnsNames":{
+      "type":"structure",
+      "members":{
+        "Ipv4":{
+          "shape":"InstanceConnectEndpointDnsNames",
+          "documentation":"<p>The IPv4-only DNS name of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"ipv4"
+        },
+        "Dualstack":{
+          "shape":"InstanceConnectEndpointDnsNames",
+          "documentation":"<p>The dualstack DNS name of the EC2 Instance Connect Endpoint. A dualstack DNS name supports connections from both IPv4 and IPv6 clients.</p>",
+          "locationName":"dualstack"
+        }
+      },
+      "documentation":"<p>The public DNS names of the endpoint, including IPv4-only and dualstack DNS names.</p>"
     },
     "InstanceConnectEndpointSet":{
       "type":"list",
@@ -41816,7 +42472,64 @@
         "c8gn.metal-24xl",
         "c8gn.metal-48xl",
         "f2.6xlarge",
-        "p6e-gb200.36xlarge"
+        "p6e-gb200.36xlarge",
+        "g6f.large",
+        "g6f.xlarge",
+        "g6f.2xlarge",
+        "g6f.4xlarge",
+        "gr6f.4xlarge",
+        "p5.4xlarge",
+        "r8i.large",
+        "r8i.xlarge",
+        "r8i.2xlarge",
+        "r8i.4xlarge",
+        "r8i.8xlarge",
+        "r8i.12xlarge",
+        "r8i.16xlarge",
+        "r8i.24xlarge",
+        "r8i.32xlarge",
+        "r8i.48xlarge",
+        "r8i.96xlarge",
+        "r8i.metal-48xl",
+        "r8i.metal-96xl",
+        "r8i-flex.large",
+        "r8i-flex.xlarge",
+        "r8i-flex.2xlarge",
+        "r8i-flex.4xlarge",
+        "r8i-flex.8xlarge",
+        "r8i-flex.12xlarge",
+        "r8i-flex.16xlarge",
+        "m8i.large",
+        "m8i.xlarge",
+        "m8i.2xlarge",
+        "m8i.4xlarge",
+        "m8i.8xlarge",
+        "m8i.12xlarge",
+        "m8i.16xlarge",
+        "m8i.24xlarge",
+        "m8i.32xlarge",
+        "m8i.48xlarge",
+        "m8i.96xlarge",
+        "m8i.metal-48xl",
+        "m8i.metal-96xl",
+        "m8i-flex.large",
+        "m8i-flex.xlarge",
+        "m8i-flex.2xlarge",
+        "m8i-flex.4xlarge",
+        "m8i-flex.8xlarge",
+        "m8i-flex.12xlarge",
+        "m8i-flex.16xlarge",
+        "i8ge.large",
+        "i8ge.xlarge",
+        "i8ge.2xlarge",
+        "i8ge.3xlarge",
+        "i8ge.6xlarge",
+        "i8ge.12xlarge",
+        "i8ge.18xlarge",
+        "i8ge.24xlarge",
+        "i8ge.48xlarge",
+        "i8ge.metal-24xl",
+        "i8ge.metal-48xl"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -46853,6 +47566,7 @@
       "min":0
     },
     "MaximumBandwidthInMbps":{"type":"integer"},
+    "MaximumEbsAttachments":{"type":"integer"},
     "MaximumEfaInterfaces":{"type":"integer"},
     "MaximumEnaQueueCount":{"type":"integer"},
     "MaximumEnaQueueCountPerInterface":{"type":"integer"},
@@ -47704,6 +48418,43 @@
         "Return":{
           "shape":"Boolean",
           "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
+          "locationName":"return"
+        }
+      }
+    },
+    "ModifyInstanceConnectEndpointRequest":{
+      "type":"structure",
+      "required":["InstanceConnectEndpointId"],
+      "members":{
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the operation, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        },
+        "InstanceConnectEndpointId":{
+          "shape":"InstanceConnectEndpointId",
+          "documentation":"<p>The ID of the EC2 Instance Connect Endpoint to modify.</p>"
+        },
+        "IpAddressType":{
+          "shape":"IpAddressType",
+          "documentation":"<p>The new IP address type for the EC2 Instance Connect Endpoint.</p> <note> <p> <code>PreserveClientIp</code> is only supported on IPv4 EC2 Instance Connect Endpoints. To use <code>PreserveClientIp</code>, the value for <code>IpAddressType</code> must be <code>ipv4</code>.</p> </note>"
+        },
+        "SecurityGroupIds":{
+          "shape":"SecurityGroupIdStringListRequest",
+          "documentation":"<p>Changes the security groups for the EC2 Instance Connect Endpoint. The new set of groups you specify replaces the current set. You must specify at least one group, even if it's just the default security group in the VPC. You must specify the ID of the security group, not the name.</p>",
+          "locationName":"SecurityGroupId"
+        },
+        "PreserveClientIp":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client IP address is preserved as the source. The following are the possible values.</p> <ul> <li> <p> <code>true</code> - Use the client IP address as the source.</p> </li> <li> <p> <code>false</code> - Use the network interface IP address as the source.</p> </li> </ul> <note> <p> <code>PreserveClientIp=true</code> is only supported on IPv4 EC2 Instance Connect Endpoints. If modifying <code>PreserveClientIp</code> to <code>true</code>, either the endpoint's existing <code>IpAddressType</code> must be <code>ipv4</code>, or if modifying <code>IpAddressType</code> in the same request, the new value must be <code>ipv4</code>.</p> </note> <p>Default: <code>false</code> </p>"
+        }
+      }
+    },
+    "ModifyInstanceConnectEndpointResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>The return value of the request. Returns <code>true</code> if the specified product code is owned by the requester and associated with the specified instance.</p>",
           "locationName":"return"
         }
       }
@@ -49017,7 +49768,7 @@
         },
         "DefaultRouteTablePropagation":{
           "shape":"DefaultRouteTablePropagationValue",
-          "documentation":"<p>Enable or disable automatic propagation of routes to the default propagation route table.</p>"
+          "documentation":"<p>Indicates whether resource attachments automatically propagate routes to the default propagation route table. Enabled by default. If <code>defaultRouteTablePropagation</code> is set to <code>enable</code>, Amazon Web Services Transit Gateway will create the default transit gateway route table.</p>"
         },
         "PropagationDefaultRouteTableId":{
           "shape":"TransitGatewayRouteTableId",
@@ -53019,7 +53770,7 @@
       "members":{
         "AvailabilityZoneId":{
           "shape":"AvailabilityZoneId",
-          "documentation":"<p>The ID of the Availability Zone of the instance.</p> <p>Either <code>AvailabilityZone</code> or <code>AvailabilityZoneId</code> can be specified, but not both. If neither is specified, Amazon EC2 automatically selects an Availability Zone based on the load balancing criteria for the Region.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
+          "documentation":"<p>The ID of the Availability Zone of the instance.</p> <p>On input, you can specify <code>AvailabilityZone</code> or <code>AvailabilityZoneId</code>, but not both. If you specify neither one, Amazon EC2 automatically selects an Availability Zone for you.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
           "locationName":"availabilityZoneId"
         },
         "Affinity":{
@@ -53029,7 +53780,7 @@
         },
         "GroupName":{
           "shape":"PlacementGroupName",
-          "documentation":"<p>The name of the placement group that the instance is in. If you specify <code>GroupName</code>, you can't specify <code>GroupId</code>.</p>",
+          "documentation":"<p>The name of the placement group that the instance is in.</p> <p>On input, you can specify <code>GroupId</code> or <code>GroupName</code>, but not both.</p>",
           "locationName":"groupName"
         },
         "PartitionNumber":{
@@ -53054,17 +53805,17 @@
         },
         "HostResourceGroupArn":{
           "shape":"String",
-          "documentation":"<p>The ARN of the host resource group in which to launch the instances.</p> <p>If you specify this parameter, either omit the <b>Tenancy</b> parameter or set it to <code>host</code>.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
+          "documentation":"<p>The ARN of the host resource group in which to launch the instances.</p> <p>On input, if you specify this parameter, either omit the <b>Tenancy</b> parameter or set it to <code>host</code>.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
           "locationName":"hostResourceGroupArn"
         },
         "GroupId":{
           "shape":"PlacementGroupId",
-          "documentation":"<p>The ID of the placement group that the instance is in. If you specify <code>GroupId</code>, you can't specify <code>GroupName</code>.</p>",
+          "documentation":"<p>The ID of the placement group that the instance is in.</p> <p>On input, you can specify <code>GroupId</code> or <code>GroupName</code>, but not both.</p>",
           "locationName":"groupId"
         },
         "AvailabilityZone":{
           "shape":"String",
-          "documentation":"<p>The Availability Zone of the instance.</p> <p>Either <code>AvailabilityZone</code> or <code>AvailabilityZoneId</code> can be specified, but not both. If neither is specified, Amazon EC2 automatically selects an Availability Zone based on the load balancing criteria for the Region.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
+          "documentation":"<p>The Availability Zone of the instance.</p> <p>On input, you can specify <code>AvailabilityZone</code> or <code>AvailabilityZoneId</code>, but not both. If you specify neither one, Amazon EC2 automatically selects an Availability Zone for you.</p> <p>This parameter is not supported for <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_CreateFleet\">CreateFleet</a>.</p>",
           "locationName":"availabilityZone"
         }
       },
@@ -56868,6 +57619,7 @@
         "fpga-image",
         "host-reservation",
         "image",
+        "image-usage-report",
         "import-image-task",
         "import-snapshot-task",
         "instance",
@@ -56948,6 +57700,49 @@
         "capacity-block",
         "mac-modification-task"
       ]
+    },
+    "ResourceTypeOption":{
+      "type":"structure",
+      "members":{
+        "OptionName":{
+          "shape":"ImageReferenceOptionName",
+          "documentation":"<p>The name of the option.</p> <ul> <li> <p>For <code>ec2:Instance</code>:</p> <p>Specify <code>state-name</code> - The current state of the EC2 instance.</p> </li> <li> <p>For <code>ec2:LaunchTemplate</code>:</p> <p>Specify <code>version-depth</code> - The number of launch template versions to check, starting from the most recent version.</p> </li> </ul>"
+        },
+        "OptionValues":{
+          "shape":"ResourceTypeOptionValuesList",
+          "documentation":"<p>A value for the specified option.</p> <ul> <li> <p>For <code>state-name</code>:</p> <ul> <li> <p>Valid values: <code>pending</code> | <code>running</code> | <code>shutting-down</code> | <code>terminated</code> | <code>stopping</code> | <code>stopped</code> </p> </li> <li> <p>Default: All states</p> </li> </ul> </li> <li> <p>For <code>version-depth</code>:</p> <ul> <li> <p>Valid values: Integers between <code>1</code> and <code>10000</code> </p> </li> <li> <p>Default: <code>10</code> </p> </li> </ul> </li> </ul>",
+          "locationName":"OptionValue"
+        }
+      },
+      "documentation":"<p>The options that affect the scope of the response.</p>"
+    },
+    "ResourceTypeOptionList":{
+      "type":"list",
+      "member":{"shape":"ResourceTypeOption"}
+    },
+    "ResourceTypeOptionValue":{"type":"string"},
+    "ResourceTypeOptionValuesList":{
+      "type":"list",
+      "member":{"shape":"ResourceTypeOptionValue"}
+    },
+    "ResourceTypeRequest":{
+      "type":"structure",
+      "members":{
+        "ResourceType":{
+          "shape":"ImageReferenceResourceType",
+          "documentation":"<p>The resource type.</p>"
+        },
+        "ResourceTypeOptions":{
+          "shape":"ResourceTypeOptionList",
+          "documentation":"<p>The options that affect the scope of the response. Valid only when <code>ResourceType</code> is <code>ec2:Instance</code> or <code>ec2:LaunchTemplate</code>.</p>",
+          "locationName":"ResourceTypeOption"
+        }
+      },
+      "documentation":"<p>A resource type to check for image references. Associated options can also be specified if the resource type is an EC2 instance or launch template.</p>"
+    },
+    "ResourceTypeRequestList":{
+      "type":"list",
+      "member":{"shape":"ResourceTypeRequest"}
     },
     "ResponseError":{
       "type":"structure",
@@ -57756,7 +58551,8 @@
       "enum":[
         "CreateRouteTable",
         "CreateRoute",
-        "EnableVgwRoutePropagation"
+        "EnableVgwRoutePropagation",
+        "Advertisement"
       ]
     },
     "RouteServer":{
@@ -58270,7 +59066,8 @@
       "type":"string",
       "enum":[
         "active",
-        "blackhole"
+        "blackhole",
+        "filtered"
       ]
     },
     "RouteTable":{
@@ -58341,6 +59138,11 @@
           "shape":"String",
           "documentation":"<p>The ID of the internet gateway or virtual private gateway.</p>",
           "locationName":"gatewayId"
+        },
+        "PublicIpv4Pool":{
+          "shape":"String",
+          "documentation":"<p>The ID of a public IPv4 pool. A public IPv4 pool is a pool of IPv4 addresses that you've brought to Amazon Web Services with BYOIP.</p>",
+          "locationName":"publicIpv4Pool"
         },
         "AssociationState":{
           "shape":"RouteTableAssociationState",
@@ -63025,6 +63827,14 @@
         "egress"
       ]
     },
+    "TrafficIpAddressType":{
+      "type":"string",
+      "enum":[
+        "ipv4",
+        "ipv6",
+        "dual-stack"
+      ]
+    },
     "TrafficMirrorFilter":{
       "type":"structure",
       "members":{
@@ -64202,7 +65012,7 @@
         },
         "DefaultRouteTableAssociation":{
           "shape":"DefaultRouteTableAssociationValue",
-          "documentation":"<p>Indicates whether resource attachments are automatically associated with the default association route table. Enabled by default. If <code>defaultRouteTableAssociation</code> is set to <code>enable</code>, Amazon Web Services Transit Gateway will create the default transit gateway route table.</p>",
+          "documentation":"<p>Indicates whether resource attachments are automatically associated with the default association route table. Enabled by default. Either <code>defaultRouteTableAssociation</code> or <code>defaultRouteTablePropagation</code> must be set to <code>enable</code> for Amazon Web Services Transit Gateway to create the default transit gateway route table.</p>",
           "locationName":"defaultRouteTableAssociation"
         },
         "AssociationDefaultRouteTableId":{
@@ -64212,7 +65022,7 @@
         },
         "DefaultRouteTablePropagation":{
           "shape":"DefaultRouteTablePropagationValue",
-          "documentation":"<p>Indicates whether resource attachments automatically propagate routes to the default propagation route table. Enabled by default. If <code>defaultRouteTablePropagation</code> is set to <code>enable</code>, Amazon Web Services Transit Gateway will create the default transit gateway route table.</p>",
+          "documentation":"<p>Indicates whether resource attachments automatically propagate routes to the default propagation route table. Enabled by default. If <code>defaultRouteTablePropagation</code> is set to <code>enable</code>, Amazon Web Services Transit Gateway creates the default transit gateway route table.</p>",
           "locationName":"defaultRouteTablePropagation"
         },
         "PropagationDefaultRouteTableId":{
@@ -65745,6 +66555,13 @@
       "type":"list",
       "member":{
         "shape":"UserIdGroupPair",
+        "locationName":"item"
+      }
+    },
+    "UserIdList":{
+      "type":"list",
+      "member":{
+        "shape":"String",
         "locationName":"item"
       }
     },
@@ -67392,7 +68209,8 @@
       "enum":[
         "ok",
         "impaired",
-        "insufficient-data"
+        "insufficient-data",
+        "warning"
       ]
     },
     "VolumeStatusItem":{

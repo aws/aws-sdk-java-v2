@@ -45,7 +45,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 or WebSocket stream where audio is streamed to Amazon Transcribe and the transcription results are streamed to your application. Use this operation for <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Call Analytics</a> transcriptions.</p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> or <code>identify-language</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>sample-rate</code> </p> </li> </ul> <p>For more information on streaming with Amazon Transcribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/streaming.html\">Transcribing streaming audio</a>.</p>"
     },
     "StartMedicalScribeStream":{
       "name":"StartMedicalScribeStream",
@@ -62,7 +62,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceUnavailableException"}
       ],
-      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
+      "documentation":"<p>Starts a bidirectional HTTP/2 stream, where audio is streamed to Amazon Web Services HealthScribe and the transcription results are streamed to your application.</p> <p>When you start a stream, you first specify the stream configuration in a <code>MedicalScribeConfigurationEvent</code>. This event includes channel definitions, encryption settings, medical scribe context, and post-stream analytics settings, such as the output configuration for aggregated transcript and clinical note generation. These are additional streaming session configurations beyond those provided in your initial start request headers. Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. </p> <p> After you send a <code>MedicalScribeConfigurationEvent</code>, you start <code>AudioEvents</code> and Amazon Web Services HealthScribe responds with real-time transcription results. When you are finished, to start processing the results with the post-stream analytics, send a <code>MedicalScribeSessionControlEvent</code> with a <code>Type</code> of <code>END_OF_SESSION</code> and Amazon Web Services HealthScribe starts the analytics. </p> <p>You can pause or resume streaming. To pause streaming, complete the input stream without sending the <code>MedicalScribeSessionControlEvent</code>. To resume streaming, call the <code>StartMedicalScribeStream</code> and specify the same SessionId you used to start the stream. </p> <p>The following parameters are required:</p> <ul> <li> <p> <code>language-code</code> </p> </li> <li> <p> <code>media-encoding</code> </p> </li> <li> <p> <code>media-sample-rate-hertz</code> </p> </li> </ul> <p/> <p>For more information on streaming with Amazon Web Services HealthScribe, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe-streaming.html\">Amazon Web Services HealthScribe</a>. </p>"
     },
     "StartMedicalStreamTranscription":{
       "name":"StartMedicalStreamTranscription",
@@ -250,6 +250,24 @@
         "de-DE",
         "pt-BR"
       ]
+    },
+    "CallAnalyticsLanguageIdentification":{
+      "type":"list",
+      "member":{"shape":"CallAnalyticsLanguageWithScore"}
+    },
+    "CallAnalyticsLanguageWithScore":{
+      "type":"structure",
+      "members":{
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>The language code of the identified language.</p>"
+        },
+        "Score":{
+          "shape":"Double",
+          "documentation":"<p>The confidence score associated with the identified language code. Confidence scores are values between zero and one; larger values indicate a higher confidence in the identified language.</p>"
+        }
+      },
+      "documentation":"<p>The language code that represents the language identified in your audio, including the associated confidence score.</p>"
     },
     "CallAnalyticsTranscriptResultStream":{
       "type":"structure",
@@ -875,10 +893,24 @@
         "PostStreamAnalyticsSettings":{
           "shape":"MedicalScribePostStreamAnalyticsSettings",
           "documentation":"<p>Specify settings for post-stream analytics.</p>"
+        },
+        "MedicalScribeContext":{
+          "shape":"MedicalScribeContext",
+          "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information used to generate customized clinical notes.</p>"
         }
       },
       "documentation":"<p>Specify details to configure the streaming session, including channel definitions, encryption settings, post-stream analytics settings, resource access role ARN and vocabulary settings. </p> <p>Whether you are starting a new session or resuming an existing session, your first event must be a <code>MedicalScribeConfigurationEvent</code>. If you are resuming a session, then this event must have the same configurations that you provided to start the session. </p>",
       "event":true
+    },
+    "MedicalScribeContext":{
+      "type":"structure",
+      "members":{
+        "PatientContext":{
+          "shape":"MedicalScribePatientContext",
+          "documentation":"<p>Contains patient-specific information used to customize the clinical note generation.</p>"
+        }
+      },
+      "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information which is used during clinical note generation to add relevant context to the note.</p>"
     },
     "MedicalScribeEncryptionSettings":{
       "type":"structure",
@@ -946,6 +978,16 @@
         "PATIENT",
         "CLINICIAN"
       ]
+    },
+    "MedicalScribePatientContext":{
+      "type":"structure",
+      "members":{
+        "Pronouns":{
+          "shape":"Pronouns",
+          "documentation":"<p>The patient's preferred pronouns that the user wants to provide as a context for clinical note generation .</p>"
+        }
+      },
+      "documentation":"<p>Contains patient-specific information. </p>"
     },
     "MedicalScribePostStreamAnalyticsResult":{
       "type":"structure",
@@ -1062,6 +1104,10 @@
         "PostStreamAnalyticsResult":{
           "shape":"MedicalScribePostStreamAnalyticsResult",
           "documentation":"<p>The result of post-stream analytics for the HealthScribe streaming session.</p>"
+        },
+        "MedicalScribeContextProvided":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether the <code>MedicalScribeContext</code> object was provided when the stream was started.</p>"
         }
       },
       "documentation":"<p>Contains details about a Amazon Web Services HealthScribe streaming session.</p>"
@@ -1283,6 +1329,15 @@
       },
       "documentation":"<p>Allows you to specify additional settings for your Call Analytics post-call request, including output locations for your redacted transcript, which IAM role to use, and which encryption key to use.</p> <p> <code>DataAccessRoleArn</code> and <code>OutputLocation</code> are required fields.</p> <p> <code>PostCallAnalyticsSettings</code> provides you with the same insights as a Call Analytics post-call transcription. Refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-post-call.html\">Post-call analytics</a> for more information on this feature.</p>"
     },
+    "Pronouns":{
+      "type":"string",
+      "enum":[
+        "HE_HIM",
+        "SHE_HER",
+        "THEY_THEM"
+      ],
+      "sensitive":true
+    },
     "RequestId":{"type":"string"},
     "ResourceNotFoundException":{
       "type":"structure",
@@ -1374,7 +1429,6 @@
     "StartCallAnalyticsStreamTranscriptionRequest":{
       "type":"structure",
       "required":[
-        "LanguageCode",
         "MediaSampleRateHertz",
         "MediaEncoding",
         "AudioStream"
@@ -1431,6 +1485,36 @@
           "documentation":"<p>Specify the name of the custom language model that you want to use when processing your transcription. Note that language model names are case sensitive.</p> <p>The language of the specified language model must match the language code you specify in your transcription request. If the languages don't match, the custom language model isn't applied. There are no errors or warnings associated with a language mismatch.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-language-models.html\">Custom language models</a>.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "IdentifyLanguage":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables automatic language identification for your Call Analytics transcription.</p> <p>If you include <code>IdentifyLanguage</code>, you must include a list of language codes, using <code>LanguageOptions</code>, that you think may be present in your audio stream. You must provide a minimum of two language selections.</p> <p>You can also include a preferred language using <code>PreferredLanguage</code>. Adding a preferred language can help Amazon Transcribe identify the language faster than if you omit this parameter.</p> <p>Note that you must include either <code>LanguageCode</code> or <code>IdentifyLanguage</code> in your request. If you include both parameters, your transcription job fails.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-identify-language"
+        },
+        "LanguageOptions":{
+          "shape":"LanguageOptions",
+          "documentation":"<p>Specify two or more language codes that represent the languages you think may be present in your media.</p> <p>Including language options can improve the accuracy of language identification.</p> <p>If you include <code>LanguageOptions</code> in your request, you must also include <code>IdentifyLanguage</code>.</p> <p>For a list of languages supported with Call Analytics streaming, refer to the <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/supported-languages.html\">Supported languages</a> table.</p> <important> <p>You can only include one language dialect per language per stream. For example, you cannot include <code>en-US</code> and <code>en-AU</code> in the same request.</p> </important>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-options"
+        },
+        "PreferredLanguage":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Specify a preferred language from the subset of languages codes you specified in <code>LanguageOptions</code>.</p> <p>You can only use this parameter if you've included <code>IdentifyLanguage</code> and <code>LanguageOptions</code> in your request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>Specify the names of the custom vocabularies that you want to use when processing your Call Analytics transcription. Note that vocabulary names are case sensitive.</p> <p>If the custom vocabulary's language doesn't match the identified media language, it won't be applied to the transcription.</p> <important> <p>This parameter is only intended for use <b>with</b> the <code>IdentifyLanguage</code> parameter. If you're <b>not</b> including <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary with your transcription, use the <code>VocabularyName</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/custom-vocabulary.html\">Custom vocabularies</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>Specify the names of the custom vocabulary filters that you want to use when processing your Call Analytics transcription. Note that vocabulary filter names are case sensitive.</p> <p>These filters serve to customize the transcript output.</p> <important> <p>This parameter is only intended for use <b>with</b> the <code>IdentifyLanguage</code> parameter. If you're <b>not</b> including <code>IdentifyLanguage</code> in your request and want to use a custom vocabulary filter with your transcription, use the <code>VocabularyFilterName</code> parameter instead.</p> </important> <p>For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/vocabulary-filtering.html\">Using vocabulary filtering with unwanted words</a>.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         },
         "EnablePartialResultsStabilization":{
           "shape":"Boolean",
@@ -1525,6 +1609,36 @@
           "documentation":"<p>Provides the name of the custom language model that you specified in your Call Analytics request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-language-model-name"
+        },
+        "IdentifyLanguage":{
+          "shape":"Boolean",
+          "documentation":"<p>Shows whether automatic language identification was enabled for your Call Analytics transcription.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-identify-language"
+        },
+        "LanguageOptions":{
+          "shape":"LanguageOptions",
+          "documentation":"<p>Provides the language codes that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-language-options"
+        },
+        "PreferredLanguage":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>Provides the preferred language that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-preferred-language"
+        },
+        "VocabularyNames":{
+          "shape":"VocabularyNames",
+          "documentation":"<p>Provides the names of the custom vocabularies that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-names"
+        },
+        "VocabularyFilterNames":{
+          "shape":"VocabularyFilterNames",
+          "documentation":"<p>Provides the names of the custom vocabulary filters that you specified in your Call Analytics request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-vocabulary-filter-names"
         },
         "EnablePartialResultsStabilization":{
           "shape":"Boolean",
@@ -2227,6 +2341,14 @@
         "IssuesDetected":{
           "shape":"IssuesDetected",
           "documentation":"<p>Provides the issue that was detected in the specified segment.</p>"
+        },
+        "LanguageCode":{
+          "shape":"CallAnalyticsLanguageCode",
+          "documentation":"<p>The language code that represents the language spoken in your audio stream.</p>"
+        },
+        "LanguageIdentification":{
+          "shape":"CallAnalyticsLanguageIdentification",
+          "documentation":"<p>The language code of the dominant language identified in your stream.</p>"
         }
       },
       "documentation":"<p>Contains set of transcription results from one or more audio segments, along with additional information about the parameters included in your request. For example, channel definitions, partial result stabilization, sentiment, and issue detection.</p>",

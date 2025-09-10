@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.32.21-SNAPSHOT</version>
+        <version>2.33.7-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -90,8 +90,6 @@
         <module>marketplaceentitlement</module>
         <module>marketplacemetering</module>
         <module>mturk</module>
-        <module>opsworks</module>
-        <module>opsworkscm</module>
         <module>organizations</module>
         <module>pinpoint</module>
         <module>polly</module>
@@ -434,6 +432,8 @@
         <module>bedrockagentcore</module>
         <module>bedrockagentcorecontrol</module>
         <module>arcregionswitch</module>
+        <module>bcmrecommendedactions</module>
+        <module>bcmdashboards</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
