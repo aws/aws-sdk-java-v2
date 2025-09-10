@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 
@@ -27,10 +29,15 @@ public class ChecksumTrailerProvider implements TrailerProvider {
 
     private final SdkChecksum checksum;
     private final String checksumName;
+    private final ChecksumAlgorithm checksumAlgorithm;
+    private final PayloadChecksumStore checksumCache;
 
-    public ChecksumTrailerProvider(SdkChecksum checksum, String checksumName) {
+    public ChecksumTrailerProvider(SdkChecksum checksum, String checksumName, ChecksumAlgorithm checksumAlgorithm,
+                                   PayloadChecksumStore checksumCache) {
         this.checksum = checksum;
         this.checksumName = checksumName;
+        this.checksumAlgorithm = checksumAlgorithm;
+        this.checksumCache = checksumCache;
     }
 
     @Override
@@ -40,9 +47,15 @@ public class ChecksumTrailerProvider implements TrailerProvider {
 
     @Override
     public Pair<String, List<String>> get() {
+        byte[] checksumBytes = checksumCache.getChecksumValue(checksumAlgorithm);
+        if (checksumBytes == null) {
+            checksumBytes = checksum.getChecksumBytes();
+            checksumCache.putChecksumValue(checksumAlgorithm, checksumBytes);
+        }
+
         return Pair.of(
             checksumName,
-            Collections.singletonList(BinaryUtils.toBase64(checksum.getChecksumBytes()))
+            Collections.singletonList(BinaryUtils.toBase64(checksumBytes))
         );
     }
 }

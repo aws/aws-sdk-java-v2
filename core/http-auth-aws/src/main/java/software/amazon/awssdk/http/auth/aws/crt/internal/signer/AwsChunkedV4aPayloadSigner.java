@@ -35,12 +35,15 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.internal.signer.NoOpPayloadChecksumStore;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChecksumTrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
@@ -51,16 +54,20 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
+    private static final Logger LOG = Logger.loggerFor(AwsChunkedV4aPayloadSigner.class);
 
     private final CredentialScope credentialScope;
     private final int chunkSize;
     private final ChecksumAlgorithm checksumAlgorithm;
+    private final PayloadChecksumStore payloadChecksumStore;
     private final List<Pair<String, List<String>>> preExistingTrailers = new ArrayList<>();
 
     private AwsChunkedV4aPayloadSigner(Builder builder) {
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.chunkSize = Validate.isPositive(builder.chunkSize, "ChunkSize");
         this.checksumAlgorithm = builder.checksumAlgorithm;
+        this.payloadChecksumStore = builder.payloadChecksumStore == null ? NoOpPayloadChecksumStore.create() :
+                                    builder.payloadChecksumStore;
     }
 
     public static Builder builder() {
@@ -241,21 +248,41 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             return;
         }
         String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+
+        String cachedChecksum = getCachedChecksum();
+
+        if (cachedChecksum != null) {
+            LOG.debug(() -> String.format("Cached payload checksum available for algorithm %s: %s. Using cached value",
+                                          checksumAlgorithm.algorithmId(), checksumHeaderName));
+            builder.addTrailer(() -> Pair.of(checksumHeaderName, Collections.singletonList(cachedChecksum)));
+            return;
+        }
+
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
         ChecksumInputStream checksumInputStream = new ChecksumInputStream(
             builder.inputStream(),
             Collections.singleton(sdkChecksum)
         );
 
-        TrailerProvider checksumTrailer = new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName);
+        TrailerProvider checksumTrailer =
+            new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName, checksumAlgorithm, payloadChecksumStore);
 
         builder.inputStream(checksumInputStream).addTrailer(checksumTrailer);
+    }
+
+    private String getCachedChecksum() {
+        byte[] checksumBytes = payloadChecksumStore.getChecksumValue(checksumAlgorithm);
+        if (checksumBytes != null) {
+            return BinaryUtils.toBase64(checksumBytes);
+        }
+        return null;
     }
 
     static final class Builder {
         private CredentialScope credentialScope;
         private Integer chunkSize;
         private ChecksumAlgorithm checksumAlgorithm;
+        private PayloadChecksumStore payloadChecksumStore;
 
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = credentialScope;
@@ -269,6 +296,11 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
 
         public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
             this.checksumAlgorithm = checksumAlgorithm;
+            return this;
+        }
+
+        public Builder checksumCache(PayloadChecksumStore checksumCache) {
+            this.payloadChecksumStore = checksumCache;
             return this;
         }
 

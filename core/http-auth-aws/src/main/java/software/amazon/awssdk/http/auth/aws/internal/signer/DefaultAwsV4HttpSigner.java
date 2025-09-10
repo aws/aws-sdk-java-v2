@@ -24,6 +24,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Credenti
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_CACHE;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -55,7 +57,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request, null);
+        Checksummer checksummer = checksummer(request, null, checksumCache(request));
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
@@ -140,7 +142,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         // check for payload signing is done.
         Boolean overridePayloadSigning = shouldTreatAsUnsigned ? false : null;
 
-        return checksummer(request, overridePayloadSigning);
+        return checksummer(request, overridePayloadSigning, PayloadChecksumStore.create());
     }
 
     private static V4PayloadSigner v4PayloadSigner(
@@ -168,6 +170,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             return AwsChunkedV4PayloadSigner.builder()
                                             .credentialScope(properties.getCredentialScope())
                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                            .checksumCache(checksumCache(request))
                                             .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
                                             .build();
         }
@@ -260,5 +263,13 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     private static boolean isBetweenInclusive(Duration start, Duration x, Duration end) {
         return start.compareTo(x) <= 0 && x.compareTo(end) <= 0;
+    }
+
+    private static PayloadChecksumStore checksumCache(SignRequest<? extends AwsCredentialsIdentity> request) {
+        PayloadChecksumStore cache = request.property(CHECKSUM_CACHE);
+        if (cache == null) {
+            return NoOpPayloadChecksumStore.create();
+        }
+        return cache;
     }
 }
