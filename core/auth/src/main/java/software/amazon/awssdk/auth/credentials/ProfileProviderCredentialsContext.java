@@ -29,10 +29,12 @@ public final class ProfileProviderCredentialsContext {
 
     private final Profile profile;
     private final ProfileFile profileFile;
+    private final String source;
 
-    private ProfileProviderCredentialsContext(Profile profile, ProfileFile profileFile) {
-        this.profile = profile;
-        this.profileFile = profileFile;
+    private ProfileProviderCredentialsContext(Builder builder) {
+        this.profile = builder.profile;
+        this.profileFile = builder.profileFile;
+        this.source = builder.source;
     }
 
     public static Builder builder() {
@@ -53,6 +55,14 @@ public final class ProfileProviderCredentialsContext {
      */
     public ProfileFile profileFile() {
         return profileFile;
+    }
+
+    /**
+     * An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting previous
+     * credentials providers that are chained with this one.
+     */
+    public String source() {
+        return source;
     }
 
     @Override
@@ -78,6 +88,7 @@ public final class ProfileProviderCredentialsContext {
     public static final class Builder {
         private Profile profile;
         private ProfileFile profileFile;
+        private String source;
 
         private Builder() {
         }
@@ -103,8 +114,19 @@ public final class ProfileProviderCredentialsContext {
             return this;
         }
 
+        /**
+         * Builder interface to set source.
+         * @param source An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId}
+         *               denoting previous credentials providers that are chained with this one.
+         * @return Returns a reference to this object so that method calls can be chained together.
+         */
+        public Builder source(String source) {
+            this.source = source;
+            return this;
+        }
+
         public ProfileProviderCredentialsContext build() {
-            return new ProfileProviderCredentialsContext(profile, profileFile);
+            return new ProfileProviderCredentialsContext(this);
         }
     }
 }

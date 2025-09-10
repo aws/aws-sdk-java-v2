@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointP
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -67,7 +68,8 @@ public final class InstanceProfileCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<InstanceProfileCredentialsProvider.Builder, InstanceProfileCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
-    private static final String PROVIDER_NAME = "InstanceProfileCredentialsProvider";
+    private static final String CLASS_NAME = "InstanceProfileCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_IMDS.value();
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
@@ -90,6 +92,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
+    private final String source;
+
     /**
      * @see #builder()
      */
@@ -102,8 +106,9 @@ public final class InstanceProfileCredentialsProvider
                                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
+        this.source = builder.source;
 
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
                                      .profileFile(profileFile)
@@ -202,9 +207,17 @@ public final class InstanceProfileCredentialsProvider
         credentialsCache.close();
     }
 
+    private String providerName() {
+        String providerName = PROVIDER_NAME;
+        if (source != null && !source.isEmpty()) {
+            providerName = String.format("%s,%s", source, providerName);
+        }
+        return providerName;
+    }
+
     @Override
     public String toString() {
-        return ToString.create(PROVIDER_NAME);
+        return ToString.create(CLASS_NAME);
     }
 
     private ResourcesEndpointProvider createEndpointProvider() {
@@ -372,6 +385,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
+        private String source;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -385,6 +399,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
+            this.source = provider.source;
         }
 
         Builder clock(Clock clock) {
@@ -461,6 +476,16 @@ public final class InstanceProfileCredentialsProvider
 
         public void setStaleTime(Duration duration) {
             staleTime(duration);
+        }
+
+        @Override
+        public Builder source(String source) {
+            this.source = source;
+            return this;
+        }
+
+        public void setSource(String source) {
+            source(source);
         }
 
         @Override
