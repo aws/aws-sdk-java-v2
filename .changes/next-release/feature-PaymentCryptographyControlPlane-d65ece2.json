@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Payment Cryptography Control Plane",
+    "contributor": "",
+    "description": "AWS Payment Cryptography Service now supports Multi-Region key replication. Customers can choose to automatically distribute keys across AWS Regions."
+}
