@@ -36,6 +36,7 @@ public enum BusinessMetricFeatureId {
     S3_TRANSFER("G"),
     GZIP_REQUEST_COMPRESSION("L"), //TODO(metrics): Not working, compression happens after header
     ENDPOINT_OVERRIDE("N"),
+    S3_EXPRESS_BUCKET("J"),
     ACCOUNT_ID_MODE_PREFERRED("P"),
     ACCOUNT_ID_MODE_DISABLED("Q"),
     ACCOUNT_ID_MODE_REQUIRED("R"),
