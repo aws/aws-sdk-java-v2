@@ -138,7 +138,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         getObjectFuture.whenComplete((response, error) -> {
             if (error != null) {
                 log.debug(() -> "Error encountered during GetObjectRequest with partNumber=" + nextPartToGet);
-                onError(error);
+                handleError(error);
                 return;
             }
             requestMoreIfNeeded(response);
@@ -174,10 +174,18 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             if (totalParts != null && totalParts > 1 && totalComplete < totalParts) {
                 subscription.request(1);
             } else {
+                validatePartsCount();
                 log.debug(() -> String.format("Completing multipart download after a total of %d parts downloaded.", totalParts));
                 subscription.cancel();
             }
         }
+    }
+
+    /**
+     * The method used by the Subscriber itself when error occured.
+     */
+    private void handleError(Throwable t) {
+        onError(t);
     }
 
     @Override
@@ -191,7 +199,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
 
     @Override
     public void onComplete() {
-        validatePartsCount();
         future.complete(null);
     }
 
@@ -213,9 +220,8 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         if (totalParts != null && actualGetCount != totalParts) {
             String errorMessage = String.format("PartsCount validation failed. Expected %d, downloaded %d parts.", totalParts,
                                                 actualGetCount);
-            subscription.cancel();
             SdkClientException exception = SdkClientException.create(errorMessage);
-            onError(exception);
+            handleError(exception);
         }
     }
 }
