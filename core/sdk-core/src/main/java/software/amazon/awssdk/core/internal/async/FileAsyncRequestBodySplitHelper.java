@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -53,6 +54,8 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private AtomicInteger numAsyncRequestBodiesInFlight = new AtomicInteger(0);
     private AtomicInteger chunkIndex = new AtomicInteger(0);
+    private final FileTime modifiedTimeAtStart;
+    private final long sizeAtStart;
 
     public FileAsyncRequestBodySplitHelper(FileAsyncRequestBody asyncRequestBody,
                                            AsyncRequestBodySplitConfiguration splitConfiguration) {
@@ -70,6 +73,8 @@ public final class FileAsyncRequestBodySplitHelper {
                                splitConfiguration.bufferSizeInBytes();
         this.bufferPerAsyncRequestBody = Math.min(asyncRequestBody.chunkSizeInBytes(),
                                                   NumericUtils.saturatedCast(totalBufferSize));
+        this.modifiedTimeAtStart = asyncRequestBody.modifiedTimeAtStart();
+        this.sizeAtStart = asyncRequestBody.sizeAtStart();
     }
 
     public SdkPublisher<AsyncRequestBody> split() {
@@ -134,6 +139,8 @@ public final class FileAsyncRequestBodySplitHelper {
                                                                         .position(position)
                                                                         .numBytesToRead(numBytesToReadForThisChunk)
                                                                         .chunkSizeInBytes(bufferPerAsyncRequestBody)
+                                                                        .modifiedTimeAtStart(modifiedTimeAtStart)
+                                                                        .sizeAtStart(sizeAtStart)
                                                                         .build();
         return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher);
     }
