@@ -1,0 +1,55 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.utilslite;
+
+import java.util.HashMap;
+import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+
+/**
+ * Utility for thread-local context storage.
+ */
+@SdkProtectedApi
+public final class SdkInternalThreadLocal {
+    private static final ThreadLocal<Map<String, String>> STORAGE = ThreadLocal.withInitial(HashMap::new);
+
+    private SdkInternalThreadLocal() {
+    }
+
+    public static void put(String key, String value) {
+        if (value == null) {
+            STORAGE.get().remove(key);
+        } else {
+            STORAGE.get().put(key, value);
+        }
+    }
+
+    public static String get(String key) {
+        return STORAGE.get().get(key);
+    }
+
+    public static String remove(String key) {
+        return STORAGE.get().remove(key);
+    }
+
+    public static void clear() {
+        STORAGE.get().clear();
+    }
+
+    public static boolean containsKey(String key) {
+        return STORAGE.get().containsKey(key);
+    }
+}
