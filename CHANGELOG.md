@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.8__ __2025-09-11__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive adds a new feature in MediaPackage output group that enables MediaPackage V2 users to control HLS-related parameters directly in MediaLive. These parameter settings are then reflected in MediaPackage outputs, providing more streamlined control over HLS configurations.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - adding IAM principal id to IAM user profile details
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release supports hook details for Amazon ECS lifecycle hooks.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Added nodeLabel support in container provider to aid hardware isolation support for virtual cluster and security configuration.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - CreateEnvironment API now supports parameters (isHcxPublic & hcxNetworkAclId) for HCX migration via public internet, adding flexibility for migration scenarios. New APIs have been added for associating (AssociateEipToVlan) & disassociating (DisassociateEipFromVlan) Elastic IP (EIP) addresses.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated Java SDK implementation of entity set status in GuardDuty API.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Vended Logs APIs for Amazon Prometheus Managed Collector
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for Account level custom permissions, additional Dashboard Options, and Null support for Q&A.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds support for end-to-end IAM authentication in RDS Proxy for MySQL, MariaDB, and PostgreSQL engines.
+
 # __2.33.7__ __2025-09-10__
 ## __AWS SDK for Java v2__
   - ### Features

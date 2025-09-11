@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Prometheus Service",
-    "contributor": "",
-    "description": "Add Vended Logs APIs for Amazon Prometheus Managed Collector"
-}

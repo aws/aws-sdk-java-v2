@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Relational Database Service",
-    "contributor": "",
-    "description": "Adds support for end-to-end IAM authentication in RDS Proxy for MySQL, MariaDB, and PostgreSQL engines."
-}
