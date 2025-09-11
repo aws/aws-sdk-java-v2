@@ -18,10 +18,12 @@ package software.amazon.awssdk.utilslite;
 import java.util.HashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
  * Utility for thread-local context storage.
  */
+@ThreadSafe
 @SdkProtectedApi
 public final class SdkInternalThreadLocal {
     private static final ThreadLocal<Map<String, String>> STORAGE = ThreadLocal.withInitial(HashMap::new);
