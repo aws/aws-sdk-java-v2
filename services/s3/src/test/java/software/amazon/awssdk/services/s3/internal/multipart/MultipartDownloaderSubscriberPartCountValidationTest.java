@@ -85,19 +85,16 @@ public class MultipartDownloaderSubscriberPartCountValidationTest {
     }
 
     @Test
-    void callCountLessThanTotalParts_shouldThrowException() throws InterruptedException {
-        subscriber = new MultipartDownloaderSubscriber(s3Client, getObjectRequest);
-        GetObjectResponse response1 = createMockResponse(3, "etag1");
-        GetObjectResponse response2 = createMockResponse(3, "etag2");
+    void callCountMoreThanTotalParts_shouldThrowException() throws InterruptedException {
+        subscriber = new MultipartDownloaderSubscriber(s3Client, getObjectRequest, 3);
+        GetObjectResponse response1 = createMockResponse(2, "etag1");
 
         CompletableFuture<GetObjectResponse> future1 = CompletableFuture.completedFuture(response1);
-        CompletableFuture<GetObjectResponse> future2 = CompletableFuture.completedFuture(response2);
 
         when(s3Client.getObject(any(GetObjectRequest.class), eq(responseTransformer)))
-            .thenReturn(future1, future2);
+            .thenReturn(future1);
 
         subscriber.onSubscribe(subscription);
-        subscriber.onNext(responseTransformer);
         subscriber.onNext(responseTransformer);
         Thread.sleep(100);
 
@@ -107,7 +104,7 @@ public class MultipartDownloaderSubscriberPartCountValidationTest {
                                                     () -> subscriber.future().get(1, TimeUnit.SECONDS));
         assertTrue(exception.getCause() instanceof SdkClientException);
         assertTrue(exception.getCause().getMessage().contains("PartsCount validation failed"));
-        assertTrue(exception.getCause().getMessage().contains("Expected 3, downloaded 2 parts"));
+        assertTrue(exception.getCause().getMessage().contains("Expected 2, downloaded 4 parts"));
 
     }
 
