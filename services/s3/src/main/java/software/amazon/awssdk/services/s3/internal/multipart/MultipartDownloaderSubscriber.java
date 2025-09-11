@@ -185,16 +185,16 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
      * The method used by the Subscriber itself when error occured.
      */
     private void handleError(Throwable t) {
-        onError(t);
-    }
-
-    @Override
-    public void onError(Throwable t) {
         CompletableFuture<GetObjectResponse> partFuture;
         while ((partFuture = getObjectFutures.poll()) != null) {
             partFuture.cancel(true);
         }
         future.completeExceptionally(t);
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        handleError(t);
     }
 
     @Override
