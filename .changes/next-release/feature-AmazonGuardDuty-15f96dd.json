@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Updated Java SDK implementation of entity set status in GuardDuty API."
+}
