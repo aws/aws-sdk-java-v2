@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -108,6 +109,7 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .prefetchTime(prefetchTime)
                                                     .staleTime(staleTime)
                                                     .roleSessionDuration(roleSessionDuration)
+                                                    .source(BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value())
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);
