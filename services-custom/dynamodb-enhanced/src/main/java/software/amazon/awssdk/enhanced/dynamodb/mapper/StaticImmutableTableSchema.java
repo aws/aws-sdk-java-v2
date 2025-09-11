@@ -178,7 +178,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         private Map<String, AttributeValue> itemToMap(T item, boolean ignoreNulls, List<String> attributeNames) {
             Map<String, String> mapItem = this.mapItemGetter.apply(item);
 
-            Map<String, AttributeValue> result  = new HashMap<>();
+            Map<String, AttributeValue> result = new HashMap<>();
 
             if (mapItem != null) {
                 mapItem.forEach((key, value) -> {
@@ -250,8 +250,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
         );
 
         FlattenedMapperForMaps<T, B> mutableFlattenedMapperForMaps = null;
-        if(builder.flattenedMap != null) {
-            mutableFlattenedMapperForMaps= builder.flattenedMap;
+        if (builder.flattenedMap != null) {
+            mutableFlattenedMapperForMaps = builder.flattenedMap;
         }
 
         // Apply table-tags to table metadata
@@ -572,8 +572,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                             }
 
                             flattenedAttributeValues.put(key, value.s());
-                                flattenedMapAttributeValues.put(indexedFlattenedMapperForMaps, flattenedAttributeValues);
-                            }
+                            flattenedMapAttributeValues.put(indexedFlattenedMapperForMaps, flattenedAttributeValues);
+                        }
                     }
                 }
             }

@@ -686,9 +686,9 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
 Just as for annotations, you can flatten as many different eligible classes as you like using the
 builder pattern. 
 
-#### Using composition
+### Flattening map attributes
 
-Using composition, the @DynamoDBFlattenMap annotation support to flatten a Map:
+When using composition, you can apply the @DynamoDbFlattenMap annotation to flatten a Map into top-level attributes:
 ```java
 @DynamoDbBean
 public class Customer {
@@ -707,10 +707,15 @@ public class Customer {
 
     @DynamoDbFlattenMap
     public Map<String, String> getDetailsMap() { return this.detailsMap; }
-    public void setDetailsMap(Map<String, String> record) { this.detailsMap = detailsMap;}
+    public void setDetailsMap(Map<String, String> detailsMap) { this.detailsMap = detailsMap;}
 }
 ```
-You can flatten only one map present on a record, otherwise it will be thrown an exception
+> **Constraints**
+> - A record can contain at most one `@DynamoDbFlattenMap`. This limit applies across the entire class hierarchy, including any composed or flattened classes.
+> - The flattened map must use `String` as both the key and value type (`Map<String, String>`).
+> - Attribute names generated from map keys must not conflict with existing attributes on the record. If a conflict is detected, an exception will be thrown.
+> - If more than one flattened map is present, an exception will be thrown during schema creation.
+
 
 Flat map composite classes using StaticTableSchema:
 
@@ -732,6 +737,6 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
                                       .setter(Customer::setName))
     // Because we are flattening a Map object, we supply a getter and setter so the
     // mapper knows how to access it
-    .flattenMap(Map::detailsMap, Map::detailsMap)
+     .flattenMap(Map::getDetailsMap, Map::setDetailsMap)
     .build(); 
 ```
