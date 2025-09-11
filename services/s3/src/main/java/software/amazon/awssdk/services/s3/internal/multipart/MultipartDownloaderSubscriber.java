@@ -181,6 +181,11 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
         }
     }
 
+    @Override
+    public void onError(Throwable t) {
+        handleError(t);
+    }
+
     /**
      * The method used by the Subscriber itself when error occured.
      */
@@ -190,11 +195,6 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
             partFuture.cancel(true);
         }
         future.completeExceptionally(t);
-    }
-
-    @Override
-    public void onError(Throwable t) {
-        handleError(t);
     }
 
     @Override
