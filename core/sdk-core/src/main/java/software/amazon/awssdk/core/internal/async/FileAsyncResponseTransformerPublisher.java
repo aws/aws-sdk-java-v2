@@ -67,7 +67,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         s.onSubscribe(new ThreadSafeEmittingSubscription<>(
             s,
             new AtomicLong(0),
-            () -> log.info(() -> "received onCancel (do nothing)"),
+            this::onCancel,
             new AtomicBoolean(),
             log,
             this::createTransformer));
@@ -75,6 +75,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
     private AsyncResponseTransformer<T, T> createTransformer() {
         return new IndividualFileTransformer();
+    }
+
+    private void onCancel() {
+        subscriber = null;
     }
 
     /**
@@ -106,7 +110,9 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
             if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
                 // Bad state! This is intended to cancel everything
-                subscriber.onError(new IllegalStateException("Content range header is missing"));
+                if (subscriber != null) {
+                    subscriber.onError(new IllegalStateException("Content range header is missing"));
+                }
                 return;
             }
 
@@ -114,7 +120,9 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
                 // Bad state! This is intended to cancel everything
-                subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
+                if (subscriber != null) {
+                    subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
+                }
                 return;
             }
 

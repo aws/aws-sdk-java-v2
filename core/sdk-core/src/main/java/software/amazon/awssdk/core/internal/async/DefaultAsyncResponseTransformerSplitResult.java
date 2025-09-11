@@ -72,7 +72,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         implements AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
-        private Boolean suppressParallelism;
+        private Boolean supportsNonSerial;
 
         DefaultBuilder() {
         }
@@ -80,6 +80,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         DefaultBuilder(DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT> split) {
             this.publisher = split.publisher;
             this.future = split.future;
+            this.supportsNonSerial = split.supportsNonSerial;
         }
 
         @Override
@@ -108,13 +109,13 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
 
         @Override
         public Boolean supportsNonSerial() {
-            return suppressParallelism;
+            return supportsNonSerial;
         }
 
         @Override
         public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> supportsNonSerial(
             Boolean supportsParallel) {
-            this.suppressParallelism = supportsParallel;
+            this.supportsNonSerial = supportsParallel;
             return this;
         }
 

@@ -182,7 +182,6 @@ public class NonLinearMultipartDownloaderSubscriber
 
         sendNextRequest(asyncResponseTransformer);
         requestMoreIfNeeded();
-
     }
 
     // Handle first request.
@@ -225,6 +224,7 @@ public class NonLinearMultipartDownloaderSubscriber
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
 
         inFlightRequests.put(partToGet, response);
+        CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, e) -> {
             log.info(() -> "Completed part: " + partToGet);
@@ -311,10 +311,12 @@ public class NonLinearMultipartDownloaderSubscriber
 
     private void processPendingTransformers() {
         synchronized (pendingTransformers) {
-            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = pendingTransformers.poll();
-            while (transformer != null) {
-                executeRequestOrAddToPending(transformer);
-                transformer = pendingTransformers.poll();
+            int initialSize = pendingTransformers.size();
+            for (int i = 0; i < initialSize; i++) {
+                AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = pendingTransformers.poll();
+                if (transformer != null) {
+                    executeRequestOrAddToPending(transformer);
+                }
             }
         }
     }

@@ -27,12 +27,13 @@ import software.amazon.awssdk.utils.Logger;
 public class ThreadSafeEmittingSubscription<T> implements Subscription {
 
     private final AtomicBoolean emitting = new AtomicBoolean(false);
-    private final Subscriber<T> downstreamSubscriber;
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
     private final AtomicBoolean isCancelled;
     private final Supplier<T> supplier;
     private final Logger log;
+
+    private Subscriber<T> downstreamSubscriber;
 
     public ThreadSafeEmittingSubscription(Subscriber<T> downstreamSubscriber, AtomicLong outstandingDemand,
                                           Runnable onCancel, AtomicBoolean isCancelled, Logger log, Supplier<T> supplier) {
@@ -62,6 +63,8 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
 
     @Override
     public void cancel() {
+        isCancelled.set(true);
+        downstreamSubscriber = null;
         onCancel.run();
     }
 
