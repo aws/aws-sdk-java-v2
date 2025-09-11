@@ -26,32 +26,44 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @ThreadSafe
 @SdkProtectedApi
 public final class SdkInternalThreadLocal {
-    private static final ThreadLocal<Map<String, String>> STORAGE = ThreadLocal.withInitial(HashMap::new);
+    private static final ThreadLocal<Map<String, String>> STORAGE = new ThreadLocal<>();
 
     private SdkInternalThreadLocal() {
     }
 
     public static void put(String key, String value) {
+        Map<String, String> map = STORAGE.get();
+        if (map == null) {
+            map = new HashMap<>();
+            STORAGE.set(map);
+        }
+
         if (value == null) {
-            STORAGE.get().remove(key);
+            map.remove(key);
         } else {
-            STORAGE.get().put(key, value);
+            map.put(key, value);
         }
     }
 
     public static String get(String key) {
-        return STORAGE.get().get(key);
+        Map<String, String> map = STORAGE.get();
+        return map != null ? map.get(key) : null;
     }
 
     public static String remove(String key) {
-        return STORAGE.get().remove(key);
+        Map<String, String> map = STORAGE.get();
+        return map != null ? map.remove(key) : null;
     }
 
     public static void clear() {
-        STORAGE.get().clear();
+        Map<String, String> map = STORAGE.get();
+        if (map != null) {
+            map.clear();
+        }
     }
 
     public static boolean containsKey(String key) {
-        return STORAGE.get().containsKey(key);
+        Map<String, String> map = STORAGE.get();
+        return map != null && map.containsKey(key);
     }
 }
