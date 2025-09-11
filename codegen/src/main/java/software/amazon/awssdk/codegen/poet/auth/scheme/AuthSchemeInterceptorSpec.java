@@ -49,8 +49,10 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -70,8 +72,10 @@ import software.amazon.awssdk.utils.Validate;
 public final class AuthSchemeInterceptorSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final IntermediateModel intermediateModel;
 
     public AuthSchemeInterceptorSpec(IntermediateModel intermediateModel) {
+        this.intermediateModel = intermediateModel;
         this.authSchemeSpecUtils = new AuthSchemeSpecUtils(intermediateModel);
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
     }
@@ -99,7 +103,40 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addMethod(generateTrySelectAuthScheme())
                .addMethod(generateGetIdentityMetric())
                .addMethod(putSelectedAuthSchemeMethodSpec());
+        if (intermediateModel.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            builder.addMethod(generateEnvironmentTokenMetric());
+        }
         return builder.build();
+    }
+
+    private MethodSpec generateEnvironmentTokenMetric() {
+        return MethodSpec
+            .methodBuilder("recordEnvironmentTokenBusinessMetric")
+            .addModifiers(Modifier.PRIVATE)
+            .addTypeVariable(TypeVariableName.get("T", Identity.class))
+            .addParameter(ParameterSpec.builder(
+                ParameterizedTypeName.get(ClassName.get(SelectedAuthScheme.class),
+                                          TypeVariableName.get("T")),
+                "selectedAuthScheme").build())
+            .addParameter(ExecutionAttributes.class, "executionAttributes")
+            .addStatement("$T tokenFromEnv = executionAttributes.getAttribute($T.TOKEN_CONFIGURED_FROM_ENV)",
+                          String.class, SdkInternalExecutionAttribute.class)
+            .beginControlFlow("if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals($T"
+                              + ".SCHEME_ID) && selectedAuthScheme.identity().isDone())", BearerAuthScheme.class)
+            .beginControlFlow("if (selectedAuthScheme.identity().getNow(null) instanceof $T)", TokenIdentity.class)
+
+            .addStatement("$T configuredToken = ($T) selectedAuthScheme.identity().getNow(null)",
+                          TokenIdentity.class, TokenIdentity.class)
+            .beginControlFlow("if (configuredToken.token().equals(tokenFromEnv))")
+            .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
+                          + ".addMetric($T.BEARER_SERVICE_ENV_VARS.value())",
+                          SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+            .endControlFlow()
+            .endControlFlow()
+            .endControlFlow()
+            .build();
+
+
     }
 
     private MethodSpec generateBeforeExecution() {
@@ -116,6 +153,11 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
                .addStatement("$T selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes)",
                              wildcardSelectedAuthScheme())
                .addStatement("putSelectedAuthScheme(executionAttributes, selectedAuthScheme)");
+
+        if (intermediateModel.getCustomizationConfig().isEnableEnvironmentBearerToken()) {
+            builder.addStatement("recordEnvironmentTokenBusinessMetric(selectedAuthScheme, "
+                                 + "executionAttributes)");
+        }
         return builder.build();
     }
 

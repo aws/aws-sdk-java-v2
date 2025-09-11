@@ -1,0 +1,384 @@
+{
+    "version": "2.32.31",
+    "date": "2025-08-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS ARC - Zonal Shift",
+            "contributor": "",
+            "description": "This release adds new API options to enable allowed windows and multiple alarms for practice runs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Mesh",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Runner",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeCommit",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Catalog",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS End User Messaging Social",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Greengrass",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Jobs Data Plane",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Secure Tunneling",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT TwinMaker",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager Linux Subscriptions",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Refactor Spaces",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Access Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog App Registry",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Signer",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager for SAP",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Telco Network Builder",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAF Regional",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Contact Lens",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Amazon Connect Participant Service: Remove unused fields from WebRTCConnection"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add new APIs for viewing how your shared AMIs are used by other accounts, and identify resources in your account that are dependent on particular AMIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Transcoder",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Glacier",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Routes V2",
+            "contributor": "",
+            "description": "Added RouteFerryNotice PotentialViolatedVehicleRestrictionUsage value for CalculateRoutes. This value indicates when the Route is potentially forbidden for the given vehicle profile."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Vision",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMQ",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon NeptuneData",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Events",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Recycle Bin",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker geospatial capabilities",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Private CA Connector for SCEP",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Route53 Recovery Cluster",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "TrustedAdvisor Public API",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -13,7 +13,7 @@
     "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
   },
-  "operations":{
+  "operations": {
     "multiAuthWithOnlySigv4a":{
       "name":"multiAuthWithOnlySigv4a",
       "http":{
@@ -22,6 +22,18 @@
       },
       "input":{"shape":"SampleRequest"},
       "auth": ["aws.auth#sigv4a"],
+      "staticContextParams":{
+        "ApiType":{"value":"NoEndpointSigningProperties"}
+      }
+    },
+    "multiAuthWithOnlySigv4":{
+      "name":"multiAuthWithOnlySigv4",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/multiAuthWithOnlySigv4"
+      },
+      "input":{"shape":"SampleRequest"},
+      "auth": ["aws.auth#sigv4"],
       "staticContextParams":{
         "ApiType":{"value":"NoEndpointSigningProperties"}
       }
@@ -71,6 +83,17 @@
         "ApiType": {
           "value": "onlySigv4a"
         }
+      }
+    },
+    "multiAuthWithoutAuthScheme":{
+      "name":"multiAuthWithoutAuthScheme",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/multiAuthWithoutAuthScheme"
+      },
+      "input":{"shape":"SampleRequest"},
+      "staticContextParams":{
+        "ApiType":{"value":"NoEndpointSigningProperties"}
       }
     }
   },

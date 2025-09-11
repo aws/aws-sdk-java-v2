@@ -452,13 +452,22 @@
       "type": "structure",
       "members": {
         "InputEventOne": {
-          "shape": "InputEvent"
+          "shape": "InputEventOne"
         },
         "InputEventTwo": {
           "shape": "InputEventTwo"
         }
       },
       "eventstream": true
+    },
+    "InputEventOne": {
+      "type": "structure",
+      "members": {
+        "Foo": {
+          "shape": "String"
+        }
+      },
+      "event": true
     },
     "InputEventTwo": {
       "type": "structure",

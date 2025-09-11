@@ -47,14 +47,14 @@ final class MapOfEnumToListOfEnumsCopier {
         } else {
             Map<String, List<String>> modifiableMap = new LinkedHashMap<>(mapOfEnumToListOfEnumsParam.size());
             mapOfEnumToListOfEnumsParam.forEach((key, value) -> {
-                String result = key.toString();
+                String result = key == null ? null : key.toString();
                 List<String> list;
                 if (value == null || value instanceof SdkAutoConstructList) {
                     list = DefaultSdkAutoConstructList.getInstance();
                 } else {
                     List<String> modifiableList = new ArrayList<>(value.size());
                     value.forEach(entry -> {
-                        String result1 = entry.toString();
+                        String result1 = entry == null ? null : entry.toString();
                         modifiableList.add(result1);
                     });
                     list = Collections.unmodifiableList(modifiableList);

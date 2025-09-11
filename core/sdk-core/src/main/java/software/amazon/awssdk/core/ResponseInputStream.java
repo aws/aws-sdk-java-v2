@@ -15,17 +15,33 @@
 
 package software.amazon.awssdk.core;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
  * Input stream that provides access to the unmarshalled POJO response returned by the service in addition to the streamed
  * contents. This input stream should be closed after all data has been read from the stream.
+ *
+ * <p>
+ * <b>NOTE:</b> You must read this stream promptly to avoid automatic cancellation. The default timeout for reading is 60
+ * seconds, which starts when the response stream is ready. If {@link #read()} is not invoked before the timeout, the stream will
+ * automatically abort to prevent resource leakage.
+ * <p>
+ * The timeout can be customized by passing a {@link Duration} to the constructor, or disabled entirely by
+ * passing {@link Duration#ZERO} or a negative {@link Duration}.
  * <p>
  * Note about the Apache http client: This input stream can be used to leverage a feature of the Apache http client where
  * connections are released back to the connection pool to be reused. As such, calling {@link ResponseInputStream#close() close}
@@ -43,19 +59,37 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream implements Abortable {
 
+    private static final Logger log = Logger.loggerFor(ResponseInputStream.class);
+    private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
     private final ResponseT response;
     private final Abortable abortable;
+    private ScheduledFuture<?> timeoutTask;
+    private volatile boolean hasRead = false;
 
     public ResponseInputStream(ResponseT resp, AbortableInputStream in) {
+        this(resp, in, null);
+    }
+
+    public ResponseInputStream(ResponseT resp, AbortableInputStream in, Duration timeout) {
         super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = Validate.paramNotNull(in, "abortableInputStream");
+        
+        Duration resolvedTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
+        scheduleTimeoutTask(resolvedTimeout);
     }
 
     public ResponseInputStream(ResponseT resp, InputStream in) {
+        this(resp, in, null);
+    }
+
+    public ResponseInputStream(ResponseT resp, InputStream in, Duration timeout) {
         super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = in instanceof Abortable ? (Abortable) in : null;
+
+        Duration resolvedTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
+        scheduleTimeoutTask(resolvedTimeout);
     }
 
     /**
@@ -65,15 +99,77 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
         return response;
     }
 
+    @Override
+    public int read() throws IOException {
+        cancelTimeoutTask();
+        return super.read();
+    }
+
+    @Override
+    public int read(byte[] b) throws IOException {
+        cancelTimeoutTask();
+        return super.read(b);
+    }
+
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+        cancelTimeoutTask();
+        return super.read(b, off, len);
+    }
+
+    private void cancelTimeoutTask() {
+        if (!hasRead && timeoutTask != null) {
+            timeoutTask.cancel(false);
+        }
+        hasRead = true;
+    }
+
+    private void scheduleTimeoutTask(Duration timeout) {
+        if (timeout.equals(Duration.ZERO) || timeout.isNegative()) {
+            return;
+        }
+
+        long timeoutInMillis = timeout.toMillis();
+        timeoutTask = TimeoutScheduler.INSTANCE.schedule(() -> {
+            if (!hasRead) {
+                log.debug(() -> String.format("InputStream was not read before timeout of [%d] milliseconds, aborting "
+                                              + "stream and closing connection.", timeoutInMillis));
+                abort();
+            }
+        }, timeoutInMillis, TimeUnit.MILLISECONDS);
+    }
+
+    private static final class TimeoutScheduler {
+        static final ScheduledExecutorService INSTANCE =
+            Executors.newScheduledThreadPool(1, r -> {
+                Thread t = new Thread(r, "response-input-stream-timeout-scheduler");
+                t.setDaemon(true);
+                return t;
+            });
+    }
+
     /**
      * Close the underlying connection, dropping all remaining data in the stream, and not leaving the
      * connection open to be used for future requests.
      */
     @Override
     public void abort() {
+        if (timeoutTask != null) {
+            timeoutTask.cancel(false);
+        }
         if (abortable != null) {
             abortable.abort();
         }
-        IoUtils.closeQuietly(in, null);
+        IoUtils.closeQuietlyV2(in, log);
+    }
+
+    @SdkTestInternalApi
+    public boolean hasTimeoutTask() {
+        return timeoutTask != null;
+    }
+
+    @SdkTestInternalApi
+    public boolean timeoutTaskDoneOrCancelled() {
+        return timeoutTask != null && timeoutTask.isDone();
     }
 }

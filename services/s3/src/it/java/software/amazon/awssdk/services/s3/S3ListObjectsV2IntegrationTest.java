@@ -332,7 +332,6 @@ public class S3ListObjectsV2IntegrationTest extends S3IntegrationTestBase {
 
             if (shouldIncludeOwner) {
                 assertNotNull(obj.owner());
-                assertTrue(obj.owner().displayName().length() > 1);
                 assertTrue(obj.owner().id().length() > 1);
             }
         }

@@ -58,7 +58,6 @@ public class S3AddImportsAndComments extends Recipe {
     private static final MethodMatcher  GET_EXPIRY_TIME = v1EnMethodMatcher("S3EventNotification.RestoreEventDataEntity "
                                                                             + "getLifecycleRestorationExpiryTime(..)");
 
-
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");
     private static final Pattern CREATE_BUCKET_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "CreateBucketRequest");

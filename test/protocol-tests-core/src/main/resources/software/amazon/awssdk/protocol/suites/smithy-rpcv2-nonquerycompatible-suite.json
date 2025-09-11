@@ -1,0 +1,6 @@
+{
+  "testCases": [
+    "cases/smithy-rpcv2-nonquerycompatible-input.json",
+    "cases/smithy-rpcv2-nonquerycompatible-output.json"
+  ]
+}

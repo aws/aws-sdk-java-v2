@@ -1,0 +1,396 @@
+{
+    "version": "2.32.32",
+    "date": "2025-08-27",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added allowlist when copying PutObjectRequest and CopyObjectRequest to transfer manager request"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Amplify UI Builder",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppConfig Data",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Added ECS_AL2023_NVIDIA as an option for Ec2Configuration.imageType."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeConnections",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Compute Optimizer",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Data Pipeline",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service",
+            "contributor": "",
+            "description": "Add APIs for CA AutoEnrollment support: DescribeCAEnrollmentPolicy, EnableCAEnrollmentPolicy and DisableCAEnrollmentPolicy."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Wireless",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lake Formation",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Mainframe Modernization Application Testing",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Reporting Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Config",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS RoboMaker",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds timeouts to ResponsePublisher and ResponseInputStream to close connection if response not consumed"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Snow Device Management",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Supply Chain",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Identity",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Meetings",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Voice",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Insights",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Evidently",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Profiler",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Add support for on-demand refresh of EKS cluster insights"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Fraud Detector",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Inspector",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Media",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Neptune Graph",
+            "contributor": "",
+            "description": "Add StartGraph and StopGraph operations to Neptune Analytics"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QLDB Session",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for AutoScaling on SageMaker HyperPod."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Textract",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Write",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon VPC Lattice",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Voice ID",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkDocs",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AmplifyBackend",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Data Plane",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Schemas",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

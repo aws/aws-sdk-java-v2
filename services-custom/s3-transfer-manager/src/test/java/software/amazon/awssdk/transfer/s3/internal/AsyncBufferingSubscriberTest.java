@@ -98,6 +98,7 @@ class AsyncBufferingSubscriberTest {
             assertThat(numRequestsInFlightSampling).contains(MAX_CONCURRENT_EXECUTIONS);
         }
         disposable.dispose();
+        numRequestsInFlightSampling.forEach(maxConcurrency -> assertThat(maxConcurrency).isLessThanOrEqualTo(MAX_CONCURRENT_EXECUTIONS));
     }
 
     @Test

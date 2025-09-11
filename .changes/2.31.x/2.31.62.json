@@ -1,0 +1,54 @@
+{
+    "version": "2.31.62",
+    "date": "2025-06-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "jencymaryjoseph",
+            "description": "Deprecated DefaultCredentialsProvider.create() since it creates Singleton instance"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Catalog",
+            "contributor": "",
+            "description": "Introduced ListControlMappings API that retrieves control mappings. Added control aliases and governed resources fields in GetControl and ListControls APIs. New filtering capability in ListControls API, with implementation identifiers and implementation types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "Add support for public DNS hostname resolution to private IP addresses across Cloud WAN-managed VPCs. Add support for security group referencing across Cloud WAN-managed VPCs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "WAF now provides two DDoS protection options: resource-level monitoring for Application Load Balancers and the AWSManagedRulesAntiDDoSRuleSet managed rule group for CloudFront distributions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Release for EKS Pod Identity Cross Account feature and disableSessionTags flag."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Add support for the Assisted NLU feature to improve bot performance"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updates Amazon RDS documentation for Amazon RDS for Db2 cross-Region replicas in standby mode."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

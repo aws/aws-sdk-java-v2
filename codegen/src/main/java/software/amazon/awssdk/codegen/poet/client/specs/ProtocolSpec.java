@@ -121,7 +121,7 @@ public interface ProtocolSpec {
 
     default CodeBlock credentialType(OperationModel opModel, IntermediateModel model) {
 
-        if (AuthUtils.isOpBearerAuth(model, opModel)) {
+        if (AuthUtils.isOpBearerAuthPreferred(model, opModel)) {
             return CodeBlock.of(".credentialType($T.TOKEN)\n", CredentialType.class);
         } else {
             return CodeBlock.of("");

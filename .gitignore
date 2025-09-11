@@ -31,3 +31,5 @@ target/
 # VS Code
 .vscode/*
 
+# Other
+.attach_pid*

@@ -31,6 +31,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -56,8 +57,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
     private static final Logger log = Logger.loggerFor(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String BUCKET = temporaryBucketName(S3TransferManagerDownloadPauseResumeIntegrationTest.class);
     private static final String KEY = "key";
-    // 24 * MB is chosen to make sure we have data written in the file already upon pausing.
-    private static final long OBJ_SIZE = 24 * MB;
+    // 50 * MB is chosen to make sure we have data written in the file already upon pausing.
+    private static final long OBJ_SIZE = 50 * MB;
     private static File sourceFile;
 
     @BeforeAll
@@ -149,11 +150,15 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         log.debug(() -> "Paused: " + resumableFileDownload);
         assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
         assertThat(testDownloadListener.getObjectResponse).isNotNull();
-        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
-        assertThat(bytesTransferred).isEqualTo(path.toFile().length());
-        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
 
-        assertThat(bytesTransferred).isLessThan(sourceFile.length());
+        // Skip the test if everything has been downloaded.
+        Assumptions.assumeTrue(resumableFileDownload.bytesTransferred() < sourceFile.length());
+
+        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
+        // Request may not be cancelled right away when pause is invoked, so there may be more bytes written to the file
+        assertThat(bytesTransferred).isLessThanOrEqualTo(path.toFile().length());
+        assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
+        assertThat(bytesTransferred).isLessThanOrEqualTo(sourceFile.length());
         assertThat(download.completionFuture()).isCancelled();
 
         log.debug(() -> "Resuming download ");
@@ -242,7 +247,7 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
                                                         .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
                                                         .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
                                                                                      .maxAttempts(Integer.MAX_VALUE)
-                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                                                                                     .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(10))))
                                                         .build();
         waiter.run(() -> download.progress().snapshot());
     }

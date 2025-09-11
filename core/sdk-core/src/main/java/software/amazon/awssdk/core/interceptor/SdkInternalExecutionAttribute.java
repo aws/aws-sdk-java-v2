@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
@@ -54,6 +56,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<BusinessMetricCollection> BUSINESS_METRICS =
         new ExecutionAttribute<>("BusinessMetricsCollection");
+
+    /**
+     * A collection of metadata to be added to the UserAgent.
+     */
+    public static final ExecutionAttribute<List<AdditionalMetadata>> USER_AGENT_METADATA =
+        new ExecutionAttribute<>("UserAgentMetadata");
 
     /**
      * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
@@ -188,6 +196,13 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "ResponseChecksumValidation");
+
+    /**
+     * The token configured from the environment or system properties, used to determine if the BEARER_SERVICE_ENV_VARS
+     * business metric should be set.
+     */
+    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
+        "TokenConfiguredFromEnv");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.
