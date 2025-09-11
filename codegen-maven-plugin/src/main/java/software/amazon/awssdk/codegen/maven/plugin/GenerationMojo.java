@@ -236,6 +236,13 @@ public class GenerationMojo extends AbstractMojo {
 
     private void emitValidationReport(ModelValidationReport report) {
         Path modelsDir = sourcesDirectory.resolve("models");
+        try {
+            Files.createDirectories(modelsDir);
+        } catch (IOException e) {
+            getLog().warn(String.format("Failed to create directory %s, unable to write validation-report.json", modelsDir), e);
+            return;
+        }
+
         try (Writer writer = Files.newBufferedWriter(modelsDir.resolve("validation-report.json"),
                                                      StandardCharsets.UTF_8);) {
 
