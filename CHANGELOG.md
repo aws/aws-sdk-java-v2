@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.9__ __2025-09-12__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Jackson and Jackson jr to 2.19.0
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Add support for certificates to be signed by 3rd party certificate authorities. New API GetCertificateSigningRequest API and support for providing certificates at run-time for tr-34 import/export
+
 # __2.33.8__ __2025-09-11__
 ## __AWS Elemental MediaLive__
   - ### Features
