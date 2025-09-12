@@ -242,12 +242,8 @@ public class NonLinearMultipartDownloaderSubscriber
             if (completedParts.get() >= totalParts) {
                 // todo remove log
                 log.info(() -> "================= ALL PARTS COMPLETED ==================");
-                log.info(() -> "remaining in flight (should be empty): " + inFlightRequests.keySet().toString());
-                log.info(() -> "calling cancel");
                 subscription.cancel();
-                log.info(() -> "completing future");
                 resultFuture.complete(getObjectResponse);
-                log.info(() -> "all done in NonLinearMultipartDownloaderSubscriber");
             } else {
                 processPendingTransformers();
                 requestMoreIfNeeded();
@@ -335,8 +331,8 @@ public class NonLinearMultipartDownloaderSubscriber
         int totalWorkInProgress = inFlightRequests.size() + completedParts.get();
         if (totalWorkInProgress >= totalParts) {
             // todo change trace log
-            log.info(() -> "Not requesting more. Total work in progress (" + totalWorkInProgress
-                           + ") >= totalParts (" + totalParts + ")");
+            // log.info(() -> "Not requesting more. Total work in progress (" + totalWorkInProgress
+            //                + ") >= totalParts (" + totalParts + ")");
             return;
         }
 
@@ -360,9 +356,9 @@ public class NonLinearMultipartDownloaderSubscriber
                                    maxInFlight - inFlightRequests.size());
         if (partsNeeded > 0) {
             // todo change trace log
-            log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
-                           + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
-                           + ". InFlight: " + inFlightRequests.size());
+            // log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
+            //                + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
+            //                + ". InFlight: " + inFlightRequests.size());
             request(partsNeeded);
         }
 
