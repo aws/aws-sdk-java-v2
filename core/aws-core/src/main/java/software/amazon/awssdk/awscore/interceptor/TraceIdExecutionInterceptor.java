@@ -28,7 +28,7 @@ import software.amazon.awssdk.utilslite.SdkInternalThreadLocal;
 
 /**
  * The {@code TraceIdExecutionInterceptor} copies the trace details to the {@link #TRACE_ID_HEADER} header, assuming we seem to
- * be running in a lambda environment.
+ * be running in a lambda environment.`
  */
 @SdkProtectedApi
 public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
