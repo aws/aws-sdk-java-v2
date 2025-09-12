@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "When generating the code for the endpoint interceptor, don't assume that the endpoint params contains a 'region' member; endpoint rulesets are not required to have this parameter; in situations where the endpoint params does not have this member, compilation fails.\n\nFor backwards compatibility, give the region endpoint params preference if it exists; otherwise use the region from the execution attributes."
+}
