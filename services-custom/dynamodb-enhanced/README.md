@@ -685,3 +685,59 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
 ```
 Just as for annotations, you can flatten as many different eligible classes as you like using the
 builder pattern. 
+
+
+
+## Polymorphic Types Support
+
+The Enhanced Client now supports **polymorphic type hierarchies**, allowing multiple subclasses to be stored in the same table.
+
+### Usage Example: Person Hierarchy
+
+```java
+@DynamoDbBean
+@DynamoDbSupertype(
+    value = {
+        @DynamoDbSupertype.Subtype(discriminatorValue = "EMPLOYEE", subtypeClass = Employee.class),
+        @DynamoDbSupertype.Subtype(discriminatorValue = "CUSTOMER", subtypeClass = Customer.class)
+    },
+    discriminatorAttributeName = "discriminatorType" // optional, defaults to "type"
+)
+public class Person {}
+
+@DynamoDbBean
+public class Employee extends Person {
+    private String employeeId;
+    public String getEmployeeId() { return employeeId; }
+    public void setEmployeeId(String id) { this.employeeId = id; }
+}
+
+@DynamoDbBean
+public class Customer extends Person {
+    private String customerId;
+    public String getCustomerId() { return customerId; }
+    public void setCustomerId(String id) { this.customerId = id; }
+}
+```
+
+**Notes:**
+- By default, the discriminator attribute is `"type"` unless overridden.
+
+### Static/Immutable Schema Support
+
+Polymorphism works for both **bean-style** and **immutable/builder-based** classes.
+
+```java
+// Obtain schema for Person hierarchy
+TableSchema<Person> schema = TableSchema.fromClass(Person.class);
+
+// Serialize Employee → DynamoDB item
+Employee e = new Employee();
+e.setEmployeeId("E123");
+Map<String, AttributeValue> item = schema.itemToMap(e, false);
+// → {"employeeId":"E123", "discriminatorType":"EMPLOYEE"}
+
+// Deserialize back
+Person restored = schema.mapToItem(item);
+// → returns Employee instance
+```
