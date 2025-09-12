@@ -1,0 +1,2 @@
+software.amazon.awssdk.services.s3.internal.handlers.S3AccessGrantsBusinessMetricInterceptor
+software.amazon.awssdk.services.s3.internal.handlers.S3ExpressBusinessMetricInterceptor
