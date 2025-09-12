@@ -77,7 +77,9 @@ public class FileAsyncRequestBodySplitHelperTest {
         ScheduledFuture<?> scheduledFuture = executor.scheduleWithFixedDelay(verifyConcurrentRequests(helper, maxConcurrency),
                                                                              1, 50, TimeUnit.MICROSECONDS);
 
-        verifyIndividualAsyncRequestBody(helper.split(), testFile, chunkSize);
+        verifyIndividualAsyncRequestBody(helper.split(),
+                                         testFile,
+                                         chunkSize);
         scheduledFuture.cancel(true);
         int expectedMaxConcurrency = (int) (bufferSize / chunkSizeInBytes);
         assertThat(maxConcurrency.get()).isLessThanOrEqualTo(expectedMaxConcurrency);
