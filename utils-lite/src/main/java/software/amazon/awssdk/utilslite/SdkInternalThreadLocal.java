@@ -32,37 +32,50 @@ public final class SdkInternalThreadLocal {
     }
 
     public static void put(String key, String value) {
-        Map<String, String> map = STORAGE.get();
-        if (map == null) {
-            map = new HashMap<>();
-            STORAGE.set(map);
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
         }
-
+        Map<String, String> map = STORAGE.get();
         if (value == null) {
-            map.remove(key);
+            if (map != null) {
+                map.remove(key);
+                if (map.isEmpty()) {
+                    STORAGE.remove();
+                }
+            }
         } else {
+            if (map == null) {
+                map = new HashMap<>();
+                STORAGE.set(map);
+            }
             map.put(key, value);
         }
     }
 
     public static String get(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         Map<String, String> map = STORAGE.get();
         return map != null ? map.get(key) : null;
     }
 
     public static String remove(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         Map<String, String> map = STORAGE.get();
         return map != null ? map.remove(key) : null;
     }
 
     public static void clear() {
-        Map<String, String> map = STORAGE.get();
-        if (map != null) {
-            map.clear();
-        }
+        STORAGE.remove();
     }
 
     public static boolean containsKey(String key) {
+        if (key == null) {
+            throw new IllegalArgumentException("Key cannot be null");
+        }
         Map<String, String> map = STORAGE.get();
         return map != null && map.containsKey(key);
     }
