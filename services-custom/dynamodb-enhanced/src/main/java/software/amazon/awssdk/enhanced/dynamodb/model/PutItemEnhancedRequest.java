@@ -16,9 +16,11 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -45,6 +47,7 @@ public final class PutItemEnhancedRequest<T> {
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
     private final String returnValuesOnConditionCheckFailure;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private PutItemEnhancedRequest(Builder<T> builder) {
         this.item = builder.item;
@@ -53,6 +56,7 @@ public final class PutItemEnhancedRequest<T> {
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
         this.returnValuesOnConditionCheckFailure = builder.returnValuesOnConditionCheckFailure;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -75,7 +79,8 @@ public final class PutItemEnhancedRequest<T> {
                                .returnValues(returnValues)
                                .returnConsumedCapacity(returnConsumedCapacity)
                                .returnItemCollectionMetrics(returnItemCollectionMetrics)
-                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
+                               .returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure)
+                               .overrideConfiguration(overrideConfiguration);
     }
 
     /**
@@ -169,6 +174,18 @@ public final class PutItemEnhancedRequest<T> {
         return returnValuesOnConditionCheckFailure;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link PutItemRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -183,7 +200,8 @@ public final class PutItemEnhancedRequest<T> {
                && Objects.equals(returnValues, that.returnValues)
                && Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity)
                && Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics)
-               && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure);
+               && Objects.equals(returnValuesOnConditionCheckFailure, that.returnValuesOnConditionCheckFailure)
+               && Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
@@ -194,6 +212,7 @@ public final class PutItemEnhancedRequest<T> {
         result = 31 * result + (returnConsumedCapacity != null ? returnConsumedCapacity.hashCode() : 0);
         result = 31 * result + (returnItemCollectionMetrics != null ? returnItemCollectionMetrics.hashCode() : 0);
         result = 31 * result + (returnValuesOnConditionCheckFailure != null ? returnValuesOnConditionCheckFailure.hashCode() : 0);
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
         return result;
     }
 
@@ -210,6 +229,7 @@ public final class PutItemEnhancedRequest<T> {
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
         private String returnValuesOnConditionCheckFailure;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -320,6 +340,30 @@ public final class PutItemEnhancedRequest<T> {
          */
         public Builder<T> returnValuesOnConditionCheckFailure(String returnValuesOnConditionCheckFailure) {
             this.returnValuesOnConditionCheckFailure = returnValuesOnConditionCheckFailure;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link PutItemRequest}.
+         *
+         * @see PutItemRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder<T> overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link PutItemRequest}.
+         *
+         * @see PutItemRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder<T> overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 

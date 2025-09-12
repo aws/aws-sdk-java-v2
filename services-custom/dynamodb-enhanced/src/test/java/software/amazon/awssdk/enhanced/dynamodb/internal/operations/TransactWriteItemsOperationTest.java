@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -31,11 +32,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
@@ -158,6 +161,26 @@ public class TransactWriteItemsOperationTest {
         operation.transformResponse(response, mockDynamoDbEnhancedClientExtension);
 
         verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        TransactWriteItemsEnhancedRequest transactWriteItemsEnhancedRequest = TransactWriteItemsEnhancedRequest.builder()
+                                                                                                   .overrideConfiguration(overrideConfiguration)
+                                                                                                   .build();
+
+        TransactWriteItemsOperation transactWriteItemsOperation =
+            TransactWriteItemsOperation.create(transactWriteItemsEnhancedRequest);
+
+        TransactWriteItemsRequest transactWriteItemsRequest = transactWriteItemsOperation.generateRequest(null);
+
+        assertThat(transactWriteItemsRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
     private TransactWriteItemsEnhancedRequest emptyRequest() {
