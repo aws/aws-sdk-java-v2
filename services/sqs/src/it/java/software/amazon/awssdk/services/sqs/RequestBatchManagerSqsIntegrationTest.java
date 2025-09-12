@@ -91,6 +91,7 @@ public class RequestBatchManagerSqsIntegrationTest extends IntegrationTestBase {
 
     @AfterEach
     public void tearDown() {
+        purgeQueue(defaultQueueUrl);
         batchManager.close();
     }
 
