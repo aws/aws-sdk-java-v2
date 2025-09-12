@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 @ThreadSafe
 @SdkProtectedApi
 public final class SdkInternalThreadLocal {
-    private static final ThreadLocal<Map<String, String>> STORAGE = new ThreadLocal<>();
+    private static final ThreadLocal<Map<String, String>> STORAGE = new InheritableThreadLocal<>();
 
     private SdkInternalThreadLocal() {
     }
