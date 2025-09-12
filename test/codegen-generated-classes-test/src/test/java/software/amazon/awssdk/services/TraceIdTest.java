@@ -241,4 +241,38 @@ public class TraceIdTest {
             }
         });
     }
+
+    @Test
+    public void traceIdInterceptorWithNewThreadInheritsTraceId() throws Exception {
+        EnvironmentVariableHelper.run(env -> {
+            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
+
+            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
+
+            try (MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
+                 ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                                                                       .region(Region.US_WEST_2)
+                                                                       .credentialsProvider(AnonymousCredentialsProvider.create())
+                                                                       .httpClient(mockHttpClient)
+                                                                       .build()) {
+
+                mockHttpClient.stubNextResponse(HttpExecuteResponse.builder()
+                                                                   .response(SdkHttpResponse.builder().statusCode(200).build())
+                                                                   .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                                                   .build());
+
+                Thread childThread = new Thread(client::allTypes);
+                childThread.start();
+                childThread.join();
+
+                List<SdkHttpRequest> requests = mockHttpClient.getRequests();
+                assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } finally {
+                SdkInternalThreadLocal.clear();
+            }
+        });
+    }
 }
