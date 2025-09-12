@@ -53,8 +53,7 @@ public class MavenTestBase {
         // pin version since updates have broken tests
         String rewriteMavenPluginVersion = "6.17.0";
         addAll(rewriteArgs, "mvn", "org.openrewrite.maven:rewrite-maven-plugin:" + rewriteMavenPluginVersion + ":run",
-               "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion() + "-PREVIEW",
-               recipeCmd);
+               "-Drewrite.recipeArtifactCoordinates=software.amazon.awssdk:v2-migration:"+ getMigrationToolVersion(), recipeCmd);
 
         run(mavenActual, rewriteArgs.toArray(new String[0]));
         FileUtils.deleteDirectory(mavenActual.resolve("target").toFile());
