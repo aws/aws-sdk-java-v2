@@ -32,8 +32,9 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class SdkLengthAwareInputStream extends FilterInputStream {
     private static final Logger LOG = Logger.loggerFor(SdkLengthAwareInputStream.class);
-    private long length;
+    private final long length;
     private long remaining;
+    private long markedRemaining;
 
     public SdkLengthAwareInputStream(InputStream in, long length) {
         super(in);
@@ -104,15 +105,14 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     @Override
     public void mark(int readlimit) {
         super.mark(readlimit);
-        // mark() causes reset() to change the stream's position back to the current position. Therefore, when reset() is called,
-        // the new length of the stream will be equal to the current value of 'remaining'.
-        length = remaining;
+        // Store the current remaining bytes to restore on reset()
+        markedRemaining = remaining;
     }
 
     @Override
     public void reset() throws IOException {
         super.reset();
-        remaining = length;
+        remaining = markedRemaining;
     }
 
     public long remaining() {
