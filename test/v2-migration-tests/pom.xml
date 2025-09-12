@@ -96,7 +96,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>v2-migration</artifactId>
-            <version>${project.version}-PREVIEW</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

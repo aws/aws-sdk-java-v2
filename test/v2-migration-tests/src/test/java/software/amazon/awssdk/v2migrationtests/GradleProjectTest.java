@@ -74,7 +74,7 @@ public class GradleProjectTest {
 
         Files.setPosixFilePermissions(gradlew, perms);
 
-        replaceVersion(gradleActual.resolve("init.gradle"), getMigrationToolVersion() + "-PREVIEW");
+        replaceVersion(gradleActual.resolve("init.gradle"), getMigrationToolVersion());
     }
 
     private static void deleteTempDirectories() throws IOException {

@@ -26,7 +26,7 @@
     </parent>
 
     <artifactId>v2-migration</artifactId>
-    <version>${awsjavasdk.version}-PREVIEW</version>
+    <version>${awsjavasdk.version}</version>
     <name>AWS Java SDK :: V2 Migration</name>
     <description>
         Contains OpenRewrite recipes to help users migrate from the AWS SDK for Java v1 to the AWS SDK for Java v2
