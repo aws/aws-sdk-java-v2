@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "AWS SMS",
+    "contributor": "",
+    "description": "SMS service is being removed"
+}
