@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -87,6 +88,7 @@ public class HagridTest {
                          .multipartEnabled(true)
                          .multipartConfiguration(c -> c
                              .apiCallBufferSizeInBytes(2 * GB)
+                             .minimumPartSizeInBytes(200 * MB)
                          )
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
