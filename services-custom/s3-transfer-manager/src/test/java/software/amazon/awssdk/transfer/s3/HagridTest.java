@@ -43,7 +43,7 @@ public class HagridTest {
 
     @Test
     void getHagridFile() {
-        int maxInflightDownloads = 50;
+        int maxInflightDownloads = 200;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
@@ -54,6 +54,7 @@ public class HagridTest {
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
                                                             .connectionAcquisitionTimeout(Duration.ofMinutes(30))
+                                                            .maxConcurrency(maxInflightDownloads)
                                                             .build())
                          .build();
         Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
@@ -73,20 +74,20 @@ public class HagridTest {
         long end = System.currentTimeMillis();
         System.out.println(res.response());
         long latencyInSec = (end - start) / 1000;
-        System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, res.response().contentLength());
     }
 
     @Test
     void uploadHagridFile() throws IOException {
-        int maxInflightDownloads = 50;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
             S3AsyncClient.builder()
                          .region(Region.US_WEST_2)
                          .multipartEnabled(true)
-                         .multipartConfiguration(c -> c.maxInflightDownloads(maxInflightDownloads))
+                         .multipartConfiguration(c -> c
+                             .apiCallBufferSizeInBytes(2 * GB)
+                         )
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
                                                             .connectionAcquisitionTimeout(Duration.ofMinutes(30))
@@ -97,7 +98,7 @@ public class HagridTest {
                                                      .s3Client(s3AsyncClient)
                                                      .build();
 
-        FileUpload fileUpload =  manager.uploadFile(
+        FileUpload fileUpload = manager.uploadFile(
             UploadFileRequest.builder()
                              .putObjectRequest(
                                  put -> put.key(key).bucket("do-not-delete-java-hagrid-test"))
@@ -106,11 +107,10 @@ public class HagridTest {
                              .build());
 
         long start = System.currentTimeMillis();
-        CompletedFileUpload upload =fileUpload.completionFuture().join();
+        CompletedFileUpload upload = fileUpload.completionFuture().join();
         long end = System.currentTimeMillis();
         System.out.println(upload.response());
         long latencyInSec = (end - start) / 1000;
-        System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, Files.size(path));
     }
 
@@ -122,6 +122,5 @@ public class HagridTest {
         System.out.printf("Average throughput (Gbps): %.4f%n", contentLengthInGigabit / latency);
         System.out.printf("==========================================================");
     }
-
 
 }
