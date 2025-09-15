@@ -1,0 +1,48 @@
+{
+    "version": "2.33.3",
+    "date": "2025-09-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Add support for configurable compute sizes for PySpark jobs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "ListHookResults API now supports retrieving invocation results for all CloudFormation Hooks (previously limited to create change set and Cloud Control operations) with new optional parameters for filtering by Hook status and ARN."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add m8i, m8i-flex and i8ge instance types."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Added new EndpointNetworkType and TargetConnectionNetworkType fields in Proxy APIs to support IPv6"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Amazon Verified Permissions / Features : Adds support for datetime and duration attribute values."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Add support for Federal Information Processing Standards (FIPS) and Federal Risk and Authorization Management Program (FedRAMP) compliance"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

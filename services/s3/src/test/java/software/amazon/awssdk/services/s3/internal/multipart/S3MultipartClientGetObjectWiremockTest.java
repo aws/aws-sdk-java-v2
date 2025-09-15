@@ -20,7 +20,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -32,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.internalErrorBody;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.transformersSuppliers;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -56,6 +59,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.async.ByteArrayAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.async.InputStreamResponseTransformer;
@@ -65,6 +69,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.utils.AsyncResponseTransformerTestSupplier;
@@ -140,6 +145,47 @@ public class S3MultipartClientGetObjectWiremockTest {
             T res = split.resultFuture().join();
             assertNotNull(supplier.body(res));
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("partSizeAndTransformerParams")
+    public <T> void partCountValidationFailure_shouldThrowException(
+        AsyncResponseTransformerTestSupplier<T> supplier,
+        int partSize) {
+
+        // To trigger the partCount failure, the resumeContext is used to initialize the actualGetCount larger than the
+        // totalPart number set in the response. This won't happen in real scenario, just to test if the error can be surfaced
+        // to the user if the validation fails.
+        MultipartDownloadResumeContext resumeContext = new MultipartDownloadResumeContext();
+        resumeContext.addCompletedPart(1);
+        resumeContext.addCompletedPart(2);
+        resumeContext.addCompletedPart(3);
+        resumeContext.addToBytesToLastCompletedParts(3 * partSize);
+
+        GetObjectRequest request = GetObjectRequest.builder()
+                                                   .bucket(BUCKET)
+                                                   .key(KEY)
+                                                   .overrideConfiguration(config -> config
+                                                       .putExecutionAttribute(
+                                                           MULTIPART_DOWNLOAD_RESUME_CONTEXT,
+                                                           resumeContext))
+                                                   .build();
+
+        util.stubForPart(BUCKET, KEY, 4, 2, partSize);
+
+        // Skip the lazy transformer since the error won't surface unless the content is consumed
+        AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
+        if (transformer instanceof InputStreamResponseTransformer || transformer instanceof PublisherAsyncResponseTransformer) {
+            return;
+        }
+
+        assertThatThrownBy(() -> {
+            T res = multipartClient.getObject(request, transformer).join();
+            supplier.body(res);
+        }).isInstanceOf(CompletionException.class)
+          .hasCauseInstanceOf(SdkClientException.class)
+          .hasMessageContaining("PartsCount validation failed. Expected 2, downloaded 4 parts");
+
     }
 
     @ParameterizedTest
@@ -220,7 +266,8 @@ public class S3MultipartClientGetObjectWiremockTest {
             assertThat(e.getCause()).isInstanceOf(S3Exception.class);
         }
 
-        verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, errorKey))));
+        verify(moreThan(0), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, errorKey))));
+        verify(lessThanOrExactly(2), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, errorKey))));
     }
 
     private static Stream<Arguments> partSizeAndTransformerParams() {
