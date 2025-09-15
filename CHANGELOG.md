@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.10__ __2025-09-15__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Added endpoint support for eusc-de-east-1 region.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added support for OpenID Connect (OIDC) custom authorizer
+
+## __AWS S3 Control__
+  - ### Features
+    - Introduce three new encryption filters: EncryptionType (SSE-S3, SSE-KMS, DSSE-KMS, SSE-C, NOT-SSE), KmsKeyArn (for SSE-KMS and DSSE-KMS), and BucketKeyEnabled (for SSE-KMS).
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Added additional validations for multipart download operations in the Java multipart S3 client
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin adds the ability to enable telemetry centralization in customers' Organizations. The release introduces new APIs to manage centralization rules, which define settings to replicate telemetry data to a central destination in the customers' Organization.
+
 # __2.33.9__ __2025-09-12__
 ## __AWS SDK for Java v2__
   - ### Features

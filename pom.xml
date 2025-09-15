@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.33.10-SNAPSHOT</version>
+    <version>2.33.10</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -239,7 +239,6 @@
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
-                            <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
                         </excludes>
                     </configuration>
@@ -1432,10 +1431,6 @@
                                 <group>
                                     <title>Budgets</title>
                                     <packages>software.amazon.awssdk.services.budgets*</packages>
-                                </group>
-                                <group>
-                                    <title>Server Migration</title>
-                                    <packages>software.amazon.awssdk.services.sms*</packages>
                                 </group>
                                 <group>
                                     <title>Rekognition</title>
