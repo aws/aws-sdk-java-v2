@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Added additional validations for multipart download operations in the Java multipart S3 client"
-}
