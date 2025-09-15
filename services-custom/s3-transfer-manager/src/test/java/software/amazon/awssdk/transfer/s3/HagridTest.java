@@ -17,6 +17,8 @@ package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -30,8 +32,10 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 
@@ -74,7 +78,7 @@ public class HagridTest {
     }
 
     @Test
-    void uploadHagridFile() {
+    void uploadHagridFile() throws IOException {
         int maxInflightDownloads = 50;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
@@ -93,13 +97,21 @@ public class HagridTest {
                                                      .s3Client(s3AsyncClient)
                                                      .build();
 
-        manager.uploadFile(
+        FileUpload fileUpload =  manager.uploadFile(
             UploadFileRequest.builder()
                              .putObjectRequest(
                                  put -> put.key(key).bucket("do-not-delete-java-hagrid-test"))
                              .source(path)
                              .addTransferListener(LoggingTransferListener.create())
                              .build());
+
+        long start = System.currentTimeMillis();
+        CompletedFileUpload upload =fileUpload.completionFuture().join();
+        long end = System.currentTimeMillis();
+        System.out.println(upload.response());
+        long latencyInSec = (end - start) / 1000;
+        System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
+        printOutResult(latencyInSec, Files.size(path));
     }
 
     public static void printOutResult(long latency, long contentLengthInByte) {
