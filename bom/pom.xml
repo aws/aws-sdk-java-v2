@@ -975,11 +975,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>sms</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>snowball</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>

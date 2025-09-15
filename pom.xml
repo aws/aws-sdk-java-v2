@@ -239,7 +239,6 @@
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
-                            <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
                         </excludes>
                     </configuration>
@@ -1432,10 +1431,6 @@
                                 <group>
                                     <title>Budgets</title>
                                     <packages>software.amazon.awssdk.services.budgets*</packages>
-                                </group>
-                                <group>
-                                    <title>Server Migration</title>
-                                    <packages>software.amazon.awssdk.services.sms*</packages>
                                 </group>
                                 <group>
                                     <title>Rekognition</title>
