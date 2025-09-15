@@ -157,7 +157,7 @@ public class NonLinearMultipartDownloaderSubscriber
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         // todo change to trace log
         outstandingDemand.decrementAndGet();
-        log.info(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
+        log.trace(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
                        + "\nOutstanding Demand : " + outstandingDemand.get()
                        + "\nTotal completed parts: " + completedParts
                        + "\nTotal transformers requested: " + transformersRequested.get()
@@ -219,7 +219,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
         GetObjectRequest request = nextRequest(partToGet);
         // todo change to trace log
-        log.info(() -> "Sending next request for part: " + partToGet);
+        log.trace(() -> "Sending next request for part: " + partToGet);
 
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
 
@@ -227,7 +227,7 @@ public class NonLinearMultipartDownloaderSubscriber
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, e) -> {
-            log.info(() -> "Completed part: " + partToGet);
+            log.trace(() -> "Completed part: " + partToGet);
             inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
@@ -253,7 +253,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
     // returns true if the first request was sent and is still in flight
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        log.info(() -> "Sending first request");
+        log.debug(() -> "Sending first request");
         GetObjectRequest request = nextRequest(1);
         CompletableFuture<GetObjectResponse> responseFuture = s3.getObject(request, asyncResponseTransformer);
         inFlightRequests.put(1, responseFuture);
@@ -276,7 +276,7 @@ public class NonLinearMultipartDownloaderSubscriber
             eTag = res.eTag();
             if (partCount != null && totalParts == null) {
                 // todo change debug log
-                log.info(() -> String.format("Total amount of parts of the object to download: %d", partCount));
+                log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
                 // MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
                 //                       .ifPresent(ctx -> ctx.totalParts(partCount));
                 totalParts = partCount;
@@ -286,14 +286,14 @@ public class NonLinearMultipartDownloaderSubscriber
             if (totalParts == null || totalParts == 1) {
                 // Single part object detected, skip multipart and complete everything now
                 // todo change debug log
-                log.info(() -> "Single Part object detected, skipping multipart download");
+                log.debug(() -> "Single Part object detected, skipping multipart download");
                 subscription.cancel();
                 resultFuture.complete(res);
                 return;
             }
 
             // todo change debug log
-            log.info(() -> "Multipart object detected, performing multipart download");
+            log.debug(() -> "Multipart object detected, performing multipart download");
             // part 1 already completed, so skip it
             for (int i = 2; i <= totalParts; i++) {
                 allRemainingParts.add(i);
@@ -330,9 +330,8 @@ public class NonLinearMultipartDownloaderSubscriber
         // Don't request more if we already have enough work in progress
         int totalWorkInProgress = inFlightRequests.size() + completedParts.get();
         if (totalWorkInProgress >= totalParts) {
-            // todo change trace log
-            // log.info(() -> "Not requesting more. Total work in progress (" + totalWorkInProgress
-            //                + ") >= totalParts (" + totalParts + ")");
+            log.trace(() -> "Not requesting more. Total work in progress (" + totalWorkInProgress
+                            + ") >= totalParts (" + totalParts + ")");
             return;
         }
 
@@ -355,10 +354,9 @@ public class NonLinearMultipartDownloaderSubscriber
         int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
                                    maxInFlight - inFlightRequests.size());
         if (partsNeeded > 0) {
-            // todo change trace log
-            // log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
-            //                + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
-            //                + ". InFlight: " + inFlightRequests.size());
+            log.trace(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
+                            + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
+                            + ". InFlight: " + inFlightRequests.size());
             request(partsNeeded);
         }
 
