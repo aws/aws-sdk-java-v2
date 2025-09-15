@@ -30,6 +30,7 @@
     <properties>
         <awsjavasdk.version>${project.parent.version}</awsjavasdk.version>
         <jre.version>1.8</jre.version>
+        <fasterxml-uuid.version>5.1.0</fasterxml-uuid.version>
     </properties>
 
     <!-- Additional configuration required to enable DynamoDb-Local to work in tests -->
@@ -233,5 +234,12 @@
             <type>so</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>${fasterxml-uuid.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>
