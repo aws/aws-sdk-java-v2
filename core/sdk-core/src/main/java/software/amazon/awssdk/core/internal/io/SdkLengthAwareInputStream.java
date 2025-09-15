@@ -40,6 +40,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
         super(in);
         this.length = Validate.isNotNegative(length, "length");
         this.remaining = this.length;
+        this.markedRemaining = this.remaining;
     }
 
     @Override
