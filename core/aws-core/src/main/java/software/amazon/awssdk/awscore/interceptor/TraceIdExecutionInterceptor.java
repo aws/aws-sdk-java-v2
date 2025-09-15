@@ -69,6 +69,10 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
         saveTraceId(executionAttributes);
     }
 
+    /**
+     * Stores the trace ID in thread-local storage to ensure trace propagation across
+     * thread boundaries during retries, or future chaining.
+     */
     private static void saveTraceId(ExecutionAttributes executionAttributes) {
         String traceId = executionAttributes.getAttribute(TRACE_ID);
         if (traceId != null) {
