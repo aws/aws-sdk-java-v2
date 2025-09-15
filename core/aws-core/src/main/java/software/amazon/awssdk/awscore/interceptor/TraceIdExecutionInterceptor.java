@@ -39,9 +39,11 @@ public class TraceIdExecutionInterceptor implements ExecutionInterceptor {
 
     @Override
     public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-        String traceId = SdkInternalThreadLocal.get(CONCURRENT_TRACE_ID_KEY);
-        if (traceId != null && lambdaFunctionNameEnvironmentVariable().isPresent()) {
-            executionAttributes.putAttribute(TRACE_ID, traceId);
+        if(lambdaFunctionNameEnvironmentVariable().isPresent()) {
+            String traceId = SdkInternalThreadLocal.get(CONCURRENT_TRACE_ID_KEY);
+            if (traceId != null) {
+                executionAttributes.putAttribute(TRACE_ID, traceId);
+            }
         }
     }
 
