@@ -134,6 +134,8 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicInteger outstandingDemand = new AtomicInteger(0);
 
+    private final AtomicBoolean completedExceptionally = new AtomicBoolean(false);
+
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
                                                   GetObjectRequest getObjectRequest,
                                                   CompletableFuture<GetObjectResponse> resultFuture,
@@ -236,12 +238,10 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
-            if (e != null) {
+            if (e != null || completedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
-                log.error(() -> "Error on part " + partToGet + ": " + e);
-                resultFuture.completeExceptionally(e);
-                inFlightRequests.values().forEach(future -> future.cancel(true));
+                handlePartError(e, partToGet);
                 return;
             }
             if (completedParts.get() >= totalParts) {
@@ -269,19 +269,16 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(1);
 
             completedParts.incrementAndGet();
-            if (e != null) {
+            if (e != null || completedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
-                resultFuture.completeExceptionally(e);
-                inFlightRequests.values().forEach(future -> future.cancel(true));
+                handlePartError(e, 1);
                 return;
             }
             Integer partCount = res.partsCount();
             eTag = res.eTag();
             if (partCount != null && totalParts == null) {
                 log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
-                // MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
-                //                       .ifPresent(ctx -> ctx.totalParts(partCount));
                 totalParts = partCount;
             }
 
@@ -305,6 +302,13 @@ public class NonLinearMultipartDownloaderSubscriber
             processPendingTransformers();
             requestMoreIfNeeded();
         });
+    }
+
+    private void handlePartError(Throwable e, int part) {
+        completedExceptionally.set(true);
+        log.error(() -> "Error on part " + part + ": " + e);
+        resultFuture.completeExceptionally(e);
+        inFlightRequests.values().forEach(future -> future.cancel(true));
     }
 
     private void processPendingTransformers() {
