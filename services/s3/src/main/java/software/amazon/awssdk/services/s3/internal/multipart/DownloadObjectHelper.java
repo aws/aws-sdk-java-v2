@@ -32,12 +32,12 @@ public class DownloadObjectHelper {
 
     private final S3AsyncClient s3AsyncClient;
     private final long bufferSizeInBytes;
-    private final int maxInFlight;
+    private final int maxInFlightParts;
 
-    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes, int maxInFlight) {
+    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes, int maxInFlightParts) {
         this.s3AsyncClient = s3AsyncClient;
         this.bufferSizeInBytes = bufferSizeInBytes;
-        this.maxInFlight = maxInFlight;
+        this.maxInFlightParts = maxInFlightParts;
     }
 
     public <T> CompletableFuture<T> downloadObject(
@@ -54,7 +54,7 @@ public class DownloadObjectHelper {
             return downloadPartsSerially(getObjectRequest, split);
         }
 
-        return downloadPartsNonSerially(getObjectRequest, split, maxInFlight);
+        return downloadPartsNonSerially(getObjectRequest, split, maxInFlightParts);
 
     }
 

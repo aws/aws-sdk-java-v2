@@ -33,7 +33,6 @@ import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import software.amazon.awssdk.core.internal.async.FileAsyncResponseTransformer.FileSubscriber;
 
-
 /**
  * TCK verification test for {@link FileSubscriber}.
  */
