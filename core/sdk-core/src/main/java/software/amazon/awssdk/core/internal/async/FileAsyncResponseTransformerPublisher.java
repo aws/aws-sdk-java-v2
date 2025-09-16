@@ -54,7 +54,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     public FileAsyncResponseTransformerPublisher(FileAsyncResponseTransformer<?> responseTransformer) {
         this.path = Validate.paramNotNull(responseTransformer.path(), "path");
         this.initialConfig = Validate.paramNotNull(responseTransformer.config(), "fileTransformerConfiguration");
-        this.initialPosition = responseTransformer.initialPosition();
+        this.initialPosition = responseTransformer.position();
         this.amountOfTransformerSent = new AtomicLong(0);
     }
 

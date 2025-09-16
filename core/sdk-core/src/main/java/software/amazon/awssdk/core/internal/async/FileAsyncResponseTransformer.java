@@ -85,7 +85,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return path;
     }
 
-    Long initialPosition() {
+    Long position() {
         return position;
     }
 
