@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -74,13 +73,6 @@ class S3MultipartFileDownloadWiremockTest {
                                      .serviceConfiguration(S3Configuration.builder()
                                                                           .pathStyleAccessEnabled(true)
                                                                           .build())
-                                     .httpClient(NettyNioAsyncHttpClient.builder()
-                                                                        // .maxConcurrency(10_000)
-                                                                        // .connectionAcquisitionTimeout(Duration.ofSeconds(5))
-                                                                        // .connectionTimeout(Duration.ofSeconds(5))
-                                                                        // .connectionTimeToLive(Duration.ofSeconds(5))
-                                                                        .build())
-                                     // .httpClient(AwsCrtAsyncHttpClient.create())
                                      .build();
         util = new MultipartDownloadTestUtils(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
