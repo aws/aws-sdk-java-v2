@@ -17,7 +17,6 @@ package software.amazon.awssdk.core.internal.async;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,12 +27,10 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -107,15 +104,15 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onResponse(T response) {
-            List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
-            if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
+            Optional<String> contentRangeList = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
+            if (!contentRangeList.isPresent()) {
                 if (subscriber != null) {
                     subscriber.onError(new IllegalStateException("Content range header is missing"));
                 }
                 return;
             }
 
-            String contentRange = contentRangeList.get(0);
+            String contentRange = contentRangeList.get();
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
