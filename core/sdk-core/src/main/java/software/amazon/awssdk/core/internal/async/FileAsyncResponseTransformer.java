@@ -179,7 +179,6 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
             }
         }
         if (cf != null) {
-            log.info(() -> "completing file future exceptionally");
             cf.completeExceptionally(throwable);
         } else {
             log.warn(() -> "An exception occurred before the call to prepare() was able to instantiate the CompletableFuture."
@@ -192,6 +191,9 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return TransformerType.FILE.getName();
     }
 
+    /**
+     * {@link Subscriber} implementation that writes chunks to a file.
+     */
     static class FileSubscriber implements Subscriber<ByteBuffer> {
         private final AtomicLong position;
         private final AsynchronousFileChannel fileChannel;
@@ -205,7 +207,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private Subscription subscription;
 
         FileSubscriber(AsynchronousFileChannel fileChannel, Path path, CompletableFuture<Void> future,
-                              Consumer<Throwable> onErrorMethod, long startingPosition) {
+                       Consumer<Throwable> onErrorMethod, long startingPosition) {
             this.fileChannel = fileChannel;
             this.path = path;
             this.future = future;

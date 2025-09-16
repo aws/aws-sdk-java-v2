@@ -16,9 +16,15 @@
 package software.amazon.awssdk.services.s3.multipart;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
+/**
+ * Class that holds configuration properties related to multipart operations for a {@link S3AsyncClient}, related specifically
+ * to non-linear, parallel operations, that is, when the {@link AsyncResponseTransformer} supports non-serial split.
+ */
 @SdkPublicApi
 public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfiguration.Builder, ParallelConfiguration> {
 
@@ -32,6 +38,10 @@ public class ParallelConfiguration implements ToCopyableBuilder<ParallelConfigur
         return new Builder();
     }
 
+    /**
+     * The maximum number of concurrent GetObject the that are allowed for multipart download.
+     * @return The value for the maximum number of concurrent GetObject the that are allowed for multipart download.
+     */
     public Integer maxInFlightParts() {
         return maxInFlightParts;
     }

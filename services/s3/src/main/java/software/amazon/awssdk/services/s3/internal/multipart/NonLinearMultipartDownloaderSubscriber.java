@@ -163,12 +163,12 @@ public class NonLinearMultipartDownloaderSubscriber
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         outstandingDemand.decrementAndGet();
-        log.trace(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
-                        + "\nOutstanding Demand : " + outstandingDemand.get()
-                        + "\nTotal completed parts: " + completedParts
-                        + "\nTotal transformers requested: " + transformersRequested.get()
-                        + "\nTotal pending transformers: " + pendingTransformers.size()
-                        + "\nCurrent in flight requests: " + inFlightRequests.keySet());
+        log.trace(() -> "On Next - Total in flight parts: " + inFlightRequests.size()
+                        + " - Demand : " + outstandingDemand.get()
+                        + " - Total completed parts: " + completedParts
+                        + " - Total transformers requested: " + transformersRequested.get()
+                        + " - Total pending transformers: " + pendingTransformers.size()
+                        + " - Current in flight requests: " + inFlightRequests.keySet());
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
