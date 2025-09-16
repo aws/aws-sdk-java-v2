@@ -1,4 +1,28 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.11__ __2025-09-16__
+## __AWS Budgets__
+  - ### Features
+    - Add support for custom time periods in budget configuration
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Preserve the initial content-length when calling mark in SdkLengthAwareInputStream.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Cloudwatch Logs added support for 2 new API parameters in metric and subscription filter APIs to filter log events based on system field values and emit system field values as dimensions and send them to customer destination as additional metadata.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - IVS now offers customers the ability to control the positioning of participants in both grid and PiP layouts based on custom attribute values in participant tokens.
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Adds support for cross-account ingestion for push-based sources. This includes resource policies for sharing pipelines across accounts and features for managing pipeline endpoints which enable accessing pipelines across different VPCs, including VPCs in other accounts.
+
 # __2.33.10__ __2025-09-15__
 ## __AWS Cost Explorer Service__
   - ### Features
