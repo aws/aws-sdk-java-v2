@@ -109,7 +109,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         public void onResponse(T response) {
             List<String> contentRangeList = response.sdkHttpResponse().headers().get("x-amz-content-range");
             if (CollectionUtils.isNullOrEmpty(contentRangeList) || StringUtils.isEmpty(contentRangeList.get(0))) {
-                // Bad state! This is intended to cancel everything
                 if (subscriber != null) {
                     subscriber.onError(new IllegalStateException("Content range header is missing"));
                 }
@@ -119,7 +118,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             String contentRange = contentRangeList.get(0);
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
-                // Bad state! This is intended to cancel everything
                 if (subscriber != null) {
                     subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
                 }
@@ -173,7 +171,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void exceptionOccurred(Throwable error) {
-            log.error(() -> "error detected", error);
             if (delegate != null) {
                 // do not call onError, because exceptionOccurred may be called multiple times due to retries, simply forward the
                 // error to the delegate async response transformer which will let the service call pipeline handle the error.

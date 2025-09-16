@@ -93,8 +93,8 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     }
 
     /**
-     *
-     * @return
+     * Configuration specifically related to parallel multipart operations.
+     * @return the configuration class
      */
     public ParallelConfiguration parallelConfiguration() {
         return this.parallelConfiguration;
@@ -176,20 +176,24 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         Long apiCallBufferSizeInBytes();
 
         /**
-         * todo
-         * @param
-         * @return
+         * Configuration specifically related to parallel multipart operations.
+         * @param parallelConfiguration the configuration class
+         * @return an instance of this builder.
          */
         Builder parallelConfiguration(ParallelConfiguration parallelConfiguration);
 
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @param consumer consumer class for fluent builder
+         * @return an instance of this builder.
+         */
         Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> consumer);
 
         /**
-         * todo
-         * @return
+         * Configuration specifically related to parallel multipart operations.
+         * @return the configuration class
          */
         ParallelConfiguration parallelConfiguration();
-
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {

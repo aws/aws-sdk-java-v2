@@ -33,6 +33,14 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * A subscriber implementation that will download all individual parts for a multipart get-object request in parallel,
+ * concurrently. The amount of concurrent get-object is limited by the {@code maxInFlightParts} configuration. It receives the
+ * individual {@link AsyncResponseTransformer} which will be used to perform the individual part requests. These
+ * AsyncResponseTransformer should be able to handle receiving data in parts potentially out of order, For example, the
+ * AsyncResponseTransformer for part 4 might may have any of its callback called before part 1, 2 or 3 if it finishes before. This
+ * is a 'one-shot' class, it should <em>NOT</em> be reused for more than one multipart download.
+ */
 @SdkInternalApi
 public class NonLinearMultipartDownloaderSubscriber
     implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
@@ -41,7 +49,7 @@ public class NonLinearMultipartDownloaderSubscriber
     /**
      * Maximum number of concurrent GetObject requests
      */
-    private final int maxInFlight;
+    private final int maxInFlightParts;
 
     /**
      * The s3 client used to make the individual part requests
@@ -61,7 +69,7 @@ public class NonLinearMultipartDownloaderSubscriber
     private final AtomicInteger completedParts = new AtomicInteger();
 
     /**
-     * Queue of all remaining parts in ascending order. i.e. 4, 5, 6, 8, 11
+     * Queue of all remaining parts in ascending order. i.e. 4, 5, 6, 8, 11, etc
      */
     private final Queue<Integer> allRemainingParts = new ArrayDeque<>();
 
@@ -107,8 +115,7 @@ public class NonLinearMultipartDownloaderSubscriber
     private final ReentrantLock firstPartLock = new ReentrantLock();
 
     /**
-     * Pending transformers waiting for the first request to be executed. We cant execute multiple part get until the first
-     * requests completes, and we know the object in s3 is a multipart object.
+     * Pending transformers received through onNext that are waiting to be executed.
      */
     private final Queue<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingTransformers = new ArrayDeque<>();
 
@@ -134,7 +141,7 @@ public class NonLinearMultipartDownloaderSubscriber
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
-        this.maxInFlight = maxInFLight;
+        this.maxInFlightParts = maxInFLight;
     }
 
     @Override
@@ -155,14 +162,13 @@ public class NonLinearMultipartDownloaderSubscriber
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        // todo change to trace log
         outstandingDemand.decrementAndGet();
-        log.info(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
-                       + "\nOutstanding Demand : " + outstandingDemand.get()
-                       + "\nTotal completed parts: " + completedParts
-                       + "\nTotal transformers requested: " + transformersRequested.get()
-                       + "\nTotal pending transformers: " + pendingTransformers.size()
-                       + "\nCurrent in flight requests: " + inFlightRequests.keySet());
+        log.trace(() -> "=== On Next ===\nTotal in flight parts: " + inFlightRequests.size()
+                        + "\nOutstanding Demand : " + outstandingDemand.get()
+                        + "\nTotal completed parts: " + completedParts
+                        + "\nTotal transformers requested: " + transformersRequested.get()
+                        + "\nTotal pending transformers: " + pendingTransformers.size()
+                        + "\nCurrent in flight requests: " + inFlightRequests.keySet());
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
@@ -175,7 +181,7 @@ public class NonLinearMultipartDownloaderSubscriber
             return;
         }
 
-        if (inFlightRequests.size() >= maxInFlight) {
+        if (inFlightRequests.size() >= maxInFlightParts) {
             pendingTransformers.offer(asyncResponseTransformer);
             return;
         }
@@ -218,8 +224,7 @@ public class NonLinearMultipartDownloaderSubscriber
         Integer partToGet = nextPart();
 
         GetObjectRequest request = nextRequest(partToGet);
-        // todo change to trace log
-        log.info(() -> "Sending next request for part: " + partToGet);
+        log.debug(() -> "Sending next request for part: " + partToGet);
 
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
 
@@ -227,7 +232,7 @@ public class NonLinearMultipartDownloaderSubscriber
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, e) -> {
-            log.info(() -> "Completed part: " + partToGet);
+            log.debug(() -> "Completed part: " + partToGet);
             inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
@@ -240,8 +245,6 @@ public class NonLinearMultipartDownloaderSubscriber
                 return;
             }
             if (completedParts.get() >= totalParts) {
-                // todo remove log
-                log.info(() -> "================= ALL PARTS COMPLETED ==================");
                 subscription.cancel();
                 resultFuture.complete(getObjectResponse);
             } else {
@@ -253,7 +256,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
     // returns true if the first request was sent and is still in flight
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        log.info(() -> "Sending first request");
+        log.debug(() -> "Sending first request");
         GetObjectRequest request = nextRequest(1);
         CompletableFuture<GetObjectResponse> responseFuture = s3.getObject(request, asyncResponseTransformer);
         inFlightRequests.put(1, responseFuture);
@@ -262,7 +265,8 @@ public class NonLinearMultipartDownloaderSubscriber
         CompletableFutureUtils.forwardExceptionTo(resultFuture, responseFuture);
 
         responseFuture.whenComplete((res, e) -> {
-           inFlightRequests.remove(1);
+            log.debug(() -> "Completed part: 1");
+            inFlightRequests.remove(1);
 
             completedParts.incrementAndGet();
             if (e != null) {
@@ -275,8 +279,7 @@ public class NonLinearMultipartDownloaderSubscriber
             Integer partCount = res.partsCount();
             eTag = res.eTag();
             if (partCount != null && totalParts == null) {
-                // todo change debug log
-                log.info(() -> String.format("Total amount of parts of the object to download: %d", partCount));
+                log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
                 // MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
                 //                       .ifPresent(ctx -> ctx.totalParts(partCount));
                 totalParts = partCount;
@@ -286,14 +289,13 @@ public class NonLinearMultipartDownloaderSubscriber
             if (totalParts == null || totalParts == 1) {
                 // Single part object detected, skip multipart and complete everything now
                 // todo change debug log
-                log.info(() -> "Single Part object detected, skipping multipart download");
+                log.debug(() -> "Single Part object detected, skipping multipart download");
                 subscription.cancel();
                 resultFuture.complete(res);
                 return;
             }
 
-            // todo change debug log
-            log.info(() -> "Multipart object detected, performing multipart download");
+            log.debug(() -> "Multipart object detected, performing multipart download");
             // part 1 already completed, so skip it
             for (int i = 2; i <= totalParts; i++) {
                 allRemainingParts.add(i);
@@ -330,9 +332,6 @@ public class NonLinearMultipartDownloaderSubscriber
         // Don't request more if we already have enough work in progress
         int totalWorkInProgress = inFlightRequests.size() + completedParts.get();
         if (totalWorkInProgress >= totalParts) {
-            // todo change trace log
-            // log.info(() -> "Not requesting more. Total work in progress (" + totalWorkInProgress
-            //                + ") >= totalParts (" + totalParts + ")");
             return;
         }
 
@@ -343,22 +342,20 @@ public class NonLinearMultipartDownloaderSubscriber
         }
 
         // don't request if we already have enough work in progress
-        if (inFlightRequests.size() >= maxInFlight) {
+        if (inFlightRequests.size() >= maxInFlightParts) {
             return;
         }
 
         // don't request if we have already requested more work than we can handle
-        if (outstandingDemand.get() >= maxInFlight) {
+        if (outstandingDemand.get() >= maxInFlightParts) {
             return;
         }
 
         int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
-                                   maxInFlight - inFlightRequests.size());
+                                   maxInFlightParts - inFlightRequests.size());
         if (partsNeeded > 0) {
-            // todo change trace log
-            // log.info(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
-            //                + (currentRequested + partsNeeded) + ". Remaining parts: " + remainingParts
-            //                + ". InFlight: " + inFlightRequests.size());
+            log.trace(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
+                            + (currentRequested + partsNeeded));
             request(partsNeeded);
         }
 
@@ -372,9 +369,9 @@ public class NonLinearMultipartDownloaderSubscriber
 
     @Override
     public void onError(Throwable t) {
-        // Signal received from the publisher this is subscribed to, in the case of file download, that's
-        // FileAsyncResponseTransformerPublisher.
-        // failed state, something really wrong has happened, cancel everything
+        // Signal received from the publisher this is subscribed to
+        // (in the case of file download, that's FileAsyncResponseTransformerPublisher)
+        // Failed state, something really wrong has happened, cancel everything
         inFlightRequests.values().forEach(future -> future.cancel(true));
         inFlightRequests.clear();
         resultFuture.completeExceptionally(t);
