@@ -122,7 +122,6 @@ public class HagridTest {
         System.out.printf("Average latency (s): %d%n", latency);
         System.out.printf("Object size (Gigabit): %.4f%n", contentLengthInGigabit);
         System.out.printf("Average throughput (Gbps): %.4f%n", contentLengthInGigabit / latency);
-        System.out.printf("==========================================================");
     }
 
 }
