@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Budgets",
-    "contributor": "",
-    "description": "Add support for custom time periods in budget configuration"
-}
