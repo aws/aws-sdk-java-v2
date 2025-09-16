@@ -1,0 +1,42 @@
+{
+    "version": "2.32.18",
+    "date": "2025-08-07",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "This feature allows customers to use AWS Batch with Linux with ARM64 CPU Architecture with Fargate Spot compute support."
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "AWS CodeBuild now supports comment-based pull request control."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue Data Catalog now supports Iceberg Optimization settings at the Catalog level, and supports new options to control the optimization job run rate."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Added new viewer security policy, TLSv1.3_2025, for CloudFront."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Adds Proton 9.0-2 to the list of runtime environment options available when creating an Amazon GameLift Streams application"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Added support for VPC owner account ID associated with DNS request in the GuardDuty finding."
+        }
+    ]
+}

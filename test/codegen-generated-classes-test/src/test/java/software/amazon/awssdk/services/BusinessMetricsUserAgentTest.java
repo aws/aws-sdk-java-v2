@@ -197,5 +197,9 @@ class BusinessMetricsUserAgentTest {
 
         String userAgent = assertAndGetUserAgentString();
         assertThat(userAgent).contains("AmazonProtocolRestJson#" + ServiceVersionInfo.VERSION);
+        String version = ServiceVersionInfo.VERSION;
+        assertThat(ServiceVersionInfo.VERSION.endsWith(".x") ||
+                   ServiceVersionInfo.VERSION.endsWith(".x-SNAPSHOT")).isTrue();
     }
+
 }

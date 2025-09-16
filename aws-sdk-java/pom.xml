@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.31.79-SNAPSHOT</version>
+        <version>2.33.11-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>aws-sdk-java</artifactId>
@@ -600,16 +600,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>opsworks</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>opsworkscm</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>organizations</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -776,11 +766,6 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>signer</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sms</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
@@ -2096,6 +2081,36 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>odb</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3vectors</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bedrockagentcore</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bedrockagentcorecontrol</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>arcregionswitch</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bcmrecommendedactions</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bcmdashboards</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>

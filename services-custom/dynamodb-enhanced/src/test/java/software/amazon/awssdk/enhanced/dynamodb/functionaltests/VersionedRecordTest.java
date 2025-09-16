@@ -32,7 +32,10 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbVersionAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
@@ -103,12 +106,68 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                             .tags(versionAttribute()))
                          .build();
 
+    @DynamoDbBean
+    public static class AnnotatedRecord {
+        private String id;
+        private String attribute;
+        private Long version;
+
+        public AnnotatedRecord() {
+        }
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public AnnotatedRecord setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        @DynamoDbVersionAttribute(startAt = 5, incrementBy = 3)
+        public Long getVersion() { return version; }
+        public AnnotatedRecord setVersion(Long version) {
+            this.version = version;
+            return this;
+        }
+
+        public String getAttribute() {
+            return attribute;
+        }
+
+        public AnnotatedRecord setAttribute(String attribute) {
+            this.attribute = attribute;
+            return this;
+        }
+    }
+
     private DynamoDbEnhancedClient enhancedClient = DynamoDbEnhancedClient.builder()
                                                                           .dynamoDbClient(getDynamoDbClient())
                                                                           .extensions(VersionedRecordExtension.builder().build())
                                                                           .build();
 
+    private DynamoDbEnhancedClient customVersionedEnhancedClient = DynamoDbEnhancedClient.builder()
+                                                                          .dynamoDbClient(getDynamoDbClient())
+                                                                          .extensions(VersionedRecordExtension
+                                                                                          .builder()
+                                                                                          .incrementBy(2L)
+                                                                                          .startAt(10L)
+                                                                                          .build()
+                                                                          )
+                                                                          .build();
+
     private DynamoDbTable<Record> mappedTable = enhancedClient.table(getConcreteTableName("table-name"), TABLE_SCHEMA);
+
+    private DynamoDbTable<Record> mappedCustomVersionedTable = customVersionedEnhancedClient
+        .table(getConcreteTableName("table-name2"), TABLE_SCHEMA);
+
+
+    private static final TableSchema<AnnotatedRecord> ANNOTATED_TABLE_SCHEMA =
+        TableSchema.fromBean(AnnotatedRecord.class);
+
+    private DynamoDbTable<AnnotatedRecord> annotatedTable = enhancedClient
+        .table(getConcreteTableName("annotated-table"), ANNOTATED_TABLE_SCHEMA);
+
+
+
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -116,6 +175,8 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     @Before
     public void createTable() {
         mappedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        mappedCustomVersionedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
+        annotatedTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput()));
     }
 
     @After
@@ -123,7 +184,17 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
         getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
                                                           .tableName(getConcreteTableName("table-name"))
                                                           .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("table-name2"))
+                                                          .build());
+
+        getDynamoDbClient().deleteTable(DeleteTableRequest.builder()
+                                                          .tableName(getConcreteTableName("annotated-table"))
+                                                          .build());
     }
+
+
 
     @Test
     public void putNewRecordSetsInitialVersion() {
@@ -290,5 +361,50 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
     public void putRecordWithWrongVersionNumber() {
         mappedTable.putItem(r -> r.item(new Record().setId("id").setAttribute("one")));
         mappedTable.putItem(r -> r.item(new Record().setId("id").setAttribute("one").setVersion(2)));
+    }
+
+    @Test
+    public void updateVersionIncrementByExpected() {
+        mappedCustomVersionedTable.putItem(r -> r.item(new Record().setId("id").setAttribute("one")));
+
+        Record currentRecord = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("id")));
+
+        Record result = mappedCustomVersionedTable.updateItem(r -> r.item(new Record()
+                                                                              .setId("id")
+                                                                              .setAttribute("two")
+                                                                              .setVersion(currentRecord.getVersion())));
+
+        Record expectedResult = new Record().setId("id").setAttribute("two").setVersion(14);
+        assertThat(result.getVersion(), is(expectedResult.getVersion()));
+    }
+
+    @Test
+    public void customStartAtValueIsUsedForFirstRecord() {
+        mappedCustomVersionedTable.putItem(r -> r.item(new Record().setId("custom-start").setAttribute("test")));
+
+        Record record = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("custom-start")));
+        assertThat(record.getVersion(), is(12));
+    }
+
+    @Test(expected = ConditionalCheckFailedException.class)
+    public void recordWithVersionBetweenStartAtAndFirstVersionFails() {
+        Record invalidRecord = new Record().setId("invalid-version").setAttribute("test").setVersion(11);
+        mappedCustomVersionedTable.putItem(r -> r.item(invalidRecord));
+    }
+
+    @Test
+    public void annotationBasedCustomVersioningWorks() {
+        annotatedTable.putItem(r -> r.item(new AnnotatedRecord().setAttribute("test").setId("annotated")));
+
+        AnnotatedRecord result = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("annotated")));
+
+        assertThat(result.getVersion(), is(8L));
+
+        AnnotatedRecord updated = annotatedTable.updateItem(r -> r.item(new AnnotatedRecord()
+                                                                            .setId("annotated")
+                                                                            .setAttribute("updated")
+                                                                            .setVersion(8L)));
+
+        assertThat(updated.getVersion(), is(11L));
     }
 }

@@ -1,0 +1,36 @@
+{
+    "version": "2.33.5",
+    "date": "2025-09-08",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "brandondahler",
+            "description": "X-Forwarded-For headers will no longer be signed during SigV4 authentication"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Add ComputationModelVersion support in IoT SiteWise APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SecurityHub",
+            "contributor": "",
+            "description": "This release adds the RESOURCE_NOT_FOUND error code as a possible value in responses to the following operations: BatchGetStandardsControlAssociations, BatchUpdateStandardsControlAssociations, and BatchGetSecurityControls."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This release includes backward compatibility work on the \"Expires\" parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

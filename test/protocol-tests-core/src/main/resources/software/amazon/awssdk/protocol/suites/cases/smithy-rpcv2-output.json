@@ -1,9 +1,56 @@
 [
     {
+        "id": "empty_output",
+        "description": "When output structure is empty we write CBOR equivalent of {}",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v/8="
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "EmptyInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "empty_output_no_body",
+        "description": "When output structure is empty the client should accept an empty body",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": ""
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "EmptyInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "RpcV2CborFloat16Inf",
         "description": "Ensures that clients can correctly parse float16 +Inf.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWV2YWx1Zfl8AA=="
             }
         },
@@ -18,10 +65,15 @@
         }
     },
     {
+        "id": "RpcV2CborFloat16NegInf",
         "description": "Ensures that clients can correctly parse float16 -Inf.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWV2YWx1Zfn8AA=="
             }
         },
@@ -36,10 +88,15 @@
         }
     },
     {
+        "id": "RpcV2CborFloat16LSBNaN",
         "description": "Ensures that clients can correctly parse float16 NaN with high LSB.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWV2YWx1Zfl8AQ=="
             }
         },
@@ -54,10 +111,15 @@
         }
     },
     {
+        "id": "RpcV2CborFloat16MSBNaN",
         "description": "Ensures that clients can correctly parse float16 NaN with high MSB.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWV2YWx1Zfl+AA=="
             }
         },
@@ -72,30 +134,38 @@
         }
     },
     {
-        "description": "Deserializes null values in lists",
+        "id": "RpcV2CborFloat16Subnormal",
+        "description": "Ensures that clients can correctly parse a subnormal float16.",
         "given": {
             "response": {
                 "status_code": 200,
-                "binaryBody": "v3BzcGFyc2VTdHJpbmdMaXN0n/b//w=="
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "oWV2YWx1ZfkAUA=="
             }
         },
         "when": {
             "action": "unmarshall",
-            "operation": "SparseNullsOperation"
+            "operation": "Float16"
         },
         "then": {
             "deserializedAs": {
-                "sparseStringList": [
-                    null
-                ]
+                "value": 4.76837158203125E-6
             }
         }
     },
     {
+        "id": "RpcV2CborDateTimeWithFractionalSeconds",
         "description": "Ensures that clients can correctly parse timestamps with fractional seconds",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2hkYXRldGltZcH7Qcw32zgPvnf/"
             }
         },
@@ -105,15 +175,175 @@
         },
         "then": {
             "deserializedAs": {
-                "datetime": 946845296123
+                "datetime": 9.46845296123E8
             }
         }
     },
     {
+        "id": "RpcV2CborInvalidGreetingError",
+        "description": "Parses simple RpcV2 Cbor errors",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4LnNtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNJbnZhbGlkR3JlZXRpbmdnTWVzc2FnZWJIaf8="
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "InvalidGreeting"
+        },
+        "then": {
+            "deserializedAs": {
+                "Message": "Hi"
+            }
+        }
+    },
+    {
+        "id": "RpcV2CborComplexError",
+        "description": "Parses a complex error with no message member",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3JoVG9wTGV2ZWxpVG9wIGxldmVsZk5lc3RlZL9jRm9vY2Jhcv//"
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "ComplexError"
+        },
+        "then": {
+            "deserializedAs": {
+                "TopLevel": "Top level",
+                "Nested": {
+                    "Foo": "bar"
+                }
+            }
+        }
+    },
+    {
+        "id": "RpcV2CborEmptyComplexError",
+        "given": {
+            "response": {
+                "status_code": 400,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3L/"
+            }
+        },
+        "when": {
+            "action": "errorUnmarshall",
+            "operation": "GreetingWithErrors",
+            "error": "ComplexError"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "no_output",
+        "description": "A `Content-Type` header should not be set if the response body is empty.",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor"
+                },
+                "binaryBody": ""
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "NoInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "NoOutputClientAllowsEmptyCbor",
+        "description": "Clients should accept a CBOR empty struct if there is no output.",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v/8="
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "NoInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "NoOutputClientAllowsEmptyBody",
+        "description": "Clients should accept an empty body if there is no output and\nshould not raise an error if the `Content-Type` header is set.",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": ""
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "NoInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "optional_output",
+        "description": "When output is empty we write CBOR equivalent of {}",
+        "given": {
+            "response": {
+                "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
+                "binaryBody": "v/8="
+            }
+        },
+        "when": {
+            "action": "unmarshall",
+            "operation": "OptionalInputOutput"
+        },
+        "then": {
+            "deserializedAs": {}
+        }
+    },
+    {
+        "id": "RpcV2CborRecursiveShapes",
         "description": "Serializes recursive structures",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2ZuZXN0ZWS/Y2Zvb2RGb28xZm5lc3RlZL9jYmFyZEJhcjFvcmVjdXJzaXZlTWVtYmVyv2Nmb29kRm9vMmZuZXN0ZWS/Y2JhcmRCYXIy//////8="
             }
         },
@@ -139,10 +369,15 @@
         }
     },
     {
+        "id": "RpcV2CborRecursiveShapesUsingDefiniteLength",
         "description": "Deserializes recursive structures encoded using a map with definite length",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWZuZXN0ZWSiY2Zvb2RGb28xZm5lc3RlZKJjYmFyZEJhcjFvcmVjdXJzaXZlTWVtYmVyomNmb29kRm9vMmZuZXN0ZWShY2JhcmRCYXIy"
             }
         },
@@ -168,82 +403,15 @@
         }
     },
     {
-        "description": "Deserializes sparse maps",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v29zcGFyc2VTdHJ1Y3RNYXC/Y2Zvb79iaGlldGhlcmX/Y2Jher9iaGljYnll////"
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "RpcV2CborSparseMaps"
-        },
-        "then": {
-            "deserializedAs": {
-                "sparseStructMap": {
-                    "foo": {
-                        "hi": "there"
-                    },
-                    "baz": {
-                        "hi": "bye"
-                    }
-                }
-            }
-        }
-    },
-    {
-        "description": "A response that contains a sparse map of sets",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v2xzcGFyc2VTZXRNYXC/YXmfYWFhYv9heJ////8="
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "RpcV2CborSparseMaps"
-        },
-        "then": {
-            "deserializedAs": {
-                "sparseSetMap": {
-                    "x": [],
-                    "y": [
-                        "a",
-                        "b"
-                    ]
-                }
-            }
-        }
-    },
-    {
-        "description": "Ensure that 0 and false are sent over the wire in all maps and lists",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v29zcGFyc2VOdW1iZXJNYXC/YXgA/3BzcGFyc2VCb29sZWFuTWFwv2F49P//"
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "RpcV2CborSparseMaps"
-        },
-        "then": {
-            "deserializedAs": {
-                "sparseNumberMap": {
-                    "x": 0
-                },
-                "sparseBooleanMap": {
-                    "x": false
-                }
-            }
-        }
-    },
-    {
+        "id": "RpcV2CborMaps",
         "description": "Deserializes maps",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oW5kZW5zZVN0cnVjdE1hcKJjZm9voWJoaWV0aGVyZWNiYXqhYmhpY2J5ZQ=="
             }
         },
@@ -265,10 +433,15 @@
         }
     },
     {
+        "id": "RpcV2CborDeserializesZeroValuesInMaps",
         "description": "Ensure that 0 and false are sent over the wire in all maps and lists",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "om5kZW5zZU51bWJlck1hcKFheABvZGVuc2VCb29sZWFuTWFwoWF49A=="
             }
         },
@@ -288,10 +461,15 @@
         }
     },
     {
+        "id": "RpcV2CborDeserializesDenseSetMap",
         "description": "A response that contains a dense map of sets",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWtkZW5zZVNldE1hcKJheIBheYJhYWFi"
             }
         },
@@ -312,10 +490,15 @@
         }
     },
     {
+        "id": "RpcV2CborLists",
         "description": "Serializes RpcV2 Cbor lists",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2pzdHJpbmdMaXN0n2Nmb29jYmFy/2lzdHJpbmdTZXSfY2Zvb2NiYXL/a2ludGVnZXJMaXN0nwEC/2tib29sZWFuTGlzdJ/19P9tdGltZXN0YW1wTGlzdJ/B+0HU1/vzgAAAwftB1Nf784AAAP9oZW51bUxpc3SfY0Zvb2Ew/2tpbnRFbnVtTGlzdJ8BAv9wbmVzdGVkU3RyaW5nTGlzdJ+fY2Zvb2NiYXL/n2NiYXpjcXV4//9tc3RydWN0dXJlTGlzdJ+/YWFhMWFiYTL/v2FhYTNhYmE0//9oYmxvYkxpc3SfQ2Zvb0NiYXL//w=="
             }
         },
@@ -342,8 +525,8 @@
                     false
                 ],
                 "timestampList": [
-                    1398796238000,
-                    1398796238000
+                    1398796238,
+                    1398796238
                 ],
                 "enumList": [
                     "Foo",
@@ -381,10 +564,15 @@
         }
     },
     {
+        "id": "RpcV2CborListsEmpty",
         "description": "Serializes empty RpcV2 Cbor lists",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2pzdHJpbmdMaXN0n///"
             }
         },
@@ -399,10 +587,15 @@
         }
     },
     {
+        "id": "RpcV2CborIndefiniteStringInsideIndefiniteListCanDeserialize",
         "description": "Can deserialize indefinite length text strings inside an indefinite length list",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2pzdHJpbmdMaXN0n394HUFuIGV4YW1wbGUgaW5kZWZpbml0ZSBzdHJpbmcsdyB3aGljaCB3aWxsIGJlIGNodW5rZWQsbiBvbiBlYWNoIGNvbW1h/394NUFub3RoZXIgZXhhbXBsZSBpbmRlZmluaXRlIHN0cmluZyB3aXRoIG9ubHkgb25lIGNodW5r/3ZUaGlzIGlzIGEgcGxhaW4gc3RyaW5n//8="
             }
         },
@@ -421,10 +614,15 @@
         }
     },
     {
+        "id": "RpcV2CborIndefiniteStringInsideDefiniteListCanDeserialize",
         "description": "Can deserialize indefinite length text strings inside a definite length list",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "oWpzdHJpbmdMaXN0g394HUFuIGV4YW1wbGUgaW5kZWZpbml0ZSBzdHJpbmcsdyB3aGljaCB3aWxsIGJlIGNodW5rZWQsbiBvbiBlYWNoIGNvbW1h/394NUFub3RoZXIgZXhhbXBsZSBpbmRlZmluaXRlIHN0cmluZyB3aXRoIG9ubHkgb25lIGNodW5r/3ZUaGlzIGlzIGEgcGxhaW4gc3RyaW5n"
             }
         },
@@ -443,10 +641,15 @@
         }
     },
     {
+        "id": "RpcV2CborSimpleScalarProperties",
         "description": "Serializes simple scalar properties",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v3B0cnVlQm9vbGVhblZhbHVl9XFmYWxzZUJvb2xlYW5WYWx1ZfRpYnl0ZVZhbHVlBWtkb3VibGVWYWx1Zfs//jlYEGJN02pmbG9hdFZhbHVl+kD0AABsaW50ZWdlclZhbHVlGQEAanNob3J0VmFsdWUZJqprc3RyaW5nVmFsdWVmc2ltcGxlaWJsb2JWYWx1ZUNmb2//"
             }
         },
@@ -469,10 +672,15 @@
         }
     },
     {
+        "id": "RpcV2CborSimpleScalarPropertiesUsingDefiniteLength",
         "description": "Deserializes simple scalar properties encoded using a map with definite length",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "qXB0cnVlQm9vbGVhblZhbHVl9XFmYWxzZUJvb2xlYW5WYWx1ZfRpYnl0ZVZhbHVlBWtkb3VibGVWYWx1Zfs//jlYEGJN02pmbG9hdFZhbHVl+kD0AABsaW50ZWdlclZhbHVlGQEAanNob3J0VmFsdWUZJqprc3RyaW5nVmFsdWVmc2ltcGxlaWJsb2JWYWx1ZUNmb28="
             }
         },
@@ -495,10 +703,15 @@
         }
     },
     {
+        "id": "RpcV2CborClientDoesntDeserializeNullStructureValues",
         "description": "RpcV2 Cbor should not deserialize null structure values",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2tzdHJpbmdWYWx1Zfb/"
             }
         },
@@ -511,10 +724,15 @@
         }
     },
     {
+        "id": "RpcV2CborSupportsNaNFloatOutputs",
         "description": "Supports handling NaN float values.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2tkb3VibGVWYWx1Zft/+AAAAAAAAGpmbG9hdFZhbHVl+n/AAAD/"
             }
         },
@@ -530,10 +748,15 @@
         }
     },
     {
+        "id": "RpcV2CborSupportsInfinityFloatOutputs",
         "description": "Supports handling Infinity float values.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2tkb3VibGVWYWx1Zft/8AAAAAAAAGpmbG9hdFZhbHVl+n+AAAD/"
             }
         },
@@ -549,10 +772,15 @@
         }
     },
     {
+        "id": "RpcV2CborSupportsNegativeInfinityFloatOutputs",
         "description": "Supports handling Negative Infinity float values.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2tkb3VibGVWYWx1Zfv/8AAAAAAAAGpmbG9hdFZhbHVl+v+AAAD/"
             }
         },
@@ -568,10 +796,15 @@
         }
     },
     {
+        "id": "RpcV2CborSupportsUpcastingDataOnDeserialize",
         "description": "Supports upcasting from a smaller byte representation of the same data type.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2tkb3VibGVWYWx1Zfk+AGpmbG9hdFZhbHVl+UegbGludGVnZXJWYWx1ZRg4aWxvbmdWYWx1ZRkBAGpzaG9ydFZhbHVlCv8="
             }
         },
@@ -590,10 +823,15 @@
         }
     },
     {
+        "id": "RpcV2CborExtraFieldsInTheBodyShouldBeSkippedByClients",
         "description": "The client should skip over additional fields that are not part of the structure. This allows a\nclient generated against an older Smithy model to be able to communicate with a server that is\ngenerated against a newer Smithy model.",
         "given": {
             "response": {
                 "status_code": 200,
+                "headers": {
+                    "smithy-protocol": "rpc-v2-cbor",
+                    "Content-Type": "application/cbor"
+                },
                 "binaryBody": "v2lieXRlVmFsdWUFa2RvdWJsZVZhbHVl+z/+OVgQYk3TcWZhbHNlQm9vbGVhblZhbHVl9GpmbG9hdFZhbHVl+kD0AABrZXh0cmFPYmplY3S/c2luZGVmaW5pdGVMZW5ndGhNYXC/a3dpdGhBbkFycmF5nwECA///cWRlZmluaXRlTGVuZ3RoTWFwo3J3aXRoQURlZmluaXRlQXJyYXmDAQIDeB1hbmRTb21lSW5kZWZpbml0ZUxlbmd0aFN0cmluZ3gfdGhhdCBoYXMsIGJlZW4gY2h1bmtlZCBvbiBjb21tYWxub3JtYWxTdHJpbmdjZm9vanNob3J0VmFsdWUZJw9uc29tZU90aGVyRmllbGR2dGhpcyBzaG91bGQgYmUgc2tpcHBlZP9saW50ZWdlclZhbHVlGQEAaWxvbmdWYWx1ZRkmkWpzaG9ydFZhbHVlGSaqa3N0cmluZ1ZhbHVlZnNpbXBsZXB0cnVlQm9vbGVhblZhbHVl9WlibG9iVmFsdWVDZm9v/w=="
             }
         },
@@ -603,135 +841,16 @@
         },
         "then": {
             "deserializedAs": {
-                "trueBooleanValue": true,
-                "falseBooleanValue": false,
                 "byteValue": 5,
                 "doubleValue": 1.889,
+                "falseBooleanValue": false,
                 "floatValue": 7.625,
                 "integerValue": 256,
                 "longValue": 9873,
                 "shortValue": 9898,
                 "stringValue": "simple",
+                "trueBooleanValue": true,
                 "blobValue": "foo"
-            }
-        }
-    },
-    {
-        "description": "When output is empty we write CBOR equivalent of {}",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v/8="
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "OptionalInputOutput"
-        },
-        "then": {
-            "deserializedAs": {}
-        }
-    },
-    {
-        "description": "When output structure is empty we write CBOR equivalent of {}",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v/8="
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "EmptyInputOutput"
-        },
-        "then": {
-            "deserializedAs": {}
-        }
-    },
-    {
-        "description": "Clients should accept a CBOR empty struct if there is no output.",
-        "given": {
-            "response": {
-                "status_code": 200,
-                "binaryBody": "v/8="
-            }
-        },
-        "when": {
-            "action": "unmarshall",
-            "operation": "NoInputOutput"
-        },
-        "then": {
-            "deserializedAs": {}
-        }
-    },
-    {
-        "description": "Parses simple RpcV2 Cbor errors.",
-        "given": {
-            "response": {
-                "status_code": 400,
-                "headers": {
-                    "smithy-protocol": "rpc-v2-cbor",
-                    "Content-Type": "application/cbor"
-                },
-                "binaryBody": "v2ZfX3R5cGV4LnNtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNJbnZhbGlkR3JlZXRpbmdnTWVzc2FnZWJIaf8="
-            }
-        },
-        "when": {
-            "action": "errorUnmarshall",
-            "operation": "GreetingWithErrors",
-            "error": "InvalidGreeting"
-        },
-        "then": {
-            "deserializedAs": {
-                "Message": "Hi"
-            }
-        }
-    },
-    {
-        "description": "Parses a complex error with no message member",
-        "given": {
-            "response": {
-                "status_code": 400,
-                "headers": {
-                    "smithy-protocol": "rpc-v2-cbor",
-                    "Content-Type": "application/cbor"
-                },
-                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3JoVG9wTGV2ZWxpVG9wIGxldmVsZk5lc3RlZL9jRm9vY2Jhcv//"
-            }
-        },
-        "when": {
-            "action": "errorUnmarshall",
-            "operation": "GreetingWithErrors",
-            "error": "ComplexError"
-        },
-        "then": {
-            "deserializedAs": {
-                "TopLevel": "Top level",
-                "Nested": {
-                    "Foo": "bar"
-                }
-            }
-        }
-    },
-    {
-        "description": "Parses an empty complex error",
-        "given": {
-            "response": {
-                "status_code": 400,
-                "headers": {
-                    "smithy-protocol": "rpc-v2-cbor",
-                    "Content-Type": "application/cbor"
-                },
-                "binaryBody": "v2ZfX3R5cGV4K3NtaXRoeS5wcm90b2NvbHRlc3RzLnJwY3YyQ2JvciNDb21wbGV4RXJyb3L/"
-            }
-        },
-        "when": {
-            "action": "errorUnmarshall",
-            "operation": "GreetingWithErrors",
-            "error": "ComplexError"
-        },
-        "then": {
-            "deserializedAs": {
             }
         }
     }

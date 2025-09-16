@@ -24,8 +24,11 @@ public enum ValidationErrorId {
     REQUEST_URI_NOT_FOUND("The request URI does not exist."),
 
     INVALID_CODEGEN_CUSTOMIZATION("A customization is enabled for this service that cannot be applied for the given service "
-                                  + "model.")
-    ;
+                                  + "model."),
+    UNKNOWN_OPERATION("The model references an unknown operation."),
+    INVALID_IDENTIFIER_NAME("The model contains an invalid or non-idiomatic name or identifier."),
+    SHARED_EVENTSTREAM_EVENT("Event shape shared between multiple EventStreams. "
+                             + "Missing duplicateAndRenameSharedEvents customization.");
 
     private final String description;
 

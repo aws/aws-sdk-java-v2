@@ -123,6 +123,7 @@ import software.amazon.awssdk.services.json.transform.EventStreamOperationWithOn
 import software.amazon.awssdk.services.json.transform.GetOperationWithChecksumRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.GetWithoutRequiredMembersRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventMarshaller;
+import software.amazon.awssdk.services.json.transform.InputEventOneMarshaller;
 import software.amazon.awssdk.services.json.transform.InputEventTwoMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithChecksumRequiredRequestMarshaller;
 import software.amazon.awssdk.services.json.transform.OperationWithRequestCompressionRequestMarshaller;
@@ -575,7 +576,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             EventStreamTaggedUnionJsonMarshaller eventMarshaller = EventStreamTaggedUnionJsonMarshaller.builder()
-                                                                                                       .putMarshaller(DefaultInputEventOne.class, new InputEventMarshaller(protocolFactory))
+                                                                                                       .putMarshaller(DefaultInputEventOne.class, new InputEventOneMarshaller(protocolFactory))
                                                                                                        .putMarshaller(DefaultInputEventTwo.class, new InputEventTwoMarshaller(protocolFactory)).build();
             SdkPublisher<InputEventStreamTwo> eventPublisher = SdkPublisher.adapt(requestStream);
             Publisher<ByteBuffer> adapted = eventPublisher.map(event -> eventMarshaller.marshall(event)).map(
@@ -1641,10 +1642,10 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         if (plugins.isEmpty()) {
-            return configuration.build();
+            return clientConfiguration;
         }
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);

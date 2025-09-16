@@ -211,6 +211,12 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to duplicate and rename an event that is shared
+     * by multiple EventStreams.
+     */
+    private Map<String, Map<String, String>> duplicateAndRenameSharedEvents = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -356,6 +362,11 @@ public class CustomizationConfig {
      * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
      */
     private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
 
     private CustomizationConfig() {
     }
@@ -661,6 +672,14 @@ public class CustomizationConfig {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 
+    public Map<String, Map<String, String>> getDuplicateAndRenameSharedEvents() {
+        return duplicateAndRenameSharedEvents;
+    }
+
+    public void  setDuplicateAndRenameSharedEvents(Map<String, Map<String, String>> duplicateAndRenameSharedEvents) {
+        this.duplicateAndRenameSharedEvents = duplicateAndRenameSharedEvents;
+    }
+
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
         return underscoresInNameBehavior;
     }
@@ -938,5 +957,13 @@ public class CustomizationConfig {
 
     public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
         this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
     }
 }

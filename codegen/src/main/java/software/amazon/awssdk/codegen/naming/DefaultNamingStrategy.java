@@ -43,9 +43,12 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.Validate;
 
 /**
  * Default implementation of naming strategy respecting.
@@ -302,6 +305,11 @@ public class DefaultNamingStrategy implements NamingStrategy {
         // Special cases
         result = result.replace("textORcsv", "TEXT_OR_CSV");
 
+        // leading digits, add a prefix
+        if (result.matches("^\\d.*")) {
+            result = "VALUE_" + result;
+        }
+
         // Split into words
         result = String.join("_", splitOnWordBoundaries(result));
 
@@ -493,17 +501,35 @@ public class DefaultNamingStrategy implements NamingStrategy {
             UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
 
             String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
-            Validate.notNull(behavior,
-                             "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
-                             + "This isn't idiomatic in Java. Please either remove the underscores or apply the "
-                             + "'underscoresInNameBehavior' customization for this service (Supported "
-                             + "'underscoresInNameBehavior' values: %s).", name, location, supportedBehaviors);
-            Validate.isTrue(behavior == UnderscoresInNameBehavior.ALLOW,
-                            "Unsupported underscoresInShapeNameBehavior: %s. Supported values: %s", behavior, supportedBehaviors);
+            if (behavior == null) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
+                        + "This isn't idiomatic in Java. Please either remove the underscores",
+                        name, location, supportedBehaviors)
+                ));
+            }
+            if (behavior != UnderscoresInNameBehavior.ALLOW) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Unsupported underscoresInShapeNameBehavior: %s. Supported values: %s",
+                        behavior, supportedBehaviors)
+                ));
+            }
         }
 
-        Validate.isTrue(VALID_IDENTIFIER_NAME.matcher(name).matches(),
-                        "Encountered a name or identifier that is invalid within Java (%s in %s). Please remove invalid "
-                        + "characters.", name, location);
+        if (!VALID_IDENTIFIER_NAME.matcher(name).matches()) {
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                ValidationErrorSeverity.DANGER,
+                String.format(
+                    "Encountered a name or identifier that is invalid within Java (%s in %s). Please remove invalid "
+                    + "characters.", name, location)
+            ));
+        }
     }
 }

@@ -3717,6 +3717,10 @@
         "roleArn":{
           "shape":"IamRoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that the monitor uses to connect to Deadline Cloud. Every user that signs in to the monitor using IAM Identity Center uses this role to access Deadline Cloud resources.</p>"
+        },
+        "tags":{
+          "shape":"Tags",
+          "documentation":"<p>The tags to add to your monitor. Each tag consists of a tag key and a tag value. Tag keys and values are both required, but tag values can be empty strings.</p>"
         }
       }
     },
@@ -4710,7 +4714,8 @@
       "type":"string",
       "enum":[
         "on-demand",
-        "spot"
+        "spot",
+        "wait-and-save"
       ]
     },
     "EndedAt":{
@@ -5162,7 +5167,8 @@
         "CREATE_IN_PROGRESS",
         "UPDATE_IN_PROGRESS",
         "CREATE_FAILED",
-        "UPDATE_FAILED"
+        "UPDATE_FAILED",
+        "SUSPENDED"
       ]
     },
     "FleetSummaries":{
@@ -5199,6 +5205,10 @@
         "status":{
           "shape":"FleetStatus",
           "documentation":"<p>The status of the fleet.</p>"
+        },
+        "statusMessage":{
+          "shape":"String",
+          "documentation":"<p>A message that communicates a suspended status of the fleet.</p>"
         },
         "autoScalingStatus":{
           "shape":"AutoScalingStatus",
@@ -5459,6 +5469,10 @@
         "status":{
           "shape":"FleetStatus",
           "documentation":"<p>The status of the fleet.</p>"
+        },
+        "statusMessage":{
+          "shape":"String",
+          "documentation":"<p>A message that communicates a suspended status of the fleet.</p>"
         },
         "autoScalingStatus":{
           "shape":"AutoScalingStatus",
@@ -7453,6 +7467,14 @@
         "startedAt":{
           "shape":"StartedAt",
           "documentation":"<p>The date and time the resource started running.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
         },
         "jobParameters":{
           "shape":"JobParameters",
@@ -9995,7 +10017,7 @@
           "documentation":"<p>The operators to include in the search.</p>"
         }
       },
-      "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. You can use two groupings per search each within parenthesis <code>()</code>.</p>"
+      "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. <p>You can use two groupings per search each within parenthesis <code>()</code>.</p></p>"
     },
     "SearchJobsRequest":{
       "type":"structure",
@@ -10017,7 +10039,7 @@
         },
         "filterExpressions":{
           "shape":"SearchGroupedFilterExpressions",
-          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. You can use two groupings per search each within parenthesis <code>()</code>.</p>"
+          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. <p>You can use two groupings per search each within parenthesis <code>()</code>.</p></p>"
         },
         "sortExpressions":{
           "shape":"SearchSortExpressions",
@@ -10121,7 +10143,7 @@
         },
         "filterExpressions":{
           "shape":"SearchGroupedFilterExpressions",
-          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. You can use two groupings per search each within parenthesis <code>()</code>.</p>"
+          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. <p>You can use two groupings per search each within parenthesis <code>()</code>.</p></p>"
         },
         "sortExpressions":{
           "shape":"SearchSortExpressions",
@@ -10200,7 +10222,7 @@
         },
         "filterExpressions":{
           "shape":"SearchGroupedFilterExpressions",
-          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. You can use two groupings per search each within parenthesis <code>()</code>.</p>"
+          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. <p>You can use two groupings per search each within parenthesis <code>()</code>.</p></p>"
         },
         "sortExpressions":{
           "shape":"SearchSortExpressions",
@@ -10302,7 +10324,7 @@
         },
         "filterExpressions":{
           "shape":"SearchGroupedFilterExpressions",
-          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. You can use two groupings per search each within parenthesis <code>()</code>.</p>"
+          "documentation":"<p>The filter expression, <code>AND</code> or <code>OR</code>, to use when searching among a group of search strings in a resource. <p>You can use two groupings per search each within parenthesis <code>()</code>.</p></p>"
         },
         "sortExpressions":{
           "shape":"SearchSortExpressions",
@@ -10379,6 +10401,10 @@
         "instanceMarketOptions":{
           "shape":"ServiceManagedEc2InstanceMarketOptions",
           "documentation":"<p>The Amazon EC2 market type.</p>"
+        },
+        "vpcConfiguration":{
+          "shape":"VpcConfiguration",
+          "documentation":"<p>The VPC configuration details for a service managed Amazon EC2 fleet.</p>"
         },
         "storageProfileId":{
           "shape":"StorageProfileId",
@@ -11223,6 +11249,10 @@
           "shape":"CreatedAt",
           "documentation":"<p>The date and time the resource was created.</p>"
         },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user or system that created this resource.</p>"
+        },
         "startedAt":{
           "shape":"StartedAt",
           "documentation":"<p>The date and time the resource started running.</p>"
@@ -11230,6 +11260,14 @@
         "endedAt":{
           "shape":"EndedAt",
           "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
         },
         "parameterSpace":{
           "shape":"ParameterSpace",
@@ -11674,6 +11712,14 @@
         "endedAt":{
           "shape":"EndedAt",
           "documentation":"<p>The date and time the resource ended running.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The date and time the resource was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user or system that updated this resource.</p>"
         }
       },
       "documentation":"<p>The details of a task search.</p>"
@@ -12854,11 +12900,30 @@
         "OTHER"
       ]
     },
+    "VpcConfiguration":{
+      "type":"structure",
+      "members":{
+        "resourceConfigurationArns":{
+          "shape":"VpcResourceConfigurationArns",
+          "documentation":"<p>The ARNs of the VPC Lattice resource configurations attached to the fleet.</p>"
+        }
+      },
+      "documentation":"<p>The configuration options for a service managed fleet's VPC.</p>"
+    },
     "VpcId":{
       "type":"string",
       "max":32,
       "min":1,
       "pattern":"vpc-[\\w]{1,120}"
+    },
+    "VpcResourceConfigurationArn":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "VpcResourceConfigurationArns":{
+      "type":"list",
+      "member":{"shape":"VpcResourceConfigurationArn"}
     },
     "WindowsUser":{
       "type":"structure",

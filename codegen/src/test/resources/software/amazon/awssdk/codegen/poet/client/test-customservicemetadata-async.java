@@ -193,10 +193,10 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         if (plugins.isEmpty()) {
-            return configuration.build();
+            return clientConfiguration;
         }
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder serviceConfigBuilder = new ProtocolRestJsonWithCustomContentTypeServiceClientConfigurationBuilder(
             configuration);
         for (SdkPlugin plugin : plugins) {

@@ -34,9 +34,9 @@ public class PartitionServiceMetadataTest {
             "elasticbeanstalk", "elasticfilesystem", "elasticloadbalancing", "elasticmapreduce", "elastictranscoder",
             "email", "es", "events", "firehose", "gamelift", "glacier", "inspector",
             "iot", "kinesis", "kinesisanalytics", "kms", "lambda", "lightsail", "logs", "machinelearning",
-            "marketplacecommerceanalytics", "metering.marketplace", "mobileanalytics", "monitoring", "opsworks",
-            "opsworks-cm", "pinpoint", "polly", "rds", "redshift", "rekognition", "route53domains", "s3",
-            "sdb", "servicecatalog", "sms", "snowball", "sns", "sqs", "ssm", "states", "storagegateway",
+            "marketplacecommerceanalytics", "metering.marketplace", "mobileanalytics", "monitoring",
+            "pinpoint", "polly", "rds", "redshift", "rekognition", "route53domains", "s3",
+            "sdb", "servicecatalog", "snowball", "sns", "sqs", "ssm", "states", "storagegateway",
             "streams.dynamodb", "sts", "support", "swf", "waf-regional", "workspaces", "xray");
 
     private static final List<String> AWS_CN_PARTITION_GLOBAL_SERVICES = Arrays.asList("iam");
