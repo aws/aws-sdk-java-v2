@@ -23,7 +23,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadTestUtil.contentRangeHeader;
+import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils.contentRangeHeader;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -48,6 +48,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -58,7 +59,7 @@ class S3MultipartFileDownloadWiremockTest {
     private final String testKey = "test-key";
 
     private S3AsyncClient s3AsyncClient;
-    private MultipartDownloadTestUtil util;
+    private MultipartDownloadTestUtils util;
     private FileSystem fileSystem;
     private Path testFile;
 
@@ -81,7 +82,7 @@ class S3MultipartFileDownloadWiremockTest {
                                                                         .build())
                                      // .httpClient(AwsCrtAsyncHttpClient.create())
                                      .build();
-        util = new MultipartDownloadTestUtil(testBucket, testKey, "test-etag");
+        util = new MultipartDownloadTestUtils(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
         testFile = fileSystem.getPath("/test-file.txt");
     }

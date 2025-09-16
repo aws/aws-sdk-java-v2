@@ -147,10 +147,6 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.response = response;
     }
 
-    public FileTransformerConfiguration getConfiguration() {
-        return this.configuration;
-    }
-
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
         try {

@@ -39,6 +39,7 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartDownloadTestUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
@@ -49,7 +50,7 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
     private final String testKey = "test-key";
 
     private S3AsyncClient s3AsyncClient;
-    private MultipartDownloadTestUtil util;
+    private MultipartDownloadTestUtils utils;
     private FileSystem fileSystem;
     private Path testFile;
 
@@ -64,7 +65,7 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
                                                                           .pathStyleAccessEnabled(true)
                                                                           .build())
                                      .build();
-        util = new MultipartDownloadTestUtil(testBucket, testKey, "test-etag");
+        utils = new MultipartDownloadTestUtils(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
         testFile = fileSystem.getPath("/test-file.txt");
     }
@@ -78,7 +79,7 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
     @ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10})
     void happyPath_multipartDownload(int numParts) throws Exception {
         int partSize = 1024;
-        byte[] expectedBody = util.stubAllParts(testBucket, testKey, numParts, partSize);
+        byte[] expectedBody = utils.stubAllParts(testBucket, testKey, numParts, partSize);
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = AsyncResponseTransformer.toFile(testFile);
         AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(
@@ -103,13 +104,13 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         byte[] actualBody = Files.readAllBytes(testFile);
         assertThat(actualBody).isEqualTo(expectedBody);
         assertThat(getObjectResponse).isNotNull();
-        util.verifyCorrectAmountOfRequestsMade(numParts);
+        utils.verifyCorrectAmountOfRequestsMade(numParts);
     }
 
     @Test
     void singlePartObject_shouldCompleteWithoutMultipart() throws Exception {
         int partSize = 1024;
-        byte[] expectedBody = util.stubSinglePart(testBucket, testKey, partSize);
+        byte[] expectedBody = utils.stubSinglePart(testBucket, testKey, partSize);
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = AsyncResponseTransformer.toFile(testFile);
         AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(
@@ -134,7 +135,7 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         byte[] actualBody = Files.readAllBytes(testFile);
         assertThat(actualBody).isEqualTo(expectedBody);
         assertThat(getObjectResponse).isNotNull();
-        util.verifyCorrectAmountOfRequestsMade(1);
+        utils.verifyCorrectAmountOfRequestsMade(1);
     }
 
 }
