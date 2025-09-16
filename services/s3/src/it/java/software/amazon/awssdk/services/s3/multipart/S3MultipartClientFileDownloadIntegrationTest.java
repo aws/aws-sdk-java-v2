@@ -87,7 +87,6 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
         this.interceptor = new TestInterceptor();
         this.s3Client = S3AsyncClient.builder()
                                      .multipartEnabled(true)
-                                     .multipartConfiguration(c -> c.maxInflightDownloads(50))
                                      .overrideConfiguration(o -> o.addExecutionInterceptor(this.interceptor))
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                      .build();

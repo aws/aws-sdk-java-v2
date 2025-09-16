@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -44,13 +45,13 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long apiCallBufferSizeInBytes;
-    private final Integer maxInflightDownloads;
+    private final ParallelConfiguration parallelConfiguration;;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.apiCallBufferSizeInBytes = builder.apiCallBufferSizeInBytes;
-        this.maxInflightDownloads = builder.maxInflightDownloads;
+        this.parallelConfiguration = builder.parallelConfiguration;
     }
 
     public static Builder builder() {
@@ -91,8 +92,12 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         return this.apiCallBufferSizeInBytes;
     }
 
-    public Integer maxInflightDownloads() {
-        return this.maxInflightDownloads;
+    /**
+     *
+     * @return
+     */
+    public ParallelConfiguration parallelConfiguration() {
+        return this.parallelConfiguration;
     }
 
     /**
@@ -172,16 +177,18 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
 
         /**
          * todo
-         * @param maxInflightDownloads
+         * @param
          * @return
          */
-        Builder maxInflightDownloads(Integer maxInflightDownloads);
+        Builder parallelConfiguration(ParallelConfiguration parallelConfiguration);
+
+        Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> consumer);
 
         /**
          * todo
          * @return
          */
-        Integer maxInflightDownloads();
+        ParallelConfiguration parallelConfiguration();
 
     }
 
@@ -189,35 +196,46 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long apiCallBufferSizeInBytes;
-        private Integer maxInflightDownloads;
+        private ParallelConfiguration parallelConfiguration;
 
+        @Override
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
             return this;
         }
 
+        @Override
         public Long thresholdInBytes() {
             return this.thresholdInBytes;
         }
 
+        @Override
         public Builder minimumPartSizeInBytes(Long minimumPartSizeInBytes) {
             this.minimumPartSizeInBytes = minimumPartSizeInBytes;
             return this;
         }
 
+        @Override
         public Long minimumPartSizeInBytes() {
             return this.minimumPartSizeInBytes;
         }
 
         @Override
-        public Builder maxInflightDownloads(Integer maxInflightDownloads) {
-            this.maxInflightDownloads = maxInflightDownloads;
+        public Builder parallelConfiguration(ParallelConfiguration parallelConfiguration) {
+            this.parallelConfiguration = parallelConfiguration;
             return this;
         }
 
         @Override
-        public Integer maxInflightDownloads() {
-            return this.maxInflightDownloads;
+        public Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> configuration) {
+            ParallelConfiguration.Builder builder = ParallelConfiguration.builder();
+            configuration.accept(builder);
+            return parallelConfiguration(builder.build());
+        }
+
+        @Override
+        public ParallelConfiguration parallelConfiguration() {
+            return this.parallelConfiguration;
         }
 
         @Override
