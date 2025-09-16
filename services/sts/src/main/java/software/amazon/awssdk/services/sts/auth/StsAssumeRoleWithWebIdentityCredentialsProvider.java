@@ -26,9 +26,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityResponse;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
 /**
@@ -49,8 +51,9 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithWebIdentityCredentialsProvider.Builder,
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsAssumeRoleWithWebIdentityCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
+    private final String source;
 
     /**
      * @see #builder()
@@ -60,6 +63,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         notNull(builder.assumeRoleWithWebIdentityRequestSupplier, "Assume role with web identity request must not be null.");
 
         this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier;
+        this.source = builder.source;
     }
 
     /**
@@ -75,7 +79,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
         AssumeRoleWithWebIdentityResponse assumeRoleResponse = stsClient.assumeRoleWithWebIdentity(request);
         return fromStsCredentials(assumeRoleResponse.credentials(),
-                                  PROVIDER_NAME,
+                                  providerName(),
                                   accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
@@ -86,7 +90,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
 
     @Override
     String providerName() {
-        return PROVIDER_NAME;
+        String providerName = PROVIDER_NAME;
+        if (!StringUtils.isEmpty(this.source)) {
+            providerName = String.format("%s,%s", this.source, providerName);
+        }
+        return providerName;
     }
 
     /**
@@ -96,6 +104,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithWebIdentityCredentialsProvider> {
         private Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier;
+        private String source;
 
         private Builder() {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new);
@@ -104,6 +113,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         public Builder(StsAssumeRoleWithWebIdentityCredentialsProvider provider) {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new, provider);
             this.assumeRoleWithWebIdentityRequestSupplier = provider.assumeRoleWithWebIdentityRequest;
+            this.source = provider.source;
         }
 
         /**
@@ -137,6 +147,18 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         public Builder refreshRequest(Consumer<AssumeRoleWithWebIdentityRequest.Builder> assumeRoleWithWebIdentityRequest) {
             return refreshRequest(AssumeRoleWithWebIdentityRequest.builder().applyMutation(assumeRoleWithWebIdentityRequest)
                                                                   .build());
+        }
+
+        /**
+         * Configure the source of this credentials provider. This is used for business metrics tracking
+         * to identify the credential provider chain.
+         *
+         * @param source The source identifier for business metrics tracking.
+         * @return This object for chained calls.
+         */
+        public Builder source(String source) {
+            this.source = source;
+            return this;
         }
 
         @Override

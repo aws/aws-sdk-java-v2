@@ -23,9 +23,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -46,9 +48,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetSessionTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetSessionTokenCredentialsProvider.Builder, StsGetSessionTokenCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsGetSessionTokenCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
 
     private final GetSessionTokenRequest getSessionTokenRequest;
+    private final String source;
 
     /**
      * @see #builder()
@@ -58,6 +61,7 @@ public class StsGetSessionTokenCredentialsProvider
         Validate.notNull(builder.getSessionTokenRequest, "Get session token request must not be null.");
 
         this.getSessionTokenRequest = builder.getSessionTokenRequest;
+        this.source = builder.source;
     }
 
     /**
@@ -70,7 +74,7 @@ public class StsGetSessionTokenCredentialsProvider
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetSessionTokenResponse sessionToken = stsClient.getSessionToken(getSessionTokenRequest);
-        return fromStsCredentials(sessionToken.credentials(), PROVIDER_NAME);
+        return fromStsCredentials(sessionToken.credentials(), providerName());
     }
 
     @Override
@@ -80,7 +84,11 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     String providerName() {
-        return PROVIDER_NAME;
+        String providerName = PROVIDER_NAME;
+        if (!StringUtils.isEmpty(this.source)) {
+            providerName = String.format("%s,%s", this.source, providerName);
+        }
+        return providerName;
     }
 
     /**
@@ -90,6 +98,7 @@ public class StsGetSessionTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetSessionTokenCredentialsProvider> {
         private GetSessionTokenRequest getSessionTokenRequest = GetSessionTokenRequest.builder().build();
+        private String source;
 
         private Builder() {
             super(StsGetSessionTokenCredentialsProvider::new);
@@ -98,6 +107,7 @@ public class StsGetSessionTokenCredentialsProvider
         public Builder(StsGetSessionTokenCredentialsProvider provider) {
             super(StsGetSessionTokenCredentialsProvider::new, provider);
             this.getSessionTokenRequest = provider.getSessionTokenRequest;
+            this.source = provider.source;
         }
 
         /**
@@ -121,6 +131,18 @@ public class StsGetSessionTokenCredentialsProvider
          */
         public Builder refreshRequest(Consumer<GetSessionTokenRequest.Builder> getFederationTokenRequest) {
             return refreshRequest(GetSessionTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
+        }
+
+        /**
+         * Configure the source of this credentials provider. This is used for business metrics tracking
+         * to identify the credential provider chain.
+         *
+         * @param source The source identifier for business metrics tracking.
+         * @return This object for chained calls.
+         */
+        public Builder source(String source) {
+            this.source = source;
+            return this;
         }
         
         @Override
