@@ -49,6 +49,13 @@ public interface HttpCredentialsProvider extends AwsCredentialsProvider, SdkAuto
         BuilderT endpoint(String endpoint);
 
         /**
+         * Configure the source of this credentials provider. This is used for business metrics tracking.
+         */
+        default BuilderT source(String source) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
          * Build the credentials provider based on the configuration on this builder.
          */
         TypeToBuildT build();
