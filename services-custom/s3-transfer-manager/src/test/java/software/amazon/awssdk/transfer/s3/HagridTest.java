@@ -90,8 +90,10 @@ public class HagridTest {
                              .minimumPartSizeInBytes(5 * GB)
                          )
                          .httpClient(NettyNioAsyncHttpClient.builder()
+                                                            .maxConcurrency(20_000)
+                                                            .maxPendingConnectionAcquires(20_000)
                                                             .connectionTimeout(Duration.ofMinutes(30))
-                                                            .connectionAcquisitionTimeout(Duration.ofMinutes(30))
+                                                            .connectionAcquisitionTimeout(Duration.ofMillis(Integer.MAX_VALUE))
                                                             .build())
                          .build();
         Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
