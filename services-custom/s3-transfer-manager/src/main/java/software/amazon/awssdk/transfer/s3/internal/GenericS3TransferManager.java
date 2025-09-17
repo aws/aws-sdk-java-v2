@@ -355,7 +355,8 @@ class GenericS3TransferManager implements S3TransferManager {
                     progressUpdater.wrapForNonSerialFileDownload(responseTransformer, downloadRequest.getObjectRequest());
             } else {
                 responseTransformer =
-                    progressUpdater.wrapResponseTransformerForMultipartDownload(responseTransformer, downloadRequest.getObjectRequest());
+                    progressUpdater.wrapResponseTransformerForMultipartDownload(
+                        responseTransformer, downloadRequest.getObjectRequest());
             }
         } else {
             responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
