@@ -102,8 +102,10 @@ public final class MultipartUploadHelper {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
         Optional<Long> contentLength = requestPair.right().contentLength();
-        log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
-                        + "contentLength " + contentLength);
+        if (uploadPartRequest.partNumber() % 200 == 0) {
+            log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
+                            + "contentLength " + contentLength);
+        }
 
         CompletableFuture<UploadPartResponse> uploadPartFuture = s3AsyncClient.uploadPart(uploadPartRequest,
                                                                                           requestPair.right());
