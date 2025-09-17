@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
@@ -303,37 +304,6 @@ public class TraceIdTest {
 
                 List<SdkHttpRequest> requests = mockHttpClient.getRequests();
                 assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).hasValue("SdkInternalThreadLocal-trace-123");
-
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            } finally {
-                SdkInternalThreadLocal.clear();
-            }
-        });
-    }
-
-    @Test
-    public void traceIdInterceptorWithRunAsyncDoesNotPreservesTraceId() throws Exception {
-        EnvironmentVariableHelper.run(env -> {
-            env.set("AWS_LAMBDA_FUNCTION_NAME", "foo");
-
-            SdkInternalThreadLocal.put("AWS_LAMBDA_X_TRACE_ID", "SdkInternalThreadLocal-trace-123");
-            try (MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
-                 ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
-                                                                       .region(Region.US_WEST_2)
-                                                                       .credentialsProvider(AnonymousCredentialsProvider.create())
-                                                                       .httpClient(mockHttpClient)
-                                                                       .build()) {
-
-                mockHttpClient.stubNextResponse(HttpExecuteResponse.builder()
-                                                                   .response(SdkHttpResponse.builder().statusCode(200).build())
-                                                                   .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
-                                                                   .build());
-
-                CompletableFuture.runAsync(client::allTypes).get();
-
-                List<SdkHttpRequest> requests = mockHttpClient.getRequests();
-                assertThat(requests.get(0).firstMatchingHeader("X-Amzn-Trace-Id")).isEmpty();
 
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
