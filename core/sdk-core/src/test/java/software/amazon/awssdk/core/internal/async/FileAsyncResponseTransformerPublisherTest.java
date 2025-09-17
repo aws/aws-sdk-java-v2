@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -64,10 +66,11 @@ class FileAsyncResponseTransformerPublisherTest {
     @Test
     void happyPath_singleOnNext() throws Exception {
         // Given
-        AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+        FileAsyncResponseTransformer<SdkResponse> initialTransformer =
+            (FileAsyncResponseTransformer<SdkResponse>) AsyncResponseTransformer.<SdkResponse>toFile(testFile);
 
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer);
+            new FileAsyncResponseTransformerPublisher<>(initialTransformer);
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<AsyncResponseTransformer<SdkResponse, SdkResponse>> receivedTransformer = new AtomicReference<>();
@@ -79,16 +82,18 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void onSubscribe(Subscription s) {
+                System.out.println("onSubscribe");
                 this.subscription = s;
                 s.request(1);
             }
 
             @Override
             public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
+                System.out.println("onNext");
                 receivedTransformer.set(transformer);
 
                 // Simulate response with content-range header
-                SdkResponse mockResponse = createMockResponse();
+                SdkResponse mockResponse = createMockResponseWithRange("bytes 0-9/10");
                 CompletableFuture<SdkResponse> prepareFuture = transformer.prepare();
                 CompletableFutureUtils.forwardResultTo(prepareFuture, future);
                 transformer.onResponse(mockResponse);
@@ -102,11 +107,12 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void onError(Throwable t) {
-                latch.countDown();
+                fail("Unexpected error with esception: " + t.getMessage());
             }
 
             @Override
             public void onComplete() {
+                System.out.println("onComplete");
                 latch.countDown();
             }
         });
@@ -116,18 +122,6 @@ class FileAsyncResponseTransformerPublisherTest {
         assertThat(receivedTransformer.get()).isNotNull();
         assertThat(Files.exists(testFile)).isTrue();
         assertThat(future).isCompleted();
-    }
-
-    private SdkResponse createMockResponse() {
-        SdkResponse mockResponse = mock(SdkResponse.class);
-        SdkHttpResponse mockHttpResponse = mock(SdkHttpResponse.class);
-
-        when(mockResponse.sdkHttpResponse()).thenReturn(mockHttpResponse);
-        when(mockHttpResponse.headers()).thenReturn(
-            Collections.singletonMap("x-amz-content-range", Collections.singletonList("bytes 0-9/10"))
-        );
-
-        return mockResponse;
     }
 
     private SdkPublisher<ByteBuffer> createMockPublisher() {
@@ -225,9 +219,7 @@ class FileAsyncResponseTransformerPublisherTest {
         SdkHttpResponse mockHttpResponse = mock(SdkHttpResponse.class);
 
         when(mockResponse.sdkHttpResponse()).thenReturn(mockHttpResponse);
-        when(mockHttpResponse.headers()).thenReturn(
-            Collections.singletonMap("x-amz-content-range", Collections.singletonList(contentRange))
-        );
+        when(mockHttpResponse.firstMatchingHeader("x-amz-content-range")).thenReturn(Optional.of(contentRange));
 
         return mockResponse;
     }
