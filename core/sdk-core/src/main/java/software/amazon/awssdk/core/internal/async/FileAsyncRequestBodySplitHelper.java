@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  */
 @SdkInternalApi
 public final class FileAsyncRequestBodySplitHelper {
+    private static final Logger log = Logger.loggerFor(FileAsyncRequestBodySplitHelper.class);
 
     private final AtomicBoolean isSendingRequestBody = new AtomicBoolean(false);
     private final AtomicLong remainingBytes;
@@ -145,8 +147,14 @@ public final class FileAsyncRequestBodySplitHelper {
         if (isDone) {
             return false;
         }
-
         long currentUsedBuffer = (long) numAsyncRequestBodiesInFlight.get() * bufferPerAsyncRequestBody;
+        log.debug(() -> String.format("shouldSendM0re: numAsyncRequestBodiesInFlight=%s, bufferPerAsyncRequestBody=%s, " +
+                                      "totalBufferSize=%s",
+                                      numAsyncRequestBodiesInFlight.get(),
+                                      bufferPerAsyncRequestBody,
+                                      totalBufferSize));
+        log.debug(() -> "currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize : " +
+                        (currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize));
         return currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize;
     }
 
