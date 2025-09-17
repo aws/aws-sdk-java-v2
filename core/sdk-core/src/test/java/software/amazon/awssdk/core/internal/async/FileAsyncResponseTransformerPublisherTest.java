@@ -121,7 +121,7 @@ class FileAsyncResponseTransformerPublisherTest {
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(receivedTransformer.get()).isNotNull();
         assertThat(Files.exists(testFile)).isTrue();
-        assertThat(future).isCompleted();
+        assertThat(future).succeedsWithin(10, TimeUnit.SECONDS);
     }
 
     private SdkPublisher<ByteBuffer> createMockPublisher() {
