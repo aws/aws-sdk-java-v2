@@ -178,7 +178,8 @@ public class NonLinearMultipartDownloaderSubscriber
         executeRequestOrAddToPending(asyncResponseTransformer);
     }
 
-    private void executeRequestOrAddToPending(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+    private void executeRequestOrAddToPending(
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         if (handleFirstRequest(asyncResponseTransformer)) {
             return;
         }

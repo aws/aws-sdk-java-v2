@@ -51,7 +51,7 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long apiCallBufferSizeInBytes;
-    private final ParallelConfiguration parallelConfiguration;;
+    private final ParallelConfiguration parallelConfiguration;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
