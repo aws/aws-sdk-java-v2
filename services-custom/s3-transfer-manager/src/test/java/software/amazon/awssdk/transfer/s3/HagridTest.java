@@ -43,7 +43,7 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 public class HagridTest {
 
     @Test
-    void getHagridFile() {
+    void getHagridFile() throws IOException {
         int maxInflightDownloads = 200;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
@@ -75,7 +75,7 @@ public class HagridTest {
         long end = System.currentTimeMillis();
         System.out.println(res.response());
         long latencyInSec = (end - start) / 1000;
-        printOutResult(latencyInSec, res.response().contentLength());
+        printOutResult(latencyInSec, Files.size(path));
     }
 
     @Test
