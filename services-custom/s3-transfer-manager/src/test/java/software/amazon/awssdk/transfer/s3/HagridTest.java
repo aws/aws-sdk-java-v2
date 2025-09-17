@@ -67,7 +67,7 @@ public class HagridTest {
                                                     .getObjectRequest(get -> get.key(key)
                                                                                 .bucket("do-not-delete-java-hagrid-test"))
                                                     .destination(path)
-                                                    .addTransferListener(LoggingTransferListener.create())
+                                                    // .addTransferListener(LoggingTransferListener.create())
                                                     .build())
                    .completionFuture();
         long start = System.currentTimeMillis();
@@ -106,7 +106,7 @@ public class HagridTest {
                              .putObjectRequest(
                                  put -> put.key(key).bucket("do-not-delete-java-hagrid-test"))
                              .source(path)
-                             .addTransferListener(LoggingTransferListener.create())
+                             // .addTransferListener(LoggingTransferListener.create())
                              .build());
 
         long start = System.currentTimeMillis();
