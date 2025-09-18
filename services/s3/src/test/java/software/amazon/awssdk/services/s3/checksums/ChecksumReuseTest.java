@@ -134,7 +134,7 @@ public class ChecksumReuseTest {
     }
 
     /**
-     * A stream that randomly returns other 'a' or 'b' from each read() invocation.
+     * A stream that randomly returns either 'a' or 'b' from each read() invocation.
      */
     private static class RandomInputStream extends InputStream {
         private final Random rng = new Random();
