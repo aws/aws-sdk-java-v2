@@ -68,6 +68,8 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         utils = new MultipartDownloadTestUtils(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
         testFile = fileSystem.getPath("/test-file.txt");
+        Files.createDirectories(testFile.getParent());
+        Files.createFile(testFile);
     }
 
     @AfterEach

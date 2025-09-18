@@ -303,9 +303,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     @Override
     public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
         if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
-            return AsyncResponseTransformer.super
-                .split(splitConfig)
-                .copy(res -> res.supportsNonSerial(false));
+            return AsyncResponseTransformer.super.split(splitConfig);
         }
         CompletableFuture<ResponseT> future = new CompletableFuture<>();
         return (SplitResult<ResponseT, ResponseT>) SplitResult.<ResponseT, ResponseT>builder()
