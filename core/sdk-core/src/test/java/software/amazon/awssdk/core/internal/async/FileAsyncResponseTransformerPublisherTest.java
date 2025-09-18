@@ -64,7 +64,7 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     @Test
-    void happyPath_singleOnNext() throws Exception {
+    void singleDemand_shouldEmitOneTransformer() throws Exception {
         // Given
         FileAsyncResponseTransformer<SdkResponse> initialTransformer =
             (FileAsyncResponseTransformer<SdkResponse>) AsyncResponseTransformer.<SdkResponse>toFile(testFile);
@@ -82,14 +82,12 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void onSubscribe(Subscription s) {
-                System.out.println("onSubscribe");
                 this.subscription = s;
                 s.request(1);
             }
 
             @Override
             public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
-                System.out.println("onNext");
                 receivedTransformer.set(transformer);
 
                 // Simulate response with content-range header
@@ -107,12 +105,11 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void onError(Throwable t) {
-                fail("Unexpected error with esception: " + t.getMessage());
+                fail("Unexpected error with exception: " + t.getMessage());
             }
 
             @Override
             public void onComplete() {
-                System.out.println("onComplete");
                 latch.countDown();
             }
         });
@@ -139,7 +136,7 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     @Test
-    void multipleOnNext_differentContentRanges() throws Exception {
+    void requestManyTransformers_withResponseContainingDifferentContentRanges_shouldWriteToFileAtThoseRanges() throws Exception {
         // Given
         AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(testFile);
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =

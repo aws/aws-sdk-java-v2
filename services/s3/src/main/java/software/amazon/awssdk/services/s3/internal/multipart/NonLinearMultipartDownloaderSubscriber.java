@@ -134,16 +134,21 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicInteger outstandingDemand = new AtomicInteger(0);
 
+    /**
+     * Tracks if one of the parts requests future completed exceptionally. If this occurs, it means all retries were
+     * attempted for that part, but it still failed. This is a failure state, the error should be reported back to the user
+     * and any more request should be ignored.
+     */
     private final AtomicBoolean completedExceptionally = new AtomicBoolean(false);
 
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
                                                   GetObjectRequest getObjectRequest,
                                                   CompletableFuture<GetObjectResponse> resultFuture,
-                                                  int maxInFLight) {
+                                                  int maxInFlightParts) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
-        this.maxInFlightParts = maxInFLight;
+        this.maxInFlightParts = maxInFlightParts;
     }
 
     @Override
@@ -185,7 +190,9 @@ public class NonLinearMultipartDownloaderSubscriber
         }
 
         if (inFlightRequests.size() >= maxInFlightParts) {
-            pendingTransformers.offer(asyncResponseTransformer);
+            synchronized (pendingTransformers) {
+                pendingTransformers.offer(asyncResponseTransformer);
+            }
             return;
         }
 
@@ -193,9 +200,11 @@ public class NonLinearMultipartDownloaderSubscriber
         requestMoreIfNeeded();
     }
 
-    // Handle first request.
-    // We need to wait for the first request to finish so we know if it is aa multipart object or not.
-    // While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
+    /**
+     * Handle first request.
+     * We need to wait for the first request to finish so we know if it is aa multipart object or not.
+     * While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
+     */
     private boolean handleFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         if (completedParts.get() != 0) {
             return false;
@@ -225,6 +234,9 @@ public class NonLinearMultipartDownloaderSubscriber
         }
 
         Integer partToGet = nextPart();
+        if (partToGet == null) {
+            return;
+        }
 
         GetObjectRequest request = nextRequest(partToGet);
         log.debug(() -> "Sending next request for part: " + partToGet);
@@ -247,7 +259,11 @@ public class NonLinearMultipartDownloaderSubscriber
             }
             if (completedParts.get() >= totalParts) {
                 subscription.cancel();
-                resultFuture.complete(getObjectResponse);
+                if (completedParts.get() > totalParts) {
+                    resultFuture.completeExceptionally(new IllegalStateException("Total parts exceeded"));
+                } else {
+                    resultFuture.complete(getObjectResponse);
+                }
             } else {
                 processPendingTransformers();
                 requestMoreIfNeeded();
@@ -276,33 +292,48 @@ public class NonLinearMultipartDownloaderSubscriber
                 handlePartError(e, 1);
                 return;
             }
-            Integer partCount = res.partsCount();
-            eTag = res.eTag();
-            if (partCount != null && totalParts == null) {
-                log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
-                totalParts = partCount;
-            }
 
-            // it is a multipart object?
-            if (totalParts == null || totalParts == 1) {
-                // Single part object detected, skip multipart and complete everything now
-                // todo change debug log
-                log.debug(() -> "Single Part object detected, skipping multipart download");
-                subscription.cancel();
-                resultFuture.complete(res);
+            setInitialPartCountAndEtag(res);
+
+            if (!isMultipartObject(res)) {
                 return;
             }
 
             log.debug(() -> "Multipart object detected, performing multipart download");
-            // part 1 already completed, so skip it
-            for (int i = 2; i <= totalParts; i++) {
-                allRemainingParts.add(i);
-            }
+            fillRemainingParts();
+
             getObjectResponse = res;
 
             processPendingTransformers();
             requestMoreIfNeeded();
         });
+    }
+
+    private void fillRemainingParts() {
+        // part 1 already completed, so skip it
+        for (int i = 2; i <= totalParts; i++) {
+            allRemainingParts.add(i);
+        }
+    }
+
+    private boolean isMultipartObject(GetObjectResponse response) {
+        if (totalParts == null || totalParts == 1) {
+            // Single part object detected, skip multipart and complete everything now
+            log.debug(() -> "Single Part object detected, skipping multipart download");
+            subscription.cancel();
+            resultFuture.complete(response);
+            return false;
+        }
+        return true;
+    }
+
+    private void setInitialPartCountAndEtag(GetObjectResponse response) {
+        Integer partCount = response.partsCount();
+        eTag = response.eTag();
+        if (partCount != null && totalParts == null) {
+            log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
+            totalParts = partCount;
+        }
     }
 
     private void handlePartError(Throwable e, int part) {
@@ -384,7 +415,8 @@ public class NonLinearMultipartDownloaderSubscriber
 
     @Override
     public void onComplete() {
-
+        // We check for completion state when we receive the GetObjectResponse for last part.
+        // This Subscriber is responsible for its completed state, so we do nothing here.
     }
 
     private GetObjectRequest nextRequest(int nextPartToGet) {

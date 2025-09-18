@@ -45,14 +45,15 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     private final Path path;
     private final FileTransformerConfiguration initialConfig;
     private final long initialPosition;
-    private final AtomicLong amountOfTransformerSent;
     private Subscriber<?> subscriber;
 
     public FileAsyncResponseTransformerPublisher(FileAsyncResponseTransformer<?> responseTransformer) {
         this.path = Validate.paramNotNull(responseTransformer.path(), "path");
+        Validate.isTrue(responseTransformer.config().fileWriteOption()
+                        != FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING,
+                        "CREATE_OR_APPEND_TO_EXISTING is not supported for non-serial operations");
         this.initialConfig = Validate.paramNotNull(responseTransformer.config(), "fileTransformerConfiguration");
         this.initialPosition = responseTransformer.position();
-        this.amountOfTransformerSent = new AtomicLong(0);
     }
 
     @Override
@@ -61,13 +62,12 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             throw new NullPointerException("Subscription must not be null");
         }
         this.subscriber = s;
-        s.onSubscribe(new ThreadSafeEmittingSubscription<>(
-            s,
-            new AtomicLong(0),
-            this::onCancel,
-            new AtomicBoolean(),
-            log,
-            this::createTransformer));
+        s.onSubscribe(ThreadSafeEmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
+                                                    .downstreamSubscriber(s)
+                                                    .onCancel(this::onCancel)
+                                                    .log(log)
+                                                    .supplier(this::createTransformer)
+                                                    .build());
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {
@@ -107,7 +107,9 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             Optional<String> contentRangeList = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
             if (!contentRangeList.isPresent()) {
                 if (subscriber != null) {
-                    subscriber.onError(new IllegalStateException("Content range header is missing"));
+                    IllegalStateException e = new IllegalStateException("Content range header is missing");
+                    subscriber.onError(e);
+                    future.completeExceptionally(e);
                 }
                 return;
             }
@@ -116,7 +118,9 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
-                    subscriber.onError(new IllegalStateException("Could not parse content range header " + contentRange));
+                    IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
+                    subscriber.onError(e);
+                    future.completeExceptionally(e);
                 }
                 return;
             }
@@ -125,14 +129,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             CompletableFuture<T> delegateFuture = delegate.prepare();
             CompletableFutureUtils.forwardResultTo(delegateFuture, future);
             CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
-            amountOfTransformerSent.incrementAndGet();
             delegate.onResponse(response);
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
-            if (amountOfTransformerSent.get() == 0) {
-                return AsyncResponseTransformer.toFile(path, initialConfig);
-            }
             switch (initialConfig.fileWriteOption()) {
                 case CREATE_NEW:
                 case CREATE_OR_REPLACE_EXISTING: {
@@ -141,11 +141,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                         .position(startAt));
                     return AsyncResponseTransformer.toFile(path, newConfig);
                 }
-                case CREATE_OR_APPEND_TO_EXISTING: {
-                    // APPEND mode is not supported for non-serial operations,
-                    // we can just reuse the same config (with CREATE_OR_APPEND_TO_EXISTING) which will work serially
-                    return AsyncResponseTransformer.toFile(path, initialConfig);
-                }
                 case WRITE_TO_POSITION: {
                     long initialOffset = initialConfig.position();
                     FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
@@ -153,6 +148,8 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                         .position(initialOffset + startAt));
                     return AsyncResponseTransformer.toFile(path, newConfig);
                 }
+                // APPEND mode is not supported for non-serial operations,
+                case CREATE_OR_APPEND_TO_EXISTING:
                 default:
                     throw new UnsupportedOperationException("Unsupported fileWriteOption: " + initialConfig.fileWriteOption());
             }
@@ -160,10 +157,14 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            if (delegate != null) {
-                // should never be null as per AsyncResponseTransformer runtime contract, but we never know
-                delegate.onStream(publisher);
+            // should never be null as per AsyncResponseTransformer runtime contract, but we never know
+            if (delegate == null) {
+               if (future != null) {
+                   future.completeExceptionally(new IllegalStateException("onStream called before onResponse"));
+               }
+               return;
             }
+            delegate.onStream(publisher);
         }
 
         @Override

@@ -21,11 +21,13 @@ import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.utils.Logger;
 
 @SdkInternalApi
 public class ThreadSafeEmittingSubscription<T> implements Subscription {
 
+    private Subscriber<? super T> downstreamSubscriber;
     private final AtomicBoolean emitting = new AtomicBoolean(false);
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
@@ -33,16 +35,18 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
     private final Supplier<T> supplier;
     private final Logger log;
 
-    private Subscriber<T> downstreamSubscriber;
 
-    public ThreadSafeEmittingSubscription(Subscriber<T> downstreamSubscriber, AtomicLong outstandingDemand,
-                                          Runnable onCancel, AtomicBoolean isCancelled, Logger log, Supplier<T> supplier) {
-        this.downstreamSubscriber = downstreamSubscriber;
-        this.outstandingDemand = outstandingDemand;
-        this.onCancel = onCancel;
-        this.isCancelled = isCancelled;
-        this.log = log;
-        this.supplier = supplier;
+    private ThreadSafeEmittingSubscription(Builder<T> builder) {
+        this.downstreamSubscriber = builder.downstreamSubscriber;
+        this.outstandingDemand = builder.outstandingDemand;
+        this.onCancel = builder.onCancel;
+        this.isCancelled = builder.isCancelled;
+        this.log = builder.log;
+        this.supplier = builder.supplier;
+    }
+
+    public static <T> Builder<T> builder() {
+        return new Builder<>();
     }
 
     @Override
@@ -97,5 +101,49 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
         }
         return false;
     }
+
+    public static class Builder<T> {
+        private Subscriber<? super T> downstreamSubscriber;
+        private AtomicLong outstandingDemand = new AtomicLong(0);
+        private AtomicBoolean isCancelled = new AtomicBoolean(false);
+        private Logger log = Logger.loggerFor(ThreadSafeEmittingSubscription.class);
+        private Runnable onCancel;
+        private Supplier<T> supplier;
+
+        public Builder<T> downstreamSubscriber(Subscriber<? super T> subscriber) {
+            this.downstreamSubscriber = subscriber;
+            return this;
+        }
+
+        public Builder<T> outstandingDemand(AtomicLong outstandingDemand) {
+            this.outstandingDemand = outstandingDemand;
+            return this;
+        }
+
+        public Builder<T> onCancel(Runnable onCancel) {
+            this.onCancel = onCancel;
+            return this;
+        }
+
+        public Builder<T> isCancelled(AtomicBoolean isCancelled) {
+            this.isCancelled = isCancelled;
+            return this;
+        }
+
+        public Builder<T> log(Logger log) {
+            this.log = log;
+            return this;
+        }
+
+        public Builder<T> supplier(Supplier<T> supplier) {
+            this.supplier = supplier;
+            return this;
+        }
+
+        public ThreadSafeEmittingSubscription<T> build() {
+            return new ThreadSafeEmittingSubscription<>(this);
+        }
+    }
+
 
 }

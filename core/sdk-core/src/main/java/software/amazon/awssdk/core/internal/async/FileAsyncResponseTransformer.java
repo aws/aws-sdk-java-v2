@@ -85,7 +85,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return path;
     }
 
-    Long position() {
+    long position() {
         return position;
     }
 
@@ -307,10 +307,11 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                 .split(splitConfig)
                 .copy(res -> res.supportsNonSerial(false));
         }
-        return AsyncResponseTransformer.super
-            .split(splitConfig)
-            .copy(
-                res -> res.supportsNonSerial(true)
-                          .publisher(new FileAsyncResponseTransformerPublisher(this)));
+        CompletableFuture<ResponseT> future = new CompletableFuture<>();
+        return (SplitResult<ResponseT, ResponseT>) SplitResult.<ResponseT, ResponseT>builder()
+                                                              .publisher(new FileAsyncResponseTransformerPublisher(this))
+                                                              .resultFuture(future)
+                                                              .supportsNonSerial(true)
+                                                              .build();
     }
 }
