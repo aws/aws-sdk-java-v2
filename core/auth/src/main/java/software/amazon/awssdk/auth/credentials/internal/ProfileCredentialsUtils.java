@@ -261,7 +261,8 @@ public final class ProfileCredentialsUtils {
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
-        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, profile);
+        String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
+        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, profile, source);
     }
 
     /**
