@@ -96,7 +96,14 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
             }
             if (outstandingDemand.get() > 0) {
                 demand = outstandingDemand.decrementAndGet();
-                downstreamSubscriber.onNext(supplier.get());
+                T value;
+                try {
+                    value = supplier.get();
+                } catch (Exception e) {
+                    downstreamSubscriber.onError(e);
+                    return true;
+                }
+                downstreamSubscriber.onNext(value);
             }
         }
         return false;

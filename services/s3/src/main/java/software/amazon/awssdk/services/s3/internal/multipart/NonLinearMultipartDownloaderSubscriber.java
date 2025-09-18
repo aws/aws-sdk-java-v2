@@ -317,7 +317,7 @@ public class NonLinearMultipartDownloaderSubscriber
     }
 
     private boolean isMultipartObject(GetObjectResponse response) {
-        if (totalParts == null || totalParts == 1) {
+        if (totalParts == null || totalParts <= 1) {
             // Single part object detected, skip multipart and complete everything now
             log.debug(() -> "Single Part object detected, skipping multipart download");
             subscription.cancel();

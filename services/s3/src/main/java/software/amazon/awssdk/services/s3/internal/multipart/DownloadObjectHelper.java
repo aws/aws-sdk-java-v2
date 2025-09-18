@@ -50,7 +50,7 @@ public class DownloadObjectHelper {
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
-        if (!split.supportsNonSerial()) {
+        if (!split.parallelSplitSupported()) {
             return downloadPartsSerially(getObjectRequest, split);
         }
 

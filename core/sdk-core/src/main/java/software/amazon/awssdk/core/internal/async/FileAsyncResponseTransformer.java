@@ -309,7 +309,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         return (SplitResult<ResponseT, ResponseT>) SplitResult.<ResponseT, ResponseT>builder()
                                                               .publisher(new FileAsyncResponseTransformerPublisher(this))
                                                               .resultFuture(future)
-                                                              .supportsNonSerial(true)
+                                                              .parallelSplitSupported(true)
                                                               .build();
     }
 }

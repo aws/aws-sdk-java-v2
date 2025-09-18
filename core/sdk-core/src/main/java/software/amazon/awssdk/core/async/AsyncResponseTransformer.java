@@ -386,7 +386,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
          * @return true if non-serial data is supported, false otherwise
          */
-        default Boolean supportsNonSerial() {
+        default Boolean parallelSplitSupported() {
             return false;
         }
 
@@ -428,14 +428,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * parallel streaming of multiple content body concurrently.
              * @return
              */
-            Boolean supportsNonSerial();
+            Boolean parallelSplitSupported();
 
             /**
              * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
              * parallel streaming of multiple content body concurrently
              * @return
              */
-            Builder<ResponseT, ResultT> supportsNonSerial(Boolean supportsParallel);
+            Builder<ResponseT, ResultT> parallelSplitSupported(Boolean parallelSplitSupported);
         }
     }
 

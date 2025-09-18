@@ -27,14 +27,14 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
-    private final Boolean supportsNonSerial;
+    private final Boolean parallelSplitSupported;
 
     private DefaultAsyncResponseTransformerSplitResult(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
             builder.resultFuture(), "future");
-        this.supportsNonSerial = Validate.getOrDefault(builder.supportsNonSerial(), () -> false);
+        this.parallelSplitSupported = Validate.getOrDefault(builder.parallelSplitSupported(), () -> false);
     }
 
     /**
@@ -55,8 +55,8 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
     }
 
     @Override
-    public Boolean supportsNonSerial() {
-        return this.supportsNonSerial;
+    public Boolean parallelSplitSupported() {
+        return this.parallelSplitSupported;
     }
 
     @Override
@@ -72,7 +72,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         implements AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
-        private Boolean supportsNonSerial;
+        private Boolean parallelSplitSupported;
 
         DefaultBuilder() {
         }
@@ -80,7 +80,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         DefaultBuilder(DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT> split) {
             this.publisher = split.publisher;
             this.future = split.future;
-            this.supportsNonSerial = split.supportsNonSerial;
+            this.parallelSplitSupported = split.parallelSplitSupported;
         }
 
         @Override
@@ -108,14 +108,14 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         }
 
         @Override
-        public Boolean supportsNonSerial() {
-            return supportsNonSerial;
+        public Boolean parallelSplitSupported() {
+            return parallelSplitSupported;
         }
 
         @Override
-        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> supportsNonSerial(
-            Boolean supportsParallel) {
-            this.supportsNonSerial = supportsParallel;
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> parallelSplitSupported(
+            Boolean parallelSplitSupported) {
+            this.parallelSplitSupported = parallelSplitSupported;
             return this;
         }
 
