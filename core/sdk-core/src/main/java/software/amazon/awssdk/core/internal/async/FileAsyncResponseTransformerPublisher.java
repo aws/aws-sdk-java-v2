@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -46,6 +45,8 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     private final FileTransformerConfiguration initialConfig;
     private final long initialPosition;
     private Subscriber<?> subscriber;
+    private final AtomicLong transformerCount;
+
 
     public FileAsyncResponseTransformerPublisher(FileAsyncResponseTransformer<?> responseTransformer) {
         this.path = Validate.paramNotNull(responseTransformer.path(), "path");
@@ -54,6 +55,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                         "CREATE_OR_APPEND_TO_EXISTING is not supported for non-serial operations");
         this.initialConfig = Validate.paramNotNull(responseTransformer.config(), "fileTransformerConfiguration");
         this.initialPosition = responseTransformer.position();
+        this.transformerCount = new AtomicLong(0);
     }
 
     @Override
@@ -129,10 +131,14 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             CompletableFuture<T> delegateFuture = delegate.prepare();
             CompletableFutureUtils.forwardResultTo(delegateFuture, future);
             CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
+            transformerCount.incrementAndGet();
             delegate.onResponse(response);
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
+            if (transformerCount.get() == 0) {
+                return AsyncResponseTransformer.toFile(path, initialConfig);
+            }
             switch (initialConfig.fileWriteOption()) {
                 case CREATE_NEW:
                 case CREATE_OR_REPLACE_EXISTING: {

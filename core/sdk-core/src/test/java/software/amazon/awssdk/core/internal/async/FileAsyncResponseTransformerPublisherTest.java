@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
@@ -28,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -54,7 +52,7 @@ class FileAsyncResponseTransformerPublisherTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        fileSystem = Jimfs.newFileSystem(Configuration.unix());
+        fileSystem = Jimfs.newFileSystem();
         testFile = fileSystem.getPath("/test-file.txt");
     }
 
