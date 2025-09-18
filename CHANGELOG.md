@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.33.13__ __2025-09-18__
+## __AWS Budgets__
+  - ### Features
+    - Added BillingViewHealthStatus Exception which is thrown when a Budget is created or updated with a Billing View that is not in the HEALTHY status
+
+## __Amazon Bedrock__
+  - ### Features
+    - Release includes an increase to the maximum policy build document size, an update to DeleteAutomatedReasoningPolicyBuildWorkflow to add ResourceInUseException, and corrections to UpdateAutomatedReasoningPolicyTestCaseRequest.
+
+## __Amazon Chime SDK Messaging__
+  - ### Features
+    - Amazon Chime SDK Messaging GetMessagingSessionEndpoint API now returns dual-stack WebSocket endpoints supporting IPv4/IPv6.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Allowed AMIs adds support for four new parameters - marketplaceProductCodes, deprecationTimeCondition, creationDateCondition and imageNames
+
 # __2.33.12__ __2025-09-17__
 ## __AWS Network Firewall__
   - ### Features
