@@ -16,7 +16,9 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,16 +31,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -53,7 +62,7 @@ class FileAsyncResponseTransformerPublisherTest {
     @BeforeEach
     void setUp() throws Exception {
         fileSystem = Jimfs.newFileSystem();
-        testFile = fileSystem.getPath("/test-file.txt");
+        testFile = fileSystem.getPath(String.format("/test-file-%s.txt", UUID.randomUUID()));
     }
 
     @AfterEach
@@ -61,14 +70,19 @@ class FileAsyncResponseTransformerPublisherTest {
         fileSystem.close();
     }
 
-    @Test
-    void singleDemand_shouldEmitOneTransformer() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transformers")
+    void singleDemand_shouldEmitOneTransformer(
+        Function<Path, AsyncResponseTransformer<SdkResponse, SdkResponse>> transformerFunction) throws Exception {
         // Given
-        FileAsyncResponseTransformer<SdkResponse> initialTransformer =
-            (FileAsyncResponseTransformer<SdkResponse>) AsyncResponseTransformer.<SdkResponse>toFile(testFile);
+        // FileAsyncResponseTransformer<SdkResponse> initialTransformer =
+        //     (FileAsyncResponseTransformer<SdkResponse>) AsyncResponseTransformer.<SdkResponse>toFile(testFile);
+
+        AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = transformerFunction.apply(testFile);
+        createFileIfNeeded(initialTransformer);
 
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>(initialTransformer);
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<SdkResponse>) initialTransformer);
 
         CountDownLatch latch = new CountDownLatch(1);
         AtomicReference<AsyncResponseTransformer<SdkResponse, SdkResponse>> receivedTransformer = new AtomicReference<>();
@@ -119,6 +133,14 @@ class FileAsyncResponseTransformerPublisherTest {
         assertThat(future).succeedsWithin(10, TimeUnit.SECONDS);
     }
 
+    private void createFileIfNeeded(AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer) throws Exception {
+        FileTransformerConfiguration.FileWriteOption fileWriteOption =
+            ((FileAsyncResponseTransformer<SdkResponse>) initialTransformer).config().fileWriteOption();
+        if (fileWriteOption == FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION) {
+            Files.createFile(testFile);
+        }
+    }
+
     private SdkPublisher<ByteBuffer> createMockPublisher() {
         return s -> s.onSubscribe(new Subscription() {
             @Override
@@ -133,12 +155,18 @@ class FileAsyncResponseTransformerPublisherTest {
         });
     }
 
-    @Test
-    void requestManyTransformers_withResponseContainingDifferentContentRanges_shouldWriteToFileAtThoseRanges() throws Exception {
+    @ParameterizedTest
+    @MethodSource("transformers")
+    void requestManyTransformers_withResponseContainingDifferentContentRanges_shouldWriteToFileAtThoseRanges(
+        Function<Path, AsyncResponseTransformer<SdkResponse, SdkResponse>> transformerFunction
+    ) throws Exception {
         // Given
-        AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+        FileAsyncResponseTransformer<SdkResponse> initialTransformer =
+            (FileAsyncResponseTransformer<SdkResponse>) transformerFunction.apply(testFile);
+        createFileIfNeeded(initialTransformer);
+
         FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
-            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer);
+            new FileAsyncResponseTransformerPublisher<>(initialTransformer);
 
         int numTransformers = 8;
         CountDownLatch latch = new CountDownLatch(numTransformers);
@@ -196,15 +224,18 @@ class FileAsyncResponseTransformerPublisherTest {
         assertThat(Files.exists(testFile)).isTrue();
         byte[] fileContent = Files.readAllBytes(testFile);
 
-        assertThat(fileContent.length).isEqualTo(80);
-
+        int offset =
+            initialTransformer.config().fileWriteOption() == FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION
+            ? (int) initialTransformer.position()
+            : 0;
+        assertThat(fileContent.length).isEqualTo(80 + offset);
         for (int i = 0; i < numTransformers; i++) {
             int startPos = i * 10;
             byte[] expectedData = new byte[10];
             for (int j = 0; j < 10; j++) {
                 expectedData[j] = (byte) ((byte) startPos + j);
             }
-            byte[] actualData = Arrays.copyOfRange(fileContent, startPos, startPos + 10);
+            byte[] actualData = Arrays.copyOfRange(fileContent, startPos + offset, startPos + offset + 10);
             assertThat(actualData).isEqualTo(expectedData);
         }
     }
@@ -231,6 +262,45 @@ class FileAsyncResponseTransformerPublisherTest {
             public void cancel() {
             }
         });
+    }
+
+    private static Stream<Function<Path, AsyncResponseTransformer<SdkResponse, SdkResponse>>> transformers() {
+        return Stream.of(
+            AsyncResponseTransformer::toFile,
+            path -> AsyncResponseTransformer.toFile(
+                path,
+                FileTransformerConfiguration.builder()
+                                            .fileWriteOption(FileTransformerConfiguration.FileWriteOption.CREATE_NEW)
+                                            .failureBehavior(FileTransformerConfiguration.FailureBehavior.LEAVE)
+                                            .build()),
+            path -> AsyncResponseTransformer.toFile(
+                path,
+                FileTransformerConfiguration.builder()
+                                            .fileWriteOption(FileTransformerConfiguration.FileWriteOption.CREATE_OR_REPLACE_EXISTING)
+                                            .failureBehavior(FileTransformerConfiguration.FailureBehavior.LEAVE)
+                                            .build()),
+            path -> AsyncResponseTransformer.toFile(
+                path,
+                FileTransformerConfiguration.builder()
+                                            .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
+                                            .failureBehavior(FileTransformerConfiguration.FailureBehavior.LEAVE)
+                                            .position(10L)
+                                            .build())
+        );
+    }
+
+    @Test
+    void createOrAppendToExisting_shouldThrowException() throws Exception {
+        AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(
+            testFile,
+            FileTransformerConfiguration.builder()
+                                        .failureBehavior(FileTransformerConfiguration.FailureBehavior.DELETE)
+                                        .fileWriteOption(FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
+                                        .build());
+        assertThatThrownBy(() -> new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<?>) initialTransformer))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("CREATE_OR_APPEND_TO_EXISTING");
+
     }
 
 }
