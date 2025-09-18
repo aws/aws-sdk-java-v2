@@ -91,8 +91,7 @@ public class SigningStage implements RequestToRequestPipeline {
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
 
-        // Should not be null, added bye HttpChecksumStage for SRA signed requests. But even if it's null, this is not a
-        // required property.
+        // Should not be null, added by HttpChecksumStage for SRA signed requests
         PayloadChecksumStore payloadChecksumStore =
             context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE);
 
