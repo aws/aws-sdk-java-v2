@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
@@ -89,6 +91,25 @@ public class HagridTest {
                          .multipartConfiguration(c -> c
                              .minimumPartSizeInBytes(5 * GB)
                          )
+                         .overrideConfiguration(b -> b.retryStrategy(
+                             r -> r.retryOnException(e -> {
+                                 System.out.println(e);
+                                 Throwable error = e;
+                                 if (error instanceof CancellationException) {
+                                     error = error.getCause();
+                                 }
+                                 if (error == null) {
+                                     System.out.println("null cause, not retrying");
+                                     return false;
+                                 }
+                                 if (error instanceof S3Exception) {
+                                     S3Exception s3Exception = (S3Exception) error;
+                                     System.out.println("retrying");
+                                     return s3Exception.statusCode() == 403;
+                                 }
+                                 System.out.println("nor s3exception, not retrying");
+                                 return false;
+                             })))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .maxConcurrency(20_000)
                                                             .maxPendingConnectionAcquires(20_000)

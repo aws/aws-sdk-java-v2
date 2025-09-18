@@ -72,6 +72,9 @@ public final class FileAsyncRequestBodySplitHelper {
                                splitConfiguration.bufferSizeInBytes();
         this.bufferPerAsyncRequestBody = Math.min(asyncRequestBody.chunkSizeInBytes(),
                                                   NumericUtils.saturatedCast(totalBufferSize));
+        log.debug(() -> "chunkSize is " + chunkSize);
+        log.debug(() -> "Total buffer size is " + totalBufferSize);
+        log.debug(() -> "bufferPerAsyncRequestBody is " + bufferPerAsyncRequestBody);
     }
 
     public SdkPublisher<AsyncRequestBody> split() {

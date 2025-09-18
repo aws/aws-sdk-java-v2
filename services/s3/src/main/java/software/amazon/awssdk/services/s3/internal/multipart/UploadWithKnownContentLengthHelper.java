@@ -182,6 +182,7 @@ public final class UploadWithKnownContentLengthHelper {
             new KnownContentLengthAsyncRequestBodySubscriber(mpuRequestContext, returnFuture, multipartUploadHelper);
 
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
+        log.debug(() -> "splitting async request body with part size: " + mpuRequestContext.partSize());
 
         mpuRequestContext.request().right()
             .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
