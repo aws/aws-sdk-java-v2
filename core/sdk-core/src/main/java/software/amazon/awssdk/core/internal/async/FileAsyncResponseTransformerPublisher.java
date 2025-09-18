@@ -60,16 +60,14 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
     @Override
     public void subscribe(Subscriber<? super AsyncResponseTransformer<T, T>> s) {
-        if (s == null) {
-            throw new NullPointerException("Subscription must not be null");
-        }
+        Validate.notNull(s, "Subscriber must not be null");
         this.subscriber = s;
-        s.onSubscribe(ThreadSafeEmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
-                                                    .downstreamSubscriber(s)
-                                                    .onCancel(this::onCancel)
-                                                    .log(log)
-                                                    .supplier(this::createTransformer)
-                                                    .build());
+        s.onSubscribe(EmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
+                                          .downstreamSubscriber(s)
+                                          .onCancel(this::onCancel)
+                                          .log(log)
+                                          .supplier(this::createTransformer)
+                                          .build());
     }
 
     private AsyncResponseTransformer<T, T> createTransformer() {
@@ -110,8 +108,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             if (!contentRangeList.isPresent()) {
                 if (subscriber != null) {
                     IllegalStateException e = new IllegalStateException("Content range header is missing");
-                    subscriber.onError(e);
-                    future.completeExceptionally(e);
+                    handleError(e);
                 }
                 return;
             }
@@ -121,8 +118,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
                     IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
-                    subscriber.onError(e);
-                    future.completeExceptionally(e);
+                    handleError(e);
                 }
                 return;
             }
@@ -133,6 +129,11 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
             transformerCount.incrementAndGet();
             delegate.onResponse(response);
+        }
+
+        private void handleError(Throwable e) {
+            subscriber.onError(e);
+            future.completeExceptionally(e);
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
@@ -154,7 +155,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                         .position(initialOffset + startAt));
                     return AsyncResponseTransformer.toFile(path, newConfig);
                 }
-                // APPEND mode is not supported for non-serial operations,
+                // As per design specification, APPEND mode is not supported for non-serial operations
                 case CREATE_OR_APPEND_TO_EXISTING:
                 default:
                     throw new UnsupportedOperationException("Unsupported fileWriteOption: " + initialConfig.fileWriteOption());

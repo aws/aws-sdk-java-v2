@@ -27,6 +27,8 @@ import software.amazon.awssdk.utils.Validate;
 public final class MultipartConfigurationResolver {
 
     private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
+
+    // Using 50 as the default since maxConcurrency for http client is also 50
     private static final int DEFAULT_MAX_IN_FLIGHT_PARTS = 50;
 
     private final long minimalPartSizeInBytes;

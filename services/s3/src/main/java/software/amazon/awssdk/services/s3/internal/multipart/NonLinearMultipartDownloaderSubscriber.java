@@ -122,7 +122,7 @@ public class NonLinearMultipartDownloaderSubscriber
     /**
      * Tracks if the first request was sent
      */
-    private final AtomicBoolean firstRequestSent = new AtomicBoolean(false);
+    private final AtomicBoolean isFirstRequestSent = new AtomicBoolean(false);
 
     /**
      * Tracks the total number of transformers requested from the subscription
@@ -139,7 +139,7 @@ public class NonLinearMultipartDownloaderSubscriber
      * attempted for that part, but it still failed. This is a failure state, the error should be reported back to the user
      * and any more request should be ignored.
      */
-    private final AtomicBoolean completedExceptionally = new AtomicBoolean(false);
+    private final AtomicBoolean isCompletedExceptionally = new AtomicBoolean(false);
 
     public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
                                                   GetObjectRequest getObjectRequest,
@@ -185,7 +185,7 @@ public class NonLinearMultipartDownloaderSubscriber
 
     private void executeRequestOrAddToPending(
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        if (handleFirstRequest(asyncResponseTransformer)) {
+        if (handleFirstRequestOrEnqueueTransformer(asyncResponseTransformer)) {
             return;
         }
 
@@ -205,16 +205,16 @@ public class NonLinearMultipartDownloaderSubscriber
      * We need to wait for the first request to finish so we know if it is aa multipart object or not.
      * While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
      */
-    private boolean handleFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+    private boolean handleFirstRequestOrEnqueueTransformer(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         if (completedParts.get() != 0) {
             return false;
         }
 
         firstPartLock.lock();
         try {
-            if (!firstRequestSent.get()) {
+            if (!isFirstRequestSent.get()) {
                 sendFirstRequest(asyncResponseTransformer);
-                firstRequestSent.set(true);
+                isFirstRequestSent.set(true);
                 return true;
             }
 
@@ -251,7 +251,7 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(partToGet);
 
             completedParts.incrementAndGet();
-            if (e != null || completedExceptionally.get()) {
+            if (e != null || isCompletedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
                 handlePartError(e, partToGet);
@@ -286,7 +286,7 @@ public class NonLinearMultipartDownloaderSubscriber
             inFlightRequests.remove(1);
 
             completedParts.incrementAndGet();
-            if (e != null || completedExceptionally.get()) {
+            if (e != null || isCompletedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
                 handlePartError(e, 1);
@@ -337,7 +337,7 @@ public class NonLinearMultipartDownloaderSubscriber
     }
 
     private void handlePartError(Throwable e, int part) {
-        completedExceptionally.set(true);
+        isCompletedExceptionally.set(true);
         log.error(() -> "Error on part " + part + ": " + e);
         resultFuture.completeExceptionally(e);
         inFlightRequests.values().forEach(future -> future.cancel(true));

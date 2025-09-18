@@ -21,11 +21,18 @@ import java.util.function.Supplier;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.Logger;
 
+/**
+ * Subscription which can emit {@link Subscriber#onNext(T)} signals to a subscriber, based on the demand received with the
+ * {@link Subscription#request(long)}. It tracks the outstandingDemand that has not yet been fulfilled and used a Supplier
+ * passed to it to create the object it needs to emit.
+ * @param <T> the type of obejct to emit to the subscriber.
+ */
 @SdkInternalApi
-public class ThreadSafeEmittingSubscription<T> implements Subscription {
+@ThreadSafe
+public final class EmittingSubscription<T> implements Subscription {
 
     private Subscriber<? super T> downstreamSubscriber;
     private final AtomicBoolean emitting = new AtomicBoolean(false);
@@ -36,7 +43,7 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
     private final Logger log;
 
 
-    private ThreadSafeEmittingSubscription(Builder<T> builder) {
+    private EmittingSubscription(Builder<T> builder) {
         this.downstreamSubscriber = builder.downstreamSubscriber;
         this.outstandingDemand = builder.outstandingDemand;
         this.onCancel = builder.onCancel;
@@ -113,7 +120,7 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
         private Subscriber<? super T> downstreamSubscriber;
         private AtomicLong outstandingDemand = new AtomicLong(0);
         private AtomicBoolean isCancelled = new AtomicBoolean(false);
-        private Logger log = Logger.loggerFor(ThreadSafeEmittingSubscription.class);
+        private Logger log = Logger.loggerFor(EmittingSubscription.class);
         private Runnable onCancel;
         private Supplier<T> supplier;
 
@@ -147,8 +154,8 @@ public class ThreadSafeEmittingSubscription<T> implements Subscription {
             return this;
         }
 
-        public ThreadSafeEmittingSubscription<T> build() {
-            return new ThreadSafeEmittingSubscription<>(this);
+        public EmittingSubscription<T> build() {
+            return new EmittingSubscription<>(this);
         }
     }
 
