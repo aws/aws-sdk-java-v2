@@ -41,8 +41,10 @@ import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
+import software.amazon.awssdk.utils.Logger;
 
 public class HagridTest {
+    private static final Logger log = Logger.loggerFor(HagridTest.class);
 
     @Test
     void getHagridFile() throws IOException {
@@ -93,21 +95,21 @@ public class HagridTest {
                          )
                          .overrideConfiguration(b -> b.retryStrategy(
                              r -> r.retryOnException(e -> {
-                                 System.out.println(e);
+                                 log.error(() -> "error, checking for retry", e);
                                  Throwable error = e;
                                  if (error instanceof CancellationException) {
                                      error = error.getCause();
                                  }
                                  if (error == null) {
-                                     System.out.println("null cause, not retrying");
+                                     log.warn(() -> "null cause, not retrying");
                                      return false;
                                  }
                                  if (error instanceof S3Exception) {
                                      S3Exception s3Exception = (S3Exception) error;
-                                     System.out.println("retrying");
+                                     log.warn(() -> "checking for 403, retrying if it is: statusCode = " + s3Exception.statusCode());
                                      return s3Exception.statusCode() == 403;
                                  }
-                                 System.out.println("nor s3exception, not retrying");
+                                 log.warn(() -> "not s3exception, not retrying");
                                  return false;
                              })))
                          .httpClient(NettyNioAsyncHttpClient.builder()
