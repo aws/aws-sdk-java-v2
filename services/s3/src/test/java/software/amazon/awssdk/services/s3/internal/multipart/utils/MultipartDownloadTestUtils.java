@@ -59,16 +59,24 @@ public class MultipartDownloadTestUtils {
         return expectedBody;
     }
 
-    public byte[] stubForPart(String testBucket, String testKey,int part, int totalPart, int partSize) {
+    public byte[] stubForPart(String testBucket, String testKey, int part, int totalPart, int partSize) {
         byte[] body = new byte[partSize];
         random.nextBytes(body);
         stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=%d", testBucket, testKey, part))).willReturn(
             aResponse()
                 .withHeader("x-amz-mp-parts-count", totalPart + "")
+                .withHeader("x-amz-content-range", contentRangeHeader(part, totalPart, partSize))
                 .withHeader("ETag", eTag)
                 .withHeader("Content-Length", String.valueOf(body.length))
                 .withBody(body)));
         return body;
+    }
+
+    public static String contentRangeHeader(int part, int totalPart, int partSize) {
+        long start = (part - 1) * (long) partSize;
+        long end = start + partSize - 1;
+        long total = totalPart * (long) partSize;
+        return String.format("bytes %d-%d/%d", start, end, total);
     }
 
     public void verifyCorrectAmountOfRequestsMade(int amountOfPartToTest) {
@@ -93,5 +101,17 @@ public class MultipartDownloadTestUtils {
 
     public static String slowdownErrorBody() {
         return errorBody("SlowDown", "Please reduce your request rate.");
+    }
+
+    public byte[] stubSinglePart(String testBucket, String testKey, int partSize) {
+        byte[] body = new byte[partSize];
+        random.nextBytes(body);
+        stubFor(get(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))).willReturn(
+            aResponse()
+                .withHeader("x-amz-mp-parts-count", "1")
+                .withHeader("x-amz-content-range", String.format("bytes %d-%d/%d", 0, partSize - 1, partSize))
+                .withHeader("ETag", eTag)
+                .withBody(body)));
+        return body;
     }
 }

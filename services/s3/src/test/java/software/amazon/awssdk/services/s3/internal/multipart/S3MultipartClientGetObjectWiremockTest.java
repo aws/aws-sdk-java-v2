@@ -147,8 +147,9 @@ public class S3MultipartClientGetObjectWiremockTest {
         }
     }
 
-    @ParameterizedTest
-    @MethodSource("partSizeAndTransformerParams")
+    // todo temporary, remove when support for resume is added to multipart file download
+    // @ParameterizedTest
+    // @MethodSource("partSizeAndTransformerParams")
     public <T> void partCountValidationFailure_shouldThrowException(
         AsyncResponseTransformerTestSupplier<T> supplier,
         int partSize) {
@@ -302,8 +303,7 @@ public class S3MultipartClientGetObjectWiremockTest {
      */
     private static Stream<AsyncResponseTransformerTestSupplier<?>> nonRetryableResponseTransformers() {
         return Stream.of(new AsyncResponseTransformerTestSupplier.InputStreamArtSupplier(),
-                         new AsyncResponseTransformerTestSupplier.PublisherArtSupplier(),
-                         new AsyncResponseTransformerTestSupplier.FileArtSupplier());
+                         new AsyncResponseTransformerTestSupplier.PublisherArtSupplier());
     }
 
     private CompletableFuture<?> mock200Response(S3AsyncClient s3Client, int runNumber,

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.multipart;
 
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -50,11 +51,13 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
     private final Long thresholdInBytes;
     private final Long minimumPartSizeInBytes;
     private final Long apiCallBufferSizeInBytes;
+    private final ParallelConfiguration parallelConfiguration;
 
     private MultipartConfiguration(DefaultMultipartConfigBuilder builder) {
         this.thresholdInBytes = builder.thresholdInBytes;
         this.minimumPartSizeInBytes = builder.minimumPartSizeInBytes;
         this.apiCallBufferSizeInBytes = builder.apiCallBufferSizeInBytes;
+        this.parallelConfiguration = builder.parallelConfiguration;
     }
 
     public static Builder builder() {
@@ -97,6 +100,14 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
      */
     public Long apiCallBufferSizeInBytes() {
         return this.apiCallBufferSizeInBytes;
+    }
+
+    /**
+     * Configuration specifically related to parallel multipart operations.
+     * @return the configuration class
+     */
+    public ParallelConfiguration parallelConfiguration() {
+        return this.parallelConfiguration;
     }
 
     /**
@@ -176,12 +187,33 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
          * @return the value of the maximum memory usage.
          */
         Long apiCallBufferSizeInBytes();
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @param parallelConfiguration the configuration class
+         * @return an instance of this builder.
+         */
+        Builder parallelConfiguration(ParallelConfiguration parallelConfiguration);
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @param consumer consumer class for fluent builder
+         * @return an instance of this builder.
+         */
+        Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> consumer);
+
+        /**
+         * Configuration specifically related to parallel multipart operations.
+         * @return the configuration class
+         */
+        ParallelConfiguration parallelConfiguration();
     }
 
     private static class DefaultMultipartConfigBuilder implements Builder {
         private Long thresholdInBytes;
         private Long minimumPartSizeInBytes;
         private Long apiCallBufferSizeInBytes;
+        private ParallelConfiguration parallelConfiguration;
 
         @Override
         public Builder thresholdInBytes(Long thresholdInBytes) {
@@ -203,6 +235,24 @@ public final class MultipartConfiguration implements ToCopyableBuilder<Multipart
         @Override
         public Long minimumPartSizeInBytes() {
             return this.minimumPartSizeInBytes;
+        }
+
+        @Override
+        public Builder parallelConfiguration(ParallelConfiguration parallelConfiguration) {
+            this.parallelConfiguration = parallelConfiguration;
+            return this;
+        }
+
+        @Override
+        public Builder parallelConfiguration(Consumer<ParallelConfiguration.Builder> configuration) {
+            ParallelConfiguration.Builder builder = ParallelConfiguration.builder();
+            configuration.accept(builder);
+            return parallelConfiguration(builder.build());
+        }
+
+        @Override
+        public ParallelConfiguration parallelConfiguration() {
+            return this.parallelConfiguration;
         }
 
         @Override
