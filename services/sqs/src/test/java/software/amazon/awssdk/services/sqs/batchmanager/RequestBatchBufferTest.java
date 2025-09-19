@@ -81,11 +81,12 @@ class RequestBatchBufferTest {
     }
 
     @Test
-    void whenPutScheduledFlushThenFlushIsSet() {
+    void whenCancelAndReplaceScheduledFlushThenFlushIsSetAndOldFlushIsCanceled() {
         batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         ScheduledFuture<?> newScheduledFlush = mock(ScheduledFuture.class);
-        batchBuffer.putScheduledFlush(newScheduledFlush);
+        batchBuffer.cancelAndReplaceScheduledFlush(newScheduledFlush);
         assertNotNull(newScheduledFlush);
+        verify(scheduledFlush).cancel(false);
     }
 
     @Test
