@@ -54,6 +54,7 @@ import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Md5Utils;
@@ -76,6 +77,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             throws Exception {
 
         if (sraSigningEnabled(context)) {
+            ensurePayloadChecksumCachePresent(context.executionAttributes());
             return sraChecksum(request, context);
         }
 
@@ -316,6 +318,14 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             request.putHeader(checksumSpecs.headerName(), payloadChecksum);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private void ensurePayloadChecksumCachePresent(ExecutionAttributes executionAttributes) {
+        PayloadChecksumStore cache = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE);
+        if (cache == null) {
+            cache = PayloadChecksumStore.create();
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE, cache);
         }
     }
 

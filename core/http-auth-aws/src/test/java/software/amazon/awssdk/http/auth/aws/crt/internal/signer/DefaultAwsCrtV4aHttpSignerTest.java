@@ -32,6 +32,7 @@ import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigned
 import static software.amazon.awssdk.crt.auth.signing.AwsSigningConfig.AwsSigningAlgorithm.SIGV4_ASYMMETRIC;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.AnonymousCredentialsIdentity;
 import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.generateBasicRequest;
+import static software.amazon.awssdk.http.auth.aws.crt.TestUtils.testPayload;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.readAll;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
@@ -43,20 +44,25 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.EXPIR
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.REGION_SET;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
+import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_CACHE;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.Header;
@@ -65,10 +71,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.TestUtils;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.ImmutableMap;
+import software.amazon.awssdk.utils.IoUtils;
 
 
 /**
@@ -92,7 +101,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withBasicRequest_shouldSignWithHeaders() {
+    void sign_withBasicRequest_shouldSignWithHeaders() {
         AwsCredentialsIdentity credentials =
             AwsCredentialsIdentity.create("AKIDEXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY");
         SignRequest<AwsCredentialsIdentity> request = generateBasicRequest(
@@ -122,7 +131,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withQuery_shouldSignWithQueryParams() {
+    void sign_withQuery_shouldSignWithQueryParams() {
         AwsCredentialsIdentity credentials =
             AwsCredentialsIdentity.create("AKIDEXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY");
         SignRequest<AwsCredentialsIdentity> request = generateBasicRequest(
@@ -208,7 +217,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withQueryAndExpiration_shouldSignWithQueryParamsAndExpire() {
+    void sign_withQueryAndExpiration_shouldSignWithQueryParamsAndExpire() {
         AwsCredentialsIdentity credentials =
             AwsCredentialsIdentity.create("AKIDEXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY");
         SignRequest<AwsCredentialsIdentity> request = generateBasicRequest(
@@ -245,7 +254,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withUnsignedPayload_shouldNotSignPayload() {
+    void sign_withUnsignedPayload_shouldNotSignPayload() {
         AwsCredentialsIdentity credentials =
             AwsCredentialsIdentity.create("AKIDEXAMPLE", "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY");
         SignRequest<AwsCredentialsIdentity> request = generateBasicRequest(
@@ -276,7 +285,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withAnonymousCredentials_shouldNotSign() {
+    void sign_withAnonymousCredentials_shouldNotSign() {
         AwsCredentialsIdentity credentials = new AnonymousCredentialsIdentity();
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             credentials,
@@ -292,14 +301,14 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void signAsync_throwsUnsupportedOperationException() {
+    void signAsync_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class,
                      () -> signer.signAsync((AsyncSignRequest<? extends AwsCredentialsIdentity>) null)
         );
     }
 
     @Test
-    public void sign_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
+    void sign_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -320,7 +329,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
+    void sign_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -343,7 +352,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+    void sign_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -367,7 +376,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_DelegatesToUnsignedPayload() {
+    void sign_WithPayloadSigningFalseAndChunkEncodingTrueWithoutTrailer_DelegatesToUnsignedPayload() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest
@@ -384,7 +393,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
 
     @ParameterizedTest
     @MethodSource("checksumAlgorithmToValueParams")
-    public void sign_checksumAlgorithmPresent_shouldAddChecksumHeader(Map.Entry<ChecksumAlgorithm, String> checksumToValue) {
+    void sign_checksumAlgorithmPresent_shouldAddChecksumHeader(Map.Entry<ChecksumAlgorithm, String> checksumToValue) {
         ChecksumAlgorithm checksumAlgorithm = checksumToValue.getKey();
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
@@ -400,7 +409,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_checksumValueProvided_shouldNotOverrideChecksumHeader() {
+    void sign_checksumValueProvided_shouldNotOverrideChecksumHeader() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
                 httpRequest -> httpRequest
@@ -414,7 +423,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    public void sign_withProvidedHostHeader_shouldRespectUserHostHeader() {
+    void sign_withProvidedHostHeader_shouldRespectUserHostHeader() {
         AwsCredentialsIdentity credentials =
             AwsCredentialsIdentity.create("access", "secret");
 
@@ -433,5 +442,153 @@ public class DefaultAwsCrtV4aHttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Date")).hasValue("20200803T174823Z");
         assertThat(signedRequest.request().firstMatchingHeader("X-Amz-Region-Set")).hasValue("aws-global");
         assertThat(signedRequest.request().firstMatchingHeader("Authorization")).isPresent();
+    }
+
+    @Test
+    @Disabled("Broken - We don't pass x-amz-content-sha256 to CRT signer")
+    // TODO: This is currently broken because we don't preserve the 'x-amz-content-sha256' header when sending to CRT to sign:
+    // https://github.com/aws/aws-sdk-java-v2/blob/59e3a000503e1299675698e5c4c7af51f2525669/core/http-auth-aws/src/main/java/software/amazon/awssdk/http/auth/aws/crt/internal/util/CrtUtils.java#L45
+    // Refer to JAVA-8531
+    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheContainsChecksum_usesCachedValue() {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
+        cache.putChecksumValue(SHA256, checksumValue);
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, false)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        Optional<String> sha256Header = signedRequest.request().firstMatchingHeader("x-amz-content-sha256");
+        assertThat(sha256Header).hasValue(BinaryUtils.toHex(checksumValue));
+    }
+
+    @Test
+    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheEmpty_storesComputedChecksum() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, false)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        byte[] requestBytes = IoUtils.toByteArray(signedRequest.payload().get().newStream());
+        byte[] sha256Checksum = computeChecksum(SHA256, requestBytes);
+
+        assertThat(cache.getChecksumValue(SHA256)).isEqualTo(sha256Checksum);
+    }
+
+    @Test
+    void sign_WithPayloadSigningFalse_chunkEncodingTrue_cacheEmpty_storesComputedChecksum() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        String requestPayload = IoUtils.toUtf8String(signedRequest.payload().get().newStream());
+
+        byte[] payloadChecksum = computeChecksum(CRC32, testPayload());
+
+        assertThat(cache.getChecksumValue(CRC32)).isEqualTo(payloadChecksum);
+        assertThat(requestPayload).contains("x-amz-checksum-crc32:" + BinaryUtils.toBase64(payloadChecksum) + "\r\n");
+    }
+
+    @Test
+    void sign_WithPayloadSigningFalse_chunkEncodingTrue_cacheContainsChecksum_usesCachedValue() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
+        cache.putChecksumValue(CRC32, checksumValue);
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        String requestPayload = IoUtils.toUtf8String(signedRequest.payload().get().newStream());
+
+        assertThat(requestPayload).contains("x-amz-checksum-crc32:" + BinaryUtils.toBase64(checksumValue) + "\r\n");
+    }
+
+    @Test
+    void sign_withPayloadSigningTrue_chunkEncodingFalse_withChecksum_cacheContainsCrc32AndSha256_usesCachedValues() {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        byte[] crc32Value = "my-crc32-checksum".getBytes(StandardCharsets.UTF_8);
+        cache.putChecksumValue(CRC32, crc32Value);
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, false)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        SignedRequest signedRequest = signer.sign(request);
+
+        SdkHttpRequest httpRequest = signedRequest.request();
+
+        assertThat(httpRequest.firstMatchingHeader("x-amz-checksum-crc32")).hasValue(BinaryUtils.toBase64(crc32Value));
+    }
+
+    @Test
+    void sign_withPayloadSigningTrue_chunkEncodingFalse_withChecksum_cacheEmpty_storesComputeChecksums() {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
+                .putProperty(CHUNK_ENCODING_ENABLED, false)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_CACHE, cache)
+        );
+
+        signer.sign(request);
+
+        byte[] crc32Value = computeChecksum(CRC32, testPayload());
+        byte[] sha256Value = computeChecksum(SHA256, testPayload());
+
+        AssertionsForClassTypes.assertThat(cache.getChecksumValue(SHA256)).isEqualTo(sha256Value);
+        AssertionsForClassTypes.assertThat(cache.getChecksumValue(CRC32)).isEqualTo(crc32Value);
+    }
+
+    private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
+        SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);
+        checksum.update(data, 0, data.length);
+        return checksum.getChecksumBytes();
     }
 }
