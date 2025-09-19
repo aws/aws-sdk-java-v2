@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "",
-    "description": "Update invalid character handling documentation for SQS SendMessage API"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Config",
-    "contributor": "",
-    "description": "Add UNKNOWN state to RemediationExecutionState and add IN_PROGRESS/EXITED/UNKNOWN states to RemediationExecutionStepState."
-}
