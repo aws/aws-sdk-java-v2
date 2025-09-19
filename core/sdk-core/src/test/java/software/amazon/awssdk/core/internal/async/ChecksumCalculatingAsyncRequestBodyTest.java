@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -42,6 +43,7 @@ import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -299,6 +301,61 @@ public class ChecksumCalculatingAsyncRequestBodyTest {
         // Note: we ignore tc.expectedBody, since we expect the checksum to always be the empty body because of the 0 content
         // length.
         assertThat(sb.toString()).isEqualTo(expectedEmptyString);
+    }
+
+    @Test
+    void subscribe_checksumStoreContainsChecksumValue_reusesValue() {
+        byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+        AsyncRequestBody body = AsyncRequestBody.fromBytes(content);
+
+        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        store.putChecksumValue(DefaultChecksumAlgorithm.CRC32, checksumValue);
+
+        String trailerHeader = "x-amz-checksum-crc32";
+        ChecksumCalculatingAsyncRequestBody checksumBody =
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .contentLengthHeader((long) content.length)
+                                               .trailerHeader(trailerHeader)
+                                               .algorithm(DefaultChecksumAlgorithm.CRC32)
+                                               .checksumStore(store)
+                                               .asyncRequestBody(body)
+                                               .build();
+
+        String encoded = toString(checksumBody);
+
+        assertThat(encoded).endsWith(String.format("%s:%s\r\n\r\n", trailerHeader, BinaryUtils.toBase64(checksumValue)));
+    }
+
+    @Test
+    void subscribe_checksumStoreEmpty_storesComputedValue() {
+        byte[] content = "Hello world".getBytes(StandardCharsets.UTF_8);
+        AsyncRequestBody body = AsyncRequestBody.fromBytes(content);
+
+        String expectedChecksum = "i9aeUg==";
+
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+
+        String trailerHeader = "x-amz-checksum-crc32";
+        ChecksumCalculatingAsyncRequestBody checksumBody =
+            ChecksumCalculatingAsyncRequestBody.builder()
+                                               .contentLengthHeader((long) content.length)
+                                               .trailerHeader(trailerHeader)
+                                               .algorithm(DefaultChecksumAlgorithm.CRC32)
+                                               .checksumStore(store)
+                                               .asyncRequestBody(body)
+                                               .build();
+
+        String encoded = toString(checksumBody);
+
+        assertThat(encoded).endsWith(String.format("%s:%s\r\n\r\n", trailerHeader, expectedChecksum));
+        assertThat(store.getChecksumValue(DefaultChecksumAlgorithm.CRC32)).isEqualTo(BinaryUtils.fromBase64(expectedChecksum));
+    }
+
+    private static String toString(Publisher<ByteBuffer> publisher) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Flowable.fromPublisher(publisher).blockingForEach(chunk -> baos.write(BinaryUtils.copyAllBytesFrom(chunk)));
+        return new String(baos.toByteArray(), StandardCharsets.UTF_8);
     }
 
     static class EmptyBufferPublisher implements AsyncRequestBody {

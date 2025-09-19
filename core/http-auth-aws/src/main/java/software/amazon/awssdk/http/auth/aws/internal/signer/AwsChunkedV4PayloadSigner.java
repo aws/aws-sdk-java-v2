@@ -69,8 +69,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.chunkSize = Validate.isPositive(builder.chunkSize, "ChunkSize");
         this.checksumAlgorithm = builder.checksumAlgorithm;
-        this.payloadChecksumStore = builder.payloadChecksumStore == null ? NoOpPayloadChecksumStore.create() :
-                                    builder.payloadChecksumStore;
+        this.payloadChecksumStore = builder.checksumStore == null ? NoOpPayloadChecksumStore.create() :
+                                    builder.checksumStore;
     }
 
     public static Builder builder() {
@@ -301,7 +301,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         private CredentialScope credentialScope;
         private Integer chunkSize;
         private ChecksumAlgorithm checksumAlgorithm;
-        private PayloadChecksumStore payloadChecksumStore;
+        private PayloadChecksumStore checksumStore;
 
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = credentialScope;
@@ -318,8 +318,8 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
             return this;
         }
 
-        public Builder checksumCache(PayloadChecksumStore payloadChecksumStore) {
-            this.payloadChecksumStore = payloadChecksumStore;
+        public Builder checksumStore(PayloadChecksumStore checksumStore) {
+            this.checksumStore = checksumStore;
             return this;
         }
 

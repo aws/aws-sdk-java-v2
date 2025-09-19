@@ -93,7 +93,7 @@ public class SigningStage implements RequestToRequestPipeline {
 
         // Should not be null, added by HttpChecksumStage for SRA signed requests
         PayloadChecksumStore payloadChecksumStore =
-            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE);
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE);
 
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
             () -> doSraSign(request, selectedAuthScheme, identity, payloadChecksumStore));
@@ -111,7 +111,7 @@ public class SigningStage implements RequestToRequestPipeline {
         SignRequest.Builder<T> signRequestBuilder = SignRequest
             .builder(identity)
             .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
-            .putProperty(SdkInternalHttpSignerProperty.CHECKSUM_CACHE, payloadChecksumStore)
+            .putProperty(SdkInternalHttpSignerProperty.CHECKSUM_STORE, payloadChecksumStore)
             .request(request)
             .payload(request.contentStreamProvider().orElse(null));
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();
