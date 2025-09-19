@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -93,6 +94,8 @@ public class DeleteItemOperation<T>
         }
 
         requestBuilder = addExpressionsIfExist(requestBuilder);
+
+        applyOverrideConfiguration(requestBuilder, request);
 
         return requestBuilder.build();
     }
@@ -184,6 +187,21 @@ public class DeleteItemOperation<T>
         requestBuilder = requestBuilder.returnItemCollectionMetrics(enhancedRequest.returnItemCollectionMetricsAsString());
         requestBuilder =
             requestBuilder.returnValuesOnConditionCheckFailure(enhancedRequest.returnValuesOnConditionCheckFailureAsString());
+        return requestBuilder;
+    }
+
+    private DeleteItemRequest.Builder applyOverrideConfiguration(DeleteItemRequest.Builder requestBuilder,
+                                                              Either<DeleteItemEnhancedRequest,
+                                                                  TransactDeleteItemEnhancedRequest> req) {
+        AwsRequestOverrideConfiguration overrideConfiguration = null;
+        if (req.left().isPresent()) {
+            overrideConfiguration = req.left().get().overrideConfiguration();
+        } else if (req.right().isPresent()) {
+            overrideConfiguration = req.right().get().overrideConfiguration();
+        }
+        if (overrideConfiguration != null) {
+            requestBuilder.overrideConfiguration(overrideConfiguration);
+        }
         return requestBuilder;
     }
 }
