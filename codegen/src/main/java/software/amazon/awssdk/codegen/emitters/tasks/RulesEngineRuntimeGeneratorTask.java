@@ -30,7 +30,7 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
-public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
+public class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
     public static final String RUNTIME_CLASS_NAME = "WaitersRuntime";
 
     private final String engineInternalClassDir;
@@ -63,7 +63,7 @@ public final class RulesEngineRuntimeGeneratorTask extends BaseGeneratorTasks {
         return copyTasks;
     }
 
-    private List<String> rulesEngineJavaFilePaths(Collection<String> runtimeEngineFiles) {
+    protected List<String> rulesEngineJavaFilePaths(Collection<String> runtimeEngineFiles) {
         return runtimeEngineFiles.stream()
                                  .filter(e -> e.endsWith(".java.resource"))
                                  .collect(Collectors.toList());
