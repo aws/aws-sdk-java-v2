@@ -166,10 +166,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
             // should never be null as per AsyncResponseTransformer runtime contract, but we never know
             if (delegate == null) {
-               if (future != null) {
-                   future.completeExceptionally(new IllegalStateException("onStream called before onResponse"));
-               }
-               return;
+                if (future != null) {
+                    future.completeExceptionally(new IllegalStateException("onStream called before onResponse"));
+                }
+                return;
             }
             delegate.onStream(publisher);
         }
