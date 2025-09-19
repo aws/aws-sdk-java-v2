@@ -205,7 +205,8 @@ public class NonLinearMultipartDownloaderSubscriber
      * We need to wait for the first request to finish so we know if it is aa multipart object or not.
      * While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
      */
-    private boolean handleFirstRequestOrEnqueueTransformer(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
+    private boolean handleFirstRequestOrEnqueueTransformer(
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         if (completedParts.get() != 0) {
             return false;
         }
