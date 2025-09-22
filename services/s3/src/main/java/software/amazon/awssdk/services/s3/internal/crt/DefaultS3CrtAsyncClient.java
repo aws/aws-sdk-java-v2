@@ -224,7 +224,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
                                        .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes)
-                                       .fileIoOptions(builder.fileIoOptions);
+                                       .fileIoConfiguration(builder.fileIoConfiguration);
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -258,7 +258,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
-        private S3CrtFileIoConfiguration fileIoOptions;
+        private S3CrtFileIoConfiguration fileIoConfiguration;
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -391,8 +391,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoOptions) {
-            this.fileIoOptions = fileIoOptions;
+        public S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration) {
+            this.fileIoConfiguration = fileIoConfiguration;
             return this;
         }
 

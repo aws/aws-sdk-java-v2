@@ -443,7 +443,7 @@ public class S3CrtAsyncHttpClientTest {
                                                                                                                      .minimumThroughputTimeout(Duration.ofSeconds(2)))
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
-                                       .fileIoOptions(S3CrtFileIoConfiguration.builder().diskThroughputGbps(8.0).shouldStream(true).directIo(true).build())
+                                       .fileIoConfiguration(S3CrtFileIoConfiguration.builder().diskThroughputGbps(8.0).shouldStream(true).directIo(true).build())
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {

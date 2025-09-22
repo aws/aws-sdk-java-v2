@@ -117,7 +117,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
-        this.fileIoOptions = builder.fileIoOptions == null ? null : resolveFileIoOptions(builder.fileIoOptions);
+        this.fileIoOptions = builder.fileIoConfiguration == null ? null : resolveFileIoOptions(builder.fileIoConfiguration);
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -229,7 +229,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
-        private S3CrtFileIoConfiguration fileIoOptions;
+        private S3CrtFileIoConfiguration fileIoConfiguration;
 
         private Builder() {
         }
@@ -293,8 +293,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return this;
         }
 
-        public Builder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions) {
-            this.fileIoOptions = fileIoOptions;
+        public Builder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration) {
+            this.fileIoConfiguration = fileIoConfiguration;
             return this;
         }
     }
