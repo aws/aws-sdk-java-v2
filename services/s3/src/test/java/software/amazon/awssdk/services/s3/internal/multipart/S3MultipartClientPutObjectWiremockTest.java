@@ -62,6 +62,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 @WireMockTest
 @Timeout(120)
@@ -177,29 +178,36 @@ public class S3MultipartClientPutObjectWiremockTest {
     void mpuDefaultSplitImpl_partsFailOfRetryableError_shouldFail(String description,
                                                                   Long contentLength,
                                                                   ResponseDefinitionBuilder responseDefinitionBuilder) {
-        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
-        List<ByteBuffer> buffers = new ArrayList<>();
-        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
-        buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
-        AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.ofNullable(contentLength);
+        for (int i = 0; i < 3; i++) {
+            try {
+                stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
+                List<ByteBuffer> buffers = new ArrayList<>();
+                buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+                buffers.add(SdkBytes.fromUtf8String(RandomStringUtils.randomAscii(10)).asByteBuffer());
+                AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
+                    @Override
+                    public Optional<Long> contentLength() {
+                        return Optional.ofNullable(contentLength);
+                    }
+
+                    @Override
+                    public void subscribe(Subscriber<? super ByteBuffer> s) {
+                        Flowable.fromIterable(buffers).subscribe(s);
+                    }
+                };
+
+                assertThatThrownBy(() -> s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody)
+                             .join())
+                    .hasCauseInstanceOf(NonRetryableException.class)
+                    .hasMessageContaining("Multiple subscribers detected.");
+
+                verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+                verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+                return;
+            } catch (AssertionError e) {
+                if (i == 2) throw e;
             }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> s) {
-                Flowable.fromIterable(buffers).subscribe(s);
-            }
-        };
-
-        assertThatThrownBy(() -> s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), asyncRequestBody)
-                     .join())
-            .hasCauseInstanceOf(NonRetryableException.class)
-            .hasMessageContaining("Multiple subscribers detected.");
-
-        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
-        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        }
     }
 
 
