@@ -131,7 +131,8 @@ public class UpdateItemOperation<T>
 
         Map<String, AttributeValue> keyAttributes = filterMap(itemMap, entry -> primaryKeys.contains(entry.getKey()));
         Map<String, AttributeValue> nonKeyAttributes = filterMap(itemMap, entry -> !primaryKeys.contains(entry.getKey()));
-        Expression updateExpression = generateUpdateExpressionIfExist(tableSchema, transformation, nonKeyAttributes);
+
+        Expression updateExpression = generateUpdateExpressionIfExist(tableMetadata, transformation, nonKeyAttributes);
         Expression conditionExpression = generateConditionExpressionIfExist(transformation, request);
 
         Map<String, String> expressionNames = coalesceExpressionNames(updateExpression, conditionExpression);
@@ -274,7 +275,7 @@ public class UpdateItemOperation<T>
      * if there are attributes to be updated (most likely). If both exist, they are merged and the code generates a final
      * Expression that represent the result.
      */
-    private Expression generateUpdateExpressionIfExist(TableSchema<T> tableSchema,
+    private Expression generateUpdateExpressionIfExist(TableMetadata tableMetadata,
                                                        WriteModification transformation,
                                                        Map<String, AttributeValue> attributes) {
         UpdateExpression updateExpression = null;
@@ -283,7 +284,7 @@ public class UpdateItemOperation<T>
         }
         if (!attributes.isEmpty()) {
             List<String> nonRemoveAttributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
-            UpdateExpression operationUpdateExpression = operationExpression(attributes, tableSchema, nonRemoveAttributes);
+            UpdateExpression operationUpdateExpression = operationExpression(attributes, tableMetadata, nonRemoveAttributes);
             if (updateExpression == null) {
                 updateExpression = operationUpdateExpression;
             } else {

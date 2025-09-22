@@ -36,7 +36,6 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
-import software.amazon.awssdk.testutils.SdkVersionUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class GradleProjectTest {
@@ -75,7 +74,7 @@ public class GradleProjectTest {
 
         Files.setPosixFilePermissions(gradlew, perms);
 
-        replaceVersion(gradleActual.resolve("init.gradle"), getMigrationToolVersion() + "-PREVIEW");
+        replaceVersion(gradleActual.resolve("init.gradle"), getMigrationToolVersion());
     }
 
     private static void deleteTempDirectories() throws IOException {

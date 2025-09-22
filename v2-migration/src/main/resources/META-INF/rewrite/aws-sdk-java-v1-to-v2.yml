@@ -21,6 +21,7 @@ tags:
   - aws
   - sdk
 recipeList:
+  - software.amazon.awssdk.v2migration.AddTransferManagerDependency
   - software.amazon.awssdk.v2migration.AddS3EventNotificationDependency
   - software.amazon.awssdk.v2migration.UpgradeSdkDependencies
   - software.amazon.awssdk.v2migration.S3AddImportsAndComments
@@ -31,11 +32,14 @@ recipeList:
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2
   - software.amazon.awssdk.v2migration.S3MethodsToV2
   - software.amazon.awssdk.v2migration.S3EventNotificationMethodsToV2
+  - software.amazon.awssdk.v2migration.S3PojoToV2
   - software.amazon.awssdk.v2migration.S3MethodsConstructorToFluent
   - software.amazon.awssdk.v2migration.S3UriToV2
   - software.amazon.awssdk.v2migration.EnumGettersToV2
+  - software.amazon.awssdk.v2migration.ChangeTransferManagerTypes
   - software.amazon.awssdk.v2migration.ChangeS3EventNotificationTypes
   - software.amazon.awssdk.v2migration.ChangeSdkType
+  - software.amazon.awssdk.v2migration.SdkExceptionToV2
   - software.amazon.awssdk.v2migration.ChangeSdkCoreTypes
   # At this point, all classes should be changed to v2 equivalents
   - software.amazon.awssdk.v2migration.V1BuilderVariationsToV2Builder
@@ -51,3 +55,6 @@ recipeList:
   - software.amazon.awssdk.v2migration.S3NonStreamingRequestToV2Complex
   - software.amazon.awssdk.v2migration.S3PutObjectRequestToV2
   - software.amazon.awssdk.v2migration.SettersToBuilderV2
+  - software.amazon.awssdk.v2migration.S3TmAddComments
+  - software.amazon.awssdk.v2migration.ChangeTransferManagerSimpleMethods
+  - software.amazon.awssdk.v2migration.TransferManagerMethodsToV2

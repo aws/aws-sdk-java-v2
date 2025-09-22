@@ -131,6 +131,8 @@ public class NewClassToBuilder extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
 
@@ -153,6 +155,8 @@ public class NewClassToBuilder extends Recipe {
                 builderType,
                 "build",
                 classType,
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
