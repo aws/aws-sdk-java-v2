@@ -52,6 +52,7 @@ public class StsGetSessionTokenCredentialsProvider
 
     private final GetSessionTokenRequest getSessionTokenRequest;
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -62,6 +63,9 @@ public class StsGetSessionTokenCredentialsProvider
 
         this.getSessionTokenRequest = builder.getSessionTokenRequest;
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source) 
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
     }
 
     /**
@@ -84,11 +88,7 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (!StringUtils.isEmpty(this.source)) {
-            providerName = String.format("%s,%s", this.source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     /**
@@ -136,6 +136,9 @@ public class StsGetSessionTokenCredentialsProvider
         /**
          * Configure the source of this credentials provider. This is used for business metrics tracking
          * to identify the credential provider chain.
+         * 
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
+         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
          *
          * @param source The source identifier for business metrics tracking.
          * @return This object for chained calls.

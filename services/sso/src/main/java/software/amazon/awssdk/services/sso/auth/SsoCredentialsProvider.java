@@ -62,6 +62,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
     private final Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
     private final String source;
+    private final String providerName;
 
     private final SsoClient ssoClient;
     private final Duration staleTime;
@@ -81,6 +82,10 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
         this.source = builder.source;
+
+        this.providerName = StringUtils.isEmpty(builder.source) 
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
@@ -122,11 +127,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     }
 
     private String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (!StringUtils.isEmpty(this.source)) {
-            providerName = String.format("%s,%s", this.source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     /**

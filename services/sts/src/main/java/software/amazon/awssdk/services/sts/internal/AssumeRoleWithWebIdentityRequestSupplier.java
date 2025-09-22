@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -49,8 +50,8 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
         return request.toBuilder().webIdentityToken(getToken(webIdentityTokenFile)).build();
     }
 
-    public String source() {
-        return source;
+    public Optional<String> source() {
+        return Optional.ofNullable(source);
     }
 
     //file extraction

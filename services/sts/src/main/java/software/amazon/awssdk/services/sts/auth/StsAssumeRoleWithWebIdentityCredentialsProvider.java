@@ -54,6 +54,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -64,6 +65,9 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
 
         this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier;
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source) 
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
     }
 
     /**
@@ -90,11 +94,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
 
     @Override
     String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (!StringUtils.isEmpty(this.source)) {
-            providerName = String.format("%s,%s", this.source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     /**
@@ -152,6 +152,9 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         /**
          * Configure the source of this credentials provider. This is used for business metrics tracking
          * to identify the credential provider chain.
+         * 
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
+         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
          *
          * @param source The source identifier for business metrics tracking.
          * @return This object for chained calls.

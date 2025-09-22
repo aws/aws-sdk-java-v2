@@ -261,8 +261,15 @@ public final class ProfileCredentialsUtils {
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
+        String sourceMetrics = extractBusinessMetricsFromProvider(sourceCredentialsProvider);
+
         String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
-        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, profile, source);
+        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
+            source = source + "," + sourceMetrics;
+        }
+        
+        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request = new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, source);
+        return stsCredentialsProviderFactory().create(request);
     }
 
     /**
@@ -275,7 +282,16 @@ public final class ProfileCredentialsUtils {
         CredentialSourceType credentialSource = CredentialSourceType.parse(properties.get(ProfileProperty.CREDENTIAL_SOURCE));
         String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
         AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource, source);
-        return stsCredentialsProviderFactory().create(credentialsProvider, profile, source);
+
+        String sourceMetrics = extractBusinessMetricsFromProvider(credentialsProvider);
+
+        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
+            source = source + "," + sourceMetrics;
+        }
+        
+        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request = 
+            new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(credentialsProvider, profile, source);
+        return stsCredentialsProviderFactory().create(request);
     }
 
     private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource, String source) {
@@ -311,6 +327,19 @@ public final class ProfileCredentialsUtils {
         String error = String.format("The source profile of '%s' was configured to be '%s', but that source profile has no "
                                      + "credentials configured.", name, properties.get(ProfileProperty.SOURCE_PROFILE));
         return new IllegalStateException(error);
+    }
+
+    /**
+     * Extract business metrics from a credentials provider by resolving credentials and checking the provider name.
+     * This is used to propagate business metrics from source credentials to assume role operations.
+     */
+    private String extractBusinessMetricsFromProvider(AwsCredentialsProvider credentialsProvider) {
+        try {
+            AwsCredentials credentials = credentialsProvider.resolveCredentials();
+            return credentials.providerName().orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

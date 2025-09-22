@@ -41,7 +41,8 @@ public interface ChildProfileCredentialsProviderFactory {
      * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
     default AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
-        return create(sourceCredentialsProvider, profile, null);
+        ChildProfileCredentialsRequest request = new ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, null);
+        return create(request);
     }
 
     /**
@@ -50,13 +51,34 @@ public interface ChildProfileCredentialsProviderFactory {
      * source credentials provider is the credentials that should be used to authenticate that the user is allowed to assume
      * that role.
      *
-     * @param sourceCredentialsProvider The credentials provider that should be used to authenticate the child credentials
-     * provider. This credentials provider should be closed when it is no longer used.
-     * @param profile The profile that should be used to load the configuration necessary to create the child credentials
-     * provider.
-     * @param source A string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting
-     * previous credentials providers that are chained with this one.
-     * @return The credentials provider with permissions derived from the source credentials provider and profile.
+     * @param request The request containing all parameters needed to create the child credentials provider.
+     * @return The credentials provider with permissions derived from the request parameters.
      */
-    AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile, String source);
+    AwsCredentialsProvider create(ChildProfileCredentialsRequest request);
+
+    final class ChildProfileCredentialsRequest {
+        private final AwsCredentialsProvider sourceCredentialsProvider;
+        private final Profile profile;
+        private final String source;
+
+        public ChildProfileCredentialsRequest(AwsCredentialsProvider sourceCredentialsProvider, 
+                                            Profile profile, 
+                                            String source) {
+            this.sourceCredentialsProvider = sourceCredentialsProvider;
+            this.profile = profile;
+            this.source = source;
+        }
+
+        public AwsCredentialsProvider sourceCredentialsProvider() {
+            return sourceCredentialsProvider;
+        }
+
+        public Profile profile() {
+            return profile;
+        }
+
+        public String source() {
+            return source;
+        }
+    }
 }

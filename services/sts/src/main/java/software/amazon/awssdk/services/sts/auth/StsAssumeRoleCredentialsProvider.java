@@ -54,6 +54,7 @@ public final class StsAssumeRoleCredentialsProvider
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE.value();
     private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -64,6 +65,9 @@ public final class StsAssumeRoleCredentialsProvider
 
         this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source) 
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
     }
 
     /**
@@ -97,11 +101,7 @@ public final class StsAssumeRoleCredentialsProvider
 
     @Override
     String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (!StringUtils.isEmpty(this.source)) {
-            providerName = String.format("%s,%s", this.source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     /**
@@ -158,6 +158,8 @@ public final class StsAssumeRoleCredentialsProvider
         /**
          * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
          * that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
+         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
          */
         public Builder source(String source) {
             this.source = source;
