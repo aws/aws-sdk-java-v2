@@ -367,18 +367,18 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * @param fileIoOptions the file options to be used
      * @return an instance of this builder
      */
-    S3CrtAsyncClientBuilder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions);
+    S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoOptions);
 
     /**
      * Controls how client performs file I/O operations. Only applies to file-based workloads.
      * @param fileIoOptionsBuilder the file options builder to be used
      * @return an instance of this builder
      */
-    default S3CrtAsyncClientBuilder fileIoOptions(Consumer<S3CrtFileIoConfiguration.Builder> fileIoOptionsBuilder) {
+    default S3CrtAsyncClientBuilder fileIoConfiguration(Consumer<S3CrtFileIoConfiguration.Builder> fileIoOptionsBuilder) {
         Validate.paramNotNull(fileIoOptionsBuilder, "fileIoOptionsBuilder");
-        return fileIoOptions(S3CrtFileIoConfiguration.builder()
-                                                     .applyMutation(fileIoOptionsBuilder)
-                                                     .build());
+        return fileIoConfiguration(S3CrtFileIoConfiguration.builder()
+                                                           .applyMutation(fileIoOptionsBuilder)
+                                                           .build());
     }
 
     @Override

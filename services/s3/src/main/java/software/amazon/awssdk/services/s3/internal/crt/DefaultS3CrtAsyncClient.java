@@ -391,7 +391,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
-        public S3CrtAsyncClientBuilder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions) {
+        public S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoOptions) {
             this.fileIoOptions = fileIoOptions;
             return this;
         }
