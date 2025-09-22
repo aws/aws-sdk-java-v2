@@ -28,7 +28,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @SdkPublicApi
 @Immutable
 @ThreadSafe
-public final class S3CrtFileIoConfiguration implements ToCopyableBuilder<S3CrtFileIoConfiguration.Builder, S3CrtFileIoConfiguration> {
+public final class S3CrtFileIoConfiguration
+    implements ToCopyableBuilder<S3CrtFileIoConfiguration.Builder, S3CrtFileIoConfiguration> {
     private final Boolean shouldStream;
     private final Double diskThroughputGbps;
     private final Boolean directIo;

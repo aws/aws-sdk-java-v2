@@ -65,6 +65,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -622,5 +623,12 @@ public class S3CrtAsyncHttpClientTest {
                                                                     "1234")
                                                          .putHeader("custom-header", "foobar")
                                                          .build());
+    }
+
+    {
+        S3AsyncClient client =
+            S3AsyncClient.crtBuilder()
+                         .fileIoConfiguration(config -> config.directIo(true).shouldStream(true).diskThroughputGbps(20.0))
+                         .build();
     }
 }
