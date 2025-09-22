@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
-    static final double DEFAULT_FILE_IO_THROUGHPUT_IN_GPBS = 10.0;
+    static final double DEFAULT_FILE_IO_THROUGHPUT_IN_GBPS = 10.0;
     private static final Logger log = Logger.loggerFor(S3NativeClientConfiguration.class);
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
 
@@ -130,7 +130,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private static FileIoOptions resolveFileIoOptions(S3CrtFileIoConfiguration s3CrtfileIoConfiguration) {
         boolean shouldStream = Validate.getOrDefault(s3CrtfileIoConfiguration.shouldStream(), () -> false);
         double diskThroughputInGbps = Validate.getOrDefault(s3CrtfileIoConfiguration.diskThroughputGbps(),
-                                                            () -> DEFAULT_FILE_IO_THROUGHPUT_IN_GPBS);
+                                                            () -> DEFAULT_FILE_IO_THROUGHPUT_IN_GBPS);
+        Validate.isPositive(diskThroughputInGbps, "diskThroughputGbps");
         boolean directIo = Validate.getOrDefault(s3CrtfileIoConfiguration.directIo(), () -> false);
         return new FileIoOptions(shouldStream, diskThroughputInGbps, directIo);
     }

@@ -364,10 +364,10 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
 
     /**
      * Controls how client performs file I/O operations. Only applies to file-based workloads.
-     * @param fileIoOptions the file options to be used
+     * @param fileIoConfiguration the file options to be used
      * @return an instance of this builder
      */
-    S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoOptions);
+    S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration);
 
     /**
      * Controls how client performs file I/O operations. Only applies to file-based workloads.
