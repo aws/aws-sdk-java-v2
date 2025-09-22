@@ -44,8 +44,8 @@ public class ProfileCredentialsProviderIntegrationTest {
     private static final String TOKEN_RESOURCE_PATH = "/latest/api/token";
     private static final String CREDENTIALS_RESOURCE_PATH = "/latest/meta-data/iam/security-credentials/";
     private static final String STUB_CREDENTIALS = "{\"AccessKeyId\":\"ACCESS_KEY_ID\",\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-                                                   + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
-                                                   + "\"}";
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)))
+            + "\"}";
     private static final String USER_AGENT_HEADER = "User-Agent";
     private static final String USER_AGENT = SdkUserAgent.create().userAgent();
     private static final String PROFILE_NAME = "some-profile";
@@ -77,16 +77,16 @@ public class ProfileCredentialsProviderIntegrationTest {
     @Test
     public void resolveCredentials_instanceMetadataSourceAndCustomEndpoint_usesSourceEndpointAndMakesSecureCall() {
         String testFileContentsTemplate = "" +
-                                          "[profile ec2Test]\n" +
-                                          "role_arn=arn:aws:iam::123456789012:role/testRole3\n" +
-                                          "credential_source = ec2instancemetadata\n" +
-                                          "ec2_metadata_service_endpoint = http://localhost:%d\n";
+                "[profile ec2Test]\n" +
+                "role_arn=arn:aws:iam::123456789012:role/testRole3\n" +
+                "credential_source = ec2instancemetadata\n" +
+                "ec2_metadata_service_endpoint = http://localhost:%d\n";
         String profileFileContents = String.format(testFileContentsTemplate, wireMockServer.getPort());
 
         ProfileCredentialsProvider profileCredentialsProvider = ProfileCredentialsProvider.builder()
-                                                                                          .profileFile(configFile(profileFileContents))
-                                                                                          .profileName("ec2Test")
-                                                                                          .build();
+                .profileFile(configFile(profileFileContents))
+                .profileName("ec2Test")
+                .build();
 
         stubSecureCredentialsResponse(aResponse().withBody(STUB_CREDENTIALS));
 

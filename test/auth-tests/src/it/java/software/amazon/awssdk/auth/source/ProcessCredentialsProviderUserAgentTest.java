@@ -64,7 +64,7 @@ class ProcessCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("processCredentialProviders")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentials(
-        IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
 
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -82,19 +82,19 @@ class ProcessCredentialsProviderUserAgentTest {
 
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
-                                                   .command(mockCommand)
-                                                   .build(), "m/D,w"),
+                            .command(mockCommand)
+                            .build(), "m/D,w"),
 
             Arguments.of(ProcessCredentialsProvider.builder()
-                                                   .command(mockCommandList)
-                                                   .build(), "m/D,w")
+                            .command(mockCommandList)
+                            .build(), "m/D,w")
         );
     }
 
     @ParameterizedTest
     @MethodSource("processCredentialProvidersWithSessionToken")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentialsWithSessionToken(
-        IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
 
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -111,8 +111,8 @@ class ProcessCredentialsProviderUserAgentTest {
 
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
-                                                   .command(mockCommand)
-                                                   .build(), "m/D,w")
+                            .command(mockCommand)
+                            .build(), "m/D,w")
         );
     }
 
