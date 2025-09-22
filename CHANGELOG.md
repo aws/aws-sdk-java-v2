@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.1__ __2025-09-22__
+## __AWS Batch__
+  - ### Features
+    - Starting in JAN 2026, AWS Batch will change the default AMI for new Amazon ECS compute environments from Amazon Linux 2 to Amazon Linux 2023. We recommend migrating AWS Batch Amazon ECS compute environments to Amazon Linux 2023 to maintain optimal performance and security.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for RepairConfig overrides and configurations in EKS Managed Node Groups.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Version ARNs are no longer required for the EC2 Image Builder list-image-build-version, list-component-build-version, and list-workflow-build-version APIs. Calling these APIs without the ARN returns all build versions for the given resource type in the requesting account.
+
 # __2.34.0__ __2025-09-19__
 ## __AWS Config__
   - ### Features
