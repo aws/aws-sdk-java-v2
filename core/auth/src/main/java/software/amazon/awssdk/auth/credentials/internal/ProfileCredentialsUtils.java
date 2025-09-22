@@ -268,7 +268,8 @@ public final class ProfileCredentialsUtils {
             source = source + "," + sourceMetrics;
         }
         
-        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request = new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, source);
+        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
+            new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, source);
         return stsCredentialsProviderFactory().create(request);
     }
 
