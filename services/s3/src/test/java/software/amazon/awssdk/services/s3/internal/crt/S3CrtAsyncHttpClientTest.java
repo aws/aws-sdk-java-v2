@@ -624,11 +624,4 @@ public class S3CrtAsyncHttpClientTest {
                                                          .putHeader("custom-header", "foobar")
                                                          .build());
     }
-
-    {
-        S3AsyncClient client =
-            S3AsyncClient.crtBuilder()
-                         .fileIoConfiguration(config -> config.directIo(true).shouldStream(true).diskThroughputGbps(20.0))
-                         .build();
-    }
 }
