@@ -67,6 +67,7 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator;
@@ -222,7 +223,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
-                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes);
+                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes)
+                                       .fileIoOptions(builder.fileIoOptions);
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -256,7 +258,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
-
+        private S3CrtFileIoConfiguration fileIoOptions;
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -385,6 +387,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth) {
             this.disableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions) {
+            this.fileIoOptions = fileIoOptions;
             return this;
         }
 

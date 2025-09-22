@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -361,6 +362,24 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
 
+    /**
+     * Controls how client performs file I/O operations. Only applies to file-based workloads.
+     * @param fileIoOptions the file options to be used
+     * @return an instance of this builder
+     */
+    S3CrtAsyncClientBuilder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions);
+
+    /**
+     * Controls how client performs file I/O operations. Only applies to file-based workloads.
+     * @param fileIoOptionsBuilder the file options builder to be used
+     * @return an instance of this builder
+     */
+    default S3CrtAsyncClientBuilder fileIoOptions(Consumer<S3CrtFileIoConfiguration.Builder> fileIoOptionsBuilder) {
+        Validate.paramNotNull(fileIoOptionsBuilder, "fileIoOptionsBuilder");
+        return fileIoOptions(S3CrtFileIoConfiguration.builder()
+                                                     .applyMutation(fileIoOptionsBuilder)
+                                                     .build());
+    }
 
     @Override
     S3AsyncClient build();

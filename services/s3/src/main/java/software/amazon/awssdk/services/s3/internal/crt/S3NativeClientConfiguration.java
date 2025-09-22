@@ -29,9 +29,11 @@ import software.amazon.awssdk.crt.io.StandardRetryOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class S3NativeClientConfiguration implements SdkAutoCloseable {
     static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
+    static final double DEFAULT_FILE_IO_THROUGHPUT_IN_GPBS = 10.0;
     private static final Logger log = Logger.loggerFor(S3NativeClientConfiguration.class);
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
 
@@ -64,6 +67,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final HttpMonitoringOptions httpMonitoringOptions;
     private final Boolean useEnvironmentVariableProxyOptionsValues;
     private final long maxNativeMemoryLimitInBytes;
+    private final FileIoOptions fileIoOptions;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -113,6 +117,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+        this.fileIoOptions = builder.fileIoOptions == null ? null : resolveFileIoOptions(builder.fileIoOptions);
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -120,6 +125,14 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return builder.httpConfiguration.proxyConfiguration().isUseEnvironmentVariableValues();
         }
         return true;
+    }
+
+    private static FileIoOptions resolveFileIoOptions(S3CrtFileIoConfiguration s3CrtfileIoConfiguration) {
+        boolean shouldStream = Validate.getOrDefault(s3CrtfileIoConfiguration.shouldStream(), () -> false);
+        double diskThroughputInGbps = Validate.getOrDefault(s3CrtfileIoConfiguration.diskThroughputGbps(),
+                                                            () -> DEFAULT_FILE_IO_THROUGHPUT_IN_GPBS);
+        boolean directIo = Validate.getOrDefault(s3CrtfileIoConfiguration.directIo(), () -> false);
+        return new FileIoOptions(shouldStream, diskThroughputInGbps, directIo);
     }
 
     public Boolean isUseEnvironmentVariableValues() {
@@ -191,6 +204,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return readBufferSizeInBytes;
     }
 
+    public FileIoOptions fileIoOptions() {
+        return fileIoOptions;
+    }
+
     @Override
     public void close() {
         clientBootstrap.close();
@@ -212,6 +229,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
+        private S3CrtFileIoConfiguration fileIoOptions;
 
         private Builder() {
         }
@@ -272,6 +290,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
+            return this;
+        }
+
+        public Builder fileIoOptions(S3CrtFileIoConfiguration fileIoOptions) {
+            this.fileIoOptions = fileIoOptions;
             return this;
         }
     }

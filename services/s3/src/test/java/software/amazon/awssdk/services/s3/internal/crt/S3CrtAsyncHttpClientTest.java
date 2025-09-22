@@ -59,13 +59,13 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
-import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
 
@@ -443,6 +443,7 @@ public class S3CrtAsyncHttpClientTest {
                                                                                                                      .minimumThroughputTimeout(Duration.ofSeconds(2)))
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
+                                       .fileIoOptions(S3CrtFileIoConfiguration.builder().diskThroughputGbps(8.0).shouldStream(true).directIo(true).build())
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
@@ -466,6 +467,12 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
             assertThat(clientOptions.getThroughputTargetGbps()).isEqualTo(3.5);
             assertThat(clientOptions.getMemoryLimitInBytes()).isEqualTo(5L * 1024 * 1024 * 1024);
+
+            assertThat(clientOptions.getFileIoOptions()).isNotNull();
+            assertThat(clientOptions.getFileIoOptions().getShouldStream()).isTrue();
+            assertThat(clientOptions.getFileIoOptions().getDirectIo()).isTrue();
+            assertThat(clientOptions.getFileIoOptions().getDiskThroughputGbps()).isEqualTo(8.0);
+
         }
     }
 
@@ -501,6 +508,21 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(clientOptions.getMonitoringOptions()).isNull();
             assertThat(clientOptions.getProxyOptions()).isNull();
             assertThat(clientOptions.getMonitoringOptions()).isNull();
+        }
+    }
+
+    @Test
+    void build_nullFileOptions() {
+        StaticCredentialsProvider credentialsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"));
+        S3NativeClientConfiguration configuration =
+        S3NativeClientConfiguration.builder()
+                                   .credentialsProvider(credentialsProvider)
+                                   .build();
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getFileIoOptions()).isNull();
         }
     }
 
