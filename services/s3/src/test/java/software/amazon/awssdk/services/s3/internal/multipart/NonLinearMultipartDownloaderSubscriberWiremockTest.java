@@ -34,6 +34,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.regions.Region;
@@ -83,7 +84,8 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         int partSize = 1024;
         byte[] expectedBody = utils.stubAllParts(testBucket, testKey, numParts, partSize);
 
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = AsyncResponseTransformer.toFile(testFile);
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+            AsyncResponseTransformer.toFile(testFile, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
         AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
@@ -114,7 +116,8 @@ class NonLinearMultipartDownloaderSubscriberWiremockTest {
         int partSize = 1024;
         byte[] expectedBody = utils.stubSinglePart(testBucket, testKey, partSize);
 
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = AsyncResponseTransformer.toFile(testFile);
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+            AsyncResponseTransformer.toFile(testFile, FileTransformerConfiguration.defaultCreateOrReplaceExisting());
         AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(
             SplittingTransformerConfiguration.builder()
                                              .bufferSizeInBytes(1024 * 32L)
