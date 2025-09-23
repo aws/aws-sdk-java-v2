@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.2__ __2025-09-23__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Added support for running incremental ID mapping for rule-based workflows.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Support incremental id mapping workflow for AWS Entity Resolution
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SSO OIDC__
+  - ### Features
+    - This release includes exception definition and documentation updates.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - Add support for encryption at rest with Customer Managed KMS Key in AWS IAM Identity Center
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Amazon EC2 R8gn instance types
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Added Dualstack support to GetDeployablePatchSnapshotForInstance
+
 # __2.34.1__ __2025-09-22__
 ## __AWS Batch__
   - ### Features
