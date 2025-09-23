@@ -198,7 +198,8 @@ public final class ProfileCredentialsUtils {
      * Create the SSO credentials provider based on the related profile properties.
      */
     private AwsCredentialsProvider ssoProfileCredentialsProvider() {
-        boolean isLegacy = validateRequiredPropertiesForSsoCredentialsProvider();
+        validateRequiredPropertiesForSsoCredentialsProvider();
+        boolean isLegacy = isLegacySsoConfiguration();
         String source = isLegacy ?
                         BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO_LEGACY.value() :
                         BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO.value();
@@ -211,15 +212,17 @@ public final class ProfileCredentialsUtils {
                                              .build());
     }
 
-    private boolean validateRequiredPropertiesForSsoCredentialsProvider() {
+    private void validateRequiredPropertiesForSsoCredentialsProvider() {
         requireProperties(ProfileProperty.SSO_ACCOUNT_ID,
                           ProfileProperty.SSO_ROLE_NAME);
 
         if (!properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
             requireProperties(ProfileProperty.SSO_REGION, ProfileProperty.SSO_START_URL);
-            return true;
         }
-        return false;
+    }
+
+    private boolean isLegacySsoConfiguration() {
+        return !properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName());
     }
 
     private AwsCredentialsProvider roleAndWebIdentityTokenProfileCredentialsProvider() {
@@ -261,16 +264,8 @@ public final class ProfileCredentialsUtils {
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
-        String sourceMetrics = extractBusinessMetricsFromProvider(sourceCredentialsProvider);
-
         String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
-        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
-            source = source + "," + sourceMetrics;
-        }
-        
-        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
-            new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, source);
-        return stsCredentialsProviderFactory().create(request);
+        return createStsCredentialsProviderWithMetrics(sourceCredentialsProvider, source);
     }
 
     /**
@@ -284,15 +279,7 @@ public final class ProfileCredentialsUtils {
         String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
         AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource, source);
 
-        String sourceMetrics = extractBusinessMetricsFromProvider(credentialsProvider);
-
-        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
-            source = source + "," + sourceMetrics;
-        }
-        
-        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request = 
-            new ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest(credentialsProvider, profile, source);
-        return stsCredentialsProviderFactory().create(request);
+        return createStsCredentialsProviderWithMetrics(credentialsProvider, source);
     }
 
     private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource, String source) {
@@ -341,6 +328,26 @@ public final class ProfileCredentialsUtils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * Helper method to create STS credentials provider with business metrics propagation.
+     * This method extracts business metrics from the source credentials provider and combines them
+     * with the profile-level business metrics before creating the STS credentials provider.
+     */
+    private AwsCredentialsProvider createStsCredentialsProviderWithMetrics(AwsCredentialsProvider sourceCredentialsProvider,
+                                                                           String profileMetric) {
+        String sourceMetrics = extractBusinessMetricsFromProvider(sourceCredentialsProvider);
+
+        String combinedSource = profileMetric;
+        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
+            combinedSource = profileMetric + "," + sourceMetrics;
+        }
+
+        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
+            new ChildProfileCredentialsProviderFactory
+                .ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, combinedSource);
+        return stsCredentialsProviderFactory().create(request);
     }
 
     /**

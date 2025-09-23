@@ -138,10 +138,10 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         if (awsCredentials instanceof AwsSessionCredentials) {
             AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) awsCredentials;
             Optional<String> providerName = awsCredentials.providerName();
-            if (providerName.isPresent()) {
+            if (providerName.isPresent() && !providerName.get().isEmpty()) {
                 return sessionCredentials.copy(s -> s.providerName(providerName.get() + "," + PROVIDER_NAME));
             }
-            return sessionCredentials;
+            return sessionCredentials.copy(s -> s.providerName(PROVIDER_NAME));
         }
         return awsCredentials;
     }
