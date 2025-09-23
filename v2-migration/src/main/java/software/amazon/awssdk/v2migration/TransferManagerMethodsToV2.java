@@ -51,7 +51,7 @@ public class TransferManagerMethodsToV2 extends Recipe {
     private static final MethodMatcher COPY_REQUEST =
         v2TmMethodMatcher(String.format("copy(%sCopyObjectRequest)", V2_S3_MODEL_PKG));
     private static final MethodMatcher COPY_BUCKET_KEY =
-        v2TmMethodMatcher("copy(String, String, String, String");
+        v2TmMethodMatcher("copy(String, String, String, String)");
 
     private static final MethodMatcher DOWNLOAD_DIR = v2TmMethodMatcher("downloadDirectory(String, String, java.io.File)");
 
