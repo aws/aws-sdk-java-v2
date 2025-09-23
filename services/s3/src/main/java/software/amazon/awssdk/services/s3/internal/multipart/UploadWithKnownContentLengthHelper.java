@@ -184,6 +184,7 @@ public final class UploadWithKnownContentLengthHelper {
         attachSubscriberToObservable(subscriber, mpuRequestContext.request().left());
         log.debug(() -> "splitting async request body with part size: " + mpuRequestContext.partSize());
 
+        log.info(() -> "Split: chunkSizeInBytes: " + mpuRequestContext.partSize() + " - bufferSizeInBytes: " + maxMemoryUsageInBytes);
         mpuRequestContext.request().right()
             .split(b -> b.chunkSizeInBytes(mpuRequestContext.partSize())
                          .bufferSizeInBytes(maxMemoryUsageInBytes))
