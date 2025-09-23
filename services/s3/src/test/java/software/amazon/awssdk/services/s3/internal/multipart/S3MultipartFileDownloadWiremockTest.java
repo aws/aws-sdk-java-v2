@@ -78,7 +78,6 @@ class S3MultipartFileDownloadWiremockTest {
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
         testFile = fileSystem.getPath("/test-file.txt");
         Files.createDirectories(testFile.getParent());
-        Files.createFile(testFile);
     }
 
     @AfterEach
