@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Single Sign-On Admin",
-    "contributor": "",
-    "description": "Add support for encryption at rest with Customer Managed KMS Key in AWS IAM Identity Center"
-}
