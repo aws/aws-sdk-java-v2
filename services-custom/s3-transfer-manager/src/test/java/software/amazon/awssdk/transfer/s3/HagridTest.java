@@ -93,25 +93,6 @@ public class HagridTest {
                          .multipartConfiguration(c -> c
                              .minimumPartSizeInBytes(5 * GB)
                          )
-                         .overrideConfiguration(b -> b.retryStrategy(
-                             r -> r.retryOnException(e -> {
-                                 log.error(() -> "error, checking for retry", e);
-                                 Throwable error = e;
-                                 if (error instanceof CancellationException) {
-                                     error = error.getCause();
-                                 }
-                                 if (error == null) {
-                                     log.warn(() -> "null cause, not retrying");
-                                     return false;
-                                 }
-                                 if (error instanceof S3Exception) {
-                                     S3Exception s3Exception = (S3Exception) error;
-                                     log.warn(() -> "checking for 403, retrying if it is: statusCode = " + s3Exception.statusCode());
-                                     return s3Exception.statusCode() == 403;
-                                 }
-                                 log.warn(() -> "not s3exception, not retrying");
-                                 return false;
-                             })))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .maxConcurrency(20_000)
                                                             .maxPendingConnectionAcquires(20_000)
