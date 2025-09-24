@@ -26,6 +26,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -98,12 +100,14 @@ class StsCredentialsProviderUserAgentTest {
     private static AwsCredentialsProvider createAssumeRoleProvider() {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(createStsResponse("AssumeRole"));
-        
+
+        AwsBasicCredentials staticCredentials = AwsBasicCredentials.create("AKIATEST", "test-secret");
+
         StsClient stsClient = StsClient.builder()
-                .httpClient(mockHttpClient)
-                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
-                .build();
-        
+                                       .httpClient(mockHttpClient)
+                                       .credentialsProvider(StaticCredentialsProvider.create(staticCredentials))
+                                       .build();
+
         return StsAssumeRoleCredentialsProvider.builder()
                 .stsClient(stsClient)
                 .refreshRequest(r -> r.roleArn("arn:aws:iam::123456789012:role/TestRole")
@@ -117,7 +121,6 @@ class StsCredentialsProviderUserAgentTest {
         
         StsClient stsClient = StsClient.builder()
                 .httpClient(mockHttpClient)
-                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
                 .build();
         
         String samlAssertion = "PHNhbWw6QXNzZXJ0aW9uPjwvc2FtbDpBc3NlcnRpb24+";
@@ -152,12 +155,14 @@ class StsCredentialsProviderUserAgentTest {
     private static AwsCredentialsProvider createFederationTokenProvider() {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(createStsResponse("GetFederationToken"));
-        
+
+        AwsBasicCredentials staticCredentials = AwsBasicCredentials.create("AKIATEST", "test-secret");
+
         StsClient stsClient = StsClient.builder()
-                .httpClient(mockHttpClient)
-                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
-                .build();
-        
+                                       .httpClient(mockHttpClient)
+                                       .credentialsProvider(StaticCredentialsProvider.create(staticCredentials))
+                                       .build();
+
         return StsGetFederationTokenCredentialsProvider.builder()
                 .stsClient(stsClient)
                 .refreshRequest(r -> r.name("test-user"))
@@ -167,11 +172,13 @@ class StsCredentialsProviderUserAgentTest {
     private static AwsCredentialsProvider createSessionTokenProvider() {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(createStsResponse("GetSessionToken"));
-        
+
+        AwsBasicCredentials staticCredentials = AwsBasicCredentials.create("AKIATEST", "test-secret");
+
         StsClient stsClient = StsClient.builder()
-                .httpClient(mockHttpClient)
-                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
-                .build();
+                                       .httpClient(mockHttpClient)
+                                       .credentialsProvider(StaticCredentialsProvider.create(staticCredentials))
+                                       .build();
         
         return StsGetSessionTokenCredentialsProvider.builder()
                 .stsClient(stsClient)
@@ -192,7 +199,6 @@ class StsCredentialsProviderUserAgentTest {
         
         StsClient stsClient = StsClient.builder()
                 .httpClient(mockHttpClient)
-                .region(software.amazon.awssdk.regions.Region.US_EAST_1)
                 .build();
         
         return StsWebIdentityTokenFileCredentialsProvider.builder()
@@ -216,97 +222,24 @@ class StsCredentialsProviderUserAgentTest {
     }
 
     private static HttpExecuteResponse createStsResponse(String operation) {
-        String responseBody;
-        
-        switch (operation) {
-            case "AssumeRole":
-                responseBody = "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
-                             + "  <AssumeRoleResult>\n"
-                             + "    <Credentials>\n"
-                             + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
-                             + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
-                             + "      <SessionToken>test-session-token</SessionToken>\n"
-                             + "      <Expiration>2025-09-24T00:00:00Z</Expiration>\n"
-                             + "    </Credentials>\n"
-                             + "    <AssumedRoleUser>\n"
-                             + "      <Arn>arn:aws:sts::123456789012:assumed-role/TestRole/test-session</Arn>\n"
-                             + "      <AssumedRoleId>AROATEST:test-session</AssumedRoleId>\n"
-                             + "    </AssumedRoleUser>\n"
-                             + "  </AssumeRoleResult>\n"
-                             + "</AssumeRoleResponse>";
-                break;
-                
-            case "AssumeRoleWithSAML":
-                responseBody = "<AssumeRoleWithSAMLResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
-                             + "  <AssumeRoleWithSAMLResult>\n"
-                             + "    <Credentials>\n"
-                             + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
-                             + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
-                             + "      <SessionToken>test-session-token</SessionToken>\n"
-                             + "      <Expiration>2025-09-24T00:00:00Z</Expiration>\n"
-                             + "    </Credentials>\n"
-                             + "    <AssumedRoleUser>\n"
-                             + "      <Arn>arn:aws:sts::123456789012:assumed-role/TestRole/test-session</Arn>\n"
-                             + "      <AssumedRoleId>AROATEST:test-session</AssumedRoleId>\n"
-                             + "    </AssumedRoleUser>\n"
-                             + "  </AssumeRoleWithSAMLResult>\n"
-                             + "</AssumeRoleWithSAMLResponse>";
-                break;
-                
-            case "AssumeRoleWithWebIdentity":
-                responseBody = "<AssumeRoleWithWebIdentityResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
-                             + "  <AssumeRoleWithWebIdentityResult>\n"
-                             + "    <Credentials>\n"
-                             + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
-                             + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
-                             + "      <SessionToken>test-session-token</SessionToken>\n"
-                             + "      <Expiration>2025-09-24T00:00:00Z</Expiration>\n"
-                             + "    </Credentials>\n"
-                             + "    <AssumedRoleUser>\n"
-                             + "      <Arn>arn:aws:sts::123456789012:assumed-role/TestRole/test-session</Arn>\n"
-                             + "      <AssumedRoleId>AROATEST:test-session</AssumedRoleId>\n"
-                             + "    </AssumedRoleUser>\n"
-                             + "  </AssumeRoleWithWebIdentityResult>\n"
-                             + "</AssumeRoleWithWebIdentityResponse>";
-                break;
-                
-            case "GetFederationToken":
-                responseBody = "<GetFederationTokenResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
-                             + "  <GetFederationTokenResult>\n"
-                             + "    <Credentials>\n"
-                             + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
-                             + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
-                             + "      <SessionToken>test-session-token</SessionToken>\n"
-                             + "      <Expiration>2025-09-24T00:00:00Z</Expiration>\n"
-                             + "    </Credentials>\n"
-                             + "    <FederatedUser>\n"
-                             + "      <Arn>arn:aws:sts::123456789012:federated-user/test-user</Arn>\n"
-                             + "      <FederatedUserId>123456789012:test-user</FederatedUserId>\n"
-                             + "    </FederatedUser>\n"
-                             + "  </GetFederationTokenResult>\n"
-                             + "</GetFederationTokenResponse>";
-                break;
-                
-            case "GetSessionToken":
-                responseBody = "<GetSessionTokenResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
-                             + "  <GetSessionTokenResult>\n"
-                             + "    <Credentials>\n"
-                             + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
-                             + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
-                             + "      <SessionToken>test-session-token</SessionToken>\n"
-                             + "      <Expiration>2025-09-24T00:00:00Z</Expiration>\n"
-                             + "    </Credentials>\n"
-                             + "  </GetSessionTokenResult>\n"
-                             + "</GetSessionTokenResponse>";
-                break;
-                
-            default:
-                throw new IllegalArgumentException("Unknown STS operation: " + operation);
-        }
-        
+        String responseBody = "<AssumeRoleResponse xmlns=\"https://sts.amazonaws.com/doc/2011-06-15/\">\n"
+                            + "  <AssumeRoleResult>\n"
+                            + "    <Credentials>\n"
+                            + "      <AccessKeyId>AKIATEST</AccessKeyId>\n"
+                            + "      <SecretAccessKey>test-secret</SecretAccessKey>\n"
+                            + "      <SessionToken>test-session-token</SessionToken>\n"
+                            + "      <Expiration>2099-12-31T23:59:59Z</Expiration>\n"
+                            + "    </Credentials>\n"
+                            + "    <AssumedRoleUser>\n"
+                            + "      <Arn>arn:aws:sts::123456789012:assumed-role/TestRole/test-session</Arn>\n"
+                            + "      <AssumedRoleId>AROATEST:test-session</AssumedRoleId>\n"
+                            + "    </AssumedRoleUser>\n"
+                            + "  </AssumeRoleResult>\n"
+                            + "</AssumeRoleResponse>";
+
         return HttpExecuteResponse.builder()
-                .response(SdkHttpResponse.builder().statusCode(200).build())
-                .responseBody(AbortableInputStream.create(new StringInputStream(responseBody)))
-                .build();
+                                  .response(SdkHttpResponse.builder().statusCode(200).build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream(responseBody)))
+                                  .build();
     }
 }
