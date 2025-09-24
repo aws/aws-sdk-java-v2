@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2 Migration Tool",
-    "contributor": "MBoegers",
-    "description": "Fix OpenRewrite recipe MethodMatcher"
-}
