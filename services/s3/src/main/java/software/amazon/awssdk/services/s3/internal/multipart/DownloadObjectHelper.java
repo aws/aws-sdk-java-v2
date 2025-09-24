@@ -62,7 +62,7 @@ public class DownloadObjectHelper {
         GetObjectRequest getObjectRequest,
         AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split,
         int maxInFlight) {
-        NonLinearMultipartDownloaderSubscriber subscriber = new NonLinearMultipartDownloaderSubscriber(
+        ParallelMultipartDownloaderSubscriber subscriber = new ParallelMultipartDownloaderSubscriber(
             s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture(), maxInFlight);
         split.publisher().subscribe(subscriber);
         return split.resultFuture();

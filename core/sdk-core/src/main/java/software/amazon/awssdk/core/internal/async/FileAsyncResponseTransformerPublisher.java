@@ -65,7 +65,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         s.onSubscribe(EmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
                                           .downstreamSubscriber(s)
                                           .onCancel(this::onCancel)
-                                          .log(log)
                                           .supplier(this::createTransformer)
                                           .build());
     }

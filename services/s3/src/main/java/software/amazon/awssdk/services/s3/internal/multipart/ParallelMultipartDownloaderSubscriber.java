@@ -15,14 +15,13 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import java.util.ArrayDeque;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -32,6 +31,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * A subscriber implementation that will download all individual parts for a multipart get-object request in parallel,
@@ -42,9 +42,9 @@ import software.amazon.awssdk.utils.Logger;
  * is a 'one-shot' class, it should <em>NOT</em> be reused for more than one multipart download.
  */
 @SdkInternalApi
-public class NonLinearMultipartDownloaderSubscriber
+public class ParallelMultipartDownloaderSubscriber
     implements Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
-    private static final Logger log = Logger.loggerFor(NonLinearMultipartDownloaderSubscriber.class);
+    private static final Logger log = Logger.loggerFor(ParallelMultipartDownloaderSubscriber.class);
 
     /**
      * Maximum number of concurrent GetObject requests
@@ -69,11 +69,6 @@ public class NonLinearMultipartDownloaderSubscriber
     private final AtomicInteger completedParts = new AtomicInteger();
 
     /**
-     * Queue of all remaining parts in ascending order. i.e. 4, 5, 6, 8, 11, etc
-     */
-    private final Queue<Integer> allRemainingParts = new ArrayDeque<>();
-
-    /**
      * The future returned to the user when calling
      * {@link S3AsyncClient#getObject(GetObjectRequest, AsyncResponseTransformer) getObject}. This will be completed once the last
      * part finishes. Contrary to the linear code path, the future returned to the user is handled here so that we can complete it
@@ -96,43 +91,46 @@ public class NonLinearMultipartDownloaderSubscriber
      * This value indicates the total number of parts of the object to get. If null, it means we don't know the total amount of
      * parts, either because we haven't received a response from s3 yet to set it, or the object to get is not multipart.
      */
-    private volatile Integer totalParts;
+    private CompletableFuture<Integer> totalPartsFuture = new CompletableFuture<>();
 
     /**
      * The etag of the object being downloaded.
      */
     private volatile String eTag;
+    private Object subscriptionLock = new Object();
 
     /**
      * Tracks request that are currently in flights, waiting to be completed. Once completed, future are removed from the map
      */
     private final Map<Integer, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
 
-    /**
-     * Lock used during first part, so that the first batch of requests wait to be executed until we know if the s3 object is
-     * multipart or not.
-     */
-    private final ReentrantLock firstPartLock = new ReentrantLock();
+    private AtomicInteger inFlightRequestsNum = new AtomicInteger(0);
 
     /**
      * Pending transformers received through onNext that are waiting to be executed.
      */
-    private final Queue<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pendingTransformers = new ArrayDeque<>();
-
-    /**
-     * Tracks if the first request was sent
-     */
-    private final AtomicBoolean isFirstRequestSent = new AtomicBoolean(false);
-
-    /**
-     * Tracks the total number of transformers requested from the subscription
-     */
-    private final AtomicInteger transformersRequested = new AtomicInteger(0);
+    private final Queue<Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>>> pendingTransformers =
+        new ConcurrentLinkedQueue<>();
 
     /**
      * Amount of demand requested but not yet fulfilled by the subscription
      */
     private final AtomicInteger outstandingDemand = new AtomicInteger(0);
+
+    /**
+     * Indicates whether this is the first response transformer or not.
+     */
+    private final AtomicBoolean isFirstResponseTransformer = new AtomicBoolean(true);
+
+    /**
+     * Indicates if we are currently processing pending transformer, which are waiting to be used to send requests
+     */
+    private final AtomicBoolean processingPendingTransformers = new AtomicBoolean(false);
+
+    /**
+     * The current part of the object to get
+     */
+    private final AtomicInteger partNumber = new AtomicInteger(0);
 
     /**
      * Tracks if one of the parts requests future completed exceptionally. If this occurs, it means all retries were
@@ -141,10 +139,10 @@ public class NonLinearMultipartDownloaderSubscriber
      */
     private final AtomicBoolean isCompletedExceptionally = new AtomicBoolean(false);
 
-    public NonLinearMultipartDownloaderSubscriber(S3AsyncClient s3,
-                                                  GetObjectRequest getObjectRequest,
-                                                  CompletableFuture<GetObjectResponse> resultFuture,
-                                                  int maxInFlightParts) {
+    public ParallelMultipartDownloaderSubscriber(S3AsyncClient s3,
+                                                 GetObjectRequest getObjectRequest,
+                                                 CompletableFuture<GetObjectResponse> resultFuture,
+                                                 int maxInFlightParts) {
         this.s3 = s3;
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
@@ -158,135 +156,109 @@ public class NonLinearMultipartDownloaderSubscriber
             return;
         }
         this.subscription = s;
-        request(1);
-    }
-
-    private void request(int amount) {
-        outstandingDemand.addAndGet(amount);
-        transformersRequested.addAndGet(amount);
-        subscription.request(amount);
+        subscription.request(maxInFlightParts);
     }
 
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        outstandingDemand.decrementAndGet();
-        log.trace(() -> "On Next - Total in flight parts: " + inFlightRequests.size()
-                        + " - Demand : " + outstandingDemand.get()
-                        + " - Total completed parts: " + completedParts
-                        + " - Total transformers requested: " + transformersRequested.get()
-                        + " - Total pending transformers: " + pendingTransformers.size()
-                        + " - Current in flight requests: " + inFlightRequests.keySet());
         if (asyncResponseTransformer == null) {
             subscription.cancel();
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
-        executeRequestOrAddToPending(asyncResponseTransformer);
+
+        log.trace(() -> "On Next - Total in flight parts: " + inFlightRequests.size()
+                        + " - Demand : " + outstandingDemand.get()
+                        + " - Total completed parts: " + completedParts
+                        + " - Total pending transformers: " + pendingTransformers.size()
+                        + " - Current in flight requests: " + inFlightRequests.keySet());
+
+        int currentPartNum = partNumber.incrementAndGet();
+
+        if (isFirstResponseTransformer.compareAndSet(true, false)) {
+            sendFirstRequest(asyncResponseTransformer);
+        } else {
+            pendingTransformers.offer(Pair.of(currentPartNum, asyncResponseTransformer));
+            totalPartsFuture.thenAccept(
+                totalParts -> processingRequests(asyncResponseTransformer, currentPartNum, totalParts));
+        }
     }
 
-    private void executeRequestOrAddToPending(
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        if (handleFirstRequestOrEnqueueTransformer(asyncResponseTransformer)) {
+    private void processingRequests(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer,
+                                    int currentPartNum, Integer totalParts) {
+
+        if (currentPartNum > totalParts) {
+            // Do not process requests above total parts.
+            // Since we request for maxInFlight during onSubscribe, and the object might actually have less part than maxInFlight,
+            // there may be situations where we received more onNext signals than the amount of GetObjectRequest required to be
+            // made.
             return;
         }
 
         if (inFlightRequests.size() >= maxInFlightParts) {
-            synchronized (pendingTransformers) {
-                pendingTransformers.offer(asyncResponseTransformer);
-            }
+            pendingTransformers.offer(Pair.of(currentPartNum, asyncResponseTransformer));
             return;
         }
 
-        sendNextRequest(asyncResponseTransformer);
-        requestMoreIfNeeded();
+        processPendingTransformers(totalParts);
     }
 
-    /**
-     * Handle first request.
-     * We need to wait for the first request to finish so we know if it is aa multipart object or not.
-     * While we don't know yet, additional onNext signal receives are stored in pendingTransformers.
-     */
-    private boolean handleFirstRequestOrEnqueueTransformer(
-        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        if (completedParts.get() != 0) {
-            return false;
-        }
-
-        firstPartLock.lock();
-        try {
-            if (!isFirstRequestSent.get()) {
-                sendFirstRequest(asyncResponseTransformer);
-                isFirstRequestSent.set(true);
-                return true;
-            }
-
-            // First request already sent, queue this transformer
-            synchronized (pendingTransformers) {
-                pendingTransformers.offer(asyncResponseTransformer);
-            }
-        } finally {
-            firstPartLock.unlock();
-        }
-        return true;
-    }
-
-    private void sendNextRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
-        if (inFlightRequests.size() + completedParts.get() >= totalParts) {
+    private void sendNextRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer,
+                                 int currentPartNumber, int totalParts) {
+        if (inFlightRequestsNum.get() + completedParts.get() >= totalParts) {
             return;
         }
 
-        Integer partToGet = nextPart();
-        if (partToGet == null) {
-            return;
-        }
-
-        GetObjectRequest request = nextRequest(partToGet);
-        log.debug(() -> "Sending next request for part: " + partToGet);
+        GetObjectRequest request = nextRequest(currentPartNumber);
+        log.debug(() -> "Sending next request for part: " + currentPartNumber);
 
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
 
-        inFlightRequests.put(partToGet, response);
+        inFlightRequestsNum.incrementAndGet();
+        inFlightRequests.put(currentPartNumber, response);
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
         response.whenComplete((res, e) -> {
-            log.debug(() -> "Completed part: " + partToGet);
-            inFlightRequests.remove(partToGet);
-
-            completedParts.incrementAndGet();
             if (e != null || isCompletedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
-                handlePartError(e, partToGet);
+                handlePartError(e, currentPartNumber);
                 return;
             }
+            log.debug(() -> "Completed part: " + currentPartNumber);
+
+            inFlightRequests.remove(currentPartNumber);
+            inFlightRequestsNum.decrementAndGet();
+            completedParts.incrementAndGet();
+
             if (completedParts.get() >= totalParts) {
-                subscription.cancel();
                 if (completedParts.get() > totalParts) {
                     resultFuture.completeExceptionally(new IllegalStateException("Total parts exceeded"));
                 } else {
                     resultFuture.complete(getObjectResponse);
                 }
+
+                synchronized (subscriptionLock) {
+                    subscription.cancel();
+                }
+
             } else {
-                processPendingTransformers();
-                requestMoreIfNeeded();
+                processPendingTransformers(res.partsCount());
+                synchronized (subscriptionLock) {
+                    subscription.request(1);
+                }
             }
         });
     }
 
-    // returns true if the first request was sent and is still in flight
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         log.debug(() -> "Sending first request");
         GetObjectRequest request = nextRequest(1);
         CompletableFuture<GetObjectResponse> responseFuture = s3.getObject(request, asyncResponseTransformer);
-        inFlightRequests.put(1, responseFuture);
 
         // Propagate cancellation from user
         CompletableFutureUtils.forwardExceptionTo(resultFuture, responseFuture);
 
         responseFuture.whenComplete((res, e) -> {
-            log.debug(() -> "Completed part: 1");
-            inFlightRequests.remove(1);
-
-            completedParts.incrementAndGet();
             if (e != null || isCompletedExceptionally.get()) {
                 // Note on retries: When this future completes exceptionally, it means we did all retries and still failed for
                 // that part. We need to report back the failure to the user.
@@ -294,6 +266,8 @@ public class NonLinearMultipartDownloaderSubscriber
                 return;
             }
 
+            log.debug(() -> "Completed part: 1");
+            completedParts.incrementAndGet();
             setInitialPartCountAndEtag(res);
 
             if (!isMultipartObject(res)) {
@@ -301,24 +275,17 @@ public class NonLinearMultipartDownloaderSubscriber
             }
 
             log.debug(() -> "Multipart object detected, performing multipart download");
-            fillRemainingParts();
-
             getObjectResponse = res;
 
-            processPendingTransformers();
-            requestMoreIfNeeded();
+            processPendingTransformers(res.partsCount());
+            synchronized (subscriptionLock) {
+                subscription.request(1);
+            }
         });
     }
 
-    private void fillRemainingParts() {
-        // part 1 already completed, so skip it
-        for (int i = 2; i <= totalParts; i++) {
-            allRemainingParts.add(i);
-        }
-    }
-
     private boolean isMultipartObject(GetObjectResponse response) {
-        if (totalParts == null || totalParts <= 1) {
+        if (response.partsCount() == null || response.partsCount() == 1) {
             // Single part object detected, skip multipart and complete everything now
             log.debug(() -> "Single Part object detected, skipping multipart download");
             subscription.cancel();
@@ -331,77 +298,49 @@ public class NonLinearMultipartDownloaderSubscriber
     private void setInitialPartCountAndEtag(GetObjectResponse response) {
         Integer partCount = response.partsCount();
         eTag = response.eTag();
-        if (partCount != null && totalParts == null) {
+        if (partCount != null) {
             log.debug(() -> String.format("Total amount of parts of the object to download: %d", partCount));
-            totalParts = partCount;
+            totalPartsFuture.complete(partCount);
+        } else {
+            totalPartsFuture.complete(1);
         }
     }
 
     private void handlePartError(Throwable e, int part) {
         isCompletedExceptionally.set(true);
-        log.error(() -> "Error on part " + part + ": " + e);
+        log.error(() -> "Error on part " + part,  e);
         resultFuture.completeExceptionally(e);
         inFlightRequests.values().forEach(future -> future.cancel(true));
     }
 
-    private void processPendingTransformers() {
-        synchronized (pendingTransformers) {
-            int initialSize = pendingTransformers.size();
-            for (int i = 0; i < initialSize; i++) {
-                AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = pendingTransformers.poll();
-                if (transformer != null) {
-                    executeRequestOrAddToPending(transformer);
-                }
+    private void processPendingTransformers(int totalParts) {
+        do {
+            if (!processingPendingTransformers.compareAndSet(false, true)) {
+                return;
             }
-        }
-    }
+            try {
+                doProcessPendingTransformers(totalParts);
+            } finally {
+                processingPendingTransformers.set(false);
+            }
 
-    private void requestMoreIfNeeded() {
-        if (totalParts == null) {
-            return; // Don't know total parts yet
-        }
-
-        int currentRequested = transformersRequested.get();
-        if (currentRequested >= totalParts) {
-            return; // Already requested enough transformers
-        }
-
-        // Don't request more if we already have enough work in progress
-        int totalWorkInProgress = inFlightRequests.size() + completedParts.get();
-        if (totalWorkInProgress >= totalParts) {
-            return;
-        }
-
-        // Only request more if we have capacity and remaining parts
-        int remainingParts = allRemainingParts.size();
-        if (remainingParts == 0) {
-            return;
-        }
-
-        // don't request if we already have enough work in progress
-        if (inFlightRequests.size() >= maxInFlightParts) {
-            return;
-        }
-
-        // don't request if we have already requested more work than we can handle
-        if (outstandingDemand.get() >= maxInFlightParts) {
-            return;
-        }
-
-        int partsNeeded = Math.min(Math.min(totalParts - currentRequested, remainingParts),
-                                   maxInFlightParts - inFlightRequests.size());
-        if (partsNeeded > 0) {
-            log.trace(() -> "Requesting " + partsNeeded + " more transformers. Total requested will be: "
-                            + (currentRequested + partsNeeded));
-            request(partsNeeded);
-        }
+        } while (shouldProcessPendingTransformers());
 
     }
 
-    private Integer nextPart() {
-        synchronized (allRemainingParts) {
-            return allRemainingParts.poll();
+    private void doProcessPendingTransformers(int totalParts) {
+        while (shouldProcessPendingTransformers()) {
+            Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> transformer =
+                pendingTransformers.poll();
+            sendNextRequest(transformer.right(), transformer.left(), totalParts);
         }
+    }
+
+    private boolean shouldProcessPendingTransformers() {
+        if (pendingTransformers.isEmpty()) {
+            return false;
+        }
+        return maxInFlightParts - inFlightRequestsNum.get() > 0;
     }
 
     @Override
