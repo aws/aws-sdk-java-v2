@@ -109,7 +109,7 @@ public final class ContentRangeParser {
             long endInt = Long.parseLong(end);
             return Optional.of(Pair.of(startInt, endInt));
         } catch (Exception e) {
-            log.warn(() -> "failed to parse content range", e);
+            log.debug(() -> "failed to parse content range", e);
             return Optional.empty();
         }
     }

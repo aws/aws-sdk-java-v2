@@ -315,7 +315,7 @@ public class ParallelMultipartDownloaderSubscriber
 
     private void handlePartError(Throwable e, int part) {
         isCompletedExceptionally.set(true);
-        log.error(() -> "Error on part " + part,  e);
+        log.debug(() -> "Error on part " + part,  e);
         resultFuture.completeExceptionally(e);
         inFlightRequests.values().forEach(future -> future.cancel(true));
     }
