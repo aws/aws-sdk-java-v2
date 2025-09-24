@@ -97,14 +97,21 @@ public class ParallelMultipartDownloaderSubscriber
      * The etag of the object being downloaded.
      */
     private volatile String eTag;
-    private Object subscriptionLock = new Object();
+
+    /**
+     * Lock around calls to the subscription
+     */
+    private final Object subscriptionLock = new Object();
 
     /**
      * Tracks request that are currently in flights, waiting to be completed. Once completed, future are removed from the map
      */
     private final Map<Integer, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
 
-    private AtomicInteger inFlightRequestsNum = new AtomicInteger(0);
+    /**
+     * Trasck the amount of in flight requests
+     */
+    private final AtomicInteger inFlightRequestsNum = new AtomicInteger(0);
 
     /**
      * Pending transformers received through onNext that are waiting to be executed.
