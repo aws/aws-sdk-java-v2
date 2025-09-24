@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -32,12 +31,12 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-public class NonLinearMultipartDownloaderSubscriberTckTest
+public class ParallelMultipartDownloaderSubscriberTckTest
     extends SubscriberWhiteboxVerification<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> {
     private S3AsyncClient s3Client;
     private CompletableFuture<GetObjectResponse> future;
 
-    public NonLinearMultipartDownloaderSubscriberTckTest() {
+    public ParallelMultipartDownloaderSubscriberTckTest() {
         super(new TestEnvironment());
         s3Client = mock(S3AsyncClient.class);
         when(s3Client.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
@@ -51,7 +50,7 @@ public class NonLinearMultipartDownloaderSubscriberTckTest
     @Override
     public Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> createSubscriber(
         WhiteboxSubscriberProbe<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> probe) {
-        return new NonLinearMultipartDownloaderSubscriber(s3Client, GetObjectRequest.builder().build(), future, 50) {
+        return new ParallelMultipartDownloaderSubscriber(s3Client, GetObjectRequest.builder().build(), future, 50) {
             @Override
             public void onSubscribe(Subscription s) {
                 super.onSubscribe(s);

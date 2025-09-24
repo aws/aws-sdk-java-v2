@@ -28,28 +28,27 @@ import software.amazon.awssdk.utils.Logger;
  * Subscription which can emit {@link Subscriber#onNext(T)} signals to a subscriber, based on the demand received with the
  * {@link Subscription#request(long)}. It tracks the outstandingDemand that has not yet been fulfilled and used a Supplier
  * passed to it to create the object it needs to emit.
- * @param <T> the type of obejct to emit to the subscriber.
+ * @param <T> the type of object to emit to the subscriber.
  */
 @SdkInternalApi
 @ThreadSafe
 public final class EmittingSubscription<T> implements Subscription {
+    private static final Logger log = Logger.loggerFor(EmittingSubscription.class);
 
     private Subscriber<? super T> downstreamSubscriber;
-    private final AtomicBoolean emitting = new AtomicBoolean(false);
+    private final AtomicBoolean emitting;
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
     private final AtomicBoolean isCancelled;
     private final Supplier<T> supplier;
-    private final Logger log;
-
 
     private EmittingSubscription(Builder<T> builder) {
         this.downstreamSubscriber = builder.downstreamSubscriber;
-        this.outstandingDemand = builder.outstandingDemand;
         this.onCancel = builder.onCancel;
-        this.isCancelled = builder.isCancelled;
-        this.log = builder.log;
         this.supplier = builder.supplier;
+        this.isCancelled = new AtomicBoolean();
+        this.outstandingDemand = new AtomicLong(0);
+        this.emitting = new AtomicBoolean();
     }
 
     public static <T> Builder<T> builder() {
@@ -118,9 +117,6 @@ public final class EmittingSubscription<T> implements Subscription {
 
     public static class Builder<T> {
         private Subscriber<? super T> downstreamSubscriber;
-        private AtomicLong outstandingDemand = new AtomicLong(0);
-        private AtomicBoolean isCancelled = new AtomicBoolean(false);
-        private Logger log = Logger.loggerFor(EmittingSubscription.class);
         private Runnable onCancel;
         private Supplier<T> supplier;
 
@@ -129,23 +125,8 @@ public final class EmittingSubscription<T> implements Subscription {
             return this;
         }
 
-        public Builder<T> outstandingDemand(AtomicLong outstandingDemand) {
-            this.outstandingDemand = outstandingDemand;
-            return this;
-        }
-
         public Builder<T> onCancel(Runnable onCancel) {
             this.onCancel = onCancel;
-            return this;
-        }
-
-        public Builder<T> isCancelled(AtomicBoolean isCancelled) {
-            this.isCancelled = isCancelled;
-            return this;
-        }
-
-        public Builder<T> log(Logger log) {
-            this.log = log;
             return this;
         }
 

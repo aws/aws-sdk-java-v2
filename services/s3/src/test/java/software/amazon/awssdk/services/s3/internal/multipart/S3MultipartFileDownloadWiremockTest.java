@@ -76,9 +76,7 @@ class S3MultipartFileDownloadWiremockTest {
                                      .build();
         util = new MultipartDownloadTestUtils(testBucket, testKey, "test-etag");
         fileSystem = Jimfs.newFileSystem(Configuration.unix());
-        testFile = fileSystem.getPath("/test-file.txt");
-        Files.createDirectories(testFile.getParent());
-        Files.createFile(testFile);
+        testFile = fileSystem.getPath("test-file.txt");
     }
 
     @AfterEach
