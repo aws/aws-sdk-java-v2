@@ -69,6 +69,7 @@ public class BatchWriteItemOperation
                                         Collections.unmodifiableMap(CollectionUtils.deepCopyMap(allRequestItems)))
                                     .returnConsumedCapacity(request.returnConsumedCapacity())
                                     .returnItemCollectionMetrics(request.returnItemCollectionMetrics())
+                                    .overrideConfiguration(request.overrideConfiguration())
                                     .build();
     }
 
