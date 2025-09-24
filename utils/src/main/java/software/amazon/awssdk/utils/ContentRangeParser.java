@@ -18,6 +18,7 @@ package software.amazon.awssdk.utils;
 import java.util.Optional;
 import java.util.OptionalLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Parse a Content-Range header value into a total byte count. The expected format is the following: <p></p>
@@ -26,7 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
  * <p>
  * The only supported {@code <unit>} is the {@code bytes} value.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class ContentRangeParser {
 
     private static final Logger log = Logger.loggerFor(ContentRangeParser.class);
