@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.3__ __2025-09-24__
+## __AWS Key Management Service__
+  - ### Features
+    - Documentation only updates for KMS.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Fix OpenRewrite recipe MethodMatcher
+        - Contributed by: [@MBoegers](https://github.com/MBoegers)
+
+## __Amazon AppStream__
+  - ### Features
+    - G6f instance support for AppStream 2.0
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Fix default dualstack FIPS endpoints in AWS GovCloud(US) regions
+
+## __Amazon DynamoDB Accelerator (DAX)__
+  - ### Features
+    - This release adds support for IPv6-only, DUAL_STACK DAX instances
+
+## __Amazon Neptune__
+  - ### Features
+    - Doc-only update to address customer use.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@MBoegers](https://github.com/MBoegers)
 # __2.34.2__ __2025-09-23__
 ## __AWS Clean Rooms Service__
   - ### Features
