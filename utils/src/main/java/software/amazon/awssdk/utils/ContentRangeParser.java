@@ -17,7 +17,6 @@ package software.amazon.awssdk.utils;
 
 import java.util.Optional;
 import java.util.OptionalLong;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
