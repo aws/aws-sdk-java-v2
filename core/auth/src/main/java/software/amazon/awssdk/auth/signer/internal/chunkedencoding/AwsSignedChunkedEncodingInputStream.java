@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -62,13 +63,14 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
     private AwsSignedChunkedEncodingInputStream(InputStream in,
+                                                ChecksumAlgorithm checksumAlgorithm,
                                                 SdkChecksum sdkChecksum,
                                                 PayloadChecksumStore checksumStore,
                                                 String checksumHeaderForTrailer,
                                                 String headerSignature,
                                                 AwsChunkSigner chunkSigner,
                                                 AwsChunkedEncodingConfig config) {
-        super(in, sdkChecksum, checksumStore, checksumHeaderForTrailer, config);
+        super(in, checksumAlgorithm, sdkChecksum, checksumStore, checksumHeaderForTrailer, config);
         this.chunkSigner = chunkSigner;
         this.previousChunkSignature = headerSignature;
         this.headerSignature = headerSignature;
@@ -107,6 +109,7 @@ public final class AwsSignedChunkedEncodingInputStream extends AwsChunkedEncodin
         public AwsSignedChunkedEncodingInputStream build() {
 
             return new AwsSignedChunkedEncodingInputStream(this.inputStream,
+                                                           this.checksumAlgorithm,
                                                            this.sdkChecksum,
                                                            this.checksumStore,
                                                            this.checksumHeaderForTrailer,
