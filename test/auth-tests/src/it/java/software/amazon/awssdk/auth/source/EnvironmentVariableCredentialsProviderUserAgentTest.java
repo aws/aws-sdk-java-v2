@@ -36,6 +36,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
  * Test class to verify that EnvironmentVariableCredentialsProvider correctly includes
@@ -45,6 +46,7 @@ import software.amazon.awssdk.utils.StringInputStream;
 class EnvironmentVariableCredentialsProviderUserAgentTest {
 
     private MockSyncHttpClient mockHttpClient;
+    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
 
     @BeforeEach
     public void setup() {
@@ -52,6 +54,8 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
         // Configure environment variable credentials
         System.setProperty(SdkSystemSetting.AWS_ACCESS_KEY_ID.property(), "test-access-key");
         System.setProperty(SdkSystemSetting.AWS_SECRET_ACCESS_KEY.property(), "test-secret-key");
+        ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_ACCESS_KEY_ID.environmentVariable(), "akid2");
+        ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_SECRET_ACCESS_KEY.environmentVariable(), "skid2");
 
         mockHttpClient = new MockSyncHttpClient();
         mockHttpClient.stubNextResponse(mockStsResponse());
@@ -75,8 +79,7 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
     @MethodSource("environmentVariableCredentialProviders")
     void userAgentString_containsEnvironmentVariableBusinessMetric_WhenUsingEnvironmentVariableCredentials(
             IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
-        
-        try {
+
             stsClient(provider, mockHttpClient).getCallerIdentity();
 
             SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -85,8 +88,7 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
             List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
             assertThat(userAgentHeaders).isNotNull().hasSize(1);
             assertThat(userAgentHeaders.get(0)).contains(expected);
-        } catch (Exception e) {
-        }
+
     }
 
     private static Stream<Arguments> environmentVariableCredentialProviders() {
@@ -101,8 +103,7 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
             IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
 
         System.setProperty(SdkSystemSetting.AWS_SESSION_TOKEN.property(), "test-session-token");
-        
-        try {
+
             stsClient(provider, mockHttpClient).getCallerIdentity();
 
             SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -111,8 +112,6 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
             List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
             assertThat(userAgentHeaders).isNotNull().hasSize(1);
             assertThat(userAgentHeaders.get(0)).contains(expected);
-        } catch (Exception e) {
-        }
     }
 
     private static Stream<Arguments> environmentVariableCredentialProvidersWithSessionToken() {

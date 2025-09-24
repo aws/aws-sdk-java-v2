@@ -200,7 +200,7 @@ public final class ProfileCredentialsUtils {
     private AwsCredentialsProvider ssoProfileCredentialsProvider() {
         validateRequiredPropertiesForSsoCredentialsProvider();
         boolean isLegacy = isLegacySsoConfiguration();
-        String source = isLegacy ?
+        String sourceFeatureId = isLegacy ?
                         BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO_LEGACY.value() :
                         BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO.value();
 
@@ -208,7 +208,7 @@ public final class ProfileCredentialsUtils {
             ProfileProviderCredentialsContext.builder()
                                              .profile(profile)
                                              .profileFile(profileFile)
-                                             .source(source)
+                                             .source(sourceFeatureId)
                                              .build());
     }
 
@@ -264,8 +264,8 @@ public final class ProfileCredentialsUtils {
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
-        String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
-        return createStsCredentialsProviderWithMetrics(sourceCredentialsProvider, source);
+        String sourceFeatureId = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
+        return createStsCredentialsProviderWithMetrics(sourceCredentialsProvider, sourceFeatureId);
     }
 
     /**
@@ -276,21 +276,20 @@ public final class ProfileCredentialsUtils {
         requireProperties(ProfileProperty.CREDENTIAL_SOURCE);
 
         CredentialSourceType credentialSource = CredentialSourceType.parse(properties.get(ProfileProperty.CREDENTIAL_SOURCE));
-        String source = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
-        AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource, source);
+        String profileSource = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
+        AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource);
 
-        return createStsCredentialsProviderWithMetrics(credentialsProvider, source);
+        return createStsCredentialsProviderWithMetrics(credentialsProvider, profileSource);
     }
 
-    private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource, String source) {
+    private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource) {
         switch (credentialSource) {
             case ECS_CONTAINER:
-                return ContainerCredentialsProvider.builder().source(source).build();
+                return ContainerCredentialsProvider.builder().build();
             case EC2_INSTANCE_METADATA:
                 return InstanceProfileCredentialsProvider.builder()
                                                          .profileFile(profileFile)
                                                          .profileName(name)
-                                                         .source(source)
                                                          .build();
             case ENVIRONMENT:
                 return AwsCredentialsProviderChain.builder()
