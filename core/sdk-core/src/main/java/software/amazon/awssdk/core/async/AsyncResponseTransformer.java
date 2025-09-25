@@ -382,7 +382,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
         CompletableFuture<ResultT> resultFuture();
 
         /**
-         * Indicates if the split async response transformer supports sending individual transformer non-serially, as well as
+         * Indicates if the split async response transformer supports sending individual transformer non-serially and
          * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
          * @return true if non-serial data is supported, false otherwise
          */

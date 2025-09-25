@@ -125,11 +125,6 @@ public class ParallelMultipartDownloaderSubscriber
     private final AtomicInteger outstandingDemand = new AtomicInteger(0);
 
     /**
-     * Indicates whether this is the first response transformer or not.
-     */
-    private final AtomicBoolean isFirstResponseTransformer = new AtomicBoolean(true);
-
-    /**
      * Indicates if we are currently processing pending transformer, which are waiting to be used to send requests
      */
     private final AtomicBoolean processingPendingTransformers = new AtomicBoolean(false);
@@ -169,7 +164,9 @@ public class ParallelMultipartDownloaderSubscriber
     @Override
     public void onNext(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
         if (asyncResponseTransformer == null) {
-            subscription.cancel();
+            synchronized (subscriptionLock) {
+                subscription.cancel();
+            }
             throw new NullPointerException("onNext must not be called with null asyncResponseTransformer");
         }
 
@@ -181,7 +178,7 @@ public class ParallelMultipartDownloaderSubscriber
 
         int currentPartNum = partNumber.incrementAndGet();
 
-        if (isFirstResponseTransformer.compareAndSet(true, false)) {
+        if (currentPartNum == 1) {
             sendFirstRequest(asyncResponseTransformer);
         } else {
             pendingTransformers.offer(Pair.of(currentPartNum, asyncResponseTransformer));
