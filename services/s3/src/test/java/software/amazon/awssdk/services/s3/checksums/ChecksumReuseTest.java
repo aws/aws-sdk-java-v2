@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -110,6 +111,35 @@ public class ChecksumReuseTest {
     }
 
     @Test
+    public void putObject_nonSra_serverResponds500_usesSameChecksumOnRetries() {
+        MockHttpClient httpClient = new MockHttpClient();
+
+        S3Client s3 = S3Client.builder()
+                              .region(Region.US_WEST_2)
+                              .credentialsProvider(CREDENTIALS_PROVIDER)
+                              .requestChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED)
+                              .httpClient(httpClient)
+                              .overrideConfiguration(o -> o.retryStrategy(StandardRetryStrategy.builder()
+                                                                                               .maxAttempts(4)
+                                                                                               .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                                               .build()))
+                              .build();
+
+        RequestBody requestBody = RequestBody.fromInputStream(new RandomInputStream(), 4096);
+
+        assertThatThrownBy(() -> s3.putObject(r -> r.bucket(BUCKET)
+                                                    .key(KEY)
+                                                    .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                                                    .overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
+                                              requestBody))
+            .isInstanceOf(S3Exception.class)
+            // Ensure we actually retried
+            .matches(e -> ((SdkException) e).numAttempts() == 4);
+
+        assertAllTrailingChecksumsMatch(httpClient.requestPayloads);
+    }
+
+    @Test
     void asyncPutObject_serverResponds500_usesSameChecksumOnRetries() {
         MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
 
@@ -130,6 +160,39 @@ public class ChecksumReuseTest {
 
         CompletableFuture<PutObjectResponse> responseFuture =
             s3.putObject(r -> r.bucket(BUCKET).key(KEY).checksumAlgorithm(ChecksumAlgorithm.CRC32), requestBody);
+
+        assertThatThrownBy(responseFuture::join)
+            .hasCauseInstanceOf(S3Exception.class)
+            .matches(e -> ((SdkException) e.getCause()).numAttempts() == 4);
+
+        assertAllTrailingChecksumsMatch(httpClient.requestPayloads);
+    }
+
+    @Test
+    void asyncPutObject_nonSra_serverResponds500_usesSameChecksumOnRetries() {
+        MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
+
+        S3AsyncClient s3 = S3AsyncClient.builder()
+                                        .region(Region.US_WEST_2)
+                                        .credentialsProvider(CREDENTIALS_PROVIDER)
+                                        .requestChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED)
+                                        .httpClient(httpClient)
+                                        .overrideConfiguration(o -> o.retryStrategy(StandardRetryStrategy.builder()
+                                                                                                         .maxAttempts(4)
+                                                                                                         .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                                                         .build()))
+                                        .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromInputStream(new RandomInputStream(),
+                                                                        4096L,
+                                                                        executorService);
+
+        CompletableFuture<PutObjectResponse> responseFuture =
+            s3.putObject(r -> r.bucket(BUCKET)
+                               .key(KEY)
+                               .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                               .overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
+                         requestBody);
 
         assertThatThrownBy(responseFuture::join)
             .hasCauseInstanceOf(S3Exception.class)
