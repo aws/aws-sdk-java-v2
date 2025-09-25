@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Lightsail",
+    "contributor": "",
+    "description": "Attribute HTTP binding update for Get/Delete operations"
+}
