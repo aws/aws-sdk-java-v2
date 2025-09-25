@@ -348,10 +348,18 @@ class GenericS3TransferManager implements S3TransferManager {
 
         TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
         progressUpdater.transferInitiated();
-        responseTransformer = isS3ClientMultipartEnabled()
-                              ? progressUpdater.wrapResponseTransformerForMultipartDownload(
-            responseTransformer, downloadRequest.getObjectRequest())
-                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        if (isS3ClientMultipartEnabled()) {
+            if (responseTransformer.split(b -> b.bufferSizeInBytes(1L)).parallelSplitSupported()) {
+                responseTransformer =
+                    progressUpdater.wrapForNonSerialFileDownload(responseTransformer, downloadRequest.getObjectRequest());
+            } else {
+                responseTransformer =
+                    progressUpdater.wrapResponseTransformerForMultipartDownload(
+                        responseTransformer, downloadRequest.getObjectRequest());
+            }
+        } else {
+            responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
+        }
         progressUpdater.registerCompletion(returnFuture);
 
         try {
@@ -402,7 +410,7 @@ class GenericS3TransferManager implements S3TransferManager {
         try {
             progressUpdater.transferInitiated();
             responseTransformer = isS3ClientMultipartEnabled()
-                                  ? progressUpdater.wrapResponseTransformerForMultipartDownload(
+                                  ? progressUpdater.wrapForNonSerialFileDownload(
                 responseTransformer, downloadRequest.getObjectRequest())
                                   : progressUpdater.wrapResponseTransformer(responseTransformer);
             progressUpdater.registerCompletion(returnFuture);

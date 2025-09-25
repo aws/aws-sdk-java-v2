@@ -13,12 +13,11 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.transfer.s3.internal.progress;
+package software.amazon.awssdk.utils;
 
+import java.util.Optional;
 import java.util.OptionalLong;
-import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 /**
  * Parse a Content-Range header value into a total byte count. The expected format is the following: <p></p>
@@ -27,7 +26,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * <p>
  * The only supported {@code <unit>} is the {@code bytes} value.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public final class ContentRangeParser {
 
     private static final Logger log = Logger.loggerFor(ContentRangeParser.class);
@@ -72,4 +71,47 @@ public final class ContentRangeParser {
             return OptionalLong.empty();
         }
     }
+
+    /**
+     * Parse the Content-Range to extract the byte range from the content. Only supports the {@code bytes} unit, any
+     * other unit will result in an empty OptionalLong. If byte range in unknown, which is represented by a {@code *} symbol
+     * in the header value, an empty OptionalLong will be returned.
+     *
+     * @param contentRange the value of the Content-Range header to be parsed.
+     * @return The total number of bytes in the content range or an empty optional if the contentRange is null, empty or if the
+     * total length is not a valid long.
+     */
+    public static Optional<Pair<Long, Long>> range(String contentRange) {
+        if (StringUtils.isEmpty(contentRange)) {
+            return Optional.empty();
+        }
+
+        String trimmed = contentRange.trim();
+        if (!trimmed.startsWith("bytes ")) {
+            return Optional.empty();
+        }
+        String withoutBytes = trimmed.substring("bytes ".length());
+        if (withoutBytes.startsWith("*")) {
+            return Optional.empty();
+        }
+        int hyphen = withoutBytes.indexOf('-');
+        if (hyphen == -1) {
+            return Optional.empty();
+        }
+        String begin = withoutBytes.substring(0, hyphen);
+        int slash = withoutBytes.indexOf('/');
+        if (slash == -1) {
+            return Optional.empty();
+        }
+        String end = withoutBytes.substring(hyphen + 1, slash);
+        try {
+            long startInt = Long.parseLong(begin);
+            long endInt = Long.parseLong(end);
+            return Optional.of(Pair.of(startInt, endInt));
+        } catch (Exception e) {
+            log.debug(() -> "failed to parse content range", e);
+            return Optional.empty();
+        }
+    }
+
 }
