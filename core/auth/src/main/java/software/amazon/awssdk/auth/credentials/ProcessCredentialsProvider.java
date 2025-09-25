@@ -32,6 +32,7 @@ import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -85,6 +86,7 @@ public final class ProcessCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -98,6 +100,9 @@ public final class ProcessCredentialsProvider
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.staticAccountId = builder.staticAccountId;
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source)
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -177,11 +182,7 @@ public final class ProcessCredentialsProvider
     }
 
     private String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (source != null && !source.isEmpty()) {
-            providerName = String.format("%s,%s", source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     /**

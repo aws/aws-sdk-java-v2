@@ -65,7 +65,7 @@ class ProcessCredentialsProviderUserAgentTest {
     @MethodSource("processCredentialProviders")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentials(
             IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
-        
+
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -79,7 +79,7 @@ class ProcessCredentialsProviderUserAgentTest {
     private static Stream<Arguments> processCredentialProviders() {
         String mockCommand = createMockCredentialsCommand(false);
         List<String> mockCommandList = createMockCredentialsCommandList(false);
-        
+
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
@@ -95,7 +95,7 @@ class ProcessCredentialsProviderUserAgentTest {
     @MethodSource("processCredentialProvidersWithSessionToken")
     void userAgentString_containsProcessBusinessMetric_WhenUsingProcessCredentialsWithSessionToken(
             IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
-        
+
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -108,7 +108,7 @@ class ProcessCredentialsProviderUserAgentTest {
 
     private static Stream<Arguments> processCredentialProvidersWithSessionToken() {
         String mockCommand = createMockCredentialsCommand(true);
-        
+
         return Stream.of(
             Arguments.of(ProcessCredentialsProvider.builder()
                             .command(mockCommand)
@@ -124,7 +124,7 @@ class ProcessCredentialsProviderUserAgentTest {
 
     private static List<String> createMockCredentialsCommandList(boolean includeSessionToken) {
         String credentialsJson = createCredentialsJson(includeSessionToken);
-        
+
         // Use echo command as a list
         return Arrays.asList("echo", credentialsJson);
     }
@@ -135,15 +135,15 @@ class ProcessCredentialsProviderUserAgentTest {
         json.append("\"Version\": 1,");
         json.append("\"AccessKeyId\": \"test-access-key\",");
         json.append("\"SecretAccessKey\": \"test-secret-key\"");
-        
+
         if (includeSessionToken) {
             json.append(",\"SessionToken\": \"test-session-token\"");
         }
-        
+
         // Add expiration time (1 hour from now)
         String expiration = DateUtils.formatIso8601Date(Instant.now().plus(1, ChronoUnit.HOURS));
         json.append(",\"Expiration\": \"").append(expiration).append("\"");
-        
+
         json.append("}");
         return json.toString();
     }

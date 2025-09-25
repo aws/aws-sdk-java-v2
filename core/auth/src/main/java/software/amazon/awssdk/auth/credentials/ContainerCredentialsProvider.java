@@ -93,6 +93,7 @@ public final class ContainerCredentialsProvider
 
     private final String asyncThreadName;
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -102,6 +103,9 @@ public final class ContainerCredentialsProvider
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source) 
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
         this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -165,11 +169,7 @@ public final class ContainerCredentialsProvider
     }
 
     private String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (source != null && !source.isEmpty()) {
-            providerName = String.format("%s,%s", source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     @Override

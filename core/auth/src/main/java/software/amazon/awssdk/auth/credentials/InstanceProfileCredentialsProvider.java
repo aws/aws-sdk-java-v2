@@ -45,6 +45,7 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -93,6 +94,7 @@ public final class InstanceProfileCredentialsProvider
     private final Duration staleTime;
 
     private final String source;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -107,6 +109,9 @@ public final class InstanceProfileCredentialsProvider
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
         this.source = builder.source;
+        this.providerName = StringUtils.isEmpty(builder.source)
+            ? PROVIDER_NAME 
+            : builder.source + "," + PROVIDER_NAME;
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
         this.configProvider =
@@ -208,11 +213,7 @@ public final class InstanceProfileCredentialsProvider
     }
 
     private String providerName() {
-        String providerName = PROVIDER_NAME;
-        if (source != null && !source.isEmpty()) {
-            providerName = String.format("%s,%s", source, providerName);
-        }
-        return providerName;
+        return this.providerName;
     }
 
     @Override
