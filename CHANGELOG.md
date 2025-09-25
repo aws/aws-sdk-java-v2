@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.4__ __2025-09-25__
+## __AWS Glue__
+  - ### Features
+    - Update GetConnection(s) API to return KmsKeyArn & Add 63 missing connection types
+
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall now introduces Reject and Alert action support for stateful domain list rule groups, providing customers with more granular control over their network traffic.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Attribute HTTP binding update for Get/Delete operations
+
 # __2.34.3__ __2025-09-24__
 ## __AWS Key Management Service__
   - ### Features
