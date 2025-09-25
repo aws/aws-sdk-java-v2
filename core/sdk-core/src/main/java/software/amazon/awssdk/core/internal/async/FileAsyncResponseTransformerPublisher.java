@@ -136,10 +136,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
-            if (transformerCount.get() == 0) {
+            if (transformerCount.get() == 0 &&
+                initialConfig.fileWriteOption() != FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION) {
                 // On the first request we need to maintain the same config so
-                // that the file is actually created on disk if it doesn't exist (for example, if CREATE_NEW or
-                // CREATE_OR_REPLACE_EXISTING is used)
+                // that the file is actually created on disk if it doesn't exist (for CREATE_NEW or CREATE_OR_REPLACE_EXISTING)
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {

@@ -15,8 +15,12 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,6 +34,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
@@ -66,7 +71,7 @@ public class ParallelMultipartDownloaderSubscriber
      * The total number of completed parts. A part is considered complete once the completable future associated with its request
      * completes successfully.
      */
-    private final AtomicInteger completedParts = new AtomicInteger();
+    private final AtomicInteger completedParts;
 
     /**
      * The future returned to the user when calling
@@ -80,7 +85,7 @@ public class ParallelMultipartDownloaderSubscriber
      * The {@link GetObjectResponse} to be returned in the completed future to the user. It corresponds to the response of first
      * part GetObject
      */
-    private GetObjectResponse getObjectResponse;
+    private volatile GetObjectResponse getObjectResponse;
 
     /**
      * The subscription received from the publisher this subscriber subscribes to.
@@ -135,11 +140,16 @@ public class ParallelMultipartDownloaderSubscriber
     private final AtomicInteger partNumber = new AtomicInteger(0);
 
     /**
-     * Tracks if one of the parts requests future completed exceptionally. If this occurs, it means all retries were
-     * attempted for that part, but it still failed. This is a failure state, the error should be reported back to the user
-     * and any more request should be ignored.
+     * Tracks if one of the parts requests future completed exceptionally. If this occurs, it means all retries were attempted for
+     * that part, but it still failed. This is a failure state, the error should be reported back to the user and any more request
+     * should be ignored.
      */
     private final AtomicBoolean isCompletedExceptionally = new AtomicBoolean(false);
+
+    /**
+     * When resuming a paused download, indicates which parts were already completed before pausing.
+     */
+    private final Set<Integer> initialCompletedParts;
 
     public ParallelMultipartDownloaderSubscriber(S3AsyncClient s3,
                                                  GetObjectRequest getObjectRequest,
@@ -149,6 +159,36 @@ public class ParallelMultipartDownloaderSubscriber
         this.getObjectRequest = getObjectRequest;
         this.resultFuture = resultFuture;
         this.maxInFlightParts = maxInFlightParts;
+        this.initialCompletedParts = initialCompletedParts(getObjectRequest);
+        this.completedParts = new AtomicInteger(initialCompletedParts.size());
+
+        if (resumingDownload()) {
+            int totalPartsFromInitialRequest = MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                                                     .map(MultipartDownloadResumeContext::totalParts)
+                                                                     .orElse(0);
+            if (totalPartsFromInitialRequest > 0) {
+                totalPartsFuture.complete(totalPartsFromInitialRequest);
+            }
+            getObjectResponse = MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                                      .map(MultipartDownloadResumeContext::response)
+                                                      .orElse(null);
+        }
+    }
+
+    private static Set<Integer> initialCompletedParts(GetObjectRequest getObjectRequest) {
+        return Collections.unmodifiableSet(
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                  .map(MultipartDownloadResumeContext::completedParts)
+                                  .<Set<Integer>>map(HashSet::new)
+                                  .orElse(Collections.emptySet())
+        );
+    }
+
+    private boolean resumingDownload() {
+        Optional<Boolean> hasAlreadyCompletedParts =
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                  .map(ctx -> !ctx.completedParts().isEmpty());
+        return hasAlreadyCompletedParts.orElse(false);
     }
 
     @Override
@@ -176,19 +216,18 @@ public class ParallelMultipartDownloaderSubscriber
                         + " - Total pending transformers: " + pendingTransformers.size()
                         + " - Current in flight requests: " + inFlightRequests.keySet());
 
-        int currentPartNum = partNumber.incrementAndGet();
+        int currentPartNum = nextPart();
 
         if (currentPartNum == 1) {
             sendFirstRequest(asyncResponseTransformer);
         } else {
-            pendingTransformers.offer(Pair.of(currentPartNum, asyncResponseTransformer));
             totalPartsFuture.thenAccept(
                 totalParts -> processingRequests(asyncResponseTransformer, currentPartNum, totalParts));
         }
     }
 
     private void processingRequests(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer,
-                                    int currentPartNum, Integer totalParts) {
+                                    int currentPartNum, int totalParts) {
 
         if (currentPartNum > totalParts) {
             // Do not process requests above total parts.
@@ -203,6 +242,7 @@ public class ParallelMultipartDownloaderSubscriber
             return;
         }
 
+        sendNextRequest(asyncResponseTransformer, currentPartNum, totalParts);
         processPendingTransformers(totalParts);
     }
 
@@ -233,11 +273,14 @@ public class ParallelMultipartDownloaderSubscriber
             inFlightRequests.remove(currentPartNumber);
             inFlightRequestsNum.decrementAndGet();
             completedParts.incrementAndGet();
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                  .ifPresent(ctx -> ctx.addCompletedPart(currentPartNumber));
 
             if (completedParts.get() >= totalParts) {
                 if (completedParts.get() > totalParts) {
                     resultFuture.completeExceptionally(new IllegalStateException("Total parts exceeded"));
                 } else {
+                    updateResumeContextForCompletion(res);
                     resultFuture.complete(getObjectResponse);
                 }
 
@@ -252,6 +295,14 @@ public class ParallelMultipartDownloaderSubscriber
                 }
             }
         });
+    }
+
+    private void updateResumeContextForCompletion(GetObjectResponse response) {
+        ContentRangeParser.totalBytes(response.contentRange())
+                          .ifPresent(total -> MultipartDownloadUtils
+                              .multipartDownloadResumeContext(getObjectRequest)
+                              .ifPresent(ctx ->
+                                             ctx.addToBytesToLastCompletedParts(total)));
     }
 
     private void sendFirstRequest(AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> asyncResponseTransformer) {
@@ -282,6 +333,13 @@ public class ParallelMultipartDownloaderSubscriber
             getObjectResponse = res;
 
             processPendingTransformers(res.partsCount());
+            MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
+                                  .ifPresent(ctx -> {
+                                      ctx.addCompletedPart(1);
+                                      ctx.response(res);
+                                      ctx.totalParts(res.partsCount());
+                                  });
+
             synchronized (subscriptionLock) {
                 subscription.request(1);
             }
@@ -312,7 +370,7 @@ public class ParallelMultipartDownloaderSubscriber
 
     private void handlePartError(Throwable e, int part) {
         isCompletedExceptionally.set(true);
-        log.debug(() -> "Error on part " + part,  e);
+        log.debug(() -> "Error on part " + part, e);
         resultFuture.completeExceptionally(e);
         inFlightRequests.values().forEach(future -> future.cancel(true));
     }
@@ -334,9 +392,12 @@ public class ParallelMultipartDownloaderSubscriber
 
     private void doProcessPendingTransformers(int totalParts) {
         while (shouldProcessPendingTransformers()) {
-            Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> transformer =
-                pendingTransformers.poll();
-            sendNextRequest(transformer.right(), transformer.left(), totalParts);
+            Pair<Integer, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> pair = pendingTransformers.poll();
+            Integer part = pair.left();
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = pair.right();
+            if (part <= totalParts) {
+                sendNextRequest(transformer, part, totalParts);
+            }
         }
     }
 
@@ -370,6 +431,20 @@ public class ParallelMultipartDownloaderSubscriber
                 req.ifMatch(eTag);
             }
         });
+    }
+
+    private int nextPart() {
+        if (initialCompletedParts.isEmpty()) {
+            return partNumber.incrementAndGet();
+        }
+
+        synchronized (initialCompletedParts) {
+            int part = partNumber.incrementAndGet();
+            while (initialCompletedParts.contains(part)) {
+                part = partNumber.incrementAndGet();
+            }
+            return part;
+        }
     }
 
 }
