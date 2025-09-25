@@ -70,11 +70,11 @@ public class Application {
 
         } catch (SqsException exception) {
             System.out.println(String.format("Error code: %s. RequestId: %s. Raw response content: %s",
-                                             exception.awsErrorDetails().errorCode(), exception.requestId(),
-                                             exception.awsErrorDetails().rawResponse().asUtf8String()));
+                exception.awsErrorDetails().errorCode(), exception.requestId(),
+                exception.awsErrorDetails().rawResponse().asUtf8String()));
         } catch (AwsServiceException exception) {
             System.out.println(String.format("Error message: %s. Service Name: %s",
-                                             exception.awsErrorDetails().errorMessage(), exception.awsErrorDetails().serviceName()));
+                exception.awsErrorDetails().errorMessage(), exception.awsErrorDetails().serviceName()));
         } catch (SdkException exception) {
             System.out.println("Error message " + exception.getMessage());
         }

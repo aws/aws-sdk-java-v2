@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class SdkJsonGeneratorTest {
@@ -40,7 +41,7 @@ public class SdkJsonGeneratorTest {
 
     @BeforeEach
     public void setup() {
-        jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().build(), "application/json");
+        jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION).build(), "application/json");
     }
 
     @Test
