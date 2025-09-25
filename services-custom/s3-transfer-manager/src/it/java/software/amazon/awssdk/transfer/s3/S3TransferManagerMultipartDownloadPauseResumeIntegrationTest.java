@@ -17,6 +17,7 @@ package software.amazon.awssdk.transfer.s3;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.KB;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.File;
@@ -81,6 +82,24 @@ public class S3TransferManagerMultipartDownloadPauseResumeIntegrationTest extend
         resumed.completionFuture().join();
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
     }
+
+    @Test
+    void pauseAndResume_beforeFirstPartCompletes_shouldResumeDownload() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        DownloadFileRequest request = DownloadFileRequest.builder()
+                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY))
+                                                         .destination(path)
+                                                         .build();
+        FileDownload download = tmJava.downloadFile(request);
+
+        // stop before we complete first part, so only wait for an amount of bytes much lower than 1 part, 1 KiB should do it
+        waitUntilAmountTransferred(download, KB);
+        ResumableFileDownload resumableFileDownload = download.pause();
+        FileDownload resumed = tmJava.resumeDownloadFile(resumableFileDownload);
+        resumed.completionFuture().join();
+        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
+    }
+
 
     @Test
     void pauseAndResume_whenAlreadyComplete_shouldHandleGracefully() {
