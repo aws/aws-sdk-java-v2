@@ -30,14 +30,14 @@ public class ChecksumTrailerProvider implements TrailerProvider {
     private final SdkChecksum checksum;
     private final String checksumName;
     private final ChecksumAlgorithm checksumAlgorithm;
-    private final PayloadChecksumStore checksumCache;
+    private final PayloadChecksumStore checksumStore;
 
     public ChecksumTrailerProvider(SdkChecksum checksum, String checksumName, ChecksumAlgorithm checksumAlgorithm,
-                                   PayloadChecksumStore checksumCache) {
+                                   PayloadChecksumStore checksumStore) {
         this.checksum = checksum;
         this.checksumName = checksumName;
         this.checksumAlgorithm = checksumAlgorithm;
-        this.checksumCache = checksumCache;
+        this.checksumStore = checksumStore;
     }
 
     @Override
@@ -47,10 +47,10 @@ public class ChecksumTrailerProvider implements TrailerProvider {
 
     @Override
     public Pair<String, List<String>> get() {
-        byte[] checksumBytes = checksumCache.getChecksumValue(checksumAlgorithm);
+        byte[] checksumBytes = checksumStore.getChecksumValue(checksumAlgorithm);
         if (checksumBytes == null) {
             checksumBytes = checksum.getChecksumBytes();
-            checksumCache.putChecksumValue(checksumAlgorithm, checksumBytes);
+            checksumStore.putChecksumValue(checksumAlgorithm, checksumBytes);
         }
 
         return Pair.of(

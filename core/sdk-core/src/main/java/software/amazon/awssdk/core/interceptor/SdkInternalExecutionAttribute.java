@@ -207,10 +207,10 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         "TokenConfiguredFromEnv");
 
     /**
-     * The cache used by {@link HttpSigner} implementations to store payload checksums.
+     * The store used by {@link HttpSigner} implementations to store payload checksums.
      */
-    public static final ExecutionAttribute<PayloadChecksumStore> CHECKSUM_CACHE =
-        new ExecutionAttribute<>("ChecksumCache");
+    public static final ExecutionAttribute<PayloadChecksumStore> CHECKSUM_STORE =
+        new ExecutionAttribute<>("ChecksumStore");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

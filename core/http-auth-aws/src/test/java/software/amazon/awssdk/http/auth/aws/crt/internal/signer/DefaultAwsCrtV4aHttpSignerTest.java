@@ -44,7 +44,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.EXPIR
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner.REGION_SET;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
-import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_CACHE;
+import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -461,7 +461,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
             signRequest -> signRequest
                 .putProperty(PAYLOAD_SIGNING_ENABLED, true)
                 .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -480,7 +480,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
             signRequest -> signRequest
                 .putProperty(PAYLOAD_SIGNING_ENABLED, true)
                 .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -502,7 +502,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING_ENABLED, false)
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -529,7 +529,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING_ENABLED, false)
                 .putProperty(CHUNK_ENCODING_ENABLED, true)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -553,7 +553,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING_ENABLED, true)
                 .putProperty(CHUNK_ENCODING_ENABLED, false)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         SignedRequest signedRequest = signer.sign(request);
@@ -574,7 +574,7 @@ public class DefaultAwsCrtV4aHttpSignerTest {
                 .putProperty(PAYLOAD_SIGNING_ENABLED, true)
                 .putProperty(CHUNK_ENCODING_ENABLED, false)
                 .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_CACHE, cache)
+                .putProperty(CHECKSUM_STORE, cache)
         );
 
         signer.sign(request);

@@ -24,7 +24,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Credenti
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_CACHE;
+import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -57,7 +57,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request, null, checksumCache(request));
+        Checksummer checksummer = checksummer(request, null, checksumStore(request));
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadSigner(request, v4Properties);
@@ -170,7 +170,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             return AwsChunkedV4PayloadSigner.builder()
                                             .credentialScope(properties.getCredentialScope())
                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
-                                            .checksumCache(checksumCache(request))
+                                            .checksumStore(checksumStore(request))
                                             .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
                                             .build();
         }
@@ -265,8 +265,8 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return start.compareTo(x) <= 0 && x.compareTo(end) <= 0;
     }
 
-    private static PayloadChecksumStore checksumCache(SignRequest<? extends AwsCredentialsIdentity> request) {
-        PayloadChecksumStore cache = request.property(CHECKSUM_CACHE);
+    private static PayloadChecksumStore checksumStore(SignRequest<? extends AwsCredentialsIdentity> request) {
+        PayloadChecksumStore cache = request.property(CHECKSUM_STORE);
         if (cache == null) {
             return NoOpPayloadChecksumStore.create();
         }

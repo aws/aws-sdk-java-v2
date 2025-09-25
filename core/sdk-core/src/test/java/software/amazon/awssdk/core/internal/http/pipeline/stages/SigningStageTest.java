@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.TIME_OFFSET;
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_CACHE;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_STORE;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 import static software.amazon.awssdk.core.metrics.CoreMetric.SIGNING_DURATION;
 
@@ -376,7 +376,7 @@ public class SigningStageTest {
     }
 
     @Test
-    public void execute_checksumCacheAttributePresent_propagatesChecksumCacheToSigner() throws Exception {
+    public void execute_checksumStoreAttributePresent_propagatesChecksumStoreToSigner() throws Exception {
         SelectedAuthScheme<Identity> selectedAuthScheme = new SelectedAuthScheme<>(
             CompletableFuture.completedFuture(identity),
             httpSigner,
@@ -387,7 +387,7 @@ public class SigningStageTest {
         RequestExecutionContext context = createContext(selectedAuthScheme, null);
 
         PayloadChecksumStore cache = PayloadChecksumStore.create();
-        context.executionAttributes().putAttribute(CHECKSUM_CACHE, cache);
+        context.executionAttributes().putAttribute(CHECKSUM_STORE, cache);
 
         SdkHttpRequest signedRequest = ValidSdkObjects.sdkHttpFullRequest().build();
         when(httpSigner.sign(ArgumentMatchers.<SignRequest<? extends Identity>>any()))
@@ -401,7 +401,7 @@ public class SigningStageTest {
         ArgumentCaptor<SignRequest<? extends Identity>> signRequestCaptor = ArgumentCaptor.forClass(SignRequest.class);
         verify(httpSigner).sign(signRequestCaptor.capture());
 
-        assertThat(signRequestCaptor.getValue().property(SdkInternalHttpSignerProperty.CHECKSUM_CACHE)).isSameAs(cache);
+        assertThat(signRequestCaptor.getValue().property(SdkInternalHttpSignerProperty.CHECKSUM_STORE)).isSameAs(cache);
     }
 
     private RequestExecutionContext createContext(SelectedAuthScheme<Identity> selectedAuthScheme, Signer oldSigner) {

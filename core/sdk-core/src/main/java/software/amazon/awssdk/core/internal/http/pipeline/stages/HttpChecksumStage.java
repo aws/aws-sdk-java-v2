@@ -22,6 +22,7 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILE
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_STORE;
 import static software.amazon.awssdk.core.internal.io.AwsChunkedInputStream.DEFAULT_CHUNK_SIZE;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateChecksumTrailerLength;
 import static software.amazon.awssdk.core.internal.util.ChunkContentUtils.calculateStreamContentLength;
@@ -77,7 +78,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             throws Exception {
 
         if (sraSigningEnabled(context)) {
-            ensurePayloadChecksumCachePresent(context.executionAttributes());
+            ensurePayloadChecksumStorePresent(context.executionAttributes());
             return sraChecksum(request, context);
         }
 
@@ -246,6 +247,7 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
                     ChecksumCalculatingAsyncRequestBody.builder()
                                                        .asyncRequestBody(context.requestProvider())
                                                        .algorithm(checksumSpecs.algorithmV2())
+                                                       .checksumStore(getPayloadChecksumStore(context.executionAttributes()))
                                                        .trailerHeader(checksumSpecs.headerName());
                 Optional<Long> maybeContentLengthHeader = request.firstMatchingHeader("Content-Length")
                                                                  .map(Long::parseLong);
@@ -321,12 +323,16 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
         }
     }
 
-    private void ensurePayloadChecksumCachePresent(ExecutionAttributes executionAttributes) {
-        PayloadChecksumStore cache = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE);
+    private void ensurePayloadChecksumStorePresent(ExecutionAttributes executionAttributes) {
+        PayloadChecksumStore cache = getPayloadChecksumStore(executionAttributes);
         if (cache == null) {
             cache = PayloadChecksumStore.create();
-            executionAttributes.putAttribute(SdkInternalExecutionAttribute.CHECKSUM_CACHE, cache);
+            executionAttributes.putAttribute(CHECKSUM_STORE, cache);
         }
+    }
+
+    private PayloadChecksumStore getPayloadChecksumStore(ExecutionAttributes executionAttributes) {
+        return executionAttributes.getAttribute(CHECKSUM_STORE);
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {

@@ -25,12 +25,12 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 public final class SdkInternalHttpSignerProperty {
 
     /**
-     * A cache for storing checksums calculated for a payload.
+     * An object for storing checksums calculated for a payload.
      *
      * <p>Note, checksums may not be relevant to some signers.
      */
-    public static final SignerProperty<PayloadChecksumStore> CHECKSUM_CACHE =
-        SignerProperty.create(SdkInternalHttpSignerProperty.class, "ChecksumCache");
+    public static final SignerProperty<PayloadChecksumStore> CHECKSUM_STORE =
+        SignerProperty.create(SdkInternalHttpSignerProperty.class, "ChecksumStore");
 
     private SdkInternalHttpSignerProperty() {
     }
