@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * An enum class representing a short form of identity providers to record in the UA string.
  *
- * Unimplemented metrics: I,J,K,M,O,S,U-c,e-[latest]
+ * Unimplemented metrics: I,K,M,O,S,U-c
  * Unsupported metrics (these will never be added): A,H
  */
 @SdkProtectedApi

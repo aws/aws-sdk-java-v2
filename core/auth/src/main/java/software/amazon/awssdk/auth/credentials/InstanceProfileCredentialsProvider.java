@@ -93,7 +93,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     /**
@@ -108,10 +108,10 @@ public final class InstanceProfileCredentialsProvider
                                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source)
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
         this.configProvider =
@@ -386,7 +386,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
-        private String source;
+        private String sourceFeatureId;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -400,7 +400,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         Builder clock(Clock clock) {
@@ -480,13 +480,13 @@ public final class InstanceProfileCredentialsProvider
         }
 
         @Override
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 
-        public void setSource(String source) {
-            source(source);
+        public void setSourceFeatureId(String sourceFeatureId) {
+            sourceFeatureId(sourceFeatureId);
         }
 
         @Override

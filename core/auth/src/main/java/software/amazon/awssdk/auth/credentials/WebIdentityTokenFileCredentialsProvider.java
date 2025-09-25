@@ -109,7 +109,8 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .prefetchTime(prefetchTime)
                                                     .staleTime(staleTime)
                                                     .roleSessionDuration(roleSessionDuration)
-                                                    .source(BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value())
+                                                    .sourceFeatureId(BusinessMetricFeatureId
+                                                                         .CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value())
                                                     .build();
 
             credentialsProvider = WebIdentityCredentialsUtils.factory().create(credentialProperties);

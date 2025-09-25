@@ -85,7 +85,7 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     /**
@@ -99,10 +99,10 @@ public final class ProcessCredentialsProvider
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.staticAccountId = builder.staticAccountId;
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source)
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -284,7 +284,7 @@ public final class ProcessCredentialsProvider
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
         private String staticAccountId;
-        private String source;
+        private String sourceFeatureId;
 
         /**
          * @see #builder()
@@ -299,7 +299,7 @@ public final class ProcessCredentialsProvider
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -376,8 +376,8 @@ public final class ProcessCredentialsProvider
         /**
          * Configure the source of this credentials provider. This is used for business metrics tracking.
          */
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 

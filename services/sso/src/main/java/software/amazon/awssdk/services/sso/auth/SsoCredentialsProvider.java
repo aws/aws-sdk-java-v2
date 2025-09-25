@@ -61,7 +61,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
 
     private final Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     private final SsoClient ssoClient;
@@ -81,11 +81,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
-        this.source = builder.source;
+        this.sourceFeatureId = builder.sourceFeatureId;
 
-        this.providerName = StringUtils.isEmpty(builder.source) 
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
@@ -220,10 +220,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         Builder refreshRequest(Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier);
 
         /**
-         * An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting previous
-         * credentials providers that are chained with this one.
+         * An optional string list of {@link BusinessMetricFeatureId} denoting previous
+         * credentials providers that are chained with this one. This method is primarily intended for use by AWS SDK internal
+         * components and should not be used directly by external users.
          */
-        Builder source(String source);
+        Builder sourceFeatureId(String sourceFeatureId);
 
         /**
          * Create a {@link SsoCredentialsProvider} using the configuration applied to this builder.
@@ -239,7 +240,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         private Duration staleTime;
         private Duration prefetchTime;
         private Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier;
-        private String source;
+        private String sourceFeatureId;
 
         BuilderImpl() {
 
@@ -251,7 +252,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
             this.staleTime = provider.staleTime;
             this.prefetchTime = provider.prefetchTime;
             this.getRoleCredentialsRequestSupplier = provider.getRoleCredentialsRequestSupplier;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         @Override
@@ -290,8 +291,8 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         }
 
         @Override
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 

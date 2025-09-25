@@ -53,7 +53,7 @@ public final class StsAssumeRoleCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE.value();
     private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     /**
@@ -64,10 +64,10 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(builder.assumeRoleRequestSupplier, "Assume role request must not be null.");
 
         this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source) 
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -111,7 +111,7 @@ public final class StsAssumeRoleCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleCredentialsProvider> {
         private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
-        private String source;
+        private String sourceFeatureId;
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
@@ -120,7 +120,7 @@ public final class StsAssumeRoleCredentialsProvider
         private Builder(StsAssumeRoleCredentialsProvider provider) {
             super(StsAssumeRoleCredentialsProvider::new, provider);
             this.assumeRoleRequestSupplier = provider.assumeRoleRequestSupplier;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -158,11 +158,11 @@ public final class StsAssumeRoleCredentialsProvider
         /**
          * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
          * that are chained with this one.
-         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
-         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
          */
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 

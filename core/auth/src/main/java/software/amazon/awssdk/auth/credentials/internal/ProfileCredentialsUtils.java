@@ -190,7 +190,7 @@ public final class ProfileCredentialsUtils {
         return ProcessCredentialsProvider.builder()
                                          .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
                                          .staticAccountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
-                                         .source(BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value())
+                                         .sourceFeatureId(BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value())
                                          .build();
     }
 
@@ -208,7 +208,7 @@ public final class ProfileCredentialsUtils {
             ProfileProviderCredentialsContext.builder()
                                              .profile(profile)
                                              .profileFile(profileFile)
-                                             .source(sourceFeatureId)
+                                             .sourceFeatureId(sourceFeatureId)
                                              .build());
     }
 
@@ -237,7 +237,8 @@ public final class ProfileCredentialsUtils {
                                                 .roleArn(roleArn)
                                                 .roleSessionName(roleSessionName)
                                                 .webIdentityTokenFile(webIdentityTokenFile)
-                                                .source(BusinessMetricFeatureId.CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN.value())
+                                                .sourceFeatureId(BusinessMetricFeatureId
+                                                                     .CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN.value())
                                                 .build();
 
         return WebIdentityCredentialsUtils.factory().create(credentialProperties);

@@ -51,7 +51,7 @@ public class StsGetSessionTokenCredentialsProvider
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
 
     private final GetSessionTokenRequest getSessionTokenRequest;
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     /**
@@ -62,10 +62,10 @@ public class StsGetSessionTokenCredentialsProvider
         Validate.notNull(builder.getSessionTokenRequest, "Get session token request must not be null.");
 
         this.getSessionTokenRequest = builder.getSessionTokenRequest;
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source) 
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -98,7 +98,7 @@ public class StsGetSessionTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetSessionTokenCredentialsProvider> {
         private GetSessionTokenRequest getSessionTokenRequest = GetSessionTokenRequest.builder().build();
-        private String source;
+        private String sourceFeatureId;
 
         private Builder() {
             super(StsGetSessionTokenCredentialsProvider::new);
@@ -107,7 +107,7 @@ public class StsGetSessionTokenCredentialsProvider
         public Builder(StsGetSessionTokenCredentialsProvider provider) {
             super(StsGetSessionTokenCredentialsProvider::new, provider);
             this.getSessionTokenRequest = provider.getSessionTokenRequest;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -137,14 +137,14 @@ public class StsGetSessionTokenCredentialsProvider
          * Configure the source of this credentials provider. This is used for business metrics tracking
          * to identify the credential provider chain.
          * 
-         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
-         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
          *
-         * @param source The source identifier for business metrics tracking.
+         * @param sourceFeatureId The source identifier for business metrics tracking.
          * @return This object for chained calls.
          */
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
         

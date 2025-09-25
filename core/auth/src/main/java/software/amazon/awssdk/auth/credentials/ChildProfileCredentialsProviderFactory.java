@@ -59,14 +59,14 @@ public interface ChildProfileCredentialsProviderFactory {
     final class ChildProfileCredentialsRequest {
         private final AwsCredentialsProvider sourceCredentialsProvider;
         private final Profile profile;
-        private final String source;
+        private final String sourceFeatureId;
 
         public ChildProfileCredentialsRequest(AwsCredentialsProvider sourceCredentialsProvider, 
                                             Profile profile, 
-                                            String source) {
+                                            String sourceFeatureId) {
             this.sourceCredentialsProvider = sourceCredentialsProvider;
             this.profile = profile;
-            this.source = source;
+            this.sourceFeatureId = sourceFeatureId;
         }
 
         public AwsCredentialsProvider sourceCredentialsProvider() {
@@ -77,8 +77,8 @@ public interface ChildProfileCredentialsProviderFactory {
             return profile;
         }
 
-        public String source() {
-            return source;
+        public String sourceFeatureId() {
+            return sourceFeatureId;
         }
     }
 }

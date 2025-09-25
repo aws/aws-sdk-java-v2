@@ -42,7 +42,8 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
 
     @Override
     public AwsCredentialsProvider create(ChildProfileCredentialsRequest request) {
-        return new StsProfileCredentialsProvider(request.sourceCredentialsProvider(), request.profile(), request.source());
+        return new StsProfileCredentialsProvider(request.sourceCredentialsProvider(), request.profile(),
+                                                 request.sourceFeatureId());
     }
 
     /**
@@ -55,7 +56,8 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
         private final AwsCredentialsProvider parentCredentialsProvider;
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
-        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile, String source) {
+        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile,
+                                              String sourceFeatureId) {
             String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
             String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
@@ -76,7 +78,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
             this.credentialsProvider = StsAssumeRoleCredentialsProvider.builder()
                                                                        .stsClient(stsClient)
                                                                        .refreshRequest(assumeRoleRequest)
-                                                                       .source(source)
+                                                                       .sourceFeatureId(sourceFeatureId)
                                                                        .build();
         }
 

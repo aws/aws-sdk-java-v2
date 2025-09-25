@@ -92,7 +92,7 @@ public final class ContainerCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String asyncThreadName;
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
     /**
@@ -102,10 +102,10 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source) 
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
         this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -330,7 +330,7 @@ public final class ContainerCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private String source;
+        private String sourceFeatureId;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -340,7 +340,7 @@ public final class ContainerCredentialsProvider
             this.endpoint = credentialsProvider.endpoint;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
-            this.source = credentialsProvider.source;
+            this.sourceFeatureId = credentialsProvider.sourceFeatureId;
         }
 
         @Override
@@ -374,13 +374,13 @@ public final class ContainerCredentialsProvider
         }
 
         @Override
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 
-        public void setSource(String source) {
-            source(source);
+        public void setSourceFeatureId(String sourceFeatureId) {
+            sourceFeatureId(sourceFeatureId);
         }
 
         @Override

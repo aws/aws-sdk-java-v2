@@ -32,13 +32,13 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
     private final AssumeRoleWithWebIdentityRequest request;
     private final Path webIdentityTokenFile;
-    private final String source;
+    private final String sourceFeatureId;
 
     public AssumeRoleWithWebIdentityRequestSupplier(Builder builder) {
 
         this.request = builder.request;
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
-        this.source = builder.source;
+        this.sourceFeatureId = builder.sourceFeatureId;
     }
 
     public static Builder builder() {
@@ -50,8 +50,8 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
         return request.toBuilder().webIdentityToken(getToken(webIdentityTokenFile)).build();
     }
 
-    public Optional<String> source() {
-        return Optional.ofNullable(source);
+    public Optional<String> sourceFeatureId() {
+        return Optional.ofNullable(sourceFeatureId);
     }
 
     //file extraction
@@ -69,7 +69,7 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
         private Path webIdentityTokenFile;
 
-        private String source;
+        private String sourceFeatureId;
 
         public Builder assumeRoleWithWebIdentityRequest(AssumeRoleWithWebIdentityRequest request) {
             this.request = request;
@@ -85,8 +85,8 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
             return new AssumeRoleWithWebIdentityRequestSupplier(this);
         }
 
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 

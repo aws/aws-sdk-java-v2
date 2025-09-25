@@ -87,7 +87,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                 AssumeRoleWithWebIdentityRequestSupplier.builder()
                                                         .assumeRoleWithWebIdentityRequest(requestBuilder.build())
                                                         .webIdentityTokenFile(credentialProperties.webIdentityTokenFile())
-                                                        .source(credentialProperties.source())
+                                                        .sourceFeatureId(credentialProperties.sourceFeatureId())
                                                         .build();
 
             StsAssumeRoleWithWebIdentityCredentialsProvider.Builder builder =
@@ -95,7 +95,7 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
                                                                .asyncCredentialUpdateEnabled(asyncCredentialUpdateEnabled)
                                                                .stsClient(stsClient)
                                                                .refreshRequest(supplier)
-                                                               .source(credentialProperties.source());
+                                                               .sourceFeatureId(credentialProperties.sourceFeatureId());
 
             if (credentialProperties.prefetchTime() != null) {
                 builder.prefetchTime(credentialProperties.prefetchTime());

@@ -52,8 +52,10 @@ public interface HttpCredentialsProvider extends AwsCredentialsProvider, SdkAuto
         /**
          * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
          * that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
          */
-        default BuilderT source(String source) {
+        default BuilderT sourceFeatureId(String sourceFeatureId) {
             throw new UnsupportedOperationException();
         }
 

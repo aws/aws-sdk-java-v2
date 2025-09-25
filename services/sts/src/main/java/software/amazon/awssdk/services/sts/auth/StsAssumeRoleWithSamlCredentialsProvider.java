@@ -52,7 +52,7 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleWithSamlCredentialsProvider.Builder, StsAssumeRoleWithSamlCredentialsProvider> {
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_SAML.value();
     private final Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
-    private final String source;
+    private final String sourceFeatureId;
     private final String providerName;
 
 
@@ -64,10 +64,10 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
         Validate.notNull(builder.assumeRoleWithSamlRequestSupplier, "Assume role with SAML request must not be null.");
 
         this.assumeRoleWithSamlRequestSupplier = builder.assumeRoleWithSamlRequestSupplier;
-        this.source = builder.source;
-        this.providerName = StringUtils.isEmpty(builder.source) 
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
-            : builder.source + "," + PROVIDER_NAME;
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -104,7 +104,7 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithSamlCredentialsProvider> {
         private Supplier<AssumeRoleWithSamlRequest> assumeRoleWithSamlRequestSupplier;
-        private String source;
+        private String sourceFeatureId;
 
         private Builder() {
             super(StsAssumeRoleWithSamlCredentialsProvider::new);
@@ -113,7 +113,7 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
         public Builder(StsAssumeRoleWithSamlCredentialsProvider provider) {
             super(StsAssumeRoleWithSamlCredentialsProvider::new, provider);
             this.assumeRoleWithSamlRequestSupplier = provider.assumeRoleWithSamlRequestSupplier;
-            this.source = provider.source;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -152,14 +152,14 @@ public final class StsAssumeRoleWithSamlCredentialsProvider
          * Configure the source of this credentials provider. This is used for business metrics tracking
          * to identify the credential provider chain.
          * 
-         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components.
-         * {@link BusinessMetricFeatureId} is a protected API and should not be used directly by external users.</p>
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
          *
-         * @param source The source identifier for business metrics tracking.
+         * @param sourceFeatureId The source identifier for business metrics tracking.
          * @return This object for chained calls.
          */
-        public Builder source(String source) {
-            this.source = source;
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
             return this;
         }
 
