@@ -386,18 +386,21 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     }
 
     /**
+     * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
+     * them.
      *
-     * @param option
-     * @param value
-     * @return
-     * @param <T>
+     * @param option The option to configure.
+     * @param value The value of the option.
+     * @param <T> The type of the option.
+     * @return an instance of this builder
      */
     <T> S3CrtAsyncClientBuilder putAdvancedOption(SdkAdvancedAsyncClientOption<T> option, T value);
 
     /**
-     *
-     * @param advancedOptions
-     * @return
+     * Configure the map of advanced override options. This will override all values currently configured. The values in the
+     * map must match the key type of the map, or a runtime exception will be raised.
+     * @param advancedOptions the options to configure
+     * @return an instance of this builder
      */
     S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
 
