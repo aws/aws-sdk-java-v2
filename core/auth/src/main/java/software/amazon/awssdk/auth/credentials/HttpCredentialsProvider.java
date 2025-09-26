@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 /**
@@ -47,6 +48,16 @@ public interface HttpCredentialsProvider extends AwsCredentialsProvider, SdkAuto
          * this behavior, except for testing purposes where mocking the HTTP credential source would be useful.
          */
         BuilderT endpoint(String endpoint);
+
+        /**
+         * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
+         * that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
+        default BuilderT sourceFeatureId(String sourceFeatureId) {
+            throw new UnsupportedOperationException();
+        }
 
         /**
          * Build the credentials provider based on the configuration on this builder.

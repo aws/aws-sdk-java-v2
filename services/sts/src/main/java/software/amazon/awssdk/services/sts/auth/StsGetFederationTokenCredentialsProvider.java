@@ -23,11 +23,13 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.FederatedUser;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetFederationTokenResponse;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -48,9 +50,11 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetFederationTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetFederationTokenCredentialsProvider.Builder, StsGetFederationTokenCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsGetFederationTokenCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_FEDERATION_TOKEN.value();
 
     private final GetFederationTokenRequest getFederationTokenRequest;
+    private final String sourceFeatureId;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -60,6 +64,10 @@ public class StsGetFederationTokenCredentialsProvider
         Validate.notNull(builder.getFederationTokenRequest, "Get session token request must not be null.");
 
         this.getFederationTokenRequest = builder.getFederationTokenRequest;
+        this.sourceFeatureId = builder.sourceFeatureId;
+        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+            ? PROVIDER_NAME 
+            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -73,7 +81,7 @@ public class StsGetFederationTokenCredentialsProvider
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetFederationTokenResponse federationToken = stsClient.getFederationToken(getFederationTokenRequest);
         return fromStsCredentials(federationToken.credentials(),
-                                  PROVIDER_NAME,
+                                  providerName(),
                                   accountIdFromArn(federationToken.federatedUser()));
     }
 
@@ -93,7 +101,7 @@ public class StsGetFederationTokenCredentialsProvider
 
     @Override
     String providerName() {
-        return PROVIDER_NAME;
+        return this.providerName;
     }
 
     /**
@@ -103,6 +111,7 @@ public class StsGetFederationTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetFederationTokenCredentialsProvider> {
         private GetFederationTokenRequest getFederationTokenRequest;
+        private String sourceFeatureId;
 
         private Builder() {
             super(StsGetFederationTokenCredentialsProvider::new);
@@ -111,6 +120,7 @@ public class StsGetFederationTokenCredentialsProvider
         public Builder(StsGetFederationTokenCredentialsProvider provider) {
             super(StsGetFederationTokenCredentialsProvider::new, provider);
             this.getFederationTokenRequest = provider.getFederationTokenRequest;
+            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -132,6 +142,21 @@ public class StsGetFederationTokenCredentialsProvider
          */
         public Builder refreshRequest(Consumer<GetFederationTokenRequest.Builder> getFederationTokenRequest) {
             return refreshRequest(GetFederationTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
+        }
+
+        /**
+         * Configure the source of this credentials provider. This is used for business metrics tracking
+         * to identify the credential provider chain.
+         * 
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         *
+         * @param sourceFeatureId The source identifier for business metrics tracking.
+         * @return This object for chained calls.
+         */
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
+            return this;
         }
 
         @Override

@@ -40,5 +40,45 @@ public interface ChildProfileCredentialsProviderFactory {
      * provider.
      * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
-    AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile);
+    default AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
+        ChildProfileCredentialsRequest request = new ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, null);
+        return create(request);
+    }
+
+    /**
+     * Create a credentials provider for the provided profile, using the provided source credentials provider to authenticate
+     * with AWS. In the case of STS, the returned credentials provider is for a role that has been assumed, and the provided
+     * source credentials provider is the credentials that should be used to authenticate that the user is allowed to assume
+     * that role.
+     *
+     * @param request The request containing all parameters needed to create the child credentials provider.
+     * @return The credentials provider with permissions derived from the request parameters.
+     */
+    AwsCredentialsProvider create(ChildProfileCredentialsRequest request);
+
+    final class ChildProfileCredentialsRequest {
+        private final AwsCredentialsProvider sourceCredentialsProvider;
+        private final Profile profile;
+        private final String sourceFeatureId;
+
+        public ChildProfileCredentialsRequest(AwsCredentialsProvider sourceCredentialsProvider, 
+                                            Profile profile, 
+                                            String sourceFeatureId) {
+            this.sourceCredentialsProvider = sourceCredentialsProvider;
+            this.profile = profile;
+            this.sourceFeatureId = sourceFeatureId;
+        }
+
+        public AwsCredentialsProvider sourceCredentialsProvider() {
+            return sourceCredentialsProvider;
+        }
+
+        public Profile profile() {
+            return profile;
+        }
+
+        public String sourceFeatureId() {
+            return sourceFeatureId;
+        }
+    }
 }

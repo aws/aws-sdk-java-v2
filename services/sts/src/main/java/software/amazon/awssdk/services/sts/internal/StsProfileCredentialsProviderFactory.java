@@ -41,21 +41,23 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                                 + "'%s' profile.";
 
     @Override
-    public AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
-        return new StsProfileCredentialsProvider(sourceCredentialsProvider, profile);
+    public AwsCredentialsProvider create(ChildProfileCredentialsRequest request) {
+        return new StsProfileCredentialsProvider(request.sourceCredentialsProvider(), request.profile(),
+                                                 request.sourceFeatureId());
     }
 
     /**
      * A wrapper for a {@link StsAssumeRoleCredentialsProvider} that is returned by this factory when
-     * {@link #create(AwsCredentialsProvider, Profile)} is invoked. This wrapper is important because it ensures the parent
-     * credentials provider is closed when the assume-role credentials provider is no longer needed.
+     * {@link #create(ChildProfileCredentialsRequest)} is invoked. This wrapper is important because it ensures the
+     * parent credentials provider is closed when the assume-role credentials provider is no longer needed.
      */
     private static final class StsProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final StsClient stsClient;
         private final AwsCredentialsProvider parentCredentialsProvider;
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
-        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile) {
+        private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile,
+                                              String sourceFeatureId) {
             String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
             String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
@@ -76,6 +78,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
             this.credentialsProvider = StsAssumeRoleCredentialsProvider.builder()
                                                                        .stsClient(stsClient)
                                                                        .refreshRequest(assumeRoleRequest)
+                                                                       .sourceFeatureId(sourceFeatureId)
                                                                        .build();
         }
 

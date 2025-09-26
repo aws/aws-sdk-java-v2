@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -31,12 +32,13 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
     private final AssumeRoleWithWebIdentityRequest request;
     private final Path webIdentityTokenFile;
+    private final String sourceFeatureId;
 
     public AssumeRoleWithWebIdentityRequestSupplier(Builder builder) {
 
         this.request = builder.request;
         this.webIdentityTokenFile = builder.webIdentityTokenFile;
-
+        this.sourceFeatureId = builder.sourceFeatureId;
     }
 
     public static Builder builder() {
@@ -46,6 +48,10 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
     @Override
     public AssumeRoleWithWebIdentityRequest get() {
         return request.toBuilder().webIdentityToken(getToken(webIdentityTokenFile)).build();
+    }
+
+    public Optional<String> sourceFeatureId() {
+        return Optional.ofNullable(sourceFeatureId);
     }
 
     //file extraction
@@ -63,6 +69,7 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
         private Path webIdentityTokenFile;
 
+        private String sourceFeatureId;
 
         public Builder assumeRoleWithWebIdentityRequest(AssumeRoleWithWebIdentityRequest request) {
             this.request = request;
@@ -76,6 +83,11 @@ public class AssumeRoleWithWebIdentityRequestSupplier implements Supplier<Assume
 
         public AssumeRoleWithWebIdentityRequestSupplier build() {
             return new AssumeRoleWithWebIdentityRequestSupplier(this);
+        }
+
+        public Builder sourceFeatureId(String sourceFeatureId) {
+            this.sourceFeatureId = sourceFeatureId;
+            return this;
         }
 
 
