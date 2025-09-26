@@ -921,12 +921,6 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
                        + "metrics -> endpoint.attribute($T.METRIC_VALUES).forEach(v -> metrics.addMetric(v)))",
                        SdkInternalExecutionAttribute.class, AwsEndpointAttribute.class);
         b.endControlFlow();
-
-        if (endpointRulesSpecUtils.isS3()) {
-            b.addStatement("$T.addS3ExpressBusinessMetricIfApplicable(executionAttributes)",
-                           ClassName.get("software.amazon.awssdk.services.s3.internal.s3express", "S3ExpressUtils"));
-        }
-        
         return b.build();
     }
 }
