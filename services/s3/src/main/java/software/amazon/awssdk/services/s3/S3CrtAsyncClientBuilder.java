@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,9 +26,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -361,6 +364,43 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth);
 
+    /**
+     * Controls how client performs file I/O operations. Only applies to file-based workloads.
+     * @param fileIoConfiguration the file options to be used
+     * @return an instance of this builder
+     */
+    S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration);
+
+    /**
+     * Controls how client performs file I/O operations. Only applies to file-based workloads.
+     * @param fileIoOptionsBuilder the file options builder to be used
+     * @return an instance of this builder
+     */
+    default S3CrtAsyncClientBuilder fileIoConfiguration(Consumer<S3CrtFileIoConfiguration.Builder> fileIoOptionsBuilder) {
+        Validate.paramNotNull(fileIoOptionsBuilder, "fileIoOptionsBuilder");
+        return fileIoConfiguration(S3CrtFileIoConfiguration.builder()
+                                                           .applyMutation(fileIoOptionsBuilder)
+                                                           .build());
+    }
+
+    /**
+     * Configure an advanced override option. These values are used very rarely, and the majority of SDK customers can ignore
+     * them.
+     *
+     * @param option The option to configure.
+     * @param value The value of the option.
+     * @param <T> The type of the option.
+     * @return an instance of this builder
+     */
+    <T> S3CrtAsyncClientBuilder putAdvancedOption(SdkAdvancedAsyncClientOption<T> option, T value);
+
+    /**
+     * Configure the map of advanced override options. This will override all values currently configured. The values in the
+     * map must match the key type of the map, or a runtime exception will be raised.
+     * @param advancedOptions the options to configure
+     * @return an instance of this builder
+     */
+    S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
 
     @Override
     S3AsyncClient build();

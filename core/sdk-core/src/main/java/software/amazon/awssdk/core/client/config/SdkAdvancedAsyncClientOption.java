@@ -55,6 +55,22 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
 
+    /**
+     * Configure Direct I/O for CRT file-based upload with the s3 async client. Only used with the CRT s3 async client.
+     * <p>
+     *     Enabling direct I/O bypasses the OS cache. Helpful when the disk I/O outperforms the kernel cache.
+     * <p>
+     * Notes:
+     * <ul>
+     *   <li>Only supported on Linux for now.</li>
+     *   <li>Only supports upload for now.</li>
+     *   <li>Uses it as a potentially powerful tool that should be used with caution. Read NOTES for O_DIRECT</li>
+     * </ul>
+     *   for additional info https://man7.org/linux/man-pages/man2/openat.2.html
+     */
+    public static final SdkAdvancedAsyncClientOption<Boolean> CRT_UPLOAD_FILE_DIRECT_IO =
+        new SdkAdvancedAsyncClientOption<>(Boolean.class);
+
     private SdkAdvancedAsyncClientOption(Class<T> valueClass) {
         super(valueClass);
     }

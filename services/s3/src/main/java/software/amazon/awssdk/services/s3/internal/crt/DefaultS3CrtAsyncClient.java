@@ -31,6 +31,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -67,6 +69,7 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator;
@@ -78,6 +81,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -222,7 +226,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
-                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes);
+                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes)
+                                       .fileIoConfiguration(builder.fileIoConfiguration)
+                                       .advancedOptions(builder.advancedOptions.build());
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -256,7 +262,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
+        private S3CrtFileIoConfiguration fileIoConfiguration;
 
+        private AttributeMap.Builder advancedOptions = AttributeMap.builder();
 
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
@@ -385,6 +393,24 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder disableS3ExpressSessionAuth(Boolean disableS3ExpressSessionAuth) {
             this.disableS3ExpressSessionAuth = disableS3ExpressSessionAuth;
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration) {
+            this.fileIoConfiguration = fileIoConfiguration;
+            return this;
+        }
+
+        @Override
+        public <T> S3CrtAsyncClientBuilder putAdvancedOption(SdkAdvancedAsyncClientOption<T> option, T value) {
+            advancedOptions.put(option, value);
+            return this;
+        }
+
+        @Override
+        public S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions) {
+            this.advancedOptions.putAll(advancedOptions);
             return this;
         }
 

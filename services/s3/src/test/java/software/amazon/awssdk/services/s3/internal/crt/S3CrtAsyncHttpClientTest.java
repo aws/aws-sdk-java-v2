@@ -48,6 +48,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
@@ -59,15 +60,17 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
-import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -443,6 +446,13 @@ public class S3CrtAsyncHttpClientTest {
                                                                                                                      .minimumThroughputTimeout(Duration.ofSeconds(2)))
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
+                                       .fileIoConfiguration(S3CrtFileIoConfiguration.builder()
+                                                                                    .diskThroughputGbps(8.0)
+                                                                                    .uploadBufferDisabled(true)
+                                                                                    .build())
+                                        .advancedOptions(AttributeMap.builder()
+                                                                     .put(SdkAdvancedAsyncClientOption.CRT_UPLOAD_FILE_DIRECT_IO, true)
+                                                                     .build())
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
@@ -466,6 +476,12 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(clientOptions.getMaxConnections()).isEqualTo(100);
             assertThat(clientOptions.getThroughputTargetGbps()).isEqualTo(3.5);
             assertThat(clientOptions.getMemoryLimitInBytes()).isEqualTo(5L * 1024 * 1024 * 1024);
+
+            assertThat(clientOptions.getFileIoOptions()).isNotNull();
+            assertThat(clientOptions.getFileIoOptions().getShouldStream()).isTrue();
+            assertThat(clientOptions.getFileIoOptions().getDirectIo()).isTrue();
+            assertThat(clientOptions.getFileIoOptions().getDiskThroughputGbps()).isEqualTo(8.0);
+
         }
     }
 
@@ -501,6 +517,21 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(clientOptions.getMonitoringOptions()).isNull();
             assertThat(clientOptions.getProxyOptions()).isNull();
             assertThat(clientOptions.getMonitoringOptions()).isNull();
+        }
+    }
+
+    @Test
+    void build_nullFileOptions() {
+        StaticCredentialsProvider credentialsProvider =
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"));
+        S3NativeClientConfiguration configuration =
+        S3NativeClientConfiguration.builder()
+                                   .credentialsProvider(credentialsProvider)
+                                   .build();
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getFileIoOptions()).isNull();
         }
     }
 
