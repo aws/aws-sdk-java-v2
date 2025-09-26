@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "contributor": "",
-    "description": "Optimizations for DDB EnhancedDocument.toJson()"
-}

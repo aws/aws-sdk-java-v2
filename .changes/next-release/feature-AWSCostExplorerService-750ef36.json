@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Cost Explorer Service",
-    "contributor": "",
-    "description": "Support for payer account dimension and billing view health status."
-}
