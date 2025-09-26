@@ -47,8 +47,7 @@ public class MavenProjectTest extends MavenTestBase {
     @Test
     @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
-        boolean experimental = false;
-        verifyTransformation(experimental);
+        verifyTransformation();
         verifyCompilation();
     }
 }

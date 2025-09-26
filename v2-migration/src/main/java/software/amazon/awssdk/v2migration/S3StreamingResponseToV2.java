@@ -149,6 +149,8 @@ public class S3StreamingResponseToV2 extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
 
