@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -25,6 +26,8 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -33,6 +36,7 @@ import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -380,6 +384,22 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
                                                            .applyMutation(fileIoOptionsBuilder)
                                                            .build());
     }
+
+    /**
+     *
+     * @param option
+     * @param value
+     * @return
+     * @param <T>
+     */
+    <T> S3CrtAsyncClientBuilder putAdvancedOption(SdkAdvancedAsyncClientOption<T> option, T value);
+
+    /**
+     *
+     * @param advancedOptions
+     * @return
+     */
+    S3CrtAsyncClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions);
 
     @Override
     S3AsyncClient build();

@@ -19,6 +19,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -30,14 +31,12 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 @ThreadSafe
 public final class S3CrtFileIoConfiguration
     implements ToCopyableBuilder<S3CrtFileIoConfiguration.Builder, S3CrtFileIoConfiguration> {
-    private final Boolean shouldStream;
+    private final Boolean uploadBufferDisabled;
     private final Double diskThroughputGbps;
-    private final Boolean directIo;
 
     private S3CrtFileIoConfiguration(DefaultBuilder builder) {
-        this.shouldStream = builder.shouldStream;
+        this.uploadBufferDisabled = builder.uploadBufferDisabled;
         this.diskThroughputGbps = builder.diskThroughputGbps;
-        this.directIo = builder.directIo;
     }
 
     /**
@@ -48,15 +47,21 @@ public final class S3CrtFileIoConfiguration
     }
 
     /**
-     * Skip buffering the part in memory before sending the request.
-     * If set, set the {@code diskThroughputGbps} to reasonably align with the available disk throughput.
+     * Skip buffering the part in memory before sending the request. When set to true, the file content will not be buffered
+     * in memory and instead streamed to the http request.
+     * <p>
+     * Note: If upload buffering is still enabled, the CRT client will buffer <em>full parts</em> in
+     * memory, which could lead to out-of-memory for large files when the application does not have enough memory to fully
+     * buffer those parts in memory.
+     * <p>
+     * If set to true, also set the {@code diskThroughputGbps} to reasonably align with the available disk throughput.
      * Otherwise, the transfer may fail with connection starvation.
      * Defaults to false.
-     *
+     * @see SdkAdvancedAsyncClientOption#CRT_UPLOAD_FILE_DIRECT_IO
      * @return if client should skip buffering in memory before sending the request.
      */
-    public Boolean shouldStream() {
-        return shouldStream;
+    public Boolean uploadBufferDisabled() {
+        return uploadBufferDisabled;
     }
 
     /**
@@ -74,20 +79,6 @@ public final class S3CrtFileIoConfiguration
         return diskThroughputGbps;
     }
 
-    /**
-     * Enable direct I/O to bypass the OS cache. Helpful when the disk I/O outperforms the kernel cache.
-     * Notes:
-     * - Only supported on Linux for now.
-     * - Only supports upload for now.
-     * - Uses it as a potentially powerful tool that should be used with caution. Read NOTES for O_DIRECT
-     *   for additional info <a href="https://man7.org/linux/man-pages/man2/openat.2.html">open</a>
-     *
-     * @return directIO value
-     */
-    public Boolean directIo() {
-        return directIo;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -99,20 +90,16 @@ public final class S3CrtFileIoConfiguration
 
         S3CrtFileIoConfiguration that = (S3CrtFileIoConfiguration) o;
 
-        if (!Objects.equals(shouldStream, that.shouldStream)) {
+        if (!Objects.equals(uploadBufferDisabled, that.uploadBufferDisabled)) {
             return false;
         }
-        if (!Objects.equals(diskThroughputGbps, that.diskThroughputGbps)) {
-            return false;
-        }
-        return Objects.equals(directIo, that.directIo);
+        return Objects.equals(diskThroughputGbps, that.diskThroughputGbps);
     }
 
     @Override
     public int hashCode() {
-        int result = shouldStream != null ? shouldStream.hashCode() : 0;
+        int result = uploadBufferDisabled != null ? uploadBufferDisabled.hashCode() : 0;
         result = 31 * result + (diskThroughputGbps != null ? diskThroughputGbps.hashCode() : 0);
-        result = 31 * result + (directIo != null ? directIo.hashCode() : 0);
         return result;
     }
 
@@ -131,7 +118,7 @@ public final class S3CrtFileIoConfiguration
          * @param shouldStream whether to stream the file
          * @return The builder for method chaining.
          */
-        Builder shouldStream(Boolean shouldStream);
+        Builder uploadBufferDisabled(Boolean shouldStream);
 
         /**
          * The estimated disk throughput in gigabits per second (Gbps).
@@ -147,52 +134,31 @@ public final class S3CrtFileIoConfiguration
          */
         Builder diskThroughputGbps(Double diskThroughputGbps);
 
-        /**
-         * Enable direct I/O to bypass the OS cache. Helpful when the disk I/O outperforms the kernel cache.
-         * Notes:
-         * - Only supported on Linux for now.
-         * - Only supports upload for now.
-         * - Uses it as a potentially powerful tool that should be used with caution. Read NOTES for O_DIRECT
-         *   for additional info https://man7.org/linux/man-pages/man2/openat.2.html
-         *
-         * @param directIo whether to enable direct I/O
-         * @return The builder for method chaining.
-         */
-        Builder directIo(Boolean directIo);
-
         @Override
         S3CrtFileIoConfiguration build();
     }
 
     private static final class DefaultBuilder implements Builder {
-        private Boolean shouldStream;
+        private Boolean uploadBufferDisabled;
         private Double diskThroughputGbps;
-        private Boolean directIo;
 
         private DefaultBuilder() {
         }
 
         private DefaultBuilder(S3CrtFileIoConfiguration fileIoOptions) {
-            this.shouldStream = fileIoOptions.shouldStream;
+            this.uploadBufferDisabled = fileIoOptions.uploadBufferDisabled;
             this.diskThroughputGbps = fileIoOptions.diskThroughputGbps;
-            this.directIo = fileIoOptions.directIo;
         }
 
         @Override
-        public Builder shouldStream(Boolean shouldStream) {
-            this.shouldStream = shouldStream;
+        public Builder uploadBufferDisabled(Boolean shouldStream) {
+            this.uploadBufferDisabled = shouldStream;
             return this;
         }
 
         @Override
         public Builder diskThroughputGbps(Double diskThroughputGbps) {
             this.diskThroughputGbps = diskThroughputGbps;
-            return this;
-        }
-
-        @Override
-        public Builder directIo(Boolean directIo) {
-            this.directIo = directIo;
             return this;
         }
 

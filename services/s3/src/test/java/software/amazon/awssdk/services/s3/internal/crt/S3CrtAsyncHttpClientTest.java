@@ -48,6 +48,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
@@ -69,6 +70,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.AttributeMap;
 
 public class S3CrtAsyncHttpClientTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://127.0.0.1:443");
@@ -444,7 +446,13 @@ public class S3CrtAsyncHttpClientTest {
                                                                                                                      .minimumThroughputTimeout(Duration.ofSeconds(2)))
                                                                                 .proxyConfiguration(p -> p.host("127.0.0.1").port(8080))
                                                                                 .build())
-                                       .fileIoConfiguration(S3CrtFileIoConfiguration.builder().diskThroughputGbps(8.0).shouldStream(true).directIo(true).build())
+                                       .fileIoConfiguration(S3CrtFileIoConfiguration.builder()
+                                                                                    .diskThroughputGbps(8.0)
+                                                                                    .uploadBufferDisabled(true)
+                                                                                    .build())
+                                        .advancedOptions(AttributeMap.builder()
+                                                                     .put(SdkAdvancedAsyncClientOption.CRT_UPLOAD_FILE_DIRECT_IO, true)
+                                                                     .build())
                                        .build();
         try (S3CrtAsyncHttpClient client =
                  (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration).build()) {

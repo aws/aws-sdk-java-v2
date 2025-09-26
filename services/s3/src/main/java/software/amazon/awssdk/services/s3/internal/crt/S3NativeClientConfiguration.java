@@ -21,6 +21,7 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import java.net.URI;
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -35,6 +36,7 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtFileIoConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -117,7 +119,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
-        this.fileIoOptions = builder.fileIoConfiguration == null ? null : resolveFileIoOptions(builder.fileIoConfiguration);
+        this.fileIoOptions = builder.fileIoConfiguration == null ? null : resolveFileIoOptions(builder);
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -127,12 +129,17 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return true;
     }
 
-    private static FileIoOptions resolveFileIoOptions(S3CrtFileIoConfiguration s3CrtfileIoConfiguration) {
-        boolean shouldStream = Validate.getOrDefault(s3CrtfileIoConfiguration.shouldStream(), () -> false);
-        double diskThroughputInGbps = Validate.getOrDefault(s3CrtfileIoConfiguration.diskThroughputGbps(),
+    private static FileIoOptions resolveFileIoOptions(Builder builder) {
+        S3CrtFileIoConfiguration s3CrtFileIoConfiguration = builder.fileIoConfiguration;
+        boolean shouldStream = Validate.getOrDefault(s3CrtFileIoConfiguration.uploadBufferDisabled(), () -> false);
+        double diskThroughputInGbps = Validate.getOrDefault(s3CrtFileIoConfiguration.diskThroughputGbps(),
                                                             () -> DEFAULT_FILE_IO_THROUGHPUT_IN_GBPS);
         Validate.isPositive(diskThroughputInGbps, "diskThroughputGbps");
-        boolean directIo = Validate.getOrDefault(s3CrtfileIoConfiguration.directIo(), () -> false);
+
+        AttributeMap advancedOptions = builder.advancedOptions;
+        boolean directIo = Validate.getOrDefault(
+            advancedOptions.get(SdkAdvancedAsyncClientOption.CRT_UPLOAD_FILE_DIRECT_IO),
+            () -> false);
         return new FileIoOptions(shouldStream, diskThroughputInGbps, directIo);
     }
 
@@ -231,6 +238,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
         private S3CrtFileIoConfiguration fileIoConfiguration;
+        private AttributeMap advancedOptions;
 
         private Builder() {
         }
@@ -296,6 +304,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder fileIoConfiguration(S3CrtFileIoConfiguration fileIoConfiguration) {
             this.fileIoConfiguration = fileIoConfiguration;
+            return this;
+        }
+
+        public Builder advancedOptions(AttributeMap advancedOptions) {
+            this.advancedOptions = advancedOptions;
             return this;
         }
     }
