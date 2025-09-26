@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.5__ __2025-09-26__
+## __AWS Billing__
+  - ### Features
+    - Add ability to combine custom billing views to create new consolidated views.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Support for payer account dimension and billing view health status.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - This release enhances the information provided through Flow Traces. New information includes source/next node tracking, execution chains for complex nodes, dependency action (operation) details, and dependency traces.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds supports for manual contact picking (WorkList) operations on Routing Profiles, Agent Management and SearchContacts APIs.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Optimizations for DDB EnhancedDocument.toJson()
+
+## __Amazon DynamoDB Streams__
+  - ### Features
+    - Added support for IPv6 compatible endpoints for DynamoDB Streams.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release includes documentation updates for Amazon EBS General Purpose SSD (gp3) volumes with larger size and higher IOPS and throughput.
+
+## __Amazon Redshift__
+  - ### Features
+    - Support tagging and tag propagation to IAM Identity Center for Redshift Idc Applications
+
+## __Amazon Simple Queue Service__
+  - ### Bugfixes
+    - Fix SqsAsyncBatchManager excessive batch flushing under heavy load. Fixes [#6374](https://github.com/aws/aws-sdk-java-v2/issues/6374).
+        - Contributed by: [@thornhillcody](https://github.com/thornhillcody)
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for configurable Speaker Labeling and Channel Labeling features for Audio modality.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@thornhillcody](https://github.com/thornhillcody)
 # __2.34.4__ __2025-09-25__
 ## __AWS Glue__
   - ### Features

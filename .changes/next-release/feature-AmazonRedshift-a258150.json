@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Support tagging and tag propagation to IAM Identity Center for Redshift Idc Applications"
-}

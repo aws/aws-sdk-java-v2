@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon Simple Queue Service",
-    "contributor": "thornhillcody",
-    "description": "Fix SqsAsyncBatchManager excessive batch flushing under heavy load. Fixes [#6374](https://github.com/aws/aws-sdk-java-v2/issues/6374)."
-}
