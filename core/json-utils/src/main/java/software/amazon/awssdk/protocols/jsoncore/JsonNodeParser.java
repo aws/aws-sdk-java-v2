@@ -31,7 +31,6 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
-import software.amazon.awssdk.thirdparty.jackson.core.StreamReadFeature;
 import software.amazon.awssdk.thirdparty.jackson.core.json.JsonReadFeature;
 
 /**
@@ -47,7 +46,6 @@ public final class JsonNodeParser {
      */
     public static final JsonFactory DEFAULT_JSON_FACTORY =
         JsonFactory.builder()
-                   .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
                    .configure(JsonReadFeature.ALLOW_JAVA_COMMENTS, true)
                    .build();
 
