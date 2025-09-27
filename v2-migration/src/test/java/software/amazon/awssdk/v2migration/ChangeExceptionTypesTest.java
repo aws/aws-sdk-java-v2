@@ -29,13 +29,15 @@ import org.openrewrite.config.YamlResourceLoader;
 import org.openrewrite.java.Java8Parser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
+import org.openrewrite.test.TypeValidation;
 
 public class ChangeExceptionTypesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
         try (InputStream stream = getClass().getResourceAsStream("/META-INF/rewrite/change-exception-types.yml")) {
-            spec.recipes(Environment.builder()
+            spec.recipes(new SdkExceptionToV2(),
+                         Environment.builder()
                                     .load(new YamlResourceLoader(stream, URI.create("rewrite.yml"), new Properties()))
                                     .build()
                                     .activateRecipes("software.amazon.awssdk.v2migration.ChangeExceptionTypes"));
@@ -43,7 +45,8 @@ public class ChangeExceptionTypesTest implements RewriteTest {
             throw new RuntimeException(e);
         }
 
-        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"));
+        spec.parser(Java8Parser.builder().classpath("aws-java-sdk-sqs", "sdk-core"))
+            .typeValidationOptions(TypeValidation.all().methodInvocations(false));
     }
 
     @Test

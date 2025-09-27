@@ -1,0 +1,24 @@
+{
+    "version": "2.33.12",
+    "date": "2025-09-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Network Firewall now prevents TLS handshakes with the target server until after the Server Name Indication (SNI) has been seen and verified. The monitoring dashboard now provides deeper insights into PrivateLink endpoint candidates and offers filters based on IP addresses and protocol."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Add support for Amazon EC2 Capacity Blocks for ML"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add mac-m4.metal and mac-m4pro.metal instance types."
+        }
+    ]
+}
