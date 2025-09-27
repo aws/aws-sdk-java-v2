@@ -34,6 +34,7 @@
         "sdk-core": { "packageName": "AwsJavaSdk-Core" },
         "url-connection-client": { "packageName": "AwsJavaSdk-HttpClient-UrlConnectionClient" },
         "utils": { "packageName": "AwsJavaSdk-Core-Utils" },
+        "utils-lite": { "packageName": "AwsJavaSdk-Core-UtilsLite" },
         "imds": { "packageName": "AwsJavaSdk-Imds" },
         "crt-core": { "packageName": "AwsJavaSdk-Core-CrtCore" },
         "checksums-spi": { "packageName": "AwsJavaSdk-Core-ChecksumsSpi" },

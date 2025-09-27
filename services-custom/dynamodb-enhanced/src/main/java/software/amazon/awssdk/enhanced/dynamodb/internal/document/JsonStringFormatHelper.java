@@ -46,44 +46,72 @@ public final class JsonStringFormatHelper {
     }
 
     /**
-     * Escapes characters for a give given string
+     * Escapes characters for a given string
      *
      * @param input Input string
      * @return String with escaped characters.
      */
     public static String addEscapeCharacters(String input) {
-        StringBuilder output = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
+        StringBuilder output = null;
+        int len = input.length();
+
+        for (int i = 0; i < len; i++) {
             char ch = input.charAt(i);
-            switch (ch) {
-                case '\\':
-                    output.append("\\\\"); // escape backslash with a backslash
-                    break;
-                case '\n':
-                    output.append("\\n"); // newline character
-                    break;
-                case '\r':
-                    output.append("\\r"); // carriage return character
-                    break;
-                case '\t':
-                    output.append("\\t"); // tab character
-                    break;
-                case '\f':
-                    output.append("\\f"); // form feed
-                    break;
-                case '\"':
-                    output.append("\\\""); // double-quote character
-                    break;
-                default:
-                    if (Character.isISOControl(ch)) {
-                        output.append(String.format("\\u%04X", (int) ch));
-                    } else {
-                        output.append(ch);
-                    }
-                    break;
+            if (needsEscaping(ch)) {
+                if (output == null) {
+                    output = initializeStringBuilder(input, i);
+                }
+                appendEscapeChar(output, ch);
+            } else if (output != null) {
+                output.append(ch);
             }
         }
-        return output.toString();
+
+        return output == null ? input : output.toString();
+    }
+
+    private static boolean needsEscaping(char ch) {
+        return Character.isISOControl(ch) || ch == '"' || ch == '\\';
+    }
+
+    /**
+     * Initialize StringBuilder with the unescaped portion of the input.
+     */
+    private static StringBuilder initializeStringBuilder(String input, int position) {
+        // Arbitrary buffer of 16
+        StringBuilder builder = new StringBuilder(input.length() + 16);
+        builder.append(input, 0, position);
+        return builder;
+    }
+
+    private static void appendEscapeChar(StringBuilder output, char ch) {
+        switch (ch) {
+            case '\\':
+                output.append("\\\\"); // escape backslash with a backslash
+                break;
+            case '\n':
+                output.append("\\n"); // newline character
+                break;
+            case '\r':
+                output.append("\\r"); // carriage return character
+                break;
+            case '\t':
+                output.append("\\t"); // tab character
+                break;
+            case '\f':
+                output.append("\\f"); // form feed
+                break;
+            case '\"':
+                output.append("\\\""); // double-quote character
+                break;
+            default:
+                if (Character.isISOControl(ch)) {
+                    output.append(String.format("\\u%04X", (int) ch));
+                } else {
+                    output.append(ch);
+                }
+                break;
+        }
     }
 
     private static String mapToString(JsonNode jsonNode) {
