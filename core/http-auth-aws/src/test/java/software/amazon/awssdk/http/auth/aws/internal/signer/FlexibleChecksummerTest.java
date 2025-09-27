@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC64NVME;
@@ -31,6 +32,7 @@ import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 public class FlexibleChecksummerTest {
@@ -45,7 +47,7 @@ public class FlexibleChecksummerTest {
 
     @Test
     public void checksummer_withNoChecksums_shouldNotAddAnyChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer();
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(PayloadChecksumStore.create());
         SdkHttpRequest expectedRequest = request.build();
 
         checksummer.checksum(payload, request);
@@ -55,7 +57,7 @@ public class FlexibleChecksummerTest {
 
     @Test
     public void checksummerAsync_withNoChecksums_shouldNotAddAnyChecksum() {
-        FlexibleChecksummer checksummer = new FlexibleChecksummer();
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(PayloadChecksumStore.create());
         SdkHttpRequest expectedRequest = request.build();
 
         checksummer.checksum(payloadAsync, request);
@@ -66,6 +68,7 @@ public class FlexibleChecksummerTest {
     @Test
     public void checksummer_withOneChecksum_shouldAddOneChecksum() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            PayloadChecksumStore.create(),
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build()
         );
         SdkHttpRequest expectedRequest = request
@@ -80,6 +83,7 @@ public class FlexibleChecksummerTest {
     @Test
     public void checksummerAsync_withOneChecksum_shouldAddOneChecksum() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            PayloadChecksumStore.create(),
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
         );
         SdkHttpRequest expectedRequest = request
@@ -94,6 +98,7 @@ public class FlexibleChecksummerTest {
     @Test
     public void checksummer_withMultipleChecksums_shouldAddAllChecksums() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            PayloadChecksumStore.create(),
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toHex).build(),
             option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toBase64).build(),
             option().headerName("crc64nvme").algorithm(CRC64NVME).formatter(BinaryUtils::toBase64).build()
@@ -112,6 +117,7 @@ public class FlexibleChecksummerTest {
     @Test
     public void checksummerAsync_withMultipleChecksums_shouldAddAllChecksums() {
         FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            PayloadChecksumStore.create(),
             option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build(),
             option().headerName("crc32").algorithm(CRC32).formatter(BinaryUtils::toHex).build(),
             option().headerName("crc64nvme").algorithm(CRC64NVME).formatter(BinaryUtils::toBase64).build()
@@ -125,5 +131,67 @@ public class FlexibleChecksummerTest {
         checksummer.checksum(payloadAsync, request);
 
         assertEquals(expectedRequest.headers(), request.build().headers());
+    }
+
+    @Test
+    public void checksummer_withCachedValue_shouldPreferCachedValue() {
+        byte[] checksumValue = "HelloWorld".getBytes(StandardCharsets.UTF_8);
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+        cache.putChecksumValue(SHA256, checksumValue);
+
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            cache,
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
+        );
+
+        checksummer.checksum(payload, request);
+
+        assertThat(request.firstMatchingHeader("sha256")).hasValue(BinaryUtils.toBase64(checksumValue));
+    }
+
+    @Test
+    public void checksummer_noCachedValue_shouldCacheComputedValue() {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            cache,
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
+        );
+
+        checksummer.checksum(payload, request);
+
+        assertThat(cache.getChecksumValue(SHA256))
+            .isEqualTo(BinaryUtils.fromBase64("LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564="));
+    }
+
+    @Test
+    void checksummerAsync_withCachedValue_shouldPreferCachedValue() {
+        byte[] checksumValue = "HelloWorld".getBytes(StandardCharsets.UTF_8);
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+        cache.putChecksumValue(SHA256, checksumValue);
+
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            cache,
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
+        );
+
+        checksummer.checksum(payloadAsync, request);
+
+        assertThat(request.firstMatchingHeader("sha256")).hasValue(BinaryUtils.toBase64(checksumValue));
+    }
+
+    @Test
+    void checksummerAsync_noCachedValue_shouldCacheComputedValue() {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        FlexibleChecksummer checksummer = new FlexibleChecksummer(
+            cache,
+            option().headerName("sha256").algorithm(SHA256).formatter(BinaryUtils::toBase64).build()
+        );
+
+        checksummer.checksum(payloadAsync, request);
+
+        assertThat(BinaryUtils.toBase64(cache.getChecksumValue(SHA256)))
+            .isEqualTo("LCa0a2j/xo/5m0U8HTBBNBNCLXBkg7+g+YpeiGJm564=");
     }
 }

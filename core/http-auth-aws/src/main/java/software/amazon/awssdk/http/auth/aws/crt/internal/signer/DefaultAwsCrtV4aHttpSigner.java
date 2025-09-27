@@ -33,6 +33,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Credenti
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -47,11 +48,13 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.Checksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.internal.signer.NoOpPayloadChecksumStore;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -70,7 +73,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     @Override
     public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request, null);
+        Checksummer checksummer = checksummer(request, null, checksumStore(request));
         V4aProperties v4aProperties = v4aProperties(request);
         AwsSigningConfig signingConfig = signingConfig(request, v4aProperties);
         V4aPayloadSigner payloadSigner = v4aPayloadSigner(request, v4aProperties);
@@ -104,7 +107,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static V4aPayloadSigner v4aPayloadSigner(
-        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+        SignRequest<? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
         boolean isPayloadSigning = isPayloadSigning(request);
@@ -117,6 +120,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                                              .credentialScope(v4aProperties.getCredentialScope())
                                              .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
                                              .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
+                                             .checksumStore(checksumStore(request))
                                              .build();
         }
 
@@ -251,5 +255,13 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
             toRequest(request, signingResult.getSignedRequest()).toBuilder(),
             signingResult.getSignature(),
             signingConfig);
+    }
+
+    private static PayloadChecksumStore checksumStore(SignRequest<? extends AwsCredentialsIdentity> request) {
+        PayloadChecksumStore cache = request.property(CHECKSUM_STORE);
+        if (cache == null) {
+            return NoOpPayloadChecksumStore.create();
+        }
+        return cache;
     }
 }

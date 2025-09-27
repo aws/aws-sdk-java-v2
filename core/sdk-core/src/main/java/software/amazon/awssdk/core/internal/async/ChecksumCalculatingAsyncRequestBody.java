@@ -34,7 +34,9 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.internal.checksums.NoOpPayloadChecksumStore;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.DelegatingSubscriber;
@@ -55,6 +57,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     private final ChecksumAlgorithm algorithm;
     private final String trailerHeader;
     private final long totalBytes;
+    private final PayloadChecksumStore payloadChecksumStore;
 
     private ChecksumCalculatingAsyncRequestBody(DefaultBuilder builder) {
 
@@ -66,6 +69,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         this.sdkChecksum = builder.algorithm != null ? SdkChecksum.forAlgorithm(algorithm) : null;
         this.trailerHeader = builder.trailerHeader;
         this.totalBytes = initTotalBytes(wrapped, builder.contentLengthHeader);
+        this.payloadChecksumStore = builder.checksumStore != null ? builder.checksumStore : NoOpPayloadChecksumStore.create();
     }
 
     static long initTotalBytes(AsyncRequestBody wrapped, Long contentLengthHeader) {
@@ -118,6 +122,8 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
          * @return This builder for method chaining.
          */
         ChecksumCalculatingAsyncRequestBody.Builder contentLengthHeader(Long contentLengthHeader);
+
+        ChecksumCalculatingAsyncRequestBody.Builder checksumStore(PayloadChecksumStore checksumStore);
     }
 
     private static final class DefaultBuilder implements ChecksumCalculatingAsyncRequestBody.Builder {
@@ -126,6 +132,7 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
         private ChecksumAlgorithm algorithm;
         private String trailerHeader;
         private Long contentLengthHeader;
+        private PayloadChecksumStore checksumStore;
 
         @Override
         public ChecksumCalculatingAsyncRequestBody build() {
@@ -155,6 +162,12 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
             this.contentLengthHeader = contentLength;
             return this;
         }
+
+        @Override
+        public Builder checksumStore(PayloadChecksumStore checksumStore) {
+            this.checksumStore = checksumStore;
+            return this;
+        }
     }
 
     @Override
@@ -182,7 +195,12 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
 
         SynchronousChunkBuffer synchronousChunkBuffer = new SynchronousChunkBuffer(totalBytes);
         alwaysInvokeOnNext(wrapped.flatMapIterable(synchronousChunkBuffer::buffer))
-                 .subscribe(new ChecksumCalculatingSubscriber(s, sdkChecksum, trailerHeader, totalBytes));
+                 .subscribe(new ChecksumCalculatingSubscriber(s,
+                                                              algorithm,
+                                                              sdkChecksum,
+                                                              payloadChecksumStore,
+                                                              trailerHeader,
+                                                              totalBytes));
     }
 
     private SdkPublisher<ByteBuffer> alwaysInvokeOnNext(SdkPublisher<ByteBuffer> source) {
@@ -192,17 +210,24 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     private static final class ChecksumCalculatingSubscriber implements Subscriber<ByteBuffer> {
 
         private final Subscriber<? super ByteBuffer> wrapped;
+        private final ChecksumAlgorithm algorithm;
         private final SdkChecksum checksum;
+        private final PayloadChecksumStore checksumStore;
         private final String trailerHeader;
         private byte[] checksumBytes;
         private final AtomicLong remainingBytes;
         private Subscription subscription;
 
         ChecksumCalculatingSubscriber(Subscriber<? super ByteBuffer> wrapped,
+                                      ChecksumAlgorithm algorithm,
                                       SdkChecksum checksum,
-                                      String trailerHeader, long totalBytes) {
+                                      PayloadChecksumStore checksumStore,
+                                      String trailerHeader,
+                                      long totalBytes) {
             this.wrapped = wrapped;
+            this.algorithm = algorithm;
             this.checksum = checksum;
+            this.checksumStore = checksumStore;
             this.trailerHeader = trailerHeader;
             this.remainingBytes = new AtomicLong(totalBytes);
         }
@@ -223,7 +248,11 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
                     byteBuffer.reset();
                 }
                 if (lastByte && checksumBytes == null && checksum != null) {
-                    checksumBytes = checksum.getChecksumBytes();
+                    checksumBytes = checksumStore.getChecksumValue(algorithm);
+                    if (checksumBytes == null) {
+                        checksumBytes = checksum.getChecksumBytes();
+                        checksumStore.putChecksumValue(algorithm, checksumBytes);
+                    }
                     ByteBuffer allocatedBuffer = getFinalChecksumAppendedChunk(byteBuffer);
                     wrapped.onNext(allocatedBuffer);
                 } else if (byteBuffer.hasRemaining()) {
