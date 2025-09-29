@@ -441,9 +441,10 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         versionedRecordTable.putItem(item);
         VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
 
-        DeleteItemEnhancedRequest baseRequest = DeleteItemEnhancedRequest.builder().key(recordKey).build();
-        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.withOptimisticLocking(
-            baseRequest, AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version");
+        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.builder()
+            .key(recordKey)
+            .withOptimisticLocking(AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version")
+            .build();
 
         versionedRecordTable.deleteItem(requestWithLocking);
 
@@ -459,9 +460,10 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
 
         versionedRecordTable.putItem(item);
 
-        DeleteItemEnhancedRequest baseRequest = DeleteItemEnhancedRequest.builder().key(recordKey).build();
-        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.withOptimisticLocking(
-            baseRequest, AttributeValue.builder().n("999").build(), "version");
+        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.builder()
+            .key(recordKey)
+            .withOptimisticLocking(AttributeValue.builder().n("999").build(), "version")
+            .build();
 
         assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking))
             .isInstanceOf(ConditionalCheckFailedException.class)
@@ -513,9 +515,10 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         versionedRecordTable.putItem(item);
         VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
 
-        TransactDeleteItemEnhancedRequest baseRequest = TransactDeleteItemEnhancedRequest.builder().key(recordKey).build();
-        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.withOptimisticLocking(
-            baseRequest, AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version");
+        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.builder()
+            .key(recordKey)
+            .withOptimisticLocking(AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version")
+            .build();
 
         enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
                                                                            .addDeleteItem(versionedRecordTable,
@@ -534,9 +537,10 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
 
         versionedRecordTable.putItem(item);
 
-        TransactDeleteItemEnhancedRequest baseRequest = TransactDeleteItemEnhancedRequest.builder().key(recordKey).build();
-        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.withOptimisticLocking(
-            baseRequest, AttributeValue.builder().n("999").build(), "version");
+        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.builder()
+            .key(recordKey)
+            .withOptimisticLocking(AttributeValue.builder().n("999").build(), "version")
+            .build();
 
         TransactionCanceledException ex = assertThrows(TransactionCanceledException.class,
                                                        () -> enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.createVersionCondition;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -106,13 +108,6 @@ public final class TransactDeleteItemEnhancedRequest {
      */
     public String returnValuesOnConditionCheckFailureAsString() {
         return returnValuesOnConditionCheckFailure;
-    }
-
-    public static TransactDeleteItemEnhancedRequest withOptimisticLocking(
-        TransactDeleteItemEnhancedRequest request,
-        AttributeValue oldVersionValue,
-        String versionAttributeName) {
-        return OptimisticLockingHelper.withOptimisticLocking(request, oldVersionValue, versionAttributeName);
     }
 
     @Override
@@ -223,6 +218,16 @@ public final class TransactDeleteItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Adds optimistic locking condition to the delete request.
+         *
+         * @param versionValue the expected version value
+         * @param versionAttributeName the name of the version attribute
+         * @return a builder of this type
+         */
+        public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
+            return conditionExpression(createVersionCondition(versionValue, versionAttributeName));
+        }
 
         public TransactDeleteItemEnhancedRequest build() {
             return new TransactDeleteItemEnhancedRequest(this);

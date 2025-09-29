@@ -30,18 +30,18 @@ public final class OptimisticLockingHelper {
     }
 
     public static DeleteItemEnhancedRequest withOptimisticLocking(
-        DeleteItemEnhancedRequest request, AttributeValue oldVersionValue, String versionAttributeName) {
+        DeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
-        Expression conditionExpression = createVersionCondition(oldVersionValue, versionAttributeName);
+        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
         return request.toBuilder()
                       .conditionExpression(conditionExpression)
                       .build();
     }
 
     public static TransactDeleteItemEnhancedRequest withOptimisticLocking(
-        TransactDeleteItemEnhancedRequest request, AttributeValue oldVersionValue, String versionAttributeName) {
+        TransactDeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
-        Expression conditionExpression = createVersionCondition(oldVersionValue, versionAttributeName);
+        Expression conditionExpression = createVersionCondition(versionValue, versionAttributeName);
         return request.toBuilder()
                       .conditionExpression(conditionExpression)
                       .build();
@@ -65,10 +65,10 @@ public final class OptimisticLockingHelper {
         return tableSchema.tableMetadata().customMetadataObject(CUSTOM_METADATA_KEY, String.class);
     }
 
-    private static Expression createVersionCondition(AttributeValue oldVersionValue, String versionAttributeName) {
+    public static Expression createVersionCondition(AttributeValue versionValue, String versionAttributeName) {
         return Expression.builder()
                          .expression(versionAttributeName + " = :version_value")
-                         .putExpressionValue(":version_value", oldVersionValue)
+                         .putExpressionValue(":version_value", versionValue)
                          .build();
     }
 }
