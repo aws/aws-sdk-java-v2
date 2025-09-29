@@ -445,10 +445,6 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    @Disabled("Broken - We don't pass x-amz-content-sha256 to CRT signer")
-    // TODO: This is currently broken because we don't preserve the 'x-amz-content-sha256' header when sending to CRT to sign:
-    // https://github.com/aws/aws-sdk-java-v2/blob/59e3a000503e1299675698e5c4c7af51f2525669/core/http-auth-aws/src/main/java/software/amazon/awssdk/http/auth/aws/crt/internal/util/CrtUtils.java#L45
-    // Refer to JAVA-8531
     void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheContainsChecksum_usesCachedValue() {
         PayloadChecksumStore cache = PayloadChecksumStore.create();
 

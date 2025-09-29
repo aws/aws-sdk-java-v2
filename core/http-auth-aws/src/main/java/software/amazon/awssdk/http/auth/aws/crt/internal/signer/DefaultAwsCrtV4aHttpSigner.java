@@ -38,8 +38,10 @@ import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerP
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningResult;
@@ -58,6 +60,7 @@ import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -141,7 +144,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static AwsSigningConfig signingConfig(
-        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+        SignRequest<? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
         AuthLocation authLocation = request.requireProperty(AUTH_LOCATION, AuthLocation.HEADER);
@@ -160,6 +163,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
         signingConfig.setUseDoubleUriEncode(v4aProperties.shouldDoubleUrlEncode());
         signingConfig.setShouldNormalizeUriPath(v4aProperties.shouldNormalizePath());
         signingConfig.setSignedBodyHeader(X_AMZ_CONTENT_SHA256);
+        getSignedBodyValue(request).ifPresent(signingConfig::setSignedBodyValue);
 
         switch (authLocation) {
             case HEADER:
@@ -263,5 +267,14 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
             return NoOpPayloadChecksumStore.create();
         }
         return cache;
+    }
+
+    private static Optional<String> getSignedBodyValue(SignRequest<? extends AwsCredentialsIdentity> request) {
+        PayloadChecksumStore checksumStore = checksumStore(request);
+        byte[] value = checksumStore.getChecksumValue(DefaultChecksumAlgorithm.SHA256);
+        if (value != null) {
+            return Optional.of(BinaryUtils.toHex(value));
+        }
+        return Optional.empty();
     }
 }
