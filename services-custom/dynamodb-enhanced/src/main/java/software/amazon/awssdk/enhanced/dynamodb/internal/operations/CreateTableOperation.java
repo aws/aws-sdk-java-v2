@@ -141,6 +141,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                                  .billingMode(billingMode)
                                  .provisionedThroughput(this.request.provisionedThroughput())
                                  .streamSpecification(this.request.streamSpecification())
+                                 .overrideConfiguration(this.request.overrideConfiguration())
                                  .build();
     }
 
