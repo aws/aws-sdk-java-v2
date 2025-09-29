@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Runtime",
-    "contributor": "",
-    "description": "New stop reason for Converse and ConverseStream"
-}

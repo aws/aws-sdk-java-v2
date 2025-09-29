@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "EC2 Image Builder",
-    "contributor": "",
-    "description": "This release introduces several new features and improvements to enhance pipeline management, logging, and resource configuration."
-}

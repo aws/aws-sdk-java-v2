@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.6__ __2025-09-29__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Bundle__
+  - ### Bugfixes
+    - Remove unused `META-INF/jandex.idx`. This file was shaded into the `bundle` JAR from a transitive dependency of the bundle, which also does not use this file.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Release for fixing GetFoundationModel API behavior. Imported and custom models have their own exclusive API and GetFM should not accept those ARNS as input
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - New stop reason for Converse and ConverseStream
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Adds support for specifying the number of IPv4 addresses in each ENI for the resource gateway for VPC Lattice.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release introduces several new features and improvements to enhance pipeline management, logging, and resource configuration.
+
 # __2.34.5__ __2025-09-26__
 ## __AWS Billing__
   - ### Features

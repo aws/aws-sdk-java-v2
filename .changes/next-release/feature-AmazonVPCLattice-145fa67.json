@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "Adds support for specifying the number of IPv4 addresses in each ENI for the resource gateway for VPC Lattice."
-}
