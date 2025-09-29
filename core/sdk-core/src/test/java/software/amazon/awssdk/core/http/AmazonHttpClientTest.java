@@ -96,8 +96,8 @@ public class AmazonHttpClientTest {
             Assert.assertSame(ioException, e.getCause());
         }
 
-        // Verify that we called execute 4 times.
-        verify(sdkHttpClient, times(4)).prepareRequest(any());
+        // Verify that we called execute 3 times.
+        verify(sdkHttpClient, times(3)).prepareRequest(any());
     }
 
     @Test
@@ -119,8 +119,8 @@ public class AmazonHttpClientTest {
             Assert.assertSame(exception, e.getCause());
         }
 
-        // Verify that we called execute 4 times.
-        verify(mockHandler, times(4)).handle(any(), any());
+        // Verify that we called execute 3 times.
+        verify(mockHandler, times(3)).handle(any(), any());
     }
 
 

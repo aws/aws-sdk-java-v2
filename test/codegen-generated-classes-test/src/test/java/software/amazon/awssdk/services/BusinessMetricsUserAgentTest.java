@@ -76,7 +76,7 @@ class BusinessMetricsUserAgentTest {
 
     private static Stream<Arguments> inputValues() {
         return Stream.of(
-            Arguments.of("Default values", null, Arrays.asList("D", "N", "P", "T")),
+            Arguments.of("Default values", null, Arrays.asList("E", "N", "P", "T")),
             Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Arrays.asList("P", "T")),
             Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Arrays.asList("Q", "T")),
             Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Arrays.asList("R", "T"))
@@ -98,6 +98,7 @@ class BusinessMetricsUserAgentTest {
         assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
 
         String userAgent = assertAndGetUserAgentString();
+        System.out.println("userAgent "+userAgent);
         expectedMetrics.forEach(expectedMetric -> assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedMetric)));
     }
 
