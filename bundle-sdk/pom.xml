@@ -188,6 +188,14 @@
                                 <include>software.amazon.eventstream:eventstream</include>
                             </includes>
                         </artifactSet>
+                        <filters>
+                            <filter>
+                                <artifact>com.github.ben-manes.caffeine:caffeine</artifact>
+                                <excludes>
+                                    <exclude>META-INF/jandex.idx</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
                         <relocations>
                             <relocation>
                                 <pattern>org.apache</pattern>
