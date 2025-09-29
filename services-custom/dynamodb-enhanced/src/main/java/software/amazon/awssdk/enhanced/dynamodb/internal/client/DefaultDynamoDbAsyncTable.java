@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
-import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.withOptimisticLockingIfVersioned;
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.withOptimisticLocking;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -145,15 +145,35 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
         return deleteItem(r -> r.key(key));
     }
 
+    /**
+     * Deletes an item from the table using the provided key item.
+     * <p>
+     * <b>Note:</b> This method does not use optimistic locking. For versioned records,
+     * use {@link #deleteItem(Object, boolean)} with {@code useOptimisticLocking = true}
+     * to enable optimistic locking protection.
+     * <p>
+     * The DynamoDB Enhanced Client provides optimistic locking for the following operations:
+     * <ul>
+     *   <li>{@link #deleteItem(Object, boolean)} - when {@code useOptimisticLocking = true}</li>
+     *   <li>{@link #deleteItem(DeleteItemEnhancedRequest)} - when using {@code DeleteItemEnhancedRequest.Builder.withOptimisticLocking()}</li>
+     *   <li>Transaction operations - when using {@code TransactDeleteItemEnhancedRequest.Builder.withOptimisticLocking()}</li>
+     * </ul>
+     *
+     * @param keyItem the item containing the key attributes to identify the item to delete
+     * @return a CompletableFuture containing the deleted item, or null if the item was not found
+     * @deprecated Use {@link #deleteItem(Object, boolean)} instead to explicitly control optimistic locking behavior
+     */
+    @Deprecated
     @Override
     public CompletableFuture<T> deleteItem(T keyItem) {
         return deleteItem(keyItem, false);
     }
 
+    @Override
     public CompletableFuture<T> deleteItem(T keyItem, boolean useOptimisticLocking) {
         DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
         if (useOptimisticLocking) {
-            request = withOptimisticLockingIfVersioned(request, keyItem, tableSchema);
+            request = withOptimisticLocking(request, keyItem, tableSchema);
         }
         return deleteItem(request);
     }

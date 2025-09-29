@@ -47,7 +47,7 @@ public final class OptimisticLockingHelper {
                       .build();
     }
 
-    public static <T> DeleteItemEnhancedRequest withOptimisticLockingIfVersioned(
+    public static <T> DeleteItemEnhancedRequest withOptimisticLocking(
         DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema) {
         
         Optional<String> versionAttribute = getVersionAttributeName(tableSchema);
