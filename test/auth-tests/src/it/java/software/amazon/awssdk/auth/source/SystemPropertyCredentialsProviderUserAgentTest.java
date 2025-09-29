@@ -17,17 +17,14 @@ package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
-import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -39,19 +36,34 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 
-class UserAgentProviderTest {
-    private static final AwsCredentials BASIC_IDENTITY = basicCredentialsBuilder().build();
-    private static final AwsCredentials SESSION_IDENTITY = sessionCredentialsBuilder().build();
+/**
+ * Test class to verify that SystemPropertyCredentialsProvider correctly includes
+ * business metrics in the User-Agent header. This test focuses specifically on the
+ * CREDENTIALS_JVM_SYSTEM_PROPERTIES ("f") business metric feature ID.
+ */
+class SystemPropertyCredentialsProviderUserAgentTest {
 
     private MockSyncHttpClient mockHttpClient;
 
     @BeforeEach
     public void setup() {
+
+        System.setProperty("aws.accessKeyId", "test-access-key");
+        System.setProperty("aws.secretAccessKey", "test-secret-key");
+        
+        // Setup mock HTTP client for STS calls
         mockHttpClient = new MockSyncHttpClient();
-        mockHttpClient.stubNextResponse(mockResponse());
+        mockHttpClient.stubNextResponse(mockStsResponse());
     }
 
-    public static HttpExecuteResponse mockResponse() {
+    @AfterAll
+    public static void teardown() {
+        System.clearProperty("aws.accessKeyId");
+        System.clearProperty("aws.secretAccessKey");
+        System.clearProperty("aws.sessionToken");
+    }
+
+    private static HttpExecuteResponse mockStsResponse() {
         return HttpExecuteResponse.builder()
                                   .response(SdkHttpResponse.builder().statusCode(200).build())
                                   .responseBody(AbortableInputStream.create(new StringInputStream("")))
@@ -59,9 +71,10 @@ class UserAgentProviderTest {
     }
 
     @ParameterizedTest
-    @MethodSource("credentialProviders")
-    void userAgentString_containsCredentialProviderNames_IfPresent(IdentityProvider<? extends AwsCredentialsIdentity> provider,
-                                                                   String expected) throws Exception {
+    @MethodSource("systemPropertyCredentialProviders")
+    void userAgentString_containsSystemPropertyBusinessMetric_WhenUsingSystemPropertyCredentials(
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+        
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
         SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
@@ -72,10 +85,32 @@ class UserAgentProviderTest {
         assertThat(userAgentHeaders.get(0)).contains(expected);
     }
 
-    private static Stream<Arguments> credentialProviders() {
+    private static Stream<Arguments> systemPropertyCredentialProviders() {
         return Stream.of(
-            Arguments.of(StaticCredentialsProvider.create(SESSION_IDENTITY), "m/D,e"),
-            Arguments.of(StaticCredentialsProvider.create(BASIC_IDENTITY), "m/D,e")
+            Arguments.of(SystemPropertyCredentialsProvider.create(), "m/D,f")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("systemPropertyCredentialProvidersWithSessionToken")
+    void userAgentString_containsSystemPropertyBusinessMetric_WhenUsingSystemPropertyCredentialsWithSessionToken(
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+
+        System.setProperty("aws.sessionToken", "test-session-token");
+        
+        stsClient(provider, mockHttpClient).getCallerIdentity();
+
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
+
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).contains(expected);
+    }
+
+    private static Stream<Arguments> systemPropertyCredentialProvidersWithSessionToken() {
+        return Stream.of(
+            Arguments.of(SystemPropertyCredentialsProvider.create(), "m/D,f")
         );
     }
 
@@ -84,18 +119,5 @@ class UserAgentProviderTest {
                         .credentialsProvider(provider)
                         .httpClient(httpClient)
                         .build();
-    }
-
-    private static AwsSessionCredentials.Builder sessionCredentialsBuilder() {
-        return AwsSessionCredentials.builder()
-                                    .accessKeyId("akid")
-                                    .secretAccessKey("secret")
-                                    .sessionToken("token");
-    }
-
-    private static AwsBasicCredentials.Builder basicCredentialsBuilder() {
-        return AwsBasicCredentials.builder()
-                                  .accessKeyId("akid")
-                                  .secretAccessKey("secret");
     }
 }
