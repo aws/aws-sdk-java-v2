@@ -688,7 +688,7 @@ builder pattern.
 
 ### Flattening map attributes
 
-When using composition, you can apply the @DynamoDbFlattenMap annotation to flatten a Map into top-level attributes:
+You can apply the @DynamoDbFlattenMap annotation to flatten a Map into top-level attributes:
 ```java
 @DynamoDbBean
 public class Customer {
@@ -737,6 +737,6 @@ private static final StaticTableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
                                       .setter(Customer::setName))
     // Because we are flattening a Map object, we supply a getter and setter so the
     // mapper knows how to access it
-     .flattenMap(Map::getDetailsMap, Map::setDetailsMap)
+     .flattenMap(Customer::getDetailsMap, Customer::setDetailsMap)
     .build(); 
 ```
