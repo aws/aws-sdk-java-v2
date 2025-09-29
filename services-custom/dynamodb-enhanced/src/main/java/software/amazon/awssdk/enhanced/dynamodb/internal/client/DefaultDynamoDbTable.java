@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
-import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.applyOptimisticLockingIfApplicable;
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.conditionallyApplyOptimisticLocking;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -172,7 +172,7 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
      */
     public T deleteItem(T keyItem, boolean useOptimisticLocking) {
         DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
-        request = applyOptimisticLockingIfApplicable(request, keyItem, tableSchema, useOptimisticLocking);
+        request = conditionallyApplyOptimisticLocking(request, keyItem, tableSchema, useOptimisticLocking);
         return deleteItem(request);
     }
 

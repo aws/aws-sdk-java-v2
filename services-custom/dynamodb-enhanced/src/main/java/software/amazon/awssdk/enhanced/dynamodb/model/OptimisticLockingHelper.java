@@ -68,28 +68,6 @@ public final class OptimisticLockingHelper {
     }
 
     /**
-     * Applies optimistic locking if the item has version information.
-     *
-     * @param <T>         the type of the item
-     * @param request     the original delete request
-     * @param keyItem     the item containing version information
-     * @param tableSchema the table schema
-     * @return delete request with optimistic locking if version exists, otherwise original request
-     */
-    public static <T> DeleteItemEnhancedRequest applyOptimisticLockingIfApplicable(
-        DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema) {
-
-        Optional<String> versionAttributeName = getVersionAttributeName(tableSchema);
-        if (versionAttributeName.isPresent()) {
-            AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName.get());
-            if (version != null) {
-                return withOptimisticLocking(request, version, versionAttributeName.get());
-            }
-        }
-        return request;
-    }
-
-    /**
      * Conditionally applies optimistic locking if enabled and version information exists.
      *
      * @param <T>                  the type of the item
@@ -99,20 +77,19 @@ public final class OptimisticLockingHelper {
      * @param useOptimisticLocking if true, applies optimistic locking
      * @return delete request with optimistic locking if enabled and version exists, otherwise original request
      */
-    public static <T> DeleteItemEnhancedRequest applyOptimisticLockingIfApplicable(
+    public static <T> DeleteItemEnhancedRequest conditionallyApplyOptimisticLocking(
         DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
-        return useOptimisticLocking ? applyOptimisticLockingIfApplicable(request, keyItem, tableSchema) : request;
-    }
 
-    /**
-     * Gets the version attribute name from table schema.
-     *
-     * @param <T>         the type of the item
-     * @param tableSchema the table schema
-     * @return version attribute name if present, empty otherwise
-     */
-    public static <T> Optional<String> getVersionAttributeName(TableSchema<T> tableSchema) {
-        return tableSchema.tableMetadata().customMetadataObject("VersionedRecordExtension:VersionAttribute", String.class);
+        if (!useOptimisticLocking) {
+            return request;
+        }
+
+        return getVersionAttributeName(tableSchema)
+            .map(versionAttributeName -> {
+                AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName);
+                return version != null ? withOptimisticLocking(request, version, versionAttributeName) : request;
+            })
+            .orElse(request);
     }
 
     /**
@@ -127,5 +104,16 @@ public final class OptimisticLockingHelper {
                          .expression(versionAttributeName + " = :version_value")
                          .putExpressionValue(":version_value", versionValue)
                          .build();
+    }
+
+    /**
+     * Gets the version attribute name from table schema.
+     *
+     * @param <T>         the type of the item
+     * @param tableSchema the table schema
+     * @return version attribute name if present, empty otherwise
+     */
+    public static <T> Optional<String> getVersionAttributeName(TableSchema<T> tableSchema) {
+        return tableSchema.tableMetadata().customMetadataObject("VersionedRecordExtension:VersionAttribute", String.class);
     }
 }
