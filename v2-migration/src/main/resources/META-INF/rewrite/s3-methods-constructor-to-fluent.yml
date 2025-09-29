@@ -663,18 +663,6 @@ recipeList:
         - withPartNumber
         - withETag
   - software.amazon.awssdk.v2migration.ConstructorToFluent:
-      clzzFqcn: com.amazonaws.services.s3.model.CompleteMultipartUploadRequest
-      parameterTypes:
-        - java.lang.String
-        - java.lang.String
-        - java.lang.String
-        - java.util.List<com.amazonaws.services.s3.model.PartETag>
-      fluentNames:
-        - withBucket
-        - withKey
-        - withUploadId
-        - withMultipartUpload
-  - software.amazon.awssdk.v2migration.ConstructorToFluent:
       clzzFqcn: com.amazonaws.services.s3.model.ListPartsRequest
       parameterTypes:
         - java.lang.String
@@ -806,9 +794,3 @@ recipeList:
       fluentNames:
         - withBucket
         - withPolicy
-  - software.amazon.awssdk.v2migration.ConstructorToFluent:
-      clzzFqcn: com.amazonaws.services.s3.model.GetObjectTaggingResult
-      parameterTypes:
-        - java.util.List<com.amazonaws.services.s3.model.Tag>
-      fluentNames:
-        - withTagSet

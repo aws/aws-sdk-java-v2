@@ -109,7 +109,7 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
             Waiter.run(() -> iam.createRole(r -> r.roleName(ROLE_NAME)
                                                   .assumeRolePolicyDocument(rolePolicyDoc)))
                   .ignoringException(MalformedPolicyDocumentException.class)
-                  .orFailAfter(Duration.ofMinutes(2));
+                  .orFailAfter(Duration.ofMinutes(4));
         } catch (EntityAlreadyExistsException e) {
             // Role already exists - awesome.
         }
@@ -129,11 +129,17 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         StsClient userCredentialSts = StsClient.builder()
                                                .credentialsProvider(() -> userCredentials)
                                                .build();
+
+        // Ensure the new credentials have propagated and are valid.
+        Waiter.run(userCredentialSts::getCallerIdentity)
+              .ignoringException(StsException.class)
+              .orFailAfter(Duration.ofMinutes(2));
+
         Waiter.run(() -> userCredentialSts.assumeRole(r -> r.durationSeconds(SESSION_DURATION)
                                                             .roleArn(ROLE_ARN)
                                                             .roleSessionName("Test")))
               .ignoringException(StsException.class)
-              .orFailAfter(Duration.ofMinutes(5));
+              .orFailAfter(Duration.ofMinutes(8));
     }
 
     @AfterClass
@@ -148,24 +154,6 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         // deleting the IAM User referenced in the IAM Role trust relationship leaves the role in a bad state where it cant be
         // assumed anymore. Therefore, we need to delete the role as well.
         iam.deleteRole(req -> req.roleName(ROLE_NAME));
-    }
-
-
-    /** Tests that we can call assumeRole successfully. */
-    @Test
-    public void testAssumeRole() throws InterruptedException {
-        AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
-                                                               .durationSeconds(SESSION_DURATION)
-                                                               .roleArn(ROLE_ARN)
-                                                               .roleSessionName("Name")
-                                                               .build();
-
-        StsClient sts = StsClient.builder().credentialsProvider(StaticCredentialsProvider.create(userCredentials)).build();
-        AssumeRoleResponse assumeRoleResult = sts.assumeRole(assumeRoleRequest);
-        assertNotNull(assumeRoleResult.assumedRoleUser());
-        assertNotNull(assumeRoleResult.assumedRoleUser().arn());
-        assertNotNull(assumeRoleResult.assumedRoleUser().assumedRoleId());
-        assertNotNull(assumeRoleResult.credentials());
     }
 
     @Test

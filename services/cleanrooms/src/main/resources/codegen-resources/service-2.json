@@ -29,7 +29,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves multiple analysis templates within a collaboration by their Amazon Resource Names (ARNs).</p>"
+      "documentation":"<p>Retrieves multiple analysis templates within a collaboration by their Amazon Resource Names (ARNs).</p>",
+      "readonly":true
     },
     "BatchGetSchema":{
       "name":"BatchGetSchema",
@@ -47,7 +48,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves multiple schemas by their identifiers.</p>"
+      "documentation":"<p>Retrieves multiple schemas by their identifiers.</p>",
+      "readonly":true
     },
     "BatchGetSchemaAnalysisRule":{
       "name":"BatchGetSchemaAnalysisRule",
@@ -65,7 +67,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves multiple analysis rule schemas.</p>"
+      "documentation":"<p>Retrieves multiple analysis rule schemas.</p>",
+      "readonly":true
     },
     "CreateAnalysisTemplate":{
       "name":"CreateAnalysisTemplate",
@@ -104,6 +107,26 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>Creates a new collaboration.</p>"
+    },
+    "CreateCollaborationChangeRequest":{
+      "name":"CreateCollaborationChangeRequest",
+      "http":{
+        "method":"POST",
+        "requestUri":"/collaborations/{collaborationIdentifier}/changeRequests",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateCollaborationChangeRequestInput"},
+      "output":{"shape":"CreateCollaborationChangeRequestOutput"},
+      "errors":[
+        {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Creates a new change request to modify an existing collaboration. This enables post-creation modifications to collaborations through a structured API-driven approach.</p>"
     },
     "CreateConfiguredAudienceModelAssociation":{
       "name":"CreateConfiguredAudienceModelAssociation",
@@ -278,6 +301,7 @@
       "output":{"shape":"CreatePrivacyBudgetTemplateOutput"},
       "errors":[
         {"shape":"ConflictException"},
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"},
         {"shape":"ValidationException"},
@@ -535,7 +559,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves an analysis template.</p>"
+      "documentation":"<p>Retrieves an analysis template.</p>",
+      "readonly":true
     },
     "GetCollaboration":{
       "name":"GetCollaboration",
@@ -552,7 +577,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns metadata about a collaboration.</p>"
+      "documentation":"<p>Returns metadata about a collaboration.</p>",
+      "readonly":true
     },
     "GetCollaborationAnalysisTemplate":{
       "name":"GetCollaborationAnalysisTemplate",
@@ -570,7 +596,27 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves an analysis template within a collaboration.</p>"
+      "documentation":"<p>Retrieves an analysis template within a collaboration.</p>",
+      "readonly":true
+    },
+    "GetCollaborationChangeRequest":{
+      "name":"GetCollaborationChangeRequest",
+      "http":{
+        "method":"GET",
+        "requestUri":"/collaborations/{collaborationIdentifier}/changeRequests/{changeRequestIdentifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetCollaborationChangeRequestInput"},
+      "output":{"shape":"GetCollaborationChangeRequestOutput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Retrieves detailed information about a specific collaboration change request.</p>",
+      "readonly":true
     },
     "GetCollaborationConfiguredAudienceModelAssociation":{
       "name":"GetCollaborationConfiguredAudienceModelAssociation",
@@ -588,7 +634,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a configured audience model association within a collaboration.</p>"
+      "documentation":"<p>Retrieves a configured audience model association within a collaboration.</p>",
+      "readonly":true
     },
     "GetCollaborationIdNamespaceAssociation":{
       "name":"GetCollaborationIdNamespaceAssociation",
@@ -606,7 +653,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves an ID namespace association from a specific collaboration.</p>"
+      "documentation":"<p>Retrieves an ID namespace association from a specific collaboration.</p>",
+      "readonly":true
     },
     "GetCollaborationPrivacyBudgetTemplate":{
       "name":"GetCollaborationPrivacyBudgetTemplate",
@@ -624,7 +672,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns details about a specified privacy budget template.</p>"
+      "documentation":"<p>Returns details about a specified privacy budget template.</p>",
+      "readonly":true
     },
     "GetConfiguredAudienceModelAssociation":{
       "name":"GetConfiguredAudienceModelAssociation",
@@ -642,7 +691,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns information about a configured audience model association.</p>"
+      "documentation":"<p>Returns information about a configured audience model association.</p>",
+      "readonly":true
     },
     "GetConfiguredTable":{
       "name":"GetConfiguredTable",
@@ -660,7 +710,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a configured table.</p>"
+      "documentation":"<p>Retrieves a configured table.</p>",
+      "readonly":true
     },
     "GetConfiguredTableAnalysisRule":{
       "name":"GetConfiguredTableAnalysisRule",
@@ -678,7 +729,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a configured table analysis rule.</p>"
+      "documentation":"<p>Retrieves a configured table analysis rule.</p>",
+      "readonly":true
     },
     "GetConfiguredTableAssociation":{
       "name":"GetConfiguredTableAssociation",
@@ -696,7 +748,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a configured table association.</p>"
+      "documentation":"<p>Retrieves a configured table association.</p>",
+      "readonly":true
     },
     "GetConfiguredTableAssociationAnalysisRule":{
       "name":"GetConfiguredTableAssociationAnalysisRule",
@@ -714,7 +767,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p> Retrieves the analysis rule for a configured table association.</p>"
+      "documentation":"<p> Retrieves the analysis rule for a configured table association.</p>",
+      "readonly":true
     },
     "GetIdMappingTable":{
       "name":"GetIdMappingTable",
@@ -732,7 +786,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves an ID mapping table.</p>"
+      "documentation":"<p>Retrieves an ID mapping table.</p>",
+      "readonly":true
     },
     "GetIdNamespaceAssociation":{
       "name":"GetIdNamespaceAssociation",
@@ -750,7 +805,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves an ID namespace association.</p>"
+      "documentation":"<p>Retrieves an ID namespace association.</p>",
+      "readonly":true
     },
     "GetMembership":{
       "name":"GetMembership",
@@ -768,7 +824,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a specified membership for an identifier.</p>"
+      "documentation":"<p>Retrieves a specified membership for an identifier.</p>",
+      "readonly":true
     },
     "GetPrivacyBudgetTemplate":{
       "name":"GetPrivacyBudgetTemplate",
@@ -786,7 +843,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns details for a specified privacy budget template.</p>"
+      "documentation":"<p>Returns details for a specified privacy budget template.</p>",
+      "readonly":true
     },
     "GetProtectedJob":{
       "name":"GetProtectedJob",
@@ -804,7 +862,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns job processing metadata.</p>"
+      "documentation":"<p>Returns job processing metadata.</p>",
+      "readonly":true
     },
     "GetProtectedQuery":{
       "name":"GetProtectedQuery",
@@ -822,7 +881,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns query processing metadata.</p>"
+      "documentation":"<p>Returns query processing metadata.</p>",
+      "readonly":true
     },
     "GetSchema":{
       "name":"GetSchema",
@@ -840,7 +900,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves the schema for a relation within a collaboration.</p>"
+      "documentation":"<p>Retrieves the schema for a relation within a collaboration.</p>",
+      "readonly":true
     },
     "GetSchemaAnalysisRule":{
       "name":"GetSchemaAnalysisRule",
@@ -858,7 +919,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a schema analysis rule.</p>"
+      "documentation":"<p>Retrieves a schema analysis rule.</p>",
+      "readonly":true
     },
     "ListAnalysisTemplates":{
       "name":"ListAnalysisTemplates",
@@ -876,7 +938,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists analysis templates that the caller owns.</p>"
+      "documentation":"<p>Lists analysis templates that the caller owns.</p>",
+      "readonly":true
     },
     "ListCollaborationAnalysisTemplates":{
       "name":"ListCollaborationAnalysisTemplates",
@@ -894,7 +957,27 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists analysis templates within a collaboration.</p>"
+      "documentation":"<p>Lists analysis templates within a collaboration.</p>",
+      "readonly":true
+    },
+    "ListCollaborationChangeRequests":{
+      "name":"ListCollaborationChangeRequests",
+      "http":{
+        "method":"GET",
+        "requestUri":"/collaborations/{collaborationIdentifier}/changeRequests",
+        "responseCode":200
+      },
+      "input":{"shape":"ListCollaborationChangeRequestsInput"},
+      "output":{"shape":"ListCollaborationChangeRequestsOutput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Lists all change requests for a collaboration with pagination support. Returns change requests sorted by creation time.</p>",
+      "readonly":true
     },
     "ListCollaborationConfiguredAudienceModelAssociations":{
       "name":"ListCollaborationConfiguredAudienceModelAssociations",
@@ -912,7 +995,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists configured audience model associations within a collaboration.</p>"
+      "documentation":"<p>Lists configured audience model associations within a collaboration.</p>",
+      "readonly":true
     },
     "ListCollaborationIdNamespaceAssociations":{
       "name":"ListCollaborationIdNamespaceAssociations",
@@ -930,7 +1014,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns a list of the ID namespace associations in a collaboration.</p>"
+      "documentation":"<p>Returns a list of the ID namespace associations in a collaboration.</p>",
+      "readonly":true
     },
     "ListCollaborationPrivacyBudgetTemplates":{
       "name":"ListCollaborationPrivacyBudgetTemplates",
@@ -948,7 +1033,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns an array that summarizes each privacy budget template in a specified collaboration.</p>"
+      "documentation":"<p>Returns an array that summarizes each privacy budget template in a specified collaboration.</p>",
+      "readonly":true
     },
     "ListCollaborationPrivacyBudgets":{
       "name":"ListCollaborationPrivacyBudgets",
@@ -966,7 +1052,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns an array that summarizes each privacy budget in a specified collaboration. The summary includes the collaboration ARN, creation time, creating account, and privacy budget details.</p>"
+      "documentation":"<p>Returns an array that summarizes each privacy budget in a specified collaboration. The summary includes the collaboration ARN, creation time, creating account, and privacy budget details.</p>",
+      "readonly":true
     },
     "ListCollaborations":{
       "name":"ListCollaborations",
@@ -983,7 +1070,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists collaborations the caller owns, is active in, or has been invited to.</p>"
+      "documentation":"<p>Lists collaborations the caller owns, is active in, or has been invited to.</p>",
+      "readonly":true
     },
     "ListConfiguredAudienceModelAssociations":{
       "name":"ListConfiguredAudienceModelAssociations",
@@ -1001,7 +1089,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists information about requested configured audience model associations.</p>"
+      "documentation":"<p>Lists information about requested configured audience model associations.</p>",
+      "readonly":true
     },
     "ListConfiguredTableAssociations":{
       "name":"ListConfiguredTableAssociations",
@@ -1019,7 +1108,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists configured table associations for a membership.</p>"
+      "documentation":"<p>Lists configured table associations for a membership.</p>",
+      "readonly":true
     },
     "ListConfiguredTables":{
       "name":"ListConfiguredTables",
@@ -1036,7 +1126,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists configured tables.</p>"
+      "documentation":"<p>Lists configured tables.</p>",
+      "readonly":true
     },
     "ListIdMappingTables":{
       "name":"ListIdMappingTables",
@@ -1054,7 +1145,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns a list of ID mapping tables.</p>"
+      "documentation":"<p>Returns a list of ID mapping tables.</p>",
+      "readonly":true
     },
     "ListIdNamespaceAssociations":{
       "name":"ListIdNamespaceAssociations",
@@ -1072,7 +1164,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns a list of ID namespace associations.</p>"
+      "documentation":"<p>Returns a list of ID namespace associations.</p>",
+      "readonly":true
     },
     "ListMembers":{
       "name":"ListMembers",
@@ -1090,7 +1183,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists all members within a collaboration.</p>"
+      "documentation":"<p>Lists all members within a collaboration.</p>",
+      "readonly":true
     },
     "ListMemberships":{
       "name":"ListMemberships",
@@ -1107,7 +1201,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists all memberships resources within the caller's account.</p>"
+      "documentation":"<p>Lists all memberships resources within the caller's account.</p>",
+      "readonly":true
     },
     "ListPrivacyBudgetTemplates":{
       "name":"ListPrivacyBudgetTemplates",
@@ -1125,7 +1220,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns detailed information about the privacy budget templates in a specified membership.</p>"
+      "documentation":"<p>Returns detailed information about the privacy budget templates in a specified membership.</p>",
+      "readonly":true
     },
     "ListPrivacyBudgets":{
       "name":"ListPrivacyBudgets",
@@ -1143,7 +1239,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Returns detailed information about the privacy budgets in a specified membership.</p>"
+      "documentation":"<p>Returns detailed information about the privacy budgets in a specified membership.</p>",
+      "readonly":true
     },
     "ListProtectedJobs":{
       "name":"ListProtectedJobs",
@@ -1161,7 +1258,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists protected jobs, sorted by most recent job.</p>"
+      "documentation":"<p>Lists protected jobs, sorted by most recent job.</p>",
+      "readonly":true
     },
     "ListProtectedQueries":{
       "name":"ListProtectedQueries",
@@ -1179,7 +1277,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists protected queries, sorted by the most recent query.</p>"
+      "documentation":"<p>Lists protected queries, sorted by the most recent query.</p>",
+      "readonly":true
     },
     "ListSchemas":{
       "name":"ListSchemas",
@@ -1197,7 +1296,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists the schemas for relations within a collaboration.</p>"
+      "documentation":"<p>Lists the schemas for relations within a collaboration.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1212,7 +1312,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"}
       ],
-      "documentation":"<p>Lists all of the tags that have been added to a resource.</p>"
+      "documentation":"<p>Lists all of the tags that have been added to a resource.</p>",
+      "readonly":true
     },
     "PopulateIdMappingTable":{
       "name":"PopulateIdMappingTable",
@@ -2369,6 +2470,14 @@
       "min":1,
       "pattern":"([a-zA-Z0-9._-])*"
     },
+    "AutoApprovedChangeType":{
+      "type":"string",
+      "enum":["ADD_MEMBER"]
+    },
+    "AutoApprovedChangeTypeList":{
+      "type":"list",
+      "member":{"shape":"AutoApprovedChangeType"}
+    },
     "BatchGetCollaborationAnalysisTemplateError":{
       "type":"structure",
       "required":[
@@ -2595,6 +2704,93 @@
       "type":"boolean",
       "box":true
     },
+    "Change":{
+      "type":"structure",
+      "required":[
+        "specificationType",
+        "specification",
+        "types"
+      ],
+      "members":{
+        "specificationType":{
+          "shape":"ChangeSpecificationType",
+          "documentation":"<p>The type of specification for this change.</p>"
+        },
+        "specification":{
+          "shape":"ChangeSpecification",
+          "documentation":"<p>The specification details for this change.</p>"
+        },
+        "types":{
+          "shape":"ChangeTypeList",
+          "documentation":"<p>The list of change types that were applied.</p>"
+        }
+      },
+      "documentation":"<p>Represents a single change within a collaboration change request, containing the change identifier and specification.</p>"
+    },
+    "ChangeInput":{
+      "type":"structure",
+      "required":[
+        "specificationType",
+        "specification"
+      ],
+      "members":{
+        "specificationType":{
+          "shape":"ChangeSpecificationType",
+          "documentation":"<p>The type of specification for the change. Currently supports <code>MEMBER</code> for member-related changes.</p>"
+        },
+        "specification":{
+          "shape":"ChangeSpecification",
+          "documentation":"<p>The specification details for the change. The structure depends on the specification type.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a change to apply to a collaboration.</p>"
+    },
+    "ChangeInputList":{
+      "type":"list",
+      "member":{"shape":"ChangeInput"},
+      "max":10,
+      "min":1
+    },
+    "ChangeList":{
+      "type":"list",
+      "member":{"shape":"Change"},
+      "max":10,
+      "min":1
+    },
+    "ChangeRequestStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "APPROVED",
+        "CANCELLED",
+        "DENIED",
+        "COMMITTED"
+      ]
+    },
+    "ChangeSpecification":{
+      "type":"structure",
+      "members":{
+        "member":{
+          "shape":"MemberChangeSpecification",
+          "documentation":"<p>The member change specification when the change type is <code>MEMBER</code>.</p>"
+        }
+      },
+      "documentation":"<p>A union that contains the specification details for different types of changes.</p>",
+      "union":true
+    },
+    "ChangeSpecificationType":{
+      "type":"string",
+      "enum":["MEMBER"]
+    },
+    "ChangeType":{
+      "type":"string",
+      "enum":["ADD_MEMBER"]
+    },
+    "ChangeTypeList":{
+      "type":"list",
+      "member":{"shape":"ChangeType"},
+      "min":1
+    },
     "CleanroomsArn":{
       "type":"string",
       "max":100,
@@ -2674,6 +2870,10 @@
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
           "documentation":"<p> The analytics engine for the collaboration.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
+        },
+        "autoApprovedChangeTypes":{
+          "shape":"AutoApprovedChangeTypeList",
+          "documentation":"<p>The types of change requests that are automatically approved for this collaboration.</p>"
         }
       },
       "documentation":"<p>The multi-party data share environment. The collaboration contains metadata about its purpose and participants.</p>"
@@ -2827,6 +3027,102 @@
       "max":100,
       "min":0,
       "pattern":"arn:aws:[\\w]+:[\\w]{2}-[\\w]{4,9}-[\\d]:[\\d]{12}:collaboration/[\\d\\w-]+"
+    },
+    "CollaborationChangeRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "collaborationId",
+        "createTime",
+        "updateTime",
+        "status",
+        "isAutoApproved",
+        "changes"
+      ],
+      "members":{
+        "id":{
+          "shape":"UUID",
+          "documentation":"<p>The unique identifier for the change request.</p>"
+        },
+        "collaborationId":{
+          "shape":"UUID",
+          "documentation":"<p>The unique identifier for the collaboration being modified.</p>"
+        },
+        "createTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the change request was created.</p>"
+        },
+        "updateTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the change request was last updated.</p>"
+        },
+        "status":{
+          "shape":"ChangeRequestStatus",
+          "documentation":"<p>The current status of the change request. Valid values are <code>PENDING</code>, <code>APPROVED</code>, <code>DENIED</code>, <code>COMMITTED</code>, and <code>CANCELLED</code>.</p>"
+        },
+        "isAutoApproved":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether the change request was automatically approved based on the collaboration's auto-approval settings.</p>"
+        },
+        "changes":{
+          "shape":"ChangeList",
+          "documentation":"<p>The list of changes specified in this change request.</p>"
+        }
+      },
+      "documentation":"<p>Represents a request to modify a collaboration. Change requests enable structured modifications to collaborations after they have been created.</p>"
+    },
+    "CollaborationChangeRequestIdentifier":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    },
+    "CollaborationChangeRequestSummary":{
+      "type":"structure",
+      "required":[
+        "id",
+        "collaborationId",
+        "createTime",
+        "updateTime",
+        "status",
+        "isAutoApproved",
+        "changes"
+      ],
+      "members":{
+        "id":{
+          "shape":"UUID",
+          "documentation":"<p>The unique identifier for the change request.</p>"
+        },
+        "collaborationId":{
+          "shape":"UUID",
+          "documentation":"<p>The unique identifier for the collaboration.</p>"
+        },
+        "createTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the change request was created.</p>"
+        },
+        "updateTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the change request was last updated.</p>"
+        },
+        "status":{
+          "shape":"ChangeRequestStatus",
+          "documentation":"<p>The current status of the change request.</p>"
+        },
+        "isAutoApproved":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether the change request was automatically approved.</p>"
+        },
+        "changes":{
+          "shape":"ChangeList",
+          "documentation":"<p>Summary of the changes in this change request.</p>"
+        }
+      },
+      "documentation":"<p>Summary information about a collaboration change request.</p>"
+    },
+    "CollaborationChangeRequestSummaryList":{
+      "type":"list",
+      "member":{"shape":"CollaborationChangeRequestSummary"}
     },
     "CollaborationConfiguredAudienceModelAssociation":{
       "type":"structure",
@@ -4273,6 +4569,32 @@
         }
       }
     },
+    "CreateCollaborationChangeRequestInput":{
+      "type":"structure",
+      "required":[
+        "collaborationIdentifier",
+        "changes"
+      ],
+      "members":{
+        "collaborationIdentifier":{
+          "shape":"CollaborationIdentifier",
+          "documentation":"<p>The identifier of the collaboration that the change request is made against.</p>",
+          "location":"uri",
+          "locationName":"collaborationIdentifier"
+        },
+        "changes":{
+          "shape":"ChangeInputList",
+          "documentation":"<p>The list of changes to apply to the collaboration. Each change specifies the type of modification and the details of what should be changed.</p>"
+        }
+      }
+    },
+    "CreateCollaborationChangeRequestOutput":{
+      "type":"structure",
+      "required":["collaborationChangeRequest"],
+      "members":{
+        "collaborationChangeRequest":{"shape":"CollaborationChangeRequest"}
+      }
+    },
     "CreateCollaborationInput":{
       "type":"structure",
       "required":[
@@ -4331,6 +4653,10 @@
         "analyticsEngine":{
           "shape":"AnalyticsEngine",
           "documentation":"<p> The analytics engine.</p> <note> <p>After July 16, 2025, the <code>CLEAN_ROOMS_SQL</code> parameter will no longer be available. </p> </note>"
+        },
+        "autoApprovedChangeRequestTypes":{
+          "shape":"AutoApprovedChangeTypeList",
+          "documentation":"<p>The types of change requests that are automatically approved for this collaboration.</p>"
         }
       }
     },
@@ -5445,6 +5771,37 @@
         }
       }
     },
+    "GetCollaborationChangeRequestInput":{
+      "type":"structure",
+      "required":[
+        "collaborationIdentifier",
+        "changeRequestIdentifier"
+      ],
+      "members":{
+        "collaborationIdentifier":{
+          "shape":"CollaborationIdentifier",
+          "documentation":"<p>The identifier of the collaboration that the change request is made against.</p>",
+          "location":"uri",
+          "locationName":"collaborationIdentifier"
+        },
+        "changeRequestIdentifier":{
+          "shape":"CollaborationChangeRequestIdentifier",
+          "documentation":"<p>A unique identifier for the change request to retrieve.</p>",
+          "location":"uri",
+          "locationName":"changeRequestIdentifier"
+        }
+      }
+    },
+    "GetCollaborationChangeRequestOutput":{
+      "type":"structure",
+      "required":["collaborationChangeRequest"],
+      "members":{
+        "collaborationChangeRequest":{
+          "shape":"CollaborationChangeRequest",
+          "documentation":"<p>The collaboration change request that was requested.</p>"
+        }
+      }
+    },
     "GetCollaborationConfiguredAudienceModelAssociationInput":{
       "type":"structure",
       "required":[
@@ -6466,6 +6823,14 @@
       },
       "documentation":"<p>An object representing the collaboration member's payment responsibilities set by the collaboration creator for query and job compute costs.</p>"
     },
+    "JobType":{
+      "type":"string",
+      "enum":[
+        "BATCH",
+        "INCREMENTAL",
+        "DELETE_ONLY"
+      ]
+    },
     "JoinOperator":{
       "type":"string",
       "enum":[
@@ -6568,6 +6933,50 @@
         "collaborationAnalysisTemplateSummaries":{
           "shape":"CollaborationAnalysisTemplateSummaryList",
           "documentation":"<p>The metadata of the analysis template within a collaboration.</p>"
+        }
+      }
+    },
+    "ListCollaborationChangeRequestsInput":{
+      "type":"structure",
+      "required":["collaborationIdentifier"],
+      "members":{
+        "collaborationIdentifier":{
+          "shape":"CollaborationIdentifier",
+          "documentation":"<p>The identifier of the collaboration that the change request is made against.</p>",
+          "location":"uri",
+          "locationName":"collaborationIdentifier"
+        },
+        "status":{
+          "shape":"ChangeRequestStatus",
+          "documentation":"<p>A filter to only return change requests with the specified status.</p>",
+          "location":"querystring",
+          "locationName":"status"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token that's used to fetch the next set of results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results that are returned for an API request call.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListCollaborationChangeRequestsOutput":{
+      "type":"structure",
+      "required":["collaborationChangeRequestSummaries"],
+      "members":{
+        "collaborationChangeRequestSummaries":{
+          "shape":"CollaborationChangeRequestSummaryList",
+          "documentation":"<p>The list of collaboration change request summaries.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The pagination token that's used to fetch the next set of results.</p>"
         }
       }
     },
@@ -7313,6 +7722,28 @@
         "CAN_RUN_JOB"
       ]
     },
+    "MemberChangeSpecification":{
+      "type":"structure",
+      "required":[
+        "accountId",
+        "memberAbilities"
+      ],
+      "members":{
+        "accountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The Amazon Web Services account ID of the member to add to the collaboration.</p>"
+        },
+        "memberAbilities":{
+          "shape":"MemberAbilities",
+          "documentation":"<p>The abilities granted to the collaboration member. These determine what actions the member can perform within the collaboration.</p> <note> <p>The following values are currently not supported: <code>CAN_QUERY</code>, <code>CAN_RECEIVE_RESULTS,</code> and <code>CAN_RUN_JOB</code>. </p> <p>Set the value of <code>memberAbilities</code> to <code>[]</code> to allow a member to contribute data.</p> </note>"
+        },
+        "displayName":{
+          "shape":"DisplayName",
+          "documentation":"<p>Specifies the display name that will be shown for this member in the collaboration. While this field is required when inviting new members, it becomes optional when modifying abilities of existing collaboration members. </p>"
+        }
+      },
+      "documentation":"<p>Specifies changes to collaboration membership, including adding new members with their abilities and display names.</p>"
+    },
     "MemberList":{
       "type":"list",
       "member":{"shape":"MemberSpecification"},
@@ -7859,6 +8290,10 @@
           "documentation":"<p>The unique identifier of the membership that contains the ID mapping table that you want to populate.</p>",
           "location":"uri",
           "locationName":"membershipIdentifier"
+        },
+        "jobType":{
+          "shape":"JobType",
+          "documentation":"<p>The job type of the rule-based ID mapping job. Valid values include:</p> <p> <code>INCREMENTAL</code>: Processes only new or changed data since the last job run. This is the default job type if the ID mapping workflow was created in Entity Resolution with <code>incrementalRunConfig</code> specified.</p> <p> <code>BATCH</code>: Processes all data from the input source, regardless of previous job runs. This is the default job type if the ID mapping workflow was created in Entity Resolution but <code>incrementalRunConfig</code> wasn't specified.</p> <p> <code>DELETE_ONLY</code>: Processes only deletion requests from <code>BatchDeleteUniqueId</code>, which is set in Entity Resolution.</p> <p>For more information about <code>incrementalRunConfig</code> and <code>BatchDeleteUniqueId</code>, see the <a href=\"https://docs.aws.amazon.com/entityresolution/latest/apireference/Welcome.html\">Entity Resolution API Reference</a>.</p>"
         }
       }
     },
@@ -8226,6 +8661,10 @@
         "error":{
           "shape":"ProtectedJobError",
           "documentation":"<p> The error from the protected job.</p>"
+        },
+        "computeConfiguration":{
+          "shape":"ProtectedJobComputeConfiguration",
+          "documentation":"<p>The compute configuration for the protected job.</p>"
         }
       },
       "documentation":"<p>The parameters for an Clean Rooms protected job.</p>"
@@ -8233,6 +8672,17 @@
     "ProtectedJobAnalysisType":{
       "type":"string",
       "enum":["DIRECT_ANALYSIS"]
+    },
+    "ProtectedJobComputeConfiguration":{
+      "type":"structure",
+      "members":{
+        "worker":{
+          "shape":"ProtectedJobWorkerComputeConfiguration",
+          "documentation":"<p>The worker configuration for the compute environment.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the compute resources for a PySpark job.</p>",
+      "union":true
     },
     "ProtectedJobConfigurationDetails":{
       "type":"structure",
@@ -8546,6 +8996,37 @@
     "ProtectedJobType":{
       "type":"string",
       "enum":["PYSPARK"]
+    },
+    "ProtectedJobWorkerComputeConfiguration":{
+      "type":"structure",
+      "required":[
+        "type",
+        "number"
+      ],
+      "members":{
+        "type":{
+          "shape":"ProtectedJobWorkerComputeType",
+          "documentation":"<p>The worker compute configuration type.</p>"
+        },
+        "number":{
+          "shape":"ProtectedJobWorkerComputeConfigurationNumberInteger",
+          "documentation":"<p>The number of workers for a PySpark job.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of the compute resources for a PySpark job.</p>"
+    },
+    "ProtectedJobWorkerComputeConfigurationNumberInteger":{
+      "type":"integer",
+      "box":true,
+      "max":128,
+      "min":4
+    },
+    "ProtectedJobWorkerComputeType":{
+      "type":"string",
+      "enum":[
+        "CR.1X",
+        "CR.4X"
+      ]
     },
     "ProtectedQuery":{
       "type":"structure",
@@ -9523,6 +10004,10 @@
         "resultConfiguration":{
           "shape":"ProtectedJobResultConfigurationInput",
           "documentation":"<p>The details needed to write the job results.</p>"
+        },
+        "computeConfiguration":{
+          "shape":"ProtectedJobComputeConfiguration",
+          "documentation":"<p>The compute configuration for the protected job.</p>"
         }
       }
     },
@@ -10277,7 +10762,7 @@
         },
         "number":{
           "shape":"WorkerComputeConfigurationNumberInteger",
-          "documentation":"<p> The number of workers.</p>"
+          "documentation":"<p> The number of workers.</p> <p>SQL queries support a minimum value of 2 and a maximum value of 400. </p> <p>PySpark jobs support a minimum value of 4 and a maximum value of 128.</p>"
         }
       },
       "documentation":"<p> The configuration of the compute resources for workers running an analysis with the Clean Rooms SQL analytics engine.</p>"
