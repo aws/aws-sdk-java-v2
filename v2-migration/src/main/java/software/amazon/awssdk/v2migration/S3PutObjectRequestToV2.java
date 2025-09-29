@@ -305,13 +305,8 @@ public class S3PutObjectRequestToV2 extends Recipe {
                     .withComments(inputStreamBufferingWarningComment());
             }
 
-            StringBuilder sb = new StringBuilder("#{any()}, RequestBody.fromInputStream(#{any()}, #{any()}");
-            if (contentLen instanceof J.Literal) {
-                sb.append("L");
-            }
-            sb.append(")");
-
-            return JavaTemplate.builder(sb.toString()).build()
+            v2Method = "#{any()}, RequestBody.fromInputStream(#{any()}, #{any()})";
+            return JavaTemplate.builder(v2Method).build()
                                .apply(getCursor(), method.getCoordinates().replaceArguments(),
                                       method.getArguments().get(0), inputStream, contentLen);
         }
@@ -346,12 +341,7 @@ public class S3PutObjectRequestToV2 extends Recipe {
                                    .withComments(inputStreamBufferingWarningComment());
             }
 
-            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()}");
-
-            if (contentLen instanceof J.Literal) {
-                sb.append("L");
-            }
-            sb.append(")");
+            sb.append(".build(), RequestBody.fromInputStream(#{any()}, #{any()})");
 
             params = Arrays.copyOf(params, 4);
             params[3] = contentLen;

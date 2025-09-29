@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.v2migration;
 
+import static software.amazon.awssdk.v2migration.internal.utils.NamingUtils.transformMethodName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_S3_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_CLIENT;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.V2_TM_MODEL_PKG;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TmMethodMatcher;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.v2TransferProgressMethodMatcher;
 
 import java.util.regex.Pattern;
 import org.openrewrite.ExecutionContext;
@@ -49,14 +51,18 @@ public class TransferManagerMethodsToV2 extends Recipe {
     private static final MethodMatcher COPY_REQUEST =
         v2TmMethodMatcher(String.format("copy(%sCopyObjectRequest)", V2_S3_MODEL_PKG));
     private static final MethodMatcher COPY_BUCKET_KEY =
-        v2TmMethodMatcher("copy(String, String, String, String");
+        v2TmMethodMatcher("copy(String, String, String, String)");
 
     private static final MethodMatcher DOWNLOAD_DIR = v2TmMethodMatcher("downloadDirectory(String, String, java.io.File)");
 
     private static final MethodMatcher UPLOAD_DIR = v2TmMethodMatcher("uploadDirectory(String, String, java.io.File, boolean)");
 
+    private static final MethodMatcher GET_BYTES_TRANSFERRED = v2TransferProgressMethodMatcher("getBytesTransferred()");
+    private static final MethodMatcher GET_TOTAL_BYTES_TO_TRANSFER = v2TransferProgressMethodMatcher("getTotalBytesToTransfer()");
+    private static final MethodMatcher GET_PERCENT_TRANSFERRED = v2TransferProgressMethodMatcher("getPercentTransferred()");
+
     private static final Pattern S3_TM_CREDENTIAL = Pattern.compile(V2_TM_CLIENT);
-    private static final Pattern V2_AWSCREDENTAIL = Pattern.compile("software.amazon.awssdk.auth.credentials.AwsCredentials");
+    private static final Pattern V2_AWS_CREDENTIALS = Pattern.compile("software.amazon.awssdk.auth.credentials.AwsCredentials");
     private static final Pattern V2_CREDENTIAL_PROVIDER = Pattern.compile("software.amazon.awssdk.auth.credentials"
                                                                           + ".AwsCredentialsProvider");
 
@@ -116,6 +122,21 @@ public class TransferManagerMethodsToV2 extends Recipe {
                 method = transformUploadDirectory(method);
                 return super.visitMethodInvocation(method, executionContext);
             }
+            if (GET_BYTES_TRANSFERRED.matches(method, false)) {
+                String newMethodName = "snapshot().transferredBytes()";
+                method = transformMethodName(method, newMethodName, getCursor());
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (GET_TOTAL_BYTES_TO_TRANSFER.matches(method, false)) {
+                String newMethodName = "snapshot().totalBytes()";
+                method = transformMethodName(method, newMethodName, getCursor());
+                return super.visitMethodInvocation(method, executionContext);
+            }
+            if (GET_PERCENT_TRANSFERRED.matches(method, false)) {
+                String newMethodName = "snapshot().ratioTransferred()";
+                method = transformMethodName(method, newMethodName, getCursor());
+                return super.visitMethodInvocation(method, executionContext);
+            }
 
             return super.visitMethodInvocation(method, executionContext);
         }
@@ -131,7 +152,7 @@ public class TransferManagerMethodsToV2 extends Recipe {
                 newClass.getArguments().size() == 1 &&
                 newClass.getArguments().get(0).getType() != null) {
                 Expression arg = newClass.getArguments().get(0);
-                if (arg.getType().isAssignableFrom(V2_AWSCREDENTAIL)) {
+                if (arg.getType().isAssignableFrom(V2_AWS_CREDENTIALS)) {
                     addS3AsyncClientImport();
                     addStaticCredentialsProviderImport();
 
