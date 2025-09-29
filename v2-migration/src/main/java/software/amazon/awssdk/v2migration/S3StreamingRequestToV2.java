@@ -123,6 +123,8 @@ public class S3StreamingRequestToV2 extends Recipe {
                 Collections.singletonList("stringContent"),
                 Collections.singletonList(JavaType.buildType("java.lang.String")),
                 null,
+                null,
+                null,
                 null
             );
 
@@ -186,6 +188,8 @@ public class S3StreamingRequestToV2 extends Recipe {
                 Collections.singletonList("file"),
                 Collections.singletonList(JavaType.buildType("java.io.File")),
                 null,
+                null,
+                null,
                 null
             );
 
@@ -216,6 +220,8 @@ public class S3StreamingRequestToV2 extends Recipe {
                 V1_PUT_OBJECT_REQUEST,
                 Arrays.asList("bucket", "key"),
                 Arrays.asList(bucketExpr.getType(), keyExpr.getType()),
+                null,
+                null,
                 null,
                 null
             );

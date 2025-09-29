@@ -147,8 +147,7 @@ public class S3RequestConstructor {
 
         s3.abortMultipartUpload(AbortMultipartUploadRequest.builder().bucket("name").key("key").uploadId("upload")
             .build());
-        s3.completeMultipartUpload(CompleteMultipartUploadRequest.builder().bucket("name").key("key").uploadId("upload").multipartUpload(CompletedMultipartUpload.builder().parts(new ArrayList<>()).build())
-            .build());
+        s3.completeMultipartUpload(CompleteMultipartUploadRequest.builder().bucket("name").key("key").uploadId("upload").multipartUpload(CompletedMultipartUpload.builder().parts(new ArrayList<>()).build()).build());
 
         s3.copyObject(CopyObjectRequest.builder()
             .build());
@@ -458,8 +457,7 @@ public class S3RequestConstructor {
             .build();
 
         List<Tag> tags = new ArrayList<>();
-        GetObjectTaggingResponse getObjectTaggingResult = GetObjectTaggingResponse.builder().tagSet(tags)
-            .build();
+        GetObjectTaggingResponse getObjectTaggingResult = GetObjectTaggingResponse.builder().tagSet(tags).build();
 
         PutBucketVersioningRequest setBucketVersioningConfigurationRequest =
             PutBucketVersioningRequest.builder().bucket(bucketName).versioningConfiguration(VersioningConfiguration.builder()

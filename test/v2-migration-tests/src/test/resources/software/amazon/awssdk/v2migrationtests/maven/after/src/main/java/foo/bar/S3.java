@@ -170,8 +170,7 @@ public class S3 {
             .build();
 
         CompleteMultipartUploadRequest completeMpuRequest2 =
-            CompleteMultipartUploadRequest.builder().bucket(bucket).key(key).uploadId("uploadId").multipartUpload(CompletedMultipartUpload.builder().parts(partETags).build())
-                .build();
+            CompleteMultipartUploadRequest.builder().bucket(bucket).key(key).uploadId("uploadId").multipartUpload(CompletedMultipartUpload.builder().parts(partETags).build()).build();
     }
 
     private void listObjects(S3Client s3, String bucket) {

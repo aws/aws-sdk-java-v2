@@ -50,7 +50,6 @@ public class MavenNoCompileTest extends MavenTestBase {
     @Test
     @EnabledIf("versionAvailable")
     void mavenProject_shouldConvert() throws IOException {
-        boolean experimental = true;
-        verifyTransformation(experimental);
+        verifyTransformation();
     }
 }

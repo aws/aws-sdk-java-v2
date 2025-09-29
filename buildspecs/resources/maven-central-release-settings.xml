@@ -1,0 +1,21 @@
+<settings>
+    <servers>
+        <server>
+            <id>central</id>
+            <username>$SONATYPE_USERNAME</username>
+            <password>$SONATYPE_PASSWORD</password>
+        </server>
+    </servers>
+    <profiles>
+        <profile>
+            <id>central-portal-publishing</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <gpg.keyname>$SDK_SIGNING_GPG_KEYNAME</gpg.keyname>
+                <gpg.passphrase>$SDK_SIGNING_GPG_PASSPHRASE</gpg.passphrase>
+            </properties>
+        </profile>
+    </profiles>
+</settings>
