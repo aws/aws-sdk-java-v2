@@ -63,7 +63,10 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
      */
     @Override
     public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext) {
-        return new SsoProfileCredentialsProvider(credentialsContext, sdkTokenProvider(credentialsContext));
+        return new SsoProfileCredentialsProvider(credentialsContext.profile(),
+                                                 credentialsContext.profileFile(),
+                                                 sdkTokenProvider(credentialsContext.profile(),
+                                                                  credentialsContext.profileFile()));
     }
 
     /**
@@ -71,27 +74,26 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
      * This method is only used for testing.
      */
     @SdkTestInternalApi
-    public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext,
+    public AwsCredentialsProvider create(Profile profile, ProfileFile profileFile,
                                          SdkTokenProvider tokenProvider) {
-        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider);
+        return new SsoProfileCredentialsProvider(profile, profileFile, tokenProvider);
     }
 
     /**
      * A wrapper for a {@link SsoCredentialsProvider} that is returned by this factory when {@link
-     * #create(ProfileProviderCredentialsContext)} * or {@link #create(ProfileProviderCredentialsContext, SdkTokenProvider)}
-     * is invoked. This wrapper is important because it ensures * the parent credentials provider is closed when the sso
-     * credentials provider is no longer needed.
+     * #create(ProfileProviderCredentialsContext)} * or {@link #create(Profile, ProfileFile, SdkTokenProvider)} is invoked. This
+     * wrapper is important because it ensures * the parent credentials provider is closed when the sso credentials provider is no
+     * longer needed.
      */
     private static final class SsoProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final SsoClient ssoClient;
         private final SsoCredentialsProvider credentialsProvider;
 
-        private SsoProfileCredentialsProvider(ProfileProviderCredentialsContext credentialsContext,
+        private SsoProfileCredentialsProvider(Profile profile, ProfileFile profileFile,
                                               SdkTokenProvider tokenProvider) {
-            Profile profile = credentialsContext.profile();
             String ssoAccountId = profile.properties().get(ProfileProperty.SSO_ACCOUNT_ID);
             String ssoRoleName = profile.properties().get(ProfileProperty.SSO_ROLE_NAME);
-            String ssoRegion = regionFromProfileOrSession(profile, credentialsContext.profileFile());
+            String ssoRegion = regionFromProfileOrSession(profile, profileFile);
 
             this.ssoClient = SsoClient.builder()
                                       .credentialsProvider(AnonymousCredentialsProvider.create())
@@ -112,7 +114,6 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
             this.credentialsProvider = SsoCredentialsProvider.builder()
                                                              .ssoClient(ssoClient)
                                                              .refreshRequest(supplier)
-                                                             .sourceFeatureId(credentialsContext.sourceFeatureId())
                                                              .build();
         }
 
@@ -156,9 +157,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         return ssoProfile;
     }
 
-    private static SdkTokenProvider sdkTokenProvider(ProfileProviderCredentialsContext credentialsContext) {
-        Profile profile = credentialsContext.profile();
-        ProfileFile profileFile = credentialsContext.profileFile();
+    private static SdkTokenProvider sdkTokenProvider(Profile profile, ProfileFile profileFile) {
         Optional<String> ssoSession = profile.property(ProfileSection.SSO_SESSION.getPropertyKeyName());
 
 
@@ -173,9 +172,11 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
                                           .profileFile(() -> profileFile)
                                           .profileName(profile.name())
                                           .build());
+        } else {
+            return new SsoAccessTokenProvider(generateCachedTokenPath(
+                profile.properties().get(ProfileProperty.SSO_START_URL), TOKEN_DIRECTORY));
+
         }
-        return new SsoAccessTokenProvider(generateCachedTokenPath(profile.properties().get(ProfileProperty.SSO_START_URL),
-                                                                  TOKEN_DIRECTORY));
     }
 
     private static void validateCommonProfileProperties(Profile profile, Profile ssoSessionProfileFile, String propertyName) {

@@ -18,7 +18,6 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.SystemSettingsCredentialsProvider;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 
@@ -29,8 +28,7 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class SystemPropertyCredentialsProvider extends SystemSettingsCredentialsProvider {
 
-    private static final String CLASS_NAME = "SystemPropertyCredentialsProvider";
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_JVM_SYSTEM_PROPERTIES.value();
+    private static final String PROVIDER_NAME = "SystemPropertyCredentialsProvider";
 
     private SystemPropertyCredentialsProvider() {
     }
@@ -54,6 +52,6 @@ public final class SystemPropertyCredentialsProvider extends SystemSettingsCrede
 
     @Override
     public String toString() {
-        return ToString.create(CLASS_NAME);
+        return ToString.create(PROVIDER_NAME);
     }
 }

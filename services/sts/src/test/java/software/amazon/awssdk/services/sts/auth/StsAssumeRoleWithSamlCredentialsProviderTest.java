@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithSamlCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithSamlRequest;
@@ -55,6 +54,6 @@ public class StsAssumeRoleWithSamlCredentialsProviderTest
 
     @Override
     protected String providerName() {
-        return BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_SAML.value();
+        return "StsAssumeRoleWithSamlCredentialsProvider";
     }
 }

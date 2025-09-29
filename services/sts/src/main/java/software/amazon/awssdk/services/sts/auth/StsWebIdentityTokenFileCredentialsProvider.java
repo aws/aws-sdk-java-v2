@@ -22,7 +22,6 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -31,7 +30,6 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -58,7 +56,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsWebIdentityTokenFileCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsWebIdentityTokenFileCredentialsProvider.Builder, StsWebIdentityTokenFileCredentialsProvider> {
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value();
+    private static final String PROVIDER_NAME = "StsWebIdentityTokenFileCredentialsProvider";
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
@@ -134,16 +132,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
         if (loadException != null) {
             throw loadException;
         }
-        AwsCredentials awsCredentials = credentialsProvider.resolveCredentials();
-        if (awsCredentials instanceof AwsSessionCredentials) {
-            AwsSessionCredentials sessionCredentials = (AwsSessionCredentials) awsCredentials;
-            Optional<String> providerName = awsCredentials.providerName();
-            if (providerName.isPresent() && !providerName.get().isEmpty()) {
-                return sessionCredentials.copy(s -> s.providerName(providerName.get() + "," + PROVIDER_NAME));
-            }
-            return sessionCredentials.copy(s -> s.providerName(PROVIDER_NAME));
-        }
-        return awsCredentials;
+        return credentialsProvider.resolveCredentials();
     }
 
     @Override

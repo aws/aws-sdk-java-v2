@@ -22,16 +22,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.Pair;
 
@@ -69,9 +66,7 @@ class SystemSettingCredentialsProvidersTest {
         configureEnvironmentVariables(systemSettings);
         EnvironmentVariableCredentialsProvider provider = EnvironmentVariableCredentialsProvider.create();
         if (expected != null) {
-            AwsCredentials resolvedCredentials = provider.resolveCredentials();
-            assertThat(resolvedCredentials).satisfies(expected);
-            assertThat(resolvedCredentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_ENV_VARS.value());
+            assertThat(provider.resolveCredentials()).satisfies(expected);
         } else {
             assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
         }
@@ -85,9 +80,7 @@ class SystemSettingCredentialsProvidersTest {
         configureSystemProperties(systemSettings);
         SystemPropertyCredentialsProvider provider = SystemPropertyCredentialsProvider.create();
         if (expected != null) {
-            AwsCredentials resolvedCredentials = provider.resolveCredentials();
-            assertThat(resolvedCredentials).satisfies(expected);
-            assertThat(resolvedCredentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_JVM_SYSTEM_PROPERTIES.value());
+            assertThat(provider.resolveCredentials()).satisfies(expected);
         } else {
             assertThatThrownBy(provider::resolveCredentials).isInstanceOf(SdkClientException.class);
         }
@@ -128,18 +121,6 @@ class SystemSettingCredentialsProvidersTest {
                              assertThat(awsCredentials).isInstanceOf(AwsSessionCredentials.class);
                          })
         );
-    }
-
-    @Test
-    void testEnvVarsClassName() {
-        EnvironmentVariableCredentialsProvider provider = EnvironmentVariableCredentialsProvider.create();
-        Assertions.assertThat(provider.toString()).contains("EnvironmentVariableCredentialsProvider");
-    }
-
-    @Test
-    void testSystemPropertyClassName() {
-        SystemPropertyCredentialsProvider provider = SystemPropertyCredentialsProvider.create();
-        Assertions.assertThat(provider.toString()).contains("SystemPropertyCredentialsProvider");
     }
 
     private void configureEnvironmentVariables(List<Pair<SdkSystemSetting, String>> systemSettings) {
