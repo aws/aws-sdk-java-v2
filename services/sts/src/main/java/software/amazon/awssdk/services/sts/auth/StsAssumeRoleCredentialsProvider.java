@@ -25,11 +25,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -51,10 +49,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE.value();
+    private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
     private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
-    private final String sourceFeatureId;
-    private final String providerName;
 
     /**
      * @see #builder()
@@ -64,10 +60,6 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(builder.assumeRoleRequestSupplier, "Assume role request must not be null.");
 
         this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
-            ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -83,7 +75,7 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
         return fromStsCredentials(assumeRoleResponse.credentials(),
-                                  providerName(),
+                                  PROVIDER_NAME,
                                   accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
@@ -101,7 +93,7 @@ public final class StsAssumeRoleCredentialsProvider
 
     @Override
     String providerName() {
-        return this.providerName;
+        return PROVIDER_NAME;
     }
 
     /**
@@ -111,7 +103,6 @@ public final class StsAssumeRoleCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleCredentialsProvider> {
         private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
-        private String sourceFeatureId;
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
@@ -120,7 +111,6 @@ public final class StsAssumeRoleCredentialsProvider
         private Builder(StsAssumeRoleCredentialsProvider provider) {
             super(StsAssumeRoleCredentialsProvider::new, provider);
             this.assumeRoleRequestSupplier = provider.assumeRoleRequestSupplier;
-            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -153,17 +143,6 @@ public final class StsAssumeRoleCredentialsProvider
          */
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
             return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
-        }
-
-        /**
-         * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
-         * that are chained with this one.
-         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
-         * and should not be used directly by external users.</p>
-         */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
-            return this;
         }
 
         @Override

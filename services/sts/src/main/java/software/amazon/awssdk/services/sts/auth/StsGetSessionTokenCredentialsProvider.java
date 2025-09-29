@@ -23,11 +23,9 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
 import software.amazon.awssdk.services.sts.model.GetSessionTokenResponse;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -48,11 +46,9 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public class StsGetSessionTokenCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsGetSessionTokenCredentialsProvider.Builder, StsGetSessionTokenCredentialsProvider> {
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
+    private static final String PROVIDER_NAME = "StsGetSessionTokenCredentialsProvider";
 
     private final GetSessionTokenRequest getSessionTokenRequest;
-    private final String sourceFeatureId;
-    private final String providerName;
 
     /**
      * @see #builder()
@@ -62,10 +58,6 @@ public class StsGetSessionTokenCredentialsProvider
         Validate.notNull(builder.getSessionTokenRequest, "Get session token request must not be null.");
 
         this.getSessionTokenRequest = builder.getSessionTokenRequest;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
-            ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
     }
 
     /**
@@ -78,7 +70,7 @@ public class StsGetSessionTokenCredentialsProvider
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
         GetSessionTokenResponse sessionToken = stsClient.getSessionToken(getSessionTokenRequest);
-        return fromStsCredentials(sessionToken.credentials(), providerName());
+        return fromStsCredentials(sessionToken.credentials(), PROVIDER_NAME);
     }
 
     @Override
@@ -88,7 +80,7 @@ public class StsGetSessionTokenCredentialsProvider
 
     @Override
     String providerName() {
-        return this.providerName;
+        return PROVIDER_NAME;
     }
 
     /**
@@ -98,7 +90,6 @@ public class StsGetSessionTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetSessionTokenCredentialsProvider> {
         private GetSessionTokenRequest getSessionTokenRequest = GetSessionTokenRequest.builder().build();
-        private String sourceFeatureId;
 
         private Builder() {
             super(StsGetSessionTokenCredentialsProvider::new);
@@ -107,7 +98,6 @@ public class StsGetSessionTokenCredentialsProvider
         public Builder(StsGetSessionTokenCredentialsProvider provider) {
             super(StsGetSessionTokenCredentialsProvider::new, provider);
             this.getSessionTokenRequest = provider.getSessionTokenRequest;
-            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -131,21 +121,6 @@ public class StsGetSessionTokenCredentialsProvider
          */
         public Builder refreshRequest(Consumer<GetSessionTokenRequest.Builder> getFederationTokenRequest) {
             return refreshRequest(GetSessionTokenRequest.builder().applyMutation(getFederationTokenRequest).build());
-        }
-
-        /**
-         * Configure the source of this credentials provider. This is used for business metrics tracking
-         * to identify the credential provider chain.
-         * 
-         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
-         * and should not be used directly by external users.</p>
-         *
-         * @param sourceFeatureId The source identifier for business metrics tracking.
-         * @return This object for chained calls.
-         */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
-            return this;
         }
         
         @Override

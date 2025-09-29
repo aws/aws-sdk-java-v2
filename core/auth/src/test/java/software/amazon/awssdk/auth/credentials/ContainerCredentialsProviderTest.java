@@ -31,7 +31,6 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
@@ -74,13 +73,8 @@ public class ContainerCredentialsProviderTest {
                                     .resolveCredentials();
     }
 
-    @Test
-    public void testClassName() {
-        assertThat(credentialsProvider.toString()).contains("ContainerCredentialsProvider");
-    }
-
     /**
-     * Tests that the getCredentials returns a valid response from endpoint.
+     * Tests that the getCredentials returns a value when it receives a valid 200 response from endpoint.
      */
     @Test
     public void testGetCredentialsReturnsValidResponseFromEcsEndpoint() {
@@ -92,7 +86,7 @@ public class ContainerCredentialsProviderTest {
         assertThat(credentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(credentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
         assertThat(credentials.sessionToken()).isEqualTo(TOKEN);
-        assertThat(credentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_HTTP.value());
+        assertThat(credentials.providerName()).isPresent().contains("ContainerCredentialsProvider");
     }
 
     /**
