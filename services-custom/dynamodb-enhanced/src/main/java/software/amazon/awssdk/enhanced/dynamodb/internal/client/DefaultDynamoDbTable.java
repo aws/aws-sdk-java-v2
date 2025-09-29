@@ -16,7 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
-import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.withOptimisticLocking;
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.applyOptimisticLockingIfApplicable;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -127,12 +127,18 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
                                               .build());
     }
 
+    /**
+     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     */
     @Override
     public T deleteItem(DeleteItemEnhancedRequest request) {
         TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
         return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
     }
 
+    /**
+     * Supports optimistic locking via {@link software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper}.
+     */
     @Override
     public T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
@@ -140,41 +146,33 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
         return deleteItem(builder.build());
     }
 
+    /**
+     * Does not support optimistic locking. Use {@link #deleteItem(Object, boolean)} for optimistic locking support.
+     */
     @Override
     public T deleteItem(Key key) {
         return deleteItem(r -> r.key(key));
     }
 
     /**
-     * Deletes an item from the table using the provided key item.
-     * <p>
-     * <b>Note:</b> This method does not use optimistic locking. For versioned records,
-     * use {@link #deleteItem(Object, boolean)} with {@code useOptimisticLocking = true}
-     * to enable optimistic locking protection.
-     * <p>
-     * The DynamoDB Enhanced Client provides optimistic locking for the following operations:
-     * <ul>
-     *   <li>{@link #deleteItem(Object, boolean)} - when {@code useOptimisticLocking = true}</li>
-     *   <li>{@link #deleteItem(DeleteItemEnhancedRequest)} - when using {@code DeleteItemEnhancedRequest.Builder.withOptimisticLocking()}</li>
-     *   <li>Transaction operations - when using {@code TransactDeleteItemEnhancedRequest.Builder.withOptimisticLocking()}</li>
-     * </ul>
-     *
-     * @param keyItem the item containing the key attributes to identify the item to delete
-     * @return the deleted item, or null if the item was not found
-     * @deprecated Use {@link #deleteItem(Object, boolean)} instead to explicitly control optimistic locking behavior
+     * @deprecated Use {@link #deleteItem(Object, boolean)} instead to explicitly control optimistic locking behavior.
      */
-    @Deprecated
     @Override
+    @Deprecated
     public T deleteItem(T keyItem) {
         return deleteItem(keyItem, false);
     }
 
-    @Override
+    /**
+     * Deletes an item from the table with optional optimistic locking.
+     *
+     * @param keyItem the item containing the key to delete
+     * @param useOptimisticLocking if true, applies optimistic locking if the item has version information
+     * @return the deleted item, or null if the item was not found
+     */
     public T deleteItem(T keyItem, boolean useOptimisticLocking) {
         DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
-        if (useOptimisticLocking) {
-            request = withOptimisticLocking(request, keyItem, tableSchema);
-        }
+        request = applyOptimisticLockingIfApplicable(request, keyItem, tableSchema, useOptimisticLocking);
         return deleteItem(request);
     }
 
@@ -332,6 +330,11 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     @Override
     public Key keyFrom(T item) {
         return createKeyFromItem(item, tableSchema, TableMetadata.primaryIndexName());
+    }
+    
+    private java.util.Optional<String> getVersionAttributeName() {
+        return tableSchema.tableMetadata()
+                         .customMetadataObject("VersionedRecordExtension:VersionAttribute", String.class);
     }
 
     @Override

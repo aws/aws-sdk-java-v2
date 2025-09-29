@@ -97,7 +97,7 @@ public class OptimisticLockingDeleteTest extends LocalDynamoDbSyncTestBase {
         oldVersionRecord.setVersion(1); // Old version
 
         exception.expect(ConditionalCheckFailedException.class);
-        mappedTable.deleteItem(oldVersionRecord);
+        mappedTable.deleteItem(oldVersionRecord, true);
     }
 
     @Test

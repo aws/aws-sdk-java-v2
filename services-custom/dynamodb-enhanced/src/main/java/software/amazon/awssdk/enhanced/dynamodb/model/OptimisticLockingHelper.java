@@ -21,14 +21,26 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+/**
+ * Utility class for adding optimistic locking to DynamoDB delete operations.
+ * <p>
+ * Optimistic locking prevents concurrent modifications by checking that an item's version hasn't changed since it was last read.
+ * If the version has changed, the delete operation fails with a {@code ConditionalCheckFailedException}.
+ */
 @SdkPublicApi
 public final class OptimisticLockingHelper {
-
-    private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
 
     private OptimisticLockingHelper() {
     }
 
+    /**
+     * Adds optimistic locking to a delete request.
+     *
+     * @param request              the original delete request
+     * @param versionValue         the expected version value
+     * @param versionAttributeName the version attribute name
+     * @return delete request with optimistic locking condition
+     */
     public static DeleteItemEnhancedRequest withOptimisticLocking(
         DeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
@@ -38,6 +50,14 @@ public final class OptimisticLockingHelper {
                       .build();
     }
 
+    /**
+     * Adds optimistic locking to a transactional delete request.
+     *
+     * @param request              the original transactional delete request
+     * @param versionValue         the expected version value
+     * @param versionAttributeName the version attribute name
+     * @return transactional delete request with optimistic locking condition
+     */
     public static TransactDeleteItemEnhancedRequest withOptimisticLocking(
         TransactDeleteItemEnhancedRequest request, AttributeValue versionValue, String versionAttributeName) {
 
@@ -47,24 +67,61 @@ public final class OptimisticLockingHelper {
                       .build();
     }
 
-    public static <T> DeleteItemEnhancedRequest withOptimisticLocking(
+    /**
+     * Applies optimistic locking if the item has version information.
+     *
+     * @param <T>         the type of the item
+     * @param request     the original delete request
+     * @param keyItem     the item containing version information
+     * @param tableSchema the table schema
+     * @return delete request with optimistic locking if version exists, otherwise original request
+     */
+    public static <T> DeleteItemEnhancedRequest applyOptimisticLockingIfApplicable(
         DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema) {
-        
-        Optional<String> versionAttribute = getVersionAttributeName(tableSchema);
-        if (versionAttribute.isPresent()) {
-            AttributeValue version = tableSchema.attributeValue(keyItem, versionAttribute.get());
+
+        Optional<String> versionAttributeName = getVersionAttributeName(tableSchema);
+        if (versionAttributeName.isPresent()) {
+            AttributeValue version = tableSchema.attributeValue(keyItem, versionAttributeName.get());
             if (version != null) {
-                return withOptimisticLocking(request, version, versionAttribute.get());
+                return withOptimisticLocking(request, version, versionAttributeName.get());
             }
         }
         return request;
     }
 
-    public static <T> Optional<String> getVersionAttributeName(
-        software.amazon.awssdk.enhanced.dynamodb.TableSchema<T> tableSchema) {
-        return tableSchema.tableMetadata().customMetadataObject(CUSTOM_METADATA_KEY, String.class);
+    /**
+     * Conditionally applies optimistic locking if enabled and version information exists.
+     *
+     * @param <T>                  the type of the item
+     * @param request              the original delete request
+     * @param keyItem              the item containing version information
+     * @param tableSchema          the table schema
+     * @param useOptimisticLocking if true, applies optimistic locking
+     * @return delete request with optimistic locking if enabled and version exists, otherwise original request
+     */
+    public static <T> DeleteItemEnhancedRequest applyOptimisticLockingIfApplicable(
+        DeleteItemEnhancedRequest request, T keyItem, TableSchema<T> tableSchema, boolean useOptimisticLocking) {
+        return useOptimisticLocking ? applyOptimisticLockingIfApplicable(request, keyItem, tableSchema) : request;
     }
 
+    /**
+     * Gets the version attribute name from table schema.
+     *
+     * @param <T>         the type of the item
+     * @param tableSchema the table schema
+     * @return version attribute name if present, empty otherwise
+     */
+    public static <T> Optional<String> getVersionAttributeName(TableSchema<T> tableSchema) {
+        return tableSchema.tableMetadata().customMetadataObject("VersionedRecordExtension:VersionAttribute", String.class);
+    }
+
+    /**
+     * Creates a version condition expression.
+     *
+     * @param versionValue         the expected version value
+     * @param versionAttributeName the version attribute name
+     * @return version check condition expression
+     */
     public static Expression createVersionCondition(AttributeValue versionValue, String versionAttributeName) {
         return Expression.builder()
                          .expression(versionAttributeName + " = :version_value")

@@ -24,7 +24,19 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 public class OptimisticLockingHelperTest {
 
     @Test
-    public void builderWithOptimisticLocking_deleteItemEnhancedRequest_shouldAddCondition() {
+    public void createVersionCondition_shouldCreateCorrectExpression() {
+        AttributeValue versionValue = AttributeValue.builder().n("5").build();
+        String versionAttributeName = "version";
+
+        software.amazon.awssdk.enhanced.dynamodb.Expression result = 
+            OptimisticLockingHelper.createVersionCondition(versionValue, versionAttributeName);
+
+        assertThat(result.expression()).isEqualTo("version = :version_value");
+        assertThat(result.expressionValues()).containsEntry(":version_value", versionValue);
+    }
+
+    @Test
+    public void withOptimisticLocking_deleteItemEnhancedRequest_shouldAddCondition() {
         Key key = Key.builder().partitionValue("test-id").build();
         AttributeValue versionValue = AttributeValue.builder().n("5").build();
         String versionAttributeName = "version";
@@ -40,10 +52,8 @@ public class OptimisticLockingHelperTest {
         assertThat(result.conditionExpression().expressionValues()).containsEntry(":version_value", versionValue);
     }
 
-
-
     @Test
-    public void builderWithOptimisticLocking_transactDeleteItemEnhancedRequest_shouldAddCondition() {
+    public void withOptimisticLocking_transactDeleteItemEnhancedRequest_shouldAddCondition() {
         Key key = Key.builder().partitionValue("test-id").build();
         AttributeValue versionValue = AttributeValue.builder().n("10").build();
         String versionAttributeName = "recordVersion";
@@ -60,7 +70,7 @@ public class OptimisticLockingHelperTest {
     }
 
     @Test
-    public void builderWithOptimisticLocking_preservesExistingRequestProperties() {
+    public void withOptimisticLocking_preservesExistingRequestProperties() {
         Key key = Key.builder().partitionValue("test-id").build();
         AttributeValue versionValue = AttributeValue.builder().n("3").build();
 
@@ -76,7 +86,7 @@ public class OptimisticLockingHelperTest {
     }
 
     @Test
-    public void builderWithOptimisticLocking_differentVersionAttributeNames_shouldWork() {
+    public void withOptimisticLocking_differentVersionAttributeNames_shouldWork() {
         Key key = Key.builder().partitionValue("test-id").build();
         AttributeValue versionValue = AttributeValue.builder().n("1").build();
 
@@ -95,7 +105,7 @@ public class OptimisticLockingHelperTest {
     }
 
     @Test
-    public void builderWithOptimisticLocking_differentVersionValues_shouldWork() {
+    public void withOptimisticLocking_differentVersionValues_shouldWork() {
         Key key = Key.builder().partitionValue("test-id").build();
 
         // Test with different version values

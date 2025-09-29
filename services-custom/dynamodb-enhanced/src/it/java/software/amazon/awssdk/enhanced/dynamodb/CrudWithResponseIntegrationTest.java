@@ -432,9 +432,9 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
 
 
 
-    // 6. deleteItem(DeleteItemEnhancedRequest) with helper - versions match
+    // 6. deleteItem(DeleteItemEnhancedRequest) with builder method - versions match
     @Test
-    public void deleteItemWithHelper_versionMatch_shouldSucceed() {
+    public void deleteItemWithBuilder_versionMatch_shouldSucceed() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -452,9 +452,9 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         assertThat(deletedItem).isNull();
     }
 
-    // 7. deleteItem(DeleteItemEnhancedRequest) with helper - versions mismatch
+    // 7. deleteItem(DeleteItemEnhancedRequest) with builder method - versions mismatch
     @Test
-    public void deleteItemWithHelper_versionMismatch_shouldFail() {
+    public void deleteItemWithBuilder_versionMismatch_shouldFail() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -506,9 +506,9 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
 
 
 
-    // 10. TransactWriteItems with helper - versions match
+    // 10. TransactWriteItems with builder method - versions match
     @Test
-    public void transactDeleteItemWithHelper_versionMatch_shouldSucceed() {
+    public void transactDeleteItemWithBuilder_versionMatch_shouldSucceed() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
@@ -529,9 +529,9 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         assertThat(deletedItem).isNull();
     }
 
-    // 11. TransactWriteItems with helper - versions mismatch
+    // 11. TransactWriteItems with builder method - versions mismatch
     @Test
-    public void transactDeleteItemWithHelper_versionMismatch_shouldFail() {
+    public void transactDeleteItemWithBuilder_versionMismatch_shouldFail() {
         VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
         Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
 
