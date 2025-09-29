@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -105,6 +106,13 @@ public final class TransactDeleteItemEnhancedRequest {
      */
     public String returnValuesOnConditionCheckFailureAsString() {
         return returnValuesOnConditionCheckFailure;
+    }
+
+    public static TransactDeleteItemEnhancedRequest withOptimisticLocking(
+        TransactDeleteItemEnhancedRequest request,
+        AttributeValue oldVersionValue,
+        String versionAttributeName) {
+        return OptimisticLockingHelper.withOptimisticLocking(request, oldVersionValue, versionAttributeName);
     }
 
     @Override

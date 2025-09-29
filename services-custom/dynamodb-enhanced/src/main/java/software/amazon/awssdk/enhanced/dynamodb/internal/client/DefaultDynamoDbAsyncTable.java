@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.createKeyFromItem;
+import static software.amazon.awssdk.enhanced.dynamodb.model.OptimisticLockingHelper.withOptimisticLockingIfVersioned;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -53,6 +54,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
 
@@ -145,7 +147,15 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
 
     @Override
     public CompletableFuture<T> deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return deleteItem(keyItem, false);
+    }
+
+    public CompletableFuture<T> deleteItem(T keyItem, boolean useOptimisticLocking) {
+        DeleteItemEnhancedRequest request = DeleteItemEnhancedRequest.builder().key(keyFrom(keyItem)).build();
+        if (useOptimisticLocking) {
+            request = withOptimisticLockingIfVersioned(request, keyItem, tableSchema);
+        }
+        return deleteItem(request);
     }
 
     @Override

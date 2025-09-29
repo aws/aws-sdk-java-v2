@@ -17,12 +17,16 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import org.assertj.core.data.Offset;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
@@ -30,9 +34,13 @@ import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactDeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.VersionedRecord;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
@@ -40,10 +48,12 @@ import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 import software.amazon.awssdk.services.dynamodb.model.ReturnItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegrationTestBase {
 
     private static final String TABLE_NAME = createTestTableName();
+    private static final String VERSIONED_TABLE_NAME = createTestTableName();
 
     private static final EnhancedLocalSecondaryIndex LOCAL_SECONDARY_INDEX =
         EnhancedLocalSecondaryIndex.builder()
@@ -56,14 +66,21 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
     private static DynamoDbClient dynamoDbClient;
     private static DynamoDbEnhancedClient enhancedClient;
     private static DynamoDbTable<Record> mappedTable;
+    private static DynamoDbTable<VersionedRecord> versionedRecordTable;
 
     @BeforeClass
     public static void beforeClass() {
         dynamoDbClient = createDynamoDbClient();
-        enhancedClient = DynamoDbEnhancedClient.builder().dynamoDbClient(dynamoDbClient).build();
+        enhancedClient = DynamoDbEnhancedClient.builder()
+                                               .dynamoDbClient(dynamoDbClient)
+                                               .extensions(VersionedRecordExtension.builder().build())
+                                               .build();
         mappedTable = enhancedClient.table(TABLE_NAME, TABLE_SCHEMA);
         mappedTable.createTable(r -> r.localSecondaryIndices(LOCAL_SECONDARY_INDEX));
+        versionedRecordTable = enhancedClient.table(VERSIONED_TABLE_NAME, VERSIONED_RECORD_TABLE_SCHEMA);
+        versionedRecordTable.createTable();
         dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(TABLE_NAME));
+        dynamoDbClient.waiter().waitUntilTableExists(r -> r.tableName(VERSIONED_TABLE_NAME));
     }
 
     @After
@@ -71,12 +88,17 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         mappedTable.scan()
                    .items()
                    .forEach(record -> mappedTable.deleteItem(record));
+
+        versionedRecordTable.scan()
+                            .items()
+                            .forEach(versionedRecord -> versionedRecordTable.deleteItem(versionedRecord));
     }
 
     @AfterClass
     public static void afterClass() {
         try {
             dynamoDbClient.deleteTable(r -> r.tableName(TABLE_NAME));
+            dynamoDbClient.deleteTable(r -> r.tableName(VERSIONED_TABLE_NAME));
         } finally {
             dynamoDbClient.close();
         }
@@ -320,5 +342,210 @@ public class CrudWithResponseIntegrationTest extends DynamoDbEnhancedIntegration
         assertThat(consumedCapacity).isNotNull();
         // A strongly consistent read request of an item up to 4 KB requires one read request unit.
         assertThat(consumedCapacity.capacityUnits()).isCloseTo(20.0, Offset.offset(1.0));
+    }
+
+    // ========== OPTIMISTIC LOCKING TESTS ==========
+
+    // 1. deleteItem(T item) - Non-versioned record
+    @Test
+    public void deleteItem_nonVersionedRecord_shouldSucceed() {
+        Record item = new Record().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        mappedTable.putItem(item);
+        mappedTable.deleteItem(item);
+
+        Record deletedItem = mappedTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 2. deleteItem(T item) - Versioned record, versions match
+    @Test
+    public void deleteItem_versionedRecord_versionMatch_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        versionedRecordTable.deleteItem(savedItem);
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 3. deleteItem(T item, false) - Versioned record, should not use optimistic locking
+    @Test
+    public void deleteItem_versionedRecord_flagFalse_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        
+        // Update the item to change its version
+        savedItem.setStringAttribute("Updated Item");
+        versionedRecordTable.updateItem(savedItem);
+        
+        // Delete with old version but flag=false - should succeed (no optimistic locking)
+        VersionedRecord oldVersionItem = new VersionedRecord().setId("123").setSort(10).setVersion(1);
+        versionedRecordTable.deleteItem(oldVersionItem, false);
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 4. deleteItem(T item, true) - Versioned record, versions match
+    @Test
+    public void deleteItem_versionedRecord_flagTrue_versionMatch_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        versionedRecordTable.deleteItem(savedItem, true);
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 5. deleteItem(T item, true) - Versioned record, versions mismatch
+    @Test
+    public void deleteItem_versionedRecord_flagTrue_versionMismatch_shouldFail() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        
+        // Update the item to change its version
+        savedItem.setStringAttribute("Updated Item");
+        versionedRecordTable.updateItem(savedItem);
+        
+        // Try to delete with old version and flag=true - should fail
+        VersionedRecord oldVersionItem = new VersionedRecord().setId("123").setSort(10).setVersion(1);
+        
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(oldVersionItem, true))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+    }
+
+
+
+
+    // 6. deleteItem(DeleteItemEnhancedRequest) with helper - versions match
+    @Test
+    public void deleteItemWithHelper_versionMatch_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+
+        DeleteItemEnhancedRequest baseRequest = DeleteItemEnhancedRequest.builder().key(recordKey).build();
+        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.withOptimisticLocking(
+            baseRequest, AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version");
+
+        versionedRecordTable.deleteItem(requestWithLocking);
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 7. deleteItem(DeleteItemEnhancedRequest) with helper - versions mismatch
+    @Test
+    public void deleteItemWithHelper_versionMismatch_shouldFail() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+
+        DeleteItemEnhancedRequest baseRequest = DeleteItemEnhancedRequest.builder().key(recordKey).build();
+        DeleteItemEnhancedRequest requestWithLocking = DeleteItemEnhancedRequest.withOptimisticLocking(
+            baseRequest, AttributeValue.builder().n("999").build(), "version");
+
+        assertThatThrownBy(() -> versionedRecordTable.deleteItem(requestWithLocking))
+            .isInstanceOf(ConditionalCheckFailedException.class)
+            .satisfies(e -> assertThat(e.getMessage()).contains("The conditional request failed"));
+    }
+
+    // 8. TransactWriteItems.addDeleteItem(T item) - Non-versioned record
+    @Test
+    public void transactDeleteItem_nonVersionedRecord_shouldSucceed() {
+        Record item = new Record().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        mappedTable.putItem(item);
+
+        enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
+                                                                           .addDeleteItem(mappedTable, item)
+                                                                           .build());
+
+        Record deletedItem = mappedTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 9. TransactWriteItems.addDeleteItem(T item) - Versioned record, versions match
+    @Test
+    public void transactDeleteItem_versionedRecord_versionMatch_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+
+        enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
+                                                                           .addDeleteItem(versionedRecordTable, savedItem)
+                                                                           .build());
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+
+
+
+    // 10. TransactWriteItems with helper - versions match
+    @Test
+    public void transactDeleteItemWithHelper_versionMatch_shouldSucceed() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+        VersionedRecord savedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+
+        TransactDeleteItemEnhancedRequest baseRequest = TransactDeleteItemEnhancedRequest.builder().key(recordKey).build();
+        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.withOptimisticLocking(
+            baseRequest, AttributeValue.builder().n(savedItem.getVersion().toString()).build(), "version");
+
+        enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
+                                                                           .addDeleteItem(versionedRecordTable,
+                                                                                          requestWithLocking)
+                                                                           .build());
+
+        VersionedRecord deletedItem = versionedRecordTable.getItem(r -> r.key(recordKey));
+        assertThat(deletedItem).isNull();
+    }
+
+    // 11. TransactWriteItems with helper - versions mismatch
+    @Test
+    public void transactDeleteItemWithHelper_versionMismatch_shouldFail() {
+        VersionedRecord item = new VersionedRecord().setId("123").setSort(10).setStringAttribute("Test Item");
+        Key recordKey = Key.builder().partitionValue(item.getId()).sortValue(item.getSort()).build();
+
+        versionedRecordTable.putItem(item);
+
+        TransactDeleteItemEnhancedRequest baseRequest = TransactDeleteItemEnhancedRequest.builder().key(recordKey).build();
+        TransactDeleteItemEnhancedRequest requestWithLocking = TransactDeleteItemEnhancedRequest.withOptimisticLocking(
+            baseRequest, AttributeValue.builder().n("999").build(), "version");
+
+        TransactionCanceledException ex = assertThrows(TransactionCanceledException.class,
+                                                       () -> enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
+                                                                                                                                .addDeleteItem(versionedRecordTable, requestWithLocking)
+                                                                                                                                .build()));
+
+        assertTrue(ex.hasCancellationReasons());
+        assertEquals(1, ex.cancellationReasons().size());
+        assertEquals("ConditionalCheckFailed", ex.cancellationReasons().get(0).code());
+        assertEquals("The conditional request failed", ex.cancellationReasons().get(0).message());
     }
 }
