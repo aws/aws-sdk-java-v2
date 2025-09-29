@@ -48,9 +48,9 @@ public interface Checksummer {
      * Get a default implementation of a checksummer, which calculates the SHA-256 checksum and places it in the
      * x-amz-content-sha256 header.
      */
-    static Checksummer create(PayloadChecksumStore cache) {
+    static Checksummer create() {
         return new FlexibleChecksummer(
-            cache,
+            NoOpPayloadChecksumStore.create(),
             option().headerName(X_AMZ_CONTENT_SHA256).algorithm(SHA256).formatter(BinaryUtils::toHex).build()
         );
     }

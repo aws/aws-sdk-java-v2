@@ -870,49 +870,6 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheContainsChecksum_usesCachedValue() {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
-        cache.putChecksumValue(SHA256, checksumValue);
-
-        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
-                .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        SignedRequest signedRequest = signer.sign(request);
-
-        Optional<String> sha256Header = signedRequest.request().firstMatchingHeader("x-amz-content-sha256");
-        assertThat(sha256Header).hasValue(BinaryUtils.toHex(checksumValue));
-    }
-
-    @Test
-    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheEmpty_storesComputedChecksum() throws IOException {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
-                .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        SignedRequest signedRequest = signer.sign(request);
-
-        byte[] requestBytes = IoUtils.toByteArray(signedRequest.payload().get().newStream());
-        byte[] sha256Checksum = computeChecksum(SHA256, requestBytes);
-
-        assertThat(cache.getChecksumValue(SHA256)).isEqualTo(sha256Checksum);
-    }
-
-    @Test
     void sign_WithPayloadSigningFalse_chunkEncodingTrue_cacheEmpty_storesComputedChecksum() throws IOException {
         PayloadChecksumStore cache = PayloadChecksumStore.create();
 

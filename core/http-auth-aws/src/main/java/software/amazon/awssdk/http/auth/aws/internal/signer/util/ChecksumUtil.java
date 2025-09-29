@@ -182,7 +182,7 @@ public final class ChecksumUtil {
             if (isFlexible) {
                 return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM), payloadChecksumStore);
             }
-            return Checksummer.create(payloadChecksumStore);
+            return Checksummer.create();
         }
 
         if (isFlexible || isTrailing) {
