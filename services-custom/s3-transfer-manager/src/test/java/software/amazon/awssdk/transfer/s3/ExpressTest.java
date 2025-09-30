@@ -82,7 +82,7 @@ public class ExpressTest {
     @Test
     void s3_upload() throws IOException {
         CompletableFuture<PutObjectResponse> putObjectFuture = s3Client.putObject(
-            put -> put.key(key).bucket(bucket),
+            put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket),
             AsyncRequestBody.fromFile(c -> c.chunkSizeInBytes(chunkSize))
         );
 
@@ -126,9 +126,8 @@ public class ExpressTest {
         manager.uploadFile(
             UploadFileRequest.builder()
                              .putObjectRequest(
-                                 put -> put.key(key).bucket(bucket))
+                                 put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket))
                              .source(path)
-                             .addTransferListener(LoggingTransferListener.create())
                              .build())
             .completionFuture();
         long start = System.currentTimeMillis();
@@ -150,7 +149,6 @@ public class ExpressTest {
             manager.downloadFile(DownloadFileRequest.builder()
                                                     .getObjectRequest(get -> get.key(key).bucket(bucket))
                                                     .destination(path)
-                                                    .addTransferListener(LoggingTransferListener.create())
                                                     .build())
                    .completionFuture();
         long start = System.currentTimeMillis();
