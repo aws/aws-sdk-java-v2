@@ -669,9 +669,10 @@ together, and there must never be more than one partition key, sort key or table
 
 **Map Flattening**: 
 - A record can contain at most one `@DynamoDbFlatten` on a Map property. This limit applies across the entire class hierarchy, including any composed or flattened classes.
-- The flattened map must use `String` as both the key and value type (`Map<String, String>`).
+- The flattened map must use `String` as both the key and value type (`Map<String, String>`). Other key or value types are not supported.
 - Attribute names generated from map keys must not conflict with existing attributes on the record. If a conflict is detected, an exception will be thrown.
 - If more than one flattened map is present, an exception will be thrown during schema creation.
+- Other annotations like `@DynamoDbUpdateBehavior` are not supported on flattened maps, consistent with the existing object flattening behavior.
 
 Flat map composite classes using StaticTableSchema:
 
