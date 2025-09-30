@@ -19,6 +19,7 @@ import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -71,6 +72,15 @@ public final class S3ExpressIdentityKey implements ToCopyableBuilder<S3ExpressId
 
         return Objects.equals(bucket, that.bucket) &&
                Objects.equals(identity, that.identity);
+    }
+
+    @Override
+    public String toString() {
+        return ToString.builder("S3ExpressIdentityKey")
+                       .add("bucket", bucket)
+                       .add("client", client)
+                       .add("identity", identity.toString())
+                       .build();
     }
 
     @Override

@@ -30,10 +30,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateSessionRequest;
 import software.amazon.awssdk.services.s3.model.SessionCredentials;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.cache.lru.LruCache;
 
 @SdkInternalApi
 public class S3ExpressIdentityCache {
+    private static final Logger log = Logger.loggerFor(S3ExpressIdentityCache.class);
 
     /**
      * Original specification calls for 100. We'll use 25 for now, pending testing.
@@ -76,6 +78,7 @@ public class S3ExpressIdentityCache {
     }
 
     SessionCredentials getCredentials(S3ExpressIdentityKey key, IdentityProvider<AwsCredentialsIdentity> provider) {
+        log.info(() -> "Getting session credentials for " + key.toString());
         SdkClient client = key.client();
         String bucket = key.bucket();
         SdkServiceClientConfiguration serviceClientConfiguration = client.serviceClientConfiguration();
