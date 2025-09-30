@@ -125,7 +125,7 @@ public class FlattenMapBeanTableSchemaTest {
         }});
 
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("More than one @DynamoDbFlattenMap annotation found on the same record");
+        exception.expectMessage("More than one @DynamoDbFlatten annotation found on Map<String, String> properties");
 
         BeanTableSchema<FlattenMapInvalidBean> beanTableSchema = BeanTableSchema.create(FlattenMapInvalidBean.class);
         beanTableSchema.itemToMap(bean, false);

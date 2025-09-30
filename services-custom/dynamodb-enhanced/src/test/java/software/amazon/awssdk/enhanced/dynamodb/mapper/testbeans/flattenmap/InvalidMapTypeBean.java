@@ -16,16 +16,14 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.flattenmap;
 
 import java.util.Map;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.UpdateBehavior;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlattenMap;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdateBehavior;
 
 @DynamoDbBean
-public class FlattenMapWithUpdateBehaviorBean {
+public class InvalidMapTypeBean {
     private String id;
-    private Map<String, String> attributesMap;
+    private Map<String, Integer> invalidMap;
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -36,13 +34,12 @@ public class FlattenMapWithUpdateBehaviorBean {
         this.id = id;
     }
 
-    @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
-    @DynamoDbFlattenMap
-    public Map<String, String> getAttributesMap() {
-        return attributesMap;
+    @DynamoDbFlatten
+    public Map<String, Integer> getInvalidMap() {
+        return invalidMap;
     }
 
-    public void setAttributesMap(Map<String, String> attributesMap) {
-        this.attributesMap = attributesMap;
+    public void setInvalidMap(Map<String, Integer> invalidMap) {
+        this.invalidMap = invalidMap;
     }
 }

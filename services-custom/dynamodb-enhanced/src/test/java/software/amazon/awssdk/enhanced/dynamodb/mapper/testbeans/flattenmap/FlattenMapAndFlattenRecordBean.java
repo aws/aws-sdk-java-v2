@@ -19,7 +19,6 @@ import java.util.Map;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FlattenRecord;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlattenMap;
 
 @DynamoDbBean
 public class FlattenMapAndFlattenRecordBean {
@@ -51,7 +50,7 @@ public class FlattenMapAndFlattenRecordBean {
         this.flattenRecord = flattenRecord;
     }
 
-    @DynamoDbFlattenMap
+    @DynamoDbFlatten
     public Map<String, String> getAttributesMap() {
         return attributesMap;
     }

@@ -18,7 +18,7 @@ package software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.flattenmap;
 import java.util.Map;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlattenMap;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
@@ -50,7 +50,7 @@ public class FlattenMapValidBean {
         this.rootAttribute2 = rootAttribute2;
     }
 
-    @DynamoDbFlattenMap
+    @DynamoDbFlatten
     public Map<String, String> getAttributesMap() {
         return attributesMap;
     }

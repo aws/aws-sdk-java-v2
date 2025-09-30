@@ -35,7 +35,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.WeakHashMap;
 import java.util.function.BiConsumer;
@@ -64,7 +63,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttri
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbConvertedBy;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlattenMap;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
@@ -228,9 +226,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                                             .filter(p -> isMappableProperty(beanClass, p))
                                                             .collect(Collectors.toList());
 
-        if (dynamoDbFlattenMapAnnotationHasInvalidUse(mappableProperties)) {
-            throw new IllegalArgumentException("More than one @DynamoDbFlattenMap annotation found on the same record");
-        }
+        validateDynamoDbFlattenAnnotations(mappableProperties);
 
         Supplier<T> newObjectSupplier = newObjectSupplierForClass(beanClass, lookup);
 
@@ -245,31 +241,32 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
-                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
-                                      getterForProperty(propertyDescriptor, beanClass, lookup),
-                                      setterForProperty(propertyDescriptor, beanClass, lookup));
-                  } else {
-                      DynamoDbFlattenMap dynamoDbFlattenMap = getPropertyAnnotation(propertyDescriptor, DynamoDbFlattenMap.class);
-
-                      if (dynamoDbFlattenMap != null) {
-                          builder.flatten(propertyDescriptor.getName(), getterForProperty(propertyDescriptor, beanClass, lookup),
+                      Type returnType = propertyDescriptor.getReadMethod().getGenericReturnType();
+                      if (isValidFlattenMapType(returnType)) {
+                          // Map flattening
+                          builder.flatten(propertyDescriptor.getName(),
+                                          getterForProperty(propertyDescriptor, beanClass, lookup),
                                           setterForProperty(propertyDescriptor, beanClass, lookup));
-
                       } else {
-                          AttributeConfiguration attributeConfiguration =
-                              resolveAttributeConfiguration(propertyDescriptor);
-
-                          StaticAttribute.Builder<T, ?> attributeBuilder =
-                              staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
-                                                     attributeConfiguration);
-
-                          Optional<AttributeConverter> attributeConverter =
-                              createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
-                          attributeConverter.ifPresent(attributeBuilder::attributeConverter);
-
-                          addTagsToAttribute(attributeBuilder, propertyDescriptor);
-                          attributes.add(attributeBuilder.build());
+                          // Object flattening
+                          builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
+                                          getterForProperty(propertyDescriptor, beanClass, lookup),
+                                          setterForProperty(propertyDescriptor, beanClass, lookup));
                       }
+                  } else {
+                      AttributeConfiguration attributeConfiguration =
+                          resolveAttributeConfiguration(propertyDescriptor);
+
+                      StaticAttribute.Builder<T, ?> attributeBuilder =
+                          staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
+                                                 attributeConfiguration);
+
+                      Optional<AttributeConverter> attributeConverter =
+                              createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
+                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+
+                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                      attributes.add(attributeBuilder.build());
                   }
               });
 
@@ -302,13 +299,46 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                      .findFirst();
     }
 
-    private static boolean dynamoDbFlattenMapAnnotationHasInvalidUse(List<PropertyDescriptor> mappableProperties) {
-        return mappableProperties.stream()
-                                 .map(pd -> getPropertyAnnotation(pd, DynamoDbFlattenMap.class))
-                                 .filter(Objects::nonNull)
-                                 .skip(1)
-                                 .findFirst()
-                                 .isPresent();
+    private static void validateDynamoDbFlattenAnnotations(List<PropertyDescriptor> mappableProperties) {
+        int mapCount = 0;
+        
+        for (PropertyDescriptor property : mappableProperties) {
+            if (!hasFlattenAnnotation(property)) {
+                continue;
+            }
+            
+            Type type = property.getReadMethod().getGenericReturnType();
+            if (isValidFlattenMapType(type)) {
+                mapCount++;
+            } else if (isMapType(type)) {
+                throw new IllegalArgumentException("@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+            }
+        }
+        
+        if (mapCount > 1) {
+            throw new IllegalArgumentException("More than one @DynamoDbFlatten annotation found on Map<String, String> properties");
+        }
+    }
+    
+    private static boolean hasFlattenAnnotation(PropertyDescriptor property) {
+        return getPropertyAnnotation(property, DynamoDbFlatten.class) != null;
+    }
+    
+    private static boolean isMapType(Type type) {
+        return type instanceof ParameterizedType && 
+               Map.class.equals(((ParameterizedType) type).getRawType());
+    }
+    
+    private static boolean isValidFlattenMapType(Type type) {
+        if (!isMapType(type)) {
+            return false;
+        }
+        
+        Type[] mapTypes = ((ParameterizedType) type).getActualTypeArguments();
+
+        return mapTypes.length == 2 &&
+               String.class.equals(mapTypes[0]) &&
+               String.class.equals(mapTypes[1]);
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {
