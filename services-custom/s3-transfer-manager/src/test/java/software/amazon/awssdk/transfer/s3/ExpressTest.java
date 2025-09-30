@@ -18,7 +18,6 @@ package software.amazon.awssdk.transfer.s3;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +25,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -34,20 +32,18 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
-import software.amazon.awssdk.services.s3.model.PutObjectAclResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
-import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class ExpressTest {
 
     int maxInflightDownloads = 5;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long bufferSize = 5L * 1000 * 1000 * 1000;
+    long bufferSize = 1000 * 1000 * 1000;
     long partSize = 5L * 1000 * 1000 * 1000;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
