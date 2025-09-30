@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
+    "contributor": "",
+    "description": "Tagging support for AgentCore Gateway"
+}
