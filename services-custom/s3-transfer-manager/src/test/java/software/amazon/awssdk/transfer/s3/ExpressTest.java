@@ -69,6 +69,7 @@ public class ExpressTest {
             .httpClient(NettyNioAsyncHttpClient.builder()
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
+                                               .connectionMaxIdleTime(Duration.ofSeconds(5))
                                                .buildWithDefaults(AttributeMap.builder()
                                                                               .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                                                                               .build()))

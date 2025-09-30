@@ -94,6 +94,7 @@ public class S3ExpressIdentityCache {
                 return c;
             } catch (Exception e) {
                 log.error(() -> "Failed to get session credentials: " + e.getMessage(), e);
+                throw e;
             }
         }
         if (client instanceof S3Client) {
