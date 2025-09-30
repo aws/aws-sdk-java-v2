@@ -17,7 +17,7 @@ name: software.amazon.awssdk.v2migration.S3EventNotificationMethodsToV2
 displayName: Change S3EventNotification methods to v2.
 description: Change S3EventNotification methods to v2.
 recipeList:
-  - software.amazon.awssdk.v2migration.openrewrite.ChangeMethodInvocationReturnType:
+  - org.openrewrite.java.ChangeMethodInvocationReturnType:
       methodPattern: com.amazonaws.services.s3.event.S3EventNotification.S3EventNotificationRecord getEventNameAsEnum()
       newReturnType: String
   - org.openrewrite.java.ChangeMethodName:

@@ -1,0 +1,18 @@
+{
+    "version": "2.33.9",
+    "date": "2025-09-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update Jackson and Jackson jr to 2.19.0"
+        },
+        {
+            "type": "feature",
+            "category": "Payment Cryptography Control Plane",
+            "contributor": "",
+            "description": "Add support for certificates to be signed by 3rd party certificate authorities. New API GetCertificateSigningRequest API and support for providing certificates at run-time for tr-34 import/export"
+        }
+    ]
+}

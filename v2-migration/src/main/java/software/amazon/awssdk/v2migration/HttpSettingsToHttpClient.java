@@ -308,6 +308,8 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList(),
                 parametersTypes,
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
 
@@ -359,6 +361,8 @@ public class HttpSettingsToHttpClient extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
 
@@ -402,6 +406,8 @@ public class HttpSettingsToHttpClient extends Recipe {
                 httpClientBuilderType,
                 Collections.emptyList(),
                 parametersTypes,
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList()
             );

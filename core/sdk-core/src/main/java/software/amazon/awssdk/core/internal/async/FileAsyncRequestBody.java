@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
@@ -71,6 +72,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
     private final int chunkSizeInBytes;
     private final long position;
     private final long numBytesToRead;
+    private FileTime modifiedTimeAtStart;
+    private Long sizeAtStart;
 
     private FileAsyncRequestBody(DefaultBuilder builder) {
         this.path = builder.path;
@@ -79,6 +82,27 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         this.position = builder.position == null ? 0 : Validate.isNotNegative(builder.position, "position");
         this.numBytesToRead = builder.numBytesToRead == null ? fileLength - this.position :
                               Validate.isNotNegative(builder.numBytesToRead, "numBytesToRead");
+        if (builder.modifiedTimeAtStart != null) {
+            this.modifiedTimeAtStart = builder.modifiedTimeAtStart;
+        } else {
+            try {
+                this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
+            } catch (IOException e) {
+                log.debug(() -> "Failed to get last modified time for path " + path, e);
+                this.modifiedTimeAtStart = null;
+            }
+        }
+
+        if (builder.sizeAtStart != null) {
+            this.sizeAtStart = builder.sizeAtStart;
+        } else {
+            try {
+                this.sizeAtStart = Files.size(path);
+            } catch (IOException e) {
+                log.debug(() -> "Failed to get file size for path " + path, e);
+                this.sizeAtStart = null;
+            }
+        }
     }
 
     @Override
@@ -112,6 +136,14 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         return numBytesToRead;
     }
 
+    public FileTime modifiedTimeAtStart() {
+        return modifiedTimeAtStart;
+    }
+
+    public Long sizeAtStart() {
+        return sizeAtStart;
+    }
+
     @Override
     public Optional<Long> contentLength() {
         return Optional.of(numBytesToRead);
@@ -131,7 +163,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             // We need to synchronize here because the subscriber could call
             // request() from within onSubscribe which would potentially
             // trigger onNext before onSubscribe is finished.
-            Subscription subscription = new FileSubscription(channel, s);
+            Subscription subscription = new FileSubscription(channel, s, modifiedTimeAtStart, sizeAtStart);
 
             synchronized (subscription) {
                 s.onSubscribe(subscription);
@@ -203,6 +235,20 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
          * @return The builder for method chaining.
          */
         Builder numBytesToRead(Long numBytesToRead);
+
+        /**
+         * Optional - sets the file modified time at the start of the request.
+         * @param modifiedTimeAtStart initial file modification time
+         * @return The builder for method chaining.
+         */
+        Builder modifiedTimeAtStart(FileTime modifiedTimeAtStart);
+
+        /**
+         * Optional - sets the file size in bytes at the start of the request.
+         * @param sizeAtStart initial file size at start.
+         * @return The builder for method chaining.
+         */
+        Builder sizeAtStart(Long sizeAtStart);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -211,6 +257,8 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private Path path;
         private Integer chunkSizeInBytes;
         private Long numBytesToRead;
+        private FileTime modifiedTimeAtStart;
+        private Long sizeAtStart;
 
         @Override
         public Builder path(Path path) {
@@ -237,6 +285,18 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         @Override
         public Builder numBytesToRead(Long numBytesToRead) {
             this.numBytesToRead = numBytesToRead;
+            return this;
+        }
+
+        @Override
+        public Builder modifiedTimeAtStart(FileTime modifiedTimeAtStart) {
+            this.modifiedTimeAtStart = modifiedTimeAtStart;
+            return this;
+        }
+
+        @Override
+        public Builder sizeAtStart(Long sizeAtStart) {
+            this.sizeAtStart = sizeAtStart;
             return this;
         }
 
@@ -267,13 +327,23 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         private final Object lock = new Object();
 
         private FileSubscription(AsynchronousFileChannel inputChannel,
-                                 Subscriber<? super ByteBuffer> subscriber) throws IOException {
+                                 Subscriber<? super ByteBuffer> subscriber,
+                                 FileTime modifiedTimeAtStart, Long sizeAtStart) throws IOException {
             this.inputChannel = inputChannel;
             this.subscriber = subscriber;
-            this.sizeAtStart = inputChannel.size();
-            this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
             this.remainingBytes = new AtomicLong(numBytesToRead);
             this.currentPosition = new AtomicLong(position);
+            if (sizeAtStart != null) {
+                this.sizeAtStart = sizeAtStart;
+            } else {
+                this.sizeAtStart = Files.size(path);
+            }
+
+            if (modifiedTimeAtStart != null) {
+                this.modifiedTimeAtStart = modifiedTimeAtStart;
+            } else {
+                this.modifiedTimeAtStart = Files.getLastModifiedTime(path);
+            }
         }
 
         @Override
@@ -338,12 +408,21 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
 
                             int readBytes = attachment.remaining();
                             currentPosition.addAndGet(readBytes);
-                            remainingBytes.addAndGet(-readBytes);
+                            long remaining = remainingBytes.addAndGet(-readBytes);
+
+                            // we need to validate the file is unchanged before providing the last bytes to subscriber
+                            // the subscriber (eg: NettyRequestExecutor) may cancel subscription once all expected bytes have
+                            // been received.  Validating here ensures errors are correctly signaled.
+                            if (remaining == 0) {
+                                closeFile();
+                                if (!validateFileUnchangedAndSignalErrors()) {
+                                    return;
+                                }
+                            }
 
                             signalOnNext(attachment);
 
-                            if (remainingBytes.get() == 0) {
-                                closeFile();
+                            if (remaining == 0) {
                                 signalOnComplete();
                             }
 
@@ -391,33 +470,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
         }
 
         private void signalOnComplete() {
-            try {
-                long sizeAtEnd = Files.size(path);
-                if (sizeAtStart != sizeAtEnd) {
-                    signalOnError(new IOException("File size changed after reading started. Initial size: " + sizeAtStart + ". "
-                                                  + "Current size: " + sizeAtEnd));
-                    return;
-                }
-
-                if (remainingBytes.get() > 0) {
-                    signalOnError(new IOException("Fewer bytes were read than were expected, was the file modified after "
-                                                  + "reading started?"));
-                    return;
-                }
-
-                FileTime modifiedTimeAtEnd = Files.getLastModifiedTime(path);
-                if (modifiedTimeAtStart.compareTo(modifiedTimeAtEnd) != 0) {
-                    signalOnError(new IOException("File last-modified time changed after reading started. Initial modification "
-                                                  + "time: " + modifiedTimeAtStart + ". Current modification time: " +
-                                                  modifiedTimeAtEnd));
-                    return;
-                }
-            } catch (NoSuchFileException e) {
-                signalOnError(new IOException("Unable to check file status after read. Was the file deleted or were its "
-                                              + "permissions changed?", e));
-                return;
-            } catch (IOException e) {
-                signalOnError(new IOException("Unable to check file status after read.", e));
+            if (!validateFileUnchangedAndSignalErrors()) {
                 return;
             }
 
@@ -427,6 +480,39 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                     subscriber.onComplete();
                 }
             }
+        }
+
+        private boolean validateFileUnchangedAndSignalErrors() {
+            try {
+                long sizeAtEnd = Files.size(path);
+                if (sizeAtStart != sizeAtEnd) {
+                    signalOnError(SdkClientException.create("File size changed after reading started. Initial size: "
+                                                         + sizeAtStart + ". Current size: " + sizeAtEnd));
+                    return false;
+                }
+
+                if (remainingBytes.get() > 0) {
+                    signalOnError(SdkClientException.create("Fewer bytes were read than were expected, was the file modified "
+                                                           + "after reading started?"));
+                    return false;
+                }
+
+                FileTime modifiedTimeAtEnd = Files.getLastModifiedTime(path);
+                if (modifiedTimeAtStart.compareTo(modifiedTimeAtEnd) != 0) {
+                    signalOnError(SdkClientException.create("File last-modified time changed after reading started. "
+                                                            + "Initial modification time: " + modifiedTimeAtStart
+                                                            + ". Current modification time: " + modifiedTimeAtEnd));
+                    return false;
+                }
+            } catch (NoSuchFileException e) {
+                signalOnError(SdkClientException.create("Unable to check file status after read. Was the file deleted"
+                                                        + " or were its permissions changed?", e));
+                return false;
+            } catch (IOException e) {
+                signalOnError(SdkClientException.create("Unable to check file status after read.", e));
+                return false;
+            }
+            return true;
         }
 
         private void signalOnError(Throwable t) {

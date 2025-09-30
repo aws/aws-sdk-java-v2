@@ -250,6 +250,27 @@ class SdkLengthAwareInputStreamTest {
     }
 
     @Test
+    void readBytePartialThenMark_doesNotResetContentLength() throws IOException {
+        int delegateLength = 16;
+        int expectedContentLength = delegateLength + 1;
+        ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
+
+        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, expectedContentLength);
+        is.read(); // read one byte
+        is.mark(1024);
+        // read another byte and reset, the length should not be reset based on the byte that was already read
+        is.read();
+        is.reset();
+        assertThatThrownBy(() -> {
+            int read;
+            while ((read = is.read()) != -1) {
+            }
+        })
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("The request content has fewer bytes than the specified content-length: " + expectedContentLength);
+    }
+
+    @Test
     void readByte_delegateLongerThanRequired_truncated() throws IOException {
         int delegateLength = 32;
         int length = 16;
