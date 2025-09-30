@@ -1,4 +1,65 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.7__ __2025-09-30__
+## __AWS DataSync__
+  - ### Features
+    - Added support for FIPS VPC endpoints in FIPS-enabled AWS Regions.
+
+## __AWS Directory Service__
+  - ### Features
+    - AWS Directory service now supports IPv6-native and dual-stack configurations for AWS Managed Microsoft AD, AD Connector, and Simple AD (dual-stack only). Additionally, AWS Managed Microsoft AD Standard Edition directories can be upgraded to Enterprise Edition directories through a single API call.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Adding TPS Traffic Shaping to Prefetch Schedules
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Add support for updating server identity provider type
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Tagging support for AgentCore Gateway
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Added support for IPv4-only and dual-stack network configurations for VoiceConnector and CreateVoiceConnector API.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals is introducing the Application Map to give users a more comprehensive view of their service health. Users will now be able to group services, track their latest deployments, and view automated audit findings concerning service performance.
+
+## __Amazon Connect Cases__
+  - ### Features
+    - This release adds support for two new related item types: ConnectCase for linking Amazon Connect cases and Custom for user-defined related items with configurable fields.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces ListProfileHistoryRecords and GetProfileHistoryRecord APIs for comprehensive profile history tracking with complete audit trails of creation, updates, merges, deletions, and data ingestion events.
+
+## __Amazon DataZone__
+  - ### Features
+    - This release adds support for creation of EMR on EKS Connections in Amazon DataZone.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This release adds support for Managed Instances on Amazon ECS.
+
+## __Amazon FSx__
+  - ### Features
+    - Add Dual-Stack support for Amazon FSx for NetApp ONTAP and Windows File Server
+
+## __Amazon QuickSight__
+  - ### Features
+    - added warnings to a few CLI pages
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Enhanced RDS error handling: Added DBProxyEndpointNotFoundFault, DBShardGroupNotFoundFault, KMSKeyNotAccessibleFault for snapshots/restores/backups, NetworkTypeNotSupported, StorageTypeNotSupportedFault for restores, and granular state validation faults. Changed DBInstanceNotReadyFault to HTTP 400.
+
 # __2.34.6__ __2025-09-29__
 ## __AWS SDK for Java v2__
   - ### Features

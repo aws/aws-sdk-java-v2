@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "This release adds support for creation of EMR on EKS Connections in Amazon DataZone."
-}
