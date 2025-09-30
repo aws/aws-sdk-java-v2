@@ -83,7 +83,7 @@ public class ExpressTest {
     void s3_upload() throws IOException {
         CompletableFuture<PutObjectResponse> putObjectFuture = s3Client.putObject(
             put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket),
-            AsyncRequestBody.fromFile(c -> c.chunkSizeInBytes(chunkSize))
+            AsyncRequestBody.fromFile(c -> c.chunkSizeInBytes(chunkSize).path(Paths.get(testPath)))
         );
 
         long start = System.currentTimeMillis();
