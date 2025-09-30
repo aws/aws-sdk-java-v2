@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -54,6 +53,6 @@ public class StsAssumeRoleWithWebIdentityCredentialsProviderTest
 
     @Override
     protected String providerName() {
-        return BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider";
     }
 }

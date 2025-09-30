@@ -25,14 +25,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
-import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -66,8 +64,7 @@ public final class ProcessCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
-    private static final String CLASS_NAME = "ProcessCredentialsProvider";
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_PROCESS.value();
+    private static final String PROVIDER_NAME = "ProcessCredentialsProvider";
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -85,9 +82,6 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    private final String sourceFeatureId;
-    private final String providerName;
-
     /**
      * @see #builder()
      */
@@ -99,10 +93,6 @@ public final class ProcessCredentialsProvider
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.staticAccountId = builder.staticAccountId;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
-            ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -181,10 +171,6 @@ public final class ProcessCredentialsProvider
         return credentialsJson;
     }
 
-    private String providerName() {
-        return this.providerName;
-    }
-
     /**
      * Parse the process output to retrieve the credentials.
      */
@@ -206,13 +192,13 @@ public final class ProcessCredentialsProvider
                                     .sessionToken(sessionToken)
                                     .expirationTime(credentialExpirationTime(credentialsJson))
                                     .accountId(resolvedAccountId)
-                                    .providerName(providerName())
+                                    .providerName(PROVIDER_NAME)
                                     .build() :
                AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
                                   .accountId(resolvedAccountId)
-                                  .providerName(providerName())
+                                  .providerName(PROVIDER_NAME)
                                   .build();
     }
 
@@ -284,7 +270,6 @@ public final class ProcessCredentialsProvider
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
         private String staticAccountId;
-        private String sourceFeatureId;
 
         /**
          * @see #builder()
@@ -299,7 +284,6 @@ public final class ProcessCredentialsProvider
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
-            this.sourceFeatureId = provider.sourceFeatureId;
         }
 
         /**
@@ -373,14 +357,6 @@ public final class ProcessCredentialsProvider
             return this;
         }
 
-        /**
-         * Configure the source of this credentials provider. This is used for business metrics tracking.
-         */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
-            return this;
-        }
-
         public ProcessCredentialsProvider build() {
             return new ProcessCredentialsProvider(this);
         }
@@ -388,7 +364,7 @@ public final class ProcessCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder(CLASS_NAME)
+        return ToString.builder(PROVIDER_NAME)
                        .add("cmd", executableCommand)
                        .build();
     }

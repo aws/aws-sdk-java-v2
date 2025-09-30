@@ -40,7 +40,6 @@ import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -162,7 +161,6 @@ public final class ProfileCredentialsUtils {
                                                         .accessKeyId(properties.get(ProfileProperty.AWS_ACCESS_KEY_ID))
                                                         .secretAccessKey(properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY))
                                                         .accountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
-                                                        .providerName(BusinessMetricFeatureId.CREDENTIALS_PROFILE.value())
                                                         .build();
         return StaticCredentialsProvider.create(credentials);
     }
@@ -179,7 +177,6 @@ public final class ProfileCredentialsUtils {
                                                           .secretAccessKey(properties.get(ProfileProperty.AWS_SECRET_ACCESS_KEY))
                                                           .sessionToken(properties.get(ProfileProperty.AWS_SESSION_TOKEN))
                                                           .accountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
-                                                          .providerName(BusinessMetricFeatureId.CREDENTIALS_PROFILE.value())
                                                           .build();
         return StaticCredentialsProvider.create(credentials);
     }
@@ -190,7 +187,6 @@ public final class ProfileCredentialsUtils {
         return ProcessCredentialsProvider.builder()
                                          .command(properties.get(ProfileProperty.CREDENTIAL_PROCESS))
                                          .staticAccountId(properties.get(ProfileProperty.AWS_ACCOUNT_ID))
-                                         .sourceFeatureId(BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value())
                                          .build();
     }
 
@@ -199,16 +195,10 @@ public final class ProfileCredentialsUtils {
      */
     private AwsCredentialsProvider ssoProfileCredentialsProvider() {
         validateRequiredPropertiesForSsoCredentialsProvider();
-        boolean isLegacy = isLegacySsoConfiguration();
-        String sourceFeatureId = isLegacy ?
-                        BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO_LEGACY.value() :
-                        BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO.value();
-
         return ssoCredentialsProviderFactory().create(
             ProfileProviderCredentialsContext.builder()
                                              .profile(profile)
                                              .profileFile(profileFile)
-                                             .sourceFeatureId(sourceFeatureId)
                                              .build());
     }
 
@@ -219,10 +209,6 @@ public final class ProfileCredentialsUtils {
         if (!properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
             requireProperties(ProfileProperty.SSO_REGION, ProfileProperty.SSO_START_URL);
         }
-    }
-
-    private boolean isLegacySsoConfiguration() {
-        return !properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName());
     }
 
     private AwsCredentialsProvider roleAndWebIdentityTokenProfileCredentialsProvider() {
@@ -237,8 +223,6 @@ public final class ProfileCredentialsUtils {
                                                 .roleArn(roleArn)
                                                 .roleSessionName(roleSessionName)
                                                 .webIdentityTokenFile(webIdentityTokenFile)
-                                                .sourceFeatureId(BusinessMetricFeatureId
-                                                                     .CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN.value())
                                                 .build();
 
         return WebIdentityCredentialsUtils.factory().create(credentialProperties);
@@ -265,8 +249,7 @@ public final class ProfileCredentialsUtils {
                                          .credentialsProvider(children))
                                      .orElseThrow(this::noSourceCredentialsException);
 
-        String sourceFeatureId = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
-        return createStsCredentialsProviderWithMetrics(sourceCredentialsProvider, sourceFeatureId);
+        return stsCredentialsProviderFactory().create(sourceCredentialsProvider, profile);
     }
 
     /**
@@ -277,10 +260,8 @@ public final class ProfileCredentialsUtils {
         requireProperties(ProfileProperty.CREDENTIAL_SOURCE);
 
         CredentialSourceType credentialSource = CredentialSourceType.parse(properties.get(ProfileProperty.CREDENTIAL_SOURCE));
-        String profileSource = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
         AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource);
-
-        return createStsCredentialsProviderWithMetrics(credentialsProvider, profileSource);
+        return stsCredentialsProviderFactory().create(credentialsProvider, profile);
     }
 
     private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource) {
@@ -315,39 +296,6 @@ public final class ProfileCredentialsUtils {
         String error = String.format("The source profile of '%s' was configured to be '%s', but that source profile has no "
                                      + "credentials configured.", name, properties.get(ProfileProperty.SOURCE_PROFILE));
         return new IllegalStateException(error);
-    }
-
-    /**
-     * Extract business metrics from a credentials provider by resolving credentials and checking the provider name.
-     * This is used to propagate business metrics from source credentials to assume role operations.
-     */
-    private String extractBusinessMetricsFromProvider(AwsCredentialsProvider credentialsProvider) {
-        try {
-            AwsCredentials credentials = credentialsProvider.resolveCredentials();
-            return credentials.providerName().orElse(null);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    /**
-     * Helper method to create STS credentials provider with business metrics propagation.
-     * This method extracts business metrics from the source credentials provider and combines them
-     * with the profile-level business metrics before creating the STS credentials provider.
-     */
-    private AwsCredentialsProvider createStsCredentialsProviderWithMetrics(AwsCredentialsProvider sourceCredentialsProvider,
-                                                                           String profileMetric) {
-        String sourceMetrics = extractBusinessMetricsFromProvider(sourceCredentialsProvider);
-
-        String combinedSource = profileMetric;
-        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
-            combinedSource = profileMetric + "," + sourceMetrics;
-        }
-
-        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
-            new ChildProfileCredentialsProviderFactory
-                .ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, combinedSource);
-        return stsCredentialsProviderFactory().create(request);
     }
 
     /**

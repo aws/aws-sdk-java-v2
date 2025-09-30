@@ -25,7 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsWebIdentityTokenFileCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -84,8 +83,7 @@ public class StsWebIdentityTokenCredentialsProviderBaseTest
 
     @Override
     protected String providerName() {
-        return String.format("%s,%s", BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID,
-                             BusinessMetricFeatureId.CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value());
+        return "StsAssumeRoleWithWebIdentityCredentialsProvider";
     }
 
     private String getToken(Path file) {

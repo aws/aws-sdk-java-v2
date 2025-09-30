@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsGetSessionTokenCredentialsProvider.Builder;
 import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
@@ -53,6 +52,6 @@ public class StsGetSessionTokenCredentialsProviderTest
 
     @Override
     protected String providerName() {
-        return BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
+        return "StsGetSessionTokenCredentialsProvider";
     }
 }

@@ -39,7 +39,6 @@ import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader;
 import software.amazon.awssdk.auth.credentials.internal.HttpCredentialsLoader.LoadedCredentials;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
@@ -73,8 +72,7 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public final class ContainerCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<ContainerCredentialsProvider.Builder, ContainerCredentialsProvider> {
-    private static final String CLASS_NAME = "ContainerCredentialsProvider";
-    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_HTTP.value();
+    private static final String PROVIDER_NAME = "ContainerCredentialsProvider";
     private static final Predicate<InetAddress> IS_LOOPBACK_ADDRESS = InetAddress::isLoopbackAddress;
     private static final Predicate<InetAddress> ALLOWED_HOSTS_RULES = IS_LOOPBACK_ADDRESS;
     private static final String HTTPS = "https";
@@ -92,8 +90,6 @@ public final class ContainerCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String asyncThreadName;
-    private final String sourceFeatureId;
-    private final String providerName;
 
     /**
      * @see #builder()
@@ -102,11 +98,7 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
-            ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -134,7 +126,7 @@ public final class ContainerCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create(CLASS_NAME);
+        return ToString.create(PROVIDER_NAME);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
@@ -166,10 +158,6 @@ public final class ContainerCredentialsProvider
         Instant fifteenMinutesBeforeExpiration = expiration.minus(15, ChronoUnit.MINUTES);
 
         return ComparableUtils.minimum(oneHourFromNow, fifteenMinutesBeforeExpiration);
-    }
-
-    private String providerName() {
-        return this.providerName;
     }
 
     @Override
@@ -330,7 +318,6 @@ public final class ContainerCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private String sourceFeatureId;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -340,7 +327,6 @@ public final class ContainerCredentialsProvider
             this.endpoint = credentialsProvider.endpoint;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
-            this.sourceFeatureId = credentialsProvider.sourceFeatureId;
         }
 
         @Override
@@ -371,16 +357,6 @@ public final class ContainerCredentialsProvider
 
         public void setAsyncThreadName(String asyncThreadName) {
             asyncThreadName(asyncThreadName);
-        }
-
-        @Override
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
-            return this;
-        }
-
-        public void setSourceFeatureId(String sourceFeatureId) {
-            sourceFeatureId(sourceFeatureId);
         }
 
         @Override
