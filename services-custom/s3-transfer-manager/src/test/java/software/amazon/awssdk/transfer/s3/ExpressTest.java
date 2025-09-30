@@ -31,6 +31,8 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeProvider;
+import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressAuthSchemeProvider;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
@@ -44,7 +46,7 @@ public class ExpressTest {
     int maxInflightDownloads = 5;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
     long bufferSize = 1000 * 1000 * 1000;
-    long partSize = 5L * 1000 * 1000 * 1000;
+    long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
     S3AsyncClient s3Client;
@@ -63,6 +65,7 @@ public class ExpressTest {
                 .apiCallBufferSizeInBytes(bufferSize)
                 .parallelConfiguration(p -> p.maxInFlightParts(maxInflightDownloads)))
             .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(1)))
+            .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
             .httpClient(NettyNioAsyncHttpClient.builder()
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
