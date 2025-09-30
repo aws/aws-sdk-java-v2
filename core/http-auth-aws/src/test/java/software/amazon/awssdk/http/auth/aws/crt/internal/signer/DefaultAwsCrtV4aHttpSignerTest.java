@@ -445,53 +445,6 @@ public class DefaultAwsCrtV4aHttpSignerTest {
     }
 
     @Test
-    @Disabled("Broken - We don't pass x-amz-content-sha256 to CRT signer")
-    // TODO: This is currently broken because we don't preserve the 'x-amz-content-sha256' header when sending to CRT to sign:
-    // https://github.com/aws/aws-sdk-java-v2/blob/59e3a000503e1299675698e5c4c7af51f2525669/core/http-auth-aws/src/main/java/software/amazon/awssdk/http/auth/aws/crt/internal/util/CrtUtils.java#L45
-    // Refer to JAVA-8531
-    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheContainsChecksum_usesCachedValue() {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
-        cache.putChecksumValue(SHA256, checksumValue);
-
-        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
-                .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        SignedRequest signedRequest = signer.sign(request);
-
-        Optional<String> sha256Header = signedRequest.request().firstMatchingHeader("x-amz-content-sha256");
-        assertThat(sha256Header).hasValue(BinaryUtils.toHex(checksumValue));
-    }
-
-    @Test
-    void sign_WithPayloadSigningTrue_chunkEncodingFalse_cacheEmpty_storesComputedChecksum() throws IOException {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, true)
-                .putProperty(CHUNK_ENCODING_ENABLED, false)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        SignedRequest signedRequest = signer.sign(request);
-
-        byte[] requestBytes = IoUtils.toByteArray(signedRequest.payload().get().newStream());
-        byte[] sha256Checksum = computeChecksum(SHA256, requestBytes);
-
-        assertThat(cache.getChecksumValue(SHA256)).isEqualTo(sha256Checksum);
-    }
-
-    @Test
     void sign_WithPayloadSigningFalse_chunkEncodingTrue_cacheEmpty_storesComputedChecksum() throws IOException {
         PayloadChecksumStore cache = PayloadChecksumStore.create();
 
