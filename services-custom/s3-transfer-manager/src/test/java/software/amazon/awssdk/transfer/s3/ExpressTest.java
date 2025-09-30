@@ -60,7 +60,7 @@ public class ExpressTest {
     void setUp() {
         this.s3Client = S3AsyncClient
             .builder()
-            .region(Region.US_WEST_2)
+            .region(Region.US_EAST_2)
             // .endpointOverride(URI.create(""))
             .multipartEnabled(true)
             .multipartConfiguration(c -> c
