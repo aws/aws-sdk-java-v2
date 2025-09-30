@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Chime SDK Voice",
+    "contributor": "",
+    "description": "Added support for IPv4-only and dual-stack network configurations for VoiceConnector and CreateVoiceConnector API."
+}
