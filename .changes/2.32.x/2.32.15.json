@@ -1,0 +1,42 @@
+{
+    "version": "2.32.15",
+    "date": "2025-08-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS CodeConnections",
+            "contributor": "",
+            "description": "New integration with Azure DevOps provider type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Support Interface for IoT SiteWise Asset Modeling"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
+            "contributor": "",
+            "description": "Remove superfluous field from API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "TagResource API now throws ServiceQuotaExceededException when the number of tags on the Amazon EVS resource exceeds the maximum allowed. TooManyTagsException is deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds the ability for customers to attach and detach their EBS volumes to EKS-orchestrated HyperPod cluster nodes."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

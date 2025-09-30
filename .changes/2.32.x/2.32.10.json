@@ -1,0 +1,30 @@
+{
+    "version": "2.32.10",
+    "date": "2025-07-28",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "Enable MACSec support and features on Interconnects."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Add support for native anomaly detection in IoT SiteWise using new Computation Model APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Ingestion",
+            "contributor": "",
+            "description": "Add Pipeline Role Arn as an optional parameter to the create / update pipeline APIs as an alternative to passing in the pipeline configuration body"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

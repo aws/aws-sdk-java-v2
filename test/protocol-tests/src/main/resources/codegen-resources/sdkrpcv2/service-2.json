@@ -95,6 +95,19 @@
         "method": "POST",
         "requestUri": "/"
       }
+    },
+    "GreetingWithErrors":{
+      "name":"GreetingWithErrors",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "output":{"shape":"GreetingWithErrorsOutput"},
+      "errors":[
+        {"shape":"ComplexError"},
+        {"shape":"InvalidGreeting"}
+      ],
+      "idempotent":true
     }
   },
   "shapes": {
@@ -679,6 +692,33 @@
           "shape": "AllTypesUnionStructure"
         }
       }
+    },
+    "GreetingWithErrorsOutput":{
+      "type":"structure",
+      "members":{
+        "greeting":{"shape":"String"}
+      }
+    },
+    "ComplexError":{
+      "type":"structure",
+      "members":{
+        "TopLevel":{"shape":"String"},
+        "Nested":{"shape":"ComplexNestedErrorData"}
+      },
+      "exception":true
+    },
+    "ComplexNestedErrorData":{
+      "type":"structure",
+      "members":{
+        "Foo":{"shape":"String"}
+      }
+    },
+    "InvalidGreeting":{
+      "type":"structure",
+      "members":{
+        "Message":{"shape":"String"}
+      },
+      "exception":true
     }
   }
 }

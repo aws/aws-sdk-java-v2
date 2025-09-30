@@ -38,6 +38,7 @@ public final class S3TransformUtils {
     public static final String V1_S3_MODEL_PKG = "com.amazonaws.services.s3.model.";
     public static final String V1_S3_PKG = "com.amazonaws.services.s3.";
     public static final String V1_EN_PKG = "com.amazonaws.services.s3.event.";
+    public static final String V1_TM_PKG = "com.amazonaws.services.s3.transfer.";
 
     public static final String V2_S3_CLIENT = "software.amazon.awssdk.services.s3.S3Client";
     public static final String V2_S3_MODEL_PKG = "software.amazon.awssdk.services.s3.model.";
@@ -45,6 +46,7 @@ public final class S3TransformUtils {
 
     public static final String V2_TM_CLIENT = "software.amazon.awssdk.transfer.s3.S3TransferManager";
     public static final String V2_TM_MODEL_PKG = "software.amazon.awssdk.transfer.s3.model.";
+    public static final String V2_TM_PROGRESS = "software.amazon.awssdk.transfer.s3.progress.TransferProgress";
 
     public static final Set<String> SUPPORTED_METADATA_TRANSFORMS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         "contentLength",
@@ -88,6 +90,10 @@ public final class S3TransformUtils {
 
     public static MethodMatcher v2TmMethodMatcher(String methodSignature) {
         return new MethodMatcher(V2_TM_CLIENT + " " + methodSignature, true);
+    }
+
+    public static MethodMatcher v2TransferProgressMethodMatcher(String methodSignature) {
+        return new MethodMatcher(V2_TM_PROGRESS + " " + methodSignature, true);
     }
 
     public static void addMetadataFields(StringBuilder sb, String metadataName,

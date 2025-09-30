@@ -39,7 +39,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 public class S3AddImportsAndComments extends Recipe {
 
     private static final MethodMatcher CREATE_BUCKET = v1S3MethodMatcher("createBucket(String, "
-                                                                         + V1_S3_MODEL_PKG + "Region");
+                                                                         + V1_S3_MODEL_PKG + "Region)");
     private static final MethodMatcher LIST_NEXT_BATCH_OBJECTS = v1S3MethodMatcher("listNextBatchOfObjects(..)");
     private static final MethodMatcher LIST_NEXT_BATCH_VERSIONS = v1S3MethodMatcher("listNextBatchOfVersions(..)");
     private static final MethodMatcher GET_METADATA = v1S3MethodMatcher("getCachedResponseMetadata(..)");
@@ -57,7 +57,6 @@ public class S3AddImportsAndComments extends Recipe {
                                                                           + "getEventTime(..)");
     private static final MethodMatcher  GET_EXPIRY_TIME = v1EnMethodMatcher("S3EventNotification.RestoreEventDataEntity "
                                                                             + "getLifecycleRestorationExpiryTime(..)");
-
 
     private static final Pattern CANNED_ACL = Pattern.compile(V1_S3_MODEL_PKG + "CannedAccessControlList");
     private static final Pattern GET_OBJECT_REQUEST = Pattern.compile(V1_S3_MODEL_PKG + "GetObjectRequest");

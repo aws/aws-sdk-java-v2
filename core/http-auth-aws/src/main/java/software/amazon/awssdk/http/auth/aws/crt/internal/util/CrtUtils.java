@@ -25,6 +25,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -56,7 +57,7 @@ public final class CrtUtils {
      * Sanitize an {@link SdkHttpRequest}, in order to prepare it for converting to a CRT request destined to be signed.
      * <p>
      * Sanitizing includes checking the path is not empty, filtering headers and query parameters that are forbidden in CRT, and
-     * adding the host header (overriding if already presesnt).
+     * adding the host header
      */
     public static SdkHttpRequest sanitizeRequest(SdkHttpRequest request) {
 
@@ -77,11 +78,17 @@ public final class CrtUtils {
             }
         });
 
-        // Add host, which must be signed. We ignore any pre-existing Host header to match the behavior of the SigV4 signer.
-        String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
-                            ? request.host()
-                            : request.host() + ":" + request.port();
-        builder.putHeader(HOST, hostHeader);
+        // Add host header, which must be signed. If the SdkHttpRequest has an associated Host header
+        // already set, prefer to use that.
+        Optional<String> existingHostHeader = request.firstMatchingHeader(HOST);
+        if (existingHostHeader.isPresent()) {
+            builder.putHeader(HOST, existingHostHeader.get());
+        } else {
+            String hostHeader = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port())
+                                ? request.host()
+                                : request.host() + ":" + request.port();
+            builder.putHeader(HOST, hostHeader);
+        }
 
         builder.clearQueryParameters();
 

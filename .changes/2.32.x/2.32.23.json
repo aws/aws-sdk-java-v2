@@ -1,0 +1,96 @@
+{
+    "version": "2.32.23",
+    "date": "2025-08-14",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed 407 Proxy Authentication error when preemptiveBasicAuthenticationEnabled is true. Fixes [#5884](https://github.com/aws/aws-sdk-java-v2/issues/5884)."
+        },
+        {
+            "type": "documentation",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve EventStreamResponseHandler.Builder.onError method to mention the callback may be called multiple time, similarly to the exceptionOccurred method"
+        },
+        {
+            "type": "feature",
+            "category": "ARC - Region switch",
+            "contributor": "",
+            "description": "Endpoint rule test and documentation update."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Recommended Actions",
+            "contributor": "",
+            "description": "Initial SDK release for AWS Billing and Cost Management Recommended Actions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Map",
+            "contributor": "",
+            "description": "Added support for cross account through Id parameter overloading with ARN and allow owner account for some APIs instead of ARN"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "Added pagination support for DescribeHostedConnections, DescribeVirtualInterfaces, DescribeConnections, DescribeInterconnects, DescribeLags. Added asnLong support for BGP peer operations which supports a large range."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "CMAF Ingest output groups in MediaLive can now accept one additional destination url for single pipeline channels and up to two additional destination urls for standard channels."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "AWS Glue now supports Trusted Identity Propagation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Updated the regex pattern and description of iamInstanceProfileArn in the CreateComputeNodeGroup and UpdateComputeNodeGroup API actions. Name and path requirements apply to the ARN of the IAM role associated with the instance profile and not the ARN of the instance profile."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "This release 1/ Adds support for throttled keys mode for CloudWatch Contributor Insights, 2/ Adds throttling reasons to exceptions across dataplane APIs. 3/ Explicitly models ThrottlingException as a class in statically typed languages. Refer to the launch day blog post for more details."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds ModifyInstanceConnectEndpoint API to update configurations on existing EC2 Instance Connect Endpoints and improves IPv6 support through dualstack DNS names for EC2 Instance Connect Endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Amazon FSx for NetApp ONTAP 2nd generation file systems now support decreasing SSD storage capacity."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Added support for entity lists."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "New APIs introduced to import WorkSpaces BYOL image using a new process that leveraged EC2 Image Builder. WorkSpaces tests and fixes your image's compatibility issues and supports customized VM images."
+        },
+        {
+            "type": "feature",
+            "category": "QApps",
+            "contributor": "",
+            "description": "Documentation update for Amazon Q Apps API Reference"
+        }
+    ]
+}

@@ -1,14 +1,23 @@
+#!/usr/bin/env python3
 import json
 import os
 from datetime import date
+import functools
 
 from changelog.model import ReleaseChanges, ChangelogEntry, Version
 
 
-def version_cmp(a,b):
+def version_cmp(a, b):
     aa = [a.major, a.minor, a.patch, a.prerelease_version_number()]
     bb = [b.major, b.minor, b.patch, b.prerelease_version_number()]
-    return cmp(bb,aa)
+    # In Python 3, we need to implement our own comparison function
+    # since the built-in cmp function was removed
+    if aa > bb:
+        return -1
+    elif aa < bb:
+        return 1
+    else:
+        return 0
 
 def load_all_released_changes(d):
     if not os.path.isdir(d):

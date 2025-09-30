@@ -94,7 +94,8 @@ public interface EventStreamResponseHandler<ResponseT, EventT> {
         SubBuilderT onResponse(Consumer<ResponseT> responseConsumer);
 
         /**
-         * Callback to invoke in the event on an error.
+         * Callback to invoke in the event on an error. The {@link Consumer#accept(Object)} method may be called multiple times
+         * during the lifecycle of a request if automatic retries are enabled.
          *
          * @param consumer Callback that will process any error that occurs.
          * @return This builder for method chaining.

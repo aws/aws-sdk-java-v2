@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.config;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -39,8 +40,47 @@ public interface DownloadFilter extends Predicate<S3Object> {
     boolean test(S3Object s3Object);
 
     /**
-     * A {@link DownloadFilter} that downloads all non-folder objects. A folder is a 0-byte object created when a customer
-     * uses S3 console to create a folder, and it always ends with "/".
+     * Returns a composed filter that represents the logical AND of this filter and another.
+     * The composed filter returns true only if both this filter and the other filter return true.
+     * @param other a predicate that will be logically-ANDed with this
+     *              predicate
+     * @return a composed filter that represents the logical AND of this filter and the other filter
+     * @throws NullPointerException if other is null
+     */
+    @Override
+    default DownloadFilter and(Predicate<? super S3Object> other) {
+        Objects.requireNonNull(other, "Other predicate cannot be null");
+        return s3Object -> test(s3Object) && other.test(s3Object);
+    }
+
+    /**
+     * Returns a composed filter that represents the logical OR of this filter and another.
+     * The composed filter returns true if either this filter or the other filter returns true.
+     * @param other a predicate that will be logically-ORed with this
+     *              predicate
+     * @return a composed filter that represents the logical OR of this filter and the other filter
+     * @throws NullPointerException if other is null
+     */
+    @Override
+    default DownloadFilter or(Predicate<? super S3Object> other) {
+        Objects.requireNonNull(other, "Other predicate cannot be null");
+        return s3Object -> test(s3Object) || other.test(s3Object);
+    }
+
+    /**
+     * Returns a filter that represents the logical negation of this predicate.
+     * The returned filter returns true when this filter returns false, and vice versa.
+     * @return a filter that represents the logical negation of this filter
+     * predicate
+     */
+    @Override
+    default DownloadFilter negate() {
+        return s3Object -> !test(s3Object);
+    }
+
+    /**
+     * A {@link DownloadFilter} that downloads all non-folder objects. A folder is a 0-byte object created when a customer uses S3
+     * console to create a folder, and it always ends with "/".
      *
      * <p>
      * This is the default behavior if no filter is provided.

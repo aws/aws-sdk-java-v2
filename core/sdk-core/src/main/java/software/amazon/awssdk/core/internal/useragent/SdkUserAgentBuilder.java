@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.useragent;
 
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.API_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.APP_ID;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.ENV_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.HTTP;
@@ -65,6 +66,7 @@ public final class SdkUserAgentBuilder {
         }
 
         appendNonEmptyField(uaString, UA_METADATA, UA_VERSION);
+        appendNonEmptyField(uaString, API_METADATA, userAgentProperties.getProperty(API_METADATA));
         appendNonEmptyField(uaString, OS_METADATA, systemValues.osMetadata());
         appendNonEmptyField(uaString, LANG_METADATA, systemValues.langMetadata());
         appendAdditionalJvmMetadata(uaString, systemValues);

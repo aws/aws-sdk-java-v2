@@ -1057,6 +1057,33 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jencymaryjoseph",
+      "name": "Jency Joseph",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35571282?v=4",
+      "profile": "https://github.com/jencymaryjoseph",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "reifiedbeans",
+      "name": "Drew Davis",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9686215?v=4",
+      "profile": "https://github.com/reifiedbeans",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MBoegers",
+      "name": "Merlin Bögershausen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7557397?v=4",
+      "profile": "https://mboegie.dev",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

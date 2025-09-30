@@ -343,6 +343,11 @@ public final class SdkClientOption<T> extends ClientOption<T> {
         new SdkClientOption<>(ResponseChecksumValidation.class);
 
     /**
+     * The API metadata for user agent (service-id#version).
+     */
+    public static final SdkClientOption<String> API_METADATA = new SdkClientOption<>(String.class);
+
+    /**
      * An optional identification value to be appended to the user agent header. The value should be less than 50 characters in
      * length and is null by default.
      * <p>

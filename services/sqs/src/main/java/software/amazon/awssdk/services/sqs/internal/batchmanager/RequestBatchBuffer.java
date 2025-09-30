@@ -29,6 +29,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public final class RequestBatchBuffer<RequestT, ResponseT> {
     private final Object flushLock = new Object();
+    private final Object scheduledFlushLock = new Object();
 
     private final Map<String, BatchingExecutionContext<RequestT, ResponseT>> idToBatchContext;
     private final int maxBatchItems;
@@ -144,12 +145,20 @@ public final class RequestBatchBuffer<RequestT, ResponseT> {
         return Integer.toString(nextBatchEntry++);
     }
 
-    public void putScheduledFlush(ScheduledFuture<?> scheduledFlush) {
-        this.scheduledFlush = scheduledFlush;
+    public void cancelAndReplaceScheduledFlush(ScheduledFuture<?> scheduledFlush) {
+        // Locking the cancellation and replacement of the scheduledFlush ensures that there is only one active.
+        synchronized (scheduledFlushLock) {
+            if (this.scheduledFlush != null) {
+                cancelScheduledFlush();
+            }
+            this.scheduledFlush = scheduledFlush;
+        }
     }
 
     public void cancelScheduledFlush() {
-        scheduledFlush.cancel(false);
+        synchronized (scheduledFlushLock) {
+            scheduledFlush.cancel(false);
+        }
     }
 
     public Collection<CompletableFuture<ResponseT>> responses() {

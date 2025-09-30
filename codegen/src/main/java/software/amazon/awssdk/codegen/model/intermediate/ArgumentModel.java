@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Objects;
+
 public class ArgumentModel extends DocumentationModel {
 
     private String name;
@@ -60,5 +62,29 @@ public class ArgumentModel extends DocumentationModel {
     public ArgumentModel withIsEnumArg(boolean isEnumArg) {
         this.isEnumArg = isEnumArg;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        ArgumentModel that = (ArgumentModel) o;
+        return isEnumArg == that.isEnumArg
+               && Objects.equals(name, that.name)
+               && Objects.equals(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Objects.hashCode(name);
+        result = 31 * result + Objects.hashCode(type);
+        result = 31 * result + Boolean.hashCode(isEnumArg);
+        return result;
     }
 }

@@ -1,0 +1,42 @@
+{
+    "version": "2.33.10",
+    "date": "2025-09-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Added additional validations for multipart download operations in the Java multipart S3 client"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Added endpoint support for eusc-de-east-1 region."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Added support for OpenID Connect (OIDC) custom authorizer"
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Introduce three new encryption filters: EncryptionType (SSE-S3, SSE-KMS, DSSE-KMS, SSE-C, NOT-SSE), KmsKeyArn (for SSE-KMS and DSSE-KMS), and BucketKeyEnabled (for SSE-KMS)."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Admin Service",
+            "contributor": "",
+            "description": "CloudWatch Observability Admin adds the ability to enable telemetry centralization in customers' Organizations. The release introduces new APIs to manage centralization rules, which define settings to replicate telemetry data to a central destination in the customers' Organization."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

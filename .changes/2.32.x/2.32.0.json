@@ -1,0 +1,132 @@
+{
+    "version": "2.32.0",
+    "date": "2025-07-15",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve error message for the error case where a request using RequestBody#fromInputStream failed to retry due to lack of mark and reset support. See [#6174](https://github.com/aws/aws-sdk-java-v2/issues/6174)"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improve performance for SDK service clients that don't use custom client plugins by optimizing plugin resolution logic"
+        },
+        {
+            "type": "documentation",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Add documentation clarifying usage for ddb enhanced client"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Price List Service",
+            "contributor": "",
+            "description": "This release adds support for new filter types in GetProducts API, including EQUALS, CONTAINS, ANY_OF, and NONE_OF."
+        },
+        {
+            "type": "feature",
+            "category": "Apache HTTP Client 5",
+            "contributor": "",
+            "description": "Preview Release of AWS SDK Apache5 HttpClient with Apache HttpClient 5.5.x"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Enable caching results to URI constructors for account-id based endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for caching results to URI constructors for account-id based endpoints"
+        },
+        {
+            "type": "feature",
+            "category": "AWS re:Post Private",
+            "contributor": "",
+            "description": "This release introduces Channels functionality with CreateChannel, GetChannel, ListChannels, and UpdateChannel operations. Channels provide dedicated collaboration spaces where teams can organize discussions and knowledge by projects, business units, or areas of responsibility."
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Add support for S3 Vectors as a vector store."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Removing restriction of environment profile identifier as required field, S3 feature release"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Streams",
+            "contributor": "",
+            "description": "Added support for optional shard filter parameter in DescribeStream api that allows customers to fetch child shards of a read_only parent shard."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Amazon ECS supports native blue/green deployments, allowing you to validate new service revisions before directing production traffic to them."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for volume initialization status, which enables you to monitor when the initialization process for an EBS volume is completed. This release also adds IPv6 support to EC2 Instance Connect Endpoints, allowing you to connect to your EC2 Instance via a private IPv6 address."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EventBridge",
+            "contributor": "",
+            "description": "Add customer-facing logging for the EventBridge Event Bus, enabling customers to better observe their events and extract insights about their EventBridge usage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "AWS Opensearch adds support for enabling s3 vector engine options. After enabling this option, customers will be able to create indices with s3 vector engine."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Introduced custom instructions for topics."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Tables",
+            "contributor": "",
+            "description": "Adds table bucket type to ListTableBucket and GetTableBucket API operations"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Vectors",
+            "contributor": "",
+            "description": "Amazon S3 Vectors provides cost-effective, elastic, and durable vector storage for queries based on semantic meaning and similarity."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "This release adds support for a new Restricted instance group type to enable a specialized environment for running Nova customization jobs on SageMaker HyperPod clusters. This release also adds support for SageMaker pipeline versioning."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Amazon S3 Metadata live inventory tables provide a queryable inventory of all the objects in your general purpose bucket so that you can determine the latest state of your data. To help minimize your storage costs, use journal table record expiration to set a retention period for your records."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

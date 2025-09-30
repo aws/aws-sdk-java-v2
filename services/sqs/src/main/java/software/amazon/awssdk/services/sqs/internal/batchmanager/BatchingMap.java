@@ -59,8 +59,8 @@ public final class BatchingMap<RequestT, ResponseT> {
         return batchContextMap.containsKey(batchKey);
     }
 
-    public void putScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {
-        batchContextMap.get(batchKey).putScheduledFlush(scheduledFlush);
+    public void cancelAndReplaceScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {
+        batchContextMap.get(batchKey).cancelAndReplaceScheduledFlush(scheduledFlush);
     }
 
     public void forEach(BiConsumer<String, RequestBatchBuffer<RequestT, ResponseT>> action) {

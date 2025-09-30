@@ -38,16 +38,16 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
-import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
+import software.amazon.awssdk.codegen.lite.regions.model.PartitionsRegionsMetadata;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 public class RegionGenerator implements PoetClass {
 
-    private final Partitions partitions;
+    private final PartitionsRegionsMetadata partitions;
     private final String basePackage;
 
-    public RegionGenerator(Partitions partitions,
+    public RegionGenerator(PartitionsRegionsMetadata partitions,
                            String basePackage) {
         this.partitions = partitions;
         this.basePackage = basePackage;
@@ -100,50 +100,21 @@ public class RegionGenerator implements PoetClass {
                                           .add("$T.unmodifiableList($T.asList(", Collections.class, Arrays.class);
 
         String regionsCodeBlock = regions.stream().map(r -> {
+            boolean isGlobal = r.contains("global");
             builder.addField(FieldSpec.builder(className(), regionName(r))
                                       .addModifiers(PUBLIC, STATIC, FINAL)
-                                      .initializer("$T.of($S)", className(), r)
+                                      .initializer(isGlobal ? "$T.of($S, true)" : "$T.of($S)", className(), r)
                                       .build());
             return regionName(r);
         }).collect(Collectors.joining(", "));
 
-        addGlobalRegions(builder);
-
-        regionsArray.add(regionsCodeBlock + ", ")
-                    .add("AWS_GLOBAL, ")
-                    .add("AWS_CN_GLOBAL, ")
-                    .add("AWS_US_GOV_GLOBAL, ")
-                    .add("AWS_ISO_GLOBAL, ")
-                    .add("AWS_ISO_B_GLOBAL");
+        regionsArray.add(regionsCodeBlock);
         regionsArray.add("))");
 
         TypeName listOfRegions = ParameterizedTypeName.get(ClassName.get(List.class), className());
         builder.addField(FieldSpec.builder(listOfRegions, "REGIONS")
                                   .addModifiers(PRIVATE, STATIC, FINAL)
                                   .initializer(regionsArray.build()).build());
-    }
-
-    private void addGlobalRegions(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(className(), "AWS_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_CN_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-cn-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_US_GOV_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-us-gov-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_ISO_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-iso-global")
-                                  .build())
-               .addField(FieldSpec.builder(className(), "AWS_ISO_B_GLOBAL")
-                                  .addModifiers(PUBLIC, STATIC, FINAL)
-                                  .initializer("$T.of($S, true)", className(), "aws-iso-b-global")
-                                  .build());
     }
 
     private String regionName(String region) {
