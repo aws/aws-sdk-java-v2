@@ -47,7 +47,6 @@ public class ExpressTest {
     long partSize = 5L * 1000 * 1000 * 1000;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
-
     S3AsyncClient s3Client;
     String testPath;
     String key;
@@ -63,6 +62,7 @@ public class ExpressTest {
                 .minimumPartSizeInBytes(partSize)
                 .apiCallBufferSizeInBytes(bufferSize)
                 .parallelConfiguration(p -> p.maxInFlightParts(maxInflightDownloads)))
+            .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(1)))
             .httpClient(NettyNioAsyncHttpClient.builder()
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
