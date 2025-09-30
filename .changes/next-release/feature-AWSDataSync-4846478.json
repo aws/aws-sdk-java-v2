@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS DataSync",
+    "contributor": "",
+    "description": "Added support for FIPS VPC endpoints in FIPS-enabled AWS Regions."
+}
