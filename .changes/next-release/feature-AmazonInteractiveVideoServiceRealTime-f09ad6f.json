@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Interactive Video Service RealTime",
+    "contributor": "",
+    "description": "Remove incorrect ReadOnly trait on IVS RealTime ImportPublicKey API"
+}
