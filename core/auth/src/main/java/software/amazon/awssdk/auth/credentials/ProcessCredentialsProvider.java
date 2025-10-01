@@ -181,10 +181,6 @@ public final class ProcessCredentialsProvider
         return credentialsJson;
     }
 
-    private String providerName() {
-        return this.providerName;
-    }
-
     /**
      * Parse the process output to retrieve the credentials.
      */
@@ -206,13 +202,13 @@ public final class ProcessCredentialsProvider
                                     .sessionToken(sessionToken)
                                     .expirationTime(credentialExpirationTime(credentialsJson))
                                     .accountId(resolvedAccountId)
-                                    .providerName(providerName())
+                                    .providerName(this.providerName)
                                     .build() :
                AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
                                   .accountId(resolvedAccountId)
-                                  .providerName(providerName())
+                                  .providerName(this.providerName)
                                   .build();
     }
 

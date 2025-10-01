@@ -113,7 +113,7 @@ public final class InstanceProfileCredentialsProvider
             ? PROVIDER_NAME 
             : builder.sourceFeatureId + "," + PROVIDER_NAME;
 
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
                                      .profileFile(profileFile)
@@ -210,10 +210,6 @@ public final class InstanceProfileCredentialsProvider
     @Override
     public void close() {
         credentialsCache.close();
-    }
-
-    private String providerName() {
-        return this.providerName;
     }
 
     @Override

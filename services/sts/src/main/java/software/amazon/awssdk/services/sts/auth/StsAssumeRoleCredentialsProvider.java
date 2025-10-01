@@ -156,10 +156,14 @@ public final class StsAssumeRoleCredentialsProvider
         }
 
         /**
-         * An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials providers
-         * that are chained with this one.
+         * Configure the source of this credentials provider. This is used for business metrics tracking
+         * to identify the credential provider chain.
+         *
          * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
          * and should not be used directly by external users.</p>
+         *
+         * @param sourceFeatureId The source identifier for business metrics tracking.
+         * @return This object for chained calls.
          */
         public Builder sourceFeatureId(String sourceFeatureId) {
             this.sourceFeatureId = sourceFeatureId;

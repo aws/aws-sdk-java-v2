@@ -109,8 +109,16 @@ public final class ProfileCredentialsUtils {
      * @param children The child profiles that source credentials from this profile.
      */
     private Optional<AwsCredentialsProvider> credentialsProvider(Set<String> children) {
+        return credentialsProviderWithMetrics(children).map(ProviderWithMetrics::provider);
+    }
+
+    /**
+     * Internal method that returns both the credentials provider and its business metrics.
+     */
+    private Optional<ProviderWithMetrics> credentialsProviderWithMetrics(Set<String> children) {
         if (properties.containsKey(ProfileProperty.ROLE_ARN) && properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE)) {
-            return Optional.ofNullable(roleAndWebIdentityTokenProfileCredentialsProvider());
+            return Optional.of(new ProviderWithMetrics(roleAndWebIdentityTokenProfileCredentialsProvider(),
+                    BusinessMetricFeatureId.CREDENTIALS_PROFILE_STS_WEB_ID_TOKEN.value()));
         }
 
         if (properties.containsKey(ProfileProperty.SSO_ROLE_NAME)
@@ -118,7 +126,10 @@ public final class ProfileCredentialsUtils {
             || properties.containsKey(ProfileProperty.SSO_REGION)
             || properties.containsKey(ProfileProperty.SSO_START_URL)
             || properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
-            return Optional.ofNullable(ssoProfileCredentialsProvider());
+            boolean isLegacy = isLegacySsoConfiguration();
+            String featureId = isLegacy ? BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO_LEGACY.value()
+                                        : BusinessMetricFeatureId.CREDENTIALS_PROFILE_SSO.value();
+            return Optional.of(new ProviderWithMetrics(ssoProfileCredentialsProvider(), featureId));
         }
 
         if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
@@ -138,15 +149,18 @@ public final class ProfileCredentialsUtils {
         }
 
         if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)) {
-            return Optional.ofNullable(credentialProcessCredentialsProvider());
+            return Optional.of(new ProviderWithMetrics(credentialProcessCredentialsProvider(),
+                    BusinessMetricFeatureId.CREDENTIALS_PROFILE_PROCESS.value()));
         }
 
         if (properties.containsKey(ProfileProperty.AWS_SESSION_TOKEN)) {
-            return Optional.of(sessionProfileCredentialsProvider());
+            return Optional.of(new ProviderWithMetrics(sessionProfileCredentialsProvider(), 
+                    BusinessMetricFeatureId.CREDENTIALS_PROFILE.value()));
         }
 
         if (properties.containsKey(ProfileProperty.AWS_ACCESS_KEY_ID)) {
-            return Optional.of(basicProfileCredentialsProvider());
+            return Optional.of(new ProviderWithMetrics(basicProfileCredentialsProvider(), 
+                    BusinessMetricFeatureId.CREDENTIALS_PROFILE.value()));
         }
 
         return Optional.empty();
@@ -250,53 +264,84 @@ public final class ProfileCredentialsUtils {
      *
      * @param children The child profiles that source credentials from this profile.
      */
-    private AwsCredentialsProvider roleAndSourceProfileBasedProfileCredentialsProvider(Set<String> children) {
+    private ProviderWithMetrics roleAndSourceProfileBasedProfileCredentialsProvider(Set<String> children) {
         requireProperties(ProfileProperty.SOURCE_PROFILE);
 
         Validate.validState(!children.contains(name),
                             "Invalid profile file: Circular relationship detected with profiles %s.", children);
         Validate.validState(credentialsSourceResolver != null,
-                            "The profile '%s' must be configured with a source profile in order to use assumed roles.", name);
+                            "The profile '%s' must be configured with a source profile in order to use assumed roles.",
+                            name);
 
         children.add(name);
-        AwsCredentialsProvider sourceCredentialsProvider =
-            credentialsSourceResolver.apply(properties.get(ProfileProperty.SOURCE_PROFILE))
-                                     .flatMap(p -> new ProfileCredentialsUtils(profileFile, p, credentialsSourceResolver)
-                                         .credentialsProvider(children))
-                                     .orElseThrow(this::noSourceCredentialsException);
+        Optional<ProviderWithMetrics> sourceResult = credentialsSourceResolver
+            .apply(properties.get(ProfileProperty.SOURCE_PROFILE))
+            .flatMap(p -> new ProfileCredentialsUtils(profileFile, p, credentialsSourceResolver)
+                .credentialsProviderWithMetrics(children));
+        
+        if (!sourceResult.isPresent()) {
+            throw noSourceCredentialsException();
+        }
 
-        String sourceFeatureId = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
-        return createStsCredentialsProviderWithMetrics(sourceCredentialsProvider, sourceFeatureId);
+        ProviderWithMetrics source = sourceResult.get();
+        String profileMetric = BusinessMetricFeatureId.CREDENTIALS_PROFILE_SOURCE_PROFILE.value();
+        String combinedMetrics = profileMetric + "," + source.metrics();
+
+        AwsCredentialsProvider stsProvider = createStsCredentialsProviderWithMetrics(source.provider(), combinedMetrics);
+        return new ProviderWithMetrics(stsProvider, combinedMetrics);
     }
 
     /**
      * Load an assumed-role credentials provider that has been configured in this profile. This will attempt to locate the STS
      * module in order to generate the credentials provider. If it's not available, an illegal state exception will be raised.
      */
-    private AwsCredentialsProvider roleAndCredentialSourceBasedProfileCredentialsProvider() {
+    private ProviderWithMetrics roleAndCredentialSourceBasedProfileCredentialsProvider() {
         requireProperties(ProfileProperty.CREDENTIAL_SOURCE);
 
         CredentialSourceType credentialSource = CredentialSourceType.parse(properties.get(ProfileProperty.CREDENTIAL_SOURCE));
-        String profileSource = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
-        AwsCredentialsProvider credentialsProvider = credentialSourceCredentialProvider(credentialSource);
-
-        return createStsCredentialsProviderWithMetrics(credentialsProvider, profileSource);
+        String profileMetric = BusinessMetricFeatureId.CREDENTIALS_PROFILE_NAMED_PROVIDER.value();
+        ProviderWithMetrics sourceResult = credentialSourceCredentialProviderWithMetrics(credentialSource);
+        
+        String combinedMetrics = profileMetric + "," + sourceResult.metrics();
+        AwsCredentialsProvider stsProvider = createStsCredentialsProviderWithMetrics(sourceResult.provider(), combinedMetrics);
+        return new ProviderWithMetrics(stsProvider, combinedMetrics);
     }
 
-    private AwsCredentialsProvider credentialSourceCredentialProvider(CredentialSourceType credentialSource) {
+    /**
+     * Helper method to create STS credentials provider with business metrics.
+     */
+    private AwsCredentialsProvider createStsCredentialsProviderWithMetrics(AwsCredentialsProvider sourceProvider,
+                                                                           String combinedMetrics) {
+        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
+            ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest.builder()
+                .sourceCredentialsProvider(sourceProvider)
+                .profile(profile)
+                .sourceFeatureId(combinedMetrics)
+                .build();
+        
+        return stsCredentialsProviderFactory().create(request);
+    }
+
+    private ProviderWithMetrics credentialSourceCredentialProviderWithMetrics(CredentialSourceType credentialSource) {
         switch (credentialSource) {
             case ECS_CONTAINER:
-                return ContainerCredentialsProvider.builder().build();
+                return new ProviderWithMetrics(
+                    ContainerCredentialsProvider.builder().build(),
+                    BusinessMetricFeatureId.CREDENTIALS_HTTP.value());
             case EC2_INSTANCE_METADATA:
-                return InstanceProfileCredentialsProvider.builder()
-                                                         .profileFile(profileFile)
-                                                         .profileName(name)
-                                                         .build();
+                return new ProviderWithMetrics(
+                    InstanceProfileCredentialsProvider.builder()
+                                                     .profileFile(profileFile)
+                                                     .profileName(name)
+                                                     .build(),
+                    BusinessMetricFeatureId.CREDENTIALS_IMDS.value());
             case ENVIRONMENT:
-                return AwsCredentialsProviderChain.builder()
-                    .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
-                    .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
-                    .build();
+                return new ProviderWithMetrics(
+                    AwsCredentialsProviderChain.builder()
+                        .addCredentialsProvider(SystemPropertyCredentialsProvider.create())
+                        .addCredentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                        .build(),
+                    BusinessMetricFeatureId.CREDENTIALS_ENV_VARS.value());
             default:
                 throw noSourceCredentialsException();
         }
@@ -318,36 +363,24 @@ public final class ProfileCredentialsUtils {
     }
 
     /**
-     * Extract business metrics from a credentials provider by resolving credentials and checking the provider name.
-     * This is used to propagate business metrics from source credentials to assume role operations.
+     * Simple data class to hold both a credentials provider and its business metrics.
      */
-    private String extractBusinessMetricsFromProvider(AwsCredentialsProvider credentialsProvider) {
-        try {
-            AwsCredentials credentials = credentialsProvider.resolveCredentials();
-            return credentials.providerName().orElse(null);
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    private static final class ProviderWithMetrics {
+        private final AwsCredentialsProvider provider;
+        private final String metrics;
 
-    /**
-     * Helper method to create STS credentials provider with business metrics propagation.
-     * This method extracts business metrics from the source credentials provider and combines them
-     * with the profile-level business metrics before creating the STS credentials provider.
-     */
-    private AwsCredentialsProvider createStsCredentialsProviderWithMetrics(AwsCredentialsProvider sourceCredentialsProvider,
-                                                                           String profileMetric) {
-        String sourceMetrics = extractBusinessMetricsFromProvider(sourceCredentialsProvider);
-
-        String combinedSource = profileMetric;
-        if (sourceMetrics != null && !sourceMetrics.isEmpty()) {
-            combinedSource = profileMetric + "," + sourceMetrics;
+        ProviderWithMetrics(AwsCredentialsProvider provider, String metrics) {
+            this.provider = provider;
+            this.metrics = metrics;
         }
 
-        ChildProfileCredentialsProviderFactory.ChildProfileCredentialsRequest request =
-            new ChildProfileCredentialsProviderFactory
-                .ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, combinedSource);
-        return stsCredentialsProviderFactory().create(request);
+        AwsCredentialsProvider provider() {
+            return provider;
+        }
+
+        String metrics() {
+            return metrics;
+        }
     }
 
     /**

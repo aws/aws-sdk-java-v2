@@ -106,7 +106,7 @@ public final class ContainerCredentialsProvider
         this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
             ? PROVIDER_NAME 
             : builder.sourceFeatureId + "," + PROVIDER_NAME;
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(providerName());
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -166,10 +166,6 @@ public final class ContainerCredentialsProvider
         Instant fifteenMinutesBeforeExpiration = expiration.minus(15, ChronoUnit.MINUTES);
 
         return ComparableUtils.minimum(oneHourFromNow, fifteenMinutesBeforeExpiration);
-    }
-
-    private String providerName() {
-        return this.providerName;
     }
 
     @Override

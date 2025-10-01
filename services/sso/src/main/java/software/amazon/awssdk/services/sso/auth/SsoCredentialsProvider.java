@@ -121,13 +121,9 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
                                                                         .secretAccessKey(roleCredentials.secretAccessKey())
                                                                         .sessionToken(roleCredentials.sessionToken())
                                                                         .accountId(request.accountId())
-                                                                        .providerName(providerName())
+                                                                        .providerName(this.providerName)
                                                                         .build();
         return new SessionCredentialsHolder(sessionCredentials, Instant.ofEpochMilli(roleCredentials.expiration()));
-    }
-
-    private String providerName() {
-        return this.providerName;
     }
 
     /**
@@ -220,9 +216,9 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         Builder refreshRequest(Supplier<GetRoleCredentialsRequest> getRoleCredentialsRequestSupplier);
 
         /**
-         * An optional string list of {@link BusinessMetricFeatureId} denoting previous
-         * credentials providers that are chained with this one. This method is primarily intended for use by AWS SDK internal
-         * components and should not be used directly by external users.
+         * An optional string denoting previous credentials providers that are chained with this one. 
+         * This method is primarily intended for use by AWS SDK internal components and should not be used directly by
+         * external users.
          */
         Builder sourceFeatureId(String sourceFeatureId);
 

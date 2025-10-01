@@ -25,7 +25,6 @@ import software.amazon.awssdk.profiles.Profile;
  * provider via the 'software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory', assuming STS is on the
  * classpath.
  */
-@FunctionalInterface
 @SdkProtectedApi
 public interface ChildProfileCredentialsProviderFactory {
     /**
@@ -41,7 +40,10 @@ public interface ChildProfileCredentialsProviderFactory {
      * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
     default AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
-        ChildProfileCredentialsRequest request = new ChildProfileCredentialsRequest(sourceCredentialsProvider, profile, null);
+        ChildProfileCredentialsRequest request = ChildProfileCredentialsRequest.builder()
+            .sourceCredentialsProvider(sourceCredentialsProvider)
+            .profile(profile)
+            .build();
         return create(request);
     }
 
@@ -54,19 +56,23 @@ public interface ChildProfileCredentialsProviderFactory {
      * @param request The request containing all parameters needed to create the child credentials provider.
      * @return The credentials provider with permissions derived from the request parameters.
      */
-    AwsCredentialsProvider create(ChildProfileCredentialsRequest request);
+    default AwsCredentialsProvider create(ChildProfileCredentialsRequest request) {
+        throw new UnsupportedOperationException();
+    }
 
     final class ChildProfileCredentialsRequest {
         private final AwsCredentialsProvider sourceCredentialsProvider;
         private final Profile profile;
         private final String sourceFeatureId;
 
-        public ChildProfileCredentialsRequest(AwsCredentialsProvider sourceCredentialsProvider, 
-                                            Profile profile, 
-                                            String sourceFeatureId) {
-            this.sourceCredentialsProvider = sourceCredentialsProvider;
-            this.profile = profile;
-            this.sourceFeatureId = sourceFeatureId;
+        private ChildProfileCredentialsRequest(Builder builder) {
+            this.sourceCredentialsProvider = builder.sourceCredentialsProvider;
+            this.profile = builder.profile;
+            this.sourceFeatureId = builder.sourceFeatureId;
+        }
+
+        public static Builder builder() {
+            return new Builder();
         }
 
         public AwsCredentialsProvider sourceCredentialsProvider() {
@@ -79,6 +85,31 @@ public interface ChildProfileCredentialsProviderFactory {
 
         public String sourceFeatureId() {
             return sourceFeatureId;
+        }
+
+        public static final class Builder {
+            private AwsCredentialsProvider sourceCredentialsProvider;
+            private Profile profile;
+            private String sourceFeatureId;
+
+            public Builder sourceCredentialsProvider(AwsCredentialsProvider sourceCredentialsProvider) {
+                this.sourceCredentialsProvider = sourceCredentialsProvider;
+                return this;
+            }
+
+            public Builder profile(Profile profile) {
+                this.profile = profile;
+                return this;
+            }
+
+            public Builder sourceFeatureId(String sourceFeatureId) {
+                this.sourceFeatureId = sourceFeatureId;
+                return this;
+            }
+
+            public ChildProfileCredentialsRequest build() {
+                return new ChildProfileCredentialsRequest(this);
+            }
         }
     }
 }
