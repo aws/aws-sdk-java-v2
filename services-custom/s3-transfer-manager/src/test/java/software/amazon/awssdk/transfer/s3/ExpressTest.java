@@ -43,9 +43,9 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class ExpressTest {
 
-    int maxInflightDownloads = 5;
+    int maxInflightDownloads = 1;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long bufferSize = 1000 * 1000 * 1000;
+    long bufferSize = 1024 * 1024 * 1024;
     long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
@@ -67,6 +67,7 @@ public class ExpressTest {
             .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(1)))
             .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
             .httpClient(NettyNioAsyncHttpClient.builder()
+                                               .maxConcurrency(10_000)
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
                                                .connectionMaxIdleTime(Duration.ofSeconds(5))
@@ -123,13 +124,13 @@ public class ExpressTest {
                                                      .build();
 
         CompletableFuture<CompletedFileUpload> fut =
-        manager.uploadFile(
-            UploadFileRequest.builder()
-                             .putObjectRequest(
-                                 put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket))
-                             .source(path)
-                             .build())
-            .completionFuture();
+            manager.uploadFile(
+                       UploadFileRequest.builder()
+                                        .putObjectRequest(
+                                            put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket))
+                                        .source(path)
+                                        .build())
+                   .completionFuture();
         long start = System.currentTimeMillis();
         CompletedFileUpload res = fut.join();
         long end = System.currentTimeMillis();
