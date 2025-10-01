@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 
 import com.google.common.jimfs.Jimfs;
@@ -36,13 +37,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.exceptions.verification.WantedButNotInvoked;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.model.UploadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.UploadRequest;
 
 @ExtendWith(MockitoExtension.class)
 public class CrtS3TransferManagerTest {
@@ -80,7 +84,7 @@ public class CrtS3TransferManagerTest {
                        .completionFuture()
                        .join();
 
-        verifyCrtInRequestAttributes();
+        verifyCrtInRequestAttributes(true);
     }
 
     @Test
@@ -93,18 +97,38 @@ public class CrtS3TransferManagerTest {
                        .completionFuture()
                        .join();
 
-        verifyCrtInRequestAttributes();
+        verifyCrtInRequestAttributes(true);
     }
 
-    private void verifyCrtInRequestAttributes() {
+
+    @Test
+    void upload_shouldUseCrtUpload() {
+        when(s3AsyncClient.putObject(any(PutObjectRequest.class), any(AsyncRequestBody.class))).thenReturn(CompletableFuture.completedFuture(PutObjectResponse.builder().build()));
+        transferManager.upload(UploadRequest.builder()
+                                            .putObjectRequest(PutObjectRequest.builder().bucket("test").key("test").build())
+                                            .requestBody(AsyncRequestBody.fromString("test"))
+                                            .build())
+                       .completionFuture()
+                       .join();
+
+        verifyCrtInRequestAttributes(false);
+    }
+
+    private void verifyCrtInRequestAttributes(boolean verifyObservable) {
         ArgumentCaptor<PutObjectRequest> requestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
 
-        verify(s3AsyncClient).putObject(requestArgumentCaptor.capture(), ArgumentCaptor.forClass(Path.class).capture());
-
+        try {
+            verify(s3AsyncClient).putObject(requestArgumentCaptor.capture(), ArgumentCaptor.forClass(Path.class).capture());
+        } catch (WantedButNotInvoked e) {
+            verify(s3AsyncClient).putObject(requestArgumentCaptor.capture(), ArgumentCaptor.forClass(AsyncRequestBody.class).capture());
+        }
         PutObjectRequest actual = requestArgumentCaptor.getValue();
         assertThat(actual.overrideConfiguration()).isPresent();
         SdkHttpExecutionAttributes attribute = actual.overrideConfiguration().get().executionAttributes().getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
         assertThat(attribute).isNotNull();
-        assertThat(attribute.getAttribute(METAREQUEST_PAUSE_OBSERVABLE)).isNotNull();
+        assertThat(attribute.getAttribute(CRT_PROGRESS_LISTENER)).isNotNull();
+        if (verifyObservable) {
+            assertThat(attribute.getAttribute(METAREQUEST_PAUSE_OBSERVABLE)).isNotNull();
+        }
     }
 }

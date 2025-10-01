@@ -29,6 +29,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 
 /**
@@ -49,6 +50,7 @@ public interface Checksummer {
      */
     static Checksummer create() {
         return new FlexibleChecksummer(
+            NoOpPayloadChecksumStore.create(),
             option().headerName(X_AMZ_CONTENT_SHA256).algorithm(SHA256).formatter(BinaryUtils::toHex).build()
         );
     }
@@ -57,9 +59,10 @@ public interface Checksummer {
      * Get a flexible checksummer that performs two checksums: the given checksum-algorithm and the SHA-256 checksum. It places
      * the SHA-256 checksum in x-amz-content-sha256 header, and the given checksum-algorithm in the x-amz-checksum-[name] header.
      */
-    static Checksummer forFlexibleChecksum(ChecksumAlgorithm checksumAlgorithm) {
+    static Checksummer forFlexibleChecksum(ChecksumAlgorithm checksumAlgorithm, PayloadChecksumStore cache) {
         if (checksumAlgorithm != null) {
             return new FlexibleChecksummer(
+                cache,
                 option().headerName(X_AMZ_CONTENT_SHA256).algorithm(SHA256).formatter(BinaryUtils::toHex)
                         .build(),
                 option().headerName(checksumHeaderName(checksumAlgorithm)).algorithm(checksumAlgorithm)
@@ -82,9 +85,12 @@ public interface Checksummer {
      * given checksum string. It places the precomputed checksum in x-amz-content-sha256 header, and the given checksum-algorithm
      * in the x-amz-checksum-[name] header.
      */
-    static Checksummer forFlexibleChecksum(String precomputedSha256, ChecksumAlgorithm checksumAlgorithm) {
+    static Checksummer forFlexibleChecksum(String precomputedSha256,
+                                           ChecksumAlgorithm checksumAlgorithm,
+                                           PayloadChecksumStore cache) {
         if (checksumAlgorithm != null) {
             return new FlexibleChecksummer(
+                cache,
                 option().headerName(X_AMZ_CONTENT_SHA256).algorithm(new ConstantChecksumAlgorithm(precomputedSha256))
                         .formatter(b -> new String(b, StandardCharsets.UTF_8)).build(),
                 option().headerName(checksumHeaderName(checksumAlgorithm)).algorithm(checksumAlgorithm)
@@ -96,7 +102,7 @@ public interface Checksummer {
     }
 
     static Checksummer forNoOp() {
-        return new FlexibleChecksummer();
+        return new FlexibleChecksummer(NoOpPayloadChecksumStore.create());
     }
 
     /**

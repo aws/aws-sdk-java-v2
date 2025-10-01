@@ -268,7 +268,7 @@
         {"shape":"InternalServiceException"},
         {"shape":"ResourceNumberLimitExceededException"}
       ],
-      "documentation":"<p>Annotate datapoints over time for a specific data quality statistic.</p>"
+      "documentation":"<p>Annotate datapoints over time for a specific data quality statistic. The API requires both profileID and statisticID as part of the InclusionAnnotation input. The API only works for a single statisticId across multiple profiles.</p>"
     },
     "BatchStopJobRun":{
       "name":"BatchStopJobRun",
@@ -568,6 +568,24 @@
         {"shape":"ResourceNumberLimitExceededException"}
       ],
       "documentation":"<p>Creates a new development endpoint.</p>"
+    },
+    "CreateGlueIdentityCenterConfiguration":{
+      "name":"CreateGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"CreateGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"AlreadyExistsException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Creates a new Glue Identity Center configuration to enable integration between Glue and Amazon Web Services IAM Identity Center for authentication and authorization.</p>"
     },
     "CreateIntegration":{
       "name":"CreateIntegration",
@@ -1109,6 +1127,24 @@
         {"shape":"InvalidInputException"}
       ],
       "documentation":"<p>Deletes a specified development endpoint.</p>"
+    },
+    "DeleteGlueIdentityCenterConfiguration":{
+      "name":"DeleteGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"DeleteGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Deletes the existing Glue Identity Center configuration, removing the integration between Glue and Amazon Web Services IAM Identity Center.</p>"
     },
     "DeleteIntegration":{
       "name":"DeleteIntegration",
@@ -2017,6 +2053,24 @@
         {"shape":"AccessDeniedException"}
       ],
       "documentation":"<p>This API is used to query preview data from a given connection type or from a native Amazon S3 based Glue Data Catalog.</p> <p>Returns records as an array of JSON blobs. Each record is formatted using Jackson JsonNode based on the field type defined by the <code>DescribeEntity</code> API.</p> <p>Spark connectors generate schemas according to the same data type mapping as in the <code>DescribeEntity</code> API. Spark connectors convert data to the appropriate data types matching the schema when returning rows.</p>"
+    },
+    "GetGlueIdentityCenterConfiguration":{
+      "name":"GetGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"GetGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Retrieves the current Glue Identity Center configuration details, including the associated Identity Center instance and application information.</p>"
     },
     "GetIntegrationResourceProperty":{
       "name":"GetIntegrationResourceProperty",
@@ -4028,6 +4082,24 @@
       ],
       "documentation":"<p>Updates a specified development endpoint.</p>"
     },
+    "UpdateGlueIdentityCenterConfiguration":{
+      "name":"UpdateGlueIdentityCenterConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateGlueIdentityCenterConfigurationRequest"},
+      "output":{"shape":"UpdateGlueIdentityCenterConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"OperationTimeoutException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConcurrentModificationException"}
+      ],
+      "documentation":"<p>Updates the existing Glue Identity Center configuration, allowing modification of scopes and permissions for the integration.</p>"
+    },
     "UpdateIntegrationResourceProperty":{
       "name":"UpdateIntegrationResourceProperty",
       "http":{
@@ -4701,6 +4773,11 @@
       "min":1,
       "pattern":"[a-zA-Z0-9.-]*"
     },
+    "ApplicationArn":{
+      "type":"string",
+      "max":1224,
+      "min":10
+    },
     "ApplyMapping":{
       "type":"structure",
       "required":[
@@ -4841,6 +4918,10 @@
         "SecretArn":{
           "shape":"SecretArn",
           "documentation":"<p>The secret manager ARN to store credentials.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive authentication information. This key is used to protect credentials and other sensitive data stored within the authentication configuration.</p>"
         },
         "OAuth2Properties":{
           "shape":"OAuth2Properties",
@@ -5522,7 +5603,7 @@
       "members":{
         "InclusionAnnotations":{
           "shape":"InclusionAnnotationList",
-          "documentation":"<p>A list of <code>DatapointInclusionAnnotation</code>'s.</p>"
+          "documentation":"<p>A list of <code>DatapointInclusionAnnotation</code>'s. The InclusionAnnotations must contain a profileId and statisticId. If there are multiple InclusionAnnotations, the list must refer to a single statisticId across multiple profileIds.</p>"
         },
         "ClientToken":{
           "shape":"HashString",
@@ -6422,6 +6503,10 @@
           "shape":"DataLakeAccessProperties",
           "documentation":"<p>A <code>DataLakeAccessProperties</code> object that specifies properties to configure data lake access for your catalog resource in the Glue Data Catalog.</p>"
         },
+        "IcebergOptimizationProperties":{
+          "shape":"IcebergOptimizationProperties",
+          "documentation":"<p>A structure that specifies Iceberg table optimization properties for the catalog. This includes configuration for compaction, retention, and orphan file deletion operations that can be applied to Iceberg tables in this catalog.</p>"
+        },
         "CustomProperties":{
           "shape":"ParametersMap",
           "documentation":"<p>Additional key-value properties for the catalog, such as column statistics optimizations.</p>"
@@ -6435,6 +6520,10 @@
         "DataLakeAccessProperties":{
           "shape":"DataLakeAccessPropertiesOutput",
           "documentation":"<p>A <code>DataLakeAccessProperties</code> object with input properties to configure data lake access for your catalog resource in the Glue Data Catalog.</p>"
+        },
+        "IcebergOptimizationProperties":{
+          "shape":"IcebergOptimizationPropertiesOutput",
+          "documentation":"<p>An <code>IcebergOptimizationPropertiesOutput</code> object that specifies Iceberg table optimization settings for the catalog, including configurations for compaction, retention, and orphan file deletion operations.</p>"
         },
         "CustomProperties":{
           "shape":"ParametersMap",
@@ -7694,6 +7783,13 @@
       },
       "documentation":"<p>Specifies the values that an admin sets for each job or session parameter configured in a Glue usage profile.</p>"
     },
+    "ConfigurationSource":{
+      "type":"string",
+      "enum":[
+        "catalog",
+        "table"
+      ]
+    },
     "ConflictException":{
       "type":"structure",
       "members":{
@@ -7748,7 +7844,7 @@
         },
         "ConnectionProperties":{
           "shape":"ConnectionProperties",
-          "documentation":"<p>These key-value pairs define parameters for the connection when using the version 1 Connection schema:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, <code>\"AWS_MSK_IAM\"</code>, or <code>\"PLAIN\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_USERNAME</code> - A plaintext username used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_PASSWORD</code> - A plaintext password used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD</code> - The encrypted version of the Kafka SASL PLAIN password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> <li> <p> <code>ROLE_ARN</code> - The role to be used for running queries.</p> </li> <li> <p> <code>REGION</code> - The Amazon Web Services Region where queries will be run.</p> </li> <li> <p> <code>WORKGROUP_NAME</code> - The name of an Amazon Redshift serverless workgroup or Amazon Athena workgroup in which queries will run.</p> </li> <li> <p> <code>CLUSTER_IDENTIFIER</code> - The cluster identifier of an Amazon Redshift cluster in which queries will run.</p> </li> <li> <p> <code>DATABASE</code> - The Amazon Redshift database that you are connecting to.</p> </li> </ul>"
+          "documentation":"<p>These key-value pairs define parameters for the connection when using the version 1 Connection schema:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A case-insensitive Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, <code>\"AWS_MSK_IAM\"</code>, or <code>\"PLAIN\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_USERNAME</code> - A plaintext username used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_PASSWORD</code> - A plaintext password used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD</code> - The encrypted version of the Kafka SASL PLAIN password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> <li> <p> <code>ROLE_ARN</code> - The role to be used for running queries.</p> </li> <li> <p> <code>REGION</code> - The Amazon Web Services Region where queries will be run.</p> </li> <li> <p> <code>WORKGROUP_NAME</code> - The name of an Amazon Redshift serverless workgroup or Amazon Athena workgroup in which queries will run.</p> </li> <li> <p> <code>CLUSTER_IDENTIFIER</code> - The cluster identifier of an Amazon Redshift cluster in which queries will run.</p> </li> <li> <p> <code>DATABASE</code> - The Amazon Redshift database that you are connecting to.</p> </li> </ul>"
         },
         "SparkProperties":{
           "shape":"PropertyMap",
@@ -8003,10 +8099,73 @@
         "ZOHOCRM",
         "SALESFORCEPARDOT",
         "SALESFORCEMARKETINGCLOUD",
+        "ADOBEANALYTICS",
         "SLACK",
+        "LINKEDIN",
+        "MIXPANEL",
+        "ASANA",
         "STRIPE",
+        "SMARTSHEET",
+        "DATADOG",
+        "WOOCOMMERCE",
         "INTERCOM",
-        "SNAPCHATADS"
+        "SNAPCHATADS",
+        "PAYPAL",
+        "QUICKBOOKS",
+        "FACEBOOKPAGEINSIGHTS",
+        "FRESHDESK",
+        "TWILIO",
+        "DOCUSIGNMONITOR",
+        "FRESHSALES",
+        "ZOOM",
+        "GOOGLESEARCHCONSOLE",
+        "SALESFORCECOMMERCECLOUD",
+        "SAPCONCUR",
+        "DYNATRACE",
+        "MICROSOFTDYNAMIC365FINANCEANDOPS",
+        "MICROSOFTTEAMS",
+        "BLACKBAUDRAISEREDGENXT",
+        "MAILCHIMP",
+        "GITLAB",
+        "PENDO",
+        "PRODUCTBOARD",
+        "CIRCLECI",
+        "PIPEDIVE",
+        "SENDGRID",
+        "AZURECOSMOS",
+        "AZURESQL",
+        "BIGQUERY",
+        "BLACKBAUD",
+        "CLOUDERAHIVE",
+        "CLOUDERAIMPALA",
+        "CLOUDWATCH",
+        "CLOUDWATCHMETRICS",
+        "CMDB",
+        "DATALAKEGEN2",
+        "DB2",
+        "DB2AS400",
+        "DOCUMENTDB",
+        "DOMO",
+        "DYNAMODB",
+        "GOOGLECLOUDSTORAGE",
+        "HBASE",
+        "KUSTOMER",
+        "MICROSOFTDYNAMICS365CRM",
+        "MONDAY",
+        "MYSQL",
+        "OKTA",
+        "OPENSEARCH",
+        "ORACLE",
+        "PIPEDRIVE",
+        "POSTGRESQL",
+        "SAPHANA",
+        "SQLSERVER",
+        "SYNAPSE",
+        "TERADATA",
+        "TERADATANOS",
+        "TIMESTREAM",
+        "TPCDS",
+        "VERTICA"
       ]
     },
     "ConnectionTypeBrief":{
@@ -8162,6 +8321,7 @@
       "max":20,
       "min":1
     },
+    "ContinuousSync":{"type":"boolean"},
     "Crawl":{
       "type":"structure",
       "members":{
@@ -9063,6 +9223,31 @@
           "documentation":"<p>The map of arguments used to configure this <code>DevEndpoint</code>.</p> <p>Valid arguments are:</p> <ul> <li> <p> <code>\"--enable-glue-datacatalog\": \"\"</code> </p> </li> </ul> <p>You can specify a version of Python support for development endpoints by using the <code>Arguments</code> parameter in the <code>CreateDevEndpoint</code> or <code>UpdateDevEndpoint</code> APIs. If no arguments are provided, the version defaults to Python 2.</p>"
         }
       }
+    },
+    "CreateGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"IdentityCenterInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center instance to be associated with the Glue configuration.</p>"
+        },
+        "Scopes":{
+          "shape":"IdentityCenterScopesList",
+          "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Request to create a new Glue Identity Center configuration.</p>"
+    },
+    "CreateGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center application that was created for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Response from creating a new Glue Identity Center configuration.</p>"
     },
     "CreateGrokClassifierRequest":{
       "type":"structure",
@@ -10613,6 +10798,40 @@
       },
       "documentation":"<p>Additional run options you can specify for an evaluation run.</p>"
     },
+    "DataQualityGlueTable":{
+      "type":"structure",
+      "required":[
+        "DatabaseName",
+        "TableName"
+      ],
+      "members":{
+        "DatabaseName":{
+          "shape":"NameString",
+          "documentation":"<p>A database name in the Glue Data Catalog.</p>"
+        },
+        "TableName":{
+          "shape":"NameString",
+          "documentation":"<p>A table name in the Glue Data Catalog.</p>"
+        },
+        "CatalogId":{
+          "shape":"NameString",
+          "documentation":"<p>A unique identifier for the Glue Data Catalog.</p>"
+        },
+        "ConnectionName":{
+          "shape":"NameString",
+          "documentation":"<p>The name of the connection to the Glue Data Catalog.</p>"
+        },
+        "AdditionalOptions":{
+          "shape":"GlueTableAdditionalOptions",
+          "documentation":"<p>Additional options for the table. Currently there are two keys supported:</p> <ul> <li> <p> <code>pushDownPredicate</code>: to filter on partitions without having to list and read all the files in your dataset.</p> </li> <li> <p> <code>catalogPartitionPredicate</code>: to use server-side partition pruning using partition indexes in the Glue Data Catalog.</p> </li> </ul>"
+        },
+        "PreProcessingQuery":{
+          "shape":"PreProcessingQueryString",
+          "documentation":"<p>SQL Query of SparkSQL format that can be used to pre-process the data for the table in Glue Data Catalog, before running the Data Quality Operation.</p>"
+        }
+      },
+      "documentation":"<p>The database and table in the Glue Data Catalog that is used for input or output data for Data Quality Operations.</p>"
+    },
     "DataQualityMetricValues":{
       "type":"structure",
       "members":{
@@ -11054,11 +11273,14 @@
     },
     "DataSource":{
       "type":"structure",
-      "required":["GlueTable"],
       "members":{
         "GlueTable":{
           "shape":"GlueTable",
           "documentation":"<p>An Glue table.</p>"
+        },
+        "DataQualityGlueTable":{
+          "shape":"DataQualityGlueTable",
+          "documentation":"<p>An Glue table for Data Quality Operations.</p>"
         }
       },
       "documentation":"<p>A data source (an Glue table) for which you want data quality results.</p>"
@@ -11113,7 +11335,10 @@
     },
     "DatabaseAttributes":{
       "type":"string",
-      "enum":["NAME"]
+      "enum":[
+        "NAME",
+        "TARGET_DATABASE"
+      ]
     },
     "DatabaseAttributesList":{
       "type":"list",
@@ -11543,6 +11768,16 @@
     "DeleteDevEndpointResponse":{
       "type":"structure",
       "members":{}
+    },
+    "DeleteGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Request to delete the existing Glue Identity Center configuration.</p>"
+    },
+    "DeleteGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Response from deleting the Glue Identity Center configuration.</p>"
     },
     "DeleteIntegrationRequest":{
       "type":"structure",
@@ -14698,6 +14933,29 @@
         }
       }
     },
+    "GetGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Request to retrieve the Glue Identity Center configuration.</p>"
+    },
+    "GetGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center application associated with the Glue configuration.</p>"
+        },
+        "InstanceArn":{
+          "shape":"IdentityCenterInstanceArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Identity Center instance associated with the Glue configuration.</p>"
+        },
+        "Scopes":{
+          "shape":"OrchestrationStringList",
+          "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Response containing the Glue Identity Center configuration details.</p>"
+    },
     "GetIntegrationResourcePropertyRequest":{
       "type":"structure",
       "required":["ResourceArn"],
@@ -16804,6 +17062,14 @@
         "strategy":{
           "shape":"CompactionStrategy",
           "documentation":"<p>The strategy to use for compaction. Valid values are:</p> <ul> <li> <p> <code>binpack</code>: Combines small files into larger files, typically targeting sizes over 100MB, while applying any pending deletes. This is the recommended compaction strategy for most use cases. </p> </li> <li> <p> <code>sort</code>: Organizes data based on specified columns which are sorted hierarchically during compaction, improving query performance for filtered operations. This strategy is recommended when your queries frequently filter on specific columns. To use this strategy, you must first define a sort order in your Iceberg table properties using the <code>sort_order</code> table property.</p> </li> <li> <p> <code>z-order</code>: Optimizes data organization by blending multiple attributes into a single scalar value that can be used for sorting, allowing efficient querying across multiple dimensions. This strategy is recommended when you need to query data across multiple dimensions simultaneously. To use this strategy, you must first define a sort order in your Iceberg table properties using the <code>sort_order</code> table property. </p> </li> </ul> <p>If an input is not provided, the default value 'binpack' will be used.</p>"
+        },
+        "minInputFiles":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The minimum number of data files that must be present in a partition before compaction will actually compact files. This parameter helps control when compaction is triggered, preventing unnecessary compaction operations on partitions with few files. If an input is not provided, the default value 100 will be used.</p>"
+        },
+        "deleteFileThreshold":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The minimum number of deletes that must be present in a data file to make it eligible for compaction. This parameter helps optimize compaction by focusing on files that contain a significant number of delete operations, which can improve query performance by removing deleted records. If an input is not provided, the default value 1 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg compaction optimizer. This configuration defines parameters for optimizing the layout of data files in Iceberg tables.</p>"
@@ -16865,6 +17131,54 @@
         "nulls-last"
       ]
     },
+    "IcebergOptimizationProperties":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that will be assumed to perform Iceberg table optimization operations.</p>"
+        },
+        "Compaction":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table compaction operations, which optimize the layout of data files to improve query performance.</p>"
+        },
+        "Retention":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table retention operations, which manage the lifecycle of table snapshots to control storage costs.</p>"
+        },
+        "OrphanFileDeletion":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg orphan file deletion operations, which identify and remove files that are no longer referenced by the table metadata.</p>"
+        }
+      },
+      "documentation":"<p>A structure that specifies Iceberg table optimization properties for the catalog, including configurations for compaction, retention, and orphan file deletion operations.</p>"
+    },
+    "IcebergOptimizationPropertiesOutput":{
+      "type":"structure",
+      "members":{
+        "RoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role that is used to perform Iceberg table optimization operations.</p>"
+        },
+        "Compaction":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table compaction operations, which optimize the layout of data files to improve query performance.</p>"
+        },
+        "Retention":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg table retention operations, which manage the lifecycle of table snapshots to control storage costs.</p>"
+        },
+        "OrphanFileDeletion":{
+          "shape":"ParametersMap",
+          "documentation":"<p>A map of key-value pairs that specify configuration parameters for Iceberg orphan file deletion operations, which identify and remove files that are no longer referenced by the table metadata.</p>"
+        },
+        "LastUpdatedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the Iceberg optimization properties were last updated.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the output properties of Iceberg table optimization configuration for your catalog resource in the Glue Data Catalog.</p>"
+    },
     "IcebergOrphanFileDeletionConfiguration":{
       "type":"structure",
       "members":{
@@ -16875,6 +17189,10 @@
         "location":{
           "shape":"MessageString",
           "documentation":"<p>Specifies a directory in which to look for files (defaults to the table's location). You may choose a sub-directory rather than the top-level table location.</p>"
+        },
+        "runRateInHours":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The interval in hours between orphan file deletion job runs. This parameter controls how frequently the orphan file deletion optimizer will run to clean up orphan files. The value must be between 3 and 168 hours (7 days). If an input is not provided, the default value 24 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg orphan file deletion optimizer.</p>"
@@ -16961,6 +17279,10 @@
         "cleanExpiredFiles":{
           "shape":"NullableBoolean",
           "documentation":"<p>If set to false, snapshots are only deleted from table metadata, and the underlying data and metadata files are not deleted.</p>"
+        },
+        "runRateInHours":{
+          "shape":"NullableInteger",
+          "documentation":"<p>The interval in hours between retention job runs. This parameter controls how frequently the retention optimizer will run to clean up expired snapshots. The value must be between 3 and 168 hours (7 days). If an input is not provided, the default value 24 will be used.</p>"
         }
       },
       "documentation":"<p>The configuration for an Iceberg snapshot retention optimizer.</p>"
@@ -17202,6 +17524,21 @@
       "documentation":"<p>The same unique identifier was associated with two different records.</p>",
       "exception":true
     },
+    "IdentityCenterInstanceArn":{
+      "type":"string",
+      "max":1224,
+      "min":10
+    },
+    "IdentityCenterScope":{
+      "type":"string",
+      "max":50
+    },
+    "IdentityCenterScopesList":{
+      "type":"list",
+      "member":{"shape":"IdentityCenterScope"},
+      "max":50,
+      "min":1
+    },
     "IdleTimeout":{
       "type":"integer",
       "box":true
@@ -17414,6 +17751,10 @@
         "SourceProperties":{
           "shape":"IntegrationSourcePropertiesMap",
           "documentation":"<p> A collection of key-value pairs that specify additional properties for the integration source. These properties provide configuration options that can be used to customize the behavior of the ODB source during data integration operations. </p>"
+        },
+        "ContinuousSync":{
+          "shape":"ContinuousSync",
+          "documentation":"<p>Enables continuous synchronization for on-demand data extractions from SaaS applications to Amazon Web Services data services like Amazon Redshift and Amazon S3.</p>"
         }
       },
       "documentation":"<p>Properties associated with the integration.</p>"
@@ -17496,7 +17837,7 @@
         },
         "FunctionSpec":{
           "shape":"String128",
-          "documentation":"<p>Specifies the function used to partition data on the target. The only accepted value for this parameter is `'identity'` (string). The `'identity'` function ensures that the data partitioning on the target follows the same scheme as the source. In other words, the partitioning structure of the source data is preserved in the target destination.</p>"
+          "documentation":"<p>Specifies the function used to partition data on the target. The accepted values for this parameter are:</p> <ul> <li> <p> <code>identity</code> - Uses source values directly without transformation</p> </li> <li> <p> <code>year</code> - Extracts the year from timestamp values (e.g., 2023)</p> </li> <li> <p> <code>month</code> - Extracts the month from timestamp values (e.g., 2023-01)</p> </li> <li> <p> <code>day</code> - Extracts the day from timestamp values (e.g., 2023-01-15)</p> </li> <li> <p> <code>hour</code> - Extracts the hour from timestamp values (e.g., 2023-01-15-14)</p> </li> </ul>"
         },
         "ConversionSpec":{
           "shape":"String128",
@@ -20068,6 +20409,7 @@
           "shape":"String2048",
           "documentation":"<p>Selects source tables for the integration using Maxwell filter syntax.</p>"
         },
+        "IntegrationConfig":{"shape":"IntegrationConfig"},
         "IntegrationName":{
           "shape":"String128",
           "documentation":"<p>A unique name for an integration in Glue.</p>"
@@ -20132,7 +20474,8 @@
         "DataFilter":{
           "shape":"String2048",
           "documentation":"<p>Selects source tables for the integration using Maxwell filter syntax.</p>"
-        }
+        },
+        "IntegrationConfig":{"shape":"IntegrationConfig"}
       }
     },
     "MongoDBTarget":{
@@ -21189,6 +21532,13 @@
         }
       },
       "documentation":"<p>Specifies a target that uses Postgres SQL.</p>"
+    },
+    "PreProcessingQueryString":{
+      "type":"string",
+      "documentation":"<p>SQL Query of SparkSQL format that can be used to pre-process data before running Data Quality Operations.</p>",
+      "max":51200,
+      "min":0,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\r\\n\\t]*"
     },
     "Predecessor":{
       "type":"structure",
@@ -25618,6 +25968,10 @@
         "lastRun":{
           "shape":"TableOptimizerRun",
           "documentation":"<p>A <code>TableOptimizerRun</code> object representing the last run of the table optimizer.</p>"
+        },
+        "configurationSource":{
+          "shape":"ConfigurationSource",
+          "documentation":"<p> Specifies the source of the optimizer configuration. This indicates how the table optimizer was configured and which entity or service initiated the configuration. </p>"
         }
       },
       "documentation":"<p>Contains details about an optimizer associated with a table.</p>"
@@ -27080,6 +27434,21 @@
       "type":"structure",
       "members":{}
     },
+    "UpdateGlueIdentityCenterConfigurationRequest":{
+      "type":"structure",
+      "members":{
+        "Scopes":{
+          "shape":"IdentityCenterScopesList",
+          "documentation":"<p>A list of Identity Center scopes that define the updated permissions and access levels for the Glue configuration.</p>"
+        }
+      },
+      "documentation":"<p>Request to update an existing Glue Identity Center configuration.</p>"
+    },
+    "UpdateGlueIdentityCenterConfigurationResponse":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Response from updating an existing Glue Identity Center configuration.</p>"
+    },
     "UpdateGrokClassifierRequest":{
       "type":"structure",
       "required":["Name"],
@@ -27123,7 +27492,7 @@
           "documentation":"<p>The list of table update operations that specify the changes to be made to the Iceberg table, including schema modifications, partition specifications, and table properties.</p>"
         }
       },
-      "documentation":"<p>Contains the update operations to be applied to an existing Iceberg table in AWS Glue Data Catalog, defining the new state of the table metadata. </p>"
+      "documentation":"<p>Contains the update operations to be applied to an existing Iceberg table inGlue Data Catalog, defining the new state of the table metadata. </p>"
     },
     "UpdateIntegrationResourcePropertyRequest":{
       "type":"structure",

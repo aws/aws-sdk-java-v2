@@ -61,7 +61,7 @@ import software.amazon.awssdk.utils.internal.MappingSubscriber;
  */
 @SdkInternalApi
 public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
-    private final ByteBuffer EMPTY = ByteBuffer.allocate(0);
+    private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte SEMICOLON = ';';
     private static final byte EQUALS = '=';
@@ -121,7 +121,7 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         if (addEmptyTrailingChunk) {
-            trailing.add(encodeChunk(EMPTY.duplicate()));
+            trailing.add(encodeChunk(EMPTY_BUFFER.duplicate()));
         }
 
         return Collections.singletonList(trailing);

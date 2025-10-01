@@ -147,6 +147,8 @@ public class ConstructorToFluent extends Recipe {
                 Collections.singletonList(simpleName),
                 Collections.singletonList(parameterType),
                 null,
+                null,
+                null,
                 null
             );
 

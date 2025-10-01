@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
@@ -38,6 +39,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 
 public class ChunkedEncodedPublisherTest {
@@ -267,7 +269,7 @@ public class ChunkedEncodedPublisherTest {
             assertThat(chunks.size()).isEqualTo(24);
 
             chunks.forEach(c -> {
-                String header = StandardCharsets.UTF_8.decode(getHeader(c)).toString();
+                String header = StandardCharsets.UTF_8.decode(getHeader(c.duplicate())).toString();
                 assertThat(header).isEqualTo("4000;foo=bar");
             });
 
@@ -323,29 +325,27 @@ public class ChunkedEncodedPublisherTest {
 
     @Test
     void subscribe_extensionsPresent_extensionsInvokedForEachChunk() {
-        ChunkExtensionProvider mockProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
+        StaticExtensionProvider mockProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
 
+        int chunkSize = CHUNK_SIZE;
         int nChunks = 16;
-        int contentLength = CHUNK_SIZE * nChunks;
+        int contentLength = chunkSize * nChunks;
         TestPublisher elements = randomPublisherOfLength(contentLength);
 
         ChunkedEncodedPublisher chunkPublisher = ChunkedEncodedPublisher.builder()
                                                                         .publisher(elements)
                                                                         .contentLength(contentLength)
-                                                                        .chunkSize(CHUNK_SIZE)
+                                                                        .chunkSize(chunkSize)
                                                                         .addExtension(mockProvider)
                                                                         .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher);
-
-        ArgumentCaptor<ByteBuffer> chunkCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        Mockito.verify(mockProvider, Mockito.times(nChunks)).get(chunkCaptor.capture());
-        List<ByteBuffer> extensionChunks = chunkCaptor.getAllValues();
+        Mockito.verify(mockProvider, Mockito.times(nChunks)).get(any(ByteBuffer.class));
 
         for (int i = 0; i < chunks.size(); ++i) {
             ByteBuffer chunk = chunks.get(i);
-            ByteBuffer extensionChunk = extensionChunks.get(i);
+            ByteBuffer extensionChunk = mockProvider.recordedChunks.get(i);
+
             assertThat(stripEncoding(chunk)).isEqualTo(extensionChunk);
         }
     }
@@ -389,7 +389,9 @@ public class ChunkedEncodedPublisherTest {
             bytes -= elementSize;
 
             byte[] elementContent = new byte[elementSize];
-            RNG.nextBytes(elementContent);
+            for (int i = 0; i < elementSize; ++i) {
+                elementContent[i] = (byte) ('A' + RNG.nextInt(8));
+            }
             CRC32.update(elementContent);
             elements.add(ByteBuffer.wrap(elementContent));
         }
@@ -413,22 +415,23 @@ public class ChunkedEncodedPublisherTest {
 
     private ByteBuffer getHeader(ByteBuffer chunk) {
         ByteBuffer header = chunk.duplicate();
-        byte a = header.get(0);
-        byte b = header.get(1);
+        header.mark();
+        byte a = header.get();
+        byte b = header.get();
 
         int i = 2;
         for (; i < header.limit() && a != '\r' && b != '\n'; ++i) {
             a = b;
-            b = header.get(i);
+            b = header.get();
         }
 
         header.limit(i - 2);
+        header.reset();
         return header;
     }
 
     private ByteBuffer stripEncoding(ByteBuffer chunk) {
         ByteBuffer header = getHeader(chunk);
-
         ByteBuffer lengthHex = header.duplicate();
 
         boolean semiFound = false;
@@ -484,6 +487,7 @@ public class ChunkedEncodedPublisherTest {
     private static class StaticExtensionProvider implements ChunkExtensionProvider {
         private final byte[] key;
         private final byte[] value;
+        private final List<ByteBuffer> recordedChunks = new ArrayList<>();
 
         public StaticExtensionProvider(String key, String value) {
             this.key = key.getBytes(StandardCharsets.UTF_8);
@@ -492,6 +496,7 @@ public class ChunkedEncodedPublisherTest {
 
         @Override
         public Pair<byte[], byte[]> get(ByteBuffer chunk) {
+            this.recordedChunks.add(BinaryUtils.immutableCopyOf(chunk));
             return Pair.of(key, value);
         }
     }

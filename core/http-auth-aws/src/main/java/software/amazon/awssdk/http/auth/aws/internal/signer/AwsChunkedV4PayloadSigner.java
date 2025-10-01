@@ -30,6 +30,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUt
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -51,7 +52,9 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.Sync
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
@@ -61,16 +64,20 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
+    private static final Logger LOG = Logger.loggerFor(AwsChunkedV4PayloadSigner.class);
 
     private final CredentialScope credentialScope;
     private final int chunkSize;
     private final ChecksumAlgorithm checksumAlgorithm;
+    private final PayloadChecksumStore payloadChecksumStore;
     private final List<Pair<String, List<String>>> preExistingTrailers = new ArrayList<>();
 
     private AwsChunkedV4PayloadSigner(Builder builder) {
         this.credentialScope = Validate.paramNotNull(builder.credentialScope, "CredentialScope");
         this.chunkSize = Validate.isPositive(builder.chunkSize, "ChunkSize");
         this.checksumAlgorithm = builder.checksumAlgorithm;
+        this.payloadChecksumStore = builder.checksumStore == null ? NoOpPayloadChecksumStore.create() :
+                                    builder.checksumStore;
     }
 
     public static Builder builder() {
@@ -310,19 +317,40 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
         if (checksumAlgorithm == null) {
             return;
         }
+
         String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+
+        String cachedChecksum = getCachedChecksum();
+
+        if (cachedChecksum != null) {
+            LOG.debug(() -> String.format("Cached payload checksum available for algorithm %s: %s. Using cached value",
+                                          checksumAlgorithm.algorithmId(), checksumHeaderName));
+            payload.addTrailer(() -> Pair.of(checksumHeaderName, Collections.singletonList(cachedChecksum)));
+            return;
+        }
+
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
 
-        TrailerProvider checksumTrailer = new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName);
+        TrailerProvider checksumTrailer =
+            new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName, checksumAlgorithm, payloadChecksumStore);
 
         payload.checksumPayload(sdkChecksum);
         payload.addTrailer(checksumTrailer);
+    }
+
+    private String getCachedChecksum() {
+        byte[] checksumBytes = payloadChecksumStore.getChecksumValue(checksumAlgorithm);
+        if (checksumBytes != null) {
+            return BinaryUtils.toBase64(checksumBytes);
+        }
+        return null;
     }
 
     static class Builder {
         private CredentialScope credentialScope;
         private Integer chunkSize;
         private ChecksumAlgorithm checksumAlgorithm;
+        private PayloadChecksumStore checksumStore;
 
         public Builder credentialScope(CredentialScope credentialScope) {
             this.credentialScope = credentialScope;
@@ -336,6 +364,11 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
         public Builder checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
             this.checksumAlgorithm = checksumAlgorithm;
+            return this;
+        }
+
+        public Builder checksumStore(PayloadChecksumStore checksumStore) {
+            this.checksumStore = checksumStore;
             return this;
         }
 

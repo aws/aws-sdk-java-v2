@@ -20,6 +20,7 @@ import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILE
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
+import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_STORE;
 import static software.amazon.awssdk.core.internal.signer.SigningMethod.UNSIGNED_PAYLOAD;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_MD5;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import utils.ValidSdkObjects;
 
 public class HttpChecksumStageSraTest {
@@ -119,6 +121,53 @@ public class HttpChecksumStageSraTest {
         ChecksumSpecs checksumSpecs = ctx.executionAttributes().getAttribute(RESOLVED_CHECKSUM_SPECS);
         assertThat(checksumSpecs).isNotNull();
         assertThat(checksumSpecs.algorithmV2()).isEqualTo(DefaultChecksumAlgorithm.SHA1);
+    }
+
+    @Test
+    public void async_flexibleChecksumInTrailer_addsFlexibleChecksumInTrailer() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        boolean isStreaming = true;
+        RequestExecutionContext ctx = flexibleChecksumRequestContext(ClientType.ASYNC,
+                                                                     ChecksumSpecs.builder()
+                                                                                  .algorithmV2(DefaultChecksumAlgorithm.SHA256)
+                                                                                  .headerName(ChecksumUtil.checksumHeaderName(DefaultChecksumAlgorithm.SHA1)),
+                                                                     isStreaming);
+
+        new HttpChecksumStage(ClientType.ASYNC).execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(HEADER_FOR_TRAILER_REFERENCE)).containsExactly(CHECKSUM_SPECS_HEADER);
+        assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
+        assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
+        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
+
+        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
+        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
+    }
+
+    @Test
+    public void execute_checksumStoreAttributeNotPresent_shouldCreate() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        RequestExecutionContext ctx =
+            flexibleChecksumRequestContext(ClientType.SYNC, ChecksumSpecs.builder().isRequestChecksumRequired(true), false);
+
+        new HttpChecksumStage(ClientType.SYNC).execute(requestBuilder, ctx);
+
+        assertThat(ctx.executionAttributes().getAttribute(CHECKSUM_STORE)).isNotNull();
+    }
+
+    @Test
+    public void execute_checksumStoreAttributePresent_shouldNotOverwrite() throws Exception {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        RequestExecutionContext ctx =
+            flexibleChecksumRequestContext(ClientType.SYNC, ChecksumSpecs.builder().isRequestChecksumRequired(true), false);
+        ctx.executionAttributes().putAttribute(CHECKSUM_STORE, cache);
+
+        new HttpChecksumStage(ClientType.SYNC).execute(requestBuilder, ctx);
+
+        assertThat(ctx.executionAttributes().getAttribute(CHECKSUM_STORE)).isSameAs(cache);
     }
 
     private SdkHttpFullRequest.Builder createHttpRequestBuilder() {
