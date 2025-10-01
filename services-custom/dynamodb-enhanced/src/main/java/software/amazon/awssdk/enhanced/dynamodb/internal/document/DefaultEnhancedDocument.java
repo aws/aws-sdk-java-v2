@@ -47,6 +47,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Map
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
@@ -224,18 +225,188 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         }
         return attributeValue.m();
     }
-
     @Override
     public String toJson() {
         if (nonAttributeValueMap.isEmpty()) {
             return "{}";
         }
-        return attributeValueMap.getValue().entrySet().stream()
-                                .map(entry -> "\""
-                                              + addEscapeCharacters(entry.getKey())
-                                              + "\":"
-                                              + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
-                                .collect(Collectors.joining(",", "{", "}"));
+
+        StringBuilder sb = new StringBuilder(nonAttributeValueMap.size() * 50);
+        sb.append('{');
+
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : nonAttributeValueMap.entrySet()) {
+            if (!first) {
+                sb.append(',');
+            }
+            first = false;
+
+            sb.append('"');
+            appendEscaped(entry.getKey(), sb);
+            sb.append("\":");
+
+            serializeValueDirect(sb, entry.getValue());
+        }
+
+        sb.append('}');
+        return sb.toString();
+    }
+
+    private void serializeValueDirect(StringBuilder sb, Object value) {
+        if (value == null || NULL_ATTRIBUTE_VALUE.equals(value)) {
+            sb.append("null");
+        } else if (value instanceof AttributeValue) {
+            serializeAttributeValue(sb, (AttributeValue) value);
+        } else if (value instanceof String) {
+            sb.append('"');
+            appendEscaped((String) value, sb);
+            sb.append('"');
+        } else if (value instanceof Number) {
+            sb.append(value);
+        } else if (value instanceof Boolean) {
+            sb.append(value);
+        } else if (value instanceof SdkBytes) {
+            sb.append('"');
+            sb.append(BinaryUtils.toBase64(((SdkBytes) value).asByteArray()));
+            sb.append('"');
+        } else if (value instanceof List) {
+            serializeListDirect(sb, (List<?>) value);
+        } else if (value instanceof Map) {
+            serializeMapDirect(sb, (Map<?, ?>) value);
+        } else if (value instanceof Set) {
+            serializeSetDirect(sb, (Set<?>) value);
+        } else {
+            @SuppressWarnings("unchecked")
+            AttributeValue av = toAttributeValue(value, (EnhancedType) EnhancedType.of(value.getClass()));
+            serializeAttributeValue(sb, av);
+        }
+    }
+
+    private void serializeAttributeValue(StringBuilder sb, AttributeValue av) {
+        if (av.nul() != null && av.nul()) {
+            sb.append("null");
+        } else if (av.s() != null) {
+            sb.append('"');
+            appendEscaped(av.s(), sb);
+            sb.append('"');
+        } else if (av.n() != null) {
+            sb.append(av.n());
+        } else if (av.bool() != null) {
+            sb.append(av.bool());
+        } else if (av.b() != null) {
+            sb.append('"');
+            sb.append(BinaryUtils.toBase64((av.b().asByteArray())));
+            sb.append('"');
+        } else if (av.hasL()) {
+            sb.append('[');
+            boolean first = true;
+            for (AttributeValue item : av.l()) {
+                if (!first) sb.append(',');
+                first = false;
+                serializeAttributeValue(sb, item);
+            }
+            sb.append(']');
+        } else if (av.hasM()) {
+            sb.append('{');
+            boolean first = true;
+            for (Map.Entry<String, AttributeValue> entry : av.m().entrySet()) {
+                if (!first) sb.append(',');
+                first = false;
+                sb.append('"');
+                appendEscaped(entry.getKey(), sb);
+                sb.append("\":");
+                serializeAttributeValue(sb, entry.getValue());
+            }
+            sb.append('}');
+        } else if (av.hasSs()) {
+            sb.append('[');
+            boolean first = true;
+            for (String s : av.ss()) {
+                if (!first) sb.append(',');
+                first = false;
+                sb.append('"');
+                appendEscaped(s, sb);
+                sb.append('"');
+            }
+            sb.append(']');
+        } else if (av.hasNs()) {
+            sb.append('[');
+            boolean first = true;
+            for (String n : av.ns()) {
+                if (!first) sb.append(',');
+                first = false;
+                sb.append(n);
+            }
+            sb.append(']');
+        } else if (av.hasBs()) {
+            sb.append('[');
+            boolean first = true;
+            for (SdkBytes b : av.bs()) {
+                if (!first) sb.append(',');
+                first = false;
+                sb.append('"');
+                sb.append(b.asUtf8String()); // Changed from asUtf8String()
+                sb.append('"');
+            }
+            sb.append(']');
+        }
+    }
+
+    private void serializeListDirect(StringBuilder sb, List<?> list) {
+        sb.append('[');
+        boolean first = true;
+        for (Object item : list) {
+            if (!first) sb.append(',');
+            first = false;
+            serializeValueDirect(sb, item);
+        }
+        sb.append(']');
+    }
+
+    private void serializeMapDirect(StringBuilder sb, Map<?, ?> map) {
+        sb.append('{');
+        boolean first = true;
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (!first) sb.append(',');
+            first = false;
+            sb.append('"');
+            appendEscaped(String.valueOf(entry.getKey()), sb);
+            sb.append("\":");
+            serializeValueDirect(sb, entry.getValue());
+        }
+        sb.append('}');
+    }
+
+    private void serializeSetDirect(StringBuilder sb, Set<?> set) {
+        sb.append('[');
+        boolean first = true;
+        for (Object item : set) {
+            if (!first) sb.append(',');
+            first = false;
+            serializeValueDirect(sb, item);
+        }
+        sb.append(']');
+    }
+
+    private void appendEscaped(String input, StringBuilder output) {
+        for (int i = 0, len = input.length(); i < len; i++) {
+            char ch = input.charAt(i);
+            switch (ch) {
+                case '\\': output.append("\\\\"); break;
+                case '"': output.append("\\\""); break;
+                case '\n': output.append("\\n"); break;
+                case '\r': output.append("\\r"); break;
+                case '\t': output.append("\\t"); break;
+                case '\f': output.append("\\f"); break;
+                case '\b': output.append("\\b"); break;
+                default:
+                    if (ch < 0x20) {
+                        output.append(String.format("\\u%04X", (int) ch));
+                    } else {
+                        output.append(ch);
+                    }
+            }
+        }
     }
 
     @Override
