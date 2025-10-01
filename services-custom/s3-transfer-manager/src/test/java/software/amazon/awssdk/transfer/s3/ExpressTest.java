@@ -46,7 +46,7 @@ public class ExpressTest {
 
     int maxInflightDownloads = 1;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long bufferSize = 1024 * 1024 * 1024;
+    long bufferSize = 64 * 1024 * 1024;
     long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
