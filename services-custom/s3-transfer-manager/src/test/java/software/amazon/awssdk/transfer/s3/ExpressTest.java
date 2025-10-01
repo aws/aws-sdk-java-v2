@@ -27,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -45,7 +46,7 @@ public class ExpressTest {
 
     int maxInflightDownloads = 1;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long bufferSize = 64 * 1024 * 1024;
+    long bufferSize = 6L * 1024 * 1024 * 1024;
     long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
@@ -66,6 +67,7 @@ public class ExpressTest {
                 .parallelConfiguration(p -> p.maxInFlightParts(maxInflightDownloads)))
             .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(1)))
             .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
+            .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
             .httpClient(NettyNioAsyncHttpClient.builder()
                                                .maxConcurrency(1_000)
                                                .connectionTimeout(Duration.ofMinutes(30))
