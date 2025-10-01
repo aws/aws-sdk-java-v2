@@ -25,8 +25,7 @@ path="/files/upload/50TiB-1x/$key"
 
 test=$s3_dl
 
-mvn test -pl :s3-transfer-manager \
+MAVEN_OPTS="-Xmx4G" mvn test -pl :s3-transfer-manager \
     -Dtest=software.amazon.awssdk.transfer.s3.ExpressTest#$test \
     -Dtestpath=$path \
-    -Dtestkey=$key \
-    -Xmx4g
+    -Dtestkey=$kek
