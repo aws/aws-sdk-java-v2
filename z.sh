@@ -28,4 +28,5 @@ test=$s3_dl
 mvn test -pl :s3-transfer-manager \
     -Dtest=software.amazon.awssdk.transfer.s3.ExpressTest#$test \
     -Dtestpath=$path \
-    -Dtestkey=$key
+    -Dtestkey=$key \
+    -Xmx4g

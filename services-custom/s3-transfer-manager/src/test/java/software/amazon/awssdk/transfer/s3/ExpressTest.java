@@ -67,7 +67,7 @@ public class ExpressTest {
             .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(1)))
             .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
             .httpClient(NettyNioAsyncHttpClient.builder()
-                                               .maxConcurrency(10_000)
+                                               .maxConcurrency(1_000)
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
                                                .connectionMaxIdleTime(Duration.ofSeconds(5))
