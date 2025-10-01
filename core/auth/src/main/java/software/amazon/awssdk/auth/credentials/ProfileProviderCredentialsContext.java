@@ -30,12 +30,12 @@ public final class ProfileProviderCredentialsContext {
 
     private final Profile profile;
     private final ProfileFile profileFile;
-    private final String sourceFeatureId;
+    private final String sourceChain;
 
     private ProfileProviderCredentialsContext(Builder builder) {
         this.profile = builder.profile;
         this.profileFile = builder.profileFile;
-        this.sourceFeatureId = builder.sourceFeatureId;
+        this.sourceChain = builder.sourceChain;
     }
 
     public static Builder builder() {
@@ -62,8 +62,8 @@ public final class ProfileProviderCredentialsContext {
      * An optional string list of {@link software.amazon.awssdk.core.useragent.BusinessMetricFeatureId} denoting previous
      * credentials providers that are chained with this one.
      */
-    public String sourceFeatureId() {
-        return sourceFeatureId;
+    public String sourceChain() {
+        return sourceChain;
     }
 
     @Override
@@ -89,7 +89,7 @@ public final class ProfileProviderCredentialsContext {
     public static final class Builder {
         private Profile profile;
         private ProfileFile profileFile;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private Builder() {
         }
@@ -117,15 +117,15 @@ public final class ProfileProviderCredentialsContext {
 
         /**
          * Builder interface to set source.
-         * @param sourceFeatureId An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials
+         * @param sourceChain An optional string list of {@link BusinessMetricFeatureId} denoting previous credentials
          *                        providers that are chained with this one. This method is primarily
          *                        intended for use by AWS SDK internal components
          *                        and should not be used directly by external users.
          *
          * @return Returns a reference to this object so that method calls can be chained together.
          */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 

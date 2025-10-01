@@ -41,9 +41,14 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                                 + "'%s' profile.";
 
     @Override
+    public AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile) {
+        return new StsProfileCredentialsProvider(sourceCredentialsProvider, profile, null);
+    }
+
+    @Override
     public AwsCredentialsProvider create(ChildProfileCredentialsRequest request) {
         return new StsProfileCredentialsProvider(request.sourceCredentialsProvider(), request.profile(),
-                                                 request.sourceFeatureId());
+                                                 request.sourceChain());
     }
 
     /**
@@ -57,7 +62,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
         private final StsAssumeRoleCredentialsProvider credentialsProvider;
 
         private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile,
-                                              String sourceFeatureId) {
+                                              String sourceChain) {
             String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
             String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
                                             .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
@@ -78,7 +83,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
             this.credentialsProvider = StsAssumeRoleCredentialsProvider.builder()
                                                                        .stsClient(stsClient)
                                                                        .refreshRequest(assumeRoleRequest)
-                                                                       .sourceFeatureId(sourceFeatureId)
+                                                                       .sourceChain(sourceChain)
                                                                        .build();
         }
 

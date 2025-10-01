@@ -193,7 +193,7 @@ public class ProcessCredentialsProviderTest {
                                                              scriptLocation, ACCESS_KEY_ID, SECRET_ACCESS_KEY, expiration))
                                       .credentialRefreshThreshold(Duration.ofSeconds(1))
                                       .staticAccountId("staticAccountId")
-                                      .sourceFeatureId("v")
+                                      .sourceChain("v")
                                       .build();
 
         AwsCredentials credentials = credentialsProvider.resolveCredentials();

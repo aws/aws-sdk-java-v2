@@ -112,7 +112,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
             this.credentialsProvider = SsoCredentialsProvider.builder()
                                                              .ssoClient(ssoClient)
                                                              .refreshRequest(supplier)
-                                                             .sourceFeatureId(credentialsContext.sourceFeatureId())
+                                                             .sourceChain(credentialsContext.sourceChain())
                                                              .build();
         }
 

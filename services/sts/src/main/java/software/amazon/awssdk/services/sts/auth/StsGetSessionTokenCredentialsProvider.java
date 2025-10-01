@@ -51,7 +51,7 @@ public class StsGetSessionTokenCredentialsProvider
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_SESSION_TOKEN.value();
 
     private final GetSessionTokenRequest getSessionTokenRequest;
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -62,10 +62,10 @@ public class StsGetSessionTokenCredentialsProvider
         Validate.notNull(builder.getSessionTokenRequest, "Get session token request must not be null.");
 
         this.getSessionTokenRequest = builder.getSessionTokenRequest;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
     }
 
     /**
@@ -98,7 +98,7 @@ public class StsGetSessionTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetSessionTokenCredentialsProvider> {
         private GetSessionTokenRequest getSessionTokenRequest = GetSessionTokenRequest.builder().build();
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private Builder() {
             super(StsGetSessionTokenCredentialsProvider::new);
@@ -107,7 +107,7 @@ public class StsGetSessionTokenCredentialsProvider
         public Builder(StsGetSessionTokenCredentialsProvider provider) {
             super(StsGetSessionTokenCredentialsProvider::new, provider);
             this.getSessionTokenRequest = provider.getSessionTokenRequest;
-            this.sourceFeatureId = provider.sourceFeatureId;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -140,11 +140,11 @@ public class StsGetSessionTokenCredentialsProvider
          * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
          * and should not be used directly by external users.</p>
          *
-         * @param sourceFeatureId The source identifier for business metrics tracking.
+         * @param sourceChain The source identifier for business metrics tracking.
          * @return This object for chained calls.
          */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
         

@@ -109,7 +109,7 @@ public class WebIdentityTokenFileCredentialsProvider
                                                     .prefetchTime(prefetchTime)
                                                     .staleTime(staleTime)
                                                     .roleSessionDuration(roleSessionDuration)
-                                                    .sourceFeatureId(BusinessMetricFeatureId
+                                                    .sourceChain(BusinessMetricFeatureId
                                                                          .CREDENTIALS_ENV_VARS_STS_WEB_ID_TOKEN.value())
                                                     .build();
 

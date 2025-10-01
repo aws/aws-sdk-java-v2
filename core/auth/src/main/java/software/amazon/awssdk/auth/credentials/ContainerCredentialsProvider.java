@@ -92,7 +92,7 @@ public final class ContainerCredentialsProvider
     private final Boolean asyncCredentialUpdateEnabled;
 
     private final String asyncThreadName;
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -102,10 +102,10 @@ public final class ContainerCredentialsProvider
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
         this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
@@ -326,7 +326,7 @@ public final class ContainerCredentialsProvider
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -336,7 +336,7 @@ public final class ContainerCredentialsProvider
             this.endpoint = credentialsProvider.endpoint;
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
-            this.sourceFeatureId = credentialsProvider.sourceFeatureId;
+            this.sourceChain = credentialsProvider.sourceChain;
         }
 
         @Override
@@ -369,14 +369,19 @@ public final class ContainerCredentialsProvider
             asyncThreadName(asyncThreadName);
         }
 
+        /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
         @Override
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 
-        public void setSourceFeatureId(String sourceFeatureId) {
-            sourceFeatureId(sourceFeatureId);
+        public void setSourceChain(String sourceChain) {
+            sourceChain(sourceChain);
         }
 
         @Override

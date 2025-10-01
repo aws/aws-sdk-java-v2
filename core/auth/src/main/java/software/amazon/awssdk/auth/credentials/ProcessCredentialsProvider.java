@@ -85,7 +85,7 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -99,10 +99,10 @@ public final class ProcessCredentialsProvider
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.staticAccountId = builder.staticAccountId;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -280,7 +280,7 @@ public final class ProcessCredentialsProvider
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
         private String staticAccountId;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         /**
          * @see #builder()
@@ -295,7 +295,7 @@ public final class ProcessCredentialsProvider
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
-            this.sourceFeatureId = provider.sourceFeatureId;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -370,10 +370,12 @@ public final class ProcessCredentialsProvider
         }
 
         /**
-         * Configure the source of this credentials provider. This is used for business metrics tracking.
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
          */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 

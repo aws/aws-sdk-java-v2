@@ -93,7 +93,7 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -108,10 +108,10 @@ public final class InstanceProfileCredentialsProvider
                                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
 
         this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
         this.configProvider =
@@ -382,7 +382,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -396,7 +396,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
-            this.sourceFeatureId = provider.sourceFeatureId;
+            this.sourceChain = provider.sourceChain;
         }
 
         Builder clock(Clock clock) {
@@ -475,14 +475,19 @@ public final class InstanceProfileCredentialsProvider
             staleTime(duration);
         }
 
+        /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
         @Override
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 
-        public void setSourceFeatureId(String sourceFeatureId) {
-            sourceFeatureId(sourceFeatureId);
+        public void setSourceChain(String sourceChain) {
+            sourceChain(sourceChain);
         }
 
         @Override

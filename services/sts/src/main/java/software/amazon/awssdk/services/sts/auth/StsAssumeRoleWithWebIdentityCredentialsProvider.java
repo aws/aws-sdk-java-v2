@@ -53,7 +53,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
                                  StsAssumeRoleWithWebIdentityCredentialsProvider> {
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
     private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -64,10 +64,10 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         notNull(builder.assumeRoleWithWebIdentityRequestSupplier, "Assume role with web identity request must not be null.");
 
         this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
     }
 
     /**
@@ -104,7 +104,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleWithWebIdentityCredentialsProvider> {
         private Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequestSupplier;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private Builder() {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new);
@@ -113,7 +113,7 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
         public Builder(StsAssumeRoleWithWebIdentityCredentialsProvider provider) {
             super(StsAssumeRoleWithWebIdentityCredentialsProvider::new, provider);
             this.assumeRoleWithWebIdentityRequestSupplier = provider.assumeRoleWithWebIdentityRequest;
-            this.sourceFeatureId = provider.sourceFeatureId;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -156,11 +156,11 @@ public final class StsAssumeRoleWithWebIdentityCredentialsProvider
          * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
          * and should not be used directly by external users.</p>
          *
-         * @param sourceFeatureId The source identifier for business metrics tracking.
+         * @param sourceChain The source identifier for business metrics tracking.
          * @return This object for chained calls.
          */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 

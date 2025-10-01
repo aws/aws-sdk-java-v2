@@ -53,7 +53,7 @@ public interface HttpCredentialsProvider extends AwsCredentialsProvider, SdkAuto
          * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
          * and should not be used directly by external users.</p>
          */
-        default BuilderT sourceFeatureId(String sourceFeatureId) {
+        default BuilderT sourceChain(String sourceChain) {
             throw new UnsupportedOperationException();
         }
 

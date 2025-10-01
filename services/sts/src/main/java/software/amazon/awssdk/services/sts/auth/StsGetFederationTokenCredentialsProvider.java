@@ -53,7 +53,7 @@ public class StsGetFederationTokenCredentialsProvider
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_FEDERATION_TOKEN.value();
 
     private final GetFederationTokenRequest getFederationTokenRequest;
-    private final String sourceFeatureId;
+    private final String sourceChain;
     private final String providerName;
 
     /**
@@ -64,10 +64,10 @@ public class StsGetFederationTokenCredentialsProvider
         Validate.notNull(builder.getFederationTokenRequest, "Get session token request must not be null.");
 
         this.getFederationTokenRequest = builder.getFederationTokenRequest;
-        this.sourceFeatureId = builder.sourceFeatureId;
-        this.providerName = StringUtils.isEmpty(builder.sourceFeatureId)
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
             ? PROVIDER_NAME 
-            : builder.sourceFeatureId + "," + PROVIDER_NAME;
+            : builder.sourceChain + "," + PROVIDER_NAME;
     }
 
     /**
@@ -111,7 +111,7 @@ public class StsGetFederationTokenCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsGetFederationTokenCredentialsProvider> {
         private GetFederationTokenRequest getFederationTokenRequest;
-        private String sourceFeatureId;
+        private String sourceChain;
 
         private Builder() {
             super(StsGetFederationTokenCredentialsProvider::new);
@@ -120,7 +120,7 @@ public class StsGetFederationTokenCredentialsProvider
         public Builder(StsGetFederationTokenCredentialsProvider provider) {
             super(StsGetFederationTokenCredentialsProvider::new, provider);
             this.getFederationTokenRequest = provider.getFederationTokenRequest;
-            this.sourceFeatureId = provider.sourceFeatureId;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -151,11 +151,11 @@ public class StsGetFederationTokenCredentialsProvider
          * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
          * and should not be used directly by external users.</p>
          *
-         * @param sourceFeatureId The source identifier for business metrics tracking.
+         * @param sourceChain The source identifier for business metrics tracking.
          * @return This object for chained calls.
          */
-        public Builder sourceFeatureId(String sourceFeatureId) {
-            this.sourceFeatureId = sourceFeatureId;
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
             return this;
         }
 
