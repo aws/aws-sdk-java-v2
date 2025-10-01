@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.8__ __2025-10-01__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - This release introduces data access budgets to view how many times an input channel can be used for ML jobs in a collaboration.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release introduces data access budgets to control how many times a table can be used for queries and jobs in a collaboration.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - This is a doc-only update, revising text for kms-key-arns.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Added the UpdateCluster API action to modify cluster configurations, and Slurm custom settings for queues.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - This update enables reusing the initially computed payload checksum of a request across all request attempts. This ensures that even if the content is changed from one attempt to the next, the checksum included in the request will remain the same and the request will be rejected by the service.
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Add support to receive dual stack MediaPlacement URLs in Chime Meetings SDK
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This is a documentation only Amazon ECS release that adds additional information for health checks.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Remove incorrect ReadOnly trait on IVS RealTime ImportPublicKey API
+
 # __2.34.7__ __2025-09-30__
 ## __AWS DataSync__
   - ### Features
