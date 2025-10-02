@@ -399,14 +399,14 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
             }
 
             ByteBuffer buffer = ByteBuffer.allocate(Math.min(chunkSizeInBytes, NumericUtils.saturatedCast(remainingBytes.get())));
-            inputChannel.read(buffer, currentPosition.get(), null, new CompletionHandler<Integer, Void>() {
+            inputChannel.read(buffer, currentPosition.get(), buffer, new CompletionHandler<Integer, ByteBuffer>() {
                 @Override
-                public void completed(Integer result, Void n) {
+                public void completed(Integer result, ByteBuffer attachment) {
                     try {
                         if (result > 0) {
-                            buffer.flip();
+                            attachment.flip();
 
-                            int readBytes = buffer.remaining();
+                            int readBytes = attachment.remaining();
                             currentPosition.addAndGet(readBytes);
                             long remaining = remainingBytes.addAndGet(-readBytes);
 
@@ -420,7 +420,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                                 }
                             }
 
-                            signalOnNext(buffer);
+                            signalOnNext(attachment);
 
                             if (remaining == 0) {
                                 signalOnComplete();
@@ -446,7 +446,7 @@ public final class FileAsyncRequestBody implements AsyncRequestBody {
                 }
 
                 @Override
-                public void failed(Throwable exc, Void attachment) {
+                public void failed(Throwable exc, ByteBuffer attachment) {
                     signalOnError(exc);
                     closeFile();
                 }
