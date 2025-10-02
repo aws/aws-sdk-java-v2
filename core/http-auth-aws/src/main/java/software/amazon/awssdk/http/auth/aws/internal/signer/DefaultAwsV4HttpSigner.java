@@ -69,7 +69,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
 
     @Override
     public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        Checksummer checksummer = checksummer(request, null, checksumStore(request));
+        Checksummer checksummer = asyncChecksummer(request, checksumStore(request));
         V4Properties v4Properties = v4Properties(request);
         V4RequestSigner v4RequestSigner = v4RequestSigner(request, v4Properties);
         V4PayloadSigner payloadSigner = v4PayloadAsyncSigner(request, v4Properties);
@@ -81,7 +81,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         Clock signingClock = request.requireProperty(SIGNING_CLOCK, Clock.systemUTC());
         Instant signingInstant = signingClock.instant();
         AwsCredentialsIdentity credentials = sanitizeCredentials(request.identity());
-        String regionName = request.requireProperty(AwsV4HttpSigner.REGION_NAME);
+        String regionName = request.requireProperty(REGION_NAME);
         String serviceSigningName = request.requireProperty(SERVICE_SIGNING_NAME);
         CredentialScope credentialScope = new CredentialScope(regionName, serviceSigningName, signingInstant);
         boolean doubleUrlEncode = request.requireProperty(DOUBLE_URL_ENCODE, true);
@@ -129,9 +129,29 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return requestSigner.apply(v4Properties);
     }
 
+    // TODO: remove this once we consolidate the behavior for plaintext HTTP signing for sync and async
+    private static Checksummer asyncChecksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
+                                                PayloadChecksumStore checksumStore) {
+        boolean shouldTreatAsUnsigned = asyncShouldTreatAsUnsigned(request);
+
+        // set the override to false if it should be treated as unsigned, otherwise, null should be passed so that the normal
+        // check for payload signing is done.
+        Boolean overridePayloadSigning = shouldTreatAsUnsigned ? false : null;
+
+        return checksummer(request, overridePayloadSigning, checksumStore);
+    }
+
+    // TODO: remove this once we consolidate the behavior for plaintext HTTP signing for sync and async
+    private static boolean asyncShouldTreatAsUnsigned(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
+        boolean isHttp = !"https".equals(request.request().protocol());
+        boolean isPayloadSigning = isPayloadSigning(request);
+        boolean isChunkEncoding = request.requireProperty(CHUNK_ENCODING_ENABLED, false);
+
+        return isHttp && isPayloadSigning && isChunkEncoding;
+    }
+
     private static V4PayloadSigner v4PayloadSigner(
-        SignRequest<? extends AwsCredentialsIdentity> request,
-        V4Properties properties) {
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request, V4Properties properties) {
 
         boolean isPayloadSigning = isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
@@ -162,6 +182,7 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
         return V4PayloadSigner.create();
     }
 
+    // TODO: remove this once we consolidate the behavior for plaintext HTTP signing for sync and async
     private static V4PayloadSigner v4PayloadAsyncSigner(
         AsyncSignRequest<? extends AwsCredentialsIdentity> request,
         V4Properties properties) {
@@ -183,10 +204,19 @@ public final class DefaultAwsV4HttpSigner implements AwsV4HttpSigner {
             throw new UnsupportedOperationException("Unsigned payload is not supported with event-streaming.");
         }
 
-        if (useChunkEncoding(isPayloadSigning, isChunkEncoding, isTrailing || isFlexible)) {
+        // Note: this check is done after we check if the request is eventstreaming, during which we just use the same logic
+        // as sync to determine if the body should be signed. If it's not eventstreaming, then async needs to treat this
+        // request differently to maintain current behavior re: plain HTTP requests.
+        boolean nonEvenstreamingPayloadSigning = isPayloadSigning;
+        if (asyncShouldTreatAsUnsigned(request)) {
+            nonEvenstreamingPayloadSigning = false;
+        }
+
+        if (useChunkEncoding(nonEvenstreamingPayloadSigning, isChunkEncoding, isTrailing || isFlexible)) {
             return AwsChunkedV4PayloadSigner.builder()
                                             .credentialScope(properties.getCredentialScope())
                                             .chunkSize(DEFAULT_CHUNK_SIZE_IN_BYTES)
+                                            .checksumStore(checksumStore(request))
                                             .checksumAlgorithm(request.property(CHECKSUM_ALGORITHM))
                                             .build();
         }

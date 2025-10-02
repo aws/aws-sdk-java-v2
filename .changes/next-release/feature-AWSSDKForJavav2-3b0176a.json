@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK For Java v2",
-    "contributor": "",
-    "description": "Add support for payload signing of async streaming requests signed with SigV4. This brings the SigV4 signing behavior for async streaming request bodies in line with the sync clients. In particular, this means that streaming requests made over plaintext HTTP (i.e. not HTTPS) will have signed payloads."
-}

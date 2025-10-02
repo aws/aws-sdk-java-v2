@@ -4,6 +4,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.REGION
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
+import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
@@ -58,10 +60,8 @@ public final class TestUtils {
         Consumer<? super SdkHttpRequest.Builder> requestOverrides,
         Consumer<? super AsyncSignRequest.Builder<T>> signRequestOverrides
     ) {
-        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
 
-        publisher.send(ByteBuffer.wrap(testPayload()));
-        publisher.complete();
+        Publisher<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testPayload()));
 
         return AsyncSignRequest.builder(credentials)
                                .request(SdkHttpRequest.builder()

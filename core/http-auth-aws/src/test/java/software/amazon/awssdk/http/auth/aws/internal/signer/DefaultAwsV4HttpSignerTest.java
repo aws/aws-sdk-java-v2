@@ -30,17 +30,21 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRA
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
+import io.reactivex.Flowable;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.Header;
@@ -709,7 +713,9 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttp_IgnoresPayloadSigning() {
+    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
+    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
+    void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttp_RespectsPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -727,6 +733,8 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
+    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
+    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
     void sign_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_SignsPayload() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
@@ -745,7 +753,9 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_DoesNotFallBackToPayloadSigning() {
+    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
+    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
+    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_FallsBackToPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -783,7 +793,9 @@ public class DefaultAwsV4HttpSignerTest {
     }
 
     @Test
-    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndFlexibleChecksumAndHttp_DoesNotFallBackToPayloadSigning() {
+    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
+    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
+    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndFlexibleChecksumAndHttp_FallsBackToPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -900,9 +912,61 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(cache.getChecksumValue(CRC32)).isEqualTo(crc32Value);
     }
 
+    @Test
+    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_cacheEmpty_storesComputedChecksum() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_STORE, cache)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        getAllItems(signedRequest.payload().get());
+        assertThat(cache.getChecksumValue(CRC32)).isEqualTo(computeChecksum(CRC32, testPayload()));
+    }
+
+    @Test
+    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_cacheContainsChecksum_usesCachedValue() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
+        cache.putChecksumValue(CRC32, checksumValue);
+
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+                .putProperty(CHECKSUM_STORE, cache)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        List<ByteBuffer> content = getAllItems(signedRequest.payload().get());
+        String contentAsString = content.stream().map(DefaultAwsV4HttpSignerTest::bufferAsString).collect(Collectors.joining());
+        assertThat(contentAsString).contains("x-amz-checksum-crc32:" + BinaryUtils.toBase64(checksumValue) + "\r\n");
+    }
+
     private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
         SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);
         checksum.update(data, 0, data.length);
         return checksum.getChecksumBytes();
+    }
+
+    private List<ByteBuffer> getAllItems(Publisher<ByteBuffer> publisher) {
+        return Flowable.fromPublisher(publisher).toList().blockingGet();
+    }
+
+    private static String bufferAsString(ByteBuffer buffer) {
+        return StandardCharsets.UTF_8.decode(buffer.duplicate()).toString();
     }
 }
