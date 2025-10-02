@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.34.9__ __2025-10-02__
+## __AWS CloudFormation__
+  - ### Features
+    - Add new warning type 'EXCLUDED_RESOURCES'
+
+## __Amazon Connect Cases__
+  - ### Features
+    - New Search All Related Items API enables searching related items across cases
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add support for dual-stack account endpoint generation
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Updated descriptions for the Location parameter in CreateTrustedEntitySet and CreateThreatEntitySet.
+
+## __Synthetics__
+  - ### Features
+    - Adds support to configure canaries with pre-configured blueprint code on supported runtime versions. This behavior can be controlled via the new BlueprintTypes property exposed in the CreateCanary and UpdateCanary APIs.
+
 # __2.34.8__ __2025-10-01__
 ## __AWS Clean Rooms ML__
   - ### Features
