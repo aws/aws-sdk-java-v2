@@ -22,7 +22,6 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.a
 import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -172,7 +171,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                            if (StringUtils.isBlank(providerName)) {
                                return Collections.emptyList();
                            }
-                           return Arrays.asList(providerName.split(","));
+                           return Collections.singletonList(providerName);
                        });
     }
 
