@@ -24,6 +24,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -215,6 +216,22 @@ public final class TransactDeleteItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Adds optimistic locking to this transactional delete request.
+         * <p>
+         * This method applies a condition expression that ensures the delete operation only succeeds
+         * if the version attribute of the item matches the provided expected value. If the condition
+         * fails, the entire transaction will be cancelled.
+         *
+         * @param versionValue the expected version value that must match for the delete to succeed
+         * @param versionAttributeName the name of the version attribute in the DynamoDB table
+         * @return a builder of this type with optimistic locking condition applied
+         * @throws IllegalArgumentException if any parameter is null
+         */
+        public Builder withOptimisticLocking(AttributeValue versionValue, String versionAttributeName) {
+            Expression optimisticLockingCondition = OptimisticLockingHelper.createVersionCondition(versionValue, versionAttributeName);
+            return conditionExpression(optimisticLockingCondition);
+        }
 
         public TransactDeleteItemEnhancedRequest build() {
             return new TransactDeleteItemEnhancedRequest(this);
