@@ -117,7 +117,7 @@ public final class ProfileCredentialsUtils {
      */
     private Optional<CredentialsWithFeatureId> credentialsProviderWithFeatureID(Set<String> children) {
         if (properties.containsKey(ProfileProperty.ROLE_ARN) && properties.containsKey(ProfileProperty.WEB_IDENTITY_TOKEN_FILE)) {
-            return Optional.ofNullable(roleAndWebIdentityTokenProfileCredentialsProvider());
+            return Optional.of(roleAndWebIdentityTokenProfileCredentialsProvider());
         }
 
         if (properties.containsKey(ProfileProperty.SSO_ROLE_NAME)
@@ -125,7 +125,7 @@ public final class ProfileCredentialsUtils {
             || properties.containsKey(ProfileProperty.SSO_REGION)
             || properties.containsKey(ProfileProperty.SSO_START_URL)
             || properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName())) {
-            return Optional.ofNullable(ssoProfileCredentialsProvider());
+            return Optional.of(ssoProfileCredentialsProvider());
         }
 
         if (properties.containsKey(ProfileProperty.ROLE_ARN)) {
@@ -136,16 +136,16 @@ public final class ProfileCredentialsUtils {
                                 ProfileProperty.SOURCE_PROFILE, ProfileProperty.CREDENTIAL_SOURCE);
 
             if (hasSourceProfile) {
-                return Optional.ofNullable(roleAndSourceProfileBasedProfileCredentialsProvider(children));
+                return Optional.of(roleAndSourceProfileBasedProfileCredentialsProvider(children));
             }
 
             if (hasCredentialSource) {
-                return Optional.ofNullable(roleAndCredentialSourceBasedProfileCredentialsProvider());
+                return Optional.of(roleAndCredentialSourceBasedProfileCredentialsProvider());
             }
         }
 
         if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)) {
-            return Optional.ofNullable(credentialProcessCredentialsProvider());
+            return Optional.of(credentialProcessCredentialsProvider());
         }
 
         if (properties.containsKey(ProfileProperty.AWS_SESSION_TOKEN)) {

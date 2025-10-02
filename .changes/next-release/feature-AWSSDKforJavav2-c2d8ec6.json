@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Adds business metrics tracking for credential providers and S3_Express_Bucket."
+    "description": "Adds business metrics tracking for credential providers."
 }

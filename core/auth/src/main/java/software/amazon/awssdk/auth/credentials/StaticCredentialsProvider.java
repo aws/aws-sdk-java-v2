@@ -36,18 +36,14 @@ public final class StaticCredentialsProvider implements AwsCredentialsProvider {
     private AwsCredentials withProviderName(AwsCredentials credentials) {
         if (credentials instanceof AwsBasicCredentials) {
             AwsBasicCredentials basicCreds = (AwsBasicCredentials) credentials;
-            if (basicCreds.providerName()
-                          .map(BusinessMetricFeatureId.CREDENTIALS_PROFILE.value()::equals)
-                          .orElse(false)) {
+            if (basicCreds.providerName().isPresent()) {
                 return basicCreds;
             }
             return basicCreds.copy(c -> c.providerName(PROVIDER_NAME));
         }
         if (credentials instanceof AwsSessionCredentials) {
             AwsSessionCredentials sessionCreds = (AwsSessionCredentials) credentials;
-            if (sessionCreds.providerName()
-                            .map(BusinessMetricFeatureId.CREDENTIALS_PROFILE.value()::equals)
-                            .orElse(false)) {
+            if (sessionCreds.providerName().isPresent()) {
                 return sessionCreds;
             }
             return sessionCreds.copy(c -> c.providerName(PROVIDER_NAME));
