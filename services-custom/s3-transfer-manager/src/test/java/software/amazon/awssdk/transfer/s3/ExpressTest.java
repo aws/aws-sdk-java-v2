@@ -51,6 +51,7 @@ public class ExpressTest {
     int chunkSize = (int) (bufferSize / maxInflightDownloads);
 
     S3AsyncClient s3Client;
+    S3AsyncClient crt;
     String testPath;
     String key;
 
@@ -78,14 +79,21 @@ public class ExpressTest {
                                                                               .build()))
             .build();
 
+        crt = S3AsyncClient
+            .crtBuilder()
+            .region(Region.US_EAST_2)
+            .httpConfiguration(c -> c.trustAllCertificatesEnabled(true))
+            .build();
+
+
         testPath = System.getProperty("testpath");
         key = System.getProperty("testkey");
     }
 
     @Test
     void s3_upload() throws IOException {
-        CompletableFuture<PutObjectResponse> putObjectFuture = s3Client.putObject(
-            put -> put.key(key + "-" + System.currentTimeMillis()).bucket(bucket),
+        CompletableFuture<PutObjectResponse> putObjectFuture = crt.putObject(
+            put -> put.key(key + "-java-" + System.currentTimeMillis()).bucket(bucket),
             AsyncRequestBody.fromFile(c -> c.chunkSizeInBytes(chunkSize).path(Paths.get(testPath)))
         );
 
