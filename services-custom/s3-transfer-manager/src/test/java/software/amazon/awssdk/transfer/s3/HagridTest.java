@@ -87,7 +87,7 @@ public class HagridTest {
     @Test
     void uploadHagridFile() throws IOException {
         long chunkSize = 16 * KB;
-        int concurrency = 100;
+        int concurrency = 10;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
@@ -96,8 +96,7 @@ public class HagridTest {
                          .multipartEnabled(true)
                          .multipartConfiguration(c -> c
                              .minimumPartSizeInBytes(GB)
-                             .apiCallBufferSizeInBytes(chunkSize * concurrency)
-                         )
+                             .apiCallBufferSizeInBytes(chunkSize * concurrency))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .maxConcurrency(10_000)
                                                             .connectionTimeout(Duration.ofMinutes(30))

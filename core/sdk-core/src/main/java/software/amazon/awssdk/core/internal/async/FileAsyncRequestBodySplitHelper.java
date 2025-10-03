@@ -151,13 +151,6 @@ public final class FileAsyncRequestBodySplitHelper {
             return false;
         }
         long currentUsedBuffer = (long) numAsyncRequestBodiesInFlight.get() * bufferPerAsyncRequestBody;
-        log.debug(() -> String.format("shouldSendMore: numAsyncRequestBodiesInFlight=%s, bufferPerAsyncRequestBody=%s, " +
-                                      "totalBufferSize=%s",
-                                      numAsyncRequestBodiesInFlight.get(),
-                                      bufferPerAsyncRequestBody,
-                                      totalBufferSize));
-        log.debug(() -> "currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize : " +
-                        (currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize));
         return currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize;
     }
 
