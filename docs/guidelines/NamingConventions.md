@@ -1,16 +1,14 @@
-**Design:** Convention, **Status:** [Accepted](README.md)
-
-## Naming Conventions
+# Naming Conventions
 
 This page describes the naming conventions, nouns and common terms 
 
-### Class Naming
+## Class Naming
 
-#### General Rules
+### General Rules
 * Prefer singular class names: `SdkSystemSetting`, not `SdkSystemSettings`.
 * Treat acronyms as a single word: `DynamoDbClient`, not `DynamoDBClient`.
   
-#### Classes that instantiate other classes
+### Classes that instantiate other classes
 
 * If the class's primary purpose is to return instances of another class:
   * If the "get" method has no parameters:
@@ -18,7 +16,7 @@ This page describes the naming conventions, nouns and common terms
     * If the class does not implement `Supplier`: `{Noun}Provider` (e.g. `AwsCredentialsProvider`)
   * If the "get" method has parameters: `{Noun}Factory` (e.g. `AwsJsonProtocolFactory`)
 
-#### Service-specific classes
+### Service-specific classes
 
 * If the class makes service calls:
   * If the class can be used to invoke *every* data-plane operation:
@@ -36,6 +34,6 @@ This page describes the naming conventions, nouns and common terms
   * If the class creates presigned URLs: `{ServiceName}Presigner` (e.g. `S3Presigner`)
   * If the class is a collection of various unrelated "helper" methods: `{ServiceName}Utilities` (e.g. `S3Utilities`)
 
-### Tests Naming
+## Tests Naming
 
 Test names SHOULD follow `methodToTest_when_expectedBehavior` (e.g. `close_withCustomExecutor_shouldNotCloseCustomExecutor`, `uploadDirectory_withDelimiter_filesSentCorrectly`)
