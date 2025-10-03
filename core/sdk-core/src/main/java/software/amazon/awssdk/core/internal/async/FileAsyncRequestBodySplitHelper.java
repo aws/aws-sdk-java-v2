@@ -150,9 +150,6 @@ public final class FileAsyncRequestBodySplitHelper {
         if (isDone) {
             return false;
         }
-        if (numAsyncRequestBodiesInFlight.get() >= 50) {
-            return false;
-        }
         long currentUsedBuffer = (long) numAsyncRequestBodiesInFlight.get() * bufferPerAsyncRequestBody;
         log.debug(() -> String.format("shouldSendMore: numAsyncRequestBodiesInFlight=%s, bufferPerAsyncRequestBody=%s, " +
                                       "totalBufferSize=%s",
