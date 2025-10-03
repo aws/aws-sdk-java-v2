@@ -348,7 +348,8 @@ class GenericS3TransferManager implements S3TransferManager {
                     progressUpdater.wrapForNonSerialFileDownload(responseTransformer, downloadRequest.getObjectRequest());
             } else {
                 responseTransformer =
-                    progressUpdater.wrapResponseTransformerForMultipartDownload(responseTransformer, downloadRequest.getObjectRequest());
+                    progressUpdater.wrapResponseTransformerForMultipartDownload(responseTransformer,
+                                                                                downloadRequest.getObjectRequest());
             }
         } else {
             responseTransformer = progressUpdater.wrapResponseTransformer(responseTransformer);
@@ -382,7 +383,8 @@ class GenericS3TransferManager implements S3TransferManager {
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
         DownloadFileRequest downloadFileRequestWithAttributes =
-            downloadRequest.copy(downloadFileRequest -> downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
+            downloadRequest.copy(downloadFileRequest ->
+                                     downloadFileRequest.getObjectRequest(getObjectRequestWithAttributes));
 
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             AsyncResponseTransformer.toFile(downloadFileRequestWithAttributes.destination(),
@@ -392,7 +394,8 @@ class GenericS3TransferManager implements S3TransferManager {
         TransferProgressUpdater progressUpdater = doDownloadFile(
             downloadFileRequestWithAttributes, responseTransformer, returnFuture);
 
-        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
+        return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes,
+                                       null);
     }
 
     private TransferProgressUpdater doDownloadFile(
