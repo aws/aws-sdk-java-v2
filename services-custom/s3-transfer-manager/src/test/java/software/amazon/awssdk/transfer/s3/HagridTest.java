@@ -99,7 +99,7 @@ public class HagridTest {
                              .apiCallBufferSizeInBytes(chunkSize * concurrency)
                          )
                          .httpClient(NettyNioAsyncHttpClient.builder()
-                                                            .maxConcurrency(100)
+                                                            .maxConcurrency(10_000)
                                                             .connectionTimeout(Duration.ofMinutes(30))
                                                             .connectionAcquisitionTimeout(Duration.ofMillis(Integer.MAX_VALUE))
                                                             .build())
@@ -112,6 +112,7 @@ public class HagridTest {
 
         FileUpload fileUpload = manager.uploadFile(
             UploadFileRequest.builder()
+                             .addTransferListener(LoggingTransferListener.create())
                              .putObjectRequest(
                                  put -> put.key(key).bucket(bucket))
                              .source(path)
