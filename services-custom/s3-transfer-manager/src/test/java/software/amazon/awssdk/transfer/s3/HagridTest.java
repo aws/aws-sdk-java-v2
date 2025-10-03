@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3;
 
 import static software.amazon.awssdk.transfer.s3.SizeConstant.GB;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.KB;
 import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 import java.io.IOException;
@@ -45,6 +46,7 @@ import software.amazon.awssdk.utils.Logger;
 
 public class HagridTest {
     private static final Logger log = Logger.loggerFor(HagridTest.class);
+    String bucket = "do-not-delete-java-hagrid-test";
 
     @Test
     void getHagridFile() throws IOException {
@@ -69,7 +71,7 @@ public class HagridTest {
         CompletableFuture<CompletedFileDownload> fut =
             manager.downloadFile(DownloadFileRequest.builder()
                                                     .getObjectRequest(get -> get.key(key)
-                                                                                .bucket("do-not-delete-java-hagrid-test"))
+                                                                                .bucket(bucket))
                                                     .destination(path)
                                                     // .addTransferListener(LoggingTransferListener.create())
                                                     .build())
@@ -84,6 +86,8 @@ public class HagridTest {
 
     @Test
     void uploadHagridFile() throws IOException {
+        long chunkSize = 16 * KB;
+        int concurrency = 100;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
@@ -92,13 +96,14 @@ public class HagridTest {
                          .multipartEnabled(true)
                          .multipartConfiguration(c -> c
                              .minimumPartSizeInBytes(5 * GB)
+                             .apiCallBufferSizeInBytes(chunkSize * concurrency)
                          )
                          .httpClient(NettyNioAsyncHttpClient.builder()
-                                                            .maxConcurrency(20_000)
-                                                            .maxPendingConnectionAcquires(20_000)
+                                                            .maxConcurrency(100)
                                                             .connectionTimeout(Duration.ofMinutes(30))
                                                             .connectionAcquisitionTimeout(Duration.ofMillis(Integer.MAX_VALUE))
                                                             .build())
+                         .overrideConfiguration(c -> c.retryStrategy(r -> r.maxAttempts(1)))
                          .build();
         Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
         S3TransferManager manager = S3TransferManager.builder()
@@ -108,9 +113,8 @@ public class HagridTest {
         FileUpload fileUpload = manager.uploadFile(
             UploadFileRequest.builder()
                              .putObjectRequest(
-                                 put -> put.key(key).bucket("do-not-delete-java-hagrid-test"))
+                                 put -> put.key(key).bucket(bucket))
                              .source(path)
-                             // .addTransferListener(LoggingTransferListener.create())
                              .build());
 
         long start = System.currentTimeMillis();
