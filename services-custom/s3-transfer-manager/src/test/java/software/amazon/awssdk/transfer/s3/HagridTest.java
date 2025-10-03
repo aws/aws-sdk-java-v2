@@ -95,7 +95,7 @@ public class HagridTest {
                          .region(Region.US_WEST_2)
                          .multipartEnabled(true)
                          .multipartConfiguration(c -> c
-                             .minimumPartSizeInBytes(5 * GB)
+                             .minimumPartSizeInBytes(50 * MB)
                              .apiCallBufferSizeInBytes(chunkSize * concurrency))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
