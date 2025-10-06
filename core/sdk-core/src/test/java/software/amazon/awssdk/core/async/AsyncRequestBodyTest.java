@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -31,13 +33,20 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.assertj.core.util.Lists;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Publisher;
@@ -49,16 +58,33 @@ import software.amazon.awssdk.utils.BinaryUtils;
 public class AsyncRequestBodyTest {
 
     private static final String testString = "Hello!";
-    private static final Path path;
+    private static Path path;
+    private static final int CONTENT_SIZE = 1024;
+    private static final byte[] CONTENT =
+        RandomStringUtils.randomAscii(CONTENT_SIZE).getBytes(Charset.defaultCharset());
+    private static File fileForSplit;
+    private static FileSystem fs;
 
-    static {
-        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+    @BeforeAll
+    public static void setup() throws IOException {
+        fs = Jimfs.newFileSystem(Configuration.unix());
         path = fs.getPath("./test");
-        try {
-            Files.write(path, testString.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Files.write(path, testString.getBytes());
+
+        fileForSplit = File.createTempFile("SplittingPublisherTest", UUID.randomUUID().toString());
+        Files.write(fileForSplit.toPath(), CONTENT);
+    }
+
+    @AfterAll
+    public static void teardown() throws IOException {
+        fileForSplit.delete();
+        fs.close();
+    }
+
+    public static Stream<Arguments> asyncRequestBodies() {
+        return Stream.of(Arguments.of(AsyncRequestBody.fromBytes(CONTENT)),
+                         Arguments.of(AsyncRequestBody.fromFile(b -> b.chunkSizeInBytes(50)
+                                                                      .path(fileForSplit.toPath()))));
     }
 
     @ParameterizedTest
@@ -300,6 +326,34 @@ public class AsyncRequestBodyTest {
         assertEquals(bb, publishedBuffer.get());
     }
 
+    @ParameterizedTest
+    @MethodSource("asyncRequestBodies")
+    void legacySplit_shouldWork(AsyncRequestBody delegate) throws Exception {
+        long chunkSize = 20l;
+        AsyncRequestBody asyncRequestBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return delegate.contentLength();
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> s) {
+                delegate.subscribe(s);
+            }
+        };
+
+        AsyncRequestBodySplitConfiguration configuration = AsyncRequestBodySplitConfiguration.builder()
+                                                                                             .chunkSizeInBytes(chunkSize)
+                                                                                             .bufferSizeInBytes(chunkSize)
+                                                                                             .build();
+
+        SdkPublisher<AsyncRequestBody> split = asyncRequestBody.split(configuration);
+        verifyIndividualAsyncRequestBody(split, fileForSplit.toPath(), (int) chunkSize);
+    }
+
+
+
+
     private static Function<ByteBuffer, AsyncRequestBody>[] rewindingByteBufferBodyBuilders() {
         Function<ByteBuffer, AsyncRequestBody> fromByteBuffer = AsyncRequestBody::fromByteBuffer;
         Function<ByteBuffer, AsyncRequestBody> fromByteBufferUnsafe = AsyncRequestBody::fromByteBufferUnsafe;
@@ -355,5 +409,14 @@ public class AsyncRequestBodyTest {
         Publisher<ByteBuffer> bodyPublisher = Flowable.fromIterable(bodyBytes);
         AsyncRequestBody requestBody = AsyncRequestBody.fromPublisher(bodyPublisher);
         assertEquals(Mimetype.MIMETYPE_OCTET_STREAM, requestBody.contentType());
+    }
+
+    @Test
+    void splitV2_nullConfig_shouldThrowException() {
+        AsyncRequestBody  requestBody = AsyncRequestBody.fromString("hello world");
+        AsyncRequestBodySplitConfiguration config = null;
+        assertThatThrownBy(() -> requestBody.splitCloseable(config))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("splitConfig");
     }
 }

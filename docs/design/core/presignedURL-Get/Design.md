@@ -10,61 +10,78 @@ This document proposes how this functionality should be implemented in the Java 
 
 Look at decision log here: [Decision Log Section](DecisionLog.md)
 
-The Java SDK team has decided to implement a separate `PresignedUrlManager`. The team chose the helper API pattern over direct `S3Client` integration to maintain clean separation of concerns while preserving SDK functionality.
+The Java SDK team has decided to implement a separate `AsyncPresignedUrlExtension`. The team chose the helper API pattern over direct `S3AsyncClient` integration to maintain clean separation of concerns while preserving SDK functionality.
 
 ## Overview
 
-The design introduces new helper APIs `AsyncPresignedUrlManager` and `PresignedUrlManager` which can be instantiated via the existing `S3AsyncClient` and `S3Client` respectively. These managers provide a clean abstraction layer that preserves SDK benefits while handling the unique requirements of pre-signed URL requests.
+The design introduces a new helper API `AsyncPresignedUrlExtension` which can be instantiated via the existing `S3AsyncClient`. This extension provides a clean abstraction layer that preserves SDK benefits while handling the unique requirements of pre-signed URL requests.
 
-This design will implement only the GET /download function for presigned URLs.
+This design implements GET/download functionality for presigned URLs for the S3AsyncClient, including multipart download support for large objects. The synchronous S3Client implementation is deferred to future work.
 
 
 
 ## Proposed APIs
 
-The v2 SDK will support a presigned URL manager for both sync and async clients that can leverage pre-signed URL downloads.
+The v2 SDK will support a presigned URL extension for the async client that can leverage pre-signed URL downloads.
 
 ### Instantiation
 Instantiating from existing client:
 
 ```java
-// Async Presigned URL Manager
+// Async Presigned URL Extension
 S3AsyncClient s3Client = S3AsyncClient.create();
-AsyncPresignedUrlManager presignManager = s3Client.presignedManager();
-
-// Sync Presigned URL Manager  
-S3Client s3Client = S3Client.create();
-PresignedUrlManager presignManager = s3Client.presignedManager();
+AsyncPresignedUrlExtension presignExtension = s3Client.presignedUrlExtension();
 ```
 
 ### General Usage Examples
 
 ```java
 // Create presigned URL request
-PresignedUrlGetObjectRequest request = PresignedUrlGetObjectRequest.builder()
+PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                 .presignedUrl(presignedUrl)
                                                 .range("range=0-1024")
                                                 .build();
 
 // Async usage
 S3AsyncClient s3Client = S3AsyncClient.create();
-AsyncPresignedUrlManager presignManager = s3Client.presignedManager();
-CompletableFuture<GetObjectResponse> response = presignManager.getObject(request);
-
-// Sync usage
-S3Client s3Client = S3Client.create();
-PresignedUrlManager presignManager = s3Client.presignedManager();
-GetObjectResponse response = presignManager.getObject(request);
+AsyncPresignedUrlExtension presignedUrlExtension = s3Client.presignedUrlExtension();
+CompletableFuture<GetObjectResponse> response = presignedUrlExtension.getObject(request, AsyncResponseTransformer.toBytes());
 ```
 
-### AsyncPresignedUrlManager Interface
+### Multipart Download Support
+
+For objects with size greater than minimumPartSizeInBytes, the SDK automatically uses multipart downloads with HTTP Range headers when multipart is enabled:
+
+```java
+// Enable multipart downloads
+S3AsyncClient s3Client = S3AsyncClient.builder()
+    .multipartEnabled(true)
+    .build();
+
+// Or with custom configuration
+MultipartConfiguration config = MultipartConfiguration.builder()
+    .minimumPartSizeInBytes(8 * 1024 * 1024)   // 8MB parts
+    .build();
+
+S3AsyncClient multipartClient = S3AsyncClient.builder()
+    .multipartConfiguration(config)
+    .build();
+
+// Download automatically uses multipart for objects larger than the configured part size
+CompletableFuture<ResponseBytes<GetObjectResponse>> response = 
+    multipartClient.presignedUrlExtension().getObject(request, AsyncResponseTransformer.toBytes());
+```
+
+The multipart implementation uses Range headers (e.g., `bytes=0-8388607`) instead of partNumber parameters to preserve presigned URL signatures. The first request downloads the initial part while discovering total object size from the Content-Range header.
+
+### AsyncPresignedUrlExtension Interface
 
 ```java
 /**
  * Interface for presigned URL operations used by Async clients.
  */
 @SdkPublicApi
-public interface AsyncPresignedUrlManager {
+public interface AsyncPresignedUrlExtension {
     
     /**
      * Downloads S3 objects using pre-signed URLs with custom response transformation.
@@ -73,7 +90,7 @@ public interface AsyncPresignedUrlManager {
      * @param responseTransformer custom transformer for processing the response.
      * @return a CompletableFuture of the transformed response.
      */
-    <T> CompletableFuture<T> getObject(PresignedUrlGetObjectRequest request,
+    <T> CompletableFuture<T> getObject(PresignedUrlDownloadRequest request,
                                       AsyncResponseTransformer<GetObjectResponse, T> responseTransformer);
     
     // Additional getObject() overloads for file downloads, byte arrays, etc.
@@ -81,52 +98,18 @@ public interface AsyncPresignedUrlManager {
 }
 ```
 
-### PresignedUrlManager Interface
-
-```java
-/**
- * Interface for presigned URL operations used by Sync clients.
- */
-@SdkPublicApi
-public interface PresignedUrlManager {
-
-    /**
-     * Downloads S3 objects using pre-signed URLs. Bypasses normal authentication
-     * and endpoint resolution while maintaining SDK benefits like retries and metrics.
-     *
-     * @param request the presigned URL request containing URL and optional range parameters.
-     * @return the GetObjectResponse.
-     */
-    GetObjectResponse getObject(PresignedUrlGetObjectRequest request);
-    
-    /**
-     * Downloads S3 objects using pre-signed URLs with custom response transformation.
-     *
-     * @param request the presigned URL request.
-     * @param responseTransformer custom transformer for processing the response.
-     * @return the transformed response.
-     */
-    <T> T getObject(PresignedUrlGetObjectRequest request,
-                   ResponseTransformer<GetObjectResponse, T> responseTransformer);
-    
-    // Additional getObject() overloads for file downloads, byte arrays, etc.
-    // Standard Builder interface with client() and overrideConfiguration() methods
-}
-```
-
-### PresignedUrlGetObjectRequest
+### PresignedUrlDownloadRequest
 
 ```java
 /**
  * Request object for presigned URL GET operations.
  */
 @SdkPublicApi
-@Immutable
 @ThreadSafe
-public final class PresignedUrlGetObjectRequest 
-        implements ToCopyableBuilder<PresignedUrlGetObjectRequest.Builder, PresignedUrlGetObjectRequest> {
+public final class PresignedUrlDownloadRequest 
+        implements ToCopyableBuilder<PresignedUrlDownloadRequest.Builder, PresignedUrlDownloadRequest> {
     
-    private final String presignedUrl;
+    private final URL presignedUrl;
     private final String range;
     
     // Standard getters: presignedUrl(), range()
@@ -137,11 +120,11 @@ public final class PresignedUrlGetObjectRequest
 
 ## FAQ
 
-### Why don't we implement presigned URL download/GET feature directly on the S3Client?
+### Why don't we implement presigned URL download/GET feature directly on the S3AsyncClient?
 
 Three approaches were considered:
 
-1. **Dedicated PresignedUrlManager (CHOSEN)**: Separate manager accessed via `s3Client.presignedManager()`
+1. **Dedicated AsyncPresignedUrlExtension (CHOSEN)**: Separate extension accessed via `s3AsyncClient.presignedUrlExtension()`
    - **Pros**: Clean separation, preserves SDK features, follows v2 patterns
    - **Cons**: New API surface for users to learn
 
@@ -153,12 +136,15 @@ Three approaches were considered:
    - **Pros**: Logical extension of presigner concept
    - **Cons**: Breaks current stateless presigner patterns
 
-**Decision**: Option 1 provides clean separation while preserving SDK benefits and following established v2 utility patterns.cutePresignedGetObject(presignedRequest);
+**Decision**: Option 1 provides clean separation while preserving SDK benefits and following established v2 utility patterns.
 
-### Why doesn't PresignedUrlGetObjectRequest extend S3Request?
+### What about synchronous S3Client and S3 CRT Client support?
+
+The synchronous S3Client implementation has been deferred to future work due to complexities around multipart download requirements. Support for S3CrtAsyncClient will also be added in future work once the AWS CRT team addresses current limitations with pre-signed URL handling.
+
+### Why doesn't PresignedUrlDownloadRequest extend S3Request?
 
 While extending S3Request would provide access to RequestOverrideConfiguration, many of these configurations (like credentials provider, signers) are not supported with presigned URL execution. Instead, we use a standalone request with only essential parameters (presignedUrl, range). Internally, this gets wrapped in an encapsulated class that extends S3Request for use with ClientHandler.
-
 
 ## References
 

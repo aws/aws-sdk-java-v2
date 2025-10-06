@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.apache5.internal.conn;
 
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.io.CloseMode;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;

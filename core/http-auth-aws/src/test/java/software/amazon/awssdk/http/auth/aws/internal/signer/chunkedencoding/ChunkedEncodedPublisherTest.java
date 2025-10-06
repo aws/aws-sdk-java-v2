@@ -18,12 +18,16 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.reactivex.Flowable;
+import io.reactivex.subscribers.TestSubscriber;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.PrimitiveIterator;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,12 +51,125 @@ public class ChunkedEncodedPublisherTest {
     }
 
     @Test
+    public void subscribe_publisherEmpty_onlyProducesTrailer() {
+        Publisher<ByteBuffer> emptyPublisher = Flowable.empty();
+
+        ChunkedEncodedPublisher build = newChunkedBuilder(emptyPublisher)
+            .addTrailer(() -> Pair.of("foo", Collections.singletonList("1")))
+            .addTrailer(() -> Pair.of("bar", Collections.singletonList("2")))
+            .addEmptyTrailingChunk(true)
+            .contentLength(0)
+            .build();
+
+        List<ByteBuffer> chunks = getAllElements(build);
+
+        assertThat(chunks.size()).isEqualTo(1);
+
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(0)).toString();
+
+        assertThat(trailerAsString).isEqualTo(
+            "0\r\n" +
+            "foo:1\r\n" +
+            "bar:2\r\n" +
+            "\r\n");
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_trailerPartAdded() {
+        int contentLength = 8;
+        TestPublisher upstream = randomPublisherOfLength(8);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", "bar");
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .contentLength(contentLength)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .addTrailer(trailerProvider)
+                                                                          .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        String expectedTrailer = "foo:bar";
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        assertThat(trailerAsString).endsWith(expectedTrailer);
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_multipleValues_trailerPartAdded() {
+        int contentLength = 8;
+        TestPublisher upstream = randomPublisherOfLength(contentLength);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", Arrays.asList("bar1", "bar2", "bar3"));
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .contentLength(contentLength)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .addTrailer(trailerProvider)
+                                                                          .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        String expectedTrailer = "foo:bar1,bar2,bar3";
+        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        assertThat(trailerAsString).endsWith(expectedTrailer);
+    }
+
+    @Test
+    void subscribe_trailerProviderPresent_onlyInvokedOnce() {
+        int contentLength = 8;
+        TestPublisher upstream = randomPublisherOfLength(contentLength);
+
+        TrailerProvider trailerProvider = Mockito.spy(new StaticTrailerProvider("foo", "bar"));
+
+        ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
+                                                                          .publisher(upstream)
+                                                                          .addEmptyTrailingChunk(true)
+                                                                          .chunkSize(CHUNK_SIZE)
+                                                                          .contentLength(contentLength)
+                                                                          .addTrailer(trailerProvider).build();
+
+        getAllElements(chunkedPublisher);
+
+        Mockito.verify(trailerProvider, Mockito.times(1)).get();
+    }
+
+    @Test
+    void subscribe_trailerPresent_trailerFormattedCorrectly() {
+        int contentLength = 32;
+        TestPublisher testPublisher = randomPublisherOfLength(contentLength);
+
+        TrailerProvider trailerProvider = new StaticTrailerProvider("foo", "bar");
+
+        ChunkedEncodedPublisher chunkedPublisher = newChunkedBuilder(testPublisher)
+            .addTrailer(trailerProvider)
+            .addEmptyTrailingChunk(true)
+            .contentLength(contentLength)
+            .build();
+
+        List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+
+        ByteBuffer last = chunks.get(chunks.size() - 1);
+
+        String expected = "0\r\n" +
+                          "foo:bar\r\n" +
+                          "\r\n";
+
+        assertThat(chunkAsString(last)).isEqualTo(expected);
+    }
+
+    @Test
     void subscribe_wrappedDoesNotFillBuffer_allDataInSingleChunk() {
-        ByteBuffer element = ByteBuffer.wrap("hello world".getBytes(StandardCharsets.UTF_8));
+        byte[] content = "hello world".getBytes(StandardCharsets.UTF_8);
+        ByteBuffer element = ByteBuffer.wrap(content);
         Flowable<ByteBuffer> upstream = Flowable.just(element.duplicate());
 
         ChunkedEncodedPublisher publisher = ChunkedEncodedPublisher.builder()
                                                                    .chunkSize(CHUNK_SIZE)
+                                                                   .contentLength(content.length)
                                                                    .publisher(upstream)
                                                                    .build();
 
@@ -65,7 +182,8 @@ public class ChunkedEncodedPublisherTest {
 
     @Test
     void subscribe_extensionHasNoValue_formattedCorrectly() {
-        TestPublisher testPublisher = randomPublisherOfLength(8);
+        int contentLength = 8;
+        TestPublisher testPublisher = randomPublisherOfLength(contentLength);
 
         ChunkExtensionProvider extensionProvider = new StaticExtensionProvider("foo", "");
 
@@ -74,6 +192,7 @@ public class ChunkedEncodedPublisherTest {
                                    .publisher(testPublisher)
                                    .addExtension(extensionProvider)
                                    .chunkSize(CHUNK_SIZE)
+                                   .contentLength(contentLength)
                                    .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher);
@@ -83,11 +202,13 @@ public class ChunkedEncodedPublisherTest {
 
     @Test
     void subscribe_multipleExtensions_formattedCorrectly() {
-        TestPublisher testPublisher = randomPublisherOfLength(8);
+        int contentLength = 8;
+        TestPublisher testPublisher = randomPublisherOfLength(contentLength);
 
         ChunkedEncodedPublisher.Builder chunkPublisher =
             ChunkedEncodedPublisher.builder()
                                    .publisher(testPublisher)
+                                   .contentLength(contentLength)
                                    .chunkSize(CHUNK_SIZE);
 
         Stream.of("1", "2", "3")
@@ -103,10 +224,12 @@ public class ChunkedEncodedPublisherTest {
     void subscribe_randomElementSizes_dataChunkedCorrectly() {
         for (int i = 0; i < 512; ++i) {
             int nChunks = 24;
-            TestPublisher byteBufferPublisher = randomPublisherOfLength(CHUNK_SIZE * 24);
+            int contentLength = nChunks * CHUNK_SIZE;
+            TestPublisher byteBufferPublisher = randomPublisherOfLength(contentLength);
 
             ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
                                                                               .publisher(byteBufferPublisher)
+                                                                              .contentLength(contentLength)
                                                                               .chunkSize(CHUNK_SIZE)
                                                                               .build();
 
@@ -128,7 +251,8 @@ public class ChunkedEncodedPublisherTest {
     void subscribe_randomElementSizes_chunksHaveExtensions_dataChunkedCorrectly() {
         for (int i = 0; i < 512; ++i) {
             int nChunks = 24;
-            TestPublisher byteBufferPublisher = randomPublisherOfLength(CHUNK_SIZE * 24);
+            int contentLength = CHUNK_SIZE * nChunks;
+            TestPublisher byteBufferPublisher = randomPublisherOfLength(contentLength);
 
             StaticExtensionProvider extensionProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
 
@@ -136,6 +260,7 @@ public class ChunkedEncodedPublisherTest {
                                                                               .publisher(byteBufferPublisher)
                                                                               .addExtension(extensionProvider)
                                                                               .chunkSize(CHUNK_SIZE)
+                                                                              .contentLength(contentLength)
                                                                               .build();
 
             List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
@@ -160,12 +285,14 @@ public class ChunkedEncodedPublisherTest {
 
     @Test
     void subscribe_addTrailingChunkTrue_trailingChunkAdded() {
-        TestPublisher testPublisher = randomPublisherOfLength(CHUNK_SIZE * 2);
+        int contentLength = CHUNK_SIZE * 2;
+        TestPublisher testPublisher = randomPublisherOfLength(contentLength);
 
         ChunkedEncodedPublisher chunkedPublisher = ChunkedEncodedPublisher.builder()
                                                                           .publisher(testPublisher)
                                                                           .chunkSize(CHUNK_SIZE)
                                                                           .addEmptyTrailingChunk(true)
+                                                                          .contentLength(contentLength)
                                                                           .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
@@ -181,7 +308,12 @@ public class ChunkedEncodedPublisherTest {
         Publisher<ByteBuffer> empty = Flowable.empty();
 
         ChunkedEncodedPublisher chunkedPublisher =
-            ChunkedEncodedPublisher.builder().publisher(empty).chunkSize(CHUNK_SIZE).addEmptyTrailingChunk(true).build();
+            ChunkedEncodedPublisher.builder()
+                                   .publisher(empty)
+                                   .chunkSize(CHUNK_SIZE)
+                                   .addEmptyTrailingChunk(true)
+                                   .contentLength(0)
+                                   .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
 
@@ -193,10 +325,15 @@ public class ChunkedEncodedPublisherTest {
         ChunkExtensionProvider mockProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
 
         int nChunks = 16;
-        TestPublisher elements = randomPublisherOfLength(nChunks * CHUNK_SIZE);
+        int contentLength = CHUNK_SIZE * nChunks;
+        TestPublisher elements = randomPublisherOfLength(contentLength);
 
-        ChunkedEncodedPublisher chunkPublisher =
-            ChunkedEncodedPublisher.builder().publisher(elements).chunkSize(CHUNK_SIZE).addExtension(mockProvider).build();
+        ChunkedEncodedPublisher chunkPublisher = ChunkedEncodedPublisher.builder()
+                                                                        .publisher(elements)
+                                                                        .contentLength(contentLength)
+                                                                        .chunkSize(CHUNK_SIZE)
+                                                                        .addExtension(mockProvider)
+                                                                        .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher);
 
@@ -210,6 +347,32 @@ public class ChunkedEncodedPublisherTest {
             ByteBuffer extensionChunk = extensionChunks.get(i);
             assertThat(stripEncoding(chunk)).isEqualTo(extensionChunk);
         }
+    }
+
+    @Test
+    void subscribe_wrappedExceedsContentLength_dataTruncatedToLength() {
+        int contentLength = CHUNK_SIZE * 4 - 1;
+        TestPublisher elements = randomPublisherOfLength(contentLength * 2);
+
+        TestSubscriber<ByteBuffer> subscriber = new TestSubscriber<>();
+        ChunkedEncodedPublisher chunkPublisher = newChunkedBuilder(elements).contentLength(contentLength)
+                                                                            .build();
+
+        chunkPublisher.subscribe(subscriber);
+
+        subscriber.awaitTerminalEvent(30, TimeUnit.SECONDS);
+
+        int totalRemaining = subscriber.values()
+                                       .stream()
+                                       .map(this::stripEncoding)
+                                       .mapToInt(ByteBuffer::remaining)
+                                       .sum();
+
+        assertThat(totalRemaining).isEqualTo(contentLength);
+    }
+
+    private static ChunkedEncodedPublisher.Builder newChunkedBuilder(Publisher<ByteBuffer> publisher) {
+        return ChunkedEncodedPublisher.builder().publisher(publisher).chunkSize(CHUNK_SIZE);
     }
 
     private TestPublisher randomPublisherOfLength(int bytes) {
@@ -237,6 +400,10 @@ public class ChunkedEncodedPublisherTest {
 
     private List<ByteBuffer> getAllElements(Publisher<ByteBuffer> publisher) {
         return Flowable.fromPublisher(publisher).toList().blockingGet();
+    }
+
+    private String chunkAsString(ByteBuffer chunk) {
+        return StandardCharsets.UTF_8.decode(chunk).toString();
     }
 
     private String getHeaderAsString(ByteBuffer chunk) {
@@ -289,6 +456,10 @@ public class ChunkedEncodedPublisherTest {
         return stripped;
     }
 
+    private long totalRemaining(List<ByteBuffer> buffers) {
+        return buffers.stream().mapToLong(ByteBuffer::remaining).sum();
+    }
+
     private static class TestPublisher implements Publisher<ByteBuffer> {
         private final Publisher<ByteBuffer> wrapped;
         private final byte[] wrappedChecksum;
@@ -321,6 +492,26 @@ public class ChunkedEncodedPublisherTest {
         @Override
         public Pair<byte[], byte[]> get(ByteBuffer chunk) {
             return Pair.of(key, value);
+        }
+    }
+
+    private static class StaticTrailerProvider implements TrailerProvider {
+        private final String key;
+        private final List<String> values;
+
+        public StaticTrailerProvider(String key, String value) {
+            this.key = key;
+            this.values = Collections.singletonList(value);
+        }
+
+        public StaticTrailerProvider(String key, List<String> values) {
+            this.key = key;
+            this.values = values;
+        }
+
+        @Override
+        public Pair<String, List<String>> get() {
+            return Pair.of(key, values);
         }
     }
 }

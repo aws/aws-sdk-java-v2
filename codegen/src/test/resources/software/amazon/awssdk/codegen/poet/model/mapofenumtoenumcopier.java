@@ -32,8 +32,8 @@ final class MapOfEnumToEnumCopier {
         } else {
             Map<String, String> modifiableMap = new LinkedHashMap<>(mapOfEnumToEnumParam.size());
             mapOfEnumToEnumParam.forEach((key, value) -> {
-                String result = key.toString();
-                String result1 = value.toString();
+                String result = key == null ? null : key.toString();
+                String result1 = value == null ? null : value.toString();
                 modifiableMap.put(result, result1);
             });
             map = Collections.unmodifiableMap(modifiableMap);

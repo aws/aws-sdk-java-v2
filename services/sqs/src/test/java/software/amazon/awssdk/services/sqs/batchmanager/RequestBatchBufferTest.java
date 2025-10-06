@@ -81,11 +81,12 @@ class RequestBatchBufferTest {
     }
 
     @Test
-    void whenPutScheduledFlushThenFlushIsSet() {
+    void whenCancelAndReplaceScheduledFlushThenFlushIsSetAndOldFlushIsCanceled() {
         batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
         ScheduledFuture<?> newScheduledFlush = mock(ScheduledFuture.class);
-        batchBuffer.putScheduledFlush(newScheduledFlush);
+        batchBuffer.cancelAndReplaceScheduledFlush(newScheduledFlush);
         assertNotNull(newScheduledFlush);
+        verify(scheduledFlush).cancel(false);
     }
 
     @Test
@@ -187,6 +188,46 @@ class RequestBatchBufferTest {
         assertEquals(2, flushedEntries.size());
     }
 
+
+    @Test
+    void whenSequentialCancelAndReplaceScheduledFlushThenEachPreviousFlushIsCanceled() {
+        batchBuffer = new RequestBatchBuffer<>(scheduledFlush, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        
+        // Create a sequence of mock scheduled futures
+        ScheduledFuture<?> flush1 = mock(ScheduledFuture.class);
+        ScheduledFuture<?> flush2 = mock(ScheduledFuture.class);
+        ScheduledFuture<?> flush3 = mock(ScheduledFuture.class);
+        
+        // First replacement - should cancel the initial scheduledFlush
+        batchBuffer.cancelAndReplaceScheduledFlush(flush1);
+        verify(scheduledFlush, times(1)).cancel(false);
+        
+        // Second replacement - should cancel flush1
+        batchBuffer.cancelAndReplaceScheduledFlush(flush2);
+        verify(flush1, times(1)).cancel(false);
+        
+        // Verify flush2 has not been canceled (it's the current one)
+        verify(flush2, never()).cancel(false);
+        
+        // Verify buffer is still functional
+        CompletableFuture<String> response = new CompletableFuture<>();
+        batchBuffer.put("test-request", response);
+        assertEquals(1, batchBuffer.responses().size());
+    }
+
+    @Test
+    void whenCancelAndReplaceScheduledFlushWithNullInitialFlushThenNoExceptionThrown() {
+        // Create buffer with null initial flush
+        batchBuffer = new RequestBatchBuffer<>(null, 10, MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES, maxBufferSize);
+        
+        ScheduledFuture<?> newFlush = mock(ScheduledFuture.class);
+        
+        // Should not throw exception when initial flush is null
+        assertDoesNotThrow(() -> batchBuffer.cancelAndReplaceScheduledFlush(newFlush));
+        
+        // Verify newFlush is not canceled (it's the current one)
+        verify(newFlush, never()).cancel(false);
+    }
 
     private String createLargeString(char ch, int length) {
         StringBuilder sb = new StringBuilder(length);

@@ -25,6 +25,10 @@ public final class TestUtils {
     private TestUtils() {
     }
 
+    public static byte[] testPayload() {
+        return "{\"TableName\": \"foo\"}".getBytes();
+    }
+
     // Helpers for generating test requests
     public static <T extends AwsCredentialsIdentity> SignRequest<T> generateBasicRequest(
         T credentials,
@@ -40,7 +44,7 @@ public final class TestUtils {
                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .payload(() -> new ByteArrayInputStream(testPayload()))
                           .putProperty(REGION_NAME, "us-east-1")
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK,
@@ -56,7 +60,7 @@ public final class TestUtils {
     ) {
         SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
 
-        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
+        publisher.send(ByteBuffer.wrap(testPayload()));
         publisher.complete();
 
         return AsyncSignRequest.builder(credentials)

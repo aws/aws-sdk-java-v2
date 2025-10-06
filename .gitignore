@@ -32,3 +32,5 @@ target/
 .vscode/*
 bin/
 
+# Other
+.attach_pid*
