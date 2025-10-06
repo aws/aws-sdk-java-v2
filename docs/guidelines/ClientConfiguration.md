@@ -1,10 +1,8 @@
-**Design:** Convention, **Status:** [Accepted](README.md)
-
-## Client Configuration
+# Client Configuration
 
 This page describes the structure and conventions used for client configuration objects. Client configuration objects are any objects used to configure an AWS client builder.
 
-#### Example
+## Example
 
 This section walks through an example configuration class structure and describes each of its components at a high level.
 
@@ -83,7 +81,7 @@ public final class SdkConfiguration // (3)
 11. One "set" method should be created for each option to mutate the value in this builder. This method's name should exactly match the  name of the field it is setting.
 12. Each option should have a bean-style setter to allow configuring the object reflectively using `Inspector`-based frameworks, like spring XML.
 
-#### Configuration Fields
+### Configuration Fields
 
 This section details the semantics of configuration fields.
 
