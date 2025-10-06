@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "contributor": "",
+    "description": "Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types"
+}
