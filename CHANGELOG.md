@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.1__ __2025-10-06__
+## __AWS Backup__
+  - ### Features
+    - Adds optional MaxScheduledRunsPreview input to GetBackupPlan API to provide a preview of up to 10 next scheduled backup plan runs in the GetBackupPlan response.
+
+## __AWS Glue__
+  - ### Features
+    - Adds labeling for DataQualityRuleResult for GetDataQualityResult and PublishDataQualityResult APIs
+
+## __AWS MediaConnect__
+  - ### Features
+    - Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Add new AWS Resource Explorer APIs
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Add support for VM lifecycle configuration parameters and A2A protocol
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Add support for batch memory management, agent card retrieval and session termination
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Documentation improvements for QuickSight API documentation to clarify that delete operation APIs are global.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates to the CreateDBClusterMessage$PubliclyAccessible and CreateDBInstanceMessage$PubliclyAccessible properties.
+
 # __2.35.0__ __2025-10-03__
 ## __AWS Clean Rooms Service__
   - ### Features
