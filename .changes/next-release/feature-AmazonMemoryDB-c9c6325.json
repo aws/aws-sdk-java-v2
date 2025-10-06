@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon MemoryDB",
-    "contributor": "",
-    "description": "Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API."
-}

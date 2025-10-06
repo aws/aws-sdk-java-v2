@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
-    "contributor": "",
-    "description": "Add support for VM lifecycle configuration parameters and A2A protocol"
-}

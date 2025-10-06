@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
-    "contributor": "",
-    "description": "Add support for batch memory management, agent card retrieval and session termination"
-}
