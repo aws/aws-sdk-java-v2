@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "AWS SDK Java v2 Code Review",
+  "description": "Performs manual code review leveraging all steering documentation to verify code against AWS SDK Java v2 guidelines, best practices, and architectural standards",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "**/*.java",
+      "**/*.md",
+      "**/*.json"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "# AWS SDK Java v2 Code Review\n\nYou are reviewing code for the AWS SDK for Java v2 project. Use the steering documentation in `.kiro/steering/` to apply context-specific guidelines based on file patterns.\n\n## Review Scope\nAnalyze the **changed files** in the current workspace and apply appropriate guidelines based on file types using the steering documentation.\n\n## Guidelines Application\nLoad and apply guidelines from the steering documentation based on file patterns:\n\n- `.kiro/steering/aws-sdk-java-v2-general.md` - For all `**/*.java` files\n- `.kiro/steering/logging-guidelines.md` - For all `**/*.java` files  \n- `.kiro/steering/client-configuration-guidelines.md` - For `**/*{Config,Configuration,Builder}*.java`\n- `.kiro/steering/async-programming-guidelines.md` - For `**/*{Async,CompletableFuture}*.java`\n- `.kiro/steering/reactive-streams-guidelines.md` - For `**/*{Publisher,Subscriber}*.java`\n- `.kiro/steering/testing-guidelines.md` - For `**/{test,it}/**/*.java`\n- `.kiro/steering/javadoc-guidelines.md` - For `**/src/main/**/*.java`\n- `.kiro/steering/code-generation-guidelines.md` - For `{codegen/**/*.java,**/poet/**/*.java}`\n\n## Review Process\n1. **Load relevant steering docs** for each changed file based on its path pattern\n2. **Apply all applicable guidelines** from the loaded documentation\n3. **Categorize findings** by severity:\n   - ❌ **CRITICAL**: Must fix before merge (violations of MUST requirements)\n   - ⚠️ **GUIDELINE**: Should fix for consistency (violations of SHOULD requirements)\n   - 💡 **SUGGESTION**: Consider for improvement\n   - ✅ **COMPLIANT**: Follows guidelines correctly\n\n## Output Format\n\nFor each file reviewed, provide:\n📁 [File Path]\nType: [Configuration/Async/Test/General/etc.] Compliance: [Percentage]%\n\nIssues Found:\n- ❌ CRITICAL: [Issue description]\n   - Guideline: [Reference to specific steering doc section]\n   - Fix: [Specific suggestion]\n\n- ⚠️ GUIDELINE: [Issue description]\n   - Reference: [Steering doc reference]\n   - Suggestion: [How to improve]\n-💡 SUGGESTION: [Improvement opportunity]\n\n## Summary Report\n- **Changed Files Reviewed**: X\n- **Guidelines Applied**: [List of steering docs used]\n- **Overall Compliance**: X%\n- **Critical Issues**: X (must fix before merge)\n- **Guideline Violations**: X (should fix for consistency)\n- **Ready for Review**: [Yes/No based on critical issues]\n\nProvide actionable feedback based on the comprehensive guidelines in the steering documentation, helping developers understand what to fix and why it matters for the AWS SDK project.\n"
+  }
+}

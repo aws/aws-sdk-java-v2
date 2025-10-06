@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "name": "Manual Javadoc Generator",
+  "description": "A manual trigger to add comprehensive Javadoc documentation for Java files following the javadoc-guidelines.md standards",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.java"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Please add comprehensive Javadoc documentation to the Java files that have been modified. Follow the guidelines specified in javadoc-guidelines.md. Focus on:\n\n1. Class-level documentation explaining the purpose and usage\n2. Method documentation with @param, @return, and @throws tags where appropriate\n3. Field documentation for public/protected fields\n4. Code examples where helpful\n5. Proper formatting and professional tone\n\nEnsure the documentation is clear, concise, and follows Java documentation best practices as outlined in the guidelines."
+  }
+}
