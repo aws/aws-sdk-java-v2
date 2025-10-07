@@ -46,9 +46,9 @@ public class ExpressTest {
 
     int maxInflightDownloads = 4;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long bufferSize = (Integer.MAX_VALUE * 4L) / 4;
     long partSize = 5L * 1024 * 1024 * 1024;
-    int chunkSize = (int) (bufferSize / maxInflightDownloads);
+    int chunkSize = 16 * 1024; //16KB
+    long bufferSize = chunkSize * maxInflightDownloads;
 
     S3AsyncClient s3Client;
     S3AsyncClient crt;
@@ -84,7 +84,6 @@ public class ExpressTest {
             .region(Region.US_EAST_2)
             .httpConfiguration(c -> c.trustAllCertificatesEnabled(true))
             .build();
-
 
         testPath = System.getProperty("testpath");
         key = System.getProperty("testkey");

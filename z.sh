@@ -23,7 +23,7 @@ tm_ul='tm_upload'
 key='1'
 path="/files/upload/50TiB-1x/$key"
 
-test=$s3_dl
+test=$s3_ul
 
 MAVEN_OPTS="-Xmx20g -Xms5g" mvn test -pl :s3-transfer-manager \
     -Dtest=software.amazon.awssdk.transfer.s3.ExpressTest#$test \
