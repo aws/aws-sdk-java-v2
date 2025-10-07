@@ -19,6 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
@@ -32,9 +33,38 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context,
                                             ExecutionAttributes executionAttributes) {
-        if (context.request() instanceof PutObjectRequest || context.request() instanceof UploadPartRequest) {
+        if (shouldAddExpectContinueHeader(context)) {
             return context.httpRequest().toBuilder().putHeader("Expect", "100-continue").build();
         }
         return context.httpRequest();
     }
+
+    /**
+     * Determines whether to add 'Expect: 100-continue' header to streaming requests.
+     *
+     * Per RFC 9110 Section 10.1.1, clients MUST NOT send 100-continue for requests without content.
+     *
+     * Note: Empty Content length check currently applies to sync clients only. Sync HTTP clients (e.g., Apache HttpClient) may
+     * reuse connections, and sending empty content with Expect header can cause issues if the server has already closed the
+     * connection.
+     *
+     * @param context the HTTP request modification context
+     * @return true if Expect header should be added, false otherwise
+     */
+    private boolean shouldAddExpectContinueHeader(Context.ModifyHttpRequest context) {
+        // Must be a streaming request type
+        if (context.request() instanceof PutObjectRequest
+            || context.request() instanceof UploadPartRequest) {
+            // Zero Content length check
+            return context.requestBody()
+                          .flatMap(RequestBody::optionalContentLength)
+                          .map(length -> length != 0L)
+                          .orElse(true);
+        }
+        return false;
+    }
+
+
+
+
 }

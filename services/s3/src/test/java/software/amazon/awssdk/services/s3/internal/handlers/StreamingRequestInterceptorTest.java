@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 
 public class StreamingRequestInterceptorTest {
-    private final StreamingRequestInterceptor interceptor = new StreamingRequestInterceptor();
+    private StreamingRequestInterceptor interceptor = new StreamingRequestInterceptor();
 
     @Test
     public void modifyHttpRequest_setsExpect100Continue_whenSdkRequestIsPutObject() {
@@ -54,5 +54,45 @@ public class StreamingRequestInterceptorTest {
                                                                              new ExecutionAttributes());
 
         assertThat(modifiedRequest.firstMatchingHeader("Expect")).isNotPresent();
+    }
+
+    @Test
+    public void modifyHttpRequest_doesNotSetExpect_whenPutObjectHasZeroContentLength() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(PutObjectRequest.builder().build(), 0L),
+            new ExecutionAttributes());
+
+        assertThat(modifiedRequest.firstMatchingHeader("Expect"))
+            .as("Expect header should not be present for zero-length content per RFC 9110")
+            .isNotPresent();
+    }
+
+    @Test
+    public void modifyHttpRequest_doesNotSetExpect_whenUploadPartHasZeroContentLength() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(UploadPartRequest.builder().build(), 0L),
+            new ExecutionAttributes());
+
+        assertThat(modifiedRequest.firstMatchingHeader("Expect"))
+            .as("Expect header should not be present for zero-length content per RFC 9110")
+            .isNotPresent();
+    }
+
+    @Test
+    public void modifyHttpRequest_setsExpect_whenPutObjectHasNonZeroContentLength() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(PutObjectRequest.builder().build(), 1024L),
+            new ExecutionAttributes());
+
+        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
+    }
+
+    @Test
+    public void modifyHttpRequest_setsExpect_whenUploadPartHasNonZeroContentLength() {
+        SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(
+            modifyHttpRequestContext(UploadPartRequest.builder().build(), 5242880L),
+            new ExecutionAttributes());
+
+        assertThat(modifiedRequest.firstMatchingHeader("Expect")).hasValue("100-continue");
     }
 }
