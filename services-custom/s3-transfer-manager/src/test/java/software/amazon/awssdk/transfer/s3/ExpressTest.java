@@ -66,6 +66,7 @@ public class ExpressTest {
                 .minimumPartSizeInBytes(partSize)
                 .apiCallBufferSizeInBytes(bufferSize)
                 .parallelConfiguration(p -> p.maxInFlightParts(maxInflightDownloads)))
+            .overrideConfiguration(c -> c.apiCallTimeout(Duration.ofHours(10)))
             .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
             .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
             .httpClient(NettyNioAsyncHttpClient.builder()
