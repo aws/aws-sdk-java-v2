@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.2__ __2025-10-07__
+## __AWS Proton__
+  - ### Features
+    - Deprecating APIs in AWS Proton namespace.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
 # __2.35.1__ __2025-10-06__
 ## __AWS Backup__
   - ### Features
