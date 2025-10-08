@@ -69,7 +69,7 @@ import software.amazon.awssdk.utils.AttributeMap;
  */
 @WireMockTest(httpsEnabled = true)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class Expect100ContinueHeaderTest {
+class Expect100ContinueHeaderTest {
 
     private static final String BUCKET = "test-bucket";
     private static final String KEY = "test-key";
@@ -216,6 +216,7 @@ public class Expect100ContinueHeaderTest {
 
                 @Override
                 public void cancel() {
+                    // No action.
                 }
             });
         };
@@ -246,6 +247,7 @@ public class Expect100ContinueHeaderTest {
 
                 @Override
                 public void cancel() {
+                    // No action.
                 }
             });
         };

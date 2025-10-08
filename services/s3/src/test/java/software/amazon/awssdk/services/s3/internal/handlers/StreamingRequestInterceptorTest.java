@@ -67,7 +67,7 @@ public class StreamingRequestInterceptorTest {
 
     @ParameterizedTest(name = "{0} with {1}={2} should not set Expect header")
     @MethodSource("zeroContentLengthProvider")
-    public void modifyHttpRequest_doesNotSetExpect_whenContentLengthIsZero(
+    void modifyHttpRequest_doesNotSetExpect_whenContentLengthIsZero(
         String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
 
         SdkHttpRequest httpRequest = buildHttpRequest(headerName, headerValue);
@@ -83,7 +83,7 @@ public class StreamingRequestInterceptorTest {
 
     @ParameterizedTest(name = "{0} with {1}={2} should set Expect header")
     @MethodSource("nonZeroContentLengthProvider")
-    public void modifyHttpRequest_setsExpect_whenContentLengthIsNonZero(
+    void modifyHttpRequest_setsExpect_whenContentLengthIsNonZero(
         String requestType, String headerName, String headerValue, SdkRequest sdkRequest) {
 
         SdkHttpRequest httpRequest = buildHttpRequest(headerName, headerValue);
@@ -96,7 +96,7 @@ public class StreamingRequestInterceptorTest {
     }
 
     @Test
-    public void modifyHttpRequest_prioritizesDecodedContentLength_overContentLength() {
+    void modifyHttpRequest_prioritizesDecodedContentLength_overContentLength() {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                                                        .uri(URI.create("http://localhost:8080"))
                                                        .method(SdkHttpMethod.PUT)

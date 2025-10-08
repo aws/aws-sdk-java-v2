@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Fix StreamingRequestInterceptor to skip Expect: 100-continue header when PutObject or UploadPart requests have zero content length."
+    "description": "Skip Expect: 100-continue header for PutObject and UploadPart requests with zero content length"
 }
