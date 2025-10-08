@@ -55,7 +55,13 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
             .orElse(true);
     }
 
-    // Check x-amz-decoded-content-length first, fall back to Content-Length
+    /**
+     * Retrieves content length header value.
+     * Checks x-amz-decoded-content-length first, then falls back to Content-Length.
+     *
+     * @param httpRequest the HTTP request
+     * @return Optional containing the content length header value, or empty if not present
+     */
     private Optional<String> getContentLengthHeader(SdkHttpRequest httpRequest) {
         Optional<String> decodedLength = httpRequest.firstMatchingHeader(DECODED_CONTENT_LENGTH_HEADER);
         return decodedLength.isPresent()
