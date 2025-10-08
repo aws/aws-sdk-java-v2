@@ -106,6 +106,10 @@ public final class InterceptorTestUtils {
         return modifyHttpRequestContext(request, sdkHttpFullRequest());
     }
 
+    public static Context.ModifyHttpRequest modifyHttpRequestContextWithHttpRequest(SdkRequest request, SdkHttpRequest httpRequest) {
+        return modifyHttpRequestContext(request, httpRequest);
+    }
+
     public static Context.ModifyHttpRequest modifyHttpRequestContext(SdkRequest request, SdkHttpRequest sdkHttpRequest) {
         Optional<RequestBody> requestBody = Optional.of(RequestBody.fromString("helloworld"));
         Optional<AsyncRequestBody> asyncRequestBody = Optional.of(AsyncRequestBody.fromString("helloworld"));
@@ -114,41 +118,6 @@ public final class InterceptorTestUtils {
             @Override
             public SdkHttpRequest httpRequest() {
                 return sdkHttpRequest;
-            }
-
-            @Override
-            public Optional<RequestBody> requestBody() {
-                return requestBody;
-            }
-
-            @Override
-            public Optional<AsyncRequestBody> asyncRequestBody() {
-                return asyncRequestBody;
-            }
-
-            @Override
-            public SdkRequest request() {
-                return request;
-            }
-        };
-    }
-
-    /**
-     * Creates a ModifyHttpRequest context with a specific content length.
-     * Useful for testing scenarios where content length matters (e.g., RFC 9110 compliance).
-     *
-     * @param request the SDK request
-     * @param contentLength the content length in bytes
-     * @return a ModifyHttpRequest context with the specified content length
-     */
-    public static Context.ModifyHttpRequest modifyHttpRequestContext(SdkRequest request, long contentLength) {
-        Optional<RequestBody> requestBody = Optional.of(RequestBody.fromBytes(new byte[(int) contentLength]));
-        Optional<AsyncRequestBody> asyncRequestBody = Optional.of(AsyncRequestBody.fromBytes(new byte[(int) contentLength]));
-
-        return new Context.ModifyHttpRequest() {
-            @Override
-            public SdkHttpRequest httpRequest() {
-                return sdkHttpFullRequest();
             }
 
             @Override
