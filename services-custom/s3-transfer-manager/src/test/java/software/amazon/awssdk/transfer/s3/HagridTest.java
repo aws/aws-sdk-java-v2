@@ -46,7 +46,7 @@ import software.amazon.awssdk.utils.Logger;
 
 public class HagridTest {
     private static final Logger log = Logger.loggerFor(HagridTest.class);
-    String bucket = "do-not-delete-large-object-test--usw2-az1--x-s3";
+    String bucket = "do-not-delete-java-hagrid-test";
 
     @Test
     void getHagridFile() throws IOException {
@@ -87,7 +87,7 @@ public class HagridTest {
     @Test
     void uploadHagridFile() throws IOException {
         long chunkSize = 16 * KB;
-        int concurrency = 1;
+        int concurrency = 10000;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
