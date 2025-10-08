@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
-    "contributor": "",
-    "description": "Adding support for authorizer type AWS_IAM to AgentCore Control Gateway."
-}
