@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.3__ __2025-10-08__
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Released support for IPv6 and dual-stack active directories
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the new StartOutpostDecommission API, which starts the decommission process to return Outposts racks or servers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Adding support for authorizer type AWS_IAM to AgentCore Control Gateway.
+
+## __Service Quotas__
+  - ### Features
+    - introduces Service Quotas Automatic Management. Users can opt-in to monitoring and managing service quotas, receive notifications when quota usage reaches thresholds, configure notification channels, subscribe to EventBridge events for automation, and view notifications in the AWS Health dashboard.
+
 # __2.35.2__ __2025-10-07__
 ## __AWS Proton__
   - ### Features
