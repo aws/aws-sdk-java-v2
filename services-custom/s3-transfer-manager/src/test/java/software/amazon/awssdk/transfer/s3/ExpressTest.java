@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class ExpressTest {
 
-    int maxInflightDownloads = 1;
+    int maxInflightDownloads = 10_000;
     String bucket = "hagrid-test-3--use2-az2--x-s3";
     long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = 16 * 1024; //16KB
@@ -70,7 +70,7 @@ public class ExpressTest {
             .authSchemeProvider(S3ExpressAuthSchemeProvider.create(DefaultS3AuthSchemeProvider.create()))
             .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
             .httpClient(NettyNioAsyncHttpClient.builder()
-                                               .maxConcurrency(1_000)
+                                               .maxConcurrency(20_000)
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
                                                .connectionMaxIdleTime(Duration.ofSeconds(5))
