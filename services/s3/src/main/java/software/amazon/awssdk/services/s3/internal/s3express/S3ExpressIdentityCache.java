@@ -86,11 +86,14 @@ public class S3ExpressIdentityCache {
         if (client instanceof S3AsyncClient) {
             // TODO (s3express) don't join here
             try {
+                long before = System.nanoTime();
                 SessionCredentials c = ((S3AsyncClient) client).createSession(createSessionRequest(bucket, provider,
                                                                                                    serviceClientConfiguration))
                                                                .join()
                                                                .credentials();
-                log.info(() -> "Done! Session credentials: " + c.toString() );
+                long after = System.nanoTime();
+                log.info(() -> "Done! Session credentials: " + c.toString());
+                log.info(() -> "Create Session took : " + Duration.ofNanos(after - before).toString());
                 return c;
             } catch (Exception e) {
                 log.error(() -> "Failed to get session credentials: " + e.getMessage(), e);

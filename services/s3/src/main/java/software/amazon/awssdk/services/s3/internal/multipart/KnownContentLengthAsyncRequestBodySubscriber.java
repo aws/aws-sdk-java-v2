@@ -184,6 +184,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         multipartUploadHelper.sendIndividualUploadPartRequest(uploadId, completedPartConsumer, futures,
                                                               Pair.of(uploadRequest, asyncRequestBody), progressListener)
                              .whenComplete((r, t) -> {
+                                 log.info(() -> "Completed part " + currentPartNum);
                                  asyncRequestBody.close();
                                  if (t != null) {
                                      if (shouldFailRequest()) {
