@@ -1,0 +1,6 @@
+{
+  "type": "bugfix",
+  "category": "Amazon DynamoDB Enhanced Client",
+  "contributor": "",
+  "description": "Optimistic delete while using DynamoDbEnhancedClient - DeleteItem with DeleteItemEnhancedRequest and TransactWriteItemsEnhancedRequest"
+}
