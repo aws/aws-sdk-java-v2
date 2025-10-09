@@ -1,4 +1,71 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.3__ __2025-10-08__
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Released support for IPv6 and dual-stack active directories
+
+## __AWS Outposts__
+  - ### Features
+    - This release adds the new StartOutpostDecommission API, which starts the decommission process to return Outposts racks or servers.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Adding support for authorizer type AWS_IAM to AgentCore Control Gateway.
+
+## __Service Quotas__
+  - ### Features
+    - introduces Service Quotas Automatic Management. Users can opt-in to monitoring and managing service quotas, receive notifications when quota usage reaches thresholds, configure notification channels, subscribe to EventBridge events for automation, and view notifications in the AWS Health dashboard.
+
+# __2.35.2__ __2025-10-07__
+## __AWS Proton__
+  - ### Features
+    - Deprecating APIs in AWS Proton namespace.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+# __2.35.1__ __2025-10-06__
+## __AWS Backup__
+  - ### Features
+    - Adds optional MaxScheduledRunsPreview input to GetBackupPlan API to provide a preview of up to 10 next scheduled backup plan runs in the GetBackupPlan response.
+
+## __AWS Glue__
+  - ### Features
+    - Adds labeling for DataQualityRuleResult for GetDataQualityResult and PublishDataQualityResult APIs
+
+## __AWS MediaConnect__
+  - ### Features
+    - Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types
+
+## __AWS Resource Explorer__
+  - ### Features
+    - Add new AWS Resource Explorer APIs
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Add support for VM lifecycle configuration parameters and A2A protocol
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Add support for batch memory management, agent card retrieval and session termination
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Documentation improvements for QuickSight API documentation to clarify that delete operation APIs are global.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Documentation updates to the CreateDBClusterMessage$PubliclyAccessible and CreateDBInstanceMessage$PubliclyAccessible properties.
+
 # __2.35.0__ __2025-10-03__
 ## __AWS Clean Rooms Service__
   - ### Features
