@@ -87,7 +87,6 @@ public final class CachedS3ExpressCredentials implements SdkAutoCloseable {
 
     private RefreshResult<SessionCredentials> refreshResult(
         Function<S3ExpressIdentityKey, SessionCredentials> identitySupplier, S3ExpressIdentityKey key) {
-
         SessionCredentials newCredentials = identitySupplier.apply(key);
         Instant expirationTime = newCredentials.expiration();
         if (expirationTime == null) {

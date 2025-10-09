@@ -190,6 +190,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * the underlying value refresher if it can get back to us in a reasonable time.
      */
     private void refreshCache() {
+        log.info(() -> "Attempting to perform a blocking refresh");
         try {
             boolean lockAcquired = refreshLock.tryLock(BLOCKING_REFRESH_MAX_WAIT.getSeconds(), TimeUnit.SECONDS);
 
@@ -213,6 +214,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                     } catch (RuntimeException t) {
                         cachedValue = handleFetchFailure(t);
                     }
+                } else {
+                    log.info(() -> "Not refreshing");
                 }
             } finally {
                 if (lockAcquired) {
