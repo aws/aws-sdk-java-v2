@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Skip Expect: 100-continue header for PutObject and UploadPart requests with zero content length"
+}
