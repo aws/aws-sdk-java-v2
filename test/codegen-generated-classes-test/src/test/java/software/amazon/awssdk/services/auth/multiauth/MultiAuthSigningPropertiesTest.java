@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.multiauth;
+package software.amazon.awssdk.services.auth.multiauth;
 
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -23,7 +23,11 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.api.Assertions;
@@ -34,12 +38,17 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
@@ -50,6 +59,10 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
+import software.amazon.awssdk.services.multiauth.MultiauthClientBuilder;
+import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
+import software.amazon.awssdk.services.multiauth.endpoints.MultiauthEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -121,12 +134,12 @@ class MultiAuthSigningPropertiesTest {
             assertThatThrownBy(() -> client.multiAuthWithRegionSetInEndpointParams(r -> r.stringMember("")))
                 .hasMessageContaining("stop");
 
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.GLOBAL);
+            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                .isEqualTo(RegionSet.GLOBAL.asString());
         }
 
         @Test
-        @DisplayName("Should use the Region set from Endpoint RuleSet when no RegionSet configured")
+        @DisplayName("Region set configured on the client takes precedence")
         void clientApiConfiguredRegionSetTakePrecedenceOverEndpointRulesRegionSet() {
             CapturingSigner signer = new CapturingSigner();
             MultiauthClient client = MultiauthClient.builder()
@@ -142,8 +155,8 @@ class MultiAuthSigningPropertiesTest {
             assertThatThrownBy(() -> client.multiAuthWithRegionSetInEndpointParams(r -> r.stringMember("")))
                 .hasMessageContaining("stop");
 
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.create("us-west-2,us-gov-east-1"));
+            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                .isEqualTo(RegionSet.create("us-west-2,us-gov-east-1").asString());
         }
     }
 
