@@ -57,25 +57,15 @@ import software.amazon.awssdk.utils.StringInputStream;
 public class ProfileFileConfigurationTest {
 
     private static final String PROFILE_CONTENT = "[profile foo]\n" +
-                                                 "region = us-banana-46\n" +
-                                                 "aws_access_key_id = profileIsHonoredForCredentials_akid\n" +
-                                                 "aws_secret_access_key = profileIsHonoredForCredentials_skid";
+                                                  "region = us-banana-46\n" +
+                                                  "aws_access_key_id = profileIsHonoredForCredentials_akid\n" +
+                                                  "aws_secret_access_key = profileIsHonoredForCredentials_skid";
     private static final String PROFILE_NAME = "foo";
-    private static ProtocolRestJsonClient client;
-    private ProtocolRestJsonAsyncClient asyncClient;
     private AwsV4HttpSigner signer;
-
 
     @BeforeEach
     public void setup() {
         signer = Mockito.mock(AwsV4HttpSigner.class);
-        client = ProtocolRestJsonClient.builder()
-                                  .overrideConfiguration(overrideConfig(PROFILE_CONTENT, PROFILE_NAME, null))
-                                  .putAuthScheme(new MockAuthScheme(signer)).build();
-
-        asyncClient = ProtocolRestJsonAsyncClient.builder()
-                                       .overrideConfiguration(overrideConfig(PROFILE_CONTENT, PROFILE_NAME, null))
-                                       .putAuthScheme(new MockAuthScheme(signer)).build();
     }
 
     @Test
@@ -138,6 +128,8 @@ public class ProfileFileConfigurationTest {
             env.remove(SdkSystemSetting.AWS_ACCESS_KEY_ID);
             env.remove(SdkSystemSetting.AWS_SECRET_ACCESS_KEY);
 
+            ProtocolRestJsonClient client = clientWithHttpSignerOverride();
+
             SignedRequest signedRequest = SignedRequest.builder().request(signedSdkHttpRequest()).build();
             Mockito.when(signer.sign(any(SignRequest.class))).thenReturn(signedRequest);
 
@@ -159,6 +151,8 @@ public class ProfileFileConfigurationTest {
             env.remove(SdkSystemSetting.AWS_ACCESS_KEY_ID);
             env.remove(SdkSystemSetting.AWS_SECRET_ACCESS_KEY);
 
+            ProtocolRestJsonClient client = clientWithHttpSignerOverride();
+
             SignedRequest signedRequest = SignedRequest.builder().request(signedSdkHttpRequest()).build();
             Mockito.when(signer.sign(any(SignRequest.class))).thenReturn(signedRequest);
 
@@ -179,6 +173,8 @@ public class ProfileFileConfigurationTest {
             env.remove(SdkSystemSetting.AWS_REGION);
             env.remove(SdkSystemSetting.AWS_ACCESS_KEY_ID);
             env.remove(SdkSystemSetting.AWS_SECRET_ACCESS_KEY);
+
+            ProtocolRestJsonAsyncClient asyncClient = asyncClientWithHttpSignerOverride();
 
             SignedRequest signedRequest = SignedRequest.builder().request(signedSdkHttpRequest()).build();
             Mockito.when(signer.sign(any(SignRequest.class))).thenReturn(signedRequest);
@@ -203,6 +199,8 @@ public class ProfileFileConfigurationTest {
 
             Mockito.when(signer.signAsync(any(AsyncSignRequest.class))).thenReturn(CompletableFuture.completedFuture(any(AsyncSignRequest.class)));
 
+            ProtocolRestJsonAsyncClient asyncClient = asyncClientWithHttpSignerOverride();
+
             try {
                 asyncClient.streamingInputOperation(StreamingInputOperationRequest.builder().build(), AsyncRequestBody.fromString(
                     "helloworld")).join();
@@ -224,6 +222,18 @@ public class ProfileFileConfigurationTest {
             assertThat(credentials.secretAccessKey()).isEqualTo("profileIsHonoredForCredentials_skid");
 
         });
+    }
+
+    private ProtocolRestJsonAsyncClient asyncClientWithHttpSignerOverride() {
+        return ProtocolRestJsonAsyncClient.builder()
+                                          .overrideConfiguration(overrideConfig(PROFILE_CONTENT, PROFILE_NAME, null))
+                                          .putAuthScheme(new MockAuthScheme(signer)).build();
+    }
+
+    private ProtocolRestJsonClient clientWithHttpSignerOverride() {
+        return ProtocolRestJsonClient.builder()
+                                     .overrideConfiguration(overrideConfig(PROFILE_CONTENT, PROFILE_NAME, null))
+                                     .putAuthScheme(new MockAuthScheme(signer)).build();
     }
 
     private static void verifySignerProperty(AwsV4HttpSigner signer) {
