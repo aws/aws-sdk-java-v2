@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
@@ -955,6 +956,29 @@ public class DefaultAwsV4HttpSignerTest {
         String contentAsString = content.stream().map(DefaultAwsV4HttpSignerTest::bufferAsString).collect(Collectors.joining());
         assertThat(contentAsString).contains("x-amz-checksum-crc32:" + BinaryUtils.toBase64(checksumValue) + "\r\n");
     }
+
+    @Test
+    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_noContentLengthHeader_throws() throws IOException {
+        PayloadChecksumStore cache = PayloadChecksumStore.create();
+
+        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
+        cache.putChecksumValue(CRC32, checksumValue);
+
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com"))
+                                      .removeHeader("content-length"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        assertThatThrownBy(signer.signAsync(request)::join)
+            .hasCauseInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Content-Length header must be specified");
+    }
+
 
     private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
         SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);
