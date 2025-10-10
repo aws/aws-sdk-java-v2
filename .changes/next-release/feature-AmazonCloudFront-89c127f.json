@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "Added new viewer security policy, TLSv1.2_2025, for CloudFront."
+}
