@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
-    "contributor": "",
-    "description": "Bedrock AgentCore release for Gateway, and Memory including Self-Managed Strategies support for Memory."
-}
