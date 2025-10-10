@@ -46,11 +46,15 @@ import software.amazon.awssdk.utils.Logger;
 
 public class HagridTest {
     private static final Logger log = Logger.loggerFor(HagridTest.class);
+
+    int maxInflightDownloads = 8;
     String bucket = "do-not-delete-java-hagrid-test";
+    long partSize = 5L * 1024 * 1024 * 1024;
+    int chunkSize = 16 * 1024; //16KB
+    long bufferSize = chunkSize * maxInflightDownloads;
 
     @Test
     void getHagridFile() throws IOException {
-        int maxInflightDownloads = 200;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
@@ -60,8 +64,8 @@ public class HagridTest {
                          .multipartConfiguration(c -> c.maxInflightDownloads(maxInflightDownloads))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
-                                                            .connectionAcquisitionTimeout(Duration.ofMinutes(30))
-                                                            .maxConcurrency(maxInflightDownloads)
+                                                            .connectionAcquisitionTimeout(Duration.ofMillis(Integer.MAX_VALUE))
+                                                            .connectionMaxIdleTime(Duration.ofMinutes(2))
                                                             .build())
                          .build();
         Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
@@ -86,8 +90,6 @@ public class HagridTest {
 
     @Test
     void uploadHagridFile() throws IOException {
-        long chunkSize = 16 * KB;
-        int concurrency = 10000;
         String testPath = System.getProperty("testpath");
         String key = System.getProperty("testkey");
         S3AsyncClient s3AsyncClient =
@@ -95,13 +97,13 @@ public class HagridTest {
                          .region(Region.US_WEST_2)
                          .multipartEnabled(true)
                          .multipartConfiguration(c -> c
-                             .minimumPartSizeInBytes(5 * GB)
-                             .apiCallBufferSizeInBytes(chunkSize * concurrency))
+                             .minimumPartSizeInBytes(partSize)
+                             .apiCallBufferSizeInBytes(bufferSize))
                          .httpClient(NettyNioAsyncHttpClient.builder()
                                                             .connectionTimeout(Duration.ofMinutes(30))
                                                             .connectionAcquisitionTimeout(Duration.ofMillis(Integer.MAX_VALUE))
+                                                            .connectionMaxIdleTime(Duration.ofMinutes(2))
                                                             .build())
-                         .overrideConfiguration(c -> c.retryStrategy(r -> r.maxAttempts(1)))
                          .build();
         Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
         S3TransferManager manager = S3TransferManager.builder()

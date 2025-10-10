@@ -3,7 +3,7 @@
 dl='getHagridFile'
 ul='uploadHagridFile'
 
-key='1TB'
+key='48TB'
 path="/mnt/raid0/$key"
 
 mvn test -pl :s3-transfer-manager \
