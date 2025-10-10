@@ -106,9 +106,12 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private void doSendAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
         while (shouldSendMore()) {
-            AsyncRequestBody currentAsyncRequestBody = newFileAsyncRequestBody(simplePublisher);
+            FileAsyncRequestBodyWrapper currentAsyncRequestBody = newFileAsyncRequestBody(simplePublisher);
+            long pos = currentAsyncRequestBody.fileAsyncRequestBody.position();
+            log.info(() -> "Sending FileAsyncRequestBodyWrapper for pos:" + pos);
             simplePublisher.send(currentAsyncRequestBody);
             numAsyncRequestBodiesInFlight.incrementAndGet();
+            log.info(() -> "currently in flight after increment: " + numAsyncRequestBodiesInFlight.get());
             checkCompletion(simplePublisher, currentAsyncRequestBody);
         }
     }
@@ -127,11 +130,13 @@ public final class FileAsyncRequestBodySplitHelper {
     }
 
     private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
+        log.info(() -> "Starting next request (decrementing in flight)");
         numAsyncRequestBodiesInFlight.decrementAndGet();
+        log.info(() -> "Currently in flight after decrement: " + numAsyncRequestBodiesInFlight.get());
         sendAsyncRequestBody(simplePublisher);
     }
 
-    private AsyncRequestBody newFileAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
+    private FileAsyncRequestBodyWrapper newFileAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
         long position = chunkSize * chunkIndex.getAndIncrement();
         long numBytesToReadForThisChunk = Math.min(totalContentLength - position, chunkSize);
         FileAsyncRequestBody fileAsyncRequestBody = FileAsyncRequestBody.builder()
