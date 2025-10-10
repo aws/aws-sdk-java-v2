@@ -1,0 +1,54 @@
+{
+    "version": "2.35.5",
+    "date": "2025-10-10",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Addition of AuditContext in GetTable/GetTables Request"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add InvokedViaFunctionUrl context key to limit invocations to only FURL invokes."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
+            "contributor": "",
+            "description": "Bedrock AgentCore release for Gateway, and Memory including Self-Managed Strategies support for Memory."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
+            "contributor": "",
+            "description": "Bedrock AgentCore release for Runtime, and Memory."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Added new viewer security policy, TLSv1.2_2025, for CloudFront."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Updated the text in the Important section of the ModifyDBClusterParameterGroup page."
+        },
+        {
+            "type": "feature",
+            "category": "odb",
+            "contributor": "",
+            "description": "This release adds APIs that allow you to specify CIDR ranges in your ODB peering connection."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

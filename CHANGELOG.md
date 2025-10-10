@@ -1,4 +1,54 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.5__ __2025-10-10__
+## __AWS Glue__
+  - ### Features
+    - Addition of AuditContext in GetTable/GetTables Request
+
+## __AWS Lambda__
+  - ### Features
+    - Add InvokedViaFunctionUrl context key to limit invocations to only FURL invokes.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Bedrock AgentCore release for Gateway, and Memory including Self-Managed Strategies support for Memory.
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Bedrock AgentCore release for Runtime, and Memory.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Added new viewer security policy, TLSv1.2_2025, for CloudFront.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated the text in the Important section of the ModifyDBClusterParameterGroup page.
+
+## __odb__
+  - ### Features
+    - This release adds APIs that allow you to specify CIDR ranges in your ODB peering connection.
+
+# __2.35.4__ __2025-10-09__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS WAFV2__
+  - ### Features
+    - This release adds the ability to throw WafLimitsExceededException when the maximum number of Application Load Balancer (ALB) associations per AWS WAF v2 WebACL is exceeded.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for ActionConnector and Flow, which are new resources associated with Amazon Quick Suite. Additional updates include expanded Data Source options, further branding customization, and new capabilities that can be restricted by Admins.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Skip Expect: 100-continue header for PutObject and UploadPart requests with zero content length
+
 # __2.35.3__ __2025-10-08__
 ## __AWS License Manager User Subscriptions__
   - ### Features
