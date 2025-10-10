@@ -172,7 +172,10 @@ public final class FileAsyncRequestBodySplitHelper {
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            fileAsyncRequestBody.doAfterOnComplete(() -> startNextRequestBody(simplePublisher))
+            fileAsyncRequestBody.doAfterOnComplete(() -> {
+                                    log.info(() -> "doAfterOnComplete for position " + fileAsyncRequestBody.position());
+                                    startNextRequestBody(simplePublisher);
+                                })
                                 // The reason we still need to call startNextRequestBody when the subscription is
                                 // cancelled is that upstream could cancel the subscription even though the stream has
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback

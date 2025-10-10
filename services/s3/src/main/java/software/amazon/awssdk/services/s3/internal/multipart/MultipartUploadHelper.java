@@ -78,10 +78,10 @@ public final class MultipartUploadHelper {
     }
 
     CompletableFuture<CompleteMultipartUploadResponse> completeMultipartUpload(CompletableFuture<PutObjectResponse> returnFuture,
-                                 String uploadId,
-                                 CompletedPart[] completedParts,
-                                 PutObjectRequest putObjectRequest,
-                                 long contentLength) {
+                                                                               String uploadId,
+                                                                               CompletedPart[] completedParts,
+                                                                               PutObjectRequest putObjectRequest,
+                                                                               long contentLength) {
         CompletableFuture<CompleteMultipartUploadResponse> future =
             genericMultipartHelper.completeMultipartUpload(putObjectRequest, uploadId, completedParts, contentLength);
 
@@ -102,16 +102,14 @@ public final class MultipartUploadHelper {
         UploadPartRequest uploadPartRequest = requestPair.left();
         Integer partNumber = uploadPartRequest.partNumber();
         Optional<Long> contentLength = requestPair.right().contentLength();
-        if (uploadPartRequest.partNumber() % 200 == 0) {
-            log.debug(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber() + " uploadId: " + uploadId + " "
-                            + "contentLength " + contentLength);
-        }
+        log.info(() -> "Sending uploadPartRequest: " + uploadPartRequest.partNumber());
 
         CompletableFuture<UploadPartResponse> uploadPartFuture = s3AsyncClient.uploadPart(uploadPartRequest,
                                                                                           requestPair.right());
 
         CompletableFuture<CompletedPart> convertFuture =
             uploadPartFuture.thenApply(uploadPartResponse -> {
+                log.info(() -> "Completed part: " + partNumber);
                 contentLength.ifPresent(progressListener::subscriberOnNext);
                 return convertUploadPartResponse(completedPartsConsumer, partNumber, uploadPartResponse);
             });
