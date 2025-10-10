@@ -118,7 +118,11 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
 
         payload.decodedContentLength(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH)
                                             .map(Long::parseLong)
-                                            .orElse(0L));
+                                            .orElseThrow(() -> {
+                                                String msg = String.format("Expected header '%s' to be present",
+                                                                           X_AMZ_DECODED_CONTENT_LENGTH);
+                                                return new RuntimeException(msg);
+                                            }));
 
         String checksum = request.firstMatchingHeader(X_AMZ_CONTENT_SHA256).orElseThrow(
             () -> new IllegalArgumentException(X_AMZ_CONTENT_SHA256 + " must be set!")

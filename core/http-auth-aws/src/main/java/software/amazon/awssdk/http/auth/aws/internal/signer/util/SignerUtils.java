@@ -248,9 +248,7 @@ public final class SignerUtils {
             if (contentPublisher == null) {
                 contentLengthFuture = CompletableFuture.completedFuture(0L);
             } else {
-                LengthCalculatingSubscriber lengthCalculatingSubscriber = new LengthCalculatingSubscriber();
-                contentPublisher.subscribe(lengthCalculatingSubscriber);
-                contentLengthFuture = lengthCalculatingSubscriber.contentLengthFuture();
+                throw new UnsupportedOperationException("Content-Length header must be specified");
             }
         }
 

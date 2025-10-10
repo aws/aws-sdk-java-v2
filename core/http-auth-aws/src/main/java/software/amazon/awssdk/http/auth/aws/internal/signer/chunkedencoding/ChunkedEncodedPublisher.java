@@ -275,60 +275,60 @@ public class ChunkedEncodedPublisher implements Publisher<ByteBuffer> {
         }
 
         @Override
-        public void onNext(ByteBuffer inputBuffer) {
-            long totalBufferedBytes = (long) chunkBuffer.position() + inputBuffer.remaining();
+        public void onNext(ByteBuffer incomingData) {
+            long totalAvailableBytes = (long) chunkBuffer.position() + incomingData.remaining();
             // compute the number full chunks we have currently
-            int nBufferedChunks = (int) (totalBufferedBytes / chunkSize);
+            int numCompleteChunks = (int) (totalAvailableBytes / chunkSize);
 
-            List<ByteBuffer> chunks = new ArrayList<>(nBufferedChunks);
+            List<ByteBuffer> encodedChunks = new ArrayList<>(numCompleteChunks);
 
-            if (nBufferedChunks > 0) {
-                // We have some data from the previous inputBuffer
+            if (numCompleteChunks > 0) {
+                // We have some data from the previous incomingData
                 if (chunkBuffer.position() > 0) {
                     int bytesToFill = chunkBuffer.remaining();
 
-                    ByteBuffer slice = inputBuffer.slice();
+                    ByteBuffer dataToFillBuffer = incomingData.slice();
 
-                    slice.limit(slice.position() + bytesToFill);
-                    inputBuffer.position(inputBuffer.position() + bytesToFill);
+                    dataToFillBuffer.limit(dataToFillBuffer.position() + bytesToFill);
+                    incomingData.position(incomingData.position() + bytesToFill);
 
-                    // At this point, we know chunkBuffer is full since inputBuffer has at least enough bytes to make up a full
+                    // At this point, we know chunkBuffer is full since incomingData has at least enough bytes to make up a full
                     // chunk along with the data already in chunkBuffer
-                    chunkBuffer.put(slice);
+                    chunkBuffer.put(dataToFillBuffer);
                     chunkBuffer.flip();
-                    chunks.add(encodeChunk(chunkBuffer));
+                    encodedChunks.add(encodeChunk(chunkBuffer));
 
                     chunkBuffer.flip();
 
-                    nBufferedChunks--;
+                    numCompleteChunks--;
                 }
 
-                // Now encode all the remaining full chunks from inputBuffer.
-                // At this point chunkBuffer has no data in it; slice off chunks from inputBuffer and encode directly
-                for (int i = 0; i < nBufferedChunks; i++) {
-                    ByteBuffer slice = inputBuffer.slice();
+                // Now encode all the remaining full chunks from incomingData.
+                // At this point chunkBuffer has no data in it; slice off chunks from incomingData and encode directly
+                for (int i = 0; i < numCompleteChunks; i++) {
+                    ByteBuffer chunkData = incomingData.slice();
 
-                    int sliceLimit = Math.min(slice.limit(), chunkSize);
-                    slice.limit(sliceLimit);
+                    int maxChunkBytes = Math.min(chunkData.limit(), chunkSize);
+                    chunkData.limit(maxChunkBytes);
 
-                    inputBuffer.position(inputBuffer.position() + slice.remaining());
+                    incomingData.position(incomingData.position() + chunkData.remaining());
 
-                    if (slice.remaining() >= chunkSize) {
-                        slice.limit(slice.position() + chunkSize);
-                        chunks.add(encodeChunk(slice));
+                    if (chunkData.remaining() >= chunkSize) {
+                        chunkData.limit(chunkData.position() + chunkSize);
+                        encodedChunks.add(encodeChunk(chunkData));
                     } else {
-                        chunkBuffer.put(slice);
+                        chunkBuffer.put(chunkData);
                     }
                 }
 
-                if (inputBuffer.hasRemaining()) {
-                    chunkBuffer.put(inputBuffer);
+                if (incomingData.hasRemaining()) {
+                    chunkBuffer.put(incomingData);
                 }
             } else {
-                chunkBuffer.put(inputBuffer);
+                chunkBuffer.put(incomingData);
             }
 
-            subscriber.onNext(chunks);
+            subscriber.onNext(encodedChunks);
         }
     }
 

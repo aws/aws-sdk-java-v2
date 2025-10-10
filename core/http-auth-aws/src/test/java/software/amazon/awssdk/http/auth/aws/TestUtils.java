@@ -68,6 +68,7 @@ public final class TestUtils {
                                                       .protocol("https")
                                                       .method(SdkHttpMethod.POST)
                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                      .putHeader("content-length", Integer.toString(testPayload().length))
                                                       .putHeader("x-amz-archive-description", "test  test")
                                                       .encodedPath("/")
                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
