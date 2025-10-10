@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "v2-migration",
+    "contributor": "sullis",
+    "description": "upgrade openrewrite version to 3.16.0"
+}
