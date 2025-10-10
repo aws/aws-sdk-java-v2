@@ -168,6 +168,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
         private final FileAsyncRequestBody fileAsyncRequestBody;
         private final SimplePublisher<AsyncRequestBody> simplePublisher;
+        private final AtomicBoolean hasStartedNext = new AtomicBoolean(false);
 
         FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
                                     SimplePublisher<AsyncRequestBody> simplePublisher) {
@@ -179,15 +180,24 @@ public final class FileAsyncRequestBodySplitHelper {
         public void subscribe(Subscriber<? super ByteBuffer> s) {
             fileAsyncRequestBody.doAfterOnComplete(() -> {
                                     log.info(() -> "doAfterOnComplete for position " + fileAsyncRequestBody.position());
-                                    startNextRequestBody(simplePublisher);
+                                    startNextRequestBodyOnce();
                                 })
                                 // The reason we still need to call startNextRequestBody when the subscription is
                                 // cancelled is that upstream could cancel the subscription even though the stream has
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback
                                 // will never be invoked, and if the current buffer is full, the publisher will stop
                                 // sending new FileAsyncRequestBody, leading to uncompleted future.
-                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher))
+                                .doAfterOnCancel(() -> {
+                                    log.info(() -> "doAfterOnCancel for position " + fileAsyncRequestBody.position());
+                                    startNextRequestBodyOnce();
+                                })
                                 .subscribe(s);
+        }
+
+        private void startNextRequestBodyOnce() {
+            if (hasStartedNext.compareAndSet(false, true)) {
+                startNextRequestBody(simplePublisher);
+            }
         }
 
         @Override
