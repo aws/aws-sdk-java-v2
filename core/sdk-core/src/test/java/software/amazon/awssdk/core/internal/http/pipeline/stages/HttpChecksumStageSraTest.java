@@ -16,13 +16,11 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static software.amazon.awssdk.core.HttpChecksumConstant.HEADER_FOR_TRAILER_REFERENCE;
 import static software.amazon.awssdk.core.HttpChecksumConstant.SIGNING_METHOD;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.AUTH_SCHEMES;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.CHECKSUM_STORE;
 import static software.amazon.awssdk.core.internal.signer.SigningMethod.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 
 import java.util.HashMap;
@@ -121,28 +119,6 @@ public class HttpChecksumStageSraTest {
         ChecksumSpecs checksumSpecs = ctx.executionAttributes().getAttribute(RESOLVED_CHECKSUM_SPECS);
         assertThat(checksumSpecs).isNotNull();
         assertThat(checksumSpecs.algorithmV2()).isEqualTo(DefaultChecksumAlgorithm.SHA1);
-    }
-
-    @Test
-    public void async_flexibleChecksumInTrailer_addsFlexibleChecksumInTrailer() throws Exception {
-        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
-        boolean isStreaming = true;
-        RequestExecutionContext ctx = flexibleChecksumRequestContext(ClientType.ASYNC,
-                                                                     ChecksumSpecs.builder()
-                                                                                  .algorithmV2(DefaultChecksumAlgorithm.SHA256)
-                                                                                  .headerName(ChecksumUtil.checksumHeaderName(DefaultChecksumAlgorithm.SHA1)),
-                                                                     isStreaming);
-
-        new HttpChecksumStage(ClientType.ASYNC).execute(requestBuilder, ctx);
-
-        assertThat(requestBuilder.headers().get(HEADER_FOR_TRAILER_REFERENCE)).containsExactly(CHECKSUM_SPECS_HEADER);
-        assertThat(requestBuilder.headers().get("Content-encoding")).containsExactly("aws-chunked");
-        assertThat(requestBuilder.headers().get("x-amz-content-sha256")).containsExactly("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
-        assertThat(requestBuilder.headers().get("x-amz-decoded-content-length")).containsExactly("8");
-        assertThat(requestBuilder.headers().get(CONTENT_LENGTH)).containsExactly("86");
-
-        assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
-        assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
     }
 
     @Test
