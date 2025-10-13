@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Data Plane Fronting Layer",
-    "contributor": "",
-    "description": "Updated InvokeAgentRuntime API to accept account id optionally and added CompleteResourceTokenAuth API."
-}

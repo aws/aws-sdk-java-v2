@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock Agent Core Control Plane Fronting Layer",
-    "contributor": "",
-    "description": "Updated http status code in control plane apis of agentcore runtime, tools and identity. Additional included provider types for AgentCore Identity"
-}
