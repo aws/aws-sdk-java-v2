@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "Release Amazon EC2 c8i, c8i-flex, m8a, and r8gb"
+}
