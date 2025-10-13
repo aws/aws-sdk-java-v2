@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
@@ -360,6 +361,8 @@ public class AwsChunkedV4PayloadSignerTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("signingImpls")
     void sign_withoutContentLength_calculatesContentLengthFromPayload(String name, SigningImplementation impl) {
+        assumeFalse("ASYNC".equalsIgnoreCase(name), "The async path disallows unknown content length");
+
         String expectedContent =
             "4\r\n{\"Ta\r\n" +
             "4\r\nbleN\r\n" +

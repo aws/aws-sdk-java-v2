@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 
@@ -109,23 +110,16 @@ public class SignerUtilsTest {
         assertThat(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH)).contains("10");
     }
 
-    @ParameterizedTest
-    @MethodSource("publishers")
-    void computeAndMoveContentLength_contentLengthNotPresent_shouldInvokeSubscribe(Flowable<ByteBuffer> publisher, long expectedLength) {
+    @Test
+    void computeAndMoveContentLength_contentLengthNotPresent_throws() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder();
 
-        if (publisher != null) {
-            publisher = Mockito.spy(publisher);
-        }
+        Publisher<ByteBuffer> contentPublisher = Flowable.just(ByteBuffer.wrap("content".getBytes(StandardCharsets.UTF_8)));
 
-        SignerUtils.computeAndMoveContentLength(request, publisher).join();
+        assertThatThrownBy(() -> SignerUtils.computeAndMoveContentLength(request, contentPublisher).join())
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("Content-Length header must be specified");
 
-        if (publisher != null) {
-            Mockito.verify(publisher, Mockito.times(1)).subscribe(Mockito.any(Subscriber.class));
-        }
-
-        assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
-        assertThat(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH)).contains(String.valueOf(expectedLength));
     }
 
     public static Stream<Arguments> streams() {
