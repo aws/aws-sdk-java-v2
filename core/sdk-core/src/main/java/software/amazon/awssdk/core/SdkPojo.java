@@ -54,4 +54,16 @@ public interface SdkPojo {
     default Map<String, SdkField<?>> sdkFieldNameToField() {
         throw new UnsupportedOperationException();
     }
+
+    // TODO: Consider adding public void validateFields() method in future
+    /* Example usage: public void someMethod() throws ValidationException */
+    /**
+     * Example of method signature:
+     * <pre>
+     * public void exampleMethod() {
+     *   // implementation here
+     * }
+     * </pre>
+     */
+    private static final String ERROR_TEMPLATE = "Failed to call public method()";
 }
