@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.auth.multiauth;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.auth.AuthTestUtils.authScheme;
 
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.api.Assertions;
@@ -49,36 +50,13 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class Sigv4aOnlyMultiAuthTest {
 
-
     private static final String MOCK_HTTP_CLIENT_NAME = "MockHttpClient";
     private static final String EXPECTED_EXCEPTION_MESSAGE = "expected exception";
-    private static final String CRT_DEPENDENCY_ERROR_MESSAGE =
-        "You must add a dependency on the 'software.amazon.awssdk:http-auth-aws-crt' module to enable the CRT-V4a signing "
-        + "feature";
 
     private final EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
 
     @Mock
     private SdkHttpClient mockHttpClient;
-
-    private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
-        return new AuthScheme<AwsCredentialsIdentity>() {
-            @Override
-            public String schemeId() {
-                return schemeId;
-            }
-
-            @Override
-            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
-                return providers.identityProvider(AwsCredentialsIdentity.class);
-            }
-
-            @Override
-            public HttpSigner<AwsCredentialsIdentity> signer() {
-                return signer;
-            }
-        };
-    }
 
     @BeforeEach
     void setUp() {
@@ -119,12 +97,13 @@ public class Sigv4aOnlyMultiAuthTest {
             Sigv4AauthClient client = Sigv4AauthClient.builder()
                                                       .httpClient(mockHttpClient)
                                                       .region(Region.US_WEST_2)
-                                                      .build();
+                                                      .putAuthScheme(authScheme("aws.auth#sigv4a", () -> {
+                                                          throw new RuntimeException("dependency not available");
+                                                      })).build();
 
             assertThatThrownBy(() -> client.simpleOperationWithNoEndpointParams(r -> r.stringMember("")))
-                .hasMessageContaining(CRT_DEPENDENCY_ERROR_MESSAGE);
+                .hasMessageContaining("dependency not available");
         }
-
     }
 
     @Nested

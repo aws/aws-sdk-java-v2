@@ -22,12 +22,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.auth.AuthTestUtils.authScheme;
 
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.CompletableFuture;
 import org.assertj.core.api.Assertions;
@@ -38,17 +35,11 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
-import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
@@ -56,13 +47,9 @@ import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.multiauth.MultiauthClient;
 import software.amazon.awssdk.services.multiauth.MultiauthClientBuilder;
-import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
-import software.amazon.awssdk.services.multiauth.endpoints.MultiauthEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -170,10 +157,12 @@ class MultiAuthSigningPropertiesTest {
             MultiauthClient client = MultiauthClient.builder()
                                                     .httpClient(mockHttpClient)
                                                     .region(Region.US_WEST_2)
-                                                    .build();
+                                                    .putAuthScheme(authScheme("aws.auth#sigv4a", () -> {
+                                                        throw new RuntimeException("dependency not available");
+                                                    })).build();
 
             assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> r.stringMember("")))
-                .hasMessageContaining(CRT_DEPENDENCY_ERROR_MESSAGE);
+                .hasMessageContaining("dependency not available");
         }
 
         @Test
@@ -244,23 +233,6 @@ class MultiAuthSigningPropertiesTest {
         }
     }
 
-    private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
-        return new AuthScheme<AwsCredentialsIdentity>() {
-            @Override
-            public String schemeId() {
-                return schemeId;
-            }
 
-            @Override
-            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
-                return providers.identityProvider(AwsCredentialsIdentity.class);
-            }
-
-            @Override
-            public HttpSigner<AwsCredentialsIdentity> signer() {
-                return signer;
-            }
-        };
-    }
 
 }

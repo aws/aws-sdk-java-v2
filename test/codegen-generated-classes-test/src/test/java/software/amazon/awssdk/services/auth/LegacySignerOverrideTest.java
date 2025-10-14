@@ -24,10 +24,12 @@ import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -46,27 +48,38 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.multiauth.MultiauthAsyncClient;
-import software.amazon.awssdk.services.multiauth.MultiauthClient;
-import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
-import software.amazon.awssdk.services.multiauth.endpoints.MultiauthEndpointProvider;
+import software.amazon.awssdk.services.defaultendpointprovider.DefaultEndpointProviderAsyncClient;
+import software.amazon.awssdk.services.defaultendpointprovider.DefaultEndpointProviderClient;
+import software.amazon.awssdk.services.defaultendpointprovider.auth.scheme.DefaultEndpointProviderAuthSchemeProvider;
+import software.amazon.awssdk.services.endpointauth.EndpointAuthAsyncClient;
+import software.amazon.awssdk.services.endpointauth.EndpointAuthClient;
+import software.amazon.awssdk.services.endpointauth.endpoints.EndpointAuthEndpointProvider;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOperationRequest;
+import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthAsyncClient;
+import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthClient;
+import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
 import software.amazon.awssdk.services.testutil.ValidSdkObjects;
 
 /**
- * Tests to ensure that parameters set when endpoint and auth-scheme resolution occurs get propagated to the legacy signer (i.e.
- * pre-SRA signers).
+ * Tests to ensure that parameters set on either endpoints-based (legacy) or model-based auth schemes get
+ * propagated to the legacy signer (i.e., pre-SRA signers).
  */
 public class LegacySignerOverrideTest {
+    private static final String REGION_FROM_EP = "region-from-ep";
+    private static final String SIGNING_NAME_FROM_EP = "signing-name-from-ep";
+    private static final String REGION_FROM_SERVICE = "region-from-service";
+    private static final String SIGNING_NAME_FROM_SERVICE = "signing-name-from-service";
+
     private Signer mockSigner;
 
     private FailRequestInterceptor interceptor = new FailRequestInterceptor();
@@ -103,7 +116,7 @@ public class LegacySignerOverrideTest {
     }
 
     @Test
-    public void syncClient_oldSignerOverriddenInExecutionInterceptor_takesPrecedence() {
+    public void syncClient_signerOverriddenInExecutionInterceptor_takesPrecedence() {
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
                                                               .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                                               .region(Region.US_WEST_2)
@@ -128,39 +141,36 @@ public class LegacySignerOverrideTest {
 
     @Test
     void v4EndpointAuthSchemeSync_signerOverride_endpointParamsShouldPropagateToSigner() {
-        MultiauthClient client = MultiauthClient
+        EndpointAuthClient client = EndpointAuthClient
             .builder()
-            .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
             .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
             .build();
 
-        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4(r -> {
+        assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> {
         })).hasMessageContaining("boom!");
-        verifySigV4SignerAttributes(mockSigner);
+        verifySigV4SignerAttributes(mockSigner, AuthType.EP);
     }
 
     @Test
     void v4EndpointAuthSchemeAsync_signerOverride_endpointParamsShouldPropagateToSigner() {
-        MultiauthAsyncClient client = MultiauthAsyncClient
+        EndpointAuthAsyncClient client = EndpointAuthAsyncClient
             .builder()
-            .authSchemeProvider(v4AuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4EndpointProviderOverride())
             .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
             .build();
 
-        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4(r -> {
+        assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> {
         }).join()).hasMessageContaining("boom!");
-        verifySigV4SignerAttributes(mockSigner);
+        verifySigV4SignerAttributes(mockSigner, AuthType.EP);
     }
 
     @Test
     void v4aEndpointAuthSchemeSync_signerOverride_thenEndpointParamsShouldPropagateToSigner() {
-        MultiauthClient client = MultiauthClient
+        EndpointAuthClient client = EndpointAuthClient
             .builder()
-            .authSchemeProvider(v4aAuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .overrideConfiguration(
@@ -168,17 +178,15 @@ public class LegacySignerOverrideTest {
                       .addExecutionInterceptor(interceptor))
             .build();
 
-
-        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> {
+        assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> {
         })).hasMessageContaining("boom!");
-        verifySigV4aSignerAttributes(mockSigner);
+        verifySigV4aSignerAttributes(mockSigner, AuthType.EP);
     }
 
     @Test
     void v4aEndpointAuthSchemeAsync_signerOverride_thenEndpointParamsShouldPropagateToSigner() {
-        MultiauthAsyncClient client = MultiauthAsyncClient
+        EndpointAuthAsyncClient client = EndpointAuthAsyncClient
             .builder()
-            .authSchemeProvider(v4aAuthSchemeProviderOverride())
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .endpointProvider(v4aEndpointProviderOverride())
             .overrideConfiguration(
@@ -186,9 +194,137 @@ public class LegacySignerOverrideTest {
                       .addExecutionInterceptor(interceptor))
             .build();
 
-        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> {
+        assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> {
         }).join()).hasMessageContaining("boom!");
-        verifySigV4aSignerAttributes(mockSigner);
+        verifySigV4aSignerAttributes(mockSigner, AuthType.EP);
+    }
+
+    @Test
+    void v4ModelAuthSync_signerOverride_signerPropertiesShouldPropagateToSigner() {
+        DefaultEndpointProviderClient client = DefaultEndpointProviderClient
+            .builder()
+            .authSchemeProvider(v4AuthSchemeProviderOverride())
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+            .build();
+
+        assertThatThrownBy(() -> client.oneOperation(r -> {
+        })).hasMessageContaining("boom!");
+        verifySigV4SignerAttributes(mockSigner, AuthType.MODEL);
+    }
+
+    @Test
+    void v4BothAuthSync_signerOverride_endpointSignerPropertiesShouldPropagateToSigner() {
+        DefaultEndpointProviderClient client = DefaultEndpointProviderClient
+            .builder()
+            .authSchemeProvider(v4AuthSchemeProviderOverride())
+            .endpointProvider(x -> {
+                Endpoint endpoint =
+                    Endpoint.builder()
+                            .url(URI.create("https://testv4.query.us-east-1"))
+                            .putAttribute(
+                                AwsEndpointAttribute.AUTH_SCHEMES,
+                                Collections.singletonList(SigV4AuthScheme.builder()
+                                                                          .signingRegion(REGION_FROM_EP)
+                                                                          .signingName(SIGNING_NAME_FROM_EP)
+                                                                          .disableDoubleEncoding(true)
+                                                                          .build()))
+                            .build();
+
+            return CompletableFuture.completedFuture(endpoint);
+            })
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+            .build();
+
+        assertThatThrownBy(() -> client.oneOperation(r -> {
+        })).hasMessageContaining("boom!");
+        verifySigV4SignerAttributes(mockSigner, AuthType.EP);
+    }
+
+    @Test
+    void v4ModelAuthAsync_signerOverride_signerPropertiesShouldPropagateToSigner() {
+        DefaultEndpointProviderAsyncClient client = DefaultEndpointProviderAsyncClient
+            .builder()
+            .authSchemeProvider(v4AuthSchemeProviderOverride())
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+            .build();
+
+        assertThatThrownBy(() -> client.oneOperation(r -> {
+        }).join()).hasMessageContaining("boom!");
+        verifySigV4SignerAttributes(mockSigner, AuthType.MODEL);
+    }
+
+    // TODO: fix the logic, tracking in JAVA-8567
+    @Disabled("regionSet from EP should be getting used")
+    @Test
+    void v4aBothAuthProviderAndEndpointAuth_signerOverride_endpointSignerPropertiesShouldPropagateToSigner() {
+        Sigv4AauthClient client = Sigv4AauthClient
+            .builder()
+            .authSchemeProvider(i -> {
+                List<AuthSchemeOption> options = new ArrayList<>();
+                options.add(
+                    AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
+                                    .putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SIGNING_NAME_FROM_SERVICE)
+                                    .putSignerProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create(REGION_FROM_SERVICE))
+                                    .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false)
+                                    .build()
+                );
+                return Collections.unmodifiableList(options);
+            })
+            .endpointProvider(x -> {
+                Endpoint endpoint =
+                    Endpoint.builder()
+                            .url(URI.create("https://testv4a.query.us-east-1"))
+                            .putAttribute(
+                                AwsEndpointAttribute.AUTH_SCHEMES,
+                                Collections.singletonList(SigV4aAuthScheme.builder()
+                                                                          .signingRegionSet(Arrays.asList(REGION_FROM_EP))
+                                                                          .signingName(SIGNING_NAME_FROM_EP)
+                                                                          .disableDoubleEncoding(true)
+                                                                          .build()))
+                            .build();
+
+                return CompletableFuture.completedFuture(endpoint);
+            })
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+            .build();
+
+        assertThatThrownBy(() -> client.simpleOperationWithNoEndpointParams(r -> {
+        })).hasMessageContaining("boom!");
+        verifySigV4aSignerAttributes(mockSigner, AuthType.EP);
+    }
+
+    @Test
+    void v4aModelAuthSync_signerOverride_signerPropertiesShouldPropagateToSigner() {
+        Sigv4AauthClient client = Sigv4AauthClient
+            .builder()
+            .authSchemeProvider(v4aAuthSchemeProviderOverride())
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+
+            .build();
+
+        assertThatThrownBy(() -> client.simpleOperationWithNoEndpointParams(r -> {
+        })).hasMessageContaining("boom!");
+        verifySigV4aSignerAttributes(mockSigner, AuthType.MODEL);
+    }
+
+    @Test
+    void v4aModelAuthAsync_signerOverride_signerPropertiesShouldPropagateToSigner() {
+        Sigv4AauthAsyncClient client = Sigv4AauthAsyncClient
+            .builder()
+            .authSchemeProvider(v4aAuthSchemeProviderOverride())
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .overrideConfiguration(o -> o.putAdvancedOption(SIGNER, mockSigner).addExecutionInterceptor(interceptor))
+
+            .build();
+
+        assertThatThrownBy(() -> client.simpleOperationWithNoEndpointParams(r -> {
+        }).join()).hasMessageContaining("boom!");
+        verifySigV4aSignerAttributes(mockSigner, AuthType.MODEL);
     }
 
     private ExecutionInterceptor signerOverrideExecutionInterceptor(Signer signer) {
@@ -204,56 +340,92 @@ public class LegacySignerOverrideTest {
         };
     }
 
-    private static void verifySigV4SignerAttributes(Signer signer) {
+    private static void verifySigV4SignerAttributes(Signer signer, AuthType authType) {
         ArgumentCaptor<SdkHttpFullRequest> httpRequest = ArgumentCaptor.forClass(SdkHttpFullRequest.class);
         ArgumentCaptor<ExecutionAttributes> attributes = ArgumentCaptor.forClass(ExecutionAttributes.class);
         verify(signer).sign(httpRequest.capture(), attributes.capture());
 
         ExecutionAttributes actualAttributes = attributes.getValue();
-        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()).isEqualTo("us-west-1");
-        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("query-test-v4");
+        String expectedRegion;
+        String expectedSigningName;
+        switch (authType) {
+            case EP:
+                expectedRegion = REGION_FROM_EP;
+                expectedSigningName = SIGNING_NAME_FROM_EP;
+                break;
+            case MODEL:
+                expectedRegion = REGION_FROM_SERVICE;
+                expectedSigningName = SIGNING_NAME_FROM_SERVICE;
+                break;
+            default:
+                throw new UnsupportedOperationException("unsupported auth type " + authType);
+        }
+
+        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION).id()).isEqualTo(expectedRegion);
+        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo(expectedSigningName);
         assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isFalse();
     }
 
-    private static void verifySigV4aSignerAttributes(Signer signer) {
+    private static void verifySigV4aSignerAttributes(Signer signer, AuthType authType) {
         ArgumentCaptor<SdkHttpFullRequest> httpRequest = ArgumentCaptor.forClass(SdkHttpFullRequest.class);
         ArgumentCaptor<ExecutionAttributes> attributes = ArgumentCaptor.forClass(ExecutionAttributes.class);
         verify(signer).sign(httpRequest.capture(), attributes.capture());
 
         ExecutionAttributes actualAttributes = attributes.getValue();
+        String expectedRegion;
+        String expectedSigningName;
+        switch (authType) {
+            case EP:
+                expectedRegion = REGION_FROM_EP;
+                expectedSigningName = SIGNING_NAME_FROM_EP;
+                break;
+            case MODEL:
+                expectedRegion = REGION_FROM_SERVICE;
+                expectedSigningName = SIGNING_NAME_FROM_SERVICE;
+                break;
+            default:
+                throw new UnsupportedOperationException("unsupported auth type " + authType);
+        }
 
-        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE).id()).isEqualTo("us-east-1");
-        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo("query-test-v4a");
+        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION_SCOPE).id()).isEqualTo(expectedRegion);
+        assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME)).isEqualTo(expectedSigningName);
         assertThat(actualAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE)).isFalse();
     }
 
-    private static MultiauthAuthSchemeProvider v4AuthSchemeProviderOverride() {
+    private enum AuthType {
+        EP,
+        MODEL
+    }
+
+    private static DefaultEndpointProviderAuthSchemeProvider v4AuthSchemeProviderOverride() {
         return x -> {
             List<AuthSchemeOption> options = new ArrayList<>();
             options.add(
-                AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                                .putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, "query-will-be-overridden")
-                                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, "region-will-be-overridden")
+                AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID)
+                                .putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SIGNING_NAME_FROM_SERVICE)
+                                .putSignerProperty(AwsV4HttpSigner.REGION_NAME, REGION_FROM_SERVICE)
+                                .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false)
                                 .build()
             );
             return Collections.unmodifiableList(options);
         };
     }
 
-    private static MultiauthAuthSchemeProvider v4aAuthSchemeProviderOverride() {
+    private static Sigv4AauthAuthSchemeProvider v4aAuthSchemeProviderOverride() {
         return i -> {
             List<AuthSchemeOption> options = new ArrayList<>();
             options.add(
                 AuthSchemeOption.builder().schemeId("aws.auth#sigv4a")
-                                .putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, "query-will-be-overridden")
-                                .putSignerProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create("region-will-be-overridden"))
+                                .putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SIGNING_NAME_FROM_SERVICE)
+                                .putSignerProperty(AwsV4aHttpSigner.REGION_SET, RegionSet.create(REGION_FROM_SERVICE))
+                                .putSignerProperty(AwsV4aHttpSigner.DOUBLE_URL_ENCODE, false)
                                 .build()
             );
             return Collections.unmodifiableList(options);
         };
     }
 
-    private static MultiauthEndpointProvider v4EndpointProviderOverride() {
+    private static EndpointAuthEndpointProvider v4EndpointProviderOverride() {
         return i -> {
             Endpoint endpoint =
                 Endpoint.builder()
@@ -261,8 +433,8 @@ public class LegacySignerOverrideTest {
                         .putAttribute(
                             AwsEndpointAttribute.AUTH_SCHEMES,
                             Collections.singletonList(SigV4AuthScheme.builder()
-                                                                     .signingRegion("us-west-1")
-                                                                     .signingName("query-test-v4")
+                                                                     .signingRegion(REGION_FROM_EP)
+                                                                     .signingName(SIGNING_NAME_FROM_EP)
                                                                      .disableDoubleEncoding(true)
                                                                      .build()))
                         .build();
@@ -271,7 +443,7 @@ public class LegacySignerOverrideTest {
         };
     }
 
-    private static MultiauthEndpointProvider v4aEndpointProviderOverride() {
+    private static EndpointAuthEndpointProvider v4aEndpointProviderOverride() {
         return x -> {
             Endpoint endpoint =
                 Endpoint.builder()
@@ -279,8 +451,26 @@ public class LegacySignerOverrideTest {
                         .putAttribute(
                             AwsEndpointAttribute.AUTH_SCHEMES,
                             Collections.singletonList(SigV4aAuthScheme.builder()
-                                                                      .addSigningRegion("us-east-1")
-                                                                      .signingName("query-test-v4a")
+                                                                      .addSigningRegion(REGION_FROM_EP)
+                                                                      .signingName(SIGNING_NAME_FROM_EP)
+                                                                      .disableDoubleEncoding(true)
+                                                                      .build()))
+                        .build();
+
+            return CompletableFuture.completedFuture(endpoint);
+        };
+    }
+
+    private static EndpointAuthEndpointProvider sigv4aAuthEndpointProvider() {
+        return x -> {
+            Endpoint endpoint =
+                Endpoint.builder()
+                        .url(URI.create("https://testv4a.query.us-east-1"))
+                        .putAttribute(
+                            AwsEndpointAttribute.AUTH_SCHEMES,
+                            Collections.singletonList(SigV4aAuthScheme.builder()
+                                                                      .addSigningRegion(REGION_FROM_EP)
+                                                                      .signingName(SIGNING_NAME_FROM_EP)
                                                                       .disableDoubleEncoding(true)
                                                                       .build()))
                         .build();

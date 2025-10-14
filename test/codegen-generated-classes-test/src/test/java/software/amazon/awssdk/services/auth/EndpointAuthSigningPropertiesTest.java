@@ -156,8 +156,6 @@ class EndpointAuthSigningPropertiesTest {
         @Test
         @DisplayName("Signer properties from endpoint auth scheme takes precedence")
         void endpointAuthSchemesPresent_shouldHonor() {
-            CapturingSigner signer = new CapturingSigner();
-
             EndpointAuthClient client =
                 EndpointAuthClient.builder()
                                .httpClient(mockHttpClient)
