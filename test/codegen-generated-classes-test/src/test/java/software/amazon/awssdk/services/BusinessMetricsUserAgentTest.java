@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.MET
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -63,6 +64,12 @@ class BusinessMetricsUserAgentTest {
     private static final String USER_AGENT_HEADER_NAME = "User-Agent";
     private static final StaticCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    private static final StaticCredentialsProvider CREDENTIALS_PROVIDER_WITH_ACCOUNTID =
+        StaticCredentialsProvider.create(
+            AwsBasicCredentials.builder()
+                               .accessKeyId("akid").secretAccessKey("skid")
+                               .accountId("012345678901")
+                               .build());
 
     @BeforeEach
     public void setup() {
@@ -76,10 +83,10 @@ class BusinessMetricsUserAgentTest {
 
     private static Stream<Arguments> inputValues() {
         return Stream.of(
-            Arguments.of("Default values", null, Arrays.asList("D", "N", "P", "T")),
-            Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Arrays.asList("P", "T")),
-            Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Arrays.asList("Q", "T")),
-            Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Arrays.asList("R", "T"))
+            Arguments.of("Default values", null, Arrays.asList("D", "N", "P")),
+            Arguments.of("Account ID preferred mode ", AccountIdEndpointMode.PREFERRED, Collections.singletonList("P")),
+            Arguments.of("Account ID disabled mode ", AccountIdEndpointMode.DISABLED, Collections.singletonList("Q")),
+            Arguments.of("Account ID required mode ", AccountIdEndpointMode.REQUIRED, Collections.singletonList("R"))
         );
     }
 
@@ -99,6 +106,28 @@ class BusinessMetricsUserAgentTest {
 
         String userAgent = assertAndGetUserAgentString();
         expectedMetrics.forEach(expectedMetric -> assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedMetric)));
+    }
+
+    @Test
+    void when_accountIdNotResolved_noMetricIsAdded() {
+        RestJsonEndpointProvidersAsyncClientBuilder clientBuilder = asyncClientBuilderForEndpointProvider();
+        clientBuilder.credentialsProvider(CREDENTIALS_PROVIDER);
+
+        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("T"));
+    }
+
+    @Test
+    void when_accountIdResolved_correctMetricIsAdded() {
+        RestJsonEndpointProvidersAsyncClientBuilder clientBuilder = asyncClientBuilderForEndpointProvider();
+        clientBuilder.credentialsProvider(CREDENTIALS_PROVIDER_WITH_ACCOUNTID);
+
+        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join()).hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("T"));
     }
 
     @Test
