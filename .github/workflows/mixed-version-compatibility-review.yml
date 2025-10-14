@@ -1,0 +1,87 @@
+name: Mixed Version Compatibility Review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  merge_group:
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
+    branches:
+      - master
+
+jobs:
+  mixed-version-compatibility-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for mixed version compatibility risks
+        id: compatibility-check
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth 1
+          
+          # Define the specific base class files that are risky for mixed versions
+          BASE_CLASS_FILES="core/aws-core/src/main/java/software/amazon/awssdk/awscore/AwsRequest.java
+          core/aws-core/src/main/java/software/amazon/awssdk/awscore/AwsResponse.java
+          core/aws-core/src/main/java/software/amazon/awssdk/awscore/AwsResponseMetadata.java
+          core/aws-core/src/main/java/software/amazon/awssdk/awscore/exception/AwsServiceException.java
+          core/sdk-core/src/main/java/software/amazon/awssdk/core/SdkPojo.java"
+          
+          # Check if any of the base class files were modified
+          CHANGED_BASE_FILES=$(git diff --name-only remotes/origin/${{ github.base_ref }} -- $BASE_CLASS_FILES || true)
+          
+          if [ -z "$CHANGED_BASE_FILES" ]; then
+            echo "No base class changes detected."
+            echo "has_risk=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Base class changes detected in:"
+          echo "$CHANGED_BASE_FILES"
+          
+          # Look for new public methods in the changed base class files
+          NEW_METHODS=$(git diff remotes/origin/${{ github.base_ref }} -- $BASE_CLASS_FILES | grep '^+.*public.*(' || true)
+          
+          if [ -n "$NEW_METHODS" ]; then
+            echo "::warning::New public methods detected in base classes:"
+            echo "$NEW_METHODS" | while read line; do
+              echo "::warning::$line"
+            done
+            echo "has_risk=true" >> $GITHUB_OUTPUT
+            echo "risk_type=new_methods" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Base class files modified but no new public methods detected"
+            echo "has_risk=true" >> $GITHUB_OUTPUT  
+            echo "risk_type=other_changes" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Fail if compatibility risks found without approval
+        if: ${{ steps.compatibility-check.outputs.has_risk == 'true' && !contains(github.event.pull_request.labels.*.name, 'mixed-version-compatibility-reviewed') }}
+        run: |
+          echo "::error::Mixed version compatibility risk detected!"
+          echo "::error::Changes were made to base classes that generated service code implements:"
+          echo "::error::- AwsRequest, AwsResponse, AwsResponseMetadata, AwsServiceException, SdkPojo"
+          echo "::error::"
+          echo "::error::This may break customers using mixed SDK versions if:"
+          echo "::error::- New methods are added with UnsupportedOperationException defaults"
+          echo "::error::- Core behavior changes invoke existing methods in new ways"
+          echo "::error::- Interface contracts change in subtle ways"
+          echo "::error::"
+          echo "::error::Please review with the team for mixed version impact and add"
+          echo "::error::'mixed-version-compatibility-reviewed' label after approval."
+          echo "::error::"
+          echo "::error::If this introduces compatibility issues, consider:"
+          echo "::error::- Bumping minor version"
+          echo "::error::- Documenting compatibility impact in release notes"
+          echo "::error::- Ensuring older service modules can handle the changes"
+          exit 1
+      
+      - name: Success message when approved
+        if: ${{ steps.compatibility-check.outputs.has_risk == 'true' && contains(github.event.pull_request.labels.*.name, 'mixed-version-compatibility-reviewed') }}
+        run: |
+          echo "✅ Mixed version compatibility risk detected but approved for merge"
+          echo "Base class changes have been reviewed and approved by the team"
