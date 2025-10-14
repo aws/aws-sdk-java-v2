@@ -1,0 +1,48 @@
+{
+    "version": "2.35.7",
+    "date": "2025-10-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "The AWS Backup job attribute extension enhancement helps customers better understand the plan that initiated each job, and the properties of the resource each job creates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Transfer Family",
+            "contributor": "",
+            "description": "SFTP connectors now support routing connections via customers' VPC. This enables connections to remote servers that are only accessible in a customer's VPC environment, and to servers that are accessible over the internet but need connections coming from an IP address in a customer VPC's CIDR range."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "This release introduces support for Microsoft license included applications streaming."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "SDK release for TaskTemplateInfo in Contact for DescribeContact response."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Support creating scoped and trustedIdentityPropagation enabled connections."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds support for creating instant, point-in-time copies of EBS volumes within the same Availability Zone"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Move UntagResource API body member to query parameter"
+        }
+    ]
+}

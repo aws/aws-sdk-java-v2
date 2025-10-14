@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.7__ __2025-10-14__
+## __AWS Backup__
+  - ### Features
+    - The AWS Backup job attribute extension enhancement helps customers better understand the plan that initiated each job, and the properties of the resource each job creates.
+
+## __AWS Transfer Family__
+  - ### Features
+    - SFTP connectors now support routing connections via customers' VPC. This enables connections to remote servers that are only accessible in a customer's VPC environment, and to servers that are accessible over the internet but need connections coming from an IP address in a customer VPC's CIDR range.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release introduces support for Microsoft license included applications streaming.
+
+## __Amazon Connect Service__
+  - ### Features
+    - SDK release for TaskTemplateInfo in Contact for DescribeContact response.
+
+## __Amazon DataZone__
+  - ### Features
+    - Support creating scoped and trustedIdentityPropagation enabled connections.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for creating instant, point-in-time copies of EBS volumes within the same Availability Zone
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Move UntagResource API body member to query parameter
+
 # __2.35.6__ __2025-10-13__
 ## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
   - ### Features
