@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Set the RESOLVED_ACCOUNT_ID (T) user-agent metric only when accountID is actually resolved from credentials."
+}
