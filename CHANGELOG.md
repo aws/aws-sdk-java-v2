@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.6__ __2025-10-13__
+## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+  - ### Features
+    - Updated http status code in control plane apis of agentcore runtime, tools and identity. Additional included provider types for AgentCore Identity
+
+## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+  - ### Features
+    - Updated InvokeAgentRuntime API to accept account id optionally and added CompleteResourceTokenAuth API.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Release Amazon EC2 c8i, c8i-flex, m8a, and r8gb
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - CloudWatch Observability Admin adds the ability to enable Resource tags for telemetry in a customer account. The release introduces new APIs to enable, disable and describe the status of Resource tags for telemetry feature. This new capability simplifies monitoring AWS resources using tags.
+
 # __2.35.5__ __2025-10-10__
 ## __AWS Glue__
   - ### Features
