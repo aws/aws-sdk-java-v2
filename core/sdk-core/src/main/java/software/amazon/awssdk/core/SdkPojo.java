@@ -54,4 +54,12 @@ public interface SdkPojo {
     default Map<String, SdkField<?>> sdkFieldNameToField() {
         throw new UnsupportedOperationException();
     }
+
+    /**
+     * Test method to trigger mixed version compatibility detection.
+     * This simulates adding a new method that could break mixed versions.
+     */
+    default String testCompatibilityMethod() {
+        throw new UnsupportedOperationException();
+    }
 }
