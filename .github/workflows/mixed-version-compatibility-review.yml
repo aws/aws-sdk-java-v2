@@ -49,7 +49,8 @@ jobs:
             grep '^+.*public.*(' | \
             grep -v '^+[[:space:]]*//.*public.*(' | \
             grep -v '^+.*".*public.*(' | \
-            grep -v '^+[[:space:]]*\*.*public.*(' || true)
+            grep -v '^+[[:space:]]*\*.*public.*(' | \
+            grep -v '^+[[:space:]]*/\*.*public.*(' || true)
           
           if [ -n "$NEW_METHODS" ]; then
             echo "::warning::New public methods detected in base classes:"
