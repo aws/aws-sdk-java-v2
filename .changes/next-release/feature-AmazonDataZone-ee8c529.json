@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DataZone",
-    "contributor": "",
-    "description": "Support creating scoped and trustedIdentityPropagation enabled connections."
-}
