@@ -112,4 +112,11 @@ public abstract class AwsRequest extends SdkRequest {
             return awsRequestOverrideConfig;
         }
     }
+
+    /**
+     * Test method to verify workflow detects AwsRequest changes.
+     */
+    public String testWorkflowDetection() {
+        throw new UnsupportedOperationException();
+    }
 }
