@@ -18,7 +18,7 @@
       "http":{
         "method":"POST",
         "requestUri":"/memories/{memoryId}/memoryRecords/batchCreate",
-        "responseCode":200
+        "responseCode":201
       },
       "input":{"shape":"BatchCreateMemoryRecordsInput"},
       "output":{"shape":"BatchCreateMemoryRecordsOutput"},
@@ -71,12 +71,31 @@
       ],
       "documentation":"<p>Updates multiple memory records with custom content in a single batch operation within the specified memory.</p>"
     },
+    "CompleteResourceTokenAuth":{
+      "name":"CompleteResourceTokenAuth",
+      "http":{
+        "method":"POST",
+        "requestUri":"/identities/CompleteResourceTokenAuth",
+        "responseCode":200
+      },
+      "input":{"shape":"CompleteResourceTokenAuthRequest"},
+      "output":{"shape":"CompleteResourceTokenAuthResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Confirms the user authentication session for obtaining OAuth2.0 tokens for a resource.</p>"
+    },
     "CreateEvent":{
       "name":"CreateEvent",
       "http":{
         "method":"POST",
         "requestUri":"/memories/{memoryId}/events",
-        "responseCode":200
+        "responseCode":201
       },
       "input":{"shape":"CreateEventInput"},
       "output":{"shape":"CreateEventOutput"},
@@ -341,7 +360,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Sends a request to an agent or tool hosted in an Amazon Bedrock AgentCore Runtime and receives responses in real-time. </p> <p>To invoke an agent you must specify the AgentCore Runtime ARN and provide a payload containing your request. You can optionally specify a qualifier to target a specific version or endpoint of the agent.</p> <p>This operation supports streaming responses, allowing you to receive partial responses as they become available. We recommend using pagination to ensure that the operation returns quickly and successfully when processing large responses.</p> <p>For example code, see <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-invoke-agent.html\">Invoke an AgentCore Runtime agent</a>. </p> <p>If you're integrating your agent with OAuth, you can't use the Amazon Web Services SDK to call <code>InvokeAgentRuntime</code>. Instead, make a HTTPS request to <code>InvokeAgentRuntime</code>. For an example, see <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html\">Authenticate and authorize with Inbound Auth and Outbound Auth</a>.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:InvokeAgentRuntime</code> permission.</p>"
+      "documentation":"<p>Sends a request to an agent or tool hosted in an Amazon Bedrock AgentCore Runtime and receives responses in real-time. </p> <p>To invoke an agent you must specify the AgentCore Runtime ARN and provide a payload containing your request. You can optionally specify a qualifier to target a specific version or endpoint of the agent.</p> <p>This operation supports streaming responses, allowing you to receive partial responses as they become available. We recommend using pagination to ensure that the operation returns quickly and successfully when processing large responses.</p> <p>For example code, see <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-invoke-agent.html\">Invoke an AgentCore Runtime agent</a>. </p> <p>If you're integrating your agent with OAuth, you can't use the Amazon Web Services SDK to call <code>InvokeAgentRuntime</code>. Instead, make a HTTPS request to <code>InvokeAgentRuntime</code>. For an example, see <a href=\"https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html\">Authenticate and authorize with Inbound Auth and Outbound Auth</a>.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:InvokeAgentRuntime</code> permission. If you are making a call to <code>InvokeAgentRuntime</code> on behalf of a user ID with the <code>X-Amzn-Bedrock-AgentCore-Runtime-User-Id</code> header, You require permissions to both actions (<code>bedrock-agentcore:InvokeAgentRuntime</code> and <code>bedrock-agentcore:InvokeAgentRuntimeForUser</code>). </p>"
     },
     "InvokeCodeInterpreter":{
       "name":"InvokeCodeInterpreter",
@@ -676,6 +695,11 @@
     "ApiKeyType":{
       "type":"string",
       "max":65536,
+      "min":1,
+      "sensitive":true
+    },
+    "AuthorizationUrlType":{
+      "type":"string",
       "min":1,
       "sensitive":true
     },
@@ -1048,6 +1072,27 @@
       },
       "documentation":"<p>Contains output from a code interpreter stream.</p>",
       "eventstream":true
+    },
+    "CompleteResourceTokenAuthRequest":{
+      "type":"structure",
+      "required":[
+        "userIdentifier",
+        "sessionUri"
+      ],
+      "members":{
+        "userIdentifier":{
+          "shape":"UserIdentifier",
+          "documentation":"<p>The OAuth2.0 token or user ID that was used to generate the workload access token used for initiating the user authorization flow to retrieve OAuth2.0 tokens.</p>"
+        },
+        "sessionUri":{
+          "shape":"RequestUri",
+          "documentation":"<p>Unique identifier for the user's authentication session for retrieving OAuth2 tokens. This ID tracks the authorization flow state across multiple requests and responses during the OAuth2 authentication process.</p>"
+        }
+      }
+    },
+    "CompleteResourceTokenAuthResponse":{
+      "type":"structure",
+      "members":{}
     },
     "ConflictException":{
       "type":"structure",
@@ -1714,6 +1759,10 @@
           "shape":"Oauth2FlowType",
           "documentation":"<p>The type of flow to be performed.</p>"
         },
+        "sessionUri":{
+          "shape":"RequestUri",
+          "documentation":"<p>Unique identifier for the user's authentication session for retrieving OAuth2 tokens. This ID tracks the authorization flow state across multiple requests and responses during the OAuth2 authentication process.</p>"
+        },
         "resourceOauth2ReturnUrl":{
           "shape":"ResourceOauth2ReturnUrlType",
           "documentation":"<p>The callback URL to redirect to after the OAuth 2.0 token retrieval is complete. This URL must be one of the provided URLs configured for the workload identity.</p>"
@@ -1725,6 +1774,10 @@
         "customParameters":{
           "shape":"CustomRequestParametersType",
           "documentation":"<p>A map of custom parameters to include in the authorization request to the resource credential provider. These parameters are in addition to the standard OAuth 2.0 flow parameters, and will not override them.</p>"
+        },
+        "customState":{
+          "shape":"State",
+          "documentation":"<p>An opaque string that will be sent back to the callback URL provided in resourceOauth2ReturnUrl. This state should be used to protect the callback URL of your application against CSRF attacks by ensuring the response corresponds to the original request.</p>"
         }
       }
     },
@@ -1732,12 +1785,20 @@
       "type":"structure",
       "members":{
         "authorizationUrl":{
-          "shape":"String",
+          "shape":"AuthorizationUrlType",
           "documentation":"<p>The URL to initiate the authorization process, provided when the access token requires user authorization.</p>"
         },
         "accessToken":{
           "shape":"AccessTokenType",
           "documentation":"<p>The OAuth 2.0 access token to use.</p>"
+        },
+        "sessionUri":{
+          "shape":"RequestUri",
+          "documentation":"<p>Unique identifier for the user's authorization session for retrieving OAuth2 tokens. This matches the sessionId from the request and can be used to track the session state.</p>"
+        },
+        "sessionStatus":{
+          "shape":"SessionStatus",
+          "documentation":"<p>Status indicating whether the user's authorization session is in progress or has failed. This helps determine the next steps in the OAuth2 authentication flow.</p>"
         }
       }
     },
@@ -1949,12 +2010,22 @@
           "location":"querystring",
           "locationName":"qualifier"
         },
+        "accountId":{
+          "shape":"InvokeAgentRuntimeRequestAccountIdString",
+          "documentation":"<p>The identifier of the Amazon Web Services account for the agent runtime resource.</p>",
+          "location":"querystring",
+          "locationName":"accountId"
+        },
         "payload":{
           "shape":"Body",
           "documentation":"<p>The input data to send to the agent runtime. The format of this data depends on the specific agent configuration and must match the specified content type. For most agents, this is a JSON object containing the user's request.</p>"
         }
       },
       "payload":"payload"
+    },
+    "InvokeAgentRuntimeRequestAccountIdString":{
+      "type":"string",
+      "pattern":"[0-9]{12}"
     },
     "InvokeAgentRuntimeRequestBaggageString":{
       "type":"string",
@@ -2059,6 +2130,18 @@
           "location":"header",
           "locationName":"x-amzn-code-interpreter-session-id"
         },
+        "traceId":{
+          "shape":"InvokeCodeInterpreterRequestTraceIdString",
+          "documentation":"<p>The trace identifier for request tracking.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "traceParent":{
+          "shape":"InvokeCodeInterpreterRequestTraceParentString",
+          "documentation":"<p>The parent trace information for distributed tracing.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
         "name":{
           "shape":"ToolName",
           "documentation":"<p>The name of the code interpreter to invoke.</p>"
@@ -2068,6 +2151,16 @@
           "documentation":"<p>The arguments for the code interpreter. This includes the code to execute and any additional parameters such as the programming language, whether to clear the execution context, and other execution options. The structure of this parameter depends on the specific code interpreter being used.</p>"
         }
       }
+    },
+    "InvokeCodeInterpreterRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "InvokeCodeInterpreterRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
     },
     "InvokeCodeInterpreterResponse":{
       "type":"structure",
@@ -2731,6 +2824,12 @@
       "min":1,
       "pattern":"[a-zA-Z0-9_-]+"
     },
+    "RequestUri":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"urn:ietf:params:oauth:request_uri:[a-zA-Z0-9-._~]+"
+    },
     "ResourceContent":{
       "type":"structure",
       "required":["type"],
@@ -2935,6 +3034,13 @@
       "min":1,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
     },
+    "SessionStatus":{
+      "type":"string",
+      "enum":[
+        "IN_PROGRESS",
+        "FAILED"
+      ]
+    },
     "SessionSummary":{
       "type":"structure",
       "required":[
@@ -2971,6 +3077,18 @@
       "type":"structure",
       "required":["browserIdentifier"],
       "members":{
+        "traceId":{
+          "shape":"StartBrowserSessionRequestTraceIdString",
+          "documentation":"<p>The trace identifier for request tracking.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "traceParent":{
+          "shape":"StartBrowserSessionRequestTraceParentString",
+          "documentation":"<p>The parent trace information for distributed tracing.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
         "browserIdentifier":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the browser to use for this session. This identifier specifies which browser environment to initialize for the session.</p>",
@@ -2995,6 +3113,16 @@
           "idempotencyToken":true
         }
       }
+    },
+    "StartBrowserSessionRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "StartBrowserSessionRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
     },
     "StartBrowserSessionResponse":{
       "type":"structure",
@@ -3026,6 +3154,18 @@
       "type":"structure",
       "required":["codeInterpreterIdentifier"],
       "members":{
+        "traceId":{
+          "shape":"StartCodeInterpreterSessionRequestTraceIdString",
+          "documentation":"<p>The trace identifier for request tracking.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "traceParent":{
+          "shape":"StartCodeInterpreterSessionRequestTraceParentString",
+          "documentation":"<p>The parent trace information for distributed tracing.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
         "codeInterpreterIdentifier":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the code interpreter to use for this session. This identifier specifies which code interpreter environment to initialize for the session.</p>",
@@ -3046,6 +3186,16 @@
           "idempotencyToken":true
         }
       }
+    },
+    "StartCodeInterpreterSessionRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "StartCodeInterpreterSessionRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
     },
     "StartCodeInterpreterSessionResponse":{
       "type":"structure",
@@ -3069,6 +3219,12 @@
         }
       }
     },
+    "State":{
+      "type":"string",
+      "max":4096,
+      "min":1,
+      "sensitive":true
+    },
     "StopBrowserSessionRequest":{
       "type":"structure",
       "required":[
@@ -3076,6 +3232,18 @@
         "sessionId"
       ],
       "members":{
+        "traceId":{
+          "shape":"StopBrowserSessionRequestTraceIdString",
+          "documentation":"<p>The trace identifier for request tracking.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "traceParent":{
+          "shape":"StopBrowserSessionRequestTraceParentString",
+          "documentation":"<p>The parent trace information for distributed tracing.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
         "browserIdentifier":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the browser associated with the session.</p>",
@@ -3094,6 +3262,16 @@
           "idempotencyToken":true
         }
       }
+    },
+    "StopBrowserSessionRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "StopBrowserSessionRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
     },
     "StopBrowserSessionResponse":{
       "type":"structure",
@@ -3124,6 +3302,18 @@
         "sessionId"
       ],
       "members":{
+        "traceId":{
+          "shape":"StopCodeInterpreterSessionRequestTraceIdString",
+          "documentation":"<p>The trace identifier for request tracking.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "traceParent":{
+          "shape":"StopCodeInterpreterSessionRequestTraceParentString",
+          "documentation":"<p>The parent trace information for distributed tracing.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
         "codeInterpreterIdentifier":{
           "shape":"String",
           "documentation":"<p>The unique identifier of the code interpreter associated with the session.</p>",
@@ -3142,6 +3332,16 @@
           "idempotencyToken":true
         }
       }
+    },
+    "StopCodeInterpreterSessionRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "StopCodeInterpreterSessionRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
     },
     "StopCodeInterpreterSessionResponse":{
       "type":"structure",
@@ -3427,6 +3627,21 @@
       "type":"string",
       "max":128,
       "min":1
+    },
+    "UserIdentifier":{
+      "type":"structure",
+      "members":{
+        "userToken":{
+          "shape":"UserTokenType",
+          "documentation":"<p>The OAuth2.0 token issued by the user’s identity provider</p>"
+        },
+        "userId":{
+          "shape":"UserIdType",
+          "documentation":"<p>The ID of the user for whom you have retrieved a workload access token for</p>"
+        }
+      },
+      "documentation":"<p>The OAuth2.0 token or user ID that was used to generate the workload access token used for initiating the user authorization flow to retrieve OAuth2.0 tokens.</p>",
+      "union":true
     },
     "UserTokenType":{
       "type":"string",
