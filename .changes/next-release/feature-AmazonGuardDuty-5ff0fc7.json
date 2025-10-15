@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon GuardDuty",
+    "contributor": "",
+    "description": "Added default pagination value for ListMalwareProtectionPlans API and updated UpdateFindingsFeedback API"
+}
