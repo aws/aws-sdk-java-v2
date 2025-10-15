@@ -225,10 +225,13 @@ public final class SignerUtils {
     }
 
     /**
-     * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
-     * the payload is read in its entirety to calculate the length.
+     * Move Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, the
+     * future is completed exceptionally. Note: this behavior differs from the sync version
+     * {@link #computeAndMoveContentLength(SdkHttpRequest.Builder, ContentStreamProvider)} as the sync version reads the entire
+     * stream to compute the length if the header is not present. The async version was introduced after the sync version; moving
+     * forward, requests that have an unknown content length should be done through chunked transfer encoding.
      */
-    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> computeAndMoveContentLength(
+    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> moveContentLength(
         SdkHttpRequest.Builder request, Publisher<ByteBuffer> contentPublisher) {
         Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
 

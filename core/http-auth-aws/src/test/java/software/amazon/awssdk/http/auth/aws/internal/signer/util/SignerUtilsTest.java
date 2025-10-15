@@ -81,7 +81,7 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void computeAndMoveContentLength_async_decodedContentLengthPresent_shouldNotSubscribeToPublisher() {
+    void moveContentLength_async_decodedContentLengthPresent_shouldNotSubscribeToPublisher() {
 
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
                                                        .appendHeader(X_AMZ_DECODED_CONTENT_LENGTH, "10")
@@ -89,7 +89,7 @@ public class SignerUtilsTest {
 
         Publisher<ByteBuffer> contentPublisher = Mockito.spy(Flowable.empty());
 
-        SignerUtils.computeAndMoveContentLength(request, contentPublisher).join();
+        SignerUtils.moveContentLength(request, contentPublisher).join();
         Mockito.verify(contentPublisher, Mockito.never()).subscribe(Mockito.any(Subscriber.class));
 
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -97,13 +97,13 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void computeAndMoveContentLength_async_contentLengthPresent_shouldNotSubscribeToPublisher() {
+    void moveContentLength_async_contentLengthPresent_shouldNotSubscribeToPublisher() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder()
                                                        .appendHeader(CONTENT_LENGTH, "10");
 
         Publisher<ByteBuffer> contentPublisher = Mockito.spy(Flowable.empty());
 
-        SignerUtils.computeAndMoveContentLength(request, contentPublisher).join();
+        SignerUtils.moveContentLength(request, contentPublisher).join();
         Mockito.verify(contentPublisher, Mockito.never()).subscribe(Mockito.any(Subscriber.class));
 
         assertThat(request.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
@@ -111,12 +111,12 @@ public class SignerUtilsTest {
     }
 
     @Test
-    void computeAndMoveContentLength_contentLengthNotPresent_throws() {
+    void moveContentLength_contentLengthNotPresent_throws() {
         SdkHttpRequest.Builder request = SdkHttpRequest.builder();
 
         Publisher<ByteBuffer> contentPublisher = Flowable.just(ByteBuffer.wrap("content".getBytes(StandardCharsets.UTF_8)));
 
-        assertThatThrownBy(() -> SignerUtils.computeAndMoveContentLength(request, contentPublisher).join())
+        assertThatThrownBy(() -> SignerUtils.moveContentLength(request, contentPublisher).join())
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Content-Length header must be specified");
 

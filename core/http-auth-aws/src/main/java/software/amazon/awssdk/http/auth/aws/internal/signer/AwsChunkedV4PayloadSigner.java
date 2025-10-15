@@ -25,7 +25,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.computeAndMoveContentLength;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -173,7 +173,7 @@ public final class AwsChunkedV4PayloadSigner implements V4PayloadSigner {
     @Override
     public CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> beforeSigningAsync(
         SdkHttpRequest.Builder request, Publisher<ByteBuffer> payload) {
-        return computeAndMoveContentLength(request, payload)
+        return moveContentLength(request, payload)
             .thenApply(p -> {
                 SdkHttpRequest.Builder requestBuilder = p.left();
                 setupPreExistingTrailers(requestBuilder);
