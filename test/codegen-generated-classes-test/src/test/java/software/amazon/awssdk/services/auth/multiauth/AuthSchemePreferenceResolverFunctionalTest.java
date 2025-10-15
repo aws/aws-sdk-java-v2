@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.multiauth;
+package software.amazon.awssdk.services.auth.multiauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -46,6 +46,8 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
+import software.amazon.awssdk.services.multiauth.MultiauthClientBuilder;
 import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
 import software.amazon.awssdk.services.multiauth.model.MultiAuthWithOnlySigv4AAndSigv4Request;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
