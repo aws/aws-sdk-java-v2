@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.util;
+package software.amazon.awssdk.http.auth.aws.signer;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class SignerConstant {
 
     public static final String AWS4_TERMINATOR = "aws4_request";

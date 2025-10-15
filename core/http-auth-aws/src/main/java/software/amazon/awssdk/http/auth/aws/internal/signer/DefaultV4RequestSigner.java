@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_SIGNING_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hashCanonicalRequest;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;

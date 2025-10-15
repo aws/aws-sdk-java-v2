@@ -16,7 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AWS4_TERMINATOR;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_TERMINATOR;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDate;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDateTime;
 
