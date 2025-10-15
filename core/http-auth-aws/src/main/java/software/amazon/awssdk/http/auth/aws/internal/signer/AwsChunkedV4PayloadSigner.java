@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS_CHUNKED;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_SIGNED_PAYLOAD;
@@ -24,7 +25,6 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMI
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

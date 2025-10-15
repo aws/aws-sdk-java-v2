@@ -17,12 +17,12 @@ package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeaders;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getSignedHeadersString;
-import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_SIGNING_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addDateHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.addHostHeader;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.formatDateTime;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.getContentHash;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AWS4_SIGNING_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.time.Duration;
 import java.util.List;

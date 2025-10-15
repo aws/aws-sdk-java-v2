@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws.signer;
 
 import java.time.Duration;
-import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 
 @SdkProtectedApi
