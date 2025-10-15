@@ -1,4 +1,40 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.8__ __2025-10-15__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Set the RESOLVED_ACCOUNT_ID (T) user-agent metric only when accountID is actually resolved from credentials.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Automated Reasoning Policy now offers enhanced AWS KMS integration. The CreateAutomatedReasoningPolicy API includes a new kmsKeyId field, allowing customers to specify their preferred KMS key for encryption, improving control and compliance with AWS encryption mandates.
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add support for NetworkType field in CreateDbCluster, ModifyDbCluster, RestoreDbClusterFromSnapshot and RestoreDbClusterToPointInTime for DocumentDB.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Introducing EC2 Capacity Manager for monitoring and analyzing capacity usage across On-Demand Instances, Spot Instances, and Capacity Reservations.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added default pagination value for ListMalwareProtectionPlans API and updated UpdateFindingsFeedback API
+
+## __Amazon Lightsail__
+  - ### Features
+    - Add support for manage Lightsail Bucket CORS configuration
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release expands Listener Rule Conditions to support RegexValues and adds support for a new Transforms field in Listener Rules.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release adds support for creating and managing InfluxDB 3 Core and Enterprise DbClusters.
+
 # __2.35.7__ __2025-10-14__
 ## __AWS Backup__
   - ### Features

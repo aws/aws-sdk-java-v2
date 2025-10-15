@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "This release expands Listener Rule Conditions to support RegexValues and adds support for a new Transforms field in Listener Rules."
-}

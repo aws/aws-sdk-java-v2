@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "Add support for manage Lightsail Bucket CORS configuration"
-}
