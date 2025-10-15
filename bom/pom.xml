@@ -2323,6 +2323,11 @@
                 <artifactId>bcmdashboards</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>signin</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>
