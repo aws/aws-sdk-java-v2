@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.internal.checksums.LegacyDelegatingChecksum;
  */
 @Deprecated
 @SdkProtectedApi
-public final class Sha256Checksum extends LegacyDelegatingChecksum {
+public class Sha256Checksum extends LegacyDelegatingChecksum {
 
     public Sha256Checksum() {
         super(DefaultChecksumAlgorithm.SHA256);

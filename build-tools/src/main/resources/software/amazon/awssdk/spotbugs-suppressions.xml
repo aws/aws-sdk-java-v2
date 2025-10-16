@@ -301,6 +301,15 @@
         <Bug pattern="DCN_NULLPOINTER_EXCEPTION"/>
     </Match>
 
+    <!-- Retrieves and updates crc value in update() -->
+    <Match>
+        <Or>
+            <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32CChecksum"/>
+            <Class name="software.amazon.awssdk.checksums.internal.SdkCrc32Checksum"/>
+        </Or>
+        <Bug pattern="SA_FIELD_SELF_ASSIGNMENT"/>
+    </Match>
+
     <!-- Suppress existing blocking call. -->
     <!-- Classes making calls to disallowed methods made outside of the async code path can be added here to be suppressed -->
     <!-- TODO: remove classes from the list once blocking calls have been removed from the SDK async code path -->

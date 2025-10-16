@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.internal.checksums.LegacyDelegatingChecksum;
  */
 @Deprecated
 @SdkProtectedApi
-public final class Crc32Checksum extends LegacyDelegatingChecksum {
+public class Crc32Checksum extends LegacyDelegatingChecksum {
 
     public Crc32Checksum() {
         super(DefaultChecksumAlgorithm.CRC32);

@@ -30,7 +30,7 @@ import software.amazon.awssdk.core.internal.checksums.LegacyDelegatingChecksum;
  */
 @Deprecated
 @SdkProtectedApi
-public final class Md5Checksum extends LegacyDelegatingChecksum {
+public class Md5Checksum extends LegacyDelegatingChecksum {
 
     public Md5Checksum() {
         super(DefaultChecksumAlgorithm.MD5);

@@ -33,7 +33,7 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * Implementor notes: this class is technically not needed, but we can't remove it now for backwards compatibility reasons.
  */
 @SdkProtectedApi
-public final class ChecksumSpecs implements ToCopyableBuilder<ChecksumSpecs.Builder, ChecksumSpecs> {
+public class ChecksumSpecs implements ToCopyableBuilder<ChecksumSpecs.Builder, ChecksumSpecs> {
 
     private final ChecksumAlgorithm algorithm;
     private final String headerName;
