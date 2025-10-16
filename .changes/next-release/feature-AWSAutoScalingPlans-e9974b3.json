@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Auto Scaling Plans",
+    "contributor": "",
+    "description": "Updated FIPS endpoints for US GovCloud regions"
+}
