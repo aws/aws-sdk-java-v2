@@ -16,92 +16,78 @@
 package software.amazon.awssdk.protocol.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.protocolsmithyrpcv2.ProtocolSmithyrpcv2AsyncClient;
-import software.amazon.awssdk.services.protocolsmithyrpcv2.ProtocolSmithyrpcv2AsyncClientBuilder;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
-import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
+import software.amazon.awssdk.services.protocolsmithyrpcv2.ProtocolSmithyrpcv2Client;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
+import software.amazon.awssdk.utils.StringInputStream;
 
 class ProtocolRpcV2CborUserAgentTest {
-    private CapturingInterceptor interceptor;
-
     private static final String USER_AGENT_HEADER_NAME = "User-Agent";
     private static final StaticCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
 
+    private MockSyncHttpClient mockHttpClient;
+
     @BeforeEach
     public void setup() {
-        this.interceptor = new CapturingInterceptor();
+        mockHttpClient = new MockSyncHttpClient();
+        mockHttpClient.stubNextResponse(mockResponse());
     }
 
     @Test
     void when_rpcV2CborProtocolIsUsed_correctMetricIsAdded() {
-        ProtocolSmithyrpcv2AsyncClientBuilder clientBuilder = asyncClientBuilderForRpcV2Cbor();
+        ProtocolSmithyrpcv2Client client = ProtocolSmithyrpcv2Client.builder()
+                                                                    .region(Region.US_WEST_2)
+                                                                    .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                                    .httpClient(mockHttpClient)
+                                                                    .build();
 
-        assertThatThrownBy(() -> clientBuilder.build().operationWithNoInputOrOutput(r -> {}).join())
-            .hasMessageContaining("stop");
+        client.operationWithNoInputOrOutput(r -> {});
 
-        String userAgent = assertAndGetUserAgentString();
+        String userAgent = getUserAgentFromLastRequest();
         assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value()));
     }
 
     @Test
     void when_nonRpcV2CborProtocolIsUsed_rpcV2CborMetricIsNotAdded() {
-        ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForRestJson();
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                                                              .region(Region.US_WEST_2)
+                                                              .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                              .httpClient(mockHttpClient)
+                                                              .build();
 
-        assertThatThrownBy(() -> clientBuilder.build().allTypes(r -> {}).join())
-            .hasMessageContaining("stop");
+        client.allTypes(r -> {});
 
-        String userAgent = assertAndGetUserAgentString();
+        String userAgent = getUserAgentFromLastRequest();
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value()));
     }
 
-    private String assertAndGetUserAgentString() {
-        Map<String, List<String>> headers = interceptor.context.httpRequest().headers();
-        assertThat(headers).containsKey(USER_AGENT_HEADER_NAME);
-        return headers.get(USER_AGENT_HEADER_NAME).get(0);
+    private String getUserAgentFromLastRequest() {
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
+
+        List<String> userAgentHeaders = lastRequest.headers().get(USER_AGENT_HEADER_NAME);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        return userAgentHeaders.get(0);
     }
 
-    private ProtocolSmithyrpcv2AsyncClientBuilder asyncClientBuilderForRpcV2Cbor() {
-        return ProtocolSmithyrpcv2AsyncClient.builder()
-                                             .region(Region.US_WEST_2)
-                                             .credentialsProvider(CREDENTIALS_PROVIDER)
-                                             .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
-    }
-
-    private ProtocolRestJsonAsyncClientBuilder asyncClientBuilderForRestJson() {
-        return ProtocolRestJsonAsyncClient.builder()
-                                          .region(Region.US_WEST_2)
-                                          .credentialsProvider(CREDENTIALS_PROVIDER)
-                                          .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
-    }
-
-    public static class CapturingInterceptor implements ExecutionInterceptor {
-        private Context.BeforeTransmission context;
-        private ExecutionAttributes executionAttributes;
-
-        @Override
-        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
-            this.context = context;
-            this.executionAttributes = executionAttributes;
-            throw new RuntimeException("stop");
-        }
-
-        public ExecutionAttributes executionAttributes() {
-            return executionAttributes;
-        }
+    private static HttpExecuteResponse mockResponse() {
+        return HttpExecuteResponse.builder()
+                                  .response(SdkHttpResponse.builder().statusCode(200).build())
+                                  .responseBody(AbortableInputStream.create(new StringInputStream("{}")))
+                                  .build();
     }
 }
