@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -58,7 +57,7 @@ class ProtocolRpcV2CborUserAgentTest {
         client.operationWithNoInputOrOutput(r -> {});
 
         String userAgent = getUserAgentFromLastRequest();
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("M"));
     }
 
     @Test
@@ -72,7 +71,7 @@ class ProtocolRpcV2CborUserAgentTest {
         client.allTypes(r -> {});
 
         String userAgent = getUserAgentFromLastRequest();
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("M"));
     }
 
     private String getUserAgentFromLastRequest() {
