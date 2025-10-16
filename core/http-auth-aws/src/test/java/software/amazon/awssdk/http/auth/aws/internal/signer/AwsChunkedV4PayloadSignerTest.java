@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 
+import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -549,7 +550,10 @@ public class AwsChunkedV4PayloadSignerTest {
                                                            V4RequestSigningResult requestSigningResult) {
         SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
 
-        TestPublisher payload = new TestPublisher(data);
+        ByteBuffer dataBuffer = ByteBuffer.wrap(data);
+        dataBuffer.mark();
+        // Ensure buffer is always reset before the downstream publisher receives it
+        Publisher<ByteBuffer> payload = Flowable.just(dataBuffer).doOnNext(ByteBuffer::reset);
 
         Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>> beforeSigningResult =
             signer.beforeSigningAsync(request, payload).join();
