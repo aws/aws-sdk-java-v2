@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue DataBrew",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
