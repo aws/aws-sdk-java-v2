@@ -15,72 +15,24 @@
 
 package software.amazon.awssdk.core.checksums;
 
-import java.security.MessageDigest;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.core.internal.checksums.LegacyDelegatingChecksum;
 
 /**
- * Implementation of {@link SdkChecksum} to calculate an Sha-256 Checksum.
+ * Implementation of {@link SdkChecksum} to calculate a Sha-256 Checksum.
+ *
+ * <p>
+ * Implementor notes: this should've been an internal API, but we can't change it now since it's not within the internal
+ * subpackage.
+ *
  * @deprecated this class is deprecated and subject to removal.
  */
 @Deprecated
-@SdkInternalApi
-public class Sha256Checksum implements SdkChecksum {
-
-    private MessageDigest digest;
-
-    private MessageDigest digestLastMarked;
+@SdkProtectedApi
+public final class Sha256Checksum extends LegacyDelegatingChecksum {
 
     public Sha256Checksum() {
-        this.digest = getDigest();
-    }
-
-    @Override
-    public void update(int b) {
-        digest.update((byte) b);
-    }
-
-    @Override
-    public void update(byte[] b, int off, int len) {
-        digest.update(b, off, len);
-    }
-
-    @Override
-    public long getValue() {
-        throw new UnsupportedOperationException("Use getChecksumBytes() instead.");
-    }
-
-    @Override
-    public void reset() {
-        digest = (digestLastMarked == null)
-                // This is necessary so that should there be a reset without a
-                // preceding mark, the Sha-256 would still be computed correctly.
-                ? getDigest()
-                : cloneFrom(digestLastMarked);
-    }
-
-    private MessageDigest getDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (Exception e) {
-            throw new IllegalStateException("Unexpected error creating SHA-256 checksum", e);
-        }
-    }
-
-    @Override
-    public byte[] getChecksumBytes() {
-        return digest.digest();
-    }
-
-    @Override
-    public void mark(int readLimit) {
-        digestLastMarked = cloneFrom(digest);
-    }
-
-    private MessageDigest cloneFrom(MessageDigest from) {
-        try {
-            return (MessageDigest) from.clone();
-        } catch (CloneNotSupportedException e) { // should never occur
-            throw new IllegalStateException("unexpected", e);
-        }
+        super(DefaultChecksumAlgorithm.SHA256);
     }
 }
