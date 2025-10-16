@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.multiauth;
+package software.amazon.awssdk.services.auth.multiauth;
 
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.auth.AuthTestUtils.authScheme;
 
 import java.util.Arrays;
 import java.util.StringJoiner;
@@ -39,7 +40,6 @@ import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
@@ -47,9 +47,9 @@ import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
+import software.amazon.awssdk.services.multiauth.MultiauthClientBuilder;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -121,12 +121,12 @@ class MultiAuthSigningPropertiesTest {
             assertThatThrownBy(() -> client.multiAuthWithRegionSetInEndpointParams(r -> r.stringMember("")))
                 .hasMessageContaining("stop");
 
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.GLOBAL);
+            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                .isEqualTo(RegionSet.GLOBAL.asString());
         }
 
         @Test
-        @DisplayName("Should use the Region set from Endpoint RuleSet when no RegionSet configured")
+        @DisplayName("Region set configured on the client takes precedence")
         void clientApiConfiguredRegionSetTakePrecedenceOverEndpointRulesRegionSet() {
             CapturingSigner signer = new CapturingSigner();
             MultiauthClient client = MultiauthClient.builder()
@@ -142,8 +142,8 @@ class MultiAuthSigningPropertiesTest {
             assertThatThrownBy(() -> client.multiAuthWithRegionSetInEndpointParams(r -> r.stringMember("")))
                 .hasMessageContaining("stop");
 
-            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                .isEqualTo(RegionSet.create("us-west-2,us-gov-east-1"));
+            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                .isEqualTo(RegionSet.create("us-west-2,us-gov-east-1").asString());
         }
     }
 
@@ -157,10 +157,12 @@ class MultiAuthSigningPropertiesTest {
             MultiauthClient client = MultiauthClient.builder()
                                                     .httpClient(mockHttpClient)
                                                     .region(Region.US_WEST_2)
-                                                    .build();
+                                                    .putAuthScheme(authScheme("aws.auth#sigv4a", () -> {
+                                                        throw new RuntimeException("dependency not available");
+                                                    })).build();
 
             assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> r.stringMember("")))
-                .hasMessageContaining(CRT_DEPENDENCY_ERROR_MESSAGE);
+                .hasMessageContaining("dependency not available");
         }
 
         @Test
@@ -231,23 +233,6 @@ class MultiAuthSigningPropertiesTest {
         }
     }
 
-    private static AuthScheme<?> authScheme(String schemeId, HttpSigner<AwsCredentialsIdentity> signer) {
-        return new AuthScheme<AwsCredentialsIdentity>() {
-            @Override
-            public String schemeId() {
-                return schemeId;
-            }
 
-            @Override
-            public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
-                return providers.identityProvider(AwsCredentialsIdentity.class);
-            }
-
-            @Override
-            public HttpSigner<AwsCredentialsIdentity> signer() {
-                return signer;
-            }
-        };
-    }
 
 }

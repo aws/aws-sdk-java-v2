@@ -1,4 +1,205 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.9__ __2025-10-16__
+## __AWS Amplify__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS App Runner__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Auto Scaling Plans__
+  - ### Features
+    - Updated FIPS endpoints for US GovCloud regions
+
+## __AWS Batch__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Billing and Cost Management Data Exports__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Data Exchange__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Free Tier__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Global Accelerator__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Glue DataBrew__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Health Imaging__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Key Management Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Mainframe Modernization Application Testing__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Migration Hub Config__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Price List Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Route53 Recovery Control Config__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SSM-GUIConnect__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Systems Manager Incident Manager Contacts__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSBillingConductor__
+  - ### Features
+    - New feature: service flat CLI and first AWS managed pricing plan (BasicPricingPlan)
+
+## __AWSMainframeModernization__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Data Lifecycle Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon GameLift__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Interactive Video Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Keyspaces__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Lex Model Building Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Lex Runtime V2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Location Service Routes V2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Lookout for Equipment__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Machine Learning__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Managed Grafana__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon MemoryDB__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon OpenSearch Ingestion__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Personalize__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Personalize Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Pinpoint SMS and Voice Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Polly__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon QLDB__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon QLDB Session__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Simple Systems Manager (SSM)__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Timestream Query__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Voice ID__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AmazonApiGatewayManagementApi__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Network Flow Monitor__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
 # __2.35.8__ __2025-10-15__
 ## __AWS SDK for Java v2__
   - ### Features
