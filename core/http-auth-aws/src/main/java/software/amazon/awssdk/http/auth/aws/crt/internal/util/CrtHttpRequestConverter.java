@@ -20,8 +20,10 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.HOST;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -29,6 +31,7 @@ import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.crt.internal.io.CrtInputStream;
+import software.amazon.awssdk.http.auth.aws.crt.internal.signer.CrtRequestBodyAdapter;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 import software.amazon.awssdk.utils.uri.SdkUri;
@@ -53,6 +56,22 @@ public final class CrtHttpRequestConverter {
         HttpRequestBodyStream crtInputStream = null;
         if (payload != null) {
             crtInputStream = new CrtInputStream(payload);
+        }
+
+        return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
+    }
+
+    public static HttpRequest toRequest(SdkHttpRequest request, Publisher<ByteBuffer> payload, long contentLength) {
+        String method = request.method().name();
+        String encodedPath = encodedPathToCrtFormat(request.encodedPath());
+
+        String encodedQueryString = request.encodedQueryParameters().map(value -> "?" + value).orElse("");
+
+        HttpHeader[] crtHeaderArray = createHttpHeaderArray(request);
+
+        HttpRequestBodyStream crtInputStream = null;
+        if (payload != null) {
+            crtInputStream = new CrtRequestBodyAdapter(payload, contentLength);
         }
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, crtInputStream);
