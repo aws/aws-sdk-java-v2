@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal;
+package software.amazon.awssdk.utils.cache;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

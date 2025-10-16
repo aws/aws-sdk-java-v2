@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.cache.FifoCache;
 
 public class FifoCacheTest {
 
