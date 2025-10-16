@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SSO Identity Store",
-    "contributor": "",
-    "description": "Update endpoint ruleset parameters casing"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSBillingConductor",
-    "contributor": "",
-    "description": "New feature: service flat CLI and first AWS managed pricing plan (BasicPricingPlan)"
-}
