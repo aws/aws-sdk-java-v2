@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service Routes V2",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
