@@ -27,7 +27,8 @@ import software.amazon.awssdk.checksums.SdkChecksum;
  * A decorating {@code Subscriber} that updates a list of {@code SdkChecksum}s with the data of each buffer given to
  * {@code onNext}.
  * <p>
- * This is "unbuffered", as opposed to {@link ChecksumSubscriber} which <i>does</i> buffer the data.
+ * This is "unbuffered", as opposed to {@link ChecksumSubscriber} which <i>does</i> buffer the data. The buffered version is
+ * only used for non-streaming flexible checksums; since those payloads will not be very large, the buffering is acceptable.
  */
 @SdkInternalApi
 public class UnbufferedChecksumSubscriber implements Subscriber<ByteBuffer> {
