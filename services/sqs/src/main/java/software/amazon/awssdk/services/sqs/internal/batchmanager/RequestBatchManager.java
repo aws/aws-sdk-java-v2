@@ -163,12 +163,11 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     public void close() {
         requestsAndResponsesMaps.forEach((batchKey, batchBuffer) -> {
             requestsAndResponsesMaps.cancelScheduledFlush(batchKey);
-            Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractedEntries =
-                requestsAndResponsesMaps.extractBatchIfReady(batchKey);
+            Map<String, BatchingExecutionContext<RequestT, ResponseT>>
+                extractedEntries = requestsAndResponsesMaps.extractBatchIfReady(batchKey);
 
             while (!extractedEntries.isEmpty()) {
                 flushBuffer(batchKey, extractedEntries);
-                extractedEntries = requestsAndResponsesMaps.extractBatchIfReady(batchKey);
             }
 
         });
