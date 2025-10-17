@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS ARC - Zonal Shift",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
