@@ -35,6 +35,7 @@ import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -133,7 +134,8 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION))
             .putAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION,
                           clientConfig.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION))
-            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig))
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, 
+                          resolveUserAgentBusinessMetrics(clientConfig, executionParams))
             .putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
                           clientConfig.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET));
 
@@ -350,11 +352,23 @@ public final class AwsExecutionContextBuilder {
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-    private static BusinessMetricCollection resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection 
+        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig, 
+                                        ClientExecutionParams<InputT, OutputT> executionParams) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
                                                             clientConfig.option(RETRY_STRATEGY));
         retryModeMetric.ifPresent(businessMetrics::addMetric);
+
+        if (isRpcV2CborProtocol(executionParams.getProtocolMetadata())) {
+            businessMetrics.addMetric("M");
+        }
+        
         return businessMetrics;
+    }
+
+    private static boolean isRpcV2CborProtocol(SdkProtocolMetadata protocolMetadata) {
+        return protocolMetadata != null &&
+               "smithy-rpc-v2-cbor".equals(protocolMetadata.serviceProtocol());
     }
 }

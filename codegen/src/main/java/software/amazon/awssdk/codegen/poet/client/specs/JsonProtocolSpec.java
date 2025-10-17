@@ -25,14 +25,10 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.lang.model.element.Modifier;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
 import software.amazon.awssdk.awscore.eventstream.RestEventStreamAsyncResponseTransformer;
@@ -52,7 +48,6 @@ import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrai
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
-import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.SdkPojoBuilder;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -61,7 +56,6 @@ import software.amazon.awssdk.core.client.handler.AttachHttpMetadataResponseHand
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.protocols.cbor.AwsCborProtocolFactory;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.json.AwsJsonProtocol;
@@ -230,10 +224,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(discoveredEndpoint(opModel))
                      .add(credentialType(opModel, model))
                      .add(".withRequestConfiguration(clientConfiguration)")
-                     .add(".withInput($L)\n", 
-                          model.getMetadata().isRpcV2CborProtocol() ? 
-                          "applyRpcV2CborUserAgent(" + opModel.getInput().getVariableName() + ")" : 
-                          opModel.getInput().getVariableName())
+                     .add(".withInput($L)\n", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
@@ -329,10 +320,7 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
         builder.add(RequestCompressionTrait.create(opModel, model))
                .add(".withInput($L)$L)",
-                    intermediateModel.getMetadata().isRpcV2CborProtocol() ? 
-                    "applyRpcV2CborUserAgent(" + opModel.getInput().getVariableName() + ")" : 
-                    opModel.getInput().getVariableName(), 
-                    asyncResponseTransformerVariable(isStreaming, isRestJson, opModel))
+                    opModel.getInput().getVariableName(), asyncResponseTransformerVariable(isStreaming, isRestJson, opModel))
                .add(opModel.getEndpointDiscovery() != null ? ");" : ";");
 
         if (opModel.hasStreamingOutput()) {
@@ -579,50 +567,5 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private boolean isRestJson(IntermediateModel model) {
         return model.getMetadata().getProtocol() == Protocol.REST_JSON;
-    }
-
-    @Override
-    public List<MethodSpec> additionalMethods() {
-        List<MethodSpec> methods = new ArrayList<>();
-
-        applyRpcV2CborUserAgentMethod().ifPresent(methods::add);
-
-        return methods;
-    }
-
-    private Optional<MethodSpec> applyRpcV2CborUserAgentMethod() {
-        if (!model.getMetadata().isRpcV2CborProtocol()) {
-            return Optional.empty();
-        }
-
-        TypeVariableName typeVariableName =
-            TypeVariableName.get("T", poetExtensions.getModelClass(model.getSdkRequestBaseClassName()));
-
-        ParameterizedTypeName parameterizedTypeName = ParameterizedTypeName
-            .get(ClassName.get(Consumer.class), ClassName.get(AwsRequestOverrideConfiguration.Builder.class));
-
-        CodeBlock codeBlock = CodeBlock.builder()
-                                       .addStatement("$T userAgentApplier = b -> "
-                                                     + "b.addApiName($T.builder().name($S).version($S).build())",
-                                                     parameterizedTypeName, ApiName.class,
-                                                     "sdk-metrics",
-                                                     BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value())
-                                       .addStatement("$T overrideConfiguration =\n"
-                                                     + "            request.overrideConfiguration().map(c -> c.toBuilder()"
-                                                     + ".applyMutation(userAgentApplier).build())\n"
-                                                     + "            .orElse((AwsRequestOverrideConfiguration.builder()"
-                                                     + ".applyMutation(userAgentApplier).build()))",
-                                                     AwsRequestOverrideConfiguration.class)
-                                       .addStatement("return (T) request.toBuilder().overrideConfiguration(overrideConfiguration)"
-                                                     + ".build()")
-                                       .build();
-
-        return Optional.of(MethodSpec.methodBuilder("applyRpcV2CborUserAgent")
-                                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                                    .addParameter(typeVariableName, "request")
-                                    .addTypeVariable(typeVariableName)
-                                    .addCode(codeBlock)
-                                    .returns(typeVariableName)
-                                    .build());
     }
 }
