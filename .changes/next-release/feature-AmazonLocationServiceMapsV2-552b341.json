@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service Maps V2",
-    "contributor": "",
-    "description": "Added support for optional style parameters in maps, including Terrain, ContourDensity, Traffic, and TravelModes."
-}

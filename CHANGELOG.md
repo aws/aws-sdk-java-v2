@@ -1,4 +1,209 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.10__ __2025-10-17__
+## __AWS ARC - Zonal Shift__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS AppConfig Data__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeStar Notifications__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Control Catalog__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS DataSync__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Directory Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Core Device Advisor__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Data Plane__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Things Graph__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT TwinMaker__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Lake Formation__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS License Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - The ListEntities API now supports two new CAPI filters: DeliveryOptionTypes for SaaS products and CompatibleAWSServices for Container products.
+
+## __AWS MediaConnect__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Migration Hub Refactor Spaces__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Network Firewall__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Network Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Organizations__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Performance Insights__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Route53 Recovery Readiness__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Signer__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Telco Network Builder__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Chime SDK Meetings__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudFront__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudFront KeyValueStore__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch Evidently__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Documentation updates for Amazon EC2.
+
+## __Amazon Elasticsearch Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon EventBridge__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Updates documentation to clarify valid application binaries for an Amazon GameLift Streams application and provide descriptions of stream session error status reasons
+
+## __Amazon Kendra Intelligent Ranking__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Video Streams Media__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - Added support for optional style parameters in maps, including Terrain, ContourDensity, Traffic, and TravelModes.
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon SageMaker geospatial capabilities__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Simple Workflow Service__
+  - ### Features
+    - Releasing minor endpoint updates.
+
+## __Amazon Timestream Write__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AmplifyBackend__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __EC2 Image Builder__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __FinSpace Public API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __FinSpace User Environment Management service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __QApps__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
 # __2.35.9__ __2025-10-16__
 ## __AWS Amplify__
   - ### Features

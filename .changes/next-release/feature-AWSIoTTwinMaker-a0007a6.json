@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT TwinMaker",
-    "contributor": "",
-    "description": "Update endpoint ruleset parameters casing"
-}
