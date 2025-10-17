@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Route53 Recovery Readiness",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
