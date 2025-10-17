@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Core Device Advisor",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
