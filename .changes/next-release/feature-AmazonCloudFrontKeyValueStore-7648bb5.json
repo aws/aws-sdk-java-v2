@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront KeyValueStore",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
