@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Migration Hub Refactor Spaces",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
