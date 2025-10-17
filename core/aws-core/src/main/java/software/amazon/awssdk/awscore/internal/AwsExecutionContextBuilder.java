@@ -16,6 +16,7 @@
 package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
+import static software.amazon.awssdk.awscore.internal.AwsServiceProtocol.SMITHY_RPC_V2_CBOR;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
@@ -370,6 +371,6 @@ public final class AwsExecutionContextBuilder {
 
     private static boolean isRpcV2CborProtocol(SdkProtocolMetadata protocolMetadata) {
         return protocolMetadata != null &&
-               "smithy-rpc-v2-cbor".equals(protocolMetadata.serviceProtocol());
+               SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
     }
 }
