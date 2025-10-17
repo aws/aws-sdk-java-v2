@@ -57,6 +57,7 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
@@ -352,7 +353,7 @@ public final class AwsExecutionContextBuilder {
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-    private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection 
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection
         resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig, 
                                         ClientExecutionParams<InputT, OutputT> executionParams) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
@@ -361,7 +362,7 @@ public final class AwsExecutionContextBuilder {
         retryModeMetric.ifPresent(businessMetrics::addMetric);
 
         if (isRpcV2CborProtocol(executionParams.getProtocolMetadata())) {
-            businessMetrics.addMetric("M");
+            businessMetrics.addMetric(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value());
         }
         
         return businessMetrics;
