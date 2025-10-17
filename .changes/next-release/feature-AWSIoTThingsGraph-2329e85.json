@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Things Graph",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
