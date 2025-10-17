@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Well-Architected Tool",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
