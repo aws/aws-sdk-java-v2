@@ -158,6 +158,16 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             builder.addStatement("recordEnvironmentTokenBusinessMetric(selectedAuthScheme, "
                                  + "executionAttributes)");
         }
+
+        if (authSchemeSpecUtils.hasSigV4aSupport()) {
+            builder.beginControlFlow("if (selectedAuthScheme != null && "
+                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($S))",
+                                     "aws.auth#sigv4a")
+                   .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
+                                 + ".addMetric($T.SIGV4A_SIGNING.value())",
+                                 SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+                   .endControlFlow();
+        }
         return builder.build();
     }
 

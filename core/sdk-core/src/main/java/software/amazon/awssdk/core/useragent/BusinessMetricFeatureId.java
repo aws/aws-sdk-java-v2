@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * An enum class representing a short form of identity providers to record in the UA string.
  *
- * Unimplemented metrics: I,J,K,M,O,S,U-c
+ * Unimplemented metrics: I,J,K,M,O,U-c
  * Unsupported metrics (these will never be added): A,H
  */
 @SdkProtectedApi
@@ -39,6 +39,7 @@ public enum BusinessMetricFeatureId {
     ACCOUNT_ID_MODE_PREFERRED("P"),
     ACCOUNT_ID_MODE_DISABLED("Q"),
     ACCOUNT_ID_MODE_REQUIRED("R"),
+    SIGV4A_SIGNING("S"),
     RESOLVED_ACCOUNT_ID("T"),
     DDB_MAPPER("d"),
     BEARER_SERVICE_ENV_VARS("3"),
