@@ -163,9 +163,13 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             builder.beginControlFlow("if (selectedAuthScheme != null && "
                                      + "selectedAuthScheme.authSchemeOption().schemeId().equals($S))",
                                      "aws.auth#sigv4a")
-                   .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS)"
-                                 + ".addMetric($T.SIGV4A_SIGNING.value())",
-                                 SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+                   .addStatement("$T businessMetrics = executionAttributes.getAttribute($T.BUSINESS_METRICS)",
+                                 ClassName.get("software.amazon.awssdk.core.useragent", "BusinessMetricCollection"),
+                                 SdkInternalExecutionAttribute.class)
+                   .beginControlFlow("if (businessMetrics != null)")
+                   .addStatement("businessMetrics.addMetric($T.SIGV4A_SIGNING.value())",
+                                 BusinessMetricFeatureId.class)
+                   .endControlFlow()
                    .endControlFlow();
         }
         return builder.build();

@@ -20,6 +20,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -51,8 +52,11 @@ public final class DatabaseAuthSchemeInterceptor implements ExecutionInterceptor
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
         putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
         if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals("aws.auth#sigv4a")) {
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
-                BusinessMetricFeatureId.SIGV4A_SIGNING.value());
+            BusinessMetricCollection businessMetrics = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+            if (businessMetrics != null) {
+                businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
+            }
         }
     }
 
