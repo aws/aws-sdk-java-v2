@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "AWS SDK for Java v2 Codegenerator",
+    "contributor": "",
+    "description": "Remove `useSraAuth` setting from customization config."
+}
