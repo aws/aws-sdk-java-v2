@@ -23,6 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
@@ -33,9 +36,11 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthAsyncClient;
 import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthClient;
+import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
+import java.util.Arrays;
 
 /**
  * Test class to verify that SIGV4A_SIGNING business metric is correctly included
@@ -115,6 +120,45 @@ class Sigv4aBusinessMetricUserAgentTest {
 
         String userAgent = getUserAgentFromLastAsyncRequest();
         System.out.println("Regular async service User-Agent: " + userAgent);
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+    }
+
+    @Test
+    void when_signerIsOverridden_sigv4aMetricIsNotAdded() {
+        Sigv4AauthClient client = Sigv4AauthClient.builder()
+                                                  .region(Region.US_WEST_2)
+                                                  .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                  .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, Aws4Signer.create())
+                                                                        .build())
+                                                  .httpClient(mockHttpClient)
+                                                  .build();
+
+        client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
+
+        String userAgent = getUserAgentFromLastRequest();
+        System.out.println("Signer override User-Agent: " + userAgent);
+
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+    }
+
+
+    @Test
+    void when_authSchemeProviderOverridesSigv4aOrder_sigv4IsSelected() {
+        Sigv4AauthClient client = Sigv4AauthClient.builder()
+                                                  .region(Region.US_WEST_2)
+                                                  .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                  .authSchemeProvider(Sigv4AauthAuthSchemeProvider.
+                                                                          defaultProvider(
+                                                      Arrays.asList("sigv4","sigv4a")))
+                                                  .httpClient(mockHttpClient)
+                                                  .build();
+
+        client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
+
+        String userAgent = getUserAgentFromLastRequest();
+        System.out.println("User-Agent: " + userAgent);
+
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
     }
 

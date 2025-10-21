@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -54,7 +55,8 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         List<AuthSchemeOption> authOptions = resolveAuthOptions(context, executionAttributes);
         SelectedAuthScheme<? extends Identity> selectedAuthScheme = selectAuthScheme(authOptions, executionAttributes);
         putSelectedAuthScheme(executionAttributes, selectedAuthScheme);
-        if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals("aws.auth#sigv4a")) {
+        if (selectedAuthScheme != null && selectedAuthScheme.authSchemeOption().schemeId().equals("aws.auth#sigv4a")
+            && !SignerOverrideUtils.isSignerOverridden(context.request(), executionAttributes)) {
             BusinessMetricCollection businessMetrics = executionAttributes
                 .getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
             if (businessMetrics != null) {

@@ -161,8 +161,10 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builder.beginControlFlow("if (selectedAuthScheme != null && "
-                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($S))",
-                                     "aws.auth#sigv4a")
+                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($S) && "
+                                     + "!$T.isSignerOverridden(context.request(), executionAttributes))",
+                                     "aws.auth#sigv4a",
+                                     ClassName.get("software.amazon.awssdk.awscore.util", "SignerOverrideUtils"))
                    .addStatement("$T businessMetrics = executionAttributes.getAttribute($T.BUSINESS_METRICS)",
                                  ClassName.get("software.amazon.awssdk.core.useragent", "BusinessMetricCollection"),
                                  SdkInternalExecutionAttribute.class)
