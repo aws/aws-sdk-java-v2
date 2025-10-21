@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR",
-    "contributor": "",
-    "description": "Added RECONFIGURING to the InstanceFleetState convenience enum."
-}
