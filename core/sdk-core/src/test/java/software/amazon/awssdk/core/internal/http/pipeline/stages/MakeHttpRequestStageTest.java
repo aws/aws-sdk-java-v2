@@ -40,7 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;

@@ -13,31 +13,34 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.io;
+package software.amazon.awssdk.utils.io;
 
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@code InputStream} that is aware of its length. The main purpose of this class is to support truncating streams to a length
- * that is shorter than the total length of the stream.
+ * An {@code InputStream} that is aware of its length. This class enforces that we sent exactly the number of bytes equal to
+ * the input length. If the wrapped stream has more bytes than the expected length, it will be truncated to length. If the stream
+ * has less bytes (i.e. reaches EOF) before the expected length is reached, it will throw {@code IOException}.
  */
-@SdkInternalApi
+@SdkProtectedApi
 public class SdkLengthAwareInputStream extends FilterInputStream {
     private static final Logger LOG = Logger.loggerFor(SdkLengthAwareInputStream.class);
-    private long length;
+    private final long length;
     private long remaining;
+    private long markedRemaining;
 
     public SdkLengthAwareInputStream(InputStream in, long length) {
         super(in);
         this.length = Validate.isNotNegative(length, "length");
         this.remaining = this.length;
+        this.markedRemaining = this.remaining;
     }
 
     @Override
@@ -48,8 +51,16 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
         }
 
         int read = super.read();
+
         if (read != -1) {
             remaining--;
+        }
+
+        // EOF, ensure we've read the number of expected bytes
+        if (read == -1 && remaining > 0) {
+            throw new IllegalStateException("The request content has fewer bytes than the "
+                                            + "specified "
+                                            + "content-length: " + length + " bytes.");
         }
         return read;
     }
@@ -61,10 +72,18 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
             return -1;
         }
 
-        len = Math.min(len, saturatedCast(remaining));
-        int read = super.read(b, off, len);
-        if (read > 0) {
+        int readLen = Math.min(len, saturatedCast(remaining));
+
+        int read = super.read(b, off, readLen);
+        if (read != -1) {
             remaining -= read;
+        }
+
+        // EOF, ensure we've read the number of expected bytes
+        if (read == -1 && remaining > 0) {
+            throw new IllegalStateException("The request content has fewer bytes than the "
+                                            + "specified "
+                                            + "content-length: " + length + " bytes.");
         }
 
         return read;
@@ -87,15 +106,14 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     @Override
     public void mark(int readlimit) {
         super.mark(readlimit);
-        // mark() causes reset() to change the stream's position back to the current position. Therefore, when reset() is called,
-        // the new length of the stream will be equal to the current value of 'remaining'.
-        length = remaining;
+        // Store the current remaining bytes to restore on reset()
+        markedRemaining = remaining;
     }
 
     @Override
     public void reset() throws IOException {
         super.reset();
-        remaining = length;
+        remaining = markedRemaining;
     }
 
     public long remaining() {

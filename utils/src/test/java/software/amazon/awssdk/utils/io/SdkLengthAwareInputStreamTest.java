@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.io;
+package software.amazon.awssdk.utils.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.utils.IoUtils;
 
 class SdkLengthAwareInputStreamTest {
     private InputStream delegateStream;
