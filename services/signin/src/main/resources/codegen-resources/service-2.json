@@ -1,0 +1,298 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2023-01-01",
+    "auth":["aws.auth#sigv4"],
+    "endpointPrefix":"signin",
+    "protocol":"rest-json",
+    "protocols":["rest-json"],
+    "serviceFullName":"AWS Sign-In Data Plane",
+    "serviceId":"Signin",
+    "signatureVersion":"v4",
+    "signingName":"signin",
+    "uid":"signin-2023-01-01"
+  },
+  "operations":{
+    "CreateOAuth2Token":{
+      "name":"CreateOAuth2Token",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/token",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateOAuth2TokenRequest"},
+      "output":{"shape":"CreateOAuth2TokenResponse"},
+      "errors":[
+        {"shape":"ForbiddenError"},
+        {"shape":"TooManyRequestsError"},
+        {"shape":"InvalidRequestError"},
+        {"shape":"UnauthorizedError"}
+      ],
+      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>DPoP proof JWT header for demonstrating proof-of-possession of private key</li> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>DPoP proof JWT header (same private key as original auth_code redemption)</li> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
+    }
+  },
+  "shapes":{
+    "AccessToken":{
+      "type":"structure",
+      "required":[
+        "accessKeyId",
+        "secretAccessKey",
+        "sessionToken"
+      ],
+      "members":{
+        "accessKeyId":{
+          "shape":"String",
+          "documentation":"<p>AWS access key ID for temporary credentials</p>",
+          "locationName":"accessKeyId"
+        },
+        "secretAccessKey":{
+          "shape":"String",
+          "documentation":"<p>AWS secret access key for temporary credentials</p>",
+          "locationName":"secretAccessKey"
+        },
+        "sessionToken":{
+          "shape":"String",
+          "documentation":"<p>AWS session token for temporary credentials</p>",
+          "locationName":"sessionToken"
+        }
+      },
+      "documentation":"<p>AWS credentials structure containing temporary access credentials</p> <p>The scoped-down, 15 minute duration AWS credentials. Scoping down will be based on CLI policy (CLI team needs to create it). Similar to cloud shell implementation.</p>",
+      "sensitive":true
+    },
+    "AuthorizationCode":{
+      "type":"string",
+      "documentation":"<p>Authorization code received from AWS Sign-In /v1/authorize endpoint</p> <p>The authorization code received from AWS Sign-In from /v1/authorize. Used in auth code redemption flow only.</p>",
+      "max":512,
+      "min":1
+    },
+    "ClientId":{
+      "type":"string",
+      "documentation":"<p>Client identifier pattern for AWS Sign-In CLI clients</p> <p>The ARN used by client as part of Sign-In onboarding. Expected values:</p> <ul> <li>aws:signin:::cli/same-device (for CLI login on same device)</li> <li>aws:signin:::cli/cross-device (for cross-device CLI login)</li> <li>aws:signin:::cli/in-band (for in-band CLI login)</li> <li>aws:signin:::cli/out-of-band (for out-of-band CLI login)</li> </ul> <p>This will be finalized after consulting with UX as this is visible to end customer.</p>",
+      "pattern":"aws:signin:::cli/(same-device|cross-device|in-band|out-of-band)"
+    },
+    "CodeVerifier":{
+      "type":"string",
+      "documentation":"<p>PKCE code verifier for OAuth 2.0 security</p> <p>PKCE code verifier to prove possession of the original code challenge. Used to prevent authorization code interception attacks in public clients. Must be 43-128 characters using unreserved characters [A-Z] / [a-z] / [0-9] / &quot;-&quot; / &quot;.&quot; / &quot;_&quot; / &quot;~&quot;</p>",
+      "max":128,
+      "min":43,
+      "pattern":"[A-Za-z0-9\\-._~]+"
+    },
+    "CreateOAuth2TokenRequest":{
+      "type":"structure",
+      "required":[
+        "dpopProof",
+        "tokenInput"
+      ],
+      "members":{
+        "dpopProof":{
+          "shape":"DPoPProof",
+          "documentation":"<p>DPoP proof JWT header for demonstrating proof-of-possession of the private key</p> <p>Header format: {&quot;typ&quot;: &quot;dpop+jwt&quot;, &quot;alg&quot;: &quot;ES256&quot;, &quot;jwk&quot;: {...}} Payload format: {&quot;htm&quot;: &quot;POST&quot;, &quot;htu&quot;: &quot;https://server.example.com/token&quot;, &quot;iat&quot;: timestamp, &quot;jti&quot;: &quot;unique-id&quot;} Must be signed with the private key corresponding to the embedded jwk</p>",
+          "location":"header",
+          "locationName":"DPoP"
+        },
+        "tokenInput":{
+          "shape":"CreateOAuth2TokenRequestBody",
+          "documentation":"<p>Flattened token operation inputs The specific operation is determined by grant_type in the request body</p>"
+        }
+      },
+      "documentation":"<p>Input structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation inputs for both authorization code and refresh token flows. The operation type is determined by the grant_type parameter in the request body.</p>",
+      "payload":"tokenInput"
+    },
+    "CreateOAuth2TokenRequestBody":{
+      "type":"structure",
+      "required":[
+        "clientId",
+        "grantType"
+      ],
+      "members":{
+        "clientId":{
+          "shape":"ClientId",
+          "documentation":"<p>The client identifier (ARN) used during Sign-In onboarding Required for both authorization code and refresh token flows</p>",
+          "locationName":"clientId"
+        },
+        "grantType":{
+          "shape":"GrantType",
+          "documentation":"<p>OAuth 2.0 grant type - determines which flow is used Must be &quot;authorization_code&quot; or &quot;refresh_token&quot;</p>",
+          "locationName":"grantType"
+        },
+        "code":{
+          "shape":"AuthorizationCode",
+          "documentation":"<p>The authorization code received from /v1/authorize Required only when grant_type=authorization_code</p>"
+        },
+        "redirectUri":{
+          "shape":"RedirectUri",
+          "documentation":"<p>The redirect URI that must match the original authorization request Required only when grant_type=authorization_code</p>",
+          "locationName":"redirectUri"
+        },
+        "codeVerifier":{
+          "shape":"CodeVerifier",
+          "documentation":"<p>PKCE code verifier to prove possession of the original code challenge Required only when grant_type=authorization_code</p>",
+          "locationName":"codeVerifier"
+        },
+        "refreshToken":{
+          "shape":"RefreshToken",
+          "documentation":"<p>The refresh token returned from auth_code redemption Required only when grant_type=refresh_token</p>",
+          "locationName":"refreshToken"
+        }
+      },
+      "documentation":"<p>Request body payload for CreateOAuth2Token operation</p> <p>The operation type is determined by the grant_type parameter:</p> <ul> <li>grant_type=authorization_code: Requires code, redirect_uri, code_verifier</li> <li>grant_type=refresh_token: Requires refresh_token</li> </ul>"
+    },
+    "CreateOAuth2TokenResponse":{
+      "type":"structure",
+      "required":["tokenOutput"],
+      "members":{
+        "tokenOutput":{
+          "shape":"CreateOAuth2TokenResponseBody",
+          "documentation":"<p>Flattened token operation outputs The specific response fields depend on the grant_type used in the request</p>"
+        }
+      },
+      "documentation":"<p>Output structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation outputs for both authorization code and refresh token flows. The response content depends on the grant_type from the original request.</p>",
+      "payload":"tokenOutput"
+    },
+    "CreateOAuth2TokenResponseBody":{
+      "type":"structure",
+      "required":[
+        "accessToken",
+        "tokenType",
+        "expiresIn",
+        "refreshToken"
+      ],
+      "members":{
+        "accessToken":{
+          "shape":"AccessToken",
+          "documentation":"<p>Scoped-down AWS credentials (15 minute duration) Present for both authorization code redemption and token refresh</p>",
+          "locationName":"accessToken"
+        },
+        "tokenType":{
+          "shape":"TokenType",
+          "documentation":"<p>Token type indicating this is AWS SigV4 credentials Value is &quot;aws_sigv4&quot; for both flows</p>",
+          "locationName":"tokenType"
+        },
+        "expiresIn":{
+          "shape":"ExpiresIn",
+          "documentation":"<p>Time to expiry in seconds (maximum 900) Present for both authorization code redemption and token refresh</p>",
+          "locationName":"expiresIn"
+        },
+        "refreshToken":{
+          "shape":"RefreshToken",
+          "documentation":"<p>Encrypted refresh token with cnf.jkt (SHA-256 thumbprint of presented jwk) Always present in responses (required for both flows)</p>",
+          "locationName":"refreshToken"
+        },
+        "idToken":{
+          "shape":"IdToken",
+          "documentation":"<p>ID token containing user identity information Present only in authorization code redemption response (grant_type=authorization_code) Not included in token refresh responses</p>",
+          "locationName":"idToken"
+        }
+      },
+      "documentation":"<p>Response body payload for CreateOAuth2Token operation</p> <p>The response content depends on the grant_type from the request:</p> <ul> <li>grant_type=authorization_code: Returns all fields including refresh_token and id_token</li> <li>grant_type=refresh_token: Returns access_token, token_type, expires_in, refresh_token (no id_token)</li> </ul>"
+    },
+    "DPoPProof":{
+      "type":"string",
+      "documentation":"<p>DPoP proof JWT for demonstrating proof-of-possession</p> <p>DPoP (Demonstration of Proof-of-Possession) JWT header structure: Header: {&quot;typ&quot;: &quot;dpop+jwt&quot;, &quot;alg&quot;: &quot;ES256&quot;, &quot;jwk&quot;: {...}} Payload: {&quot;htm&quot;: &quot;POST&quot;, &quot;htu&quot;: &quot;https://server.example.com/token&quot;, &quot;iat&quot;: timestamp, &quot;jti&quot;: &quot;unique-id&quot;}</p> <p>Key components:</p> <ul> <li>htm: HTTP method being used (POST)</li> <li>htu: HTTP URI being accessed (e.g., https://us-east-1.signin.aws.amazon.com/v1/token)</li> <li>iat: Issued at timestamp</li> <li>jti: Unique identifier for the JWT</li> </ul> <p>For token refresh: Must be generated with same private key as original auth_code redemption. Only iat changes (within acceptable clock skew).</p>",
+      "max":4096,
+      "min":1
+    },
+    "ExpiresIn":{
+      "type":"integer",
+      "documentation":"<p>Time to expiry in seconds</p> <p>The time to expiry in seconds, for these purposes will be at most 900 (15 minutes).</p>",
+      "box":true,
+      "max":900,
+      "min":1
+    },
+    "ForbiddenError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining the authorization failure Provides information about permission or policy violations</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when the client is not authorized or has insufficient permissions</p> <p>HTTP Status Code: 403 Forbidden</p> <p>Possible causes:</p> <ul> <li>Unauthorized widget or client_id not registered</li> <li>Insufficient permissions for the requested scope</li> <li>Client not authorized to use the specified grant_type</li> <li>DPoP key binding validation failure (cnf.jkt mismatch)</li> <li>Policy evaluation failure for credential scoping</li> </ul>",
+      "error":{
+        "httpStatusCode":403,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "GrantType":{
+      "type":"string",
+      "documentation":"<p>OAuth 2.0 grant type parameter</p> <p>For auth code redemption: Must be &quot;authorization_code&quot; For token refresh: Must be &quot;refresh_token&quot;</p> <p>Based on client_id &amp; grant_type, authn/authz is skipped for CLI endpoints.</p>",
+      "pattern":"(authorization_code|refresh_token)"
+    },
+    "IdToken":{
+      "type":"string",
+      "documentation":"<p>ID token containing user identity information</p> <p>Encoded JWT token containing user identity claims and authentication context. Returned only in authorization code redemption responses (grant_type=authorization_code). Contains user identity information such as ARN and other identity claims.</p>",
+      "max":4096,
+      "min":1
+    },
+    "InvalidRequestError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining the request validation failure Provides specific information about which parameter or validation failed</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when the request is malformed or missing required parameters</p> <p>HTTP Status Code: 400 Bad Request</p> <p>Possible causes:</p> <ul> <li>Malformed request body (invalid form encoding)</li> <li>Missing required parameters (client_id, grant_type, code, etc.)</li> <li>Invalid parameter values (malformed client_id ARN, invalid grant_type)</li> <li>Invalid DPoP proof JWT format or signature</li> <li>PKCE code_verifier validation failure</li> <li>Redirect URI mismatch with original authorization request</li> </ul>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "RedirectUri":{
+      "type":"string",
+      "documentation":"<p>Redirect URI for OAuth 2.0 flow validation</p> <p>The same redirect URI used in the authorization request. This must match exactly what was sent in the original authorization request for security validation.</p>",
+      "max":2048,
+      "min":1
+    },
+    "RefreshToken":{
+      "type":"string",
+      "documentation":"<p>Encrypted refresh token with cnf.jkt</p> <p>This is the encrypted refresh token returned from auth code redemption. The token content includes cnf.jkt (SHA-256 thumbprint of the presented jwk). Used in subsequent token refresh requests.</p>",
+      "max":2048,
+      "min":1,
+      "sensitive":true
+    },
+    "String":{"type":"string"},
+    "TokenType":{
+      "type":"string",
+      "documentation":"<p>Token type parameter indicating credential usage</p> <p>A parameter which indicates to the client how the token must be used. Value is &quot;aws_sigv4&quot; (instead of typical &quot;Bearer&quot; for other OAuth systems) to indicate that the client must de-serialize the token and use it to generate a signature.</p>",
+      "pattern":"aws_sigv4"
+    },
+    "TooManyRequestsError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message about the rate limiting May include retry-after information or rate limit details</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when rate limit is exceeded</p> <p>HTTP Status Code: 429 Too Many Requests</p> <p>Possible causes:</p> <ul> <li>Too many token requests from the same client</li> <li>Rate limiting based on client_id or IP address</li> <li>Abuse prevention mechanisms triggered</li> <li>Service protection against excessive token generation</li> </ul>",
+      "error":{
+        "httpStatusCode":429,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "UnauthorizedError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining the authentication failure Indicates specific authentication issue (expired token, invalid signature, etc.)</p>"
+        }
+      },
+      "documentation":"<p>Error thrown when the access token is invalid or expired</p> <p>HTTP Status Code: 401 Unauthorized</p> <p>Possible causes:</p> <ul> <li>Invalid or expired authorization code</li> <li>Invalid or expired refresh token</li> <li>DPoP proof JWT validation failure (invalid signature, expired, wrong key)</li> <li>Authorization code already used (replay attack prevention)</li> <li>Refresh token revoked or invalid</li> </ul>",
+      "error":{
+        "httpStatusCode":401,
+        "senderFault":true
+      },
+      "exception":true
+    }
+  },
+  "documentation":"<p>AWS Sign-In Data Plane Service</p> <p>This service implements OAuth 2.0 flows for AWS CLI authentication, providing secure token exchange and refresh capabilities.</p>"
+}
