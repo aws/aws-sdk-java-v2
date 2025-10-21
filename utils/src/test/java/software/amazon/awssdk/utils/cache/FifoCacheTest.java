@@ -15,61 +15,61 @@
 
 package software.amazon.awssdk.utils.cache;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class FifoCacheTest {
 
     @Test
     public void test() {
-        FifoCache<String> cache = new FifoCache<String>(3);
-        assertTrue(cache.size() == 0);
+        FifoCache<String> cache = new FifoCache<>(3);
+        assertEquals(0, cache.size());
         cache.add("k1", "v1");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         cache.add("k1", "v11");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         cache.add("k2", "v2");
-        assertTrue(cache.size() == 2);
+        assertEquals(2, cache.size());
         cache.add("k3", "v3");
-        assertTrue(cache.size() == 3);
+        assertEquals(3, cache.size());
         assertEquals("v11", cache.get("k1"));
         assertEquals("v2", cache.get("k2"));
         assertEquals("v3", cache.get("k3"));
         cache.add("k4", "v4");
-        assertTrue(cache.size() == 3);
+        assertEquals(3, cache.size());
         assertNull(cache.get("k1"));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testZeroSize() {
-        new FifoCache<Object>(0);
+        assertThrows(IllegalArgumentException.class, () -> new FifoCache<>(0));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testIllegalArgument() {
-        new FifoCache<Object>(-1);
+        assertThrows(IllegalArgumentException.class, () -> new FifoCache<>(0));
     }
 
     @Test
     public void testSingleEntry() {
         FifoCache<String> cache = new FifoCache<String>(1);
-        assertTrue(cache.size() == 0);
+        assertEquals(0, cache.size());
         cache.add("k1", "v1");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         cache.add("k1", "v11");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         assertEquals("v11", cache.get("k1"));
 
         cache.add("k2", "v2");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         assertEquals("v2", cache.get("k2"));
         assertNull(cache.get("k1"));
 
         cache.add("k3", "v3");
-        assertTrue(cache.size() == 1);
+        assertEquals(1, cache.size());
         assertEquals("v3", cache.get("k3"));
         assertNull(cache.get("k2"));
     }

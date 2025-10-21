@@ -19,6 +19,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.utils.internal.BoundedLinkedHashMap;
 
@@ -75,7 +76,8 @@ public final class FifoCache<T> {
     /**
      * Returns the current size of the cache.
      */
-    public int size() {
+    @SdkTestInternalApi
+    int size() {
         rlock.lock();
         try {
             return map.size();
@@ -84,18 +86,11 @@ public final class FifoCache<T> {
         }
     }
 
-    /**
-     * Returns the maximum size of the cache.
-     */
-    public int getMaxSize() {
-        return map.getMaxSize();
-    }
-
     @Override
     public String toString() {
         rlock.lock();
         try {
-            return map.toString();
+            return map.keySet().toString();
         } finally {
             rlock.unlock();
         }
