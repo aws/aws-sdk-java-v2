@@ -33,8 +33,6 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.multiauth.MultiauthClient;
 import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
-import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthAsyncClient;
@@ -131,7 +129,8 @@ class Sigv4aBusinessMetricUserAgentTest {
                                                  .region(Region.US_WEST_2)
                                                  .credentialsProvider(CREDENTIALS_PROVIDER)
                                                  .overrideConfiguration(ClientOverrideConfiguration.builder()
-                                                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER, Aws4Signer.create())
+                                                                        .putAdvancedOption(SdkAdvancedClientOption.SIGNER,
+                                                                                           Aws4Signer.create())
                                                                         .build())
                                                  .httpClient(mockHttpClient)
                                                  .build();
@@ -139,7 +138,7 @@ class Sigv4aBusinessMetricUserAgentTest {
         client.multiAuthWithOnlySigv4aAndSigv4(r -> r.stringMember("test"));
         String userAgent = getUserAgentFromLastRequest();
 
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     @Test
@@ -156,7 +155,7 @@ class Sigv4aBusinessMetricUserAgentTest {
         client.multiAuthWithOnlySigv4aAndSigv4(r -> r.stringMember("test"));
         String userAgent = getUserAgentFromLastRequest();
 
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     private String getUserAgentFromLastRequest() {
