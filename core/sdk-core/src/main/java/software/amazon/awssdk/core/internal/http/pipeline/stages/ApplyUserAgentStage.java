@@ -153,7 +153,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
         businessMetrics.merge(metricsFromApiNames);
 
-        ChecksumBusinessMetrics(executionAttributes, businessMetrics);
+        checksumBusinessMetrics(executionAttributes, businessMetrics);
         
         credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
         
@@ -164,7 +164,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return Optional.of(businessMetrics.asBoundedString());
     }
 
-    private static void ChecksumBusinessMetrics(ExecutionAttributes executionAttributes,
+    private static void checksumBusinessMetrics(ExecutionAttributes executionAttributes,
                                                    BusinessMetricCollection businessMetrics) {
         BusinessMetricsUtils.resolveRequestChecksumCalculationMetric(
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
