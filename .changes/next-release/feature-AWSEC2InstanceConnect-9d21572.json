@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS EC2 Instance Connect",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
