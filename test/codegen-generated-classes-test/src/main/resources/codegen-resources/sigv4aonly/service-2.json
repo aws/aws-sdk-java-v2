@@ -9,7 +9,7 @@
     "serviceFullName":"AWS Multi Auth Service",
     "serviceId":"Sigv4aauth",
     "targetPrefix":"Sigv4aauth",
-    "auth":["aws.auth#sigv4a"],
+    "auth":["aws.auth#sigv4a","aws.auth#sigv4"],
     "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
   },
