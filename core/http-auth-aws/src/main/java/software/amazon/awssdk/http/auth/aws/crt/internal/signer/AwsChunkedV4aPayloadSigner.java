@@ -186,7 +186,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                                                 .map(Long::parseLong)
                                                 // should not happen, this header is added by
                                                 // moveContentLength
-                                                .orElseThrow(() -> new RuntimeException(
+                                                .orElseThrow(() -> new IllegalArgumentException(
                                                     X_AMZ_DECODED_CONTENT_LENGTH + " header not present"));
 
                               long encodedContentLength = calculateEncodedContentLength(decodedContentLength, checksum);
