@@ -687,10 +687,10 @@
                         </includeModules>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <!-- TODO remove after release -->
+                            <exclude>software.amazon.awssdk.annotations.ReviewBeforeRelease</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <!-- TODO remove after release -->
-                            <exclude>software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
