@@ -48,7 +48,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.awssdk.utils.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 @SdkInternalApi
 public abstract class BaseClientHandler {
@@ -136,7 +136,7 @@ public abstract class BaseClientHandler {
             ContentStreamProvider streamProvider = contentStreamProviderOptional.get();
             if (contentLengthOptional.isPresent()) {
                 ContentStreamProvider toWrap = contentStreamProviderOptional.get();
-                streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
+                streamProvider = () -> new LengthAwareInputStream(toWrap.newStream(), contentLength);
             }
 
             return new SdkInternalOnlyRequestBody(streamProvider,

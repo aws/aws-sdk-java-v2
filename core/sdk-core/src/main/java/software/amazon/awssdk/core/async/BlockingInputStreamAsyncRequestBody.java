@@ -29,7 +29,7 @@ import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
-import software.amazon.awssdk.utils.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * An implementation of {@link AsyncRequestBody} that allows performing a blocking write of an input stream to a downstream
@@ -89,7 +89,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
         try {
             waitForSubscriptionIfNeeded();
             if (contentLength != null) {
-                return delegate.doBlockingWrite(new SdkLengthAwareInputStream(inputStream, contentLength));
+                return delegate.doBlockingWrite(new LengthAwareInputStream(inputStream, contentLength));
             }
 
             return delegate.doBlockingWrite(inputStream);

@@ -30,13 +30,13 @@ import software.amazon.awssdk.utils.Validate;
  * has less bytes (i.e. reaches EOF) before the expected length is reached, it will throw {@code IOException}.
  */
 @SdkProtectedApi
-public class SdkLengthAwareInputStream extends FilterInputStream {
-    private static final Logger LOG = Logger.loggerFor(SdkLengthAwareInputStream.class);
+public class LengthAwareInputStream extends FilterInputStream {
+    private static final Logger LOG = Logger.loggerFor(LengthAwareInputStream.class);
     private final long length;
     private long remaining;
     private long markedRemaining;
 
-    public SdkLengthAwareInputStream(InputStream in, long length) {
+    public LengthAwareInputStream(InputStream in, long length) {
         super(in);
         this.length = Validate.isNotNegative(length, "length");
         this.remaining = this.length;
@@ -44,7 +44,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public int read() throws IOException {
+    public final int read() throws IOException {
         if (!hasMoreBytes()) {
             LOG.debug(() -> String.format("Specified InputStream length of %d has been reached. Returning EOF.", length));
             return -1;
@@ -66,7 +66,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public final int read(byte[] b, int off, int len) throws IOException {
         if (!hasMoreBytes()) {
             LOG.debug(() -> String.format("Specified InputStream length of %d has been reached. Returning EOF.", length));
             return -1;
@@ -90,7 +90,7 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public long skip(long requestedBytesToSkip) throws IOException {
+    public final long skip(long requestedBytesToSkip) throws IOException {
         requestedBytesToSkip = Math.min(requestedBytesToSkip, remaining);
         long skippedActual = super.skip(requestedBytesToSkip);
         remaining -= skippedActual;
@@ -98,25 +98,25 @@ public class SdkLengthAwareInputStream extends FilterInputStream {
     }
 
     @Override
-    public int available() throws IOException {
+    public final int available() throws IOException {
         int streamAvailable = super.available();
         return Math.min(streamAvailable, saturatedCast(remaining));
     }
 
     @Override
-    public void mark(int readlimit) {
+    public final void mark(int readlimit) {
         super.mark(readlimit);
         // Store the current remaining bytes to restore on reset()
         markedRemaining = remaining;
     }
 
     @Override
-    public void reset() throws IOException {
+    public final void reset() throws IOException {
         super.reset();
         remaining = markedRemaining;
     }
 
-    public long remaining() {
+    public final long remaining() {
         return remaining;
     }
 
