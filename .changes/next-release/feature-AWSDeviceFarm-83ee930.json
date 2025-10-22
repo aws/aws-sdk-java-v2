@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Device Farm",
+    "contributor": "",
+    "description": "This release adds support for optionally including an app as part of a CreateRemoteAccessSession request"
+}
