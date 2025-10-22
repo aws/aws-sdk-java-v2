@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.endpointauth;
+package software.amazon.awssdk.services.auth;
 
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +34,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4aHttpSigner;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
@@ -47,9 +52,15 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.endpointauth.EndpointAuthClient;
+import software.amazon.awssdk.services.endpointauth.EndpointAuthClientBuilder;
+import software.amazon.awssdk.services.endpointauth.endpoints.EndpointAuthEndpointProvider;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
+/**
+ * Tests verifying legacy endpoint based auth, i.e., services with enableEndpointAuthSchemeParams = true customization
+ */
 @DisplayName("Endpoint-Auth Tests")
 class EndpointAuthSigningPropertiesTest {
 
@@ -135,11 +146,53 @@ class EndpointAuthSigningPropertiesTest {
                 () -> assertThatThrownBy(() ->
                                              client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")))
                     .hasMessageContaining("stop"),
-                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET))
-                    .isEqualTo(RegionSet.create(MULTI_REGION_SET)),
+                () -> assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                    .isEqualTo(RegionSet.create(MULTI_REGION_SET).asString()),
                 () -> assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
                     .isEqualTo("sigv4afromruleset")
             );
+        }
+
+        @Test
+        @DisplayName("Signer properties from endpoint auth scheme takes precedence")
+        void endpointAuthSchemesPresent_shouldHonor() {
+            EndpointAuthClient client =
+                EndpointAuthClient.builder()
+                               .httpClient(mockHttpClient)
+                               .region(Region.US_WEST_2)
+                               .putAuthScheme(authScheme("aws.auth#sigv4a", signer))
+                               .endpointProvider(v4aEndpointProviderOverride())
+                               .build();
+
+            assertThatThrownBy(() -> client.allAuthPropertiesInEndpointRules(r -> r.stringMember("")))
+                .hasMessageContaining("stop");
+
+            assertThat(signer.request.property(AwsV4aHttpSigner.REGION_SET).asString())
+                .isEqualTo("region-from-endpoint");
+
+            assertThat(signer.request.property(AwsV4aHttpSigner.SERVICE_SIGNING_NAME))
+                .isEqualTo("service-name-from-endpoint");
+
+            assertThat(signer.request.property(AwsV4aHttpSigner.DOUBLE_URL_ENCODE))
+                .isFalse();
+        }
+
+        public EndpointAuthEndpointProvider v4aEndpointProviderOverride() {
+            return x -> {
+                Endpoint endpoint =
+                    Endpoint.builder()
+                            .url(URI.create("https://testv4a.query.us-east-1"))
+                            .putAttribute(
+                                AwsEndpointAttribute.AUTH_SCHEMES,
+                                Collections.singletonList(SigV4aAuthScheme.builder()
+                                                                          .addSigningRegion("region-from-endpoint")
+                                                                          .signingName("service-name-from-endpoint")
+                                                                          .disableDoubleEncoding(true)
+                                                                          .build()))
+                            .build();
+
+                return CompletableFuture.completedFuture(endpoint);
+            };
         }
 
         @Test

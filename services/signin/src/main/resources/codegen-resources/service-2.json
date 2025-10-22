@@ -13,30 +13,51 @@
     "uid":"signin-2023-01-01"
   },
   "operations":{
-    "CreateTokenWithOAuth2":{
-      "name":"CreateTokenWithOAuth2",
+    "CreateOAuth2Token":{
+      "name":"CreateOAuth2Token",
       "http":{
         "method":"POST",
         "requestUri":"/v1/token",
         "responseCode":200
       },
-      "input":{"shape":"CreateTokenWithOAuth2Request"},
-      "output":{"shape":"CreateTokenWithOAuth2Response"},
+      "input":{"shape":"CreateOAuth2TokenRequest"},
+      "output":{"shape":"CreateOAuth2TokenResponse"},
       "errors":[
         {"shape":"ForbiddenError"},
         {"shape":"TooManyRequestsError"},
         {"shape":"InvalidRequestError"},
         {"shape":"UnauthorizedError"}
       ],
-      "documentation":"<p>CreateTokenWithOAuth2 API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>DPoP proof JWT header for demonstrating proof-of-possession of private key</li> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>DPoP proof JWT header (same private key as original auth_code redemption)</li> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
+      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>DPoP proof JWT header for demonstrating proof-of-possession of private key</li> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>DPoP proof JWT header (same private key as original auth_code redemption)</li> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
     }
   },
   "shapes":{
     "AccessToken":{
-      "type":"string",
-      "documentation":"<p>JSON encoded scoped-down AWS credentials</p> <p>The scoped-down, 15 minute duration AWS credentials encoded as JSON. Scoping down will be based on CLI policy (CLI team needs to create it). Similar to cloud shell implementation.</p>",
-      "max":8192,
-      "min":1
+      "type":"structure",
+      "required":[
+        "accessKeyId",
+        "secretAccessKey",
+        "sessionToken"
+      ],
+      "members":{
+        "accessKeyId":{
+          "shape":"String",
+          "documentation":"<p>AWS access key ID for temporary credentials</p>",
+          "locationName":"accessKeyId"
+        },
+        "secretAccessKey":{
+          "shape":"String",
+          "documentation":"<p>AWS secret access key for temporary credentials</p>",
+          "locationName":"secretAccessKey"
+        },
+        "sessionToken":{
+          "shape":"String",
+          "documentation":"<p>AWS session token for temporary credentials</p>",
+          "locationName":"sessionToken"
+        }
+      },
+      "documentation":"<p>AWS credentials structure containing temporary access credentials</p> <p>The scoped-down, 15 minute duration AWS credentials. Scoping down will be based on CLI policy (CLI team needs to create it). Similar to cloud shell implementation.</p>",
+      "sensitive":true
     },
     "AuthorizationCode":{
       "type":"string",
@@ -56,7 +77,7 @@
       "min":43,
       "pattern":"[A-Za-z0-9\\-._~]+"
     },
-    "CreateTokenWithOAuth2Request":{
+    "CreateOAuth2TokenRequest":{
       "type":"structure",
       "required":[
         "dpopProof",
@@ -70,14 +91,14 @@
           "locationName":"DPoP"
         },
         "tokenInput":{
-          "shape":"CreateTokenWithOAuth2RequestBody",
+          "shape":"CreateOAuth2TokenRequestBody",
           "documentation":"<p>Flattened token operation inputs The specific operation is determined by grant_type in the request body</p>"
         }
       },
-      "documentation":"<p>Input structure for CreateTokenWithOAuth2 operation</p> <p>Contains flattened token operation inputs for both authorization code and refresh token flows. The operation type is determined by the grant_type parameter in the request body.</p>",
+      "documentation":"<p>Input structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation inputs for both authorization code and refresh token flows. The operation type is determined by the grant_type parameter in the request body.</p>",
       "payload":"tokenInput"
     },
-    "CreateTokenWithOAuth2RequestBody":{
+    "CreateOAuth2TokenRequestBody":{
       "type":"structure",
       "required":[
         "clientId",
@@ -114,21 +135,21 @@
           "locationName":"refreshToken"
         }
       },
-      "documentation":"<p>Request body payload for CreateTokenWithOAuth2 operation</p> <p>The operation type is determined by the grant_type parameter:</p> <ul> <li>grant_type=authorization_code: Requires code, redirect_uri, code_verifier</li> <li>grant_type=refresh_token: Requires refresh_token</li> </ul>"
+      "documentation":"<p>Request body payload for CreateOAuth2Token operation</p> <p>The operation type is determined by the grant_type parameter:</p> <ul> <li>grant_type=authorization_code: Requires code, redirect_uri, code_verifier</li> <li>grant_type=refresh_token: Requires refresh_token</li> </ul>"
     },
-    "CreateTokenWithOAuth2Response":{
+    "CreateOAuth2TokenResponse":{
       "type":"structure",
       "required":["tokenOutput"],
       "members":{
         "tokenOutput":{
-          "shape":"CreateTokenWithOAuth2ResponseBody",
+          "shape":"CreateOAuth2TokenResponseBody",
           "documentation":"<p>Flattened token operation outputs The specific response fields depend on the grant_type used in the request</p>"
         }
       },
-      "documentation":"<p>Output structure for CreateTokenWithOAuth2 operation</p> <p>Contains flattened token operation outputs for both authorization code and refresh token flows. The response content depends on the grant_type from the original request.</p>",
+      "documentation":"<p>Output structure for CreateOAuth2Token operation</p> <p>Contains flattened token operation outputs for both authorization code and refresh token flows. The response content depends on the grant_type from the original request.</p>",
       "payload":"tokenOutput"
     },
-    "CreateTokenWithOAuth2ResponseBody":{
+    "CreateOAuth2TokenResponseBody":{
       "type":"structure",
       "required":[
         "accessToken",
@@ -139,7 +160,7 @@
       "members":{
         "accessToken":{
           "shape":"AccessToken",
-          "documentation":"<p>JSON encoded scoped-down AWS credentials (15 minute duration) Present for both authorization code redemption and token refresh</p>",
+          "documentation":"<p>Scoped-down AWS credentials (15 minute duration) Present for both authorization code redemption and token refresh</p>",
           "locationName":"accessToken"
         },
         "tokenType":{
@@ -163,7 +184,7 @@
           "locationName":"idToken"
         }
       },
-      "documentation":"<p>Response body payload for CreateTokenWithOAuth2 operation</p> <p>The response content depends on the grant_type from the request:</p> <ul> <li>grant_type=authorization_code: Returns all fields including refresh_token and id_token</li> <li>grant_type=refresh_token: Returns access_token, token_type, expires_in, refresh_token (no id_token)</li> </ul>"
+      "documentation":"<p>Response body payload for CreateOAuth2Token operation</p> <p>The response content depends on the grant_type from the request:</p> <ul> <li>grant_type=authorization_code: Returns all fields including refresh_token and id_token</li> <li>grant_type=refresh_token: Returns access_token, token_type, expires_in, refresh_token (no id_token)</li> </ul>"
     },
     "DPoPProof":{
       "type":"string",
@@ -231,7 +252,8 @@
       "type":"string",
       "documentation":"<p>Encrypted refresh token with cnf.jkt</p> <p>This is the encrypted refresh token returned from auth code redemption. The token content includes cnf.jkt (SHA-256 thumbprint of the presented jwk). Used in subsequent token refresh requests.</p>",
       "max":2048,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "String":{"type":"string"},
     "TokenType":{

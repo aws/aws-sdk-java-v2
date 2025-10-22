@@ -39,37 +39,25 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 public class AsyncClientClassTest {
     @Test
     public void asyncClientClassRestJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(restJsonServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-json-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels(), true);
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels());
         assertThat(sraAsyncClientClass, generatesTo("sra/test-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassQuery() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(queryServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-query-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels(), true);
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels());
         assertThat(sraAsyncClientClass, generatesTo("sra/test-query-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassAwsJson() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(awsJsonServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels(), true);
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels());
         assertThat(sraAsyncClientClass, generatesTo("sra/test-aws-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassCbor() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(cborServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-cbor-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels(), true);
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels());
         assertThat(sraAsyncClientClass, generatesTo("sra/test-cbor-async-client-class.java"));
     }
 
@@ -81,10 +69,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassXml() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(xmlServiceModels(), false);
-        assertThat(asyncClientClass, generatesTo("test-xml-async-client-class.java"));
-
-        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels(), true);
+        AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels());
         assertThat(sraAsyncClientClass, generatesTo("sra/test-xml-async-client-class.java"));
     }
 
@@ -108,7 +93,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientClassRpcv2() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(rpcv2ServiceModels(), true);
+        AsyncClientClass asyncClientClass = createAsyncClientClass(rpcv2ServiceModels());
         assertThat(asyncClientClass, generatesTo("test-rpcv2-async-client-class.java"));
     }
 
@@ -120,7 +105,7 @@ public class AsyncClientClassTest {
 
     @Test
     public void asyncClientWithStreamingUnsignedPayload() {
-        AsyncClientClass asyncClientClass = createAsyncClientClass(opsWithSigv4a(), false);
+        AsyncClientClass asyncClientClass = createAsyncClientClass(opsWithSigv4a());
         assertThat(asyncClientClass, generatesTo("test-unsigned-payload-trait-async-client-class.java"));
     }
 
@@ -132,10 +117,5 @@ public class AsyncClientClassTest {
 
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
         return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
-    }
-
-    private AsyncClientClass createAsyncClientClass(IntermediateModel model, boolean useSraAuth) {
-        model.getCustomizationConfig().setUseSraAuth(useSraAuth);
-        return createAsyncClientClass(model);
     }
 }
