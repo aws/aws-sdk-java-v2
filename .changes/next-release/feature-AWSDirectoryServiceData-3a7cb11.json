@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Directory Service Data",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
