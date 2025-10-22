@@ -1,0 +1,312 @@
+{
+    "version": "2.36.0",
+    "date": "2025-10-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Dashboards",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Chatbot",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudHSM V2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Comprehend Medical",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost Explorer Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "contributor": "",
+            "description": "This release adds support for optionally including an app as part of a CreateRemoteAccessSession request"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Directory Service Data",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS EC2 Instance Connect",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Add 3 API operations for fetching alerts: ListAlerts (Channels), ListClusterAlerts (MediaLive Anywhere), and ListMultiplexAlerts"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Updated OIDC and SAML apis to reject multiple simultaneous requests to change a unique object."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Analytics",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Secure Tunneling",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Agreement Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for payload signing of async streaming requests signed with SigV4 using default `AwsV4HttpSigner` (using `AwsV4HttpSigner.create()`). Note, requests using the `http` URI scheme will not be signed regardless of the value of `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to remain consistent with existing behavior. This may change in a future release."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS User Notifications Contacts",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Augmented AI Runtime",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudHSM",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Reviewer",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "Updated Amazon Connect Outbound Campaigns V2 SDK to support Preview Outbound Mode"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release added support for email address alias configuration and outbound campaign preview mode."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds AvailabilityZoneId support for CreateNetworkInterface and DescribeNetworkInterfaces APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Query Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service Chat",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonMWAA",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS Voice V2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53",
+            "contributor": "",
+            "description": "Amazon Route 53 now supports the ISOB West Region for private DNS for Amazon VPCs and cloudwatch healthchecks."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Notification Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkDocs",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkMail",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AppFabric",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Access Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "RTBFabric",
+            "contributor": "",
+            "description": "Update for general availability of AWS RTB Fabric service."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Data API Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Route53 Recovery Cluster",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

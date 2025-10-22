@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "contributor": "",
-    "description": "Updated OIDC and SAML apis to reject multiple simultaneous requests to change a unique object."
-}
