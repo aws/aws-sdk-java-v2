@@ -23,7 +23,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -62,9 +61,8 @@ class Sigv4aCrtUnavailableBusinessMetricTest {
         client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
 
         String userAgent = getUserAgentFromLastRequest();
-        System.out.println("CRT unavailable User-Agent: " + userAgent);
 
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     private String getUserAgentFromLastRequest() {

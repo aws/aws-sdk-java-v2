@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -161,9 +162,9 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
             builder.beginControlFlow("if (selectedAuthScheme != null && "
-                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($S) && "
+                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) && "
                                      + "!$T.isSignerOverridden(context.request(), executionAttributes))",
-                                     "aws.auth#sigv4a",
+                                     AwsV4aAuthScheme.class,
                                      ClassName.get("software.amazon.awssdk.awscore.util", "SignerOverrideUtils"))
                    .addStatement("$T businessMetrics = executionAttributes.getAttribute($T.BUSINESS_METRICS)",
                                  ClassName.get("software.amazon.awssdk.core.useragent", "BusinessMetricCollection"),

@@ -26,17 +26,17 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthAsyncClient;
 import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthClient;
-import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -75,22 +75,22 @@ class Sigv4aBusinessMetricUserAgentTest {
 
         String userAgent = getUserAgentFromLastRequest();
         System.out.println("SigV4a service User-Agent: " + userAgent);
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     @Test
     void when_sigv4aServiceIsUsedAsync_correctMetricIsAdded() {
         Sigv4AauthAsyncClient asyncClient = Sigv4AauthAsyncClient.builder()
-                                                                .region(Region.US_WEST_2)
-                                                                .credentialsProvider(CREDENTIALS_PROVIDER)
-                                                                .httpClient(mockAsyncHttpClient)
-                                                                .build();
+                                                                 .region(Region.US_WEST_2)
+                                                                 .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                                 .httpClient(mockAsyncHttpClient)
+                                                                 .build();
 
         asyncClient.simpleOperationWithNoEndpointParams(r -> r.stringMember("test")).join();
 
         String userAgent = getUserAgentFromLastAsyncRequest();
         System.out.println("SigV4a async service User-Agent: " + userAgent);
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     @Test
@@ -105,7 +105,7 @@ class Sigv4aBusinessMetricUserAgentTest {
 
         String userAgent = getUserAgentFromLastRequest();
         System.out.println("Regular service User-Agent: " + userAgent);
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     @Test
@@ -120,7 +120,7 @@ class Sigv4aBusinessMetricUserAgentTest {
 
         String userAgent = getUserAgentFromLastAsyncRequest();
         System.out.println("Regular async service User-Agent: " + userAgent);
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
+        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
     @Test
@@ -135,13 +135,10 @@ class Sigv4aBusinessMetricUserAgentTest {
                                                   .build();
 
         client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
-
         String userAgent = getUserAgentFromLastRequest();
-        System.out.println("Signer override User-Agent: " + userAgent);
 
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
     }
-
 
     @Test
     void when_authSchemeProviderOverridesSigv4aOrder_sigv4IsSelected() {
@@ -155,9 +152,7 @@ class Sigv4aBusinessMetricUserAgentTest {
                                                   .build();
 
         client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
-
         String userAgent = getUserAgentFromLastRequest();
-        System.out.println("User-Agent: " + userAgent);
 
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
     }
