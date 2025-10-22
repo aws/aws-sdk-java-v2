@@ -52,7 +52,6 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.Algorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.async.FileAsyncRequestBody;
@@ -181,12 +180,10 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
                                                                  .build()).join();
-        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verifyHeadersForPutRequest("37932", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
-                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
-                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
-                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                "9400" + CRLF + contentString + CRLF
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }
@@ -204,12 +201,10 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                              FileAsyncRequestBody.builder().path(randomFileOfFixedLength.toPath())
                                                                  .chunkSizeInBytes(16 * KB)
                                                                  .build()).join();
-        verifyHeadersForPutRequest("37948", "37888", "x-amz-checksum-crc32");
+        verifyHeadersForPutRequest("37932", "37888", "x-amz-checksum-crc32");
         verify(putRequestedFor(anyUrl()).withRequestBody(
             containing(
-                "4000" + CRLF + contentString.substring(0, 16 * KB) + CRLF
-                + "4000" + CRLF + contentString.substring(16 * KB, 32 * KB) + CRLF
-                + "1400" + CRLF + contentString.substring(32 * KB) + CRLF
+                "9400" + CRLF + contentString + CRLF
                 + "0" + CRLF
                 + "x-amz-checksum-crc32:" + expectedChecksum + CRLF + CRLF)));
     }
