@@ -31,6 +31,8 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
+import software.amazon.awssdk.services.multiauth.auth.scheme.MultiauthAuthSchemeProvider;
 import software.amazon.awssdk.services.sigv4aauth.auth.scheme.Sigv4AauthAuthSchemeProvider;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
@@ -125,16 +127,16 @@ class Sigv4aBusinessMetricUserAgentTest {
 
     @Test
     void when_signerIsOverridden_sigv4aMetricIsNotAdded() {
-        Sigv4AauthClient client = Sigv4AauthClient.builder()
-                                                  .region(Region.US_WEST_2)
-                                                  .credentialsProvider(CREDENTIALS_PROVIDER)
-                                                  .overrideConfiguration(ClientOverrideConfiguration.builder()
+        MultiauthClient client = MultiauthClient.builder()
+                                                 .region(Region.US_WEST_2)
+                                                 .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                 .overrideConfiguration(ClientOverrideConfiguration.builder()
                                                                         .putAdvancedOption(SdkAdvancedClientOption.SIGNER, Aws4Signer.create())
                                                                         .build())
-                                                  .httpClient(mockHttpClient)
-                                                  .build();
+                                                 .httpClient(mockHttpClient)
+                                                 .build();
 
-        client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
+        client.multiAuthWithOnlySigv4aAndSigv4(r -> r.stringMember("test"));
         String userAgent = getUserAgentFromLastRequest();
 
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
@@ -142,16 +144,16 @@ class Sigv4aBusinessMetricUserAgentTest {
 
     @Test
     void when_authSchemeProviderOverridesSigv4aOrder_sigv4IsSelected() {
-        Sigv4AauthClient client = Sigv4AauthClient.builder()
+        MultiauthClient client = MultiauthClient.builder()
                                                   .region(Region.US_WEST_2)
                                                   .credentialsProvider(CREDENTIALS_PROVIDER)
-                                                  .authSchemeProvider(Sigv4AauthAuthSchemeProvider.
+                                                  .authSchemeProvider(MultiauthAuthSchemeProvider.
                                                                           defaultProvider(
                                                       Arrays.asList("sigv4","sigv4a")))
                                                   .httpClient(mockHttpClient)
                                                   .build();
 
-        client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
+        client.multiAuthWithOnlySigv4aAndSigv4(r -> r.stringMember("test"));
         String userAgent = getUserAgentFromLastRequest();
 
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.SIGV4A_SIGNING.value()));
