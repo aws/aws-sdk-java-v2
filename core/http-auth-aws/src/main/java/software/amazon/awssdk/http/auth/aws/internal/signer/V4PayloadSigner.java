@@ -16,13 +16,10 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import java.nio.ByteBuffer;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.utils.Pair;
 
 /**
  * An interface for defining how to sign a payload via SigV4.
@@ -50,10 +47,5 @@ public interface V4PayloadSigner {
      * Modify a request before it is signed, such as changing headers or query-parameters.
      */
     default void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload) {
-    }
-
-    default CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> beforeSigningAsync(
-        SdkHttpRequest.Builder request, Publisher<ByteBuffer> payload) {
-        return CompletableFuture.completedFuture(Pair.of(request, Optional.ofNullable(payload)));
     }
 }
