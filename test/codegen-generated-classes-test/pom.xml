@@ -146,11 +146,6 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>smithy-rpcv2-protocol</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
             <artifactId>netty-nio-client</artifactId>
             <groupId>software.amazon.awssdk</groupId>
             <version>${awsjavasdk.version}</version>

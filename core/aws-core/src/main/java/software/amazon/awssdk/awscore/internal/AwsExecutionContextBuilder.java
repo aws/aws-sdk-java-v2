@@ -16,7 +16,6 @@
 package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
-import static software.amazon.awssdk.awscore.internal.AwsServiceProtocol.SMITHY_RPC_V2_CBOR;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
@@ -58,7 +56,6 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
@@ -136,8 +133,7 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION))
             .putAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION,
                           clientConfig.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION))
-            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, 
-                          resolveUserAgentBusinessMetrics(clientConfig, executionParams))
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig))
             .putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
                           clientConfig.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET));
 
@@ -354,23 +350,11 @@ public final class AwsExecutionContextBuilder {
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-    private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection
-        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig, 
-                                        ClientExecutionParams<InputT, OutputT> executionParams) {
+    private static BusinessMetricCollection resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
                                                             clientConfig.option(RETRY_STRATEGY));
         retryModeMetric.ifPresent(businessMetrics::addMetric);
-
-        if (isRpcV2CborProtocol(executionParams.getProtocolMetadata())) {
-            businessMetrics.addMetric(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value());
-        }
-        
         return businessMetrics;
-    }
-
-    private static boolean isRpcV2CborProtocol(SdkProtocolMetadata protocolMetadata) {
-        return protocolMetadata != null &&
-               SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
     }
 }

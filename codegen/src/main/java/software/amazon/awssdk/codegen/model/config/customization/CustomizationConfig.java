@@ -288,6 +288,11 @@ public class CustomizationConfig {
     private boolean requiredTraitValidationEnabled = false;
 
     /**
+     * Whether SRA based auth logic should be used.
+     */
+    private boolean useSraAuth = true;
+
+    /**
      * Whether to generate auth scheme params based on endpoint params.
      */
     private boolean enableEndpointAuthSchemeParams = false;
@@ -827,6 +832,16 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
+    }
+
+    public void setUseSraAuth(boolean useSraAuth) {
+        this.useSraAuth = useSraAuth;
+    }
+
+    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
+    //  useSraAuth==true branch going forward.
+    public boolean useSraAuth() {
+        return useSraAuth;
     }
 
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {

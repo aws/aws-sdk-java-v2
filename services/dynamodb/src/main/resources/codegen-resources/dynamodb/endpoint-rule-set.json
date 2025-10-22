@@ -266,9 +266,9 @@
                                         "properties": {
                                             "authSchemes": [
                                                 {
+                                                    "signingRegion": "us-east-1",
                                                     "name": "sigv4",
-                                                    "signingName": "dynamodb",
-                                                    "signingRegion": "us-east-1"
+                                                    "signingName": "dynamodb"
                                                 }
                                             ]
                                         },
@@ -690,11 +690,7 @@
                                             ],
                                             "endpoint": {
                                                 "url": "https://{ParsedArn#accountId}.ddb.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                "properties": {
-                                                    "metricValues": [
-                                                        "O"
-                                                    ]
-                                                },
+                                                "properties": {},
                                                 "headers": {}
                                             },
                                             "type": "endpoint"
@@ -842,11 +838,7 @@
                                             ],
                                             "endpoint": {
                                                 "url": "https://{ParsedArn#accountId}.ddb.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                "properties": {
-                                                    "metricValues": [
-                                                        "O"
-                                                    ]
-                                                },
+                                                "properties": {},
                                                 "headers": {}
                                             },
                                             "type": "endpoint"
@@ -931,11 +923,7 @@
                                                             "conditions": [],
                                                             "endpoint": {
                                                                 "url": "https://{AccountId}.ddb.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                                "properties": {
-                                                                    "metricValues": [
-                                                                        "O"
-                                                                    ]
-                                                                },
+                                                                "properties": {},
                                                                 "headers": {}
                                                             },
                                                             "type": "endpoint"
@@ -1186,11 +1174,7 @@
                             ],
                             "endpoint": {
                                 "url": "https://{ParsedArn#accountId}.ddb.{Region}.{PartitionResult#dnsSuffix}",
-                                "properties": {
-                                    "metricValues": [
-                                        "O"
-                                    ]
-                                },
+                                "properties": {},
                                 "headers": {}
                             },
                             "type": "endpoint"
@@ -1338,11 +1322,7 @@
                             ],
                             "endpoint": {
                                 "url": "https://{ParsedArn#accountId}.ddb.{Region}.{PartitionResult#dnsSuffix}",
-                                "properties": {
-                                    "metricValues": [
-                                        "O"
-                                    ]
-                                },
+                                "properties": {},
                                 "headers": {}
                             },
                             "type": "endpoint"
@@ -1427,11 +1407,7 @@
                                             "conditions": [],
                                             "endpoint": {
                                                 "url": "https://{AccountId}.ddb.{Region}.{PartitionResult#dnsSuffix}",
-                                                "properties": {
-                                                    "metricValues": [
-                                                        "O"
-                                                    ]
-                                                },
+                                                "properties": {},
                                                 "headers": {}
                                             },
                                             "type": "endpoint"

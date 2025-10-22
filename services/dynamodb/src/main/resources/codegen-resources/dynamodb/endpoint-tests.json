@@ -4637,11 +4637,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, AccountId=111111111111, AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.api.aws"
                 }
             },
@@ -4669,11 +4664,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4701,11 +4691,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4749,11 +4734,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4773,11 +4753,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-west-2:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4797,11 +4772,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:s3:us-west-2:222222222222:stream/testStream, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4821,11 +4791,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-west-2:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-west-2:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4845,11 +4810,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:s3:us-west-2:222222222222:stream/testStream, ResourceArnList=[arn:aws:s3:us-east-1:333333333333:stream/testStream], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -4952,11 +4912,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.api.aws"
                 }
             },
@@ -4986,11 +4941,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5175,11 +5125,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.api.aws"
                 }
             },
@@ -5221,11 +5166,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5267,11 +5207,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=preferred, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5354,11 +5289,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, AccountId=111111111111, AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.api.aws"
                 }
             },
@@ -5386,11 +5316,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5418,11 +5343,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5466,11 +5386,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5490,11 +5405,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-west-2:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5514,11 +5424,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:s3:us-west-2:222222222222:stream/testStream, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5538,11 +5443,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:dynamodb:us-west-2:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-west-2:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5562,11 +5462,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, AccountId=111111111111, ResourceArn=arn:aws:s3:us-west-2:222222222222:stream/testStream, ResourceArnList=[arn:aws:s3:us-east-1:333333333333:stream/testStream], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://111111111111.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5665,11 +5560,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.api.aws"
                 }
             },
@@ -5699,11 +5589,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5878,11 +5763,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=true, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.api.aws"
                 }
             },
@@ -5924,11 +5804,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://333333333333.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -5970,11 +5845,6 @@
             "documentation": "{UseFIPS=false, UseDualStack=false, ResourceArn=arn:aws:dynamodb:us-east-1:222222222222:table/table_name, ResourceArnList=[arn:aws:dynamodb:us-east-1:333333333333:table/table_name], AccountIdEndpointMode=required, Region=us-east-1}",
             "expect": {
                 "endpoint": {
-                    "properties": {
-                        "metricValues": [
-                            "O"
-                        ]
-                    },
                     "url": "https://222222222222.ddb.us-east-1.amazonaws.com"
                 }
             },
@@ -8644,16 +8514,6 @@
             }
         },
         {
-            "documentation": "{Endpoint=https://dynamodb.eu-west-1.api.aws, Region=eu-west-1}",
-            "expect": {
-                "error": "Endpoint override is not supported for dual-stack endpoints. Please enable dual-stack functionality by enabling the configuration. For more details, see: https://docs.aws.amazon.com/sdkref/latest/guide/feature-endpoints.html"
-            },
-            "params": {
-                "Endpoint": "https://dynamodb.eu-west-1.api.aws",
-                "Region": "eu-west-1"
-            }
-        },
-        {
             "documentation": "{Endpoint=https://dynamodb.us-west-2.api.aws, Region=us-west-2}",
             "expect": {
                 "error": "Endpoint override is not supported for dual-stack endpoints. Please enable dual-stack functionality by enabling the configuration. For more details, see: https://docs.aws.amazon.com/sdkref/latest/guide/feature-endpoints.html"
@@ -8715,6 +8575,16 @@
             "params": {
                 "Endpoint": "https://vpce-1a2b3c4d-5e6f.dynamodb.us-east-1.vpce.api.aws",
                 "Region": "us-east-1"
+            }
+        },
+        {
+            "documentation": "{Endpoint=https://dynamodb.eu-west-1.api.aws, Region=eu-west-1}",
+            "expect": {
+                "error": "Endpoint override is not supported for dual-stack endpoints. Please enable dual-stack functionality by enabling the configuration. For more details, see: https://docs.aws.amazon.com/sdkref/latest/guide/feature-endpoints.html"
+            },
+            "params": {
+                "Endpoint": "https://dynamodb.eu-west-1.api.aws",
+                "Region": "eu-west-1"
             }
         }
     ],

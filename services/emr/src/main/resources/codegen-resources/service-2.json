@@ -2787,7 +2787,6 @@
         "BOOTSTRAPPING",
         "RUNNING",
         "RESIZING",
-        "RECONFIGURING",
         "SUSPENDED",
         "TERMINATING",
         "TERMINATED"

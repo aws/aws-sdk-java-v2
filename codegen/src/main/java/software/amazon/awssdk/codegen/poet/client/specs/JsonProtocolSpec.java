@@ -41,8 +41,10 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -67,10 +69,12 @@ public class JsonProtocolSpec implements ProtocolSpec {
 
     private final PoetExtension poetExtensions;
     private final IntermediateModel model;
+    private final boolean useSraAuth;
 
     public JsonProtocolSpec(PoetExtension poetExtensions, IntermediateModel model) {
         this.poetExtensions = poetExtensions;
         this.model = model;
+        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
     }
 
     @Override
@@ -225,6 +229,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
+        if (!useSraAuth) {
+            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
+
         codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
         if (opModel.hasStreamingOutput()) {
@@ -301,6 +309,10 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(asyncRequestBody)
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel));
+
+        if (!useSraAuth) {
+            builder.add(NoneAuthTypeRequestTrait.create(opModel));
+        }
 
         if (opModel.hasStreamingOutput()) {
             builder.add(".withAsyncResponseTransformer(asyncResponseTransformer)");
