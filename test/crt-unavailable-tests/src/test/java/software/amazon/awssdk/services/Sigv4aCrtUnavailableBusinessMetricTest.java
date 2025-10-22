@@ -28,7 +28,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.sigv4aauth.Sigv4AauthClient;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -51,12 +51,12 @@ class Sigv4aCrtUnavailableBusinessMetricTest {
 
     @Test
     void when_crtUnavailable_sigv4aFallsBackToSigv4_noSigv4aMetric() {
-        
-        Sigv4AauthClient client = Sigv4AauthClient.builder()
-                                                  .region(Region.US_WEST_2)
-                                                  .credentialsProvider(CREDENTIALS_PROVIDER)
-                                                  .httpClient(mockHttpClient)
-                                                  .build();
+
+        MultiauthClient client = MultiauthClient.builder()
+                                                .region(Region.US_WEST_2)
+                                                .credentialsProvider(CREDENTIALS_PROVIDER)
+                                                .httpClient(mockHttpClient)
+                                                .build();
 
         client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
 

@@ -74,7 +74,6 @@ class Sigv4aBusinessMetricUserAgentTest {
         client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
 
         String userAgent = getUserAgentFromLastRequest();
-        System.out.println("SigV4a service User-Agent: " + userAgent);
         assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
@@ -89,7 +88,6 @@ class Sigv4aBusinessMetricUserAgentTest {
         asyncClient.simpleOperationWithNoEndpointParams(r -> r.stringMember("test")).join();
 
         String userAgent = getUserAgentFromLastAsyncRequest();
-        System.out.println("SigV4a async service User-Agent: " + userAgent);
         assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
@@ -104,7 +102,6 @@ class Sigv4aBusinessMetricUserAgentTest {
         client.allTypes(r -> {});
 
         String userAgent = getUserAgentFromLastRequest();
-        System.out.println("Regular service User-Agent: " + userAgent);
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 
@@ -119,7 +116,6 @@ class Sigv4aBusinessMetricUserAgentTest {
         asyncClient.allTypes(r -> {}).join();
 
         String userAgent = getUserAgentFromLastAsyncRequest();
-        System.out.println("Regular async service User-Agent: " + userAgent);
         assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("S"));
     }
 

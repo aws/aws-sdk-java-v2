@@ -5,10 +5,10 @@
     "endpointPrefix":"internalconfig",
     "jsonVersion":"1.1",
     "protocol":"rest-json",
-    "serviceAbbreviation":"AwsSigv4aMultiAuthService",
+    "serviceAbbreviation":"AwsMultiAuthService",
     "serviceFullName":"AWS Multi Auth Service",
-    "serviceId":"Sigv4aauth",
-    "targetPrefix":"Sigv4aauth",
+    "serviceId":"Multiauth",
+    "targetPrefix":"MultiAuth",
     "auth":["aws.auth#sigv4a","aws.auth#sigv4"],
     "timestampFormat":"unixTimestamp",
     "uid":"restjson-2016-03-11"
