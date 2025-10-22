@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.35.11__ __2025-10-21__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds the ability to set resolution for the black video generator and also adds the StartJobsQuery and GetJobsQueryResults APIs which allow asynchronous search of job history using new filters.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add business metrics support for RPC v2 CBOR protocol to track smithy rpcv2 cbor protocol usage.
+
+## __AWS SDK for Java v2 Codegenerator__
+  - ### Removals
+    - Remove `useSraAuth` setting from customization config.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Added ClientToken parameter to MeterUsage API for specifying idempotent requests.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Add AccountID based endpoint metric to endpoint rules.
+
+## __Amazon EMR__
+  - ### Features
+    - Added RECONFIGURING to the InstanceFleetState convenience enum.
+
 # __2.35.10__ __2025-10-17__
 ## __AWS ARC - Zonal Shift__
   - ### Features
