@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonConnectCampaignServiceV2",
+    "contributor": "",
+    "description": "Updated Amazon Connect Outbound Campaigns V2 SDK to support Preview Outbound Mode"
+}
