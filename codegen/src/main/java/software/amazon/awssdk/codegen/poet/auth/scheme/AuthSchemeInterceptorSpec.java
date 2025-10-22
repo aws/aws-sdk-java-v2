@@ -159,22 +159,6 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
             builder.addStatement("recordEnvironmentTokenBusinessMetric(selectedAuthScheme, "
                                  + "executionAttributes)");
         }
-
-        if (authSchemeSpecUtils.hasSigV4aSupport()) {
-            builder.beginControlFlow("if (selectedAuthScheme != null && "
-                                     + "selectedAuthScheme.authSchemeOption().schemeId().equals($T.SCHEME_ID) && "
-                                     + "!$T.isSignerOverridden(context.request(), executionAttributes))",
-                                     AwsV4aAuthScheme.class,
-                                     ClassName.get("software.amazon.awssdk.awscore.util", "SignerOverrideUtils"))
-                   .addStatement("$T businessMetrics = executionAttributes.getAttribute($T.BUSINESS_METRICS)",
-                                 ClassName.get("software.amazon.awssdk.core.useragent", "BusinessMetricCollection"),
-                                 SdkInternalExecutionAttribute.class)
-                   .beginControlFlow("if (businessMetrics != null)")
-                   .addStatement("businessMetrics.addMetric($T.SIGV4A_SIGNING.value())",
-                                 BusinessMetricFeatureId.class)
-                   .endControlFlow()
-                   .endControlFlow();
-        }
         return builder.build();
     }
 
