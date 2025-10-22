@@ -51,7 +51,6 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;

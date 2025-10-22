@@ -102,6 +102,7 @@ public final class QueryAuthSchemeInterceptor implements ExecutionInterceptor {
         executionAttributes.getOptionalAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET)
                            .filter(regionSet -> !CollectionUtils.isNullOrEmpty(regionSet))
                            .ifPresent(nonEmptyRegionSet -> builder.regionSet(RegionSet.create(nonEmptyRegionSet)));
+
         if (builder instanceof QueryEndpointResolverAware.Builder) {
             EndpointProvider endpointProvider = executionAttributes.getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
             if (endpointProvider instanceof QueryEndpointProvider) {
