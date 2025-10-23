@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Jobs Data Plane",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
