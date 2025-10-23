@@ -38,8 +38,9 @@ public final class CrtConfigurationUtils {
 
         clientProxyOptions.setHost(proxyConfiguration.host());
         clientProxyOptions.setPort(proxyConfiguration.port());
-        // TODO: Validate these
-        clientProxyOptions.setNoProxyHosts(String.join(",", proxyConfiguration.nonProxyHosts()));
+        if (proxyConfiguration.nonProxyHosts() != null && !proxyConfiguration.nonProxyHosts().isEmpty()) {
+            clientProxyOptions.setNoProxyHosts(String.join(",", proxyConfiguration.nonProxyHosts()));
+        }
 
         if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
             clientProxyOptions.setTlsContext(tlsContext);
