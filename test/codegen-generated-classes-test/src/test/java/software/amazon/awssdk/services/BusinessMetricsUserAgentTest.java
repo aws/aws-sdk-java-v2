@@ -162,7 +162,7 @@ class BusinessMetricsUserAgentTest {
     }
 
     @Test
-    void when_compressedOperationIsCalled_metricIsRecordedButNotAddedToUserAgentString() throws Exception {
+    void when_compressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
         ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
 
         assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
@@ -173,7 +173,7 @@ class BusinessMetricsUserAgentTest {
         BusinessMetricCollection attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         assertThat(attribute).isNotNull();
         assertThat(attribute.recordedMetrics()).contains(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
     }
 
     private String assertAndGetUserAgentString() {
