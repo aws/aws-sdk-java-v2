@@ -38,7 +38,7 @@ public final class CrtConfigurationUtils {
 
         clientProxyOptions.setHost(proxyConfiguration.host());
         clientProxyOptions.setPort(proxyConfiguration.port());
-        if (proxyConfiguration.nonProxyHosts() != null && !proxyConfiguration.nonProxyHosts().isEmpty()) {
+        if (!proxyConfiguration.nonProxyHosts().isEmpty()) {
             clientProxyOptions.setNoProxyHosts(String.join(",", proxyConfiguration.nonProxyHosts()));
         }
 
