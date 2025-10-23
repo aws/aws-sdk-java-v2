@@ -25,10 +25,10 @@ import java.security.interfaces.ECPublicKey;
 import java.util.Arrays;
 import java.util.Base64;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.signin.internal.ECKeyLoader;
+import software.amazon.awssdk.services.signin.internal.EcKeyLoader;
 import software.amazon.awssdk.utils.Pair;
 
-public class ECKeyLoaderTest {
+public class EcKeyLoaderTest {
     // A valid RFC 5915 secp256r1 DER with both private and public keys
     private static final byte[] VALID_TEST_DER = {
          // header: seq, total length, integer, length of version (1), version (1), integer, length private key (32)
@@ -57,7 +57,7 @@ public class ECKeyLoaderTest {
 
     @Test
     void validKey_returnsValidPair() {
-        Pair<ECPrivateKey, ECPublicKey> keys = ECKeyLoader.loadSec1Pem(derToPem(VALID_TEST_DER));
+        Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(derToPem(VALID_TEST_DER));
 
         assertNotNull(keys);
         assertNotNull(keys.left());
@@ -83,7 +83,7 @@ public class ECKeyLoaderTest {
         byte[] invalidDER = Arrays.copyOf(VALID_TEST_DER, VALID_TEST_DER.length);
         invalidDER[4] = (byte)0xFF;
         Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            ECKeyLoader.loadSec1Pem(derToPem(invalidDER));
+            EcKeyLoader.loadSec1Pem(derToPem(invalidDER));
         });
         assertTrue(e.getMessage().contains("invalid version"));
 
@@ -94,7 +94,7 @@ public class ECKeyLoaderTest {
         byte[] invalidDER = Arrays.copyOf(VALID_TEST_DER, VALID_TEST_DER.length);
         invalidDER[44] = (byte)0xFF;
         Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            ECKeyLoader.loadSec1Pem(derToPem(invalidDER));
+            EcKeyLoader.loadSec1Pem(derToPem(invalidDER));
         });
         assertTrue(e.getMessage().contains("Unsupported curve"));
     }
@@ -104,7 +104,7 @@ public class ECKeyLoaderTest {
         byte[] invalidDER = Arrays.copyOf(VALID_TEST_DER, 39);
 
         Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            ECKeyLoader.loadSec1Pem(derToPem(invalidDER));
+            EcKeyLoader.loadSec1Pem(derToPem(invalidDER));
         });
         assertTrue(e.getMessage().contains("Missing EC Curve OID"));
     }
@@ -114,7 +114,7 @@ public class ECKeyLoaderTest {
         byte[] invalidDER = Arrays.copyOf(VALID_TEST_DER, 51);
 
         Exception e = assertThrows(IllegalArgumentException.class, () -> {
-            ECKeyLoader.loadSec1Pem(derToPem(invalidDER));
+            EcKeyLoader.loadSec1Pem(derToPem(invalidDER));
         });
         assertTrue(e.getMessage().contains("public key is required."));
     }
