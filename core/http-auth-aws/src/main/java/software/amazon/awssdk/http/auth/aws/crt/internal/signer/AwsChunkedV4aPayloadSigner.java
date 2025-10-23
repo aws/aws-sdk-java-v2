@@ -21,6 +21,7 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerCo
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +41,6 @@ import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.Chun
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
-import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils;
 import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -115,7 +115,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     @Override
     public void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload, String checksum) {
         long encodedContentLength = 0;
-        long contentLength = SignerUtils.computeAndMoveContentLength(request, payload);
+        long contentLength = moveContentLength(request, payload);
         setupPreExistingTrailers(request);
 
         // pre-existing trailers
