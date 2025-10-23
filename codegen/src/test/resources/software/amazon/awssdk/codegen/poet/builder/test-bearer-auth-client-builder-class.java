@@ -2,32 +2,37 @@ package software.amazon.awssdk.services.json;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.TokenUtils;
 import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.identity.spi.TokenIdentity;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
+import software.amazon.awssdk.services.json.auth.scheme.internal.JsonAuthSchemeInterceptor;
 import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonRequestSetEndpointInterceptor;
 import software.amazon.awssdk.services.json.endpoints.internal.JsonResolveEndpointInterceptor;
@@ -41,6 +46,8 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
+    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "json-service-endpoint";
@@ -55,17 +62,19 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> {
             c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
              .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
              .lazyOption(AwsClientOption.TOKEN_PROVIDER,
                          p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
-             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-             .option(SdkAdvancedClientOption.TOKEN_SIGNER, defaultTokenSigner());
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider());
         });
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
+        endpointInterceptors.add(new JsonAuthSchemeInterceptor());
         endpointInterceptors.add(new JsonResolveEndpointInterceptor());
         endpointInterceptors.add(new JsonRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
@@ -114,12 +123,40 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         return JsonEndpointProvider.defaultProvider();
     }
 
-    private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
-        return DefaultAwsTokenProvider.create();
+    public B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
     }
 
-    private Signer defaultTokenSigner() {
-        return BearerTokenSigner.create();
+    private JsonAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
+                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (!preferences.isEmpty()) {
+            return JsonAuthSchemeProvider.defaultProvider(preferences);
+        }
+        return JsonAuthSchemeProvider.defaultProvider();
+    }
+
+    @Override
+    public B putAuthScheme(AuthScheme<?> authScheme) {
+        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
+        return thisBuilder();
+    }
+
+    private Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(2 + this.additionalAuthSchemes.size());
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
+        schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
+        schemes.putAll(this.additionalAuthSchemes);
+        return schemes;
+    }
+
+    private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
+        return DefaultAwsTokenProvider.create();
     }
 
     @Override
@@ -167,8 +204,6 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
-        Validate.notNull(c.option(SdkAdvancedClientOption.TOKEN_SIGNER),
-                         "The 'overrideConfiguration.advancedOption[TOKEN_SIGNER]' must be configured in the client builder.");
         Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
                          "The 'tokenProvider' must be configured in the client builder.");
     }

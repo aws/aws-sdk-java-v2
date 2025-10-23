@@ -11,9 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.eventstream.EventStreamAsyncResponseTransformer;
 import software.amazon.awssdk.awscore.eventstream.EventStreamTaggedUnionPojoSupplier;
@@ -46,7 +43,6 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.AsyncStreamingRequestMarshaller;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -82,7 +78,6 @@ import software.amazon.awssdk.services.xml.model.StreamingInputOperationResponse
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.xml.model.XmlException;
-import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
@@ -278,7 +273,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
-            bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
 
             HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
@@ -550,7 +544,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                             .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
             whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
@@ -680,9 +673,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                 .wrapWithEndOfStreamFuture(asyncResponseTransformer);
             asyncResponseTransformer = pair.left();
             CompletableFuture<Void> endOfStreamFuture = pair.right();
-            if (!isSignerOverridden(clientConfiguration)) {
-                putOperationWithChecksumRequest = applySignerOverride(putOperationWithChecksumRequest, AsyncAws4Signer.create());
-            }
 
             HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
                 PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
@@ -771,9 +761,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
-            if (!isSignerOverridden(clientConfiguration)) {
-                streamingInputOperationRequest = applySignerOverride(streamingInputOperationRequest, AsyncAws4Signer.create());
-            }
 
             HttpResponseHandler<Response<StreamingInputOperationResponse>> responseHandler = protocolFactory
                 .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
@@ -911,21 +898,6 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
-    }
-
-    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                                                                       .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                                                                       .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
-    }
-
-    private static boolean isSignerOverridden(SdkClientConfiguration clientConfiguration) {
-        return Boolean.TRUE.equals(clientConfiguration.option(SdkClientOption.SIGNER_OVERRIDDEN));
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {

@@ -15,17 +15,26 @@
 
 package software.amazon.awssdk.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker for elements that should only be accessed by the generated clients and not users of the
- * SDK. Do not make breaking changes to these APIs - they won't directly break customers, but
- * they'll break old versions of generated clients.
- * <p>
- * TODO: Write a linter that makes sure generated code only depends on public or
- * {@code @InternalApi} classes.
+ * Marks APIs that should not be used by SDK users and are intended for SDK internal classes shared across different modules.
+ *
+ * <p><b>IMPORTANT:</b> Elements annotated with {@code @SdkProtectedApi} must maintain backward
+ * compatibility. Breaking changes will break older versions of generated clients, even if they don't directly impact SDK users.
+ *
+ * <p><b>Intended for:</b> Generated service clients and internal SDK modules that support them.
+ * These APIs form the contract between the SDK core and generated code.
+ *
+ * <p><b>Stability guarantee:</b> Protected APIs should not introduce breaking changes, as this
+ * would require regenerating and redeploying all service clients.
+ *
+ * @see SdkInternalApi
+ * @see SdkPublicApi
  */
+@Documented
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
 @SdkProtectedApi
 public @interface SdkProtectedApi {
