@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Private CA Connector for SCEP",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
