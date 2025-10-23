@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Application Auto Scaling",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
