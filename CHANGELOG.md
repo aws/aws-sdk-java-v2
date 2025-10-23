@@ -287,6 +287,7 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
+    - Add support for payload signing of async streaming requests signed with SigV4 using default `AwsV4HttpSigner` (using `AwsV4HttpSigner.create()`). Note, requests using the `http` URI scheme will not be signed regardless of the value of `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to remain consistent with existing behavior. This may change in a future release.
     - Updated endpoint and partition metadata.
 
 ## __AWS Systems Manager Incident Manager__
