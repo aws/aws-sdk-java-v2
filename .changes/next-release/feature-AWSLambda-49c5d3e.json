@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Add NodeJs 24 (nodejs24.x) support to AWS Lambda."
+}
