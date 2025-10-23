@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
@@ -235,5 +236,31 @@ class DocumentTableSchemaTest {
                                                                      .build();
         Assertions.assertThat(
             documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
+    }
+
+    @Test
+    void validate_toJson_WithNonAsciiEmoji() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+                                               .attributeConverterProviders(DefaultAttributeConverterProvider.create())
+                                               .putString("emoji", "Hello 😀 World")
+                                               .build();
+
+        String json = doc.toJson();
+        assertThat(json).isEqualTo("{\"emoji\":\"Hello 😀 World\"}");
+
+
+        /*
+        BEHAVIOR CHANGE: the new toJson() implementation does not result in the same output.
+        This is because SdkJsonGenerator uses ByteArrayOutputStream which writes raw UTF-8 bytes.
+        Jackson's UTF-8 generator automatically escapes non-ASCII characters as \\uXXXX" sequences
+        when writing to byte streams.
+
+        The previous implementation used addEscapeCharacters from JsonStringFormatHelper which only
+        escapes control characters, quotes, and backslashes, but leaving emojis as literal UTF-8.
+
+        org.opentest4j.AssertionFailedError:
+            expected: "{"emoji":"Hello 😀 World"}"
+            but was: "{"emoji":"Hello \uD83D\uDE00 World"}"
+        */
     }
 }

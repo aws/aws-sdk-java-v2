@@ -236,6 +236,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
                                               + "\":"
                                               + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
                                 .collect(Collectors.joining(",", "{", "}"));
+        // return StrategyJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
     }
 
     @Override
