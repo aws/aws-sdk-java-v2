@@ -48,6 +48,8 @@ import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClientBuilder;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.protocolrestjson.model.PaginatedOperationWithResultKeyResponse;
 import software.amazon.awssdk.services.protocolrestjson.paginators.PaginatedOperationWithResultKeyPublisher;
@@ -162,11 +164,26 @@ class BusinessMetricsUserAgentTest {
     }
 
     @Test
-    void when_compressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
+    void when_asyncCompressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
         ProtocolRestJsonAsyncClientBuilder clientBuilder = asyncClientBuilderForProtocolRestJson();
 
         assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
             "whoo")).overrideConfiguration(o -> o.compressionConfiguration(c -> c.minimumCompressionThresholdInBytes(1)))).join())
+            .hasMessageContaining("stop");
+
+        String userAgent = assertAndGetUserAgentString();
+        BusinessMetricCollection attribute = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        assertThat(attribute).isNotNull();
+        assertThat(attribute.recordedMetrics()).contains(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value());
+        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.GZIP_REQUEST_COMPRESSION.value()));
+    }
+
+    @Test
+    void when_syncCompressedOperationIsCalled_metricIsRecordedAndAddedToUserAgentString() throws Exception {
+        ProtocolRestJsonClientBuilder clientBuilder = syncClientBuilderForProtocolRestJson();
+
+        assertThatThrownBy(() -> clientBuilder.build().putOperationWithRequestCompression(r -> r.body(SdkBytes.fromUtf8String(
+            "whoo")).overrideConfiguration(o -> o.compressionConfiguration(c -> c.minimumCompressionThresholdInBytes(1)))))
             .hasMessageContaining("stop");
 
         String userAgent = assertAndGetUserAgentString();
@@ -194,6 +211,13 @@ class BusinessMetricsUserAgentTest {
                                           .region(Region.US_WEST_2)
                                           .credentialsProvider(CREDENTIALS_PROVIDER)
                                           .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
+    }
+
+    private ProtocolRestJsonClientBuilder syncClientBuilderForProtocolRestJson() {
+        return ProtocolRestJsonClient.builder()
+                                     .region(Region.US_WEST_2)
+                                     .credentialsProvider(CREDENTIALS_PROVIDER)
+                                     .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor));
     }
 
     public static class CapturingInterceptor implements ExecutionInterceptor {
