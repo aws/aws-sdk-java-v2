@@ -230,13 +230,13 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (nonAttributeValueMap.isEmpty()) {
             return "{}";
         }
-        return attributeValueMap.getValue().entrySet().stream()
-                                .map(entry -> "\""
-                                              + addEscapeCharacters(entry.getKey())
-                                              + "\":"
-                                              + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
-                                .collect(Collectors.joining(",", "{", "}"));
-        // return StrategyJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
+        // return attributeValueMap.getValue().entrySet().stream()
+        //                         .map(entry -> "\""
+        //                                       + addEscapeCharacters(entry.getKey())
+        //                                       + "\":"
+        //                                       + stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(entry.getValue())))
+        //                         .collect(Collectors.joining(",", "{", "}"));
+        return StrategyJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
     }
 
     @Override
