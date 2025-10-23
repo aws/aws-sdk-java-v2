@@ -244,6 +244,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             case BLOCKING_INPUT_STREAM:
             case BLOCKING_OUTPUT_STREAM:
             case INPUTSTREAM_NO_LENGTH:
+            case BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH:
+            case BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH:
                 Assumptions.abort("Test BodyType not supported for sync client: " + bodyType);
             default:
                 throw new RuntimeException("Unsupported body type: " + bodyType);
