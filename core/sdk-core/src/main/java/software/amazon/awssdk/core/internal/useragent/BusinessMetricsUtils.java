@@ -19,7 +19,6 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
-import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -63,24 +62,26 @@ public final class BusinessMetricsUtils {
 
     public static Optional<String> resolveRequestChecksumCalculationMetric(
         RequestChecksumCalculation requestChecksumCalculation) {
-        if (requestChecksumCalculation == RequestChecksumCalculation.WHEN_SUPPORTED) {
-            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value());
+        switch (requestChecksumCalculation) {
+            case WHEN_SUPPORTED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value());
+            case WHEN_REQUIRED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value());
+            default:
+                return Optional.empty();
         }
-        if (requestChecksumCalculation == RequestChecksumCalculation.WHEN_REQUIRED) {
-            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value());
-        }
-        return Optional.empty();
     }
 
     public static Optional<String> resolveResponseChecksumValidationMetric(
         ResponseChecksumValidation responseChecksumValidation) {
-        if (responseChecksumValidation == ResponseChecksumValidation.WHEN_SUPPORTED) {
-            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value());
+        switch (responseChecksumValidation) {
+            case WHEN_SUPPORTED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value());
+            case WHEN_REQUIRED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value());
+            default:
+                return Optional.empty();
         }
-        if (responseChecksumValidation == ResponseChecksumValidation.WHEN_REQUIRED) {
-            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value());
-        }
-        return Optional.empty();
     }
 
     public static Optional<String> resolveChecksumAlgorithmMetric(ChecksumAlgorithm algorithm) {
@@ -107,10 +108,4 @@ public final class BusinessMetricsUtils {
         return Optional.empty();
     }
 
-    public static Optional<String> resolveChecksumSpecsMetric(ChecksumSpecs checksumSpecs) {
-        if (checksumSpecs != null && checksumSpecs.algorithmV2() != null) {
-            return resolveChecksumAlgorithmMetric(checksumSpecs.algorithmV2());
-        }
-        return Optional.empty();
-    }
 }

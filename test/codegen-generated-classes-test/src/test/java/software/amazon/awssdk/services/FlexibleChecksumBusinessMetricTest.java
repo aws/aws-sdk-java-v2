@@ -68,10 +68,11 @@ class FlexibleChecksumBusinessMetricTest {
         client.allTypes(r -> {});
         String userAgent = getUserAgentFromLastRequest();
 
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("Z"));
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply("b"));
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("a"));
-        assertThat(userAgent).doesNotMatch(METRIC_SEARCH_PATTERN.apply("c"));
+        assertThat(userAgent)
+            .matches(METRIC_SEARCH_PATTERN.apply("Z"))
+            .matches(METRIC_SEARCH_PATTERN.apply("b"))
+            .doesNotMatch(METRIC_SEARCH_PATTERN.apply("a"))
+            .doesNotMatch(METRIC_SEARCH_PATTERN.apply("c"));
     }
 
     @ParameterizedTest
@@ -117,8 +118,9 @@ class FlexibleChecksumBusinessMetricTest {
         client.allTypes(r -> {});
 
         String userAgent = getUserAgentFromLastRequest();
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedRequestMetric));
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedResponseMetric));
+        assertThat(userAgent)
+            .matches(METRIC_SEARCH_PATTERN.apply(expectedRequestMetric))
+            .matches(METRIC_SEARCH_PATTERN.apply(expectedResponseMetric));
     }
 
     static Stream<Arguments> checksumConfigurationTestCases() {
@@ -157,9 +159,10 @@ class FlexibleChecksumBusinessMetricTest {
 
         String userAgent = getUserAgentFromLastRequest();
 
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedRequestMetric));
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedResponseMetric));
-        assertThat(userAgent).matches(METRIC_SEARCH_PATTERN.apply(expectedAlgorithmMetric));
+        assertThat(userAgent)
+            .matches(METRIC_SEARCH_PATTERN.apply(expectedRequestMetric))
+            .matches(METRIC_SEARCH_PATTERN.apply(expectedResponseMetric))
+            .matches(METRIC_SEARCH_PATTERN.apply(expectedAlgorithmMetric));
     }
 
     static Stream<Arguments> checksumConfigurationWithAlgorithmTestCases() {

@@ -374,9 +374,11 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
             .ifPresent(businessMetrics::addMetric);
 
-        BusinessMetricsUtils.resolveChecksumSpecsMetric(
-            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS))
-            .ifPresent(businessMetrics::addMetric);
+        ChecksumSpecs checksumSpecs = executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS);
+        if (checksumSpecs != null && checksumSpecs.algorithmV2() != null) {
+            BusinessMetricsUtils.resolveChecksumAlgorithmMetric(checksumSpecs.algorithmV2())
+                .ifPresent(businessMetrics::addMetric);
+        }
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {
