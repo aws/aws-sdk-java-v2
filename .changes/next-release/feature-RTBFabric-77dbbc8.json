@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "RTBFabric",
+    "contributor": "",
+    "description": "Add support for custom rate limits."
+}
