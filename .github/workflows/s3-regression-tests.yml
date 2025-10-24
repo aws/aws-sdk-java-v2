@@ -1,9 +1,9 @@
 name: S3 Regression Tests
 on:
   pull_request:
+    types: [ opened, synchronize, reopened, labeled, unlabeled ]
   merge_group:
   push:
-    types: [ opened, synchronize, reopened, labeled, unlabeled ]
     branches:
       - master
 
