@@ -40,25 +40,25 @@ public class AsyncClientClassTest {
     @Test
     public void asyncClientClassRestJson() {
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(restJsonServiceModels());
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-json-async-client-class.java"));
+        assertThat(sraAsyncClientClass, generatesTo("test-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassQuery() {
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(queryServiceModels());
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-query-async-client-class.java"));
+        assertThat(sraAsyncClientClass, generatesTo("test-query-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassAwsJson() {
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(awsJsonServiceModels());
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-aws-json-async-client-class.java"));
+        assertThat(sraAsyncClientClass, generatesTo("test-aws-json-async-client-class.java"));
     }
 
     @Test
     public void asyncClientClassCbor() {
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(cborServiceModels());
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-cbor-async-client-class.java"));
+        assertThat(sraAsyncClientClass, generatesTo("test-cbor-async-client-class.java"));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class AsyncClientClassTest {
     @Test
     public void asyncClientClassXml() {
         AsyncClientClass sraAsyncClientClass = createAsyncClientClass(xmlServiceModels());
-        assertThat(sraAsyncClientClass, generatesTo("sra/test-xml-async-client-class.java"));
+        assertThat(sraAsyncClientClass, generatesTo("test-xml-async-client-class.java"));
     }
 
     @Test
