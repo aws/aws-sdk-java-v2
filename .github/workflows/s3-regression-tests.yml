@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       has_s3_related_changes: ${{ steps.check-changes.outputs.has_s3_related_changes }}
+      force_tests: ${{ contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: DownloadStreamingRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -62,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: ControlPlaneOperationRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -83,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadSyncRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -104,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadAsyncRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -125,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadCrtRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -146,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: UploadTransferManagerRegressionTesting
-      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || contains(github.event.pull_request.labels.*.name, 'force-s3-regression-tests') }}
+      HAS_S3_CHANGES: ${{ needs.check-s3-related-changes.outputs.has_s3_related_changes || needs.check-s3-related-changes.outputs.force_tests }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
