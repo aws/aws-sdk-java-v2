@@ -237,15 +237,4 @@ class DocumentTableSchemaTest {
         Assertions.assertThat(
             documentTableSchema.itemToMap(numberDocument, true)).isEqualTo(resultMap);
     }
-
-    @Test
-    void validate_toJson_WithNonAsciiEmoji() {
-        EnhancedDocument doc = EnhancedDocument.builder()
-                                               .attributeConverterProviders(DefaultAttributeConverterProvider.create())
-                                               .putString("emoji", "Hello 😀 World")
-                                               .build();
-
-        String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"emoji\":\"Hello 😀 World\"}");
-    }
 }

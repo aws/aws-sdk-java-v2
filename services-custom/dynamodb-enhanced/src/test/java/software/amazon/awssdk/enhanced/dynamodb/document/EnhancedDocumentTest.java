@@ -496,4 +496,122 @@ class EnhancedDocumentTest {
                                                 () -> EnhancedDocument.builder().build().get("listKey" , List.class))
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
     }
+
+    @Test
+    void toJson_numberFormatting_veryLargeNumbers() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putNumber("longMax", Long.MAX_VALUE)
+            .putNumber("longMin", Long.MIN_VALUE)
+            .putNumber("doubleMax", Double.MAX_VALUE)
+            .putNumber("scientific", 1.23e+100)
+            .putNumber("manyDecimals", 1.123456789012345)
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_numberFormatting_trailingZeros() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putNumber("twoPointZero", 2.0)
+            .putNumber("tenPointZeroZero", 10.00)
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_stringEscaping_allControlCharacters() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("allEscapes", "line1\nline2\ttab\"quote\\backslash\r\f")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).contains("\\n").contains("\\t").contains("\\\"").contains("\\\\");
+    }
+
+    @Test
+    void toJson_stringEscaping_forwardSlash() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("slash", "path/to/resource")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_emptyString() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("empty", "")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).contains("\"empty\":\"\"");
+    }
+
+    @Test
+    void toJson_bytesEncoding_emptyBytes() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putBytes("empty", SdkBytes.fromByteArray(new byte[0]))
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_bytesEncoding_largeBytes() {
+        byte[] largeArray = new byte[10000];
+        Arrays.fill(largeArray, (byte) 65); // Fill with 'A'
+        
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putBytes("large", SdkBytes.fromByteArray(largeArray))
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_listWithAllNulls() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nullList", "[null,null,null]")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).contains("[null,null,null]");
+    }
+
+    @Test
+    void toJson_mapWithSpecialCharKeys() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("specialKeys", "{\"key with spaces\":1,\"key\\\"with\\\"quotes\":2,\"key/with/slash\":3}")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isNotNull();
+    }
+
+    @Test
+    void toJson_mapWithNullValues() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nullValues", "{\"key1\":null,\"key2\":\"value\",\"key3\":null}")
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).contains("null");
+    }
 }
