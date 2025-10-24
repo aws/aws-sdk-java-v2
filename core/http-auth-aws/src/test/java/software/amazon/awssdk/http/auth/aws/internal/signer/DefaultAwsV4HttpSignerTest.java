@@ -16,7 +16,6 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
@@ -31,21 +30,17 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.EXPIRA
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED;
 import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
-import io.reactivex.Flowable;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.reactivestreams.Publisher;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.http.Header;
@@ -424,6 +419,8 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     void signAsync_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner_futureBehavior() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
@@ -441,6 +438,25 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader(CONTENT_ENCODING)).hasValue("aws-chunked");
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+    }
+
+    // TODO(sra-identity-and-auth): Replace this test with the above test once chunk-encoding support is added
+    @Test
+    void signAsync_WithChunkEncodingTrue_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
     }
 
     @Test
@@ -463,6 +479,8 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     void signAsync_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner_futureBehavior() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
@@ -482,6 +500,27 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+    }
+
+    // TODO(sra-identity-and-auth): Replace this test with the above test once chunk-encoding support is added
+    @Test
+    void signAsync_WithChunkEncodingTrueAndChecksumAlgorithm_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).isNotPresent();
     }
 
     @Test
@@ -505,6 +544,8 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding support in async is added, we can enable these tests.
+    @Disabled("Chunk-encoding is not currently supported in the Async signing path - it is handled in HttpChecksumStage for now.")
     @Test
     void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner_futureBehavior() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
@@ -525,6 +566,28 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("62");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+    }
+
+    // TODO(sra-identity-and-auth): Replace this test with the above test once chunk-encoding support is added
+    @Test
+    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndTrailer_DelegatesToAwsChunkedPayloadSigner() {
+        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
+            AwsCredentialsIdentity.create("access", "secret"),
+            httpRequest -> httpRequest
+                .putHeader(Header.CONTENT_LENGTH, "20"),
+            signRequest -> signRequest
+                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
+                .putProperty(CHUNK_ENCODING_ENABLED, true)
+                .putProperty(CHECKSUM_ALGORITHM, CRC32)
+        );
+
+        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
+
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
+            .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
+        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("20");
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).isNotPresent();
+        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).isNotPresent();
     }
 
     @Test
@@ -713,10 +776,10 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding is implemented in the async path, the assertions this test makes should
+    //  be different - the assertions should mirror the above case.
     @Test
-    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
-    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
-    void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttp_RespectsPayloadSigning() {
+    void signAsync_WithPayloadSigningTrueAndChunkEncodingTrueAndHttp_IgnoresPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -728,14 +791,10 @@ public class DefaultAwsV4HttpSignerTest {
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+            .hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
-    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
-    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
     void sign_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_SignsPayload() {
         SignRequest<? extends AwsCredentialsIdentity> request = generateBasicRequest(
             AwsCredentialsIdentity.create("access", "secret"),
@@ -753,10 +812,10 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding is implemented in the async path, the assertions this test makes should
+    //  be different - the assertions should mirror the above case.
     @Test
-    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
-    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
-    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_FallsBackToPayloadSigning() {
+    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndHttp_DoesNotFallBackToPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -768,9 +827,7 @@ public class DefaultAwsV4HttpSignerTest {
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("193");
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
+            .hasValue("UNSIGNED-PAYLOAD");
     }
 
     @Test
@@ -793,10 +850,10 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
     }
 
+    // TODO(sra-identity-and-auth): Once chunk-encoding is implemented in the async path, the assertions this test makes should
+    //  be different - the assertions should mirror the above case.
     @Test
-    @Disabled("Fallback to signing is disabled to match pre-SRA behavior")
-    // TODO: Enable this test once we figure out what the expected behavior is post SRA. See JAVA-8078
-    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndFlexibleChecksumAndHttp_FallsBackToPayloadSigning() {
+    void signAsync_WithPayloadSigningFalseAndChunkEncodingTrueAndFlexibleChecksumAndHttp_DoesNotFallBackToPayloadSigning() {
         AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
             AwsCredentialsIdentity.create("access", "secret"),
             httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
@@ -809,10 +866,7 @@ public class DefaultAwsV4HttpSignerTest {
         AsyncSignedRequest signedRequest = signer.signAsync(request).join();
 
         assertThat(signedRequest.request().firstMatchingHeader("x-amz-content-sha256"))
-            .hasValue("STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER");
-        assertThat(signedRequest.request().firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue("314");
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-decoded-content-length")).hasValue("20");
-        assertThat(signedRequest.request().firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
+            .hasValue("STREAMING-UNSIGNED-PAYLOAD-TRAILER");
     }
 
     @Test
@@ -913,84 +967,9 @@ public class DefaultAwsV4HttpSignerTest {
         assertThat(cache.getChecksumValue(CRC32)).isEqualTo(crc32Value);
     }
 
-    @Test
-    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_cacheEmpty_storesComputedChecksum() throws IOException {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
-                .putProperty(CHUNK_ENCODING_ENABLED, true)
-                .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
-
-        getAllItems(signedRequest.payload().get());
-        assertThat(cache.getChecksumValue(CRC32)).isEqualTo(computeChecksum(CRC32, testPayload()));
-    }
-
-    @Test
-    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_cacheContainsChecksum_usesCachedValue() throws IOException {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
-        cache.putChecksumValue(CRC32, checksumValue);
-
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com")),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
-                .putProperty(CHUNK_ENCODING_ENABLED, true)
-                .putProperty(CHECKSUM_ALGORITHM, CRC32)
-                .putProperty(CHECKSUM_STORE, cache)
-        );
-
-        AsyncSignedRequest signedRequest = signer.signAsync(request).join();
-
-        List<ByteBuffer> content = getAllItems(signedRequest.payload().get());
-        String contentAsString = content.stream().map(DefaultAwsV4HttpSignerTest::bufferAsString).collect(Collectors.joining());
-        assertThat(contentAsString).contains("x-amz-checksum-crc32:" + BinaryUtils.toBase64(checksumValue) + "\r\n");
-    }
-
-    @Test
-    void signAsync_WithPayloadSigningFalse_chunkEncodingTrue_noContentLengthHeader_throws() throws IOException {
-        PayloadChecksumStore cache = PayloadChecksumStore.create();
-
-        byte[] checksumValue = "my-checksum".getBytes(StandardCharsets.UTF_8);
-        cache.putChecksumValue(CRC32, checksumValue);
-
-        AsyncSignRequest<? extends AwsCredentialsIdentity> request = generateBasicAsyncRequest(
-            AwsCredentialsIdentity.create("access", "secret"),
-            httpRequest -> httpRequest.uri(URI.create("http://demo.us-east-1.amazonaws.com"))
-                                      .removeHeader("content-length"),
-            signRequest -> signRequest
-                .putProperty(PAYLOAD_SIGNING_ENABLED, false)
-                .putProperty(CHUNK_ENCODING_ENABLED, true)
-                .putProperty(CHECKSUM_ALGORITHM, CRC32)
-        );
-
-        assertThatThrownBy(signer.signAsync(request)::join)
-            .hasCauseInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("Content-Length header must be specified");
-    }
-
-
     private static byte[] computeChecksum(ChecksumAlgorithm algorithm, byte[] data) {
         SdkChecksum checksum = SdkChecksum.forAlgorithm(algorithm);
         checksum.update(data, 0, data.length);
         return checksum.getChecksumBytes();
-    }
-
-    private List<ByteBuffer> getAllItems(Publisher<ByteBuffer> publisher) {
-        return Flowable.fromPublisher(publisher).toList().blockingGet();
-    }
-
-    private static String bufferAsString(ByteBuffer buffer) {
-        return StandardCharsets.UTF_8.decode(buffer.duplicate()).toString();
     }
 }

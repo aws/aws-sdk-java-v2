@@ -1,4 +1,209 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.36.1__ __2025-10-23__
+## __AWS Account__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Application Discovery Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CloudTrail Data Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeBuild__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeStar connections__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Config__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Cost and Usage Report Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Events__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Jobs Data Plane__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Lambda__
+  - ### Features
+    - Add NodeJs 24 (nodejs24.x) support to AWS Lambda.
+
+## __AWS Marketplace Commerce Analytics__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS MediaTailor__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Migration Hub__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Multi-party Approval__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Resilience Hub__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Savings Plans__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Add support for resource-based policies for Aurora DSQL clusters. This will enable you to implement Block Public Access (BPA) which will help restrict access to your Aurora DSQL public or VPC endpoints.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Fixing the service documentation name
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Fixing the service documentation name
+
+## __Amazon Chime SDK Voice__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch Internet Monitor__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch Network Monitor__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon DocumentDB Elastic Clusters__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Block Store__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Container Registry Public__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon HealthLake__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Video Streams Archived Media__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Video WebRTC Storage__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Macie 2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Managed Blockchain Query__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon NeptuneData__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Omics__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Personalize Events__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Pinpoint Email Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Sagemaker Edge Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Security Lake__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Application Auto Scaling__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Application Migration Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __CloudWatch RUM__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Private CA Connector for SCEP__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Synthetics__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __odb__
+  - ### Features
+    - Doc-only update that removes duplicate values from descriptions of ODB peering APIs.
+
 # __2.36.0__ __2025-10-22__
 ## __AWS B2B Data Interchange__
   - ### Features
@@ -82,7 +287,6 @@
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Add support for payload signing of async streaming requests signed with SigV4 using default `AwsV4HttpSigner` (using `AwsV4HttpSigner.create()`). Note, requests using the `http` URI scheme will not be signed regardless of the value of `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to remain consistent with existing behavior. This may change in a future release.
     - Updated endpoint and partition metadata.
 
 ## __AWS Systems Manager Incident Manager__
