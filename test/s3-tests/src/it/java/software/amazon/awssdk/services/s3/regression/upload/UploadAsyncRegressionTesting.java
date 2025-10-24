@@ -59,9 +59,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
 
         // Payload signing doesn't work correctly for async java based
         // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
-        Assumptions.assumeFalse(config.isPayloadSigning()
-                                // MRAP requires body signing
-                                || config.getBucketType() == BucketType.MRAP,
+        Assumptions.assumeFalse(config.isPayloadSigning(),
                                 "Async payload signing doesn't work with Java based clients");
 
         // Async java based clients don't support unknown content-length bodies
