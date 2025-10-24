@@ -15,9 +15,9 @@
 
 package software.amazon.awssdk.services.signin.internal;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.BufferUnderflowException;
+import java.nio.ByteBuffer;
 import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -38,15 +38,18 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public final class EcKeyLoader {
 
-    public static final String SECP_256_R1_STD_NAME = "secp256r1";
-    public static final int DER_SEQUENCE_TAG = 0x30;
-    public static final int DER_INTEGER_TAG = 0x02;
-    public static final int DER_OCTET_STRING_TAG = 0x04;
-    public static final int DER_BIT_STRING_TAG = 0x03;
-    public static final int DER_OPTIONAL_SEQ_PARAM_0 = 0xA0;
-    public static final int DER_OPTIONAL_SEQ_PARAM_1 = 0xA1;
-    public static final int DER_OBJECT_IDENTIFIER_TAG = 0x06;
-    public static final int SEC1_VERSION = 1;
+    private static final String SECP_256_R1_STD_NAME = "secp256r1";
+
+    private static final byte DER_SEQUENCE_TAG = 0x30;
+    private static final byte DER_INTEGER_TAG = 0x02;
+    private static final byte DER_OCTET_STRING_TAG = 0x04;
+    private static final byte DER_BIT_STRING_TAG = 0x03;
+    private static final byte DER_OPTIONAL_SEQ_PARAM_0 = (byte) 0xA0;
+    private static final byte DER_OPTIONAL_SEQ_PARAM_1 = (byte) 0xA1;
+    private static final byte DER_OBJECT_IDENTIFIER_TAG = 0x06;
+
+    private static final int SEC1_VERSION = 1;
+
     // bytes for "1.2.840.10045.3.1.7" - the OID for secp256r1 aka prime256v1/NIST P-256
     private static byte[] SECP_256_R1_OID_BYTES = new byte[] {0x2A, (byte) 0x86, 0x48, (byte) 0xCE, 0x3D, 0x03, 0x01, 0x07};
 
@@ -131,67 +134,65 @@ public final class EcKeyLoader {
      */
     private static ParsedEcKey parseSec1(byte[] der) {
         ParsedEcKey result = new ParsedEcKey();
-        ByteArrayInputStream in = new ByteArrayInputStream(der);
+        ByteBuffer buffer = ByteBuffer.wrap(der);
         int len;
         try {
-            if (in.read() != DER_SEQUENCE_TAG) {
+            if (buffer.get() != DER_SEQUENCE_TAG) {
                 throw new IllegalArgumentException(
                     "Invalid SEC1 Private Key: Not a SEQUENCE");
             }
-            readLength(in);
+            readLength(buffer);
 
             // validate the version
-            if (in.read() != DER_INTEGER_TAG) {
+            if (buffer.get() != DER_INTEGER_TAG) {
                 throw new IllegalArgumentException(
                     "Invalid SEC1 Private Key: Expected INTEGER");
             }
-            len = readLength(in);
-            if (len != 1 || in.read() != SEC1_VERSION) {
+            len = readLength(buffer);
+            if (len != 1 || buffer.get() != SEC1_VERSION) {
                 throw new IllegalArgumentException("Invalid SEC1 Private Key: invalid version");
             }
 
             // read private key
-            if (in.read() != DER_OCTET_STRING_TAG) {
+            if (buffer.get() != DER_OCTET_STRING_TAG) {
                 throw new IllegalArgumentException(
                     "Invalid SEC1 Private Key: Expected OCTET STRING");
             }
-            len = readLength(in);
+            len = readLength(buffer);
 
             byte[] privateKeyBytes = new byte[len];
-            in.read(privateKeyBytes);
+            buffer.get(privateKeyBytes);
             result.privateScalar = new BigInteger(1, privateKeyBytes);
 
-            while (in.available() > 0) {
-                int tag = in.read();
-                if (tag == -1) {
-                    break;
-                }
-                len = readLength(in);
+            while (buffer.hasRemaining()) {
+                byte tag = buffer.get();
+                len = readLength(buffer);
                 if (tag == DER_OPTIONAL_SEQ_PARAM_0) { // [0] parameters (curve OID)
-                    if (in.read() != DER_OBJECT_IDENTIFIER_TAG) {
-                        throw new IOException(
+                    if (buffer.get() != DER_OBJECT_IDENTIFIER_TAG) {
+                        throw new IllegalArgumentException(
                             "Invalid SEC1 Private Key: Expected OID");
                     }
-                    int oidLen = readLength(in);
+                    int oidLen = readLength(buffer);
                     byte[] oid = new byte[oidLen];
-                    in.read(oid);
+                    buffer.get(oid);
                     result.curveOid = oid;
                 } else if (tag == DER_OPTIONAL_SEQ_PARAM_1) { // [1] parameters public key (BIT STRING)
-                    int bitTag = in.read();
+                    byte bitTag = buffer.get();
                     if (bitTag != DER_BIT_STRING_TAG) {
-                        throw new IOException(
+                        throw new IllegalArgumentException(
                             "Invalid SEC1 Private Key: Expected BIT STRING");
                     }
-                    int bitLen = readLength(in);
+                    int bitLen = readLength(buffer);
                     byte[] bitString = new byte[bitLen];
-                    in.read(bitString);
+                    buffer.get(bitString);
                     // First byte of BIT STRING is the unused bits count, skip it
                     result.publicBytes = java.util.Arrays.copyOfRange(bitString, 1, bitString.length);
                 } else {
-                    in.skip(len); // ignore unknown
+                    // ignore unknown
+                    buffer.position(buffer.position() + len);
                 }
             }
-        } catch (IOException e) {
+        } catch (BufferUnderflowException e) {
             throw new IllegalArgumentException("Invalid SEC1 Private Key: failed to parse.", e);
         }
         return result;
@@ -213,17 +214,16 @@ public final class EcKeyLoader {
      * Read a length from a DER byte input stream. lengths may be either a single byte (short form) or multiple bytes.  If the
      * first bit is 0, then the remaining 7 bits give the length directly (short form). If the first bit is 1, then the next 7
      * bits give the number of bytes to read for the length. Eg: [0x82 0x01 0xF4] means the length is 2 bytes long (0x82) and the
-     * length is 500 (0x01F4)
+     * length is 500 (0x01F4).
      *
-     * @param in - byte input stream to read from.
+     * Throws BufferUnderflowException if there are insufficient bytes
+     *
+     * @param buffer - byte buffer to read from
      * @return the length
-     * @throws IOException
      */
-    private static int readLength(ByteArrayInputStream in) throws IOException {
-        int b = in.read();
-        if (b < 0) {
-            throw new IOException("Unexpected EOF while reading length");
-        }
+    private static int readLength(ByteBuffer buffer) {
+        int b = buffer.get() & 0xFF; // convert signed byte to unsigned int
+
         // if the high (first) bit is 0, then the length is a single byte, return it as is.
         if ((b & 0x80) == 0) {
             return b;
@@ -231,19 +231,19 @@ public final class EcKeyLoader {
         // remove the leading 1 bit, this should give the number of bytes for the length
         int num = b & 0x7F;
         if (num == 0) {
-            throw new IOException("Indefinite lengths not supported");
+            throw new IllegalArgumentException("Indefinite lengths not supported");
         }
         // limit to 4 bytes, supported keys will never have more than 4 bytes of length
         if (num > 4) {
-            throw new IOException("Too many bytes in length");
+            throw new IllegalArgumentException("Too many bytes in length");
         }
         int val = 0;
 
         // construct the length by reading num bytes from the input byte stream.
         for (int i = 0; i < num; i++) {
-            int nb = in.read();
+            int nb = buffer.get() & 0xFF;
             if (nb < 0) {
-                throw new IOException("Unexpected EOF in length bytes");
+                throw new IllegalArgumentException("Unexpected EOF in length bytes");
             }
             val = (val << 8) | (nb & 0xFF);
         }
