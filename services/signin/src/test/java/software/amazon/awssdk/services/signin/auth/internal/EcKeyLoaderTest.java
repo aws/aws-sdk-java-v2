@@ -120,7 +120,9 @@ public class EcKeyLoaderTest {
     }
 
     private String derToPem(byte[] der) {
-        return Base64.getEncoder().encodeToString(der);
+        return
+            "-----BEGIN EC PRIVATE KEY-----\n"
+            + Base64.getEncoder().encodeToString(der)
+            + "\n-----END EC PRIVATE KEY-----";
     }
-
 }
