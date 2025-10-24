@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Application Signals",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
