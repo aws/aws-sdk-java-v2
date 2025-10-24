@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Location Service",
-    "contributor": "",
-    "description": "Added support for mobile app restrictions in Amazon Location API keys."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed integrations for AWS IoT Device Management",
-    "contributor": "",
-    "description": "Update endpoint ruleset parameters casing"
-}
