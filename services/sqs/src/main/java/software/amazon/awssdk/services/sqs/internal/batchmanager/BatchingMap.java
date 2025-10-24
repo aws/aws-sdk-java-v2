@@ -67,18 +67,18 @@ public final class BatchingMap<RequestT, ResponseT> {
         batchContextMap.forEach(action);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests(String batchKey) {
-        return batchContextMap.get(batchKey).flushableRequests();
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady(String batchKey) {
+        return batchContextMap.get(batchKey).extractBatchIfReady();
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequestsOnByteLimitBeforeAdd(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(String batchKey,
                                                                                                             RequestT request) {
-        return batchContextMap.get(batchKey).flushableRequestsOnByteLimitBeforeAdd(request);
+        return batchContextMap.get(batchKey).extractBatchIfSizeExceeded(request);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(String batchKey,
                                                                                                  int maxBatchItems) {
-        return batchContextMap.get(batchKey).flushableScheduledRequests(maxBatchItems);
+        return batchContextMap.get(batchKey).extractEntriesForScheduledFlush(maxBatchItems);
     }
 
     public void cancelScheduledFlush(String batchKey) {
