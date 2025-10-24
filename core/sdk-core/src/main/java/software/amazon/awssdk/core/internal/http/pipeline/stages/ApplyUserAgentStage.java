@@ -160,7 +160,6 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return Optional.of(businessMetrics.asBoundedString());
     }
 
-
     private static Optional<Collection<String>> credentialProviderBusinessMetrics(
         ExecutionAttributes executionAttributes) {
         return Optional.ofNullable(
