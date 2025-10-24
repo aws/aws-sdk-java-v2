@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Elemental MediaStore",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
