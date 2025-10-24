@@ -19,10 +19,26 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Marker interface for preview and experimental APIs. Breaking changes may be
- * introduced to elements marked as {@link SdkPreviewApi}. Users of the SDK
- * should assume that anything annotated as preview will change or break, and
- * <b>should not</b> use them in production.
+ * Marks APIs as preview or experimental features that may change or be removed.
+ * 
+ * <p><b>WARNING:</b> Elements annotated with {@code @SdkPreviewApi} are not stable and may
+ * introduce breaking changes in any release, including minor and patch versions. Do not use
+ * preview APIs in production environments.
+ * 
+ * <p><b>Use with caution:</b>
+ * <ul>
+ *   <li>Preview APIs are suitable for testing and providing feedback</li>
+ *   <li>They may change significantly based on user feedback</li>
+ *   <li>They may be promoted to public APIs or removed entirely</li>
+ *   <li>No backward compatibility is guaranteed</li>
+ * </ul>
+ * 
+ * <p><b>Intended for:</b> Early adopters and developers who want to experiment with new features
+ * and provide feedback before they become stable public APIs.
+ * 
+ * @see SdkPublicApi
+ * @see SdkProtectedApi
+ * @see SdkInternalApi
  */
 @Target({ElementType.PACKAGE, ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.METHOD})
 @SdkProtectedApi

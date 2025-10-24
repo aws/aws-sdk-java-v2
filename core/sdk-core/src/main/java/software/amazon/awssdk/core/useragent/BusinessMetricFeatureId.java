@@ -34,7 +34,7 @@ public enum BusinessMetricFeatureId {
     RETRY_MODE_STANDARD("E"),
     RETRY_MODE_ADAPTIVE("F"),
     S3_TRANSFER("G"),
-    GZIP_REQUEST_COMPRESSION("L"), //TODO(metrics): Not working, compression happens after header
+    GZIP_REQUEST_COMPRESSION("L"),
     PROTOCOL_RPC_V2_CBOR("M"),
     ENDPOINT_OVERRIDE("N"),
     ACCOUNT_ID_MODE_PREFERRED("P"),

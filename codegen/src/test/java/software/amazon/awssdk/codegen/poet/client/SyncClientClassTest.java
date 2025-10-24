@@ -38,13 +38,13 @@ public class SyncClientClassTest {
     @Test
     public void syncClientClassRestJson() {
         SyncClientClass sraSyncClientClass = createSyncClientClass(restJsonServiceModels());
-        assertThat(sraSyncClientClass, generatesTo("sra/test-json-client-class.java"));
+        assertThat(sraSyncClientClass, generatesTo("test-json-client-class.java"));
     }
 
     @Test
     public void syncClientClassQuery() {
         SyncClientClass sraSyncClientClass = createSyncClientClass(queryServiceModels());
-        assertThat(sraSyncClientClass, generatesTo("sra/test-query-client-class.java"));
+        assertThat(sraSyncClientClass, generatesTo("test-query-client-class.java"));
     }
 
     @Test
@@ -56,7 +56,7 @@ public class SyncClientClassTest {
     @Test
     public void syncClientClassXml() {
         SyncClientClass syncClientClass = createSyncClientClass(xmlServiceModels());
-        assertThat(syncClientClass, generatesTo("sra/test-xml-client-class.java"));
+        assertThat(syncClientClass, generatesTo("test-xml-client-class.java"));
     }
 
     @Test
