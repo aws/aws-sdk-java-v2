@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGRESSION_TEST: DownloadStreamingRegressionTesting
-      HAS_S3_CHANGES: ${{ (needs.check-s3-related-changes.outputs.force_tests) || (needs.check-s3-related-changes.has_s3_related_changes) }}
+      HAS_S3_CHANGES: ${{ (needs.check-s3-related-changes.outputs.force_tests == true) || (needs.check-s3-related-changes.has_s3_related_changes == true) }}
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
