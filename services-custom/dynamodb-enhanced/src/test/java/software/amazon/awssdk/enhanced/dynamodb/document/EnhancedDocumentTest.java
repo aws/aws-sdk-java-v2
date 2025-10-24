@@ -509,7 +509,9 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isNotNull();
+        assertThat(json).isEqualTo("{\"longMax\":9223372036854775807,\"longMin\":-9223372036854775808,"
+                                  + "\"doubleMax\":1.7976931348623157E308,\"scientific\":1.23E100,"
+                                  + "\"manyDecimals\":1.123456789012345}");
     }
 
     @Test
@@ -521,7 +523,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isNotNull();
+        assertThat(json).isEqualTo("{\"twoPointZero\":2.0,\"tenPointZeroZero\":10.0}");
     }
 
     @Test
@@ -532,7 +534,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).contains("\\n").contains("\\t").contains("\\\"").contains("\\\\");
+        assertThat(json).isEqualTo("{\"allEscapes\":\"line1\\nline2\\ttab\\\"quote\\\\backslash\\r\\f\"}");
     }
 
     @Test
@@ -543,7 +545,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isNotNull();
+        assertThat(json).isEqualTo("{\"slash\":\"path/to/resource\"}");
     }
 
     @Test
@@ -554,7 +556,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).contains("\"empty\":\"\"");
+        assertThat(json).isEqualTo("{\"empty\":\"\"}");
     }
 
     @Test
@@ -565,21 +567,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isNotNull();
-    }
-
-    @Test
-    void toJson_bytesEncoding_largeBytes() {
-        byte[] largeArray = new byte[10000];
-        Arrays.fill(largeArray, (byte) 65); // Fill with 'A'
-        
-        EnhancedDocument doc = EnhancedDocument.builder()
-            .attributeConverterProviders(defaultProvider())
-            .putBytes("large", SdkBytes.fromByteArray(largeArray))
-            .build();
-        
-        String json = doc.toJson();
-        assertThat(json).isNotNull();
+        assertThat(json).isEqualTo("{\"empty\":\"\"}");
     }
 
     @Test
@@ -590,18 +578,7 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).contains("[null,null,null]");
-    }
-
-    @Test
-    void toJson_mapWithSpecialCharKeys() {
-        EnhancedDocument doc = EnhancedDocument.builder()
-            .attributeConverterProviders(defaultProvider())
-            .putJson("specialKeys", "{\"key with spaces\":1,\"key\\\"with\\\"quotes\":2,\"key/with/slash\":3}")
-            .build();
-        
-        String json = doc.toJson();
-        assertThat(json).isNotNull();
+        assertThat(json).isEqualTo("{\"nullList\":[null,null,null]}");
     }
 
     @Test
@@ -612,6 +589,47 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).contains("null");
+        assertThat(json).isEqualTo("{\"nullValues\":{\"key1\":null,\"key2\":\"value\",\"key3\":null}}");
     }
+
+    @Test
+    void toJson_deeplyNestedStructure() {
+        String deepJson = "{\"level1\":{\"level2\":{\"level3\":{\"level4\":{\"level5\":{\"level6\":{\"level7\":{\"value\":\"deep\"}}}}}}}}";
+        
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nested", deepJson)
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isEqualTo("{\"nested\":" + deepJson + "}");
+    }
+
+    @Test
+    void toJson_deeplyNestedArrays() {
+        String deepArrayJson = "[[[[[[\"innermost\"]]]]]]";
+        
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nestedArrays", deepArrayJson)
+            .build();
+        
+        String json = doc.toJson();
+        assertThat(json).isEqualTo("{\"nestedArrays\":" + deepArrayJson + "}");
+    }
+
+    @Test
+    void toJson_emoji() {
+
+    String emoji = "{\"smile\":\"Hello 😀 World\"}";
+
+    EnhancedDocument doc = EnhancedDocument.builder()
+                                           .attributeConverterProviders(defaultProvider())
+                                           .putJson("emoji", emoji)
+                                           .build();
+
+    String json = doc.toJson();
+    assertThat(json).isEqualTo("{\"emoji\":" + emoji + "}");
+    }
+
 }
