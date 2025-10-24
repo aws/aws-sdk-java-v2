@@ -434,6 +434,7 @@
         <module>bcmrecommendedactions</module>
         <module>bcmdashboards</module>
         <module>rtbfabric</module>
+        <module>signin</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
