@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Snow Device Management",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
