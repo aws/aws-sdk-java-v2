@@ -58,6 +58,12 @@ public class UploadSyncRegressionTesting extends UploadStreamingRegressionTestin
                                 "TODO: investigate connection acquire timeout when using RequestBody.fromRemainingByteBuffer"
                                 + " with RequestChecksumCalculation.WHEN_SUPPORTED");
 
+        Assumptions.assumeFalse(config.isPayloadSigning()
+                                && config.getBucketType() == BucketType.MRAP
+                                && config.getBodyType() == BodyType.INPUTSTREAM_NOT_RESETABLE,
+                                "SigV4a payload signing requires reading the stream twice - INPUTSTREAM_NOT_RESETABLE is not"
+                                + " valid");
+
         LOG.info(() -> "Running putObject with config: " + config);
 
         BucketType bucketType = config.getBucketType();
