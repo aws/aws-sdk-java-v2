@@ -1,0 +1,198 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.core.internal.http.pipeline.stages;
+
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.BUSINESS_METADATA;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SLASH;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendSpaceAndField;
+import static software.amazon.awssdk.utils.StringUtils.trim;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
+import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
+import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.StringUtils;
+
+/**
+ * A stage for adding the user agent header to the request, after retrieving the current string
+ * from execution attributes and adding any additional information.
+ */
+@SdkInternalApi
+public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
+
+    public static final String HEADER_USER_AGENT = "User-Agent";
+    public static final String SDK_METRICS = "sdk-metrics";
+
+    private static final Logger log = Logger.loggerFor(ApplyUserAgentStage.class);
+
+    private final SdkClientConfiguration clientConfig;
+
+    public ApplyUserAgentStage(HttpClientDependencies dependencies) {
+        this.clientConfig = dependencies.clientConfiguration();
+    }
+
+    @Override
+    public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
+                                              RequestExecutionContext context) throws Exception {
+        String headerValue = finalizeUserAgent(context);
+        return request.putHeader(HEADER_USER_AGENT, headerValue);
+    }
+
+    /**
+     * The final value sent in the user agent header consists of
+     * <ol>
+     *     <li>an optional user provided prefix</li>
+     *     <li>SDK user agent values (governed by a common specification)</li>
+     *     <li>an optional set of API names, expressed as name/version pairs</li>
+     *     <li>an optional user provided suffix</li>
+     * </ol>
+     * <p>
+     * In general, usage of the optional values is discouraged since they do not follow a specification and can make
+     * the user agent too long.
+     * <p>
+     * The SDK user agent values are constructed from static system values, client level values and request level
+     * values. This method adds request level values directly after the retrieved SDK client user agent string.
+     */
+    private String finalizeUserAgent(RequestExecutionContext context) {
+        String clientUserAgent = clientConfig.option(SdkClientOption.CLIENT_USER_AGENT);
+        if (clientUserAgent == null) {
+            log.warn(() -> "Client user agent configuration is missing, so request user agent will be incomplete.");
+            clientUserAgent = "";
+        }
+
+        //separate apiNames into opaque customer added values and known values added internally as metrics
+        Pair<List<ApiName>, Collection<String>> groupedApiNames = groupApiNames(context.requestConfig().apiNames());
+
+        //create builder for the user agent string
+        StringBuilder javaUserAgent = new StringBuilder();
+
+        String userPrefix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_PREFIX));
+        if (!StringUtils.isEmpty(userPrefix)) {
+            javaUserAgent.append(userPrefix).append(SPACE);
+        }
+
+        javaUserAgent.append(clientUserAgent);
+
+        //add useragent metadata from execution context
+        List<AdditionalMetadata> userAgentMetadata =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA);
+        if (userAgentMetadata != null) {
+            userAgentMetadata.forEach(s -> javaUserAgent.append(SPACE).append(s));
+        }
+
+        Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(), groupedApiNames.right());
+        businessMetrics.ifPresent(
+            metrics -> appendSpaceAndField(javaUserAgent, BUSINESS_METADATA, metrics)
+        );
+
+        //Any ApiName value that isn't known is added to the end of the user agent
+        Optional<String> apiNames = requestApiNames(groupedApiNames.left());
+        apiNames.ifPresent(javaUserAgent::append);
+
+        String userSuffix = trim(clientConfig.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX));
+        if (!StringUtils.isEmpty(userSuffix)) {
+            javaUserAgent.append(SPACE).append(userSuffix);
+        }
+
+        return javaUserAgent.toString();
+    }
+
+    private static Pair<List<ApiName>, Collection<String>> groupApiNames(List<ApiName> input) {
+        List<ApiName> customApiNames = new ArrayList<>();
+        Collection<String> metricsFromApiNames = new ArrayList<>();
+        for (ApiName requestApiName : input) {
+            if (requestApiName.name().equals(SDK_METRICS)) {
+                metricsFromApiNames.add(requestApiName.version());
+            } else {
+                customApiNames.add(requestApiName);
+            }
+        }
+        return Pair.of(customApiNames, metricsFromApiNames);
+    }
+
+    private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
+                                                             Collection<String> metricsFromApiNames) {
+        BusinessMetricCollection businessMetrics =
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics == null) {
+            businessMetrics = new BusinessMetricCollection();
+        }
+        businessMetrics.merge(metricsFromApiNames);
+
+        credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
+
+        if (businessMetrics.recordedMetrics().isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(businessMetrics.asBoundedString());
+    }
+
+    private static Optional<Collection<String>> credentialProviderBusinessMetrics(
+        ExecutionAttributes executionAttributes) {
+        return Optional.ofNullable(
+                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME))
+                       .map(selectedAuthScheme ->
+                                CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity()))
+                       .flatMap(Identity::providerName)
+                       .map(providerName -> {
+                           if (StringUtils.isBlank(providerName)) {
+                               return Collections.emptyList();
+                           }
+                           return Collections.singletonList(providerName);
+                       });
+    }
+
+    /**
+     * This structure is used for external users as well as for internal tracking of features.
+     * It's not governed by a specification.
+     * Internal usage should be migrated to business metrics or another designated metadata field,
+     * leaving these values to be completely user-set, in which case the result would in most cases be empty.
+     * <p>
+     * Currently tracking these SDK values (remove from list as they're migrated):
+     * PAGINATED/sdk-version, hll/s3Multipart, hll/ddb-enh, hll/cw-mp, hll/waiter, hll/cross-region, ft/s3-transfer
+     */
+    private Optional<String> requestApiNames(List<ApiName> requestApiNames) {
+        if (requestApiNames.isEmpty()) {
+            return Optional.empty();
+        }
+        StringBuilder concatenatedNames = new StringBuilder();
+        requestApiNames.forEach(apiName -> concatenatedNames.append(SPACE)
+                                                            .append(apiName.name())
+                                                            .append(SLASH)
+                                                            .append(apiName.version()));
+        return Optional.of(concatenatedNames.toString());
+    }
+}
