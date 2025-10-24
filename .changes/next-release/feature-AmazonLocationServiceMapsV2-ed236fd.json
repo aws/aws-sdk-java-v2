@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service Maps V2",
+    "contributor": "",
+    "description": "Added support for optional AdditionalFeatures parameter in the V2 GetTile API."
+}
