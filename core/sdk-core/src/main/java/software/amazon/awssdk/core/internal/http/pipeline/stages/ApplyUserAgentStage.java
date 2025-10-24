@@ -28,23 +28,17 @@ import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
-import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4aAuthScheme;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -53,7 +47,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * A stage for adding the user agent header to the request, after retrieving the current string
- * from execution attributes and adding any additional information. 
+ * from execution attributes and adding any additional information.
  */
 @SdkInternalApi
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
@@ -118,8 +112,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
             userAgentMetadata.forEach(s -> javaUserAgent.append(SPACE).append(s));
         }
 
-        Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(),
-                                                                    groupedApiNames.right(), context);
+        Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(), groupedApiNames.right());
         businessMetrics.ifPresent(
             metrics -> appendSpaceAndField(javaUserAgent, BUSINESS_METADATA, metrics)
         );
@@ -150,8 +143,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     private static Optional<String> getBusinessMetricsString(ExecutionAttributes executionAttributes,
-                                                             Collection<String> metricsFromApiNames,
-                                                             RequestExecutionContext context) {
+                                                             Collection<String> metricsFromApiNames) {
         BusinessMetricCollection businessMetrics =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
         if (businessMetrics == null) {
@@ -159,23 +151,21 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
         businessMetrics.merge(metricsFromApiNames);
 
-        SelectedAuthScheme<?> selectedAuthScheme = 
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
 
-        credentialProviderBusinessMetrics(selectedAuthScheme).ifPresent(businessMetrics::merge);
-        addSigV4aBusinessMetrics(selectedAuthScheme, businessMetrics, context, executionAttributes);
-        
         if (businessMetrics.recordedMetrics().isEmpty()) {
             return Optional.empty();
         }
-        
+
         return Optional.of(businessMetrics.asBoundedString());
     }
 
     private static Optional<Collection<String>> credentialProviderBusinessMetrics(
-        SelectedAuthScheme<?> selectedAuthScheme) {
-        return Optional.ofNullable(selectedAuthScheme)
-                       .map(scheme -> CompletableFutureUtils.joinLikeSync(scheme.identity()))
+        ExecutionAttributes executionAttributes) {
+        return Optional.ofNullable(
+                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME))
+                       .map(selectedAuthScheme ->
+                                CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity()))
                        .flatMap(Identity::providerName)
                        .map(providerName -> {
                            if (StringUtils.isBlank(providerName)) {
@@ -183,26 +173,6 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                            }
                            return Collections.singletonList(providerName);
                        });
-    }
-
-    private static boolean isSignerOverridden(RequestExecutionContext context, ExecutionAttributes executionAttributes) {
-        boolean isClientSignerOverridden =
-            Boolean.TRUE.equals(executionAttributes.getAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN));
-        Optional<Signer> requestSigner = context.originalRequest().overrideConfiguration()
-                                                .flatMap(RequestOverrideConfiguration::signer);
-        return isClientSignerOverridden || requestSigner.isPresent();
-    }
-
-    private static void addSigV4aBusinessMetrics(SelectedAuthScheme<?> selectedAuthScheme,
-                                                 BusinessMetricCollection businessMetrics,
-                                                 RequestExecutionContext context,
-                                                 ExecutionAttributes executionAttributes) {
-        if (selectedAuthScheme != null && 
-            selectedAuthScheme.authSchemeOption().schemeId().equals(AwsV4aAuthScheme.SCHEME_ID) &&
-            !isSignerOverridden(context, executionAttributes)) {
-            
-            businessMetrics.addMetric(BusinessMetricFeatureId.SIGV4A_SIGNING.value());
-        }
     }
 
     /**
