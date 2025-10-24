@@ -32,12 +32,10 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -153,8 +151,6 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         }
         businessMetrics.merge(metricsFromApiNames);
 
-        checksumBusinessMetrics(executionAttributes, businessMetrics);
-        
         credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
         
         if (businessMetrics.recordedMetrics().isEmpty()) {
@@ -164,20 +160,6 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         return Optional.of(businessMetrics.asBoundedString());
     }
 
-    private static void checksumBusinessMetrics(ExecutionAttributes executionAttributes,
-                                                   BusinessMetricCollection businessMetrics) {
-        BusinessMetricsUtils.resolveRequestChecksumCalculationMetric(
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
-            .ifPresent(businessMetrics::addMetric);
-        
-        BusinessMetricsUtils.resolveResponseChecksumValidationMetric(
-            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
-            .ifPresent(businessMetrics::addMetric);
-        
-        BusinessMetricsUtils.resolveChecksumSpecsMetric(
-            executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS))
-            .ifPresent(businessMetrics::addMetric);
-    }
 
     private static Optional<Collection<String>> credentialProviderBusinessMetrics(
         ExecutionAttributes executionAttributes) {

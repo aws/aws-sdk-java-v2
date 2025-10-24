@@ -49,7 +49,9 @@ import software.amazon.awssdk.core.internal.async.ChecksumCalculatingAsyncReques
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.internal.io.AwsUnsignedChunkedEncodingInputStream;
+import software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
+import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -79,11 +81,16 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
         ensurePayloadChecksumStorePresent(context.executionAttributes());
 
+        SdkHttpFullRequest.Builder result;
         if (sraSigningEnabled(context)) {
-            return sraChecksum(request, context);
+            result = sraChecksum(request, context);
+        } else {
+            result = legacyChecksum(request, context);
         }
 
-        return legacyChecksum(request, context);
+        recordChecksumBusinessMetrics(context.executionAttributes());
+
+        return result;
     }
 
     private SdkHttpFullRequest.Builder legacyChecksum(SdkHttpFullRequest.Builder request, RequestExecutionContext context) {
@@ -349,6 +356,27 @@ public class HttpChecksumStage implements MutableRequestToRequestPipeline {
 
     private PayloadChecksumStore getPayloadChecksumStore(ExecutionAttributes executionAttributes) {
         return executionAttributes.getAttribute(CHECKSUM_STORE);
+    }
+
+    private void recordChecksumBusinessMetrics(ExecutionAttributes executionAttributes) {
+        BusinessMetricCollection businessMetrics = 
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        
+        if (businessMetrics == null) {
+            return;
+        }
+
+        BusinessMetricsUtils.resolveRequestChecksumCalculationMetric(
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
+            .ifPresent(businessMetrics::addMetric);
+
+        BusinessMetricsUtils.resolveResponseChecksumValidationMetric(
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+            .ifPresent(businessMetrics::addMetric);
+
+        BusinessMetricsUtils.resolveChecksumSpecsMetric(
+            executionAttributes.getAttribute(RESOLVED_CHECKSUM_SPECS))
+            .ifPresent(businessMetrics::addMetric);
     }
 
     static final class ChecksumCalculatingStreamProvider implements ContentStreamProvider {
