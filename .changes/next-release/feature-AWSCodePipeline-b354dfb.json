@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodePipeline",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
