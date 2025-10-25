@@ -14,19 +14,11 @@
     "uid":"restjson-2016-03-11"
   },
   "operations":{
-    "simpleOperationWithNoEndpointParams":{
-      "name":"simpleOperationWithNoEndpointParams",
+    "operationWithBothSigv4AndSigv4a":{
+      "name":"operationWithBothSigv4AndSigv4a",
       "http":{
         "method":"POST",
-        "requestUri":"/2016-03-11/simpleOperationWithNoEndpointParams"
-      },
-      "input":{"shape":"SampleRequest"}
-    },
-    "simpleOperationWithEndpointParams":{
-      "name":"simpleOperationWithEndpointParams",
-      "http":{
-        "method":"POST",
-        "requestUri":"/2016-03-11/multiAuthWithOnlySigv4aAndSigv4"
+        "requestUri":"/2016-03-11/operationWithBothSigv4AndSigv4a"
       },
       "input":{"shape":"SampleRequest"}
     }

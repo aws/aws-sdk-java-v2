@@ -58,7 +58,7 @@ class Sigv4aCrtUnavailableBusinessMetricTest {
                                                 .httpClient(mockHttpClient)
                                                 .build();
 
-        client.simpleOperationWithNoEndpointParams(r -> r.stringMember("test"));
+        client.operationWithBothSigv4AndSigv4a(r -> r.stringMember("test"));
 
         String userAgent = getUserAgentFromLastRequest();
 
