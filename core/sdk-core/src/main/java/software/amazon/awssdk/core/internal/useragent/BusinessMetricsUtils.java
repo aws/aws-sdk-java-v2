@@ -62,6 +62,9 @@ public final class BusinessMetricsUtils {
 
     public static Optional<String> resolveRequestChecksumCalculationMetric(
         RequestChecksumCalculation requestChecksumCalculation) {
+        if (requestChecksumCalculation == null) {
+            return Optional.empty();
+        }
         switch (requestChecksumCalculation) {
             case WHEN_SUPPORTED:
                 return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value());
@@ -74,6 +77,9 @@ public final class BusinessMetricsUtils {
 
     public static Optional<String> resolveResponseChecksumValidationMetric(
         ResponseChecksumValidation responseChecksumValidation) {
+        if (responseChecksumValidation == null) {
+            return Optional.empty();
+        }
         switch (responseChecksumValidation) {
             case WHEN_SUPPORTED:
                 return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value());
