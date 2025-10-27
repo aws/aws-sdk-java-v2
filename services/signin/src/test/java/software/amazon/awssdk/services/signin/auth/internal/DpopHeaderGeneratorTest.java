@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.signin.auth.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,11 +38,12 @@ import org.junit.Test;
 import software.amazon.awssdk.services.signin.internal.DpopHeaderGenerator;
 
 public class DpopHeaderGeneratorTest {
-    private static final String VALID_TEST_PEM = "-----BEGIN EC PRIVATE KEY-----\n"
-                                                 + "MHcCAQEEICeY73qhQO/3o1QnrL5Nu3HMDB9h3kVW6imRdcHks0tboAoGCCqGSM49"
-                                                 + "AwEHoUQDQgAEbefyxjd/UlGwAPF6hy0k4yCW7dSghc6yPd4To0sBqX0tPS/aoLrl"
-                                                 + "QnPjfDslgD29p4+Pgwxj1s8cFHVeDKdKTQ==\n"
-                                                 + "-----END EC PRIVATE KEY-----";
+    private static final String VALID_TEST_PEM =
+        "-----BEGIN EC PRIVATE KEY-----\n"
+        + "MHcCAQEEICeY73qhQO/3o1QnrL5Nu3HMDB9h3kVW6imRdcHks0tboAoGCCqGSM49"
+        + "AwEHoUQDQgAEbefyxjd/UlGwAPF6hy0k4yCW7dSghc6yPd4To0sBqX0tPS/aoLrl"
+        + "QnPjfDslgD29p4+Pgwxj1s8cFHVeDKdKTQ==\n"
+        + "-----END EC PRIVATE KEY-----";
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
@@ -82,6 +84,15 @@ public class DpopHeaderGeneratorTest {
         // Verify the ES256 signature using the public key from JWK
         boolean verified = verifySignature(jwk, parts[0], parts[1], parts[2]);
         assertTrue(verified, "DPoP ES256 signature should verify correctly");
+    }
+
+    @Test
+    public void invalidKey_raisesException() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            DpopHeaderGenerator.generateDPoPProofHeader(
+                "INVALID-KEY", "https://example.com",
+                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
+        });
     }
 
     /**
