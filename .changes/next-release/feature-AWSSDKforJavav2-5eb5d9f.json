@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Move `ApplyUserAgentStage` to later position in request pipeline to ensure all business metrics are properly recorded before finalizing user agent."
-}
