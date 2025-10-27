@@ -64,11 +64,9 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
                                 || config.getBucketType() == BucketType.MRAP,
                                 "Async payload signing doesn't work with Java based clients");
 
-        // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
-        // Async java based clients don't currently support unknown content-length bodies
-        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH
-                                || config.getBodyType() == BodyType.INPUTSTREAM_NO_LENGTH,
-                                "Async Java based support unknown content length");
+        // Async java based clients don't support unknown content-length bodies
+        Assumptions.assumeTrue(config.getBodyType().isContentLengthAvailable(),
+                               "Async Java based does not support unknown content length");
 
         LOG.info(() -> "Running UploadAsyncRegressionTesting putObject with config: " + config);
 

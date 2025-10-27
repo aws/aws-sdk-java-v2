@@ -64,10 +64,10 @@ public final class RequestBatchBuffer<RequestT, ResponseT> {
         this.maxBatchSizeInBytes = maxBatchSizeInBytes;
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequests() {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady() {
         synchronized (flushLock) {
             return (isByteSizeThresholdCrossed(0) || isMaxBatchSizeLimitReached())
-                   ? extractFlushedEntries(maxBatchItems)
+                   ? extractEntries(maxBatchItems)
                    : Collections.emptyMap();
         }
     }
@@ -77,12 +77,12 @@ public final class RequestBatchBuffer<RequestT, ResponseT> {
         return idToBatchContext.size() >= maxBatchItems;
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableRequestsOnByteLimitBeforeAdd(RequestT request) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(RequestT request) {
         synchronized (flushLock) {
             if (maxBatchSizeInBytes > 0 && !idToBatchContext.isEmpty()) {
                 int incomingRequestBytes = RequestPayloadCalculator.calculateMessageSize(request).orElse(0);
                 if (isByteSizeThresholdCrossed(incomingRequestBytes)) {
-                    return extractFlushedEntries(maxBatchItems);
+                    return extractEntries(maxBatchItems);
                 }
             }
             return Collections.emptyMap();
@@ -100,16 +100,16 @@ public final class RequestBatchBuffer<RequestT, ResponseT> {
         return totalPayloadSize > maxBatchSizeInBytes;
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> flushableScheduledRequests(int maxBatchItems) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(int maxBatchItems) {
         synchronized (flushLock) {
             if (!idToBatchContext.isEmpty()) {
-                return extractFlushedEntries(maxBatchItems);
+                return extractEntries(maxBatchItems);
             }
             return Collections.emptyMap();
         }
     }
 
-    private Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractFlushedEntries(int maxBatchItems) {
+    private Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntries(int maxBatchItems) {
         LinkedHashMap<String, BatchingExecutionContext<RequestT, ResponseT>> requestEntries = new LinkedHashMap<>();
         String nextEntry;
         while (requestEntries.size() < maxBatchItems && hasNextBatchEntry()) {

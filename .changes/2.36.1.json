@@ -1,0 +1,312 @@
+{
+    "version": "2.36.1",
+    "date": "2025-10-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Account",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Application Discovery Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail Data Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeBuild",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar connections",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost and Usage Report Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Database Migration Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Events",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Jobs Data Plane",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add NodeJs 24 (nodejs24.x) support to AWS Lambda."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Commerce Analytics",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Multi-party Approval",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Add support for resource-based policies for Aurora DSQL clusters. This will enable you to implement Block Public Access (BPA) which will help restrict access to your Aurora DSQL public or VPC endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Fixing the service documentation name"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Fixing the service documentation name"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Voice",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Internet Monitor",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Network Monitor",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Contact Lens",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB Elastic Clusters",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Block Store",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry Public",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon HealthLake",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video WebRTC Storage",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Macie 2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Blockchain Query",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon NeptuneData",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Events",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint Email Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Sagemaker Edge Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Security Lake",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Application Auto Scaling",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch RUM",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Elastic Disaster Recovery Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Private CA Connector for SCEP",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "odb",
+            "contributor": "",
+            "description": "Doc-only update that removes duplicate values from descriptions of ODB peering APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
