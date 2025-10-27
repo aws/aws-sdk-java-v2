@@ -36,6 +36,8 @@ import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -203,6 +205,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
         "TokenConfiguredFromEnv");
+
+    /**
+     * The store used by {@link HttpSigner} implementations to store payload checksums.
+     */
+    public static final ExecutionAttribute<PayloadChecksumStore> CHECKSUM_STORE =
+        new ExecutionAttribute<>("ChecksumStore");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

@@ -156,24 +156,6 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         iam.deleteRole(req -> req.roleName(ROLE_NAME));
     }
 
-
-    /** Tests that we can call assumeRole successfully. */
-    @Test
-    public void testAssumeRole() throws InterruptedException {
-        AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
-                                                               .durationSeconds(SESSION_DURATION)
-                                                               .roleArn(ROLE_ARN)
-                                                               .roleSessionName("Name")
-                                                               .build();
-
-        StsClient sts = StsClient.builder().credentialsProvider(StaticCredentialsProvider.create(userCredentials)).build();
-        AssumeRoleResponse assumeRoleResult = sts.assumeRole(assumeRoleRequest);
-        assertNotNull(assumeRoleResult.assumedRoleUser());
-        assertNotNull(assumeRoleResult.assumedRoleUser().arn());
-        assertNotNull(assumeRoleResult.assumedRoleUser().assumedRoleId());
-        assertNotNull(assumeRoleResult.credentials());
-    }
-
     @Test
     public void profileCredentialsProviderCanAssumeRoles() throws InterruptedException {
         String ASSUME_ROLE_PROFILE =

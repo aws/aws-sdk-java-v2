@@ -36,6 +36,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.Checksummer;
 import software.amazon.awssdk.http.auth.aws.internal.signer.checksums.ConstantChecksum;
 import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -157,7 +158,7 @@ public final class ChecksumUtil {
     }
 
     public static Checksummer checksummer(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
-                                          Boolean isPayloadSigningOverride) {
+                                          Boolean isPayloadSigningOverride, PayloadChecksumStore payloadChecksumStore) {
         boolean isPayloadSigning = isPayloadSigningOverride != null ? isPayloadSigningOverride : isPayloadSigning(request);
         boolean isEventStreaming = isEventStreaming(request.request());
         boolean hasChecksumHeader = hasChecksumHeader(request);
@@ -179,7 +180,7 @@ public final class ChecksumUtil {
             }
 
             if (isFlexible) {
-                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM));
+                return Checksummer.forFlexibleChecksum(request.property(CHECKSUM_ALGORITHM), payloadChecksumStore);
             }
             return Checksummer.create();
         }
@@ -191,7 +192,7 @@ public final class ChecksumUtil {
         }
 
         if (isFlexible) {
-            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM));
+            return Checksummer.forFlexibleChecksum(UNSIGNED_PAYLOAD, request.property(CHECKSUM_ALGORITHM), payloadChecksumStore);
         }
 
         if (isAnonymous) {

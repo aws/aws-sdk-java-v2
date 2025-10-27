@@ -35,6 +35,8 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
+import software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
@@ -89,8 +91,12 @@ public class SigningStage implements RequestToRequestPipeline {
         CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
         T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
 
+        // Should not be null, added by HttpChecksumStage for SRA signed requests
+        PayloadChecksumStore payloadChecksumStore =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE);
+
         Pair<SdkHttpFullRequest, Duration> measuredSign = MetricUtils.measureDuration(
-            () -> doSraSign(request, selectedAuthScheme, identity));
+            () -> doSraSign(request, selectedAuthScheme, identity, payloadChecksumStore));
         context.attemptMetricCollector().reportMetric(CoreMetric.SIGNING_DURATION, measuredSign.right());
 
         SdkHttpFullRequest signedRequest = measuredSign.left();
@@ -100,10 +106,12 @@ public class SigningStage implements RequestToRequestPipeline {
 
     private <T extends Identity> SdkHttpFullRequest doSraSign(SdkHttpFullRequest request,
                                                               SelectedAuthScheme<T> selectedAuthScheme,
-                                                              T identity) {
+                                                              T identity,
+                                                              PayloadChecksumStore payloadChecksumStore) {
         SignRequest.Builder<T> signRequestBuilder = SignRequest
             .builder(identity)
             .putProperty(HttpSigner.SIGNING_CLOCK, signingClock())
+            .putProperty(SdkInternalHttpSignerProperty.CHECKSUM_STORE, payloadChecksumStore)
             .request(request)
             .payload(request.contentStreamProvider().orElse(null));
         AuthSchemeOption authSchemeOption = selectedAuthScheme.authSchemeOption();

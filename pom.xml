@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.33.8-SNAPSHOT</version>
+    <version>2.36.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -67,6 +67,7 @@
         <module>metric-publishers</module>
         <module>release-scripts</module>
         <module>utils</module>
+        <module>utils-lite</module>
         <module>codegen-lite</module>
         <module>codegen-lite-maven-plugin</module>
         <module>archetypes</module>
@@ -102,8 +103,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.33.7</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.33.6</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.36.1</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.36.0</awsjavasdk.previous-previous.version>
         <jackson.version>2.15.2</jackson.version>
         <jackson.databind.version>2.15.2</jackson.databind.version>
         <jacksonjr.version>2.17.3</jacksonjr.version>
@@ -162,6 +163,7 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <checkstyle.version>8.42</checkstyle.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.8.0</central-publishing-maven-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
@@ -239,7 +241,6 @@
                             <exclude>software/amazon/awssdk/services/kinesis/KinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisAsyncClient.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/DefaultKinesisBaseClientBuilder.java</exclude>
-                            <exclude>software/amazon/awssdk/services/sms/model/InternalError.java</exclude>
                             <exclude>software/amazon/awssdk/services/kinesis/transform/SubscribeToShardResponseUnmarshaller.java</exclude>
                         </excludes>
                     </configuration>
@@ -665,6 +666,7 @@
                             <includeModule>cloudwatch-metric-publisher</includeModule>
                             <includeModule>emf-metric-logging-publisher</includeModule>
                             <includeModule>utils</includeModule>
+                            <includeModule>utils-lite</includeModule>
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
                             <includeModule>retries-spi</includeModule>
@@ -685,10 +687,10 @@
                         </includeModules>
                         <excludes>
                             <exclude>*.internal.*</exclude>
+                            <!-- TODO remove after release -->
+                            <exclude>software.amazon.awssdk.annotations.ReviewBeforeRelease</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <!-- TODO remove after release -->
-                            <exclude>software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
@@ -746,7 +748,46 @@
                 <javadoc.skip>true</javadoc.skip>
             </properties>
         </profile>
-
+        <profile>
+            <!-- This is the new maven publishing profile. It's similar to the "publishing" profile except
+            for the fact that it uses the maven central publishing plugin instead of the nexus publishing plugin.
+            Once OSSRH is disabled we can rename this "publishing", and remove the existing publishing profile -->
+            <id>central-portal-publishing</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--batch</arg>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing-maven-plugin.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>publishing</id>
             <build>
@@ -1432,10 +1473,6 @@
                                 <group>
                                     <title>Budgets</title>
                                     <packages>software.amazon.awssdk.services.budgets*</packages>
-                                </group>
-                                <group>
-                                    <title>Server Migration</title>
-                                    <packages>software.amazon.awssdk.services.sms*</packages>
                                 </group>
                                 <group>
                                     <title>Rekognition</title>
