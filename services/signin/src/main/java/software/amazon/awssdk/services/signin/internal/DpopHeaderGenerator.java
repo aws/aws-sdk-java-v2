@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.signin.internal;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -28,8 +27,7 @@ import java.security.spec.ECPoint;
 import java.util.Arrays;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
+import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -38,8 +36,8 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public final class DpopHeaderGenerator {
 
-    public static final int ES256_SIGNATURE_BYTE_LENGTH = 64;
-    public static final byte DER_SEQUENCE_TAG = 0x30;
+    private static final int ES256_SIGNATURE_BYTE_LENGTH = 64;
+    private static final byte DER_SEQUENCE_TAG = 0x30;
 
     private DpopHeaderGenerator() {
 
@@ -74,12 +72,12 @@ public final class DpopHeaderGenerator {
             ECPublicKey publicKey = keys.right();
 
             // Build JSON strings (header, payload) with JsonGenerator
-            String headerJson = buildHeaderJson(publicKey);
-            String payloadJson = buildPayloadJson(uuid, endpoint, epochSeconds);
+            byte[] headerJson = buildHeaderJson(publicKey);
+            byte[] payloadJson = buildPayloadJson(uuid, endpoint, epochSeconds);
 
             // Base64URL encode header + payload
-            String encodedHeader = base64UrlEncode(headerJson.getBytes(StandardCharsets.UTF_8));
-            String encodedPayload = base64UrlEncode(payloadJson.getBytes(StandardCharsets.UTF_8));
+            String encodedHeader = base64UrlEncode(headerJson);
+            String encodedPayload = base64UrlEncode(payloadJson);
             String message = encodedHeader + "." + encodedPayload;
 
             // Sign (ES256)
@@ -98,42 +96,73 @@ public final class DpopHeaderGenerator {
 
     // build the JWT header which includes the public key
     // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
-    private static String buildHeaderJson(ECPublicKey publicKey) throws IOException {
+    private static byte[] buildHeaderJson(ECPublicKey publicKey) throws IOException {
         ECPoint pubPoint = publicKey.getW();
         String x = base64UrlEncode(stripLeadingZero(pubPoint.getAffineX().toByteArray()));
         String y = base64UrlEncode(stripLeadingZero(pubPoint.getAffineY().toByteArray()));
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JsonFactory factory = new JsonFactory();
-        try (JsonGenerator gen = factory.createGenerator(out)) {
-            gen.writeStartObject();
-            gen.writeStringField("typ", "dpop+jwt");
-            gen.writeStringField("alg", "ES256");
+        JsonWriter jsonWriter = null;
+        try {
+            jsonWriter = JsonWriter.create();
+            jsonWriter.writeStartObject();
+            jsonWriter.writeFieldName("typ");
+            jsonWriter.writeValue("dpop+jwt");
 
-            gen.writeObjectFieldStart("jwk");
-            gen.writeStringField("crv", "P-256");
-            gen.writeStringField("kty", "EC");
-            gen.writeStringField("x", x);
-            gen.writeStringField("y", y);
-            gen.writeEndObject(); // end jwk
-            gen.writeEndObject(); // end root
+            jsonWriter.writeFieldName("alg");
+            jsonWriter.writeValue("ES256");
+
+            jsonWriter.writeFieldName("jwk");
+            jsonWriter.writeStartObject();
+
+            jsonWriter.writeFieldName("crv") ;
+            jsonWriter.writeValue("P-256");
+
+            jsonWriter.writeFieldName("kty");
+            jsonWriter.writeValue("EC");
+
+            jsonWriter.writeFieldName("x");
+            jsonWriter.writeValue(x);
+
+            jsonWriter.writeFieldName("y");
+            jsonWriter.writeValue(y);
+            jsonWriter.writeEndObject(); // end jwk
+            jsonWriter.writeEndObject(); // end root
+
+            return jsonWriter.getBytes();
+        } finally {
+            if (jsonWriter != null) {
+                jsonWriter.close();
+            }
         }
-        return out.toString();
     }
 
     // build claims payload
     // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
-    private static String buildPayloadJson(String uuid, String endpoint, long epochSeconds) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JsonFactory factory = new JsonFactory();
-        try (JsonGenerator gen = factory.createGenerator(out)) {
-            gen.writeStartObject();
-            gen.writeStringField("jti", uuid);
-            gen.writeStringField("htm", "POST");
-            gen.writeStringField("htu", endpoint);
-            gen.writeNumberField("iat", epochSeconds);
-            gen.writeEndObject();
+    private static byte[] buildPayloadJson(String uuid, String endpoint, long epochSeconds) throws IOException {
+        JsonWriter jsonWriter = null;
+        try {
+            jsonWriter = JsonWriter.create();
+            jsonWriter.writeStartObject();
+
+            jsonWriter.writeFieldName("jti");
+            jsonWriter.writeValue(uuid);
+
+            jsonWriter.writeFieldName("htm");
+            jsonWriter.writeValue("POST");
+
+            jsonWriter.writeFieldName("htu");
+            jsonWriter.writeValue(endpoint);
+
+            jsonWriter.writeFieldName("iat");
+            jsonWriter.writeValue(epochSeconds);
+
+            jsonWriter.writeEndObject();
+
+            return jsonWriter.getBytes();
+        } finally {
+            if (jsonWriter != null) {
+                jsonWriter.close();
+            }
         }
-        return out.toString();
     }
 
     /**
