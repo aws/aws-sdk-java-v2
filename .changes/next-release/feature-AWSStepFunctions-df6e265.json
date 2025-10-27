@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
