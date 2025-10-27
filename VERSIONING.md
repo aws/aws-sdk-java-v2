@@ -22,6 +22,21 @@ following in the AWS SDKs and Tools Shared Configuration and Credentials Referen
 
 The SDK versions all service clients (e.g. `S3`, `EC2`, `DynamoDb`, etc) and the runtime (e.g. `aws-config`) together under a single version. This allows customers to easily upgrade multiple SDK clients at once and keep dependencies, such as the core runtime, compatible. The SDK may in the future consider versioning service clients separately from one another.
 
+## Component Version Compatibility
+
+**Best Practice: Use matching versions across all SDK modules.**
+
+The SDK supports limited mixed version combinations within the same minor version boundary only. Cross minor version mixing is not supported and may cause runtime exceptions when newer core components call methods that older service modules only implement as default stubs.
+
+### Supported Version Combinations
+
+- ✅ **Recommended**: All modules at the same version (e.g., `2.34.5`)
+- ✅ **Limited Support**: New core + old service within the same minor version (e.g., `sdk-core 2.34.5` with `s3 2.34.2`)
+
+
+- ❌ **Not Supported**: Cross minor-version mixing (e.g., `sdk-core 2.34.x` with `s3 2.32.y`)
+- ❌ **Not Supported**: Old core + new service (causes compile-time failures)
+
 ## Internal APIs
 
 Any API marked with either `@SdkInternalApi` or `@SdkTestInternalApi` is not subject to any backwards compatibility guarantee. These are meant to be consumed only by the SDK and may be changed or removed without notice. The SDK MAY bump the `MINOR` version when making such a change.
