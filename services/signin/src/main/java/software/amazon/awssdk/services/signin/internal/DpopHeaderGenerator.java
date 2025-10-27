@@ -18,7 +18,10 @@ package software.amazon.awssdk.services.signin.internal;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECPoint;
@@ -38,7 +41,9 @@ public final class DpopHeaderGenerator {
     public static final int ES256_SIGNATURE_BYTE_LENGTH = 64;
     public static final byte DER_SEQUENCE_TAG = 0x30;
 
-    private DpopHeaderGenerator() {}
+    private DpopHeaderGenerator() {
+
+    }
 
     /**
      * Construct a rfc9449 - OAuth 2.0 Demonstrating Proof of Possession (DPoP) header.
@@ -60,36 +65,39 @@ public final class DpopHeaderGenerator {
      * @param epochSeconds - creation time of the JWT in epoch seconds.
      * @param uuid - Unique identifier for the DPoP proof JWT - should be a UUID4 string.
      * @return DPoP header value
-     * @throws Exception
      */
-    public static String generateDPoPProofHeader(String pemContent, String endpoint, long epochSeconds, String uuid)
-        throws Exception {
-        // Load EC public and private key from PEM
-        Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(pemContent);
-        ECPrivateKey privateKey = keys.left();
-        ECPublicKey publicKey = keys.right();
+    public static String generateDPoPProofHeader(String pemContent, String endpoint, long epochSeconds, String uuid) {
+        try {
+            // Load EC public and private key from PEM
+            Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(pemContent);
+            ECPrivateKey privateKey = keys.left();
+            ECPublicKey publicKey = keys.right();
 
-        // Build JSON strings (header, payload) with JsonGenerator
-        String headerJson = buildHeaderJson(publicKey);
-        String payloadJson = buildPayloadJson(uuid, endpoint, epochSeconds);
+            // Build JSON strings (header, payload) with JsonGenerator
+            String headerJson = buildHeaderJson(publicKey);
+            String payloadJson = buildPayloadJson(uuid, endpoint, epochSeconds);
 
-        // Base64URL encode header + payload
-        String encodedHeader = base64UrlEncode(headerJson.getBytes(StandardCharsets.UTF_8));
-        String encodedPayload = base64UrlEncode(payloadJson.getBytes(StandardCharsets.UTF_8));
-        String message = encodedHeader + "." + encodedPayload;
+            // Base64URL encode header + payload
+            String encodedHeader = base64UrlEncode(headerJson.getBytes(StandardCharsets.UTF_8));
+            String encodedPayload = base64UrlEncode(payloadJson.getBytes(StandardCharsets.UTF_8));
+            String message = encodedHeader + "." + encodedPayload;
 
-        // Sign (ES256)
-        Signature signature = Signature.getInstance("SHA256withECDSA");
-        signature.initSign(privateKey);
-        signature.update(message.getBytes(StandardCharsets.UTF_8));
-        byte[] signatureBytes = translateDerSignatureToJws(signature.sign(), ES256_SIGNATURE_BYTE_LENGTH);
+            // Sign (ES256)
+            Signature signature = Signature.getInstance("SHA256withECDSA");
+            signature.initSign(privateKey);
+            signature.update(message.getBytes(StandardCharsets.UTF_8));
+            byte[] signatureBytes = translateDerSignatureToJws(signature.sign(), ES256_SIGNATURE_BYTE_LENGTH);
 
-        // Combine into JWT
-        String encodedSignature = base64UrlEncode(signatureBytes);
-        return message + "." + encodedSignature;
+            // Combine into JWT
+            String encodedSignature = base64UrlEncode(signatureBytes);
+            return message + "." + encodedSignature;
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // build the JWT header which includes the public key
+    // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
     private static String buildHeaderJson(ECPublicKey publicKey) throws IOException {
         ECPoint pubPoint = publicKey.getW();
         String x = base64UrlEncode(stripLeadingZero(pubPoint.getAffineX().toByteArray()));
@@ -112,6 +120,8 @@ public final class DpopHeaderGenerator {
         return out.toString();
     }
 
+    // build claims payload
+    // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
     private static String buildPayloadJson(String uuid, String endpoint, long epochSeconds) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         JsonFactory factory = new JsonFactory();
@@ -142,8 +152,7 @@ public final class DpopHeaderGenerator {
      *
      * @return The ECDSA JWS encoded signature (concatenated r,s values)
      **/
-    private static byte[] translateDerSignatureToJws(byte[] derSignature, int outputLength)
-        throws Exception {
+    private static byte[] translateDerSignatureToJws(byte[] derSignature, int outputLength) {
 
         // validate DER signature format
         if (derSignature.length < 8 || derSignature[0] != DER_SEQUENCE_TAG) {
@@ -192,7 +201,7 @@ public final class DpopHeaderGenerator {
             throw new RuntimeException("Invalid ECDSA signature format");
         }
 
-        final byte[] jwsSignature = new byte[2 * rawLen];
+        byte[] jwsSignature = new byte[2 * rawLen];
         // copy the significant bytes of R (i bytes), removing any leading zeros, into the first half of output array.
         // Right aligned!
         System.arraycopy(derSignature, endOfR - i, jwsSignature, rawLen - i, i);
@@ -211,20 +220,5 @@ public final class DpopHeaderGenerator {
             return Arrays.copyOfRange(bytes, 1, bytes.length);
         }
         return bytes;
-    }
-
-    public static void main(String[] args) throws Exception {
-        String pem = "-----BEGIN EC PRIVATE KEY-----\n"
-                     + "MHcCAQEEICeY73qhQO/3o1QnrL5Nu3HMDB9h3kVW6imRdcHks0tboAoGCCqGSM49"
-                     + "AwEHoUQDQgAEbefyxjd/UlGwAPF6hy0k4yCW7dSghc6yPd4To0sBqX0tPS/aoLrl"
-                     + "QnPjfDslgD29p4+Pgwxj1s8cFHVeDKdKTQ==\n"
-                     + "-----END EC PRIVATE KEY-----";
-        String dpopHeader = DpopHeaderGenerator.generateDPoPProofHeader(
-            pem, "https://ap-northeast-1.aws-signin-testing.amazon.com/v1/token",
-            1760727856,
-            "c7cf0359-f736-4a55-bbc1-70f6a0e2d55d"
-        );
-
-        System.out.println("\n\nDPOP Proof header:\n" + dpopHeader);
     }
 }
