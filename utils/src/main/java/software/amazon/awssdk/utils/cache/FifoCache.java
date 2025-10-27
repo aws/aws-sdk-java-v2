@@ -13,13 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.internal.signer.util;
+package software.amazon.awssdk.utils.cache;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.internal.BoundedLinkedHashMap;
 
 /**
  * A bounded cache that has a FIFO eviction policy when the cache is full.
@@ -27,7 +29,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  * @param <T> value type
  */
 @ThreadSafe
-@SdkInternalApi
+@SdkProtectedApi
 public final class FifoCache<T> {
     private final BoundedLinkedHashMap<String, T> map;
     private final ReadLock rlock;
@@ -74,7 +76,8 @@ public final class FifoCache<T> {
     /**
      * Returns the current size of the cache.
      */
-    public int size() {
+    @SdkTestInternalApi
+    int size() {
         rlock.lock();
         try {
             return map.size();
@@ -83,18 +86,11 @@ public final class FifoCache<T> {
         }
     }
 
-    /**
-     * Returns the maximum size of the cache.
-     */
-    public int getMaxSize() {
-        return map.getMaxSize();
-    }
-
     @Override
     public String toString() {
         rlock.lock();
         try {
-            return map.toString();
+            return map.keySet().toString();
         } finally {
             rlock.unlock();
         }

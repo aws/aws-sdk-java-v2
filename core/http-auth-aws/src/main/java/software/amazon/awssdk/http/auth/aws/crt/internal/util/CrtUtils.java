@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.AUTHORIZATION;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.HOST;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_ALGORITHM;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CREDENTIAL;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DATE;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_EXPIRES;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_SIGNATURE;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_SIGNED_HEADERS;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.AUTHORIZATION;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.HOST;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_ALGORITHM;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CREDENTIAL;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DATE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_EXPIRES;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNATURE;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_SIGNED_HEADERS;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -39,11 +40,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public final class CrtUtils {
-    private static final String BODY_HASH_NAME = "x-amz-content-sha256";
     private static final String REGION_SET_NAME = "X-amz-region-set";
 
     private static final Set<String> FORBIDDEN_HEADERS =
-        Stream.of(BODY_HASH_NAME, X_AMZ_DATE, AUTHORIZATION, REGION_SET_NAME)
+        Stream.of(X_AMZ_CONTENT_SHA256, X_AMZ_DATE, AUTHORIZATION, REGION_SET_NAME)
               .collect(Collectors.toCollection(() -> new TreeSet<>(String.CASE_INSENSITIVE_ORDER)));
     private static final Set<String> FORBIDDEN_PARAMS =
         Stream.of(X_AMZ_SIGNATURE, X_AMZ_DATE, X_AMZ_CREDENTIAL, X_AMZ_ALGORITHM, X_AMZ_SIGNED_HEADERS, REGION_SET_NAME,
