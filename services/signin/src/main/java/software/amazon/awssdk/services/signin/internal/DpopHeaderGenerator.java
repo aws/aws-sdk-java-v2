@@ -29,6 +29,7 @@ import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Utilities that implement rfc9449 - OAuth 2.0 Demonstrating Proof of Possession (DPoP)
@@ -65,6 +66,10 @@ public final class DpopHeaderGenerator {
      * @return DPoP header value
      */
     public static String generateDPoPProofHeader(String pemContent, String endpoint, long epochSeconds, String uuid) {
+        Validate.notBlank(pemContent, "pemContent must be set.");
+        Validate.notBlank(endpoint, "endpoint must be set.");
+        Validate.notBlank(uuid, "uuid must be set.");
+
         try {
             // Load EC public and private key from PEM
             Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(pemContent);

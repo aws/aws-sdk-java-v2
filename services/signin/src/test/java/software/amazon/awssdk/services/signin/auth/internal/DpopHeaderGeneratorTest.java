@@ -87,6 +87,27 @@ public class DpopHeaderGeneratorTest {
     }
 
     @Test
+    public void missingArguments_raisesException() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            DpopHeaderGenerator.generateDPoPProofHeader(
+                "", "https://example.com",
+                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            DpopHeaderGenerator.generateDPoPProofHeader(
+                VALID_TEST_PEM, "",
+                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            DpopHeaderGenerator.generateDPoPProofHeader(
+                VALID_TEST_PEM, "https://example.com",
+                Instant.now().getEpochSecond(), "");
+        });
+    }
+
+    @Test
     public void invalidKey_raisesException() {
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
