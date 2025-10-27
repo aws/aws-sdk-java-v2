@@ -23,7 +23,7 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicAsyncRequest;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.generateBasicRequest;
 import static software.amazon.awssdk.http.auth.aws.TestUtils.testPayload;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.CONTENT_ENCODING;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.CONTENT_ENCODING;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.AUTH_LOCATION;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.CHUNK_ENCODING_ENABLED;

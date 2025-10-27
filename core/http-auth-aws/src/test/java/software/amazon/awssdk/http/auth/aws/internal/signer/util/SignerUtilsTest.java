@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;

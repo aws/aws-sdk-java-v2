@@ -19,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.CRC32;
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

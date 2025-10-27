@@ -13,10 +13,9 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.internal.io;
+package software.amazon.awssdk.utils.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -28,9 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.utils.IoUtils;
 
-class SdkLengthAwareInputStreamTest {
+class LengthAwareInputStreamTest {
     private InputStream delegateStream;
 
     @BeforeEach
@@ -42,7 +40,7 @@ class SdkLengthAwareInputStreamTest {
     void read_lengthIs0_returnsEof() throws IOException {
         when(delegateStream.available()).thenReturn(Integer.MAX_VALUE);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 0);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 0);
 
         assertThat(is.read()).isEqualTo(-1);
         assertThat(is.read(new byte[16], 0, 16)).isEqualTo(-1);
@@ -53,7 +51,7 @@ class SdkLengthAwareInputStreamTest {
         when(delegateStream.read()).thenReturn(-1);
         when(delegateStream.read(any(byte[].class), any(int.class), any(int.class))).thenReturn(-1);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 0);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 0);
 
         assertThat(is.read()).isEqualTo(-1);
         assertThat(is.read(new byte[16], 0, 16)).isEqualTo(-1);
@@ -63,7 +61,7 @@ class SdkLengthAwareInputStreamTest {
     void readByte_lengthNonZero_delegateHasAvailable_returnsDelegateData() throws IOException {
         when(delegateStream.read()).thenReturn(42);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         assertThat(is.read()).isEqualTo(42);
     }
@@ -72,7 +70,7 @@ class SdkLengthAwareInputStreamTest {
     void readArray_lengthNonZero_delegateHasAvailable_returnsDelegateData() throws IOException {
         when(delegateStream.read(any(byte[].class), any(int.class), any(int.class))).thenReturn(8);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         assertThat(is.read(new byte[16], 0, 16)).isEqualTo(8);
     }
@@ -81,7 +79,7 @@ class SdkLengthAwareInputStreamTest {
     void readArray_lengthNonZero_propagatesCallToDelegate() throws IOException {
         when(delegateStream.read(any(byte[].class), any(int.class), any(int.class))).thenReturn(8);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
         byte[] buff = new byte[16];
         is.read(buff, 0, 16);
 
@@ -92,7 +90,7 @@ class SdkLengthAwareInputStreamTest {
     void read_markAndReset_availableReflectsNewLength() throws IOException {
         delegateStream = new ByteArrayInputStream(new byte[32]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         for (int i = 0; i < 4; ++i) {
             is.read();
@@ -115,7 +113,7 @@ class SdkLengthAwareInputStreamTest {
     void skip_markAndReset_availableReflectsNewLength() throws IOException {
         delegateStream = new ByteArrayInputStream(new byte[32]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         is.skip(4);
 
@@ -143,7 +141,7 @@ class SdkLengthAwareInputStreamTest {
 
         when(delegateStream.read(any(byte[].class), any(int.class), any(int.class))).thenReturn(1);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         long skipped = is.skip(4);
 
@@ -158,7 +156,7 @@ class SdkLengthAwareInputStreamTest {
             return n / 2;
         });
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegateStream, 16);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegateStream, 16);
 
         long read = is.read(new byte[16], 0, 8);
 
@@ -171,7 +169,7 @@ class SdkLengthAwareInputStreamTest {
         int delegateLength = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength + 1);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength + 1);
 
         assertThatThrownBy(() -> {
             int read;
@@ -188,7 +186,7 @@ class SdkLengthAwareInputStreamTest {
         int delegateLength = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int total = 0;
         int read;
@@ -206,7 +204,7 @@ class SdkLengthAwareInputStreamTest {
         int length = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, length);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, length);
 
         int total = 0;
         int read;
@@ -223,7 +221,7 @@ class SdkLengthAwareInputStreamTest {
         int delegateLength = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength + 1);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength + 1);
 
         assertThatThrownBy(() -> {
             int read;
@@ -239,7 +237,7 @@ class SdkLengthAwareInputStreamTest {
         int delegateLength = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int total = 0;
         while (total != delegateLength && is.read() != -1) {
@@ -255,7 +253,7 @@ class SdkLengthAwareInputStreamTest {
         int expectedContentLength = delegateLength + 1;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, expectedContentLength);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, expectedContentLength);
         is.read(); // read one byte
         is.mark(1024);
         // read another byte and reset, the length should not be reset based on the byte that was already read
@@ -276,7 +274,7 @@ class SdkLengthAwareInputStreamTest {
         int length = 16;
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, length);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, length);
 
         int total = 0;
         while (total != delegateLength && is.read() != -1) {
@@ -292,7 +290,7 @@ class SdkLengthAwareInputStreamTest {
 
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int bytesToSkip = 8;
         int skippedBytes = 0;
@@ -317,7 +315,7 @@ class SdkLengthAwareInputStreamTest {
 
         ByteArrayInputStream delegate = new ByteArrayInputStream(new byte[delegateLength]);
 
-        SdkLengthAwareInputStream is = new SdkLengthAwareInputStream(delegate, delegateLength);
+        LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int bytesToSkip = 8;
         int skippedBytes = 0;

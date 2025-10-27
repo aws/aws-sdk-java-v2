@@ -22,8 +22,8 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Checksum
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.useChunkEncoding;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.OptionalDependencyLoaderUtil.getEventStreamV4PayloadSigner;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
 import java.nio.ByteBuffer;
