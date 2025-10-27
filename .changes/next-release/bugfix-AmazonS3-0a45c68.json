@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix a bug where tags were being lost when creating buckets in us-east-1"
+}

@@ -41,6 +41,7 @@ public enum BusinessMetricFeatureId {
     ACCOUNT_ID_MODE_PREFERRED("P"),
     ACCOUNT_ID_MODE_DISABLED("Q"),
     ACCOUNT_ID_MODE_REQUIRED("R"),
+    SIGV4A_SIGNING("S"),
     RESOLVED_ACCOUNT_ID("T"),
     DDB_MAPPER("d"),
     BEARER_SERVICE_ENV_VARS("3"),
