@@ -1,100 +1,113 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class StrategyJsonSerializer {
 
-    private StrategyJsonSerializer() {
+    private enum JsonSerializationStrategy {
+        NULL,
+        STRING,
+        NUMBER,
+        BOOLEAN,
+        BYTES,
+        LIST,
+        MAP,
+        STRING_SET,
+        NUMBER_SET,
+        BYTES_SET
     }
 
     public static String serializeAttributeValueMap(Map<String, AttributeValue> map) {
-        StringWriter writer = new StringWriter();
-        try (JsonGenerator generator = new JsonFactory().createGenerator(writer)) {
-            generator.writeStartObject();
-            for (Map.Entry<String, AttributeValue> entry : map.entrySet()) {
-                generator.writeFieldName(entry.getKey());
-                serializeAttributeValue(generator, entry.getValue());
-            }
-            generator.writeEndObject();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return writer.toString();
+        SdkJsonGenerator jsonGen = new SdkJsonGenerator(new JsonFactory(), "application/json");
+
+        jsonGen.writeStartObject();
+        map.forEach((key, value) -> {
+            jsonGen.writeFieldName(key);
+            serializeAttributeValue(jsonGen, value);
+        });
+        jsonGen.writeEndObject();
+
+        return new String(jsonGen.getBytes(), StandardCharsets.UTF_8);
     }
 
-    private static void serializeAttributeValue(JsonGenerator generator, AttributeValue av) throws IOException {
-        if (av.nul() != null && av.nul()) {
-            generator.writeNull();
-        } else if (av.s() != null) {
-            generator.writeString(av.s());
-        } else if (av.n() != null) {
-            generator.writeNumber(av.n());
-        } else if (av.bool() != null) {
-            generator.writeBoolean(av.bool());
-        } else if (av.b() != null) {
-            generator.writeBinary(av.b().asByteArray());
-        } else if (av.hasL()) {
-            serializeList(generator, av);
-        } else if (av.hasM()) {
-            serializeMap(generator, av);
-        } else if (av.hasSs()) {
-            serializeStringSet(generator, av);
-        } else if (av.hasNs()) {
-            serializeNumberSet(generator, av);
-        } else if (av.hasBs()) {
-            serializeBytesSet(generator, av);
-        } else {
-            throw new IllegalStateException("Unknown AttributeValue type: " + av);
+    public static void serializeAttributeValue(SdkJsonGenerator generator, AttributeValue av) {
+        JsonSerializationStrategy strategy = getStrategy(av);
+
+        switch (strategy) {
+            case NULL:
+                generator.writeNull();
+                break;
+            case STRING:
+                generator.writeValue(av.s());
+                break;
+            case NUMBER:
+                generator.writeNumber(av.n());
+                break;
+            case BOOLEAN:
+                generator.writeValue(av.bool());
+                break;
+            case BYTES:
+                generator.writeValue(av.b().asByteBuffer());
+                break;
+            case LIST:
+                generator.writeStartArray();
+                for (AttributeValue item : av.l()) {
+                    serializeAttributeValue(generator, item);
+                }
+                generator.writeEndArray();
+                break;
+            case MAP:
+                generator.writeStartObject();
+                for (Map.Entry<String, AttributeValue> entry : av.m().entrySet()) {
+                    generator.writeFieldName(entry.getKey());
+                    serializeAttributeValue(generator, entry.getValue());
+                }
+                generator.writeEndObject();
+                break;
+            case STRING_SET:
+                generator.writeStartArray();
+                for (String s : av.ss()) {
+                    generator.writeValue(s);
+                }
+                generator.writeEndArray();
+                break;
+            case NUMBER_SET:
+                generator.writeStartArray();
+                for (String n : av.ns()) {
+                    generator.writeNumber(n);
+                }
+                generator.writeEndArray();
+                break;
+            case BYTES_SET:
+                generator.writeStartArray();
+                for (SdkBytes b : av.bs()) {
+                    generator.writeValue(b.asByteBuffer());
+                }
+                generator.writeEndArray();
+                break;
+            default:
+                throw new IllegalStateException("Unsupported strategy: " + strategy);
         }
     }
 
-    private static void serializeList(JsonGenerator generator, AttributeValue av) throws IOException {
-        generator.writeStartArray();
-        for (AttributeValue item : av.l()) {
-            serializeAttributeValue(generator, item);
-        }
-        generator.writeEndArray();
-    }
-
-    private static void serializeMap(JsonGenerator generator, AttributeValue av) throws IOException {
-        generator.writeStartObject();
-        for (Map.Entry<String, AttributeValue> entry : av.m().entrySet()) {
-            generator.writeFieldName(entry.getKey());
-            serializeAttributeValue(generator, entry.getValue());
-        }
-        generator.writeEndObject();
-    }
-
-    private static void serializeStringSet(JsonGenerator generator, AttributeValue av) throws IOException {
-        generator.writeStartArray();
-        for (String s : av.ss()) {
-            generator.writeString(s);
-        }
-        generator.writeEndArray();
-    }
-
-    private static void serializeNumberSet(JsonGenerator generator, AttributeValue av) throws IOException {
-        generator.writeStartArray();
-        for (String n : av.ns()) {
-            generator.writeNumber(n);
-        }
-        generator.writeEndArray();
-    }
-
-    private static void serializeBytesSet(JsonGenerator generator, AttributeValue av) throws IOException {
-        generator.writeStartArray();
-        for (SdkBytes b : av.bs()) {
-            generator.writeBinary(b.asByteArray());
-        }
-        generator.writeEndArray();
+    private static JsonSerializationStrategy getStrategy(AttributeValue av) {
+        if (av.nul() != null && av.nul()) return JsonSerializationStrategy.NULL;
+        if (av.s() != null) return JsonSerializationStrategy.STRING;
+        if (av.n() != null) return JsonSerializationStrategy.NUMBER;
+        if (av.bool() != null) return JsonSerializationStrategy.BOOLEAN;
+        if (av.b() != null) return JsonSerializationStrategy.BYTES;
+        if (av.hasL()) return JsonSerializationStrategy.LIST;
+        if (av.hasM()) return JsonSerializationStrategy.MAP;
+        if (av.hasSs()) return JsonSerializationStrategy.STRING_SET;
+        if (av.hasNs()) return JsonSerializationStrategy.NUMBER_SET;
+        if (av.hasBs()) return JsonSerializationStrategy.BYTES_SET;
+        throw new IllegalStateException("Unknown AttributeValue type: " + av);
     }
 }
