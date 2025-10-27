@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager for SAP",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
