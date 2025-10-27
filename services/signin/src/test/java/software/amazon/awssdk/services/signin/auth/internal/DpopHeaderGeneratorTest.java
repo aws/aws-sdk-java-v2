@@ -48,12 +48,13 @@ public class DpopHeaderGeneratorTest {
 
     @Test
     public void testGenerateAndVerifyDPoPHeader() throws Exception {
-        String endpoint = "https://ap-northeast-1.aws-signin-testing.amazon.com/v1/token";
+        String endpoint = "https://testing.amazon.com/v1/token";
+        String httpMethod = "POST";
         long epochSeconds = Instant.now().getEpochSecond();
         String uuid = UUID.randomUUID().toString();
 
         // Generate the DPoP proof JWT
-        String dpop = DpopHeaderGenerator.generateDPoPProofHeader(VALID_TEST_PEM, endpoint, epochSeconds, uuid);
+        String dpop = DpopHeaderGenerator.generateDPoPProofHeader(VALID_TEST_PEM, endpoint, httpMethod, epochSeconds, uuid);
         assertNotNull(dpop, "DPoP header should not be null");
 
         // JWT should be in form header.payload.signature
@@ -77,7 +78,7 @@ public class DpopHeaderGeneratorTest {
         String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
         Map<String, Object> payload = MAPPER.readValue(payloadJson, Map.class);
         assertEquals(uuid, payload.get("jti"));
-        assertEquals("POST", payload.get("htm"));
+        assertEquals(httpMethod, payload.get("htm"));
         assertEquals(endpoint, payload.get("htu"));
         assertEquals(((Number) payload.get("iat")).longValue(), epochSeconds);
 
@@ -90,19 +91,25 @@ public class DpopHeaderGeneratorTest {
     public void missingArguments_raisesException() {
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                "", "https://example.com",
+                "", "https://example.com", "POST",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                VALID_TEST_PEM, "",
+                VALID_TEST_PEM, "", "POST",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                VALID_TEST_PEM, "https://example.com",
+                VALID_TEST_PEM, "https://example.com", "",
+                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            DpopHeaderGenerator.generateDPoPProofHeader(
+                VALID_TEST_PEM, "https://example.com", "POST",
                 Instant.now().getEpochSecond(), "");
         });
     }
@@ -111,7 +118,7 @@ public class DpopHeaderGeneratorTest {
     public void invalidKey_raisesException() {
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                "INVALID-KEY", "https://example.com",
+                "INVALID-KEY", "https://example.com", "POST",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
     }

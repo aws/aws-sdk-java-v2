@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.signin.internal;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -61,14 +60,17 @@ public final class DpopHeaderGenerator {
      * @param pemContent - EC1 / RFC 5915 ASN.1 formated PEM contents
      * @param endpoint - The HTTP target URI (Section 7.1 of [RFC9110]) of the request to which the JWT is attached,
      *                 without query and fragment parts
+     * @param httpMethod - the HTTP method of the request (eg: POST).
      * @param epochSeconds - creation time of the JWT in epoch seconds.
      * @param uuid - Unique identifier for the DPoP proof JWT - should be a UUID4 string.
      * @return DPoP header value
      */
-    public static String generateDPoPProofHeader(String pemContent, String endpoint, long epochSeconds, String uuid) {
-        Validate.notBlank(pemContent, "pemContent must be set.");
-        Validate.notBlank(endpoint, "endpoint must be set.");
-        Validate.notBlank(uuid, "uuid must be set.");
+    public static String generateDPoPProofHeader(String pemContent, String endpoint, String httpMethod,
+                                                 long epochSeconds, String uuid) {
+        Validate.paramNotBlank(pemContent, "pemContent");
+        Validate.paramNotBlank(endpoint, "endpoint");
+        Validate.paramNotBlank(httpMethod, "httpMethod");
+        Validate.paramNotBlank(uuid, "uuid");
 
         try {
             // Load EC public and private key from PEM
@@ -78,7 +80,7 @@ public final class DpopHeaderGenerator {
 
             // Build JSON strings (header, payload) with JsonGenerator
             byte[] headerJson = buildHeaderJson(publicKey);
-            byte[] payloadJson = buildPayloadJson(uuid, endpoint, epochSeconds);
+            byte[] payloadJson = buildPayloadJson(uuid, endpoint, httpMethod, epochSeconds);
 
             // Base64URL encode header + payload
             String encodedHeader = base64UrlEncode(headerJson);
@@ -94,14 +96,14 @@ public final class DpopHeaderGenerator {
             // Combine into JWT
             String encodedSignature = base64UrlEncode(signatureBytes);
             return message + "." + encodedSignature;
-        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             throw new RuntimeException(e);
         }
     }
 
     // build the JWT header which includes the public key
     // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
-    private static byte[] buildHeaderJson(ECPublicKey publicKey) throws IOException {
+    private static byte[] buildHeaderJson(ECPublicKey publicKey) {
         ECPoint pubPoint = publicKey.getW();
         String x = base64UrlEncode(stripLeadingZero(pubPoint.getAffineX().toByteArray()));
         String y = base64UrlEncode(stripLeadingZero(pubPoint.getAffineY().toByteArray()));
@@ -142,7 +144,7 @@ public final class DpopHeaderGenerator {
 
     // build claims payload
     // see: https://datatracker.ietf.org/doc/html/rfc9449#name-dpop-proof-jwt-syntax
-    private static byte[] buildPayloadJson(String uuid, String endpoint, long epochSeconds) throws IOException {
+    private static byte[] buildPayloadJson(String uuid, String endpoint, String httpMethod, long epochSeconds) {
         JsonWriter jsonWriter = null;
         try {
             jsonWriter = JsonWriter.create();
@@ -152,7 +154,7 @@ public final class DpopHeaderGenerator {
             jsonWriter.writeValue(uuid);
 
             jsonWriter.writeFieldName("htm");
-            jsonWriter.writeValue("POST");
+            jsonWriter.writeValue(httpMethod);
 
             jsonWriter.writeFieldName("htu");
             jsonWriter.writeValue(endpoint);
