@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Route 53 Profiles",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
