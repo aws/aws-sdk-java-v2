@@ -20,7 +20,7 @@ Business metrics are short identifiers added to the User-Agent header for teleme
 
 ### Feature-Centric Placement
 
-**MUST** add business metrics where the feature is resolved, at the point where it is finalized that the feature is being used. Consider cases where features can be overridden - the decision is to add business metrics at the place where the feature is finalized.
+**MUST** add business metrics when we finalize/know for sure that the feature is being used. To account for cases where features can be overridden, add business metrics at the point where feature usage is confirmed and finalized.
 
 **Rationale:** Based on team discussion, this approach was chosen over centralized placement in `ApplyUserAgentStage` because:
 - **Better separation of concerns**: `ApplyUserAgentStage` remains ignorant of internal feature implementation details
