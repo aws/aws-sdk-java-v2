@@ -44,9 +44,9 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class ExpressTest {
 
-    int maxInflightDownloads = 20;
-    String bucket = "hagrid-test-3--use2-az2--x-s3";
-    long partSize = 5L * 1024 * 1024 * 1024;
+    int maxInflightDownloads = 50;
+    String bucket = "hagrid-testing--usw2-az1--x-s3";
+    long partSize = 100 * 1024 * 1024;
     int chunkSize = 16 * 1024; //16KB
     long bufferSize = chunkSize * maxInflightDownloads;
 
@@ -74,9 +74,10 @@ public class ExpressTest {
                                                .connectionTimeout(Duration.ofMinutes(30))
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
                                                .connectionMaxIdleTime(Duration.ofSeconds(5))
-                                               .buildWithDefaults(AttributeMap.builder()
-                                                                              .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
-                                                                              .build()))
+                                               .build())
+                                               // .buildWithDefaults(AttributeMap.builder()
+                                               //                                .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+                                               //                                .build()))
             .build();
 
         crt = S3AsyncClient
@@ -127,7 +128,7 @@ public class ExpressTest {
 
     @Test
     void tm_upload() throws Exception {
-        Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
+        Path path = Paths.get(testPath);
         S3TransferManager manager = S3TransferManager.builder()
                                                      .s3Client(s3Client)
                                                      .build();
@@ -172,10 +173,12 @@ public class ExpressTest {
 
     public static void printOutResult(long latency, long contentLengthInByte) {
         double contentLengthInGigabit = (contentLengthInByte / (double) GB) * 8.0;
+        System.out.println();
+        System.out.println("==========================================================");
         System.out.printf("Content Length (Bytes): %d%n", contentLengthInByte);
         System.out.printf("Average latency (s): %d%n", latency);
         System.out.printf("Object size (Gigabit): %.4f%n", contentLengthInGigabit);
         System.out.printf("Average throughput (Gbps): %.4f%n", contentLengthInGigabit / latency);
-        System.out.printf("==========================================================");
+        System.out.println("==========================================================");
     }
 }
