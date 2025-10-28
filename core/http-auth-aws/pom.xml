@@ -71,6 +71,12 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>crt-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>http-auth-aws-crt</artifactId>
             <version>${awsjavasdk.version}</version>
             <optional>true</optional>
