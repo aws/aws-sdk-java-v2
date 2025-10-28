@@ -193,7 +193,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValue == null) {
             return null;
         }
-        return stringValue(JSON_ATTRIBUTE_CONVERTER.transformTo(attributeValue));
+        return StrategyJsonSerializer.serializeSingleAttributeValue(attributeValue);
     }
 
     @Override

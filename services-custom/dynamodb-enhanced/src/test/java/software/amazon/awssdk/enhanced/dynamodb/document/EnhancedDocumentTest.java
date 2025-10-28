@@ -632,4 +632,26 @@ class EnhancedDocumentTest {
     assertThat(json).isEqualTo("{\"emoji\":" + emoji + "}");
     }
 
+    @Test
+    void getJson_returnsRawValue() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("key", "value")
+            .build();
+
+        String result = doc.getJson("key");
+        assertThat(result).isEqualTo("\"value\"");
+    }
+
+    @Test
+    void getJson_nonExistentAttribute() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("exists", "value")
+            .build();
+
+        String result = doc.getJson("doesNotExist");
+        assertThat(result).isNull();
+    }
+
 }

@@ -10,6 +10,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public final class StrategyJsonSerializer {
+    private static final JsonFactory jsonFactory = new JsonFactory();
+
+    private StrategyJsonSerializer() {
+    }
 
     private enum JsonSerializationStrategy {
         NULL,
@@ -25,7 +29,7 @@ public final class StrategyJsonSerializer {
     }
 
     public static String serializeAttributeValueMap(Map<String, AttributeValue> map) {
-        SdkJsonGenerator jsonGen = new SdkJsonGenerator(new JsonFactory(), "application/json");
+        SdkJsonGenerator jsonGen = new SdkJsonGenerator(jsonFactory, "application/json"); // re-use factory
 
         jsonGen.writeStartObject();
         map.forEach((key, value) -> {
@@ -34,6 +38,12 @@ public final class StrategyJsonSerializer {
         });
         jsonGen.writeEndObject();
 
+        return new String(jsonGen.getBytes(), StandardCharsets.UTF_8);
+    }
+
+    public static String serializeSingleAttributeValue(AttributeValue av) {
+        SdkJsonGenerator jsonGen = new SdkJsonGenerator(jsonFactory, "application/json"); // re-use factory
+        serializeAttributeValue(jsonGen, av);
         return new String(jsonGen.getBytes(), StandardCharsets.UTF_8);
     }
 
