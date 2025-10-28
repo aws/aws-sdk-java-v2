@@ -782,6 +782,8 @@ final class DefaultJsonClient implements JsonClient {
                             .builder()
                             .requestChecksumRequired(false)
                             .isRequestStreaming(true)
+                            .requestAlgorithm(putOperationWithChecksumRequest.checksumAlgorithmAsString())
+                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm")
                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
                             .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
                                                   DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
