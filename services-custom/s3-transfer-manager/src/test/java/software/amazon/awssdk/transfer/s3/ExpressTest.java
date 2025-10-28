@@ -45,7 +45,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 public class ExpressTest {
 
     int maxInflightDownloads = 50;
-    String bucket = "do-not-delete-java-hagrid-test";
+    String bucket = "hagrid-testing--usw2-az1--x-s3";
     long partSize = 100 * 1024 * 1024;
     int chunkSize = 16 * 1024; //16KB
     long bufferSize = chunkSize * maxInflightDownloads;
@@ -59,7 +59,7 @@ public class ExpressTest {
     void setUp() {
         this.s3Client = S3AsyncClient
             .builder()
-            .region(Region.US_EAST_2)
+            .region(Region.US_WEST_2)
             // .endpointOverride(URI.create(""))
             .multipartEnabled(true)
             .multipartConfiguration(c -> c
