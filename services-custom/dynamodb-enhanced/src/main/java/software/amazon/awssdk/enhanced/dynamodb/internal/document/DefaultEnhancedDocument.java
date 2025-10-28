@@ -17,8 +17,6 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableMap;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.addEscapeCharacters;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.document.JsonStringFormatHelper.stringValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,3 +1,18 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
 package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
 import java.nio.charset.StandardCharsets;
@@ -5,12 +20,12 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
 
 @SdkInternalApi
 public final class StrategyJsonSerializer {
-    private static final JsonFactory jsonFactory = new JsonFactory();
+    private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
     private StrategyJsonSerializer() {
     }
@@ -29,7 +44,7 @@ public final class StrategyJsonSerializer {
     }
 
     public static String serializeAttributeValueMap(Map<String, AttributeValue> map) {
-        SdkJsonGenerator jsonGen = new SdkJsonGenerator(jsonFactory, "application/json"); // re-use factory
+        SdkJsonGenerator jsonGen = new SdkJsonGenerator(JSON_FACTORY, "application/json");
 
         jsonGen.writeStartObject();
         map.forEach((key, value) -> {
@@ -42,7 +57,7 @@ public final class StrategyJsonSerializer {
     }
 
     public static String serializeSingleAttributeValue(AttributeValue av) {
-        SdkJsonGenerator jsonGen = new SdkJsonGenerator(jsonFactory, "application/json"); // re-use factory
+        SdkJsonGenerator jsonGen = new SdkJsonGenerator(JSON_FACTORY, "application/json");
         serializeAttributeValue(jsonGen, av);
         return new String(jsonGen.getBytes(), StandardCharsets.UTF_8);
     }
@@ -108,16 +123,36 @@ public final class StrategyJsonSerializer {
     }
 
     private static JsonSerializationStrategy getStrategy(AttributeValue av) {
-        if (av.nul() != null && av.nul()) return JsonSerializationStrategy.NULL;
-        if (av.s() != null) return JsonSerializationStrategy.STRING;
-        if (av.n() != null) return JsonSerializationStrategy.NUMBER;
-        if (av.bool() != null) return JsonSerializationStrategy.BOOLEAN;
-        if (av.b() != null) return JsonSerializationStrategy.BYTES;
-        if (av.hasL()) return JsonSerializationStrategy.LIST;
-        if (av.hasM()) return JsonSerializationStrategy.MAP;
-        if (av.hasSs()) return JsonSerializationStrategy.STRING_SET;
-        if (av.hasNs()) return JsonSerializationStrategy.NUMBER_SET;
-        if (av.hasBs()) return JsonSerializationStrategy.BYTES_SET;
+        if (av.nul() != null && av.nul()) {
+            return JsonSerializationStrategy.NULL;
+        }
+        if (av.s() != null) {
+            return JsonSerializationStrategy.STRING;
+        }
+        if (av.n() != null) {
+            return JsonSerializationStrategy.NUMBER;
+        }
+        if (av.bool() != null) {
+            return JsonSerializationStrategy.BOOLEAN;
+        }
+        if (av.b() != null) {
+            return JsonSerializationStrategy.BYTES;
+        }
+        if (av.hasL()) {
+            return JsonSerializationStrategy.LIST;
+        }
+        if (av.hasM()) {
+            return JsonSerializationStrategy.MAP;
+        }
+        if (av.hasSs()) {
+            return JsonSerializationStrategy.STRING_SET;
+        }
+        if (av.hasNs()) {
+            return JsonSerializationStrategy.NUMBER_SET;
+        }
+        if (av.hasBs()) {
+            return JsonSerializationStrategy.BYTES_SET;
+        }
         throw new IllegalStateException("Unknown AttributeValue type: " + av);
     }
 }
