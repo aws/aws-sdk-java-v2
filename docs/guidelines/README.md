@@ -36,3 +36,6 @@ Patterns for preferring static factory methods over constructors, including nami
 
 ### [Client Configuration](ClientConfiguration.md)
 Structural requirements for configuration objects including immutability patterns, builder interfaces, field naming conventions, and proper handling of collection types in configuration APIs.
+
+### [Business Metrics Guidelines](business-metrics-guidelines.md)
+Guidelines for implementing business metrics in the AWS SDK for Java v2. Covers feature-centric placement principles, performance considerations, functional testing approaches, and a few examples of where we added business metrics for various features.
