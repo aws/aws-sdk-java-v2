@@ -29,6 +29,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
  */
 @SdkInternalApi
 public final class FileAsyncRequestBodySplitHelper {
+    private static final Logger log = Logger.loggerFor(FileAsyncRequestBodySplitHelper.class);
 
     private final AtomicBoolean isSendingRequestBody = new AtomicBoolean(false);
     private final AtomicLong remainingBytes;
@@ -166,6 +168,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
         private final FileAsyncRequestBody fileAsyncRequestBody;
         private final SimplePublisher<AsyncRequestBody> simplePublisher;
+        private final AtomicBoolean hasStartedNext = new AtomicBoolean(false);
 
         FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
                                     SimplePublisher<AsyncRequestBody> simplePublisher) {
@@ -175,14 +178,26 @@ public final class FileAsyncRequestBodySplitHelper {
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            fileAsyncRequestBody.doAfterOnComplete(() -> startNextRequestBody(simplePublisher))
+            fileAsyncRequestBody.doAfterOnComplete(() -> {
+                                    log.info(() -> "doAfterOnComplete for position " + fileAsyncRequestBody.position());
+                                    startNextRequestBodyOnce();
+                                })
                                 // The reason we still need to call startNextRequestBody when the subscription is
                                 // cancelled is that upstream could cancel the subscription even though the stream has
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback
                                 // will never be invoked, and if the current buffer is full, the publisher will stop
                                 // sending new FileAsyncRequestBody, leading to uncompleted future.
-                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher))
+                                .doAfterOnCancel(() -> {
+                                    log.info(() -> "doAfterOnCancel for position " + fileAsyncRequestBody.position());
+                                    startNextRequestBodyOnce();
+                                })
                                 .subscribe(s);
+        }
+
+        private void startNextRequestBodyOnce() {
+            if (hasStartedNext.compareAndSet(false, true)) {
+                startNextRequestBody(simplePublisher);
+            }
         }
 
         @Override

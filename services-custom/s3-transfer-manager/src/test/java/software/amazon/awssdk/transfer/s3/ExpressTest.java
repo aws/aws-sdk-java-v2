@@ -46,7 +46,7 @@ public class ExpressTest {
 
     int maxInflightDownloads = 50;
     String bucket = "hagrid-testing--usw2-az1--x-s3";
-    long partSize = 100 * 1024 * 1024;
+    long partSize = 200 * 1024 * 1024;
     int chunkSize = 16 * 1024; //16KB
     long bufferSize = chunkSize * maxInflightDownloads;
 
@@ -103,6 +103,7 @@ public class ExpressTest {
 
         System.out.println(response);
         long latencyInSec = (end - start) / 1000;
+        System.out.println("==========================================================");
         System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, Files.size(Paths.get(testPath)));
 
@@ -121,6 +122,7 @@ public class ExpressTest {
 
         System.out.println(response);
         long latencyInSec = (end - start) / 1000;
+        System.out.println("==========================================================");
         System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, response.contentLength());
 
@@ -146,6 +148,7 @@ public class ExpressTest {
         long end = System.currentTimeMillis();
         System.out.println(res.response());
         long latencyInSec = (end - start) / 1000;
+        System.out.println("==========================================================");
         System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, Files.size(path));
     }
@@ -167,6 +170,7 @@ public class ExpressTest {
         long end = System.currentTimeMillis();
         System.out.println(res.response());
         long latencyInSec = (end - start) / 1000;
+        System.out.println("==========================================================");
         System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
         printOutResult(latencyInSec, res.response().contentLength());
     }
@@ -174,7 +178,6 @@ public class ExpressTest {
     public static void printOutResult(long latency, long contentLengthInByte) {
         double contentLengthInGigabit = (contentLengthInByte / (double) GB) * 8.0;
         System.out.println();
-        System.out.println("==========================================================");
         System.out.printf("Content Length (Bytes): %d%n", contentLengthInByte);
         System.out.printf("Average latency (s): %d%n", latency);
         System.out.printf("Object size (Gigabit): %.4f%n", contentLengthInGigabit);
