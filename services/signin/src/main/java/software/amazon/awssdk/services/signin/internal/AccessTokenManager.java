@@ -13,26 +13,15 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.signin.auth;
+package software.amazon.awssdk.services.signin.internal;
 
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @SdkInternalApi
-public class LoginCacheDirectorySystemSetting implements SystemSetting {
+public interface AccessTokenManager extends SdkAutoCloseable {
+    Optional<LoginAccessToken> loadToken();
 
-    @Override
-    public String property() {
-        return "aws.loginCacheDirectory";
-    }
-
-    @Override
-    public String environmentVariable() {
-        return "AWS_LOGIN_CACHE_DIRECTORY";
-    }
-
-    @Override
-    public String defaultValue() {
-        return null;
-    }
+    void storeToken(LoginAccessToken token);
 }

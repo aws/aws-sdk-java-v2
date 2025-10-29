@@ -22,14 +22,24 @@ import static software.amazon.awssdk.utils.Validate.paramNotBlank;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.signin.SigninClient;
+import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
+import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
+import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
+import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
+import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
+import software.amazon.awssdk.services.signin.model.SigninException;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -56,6 +66,8 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 public class LoginCredentialsProvider implements
                                       AwsCredentialsProvider, SdkAutoCloseable,
                                       ToCopyableBuilder<LoginCredentialsProvider.Builder, LoginCredentialsProvider> {
+    private static final Logger log = Logger.loggerFor(LoginCredentialsProvider.class);
+
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_LOGIN.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
@@ -74,10 +86,15 @@ public class LoginCredentialsProvider implements
     private final Path tokenCacheLocation;
 
     private final CachedSupplier<AwsCredentials> credentialCache;
+    private final AccessTokenManager onDiskTokenManager;
 
     private final Boolean asyncCredentialUpdateEnabled;
 
-    public LoginCredentialsProvider(BuilderImpl builder) {
+    /**
+     *
+     * @see #builder()
+     */
+    private LoginCredentialsProvider(BuilderImpl builder) {
         this.signinClient = notNull(builder.signinClient, "SigninClient must not be null.");
         this.loginSession = paramNotBlank(builder.loginSession, "LoginSession");
 
@@ -93,6 +110,8 @@ public class LoginCredentialsProvider implements
             () -> new LoginCacheDirectorySystemSetting().getStringValue()
                                                         .map(p -> Paths.get(p))
                                                         .orElse(DEFAULT_TOKEN_LOCATION));
+
+        this.onDiskTokenManager = OnDiskTokenManager.create(this.tokenCacheLocation, this.loginSession);
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsCredentials> cacheBuilder =
@@ -110,8 +129,75 @@ public class LoginCredentialsProvider implements
      * close to expiring.
      */
     private RefreshResult<AwsCredentials> updateSigninCredentials() {
-        // TODO: Future PRs will implement this
-        throw new UnsupportedOperationException();
+        // always re-load token from the disk in case it has been updated elsewhere
+        LoginAccessToken tokenFromDisc = onDiskTokenManager.loadToken().orElseThrow(
+            () -> SdkClientException.create("Token cache file for login_session `" + loginSession + "` not found. "
+                                            + "You must re-authenticate."));
+
+        Instant currentExpirationTime = tokenFromDisc.getAccessToken().expirationTime().orElseThrow(
+            () -> SdkClientException.create("Invalid token expiration time. You must re-authenticate.")
+        );
+
+        if (shouldNotRefresh(currentExpirationTime, staleTime)
+            && shouldNotRefresh(currentExpirationTime, prefetchTime)) {
+            log.debug(() -> "Using access token from disk, current expiration time is : " + currentExpirationTime);
+            AwsCredentials credentials = tokenFromDisc.getAccessToken()
+                .toBuilder()
+                .providerName(this.providerName)
+                .build();
+
+            return RefreshResult.builder(credentials)
+                                .staleTime(currentExpirationTime.minus(staleTime))
+                                .prefetchTime(currentExpirationTime.minus(prefetchTime))
+                                .build();
+        }
+
+        return refreshFromSigninService(tokenFromDisc);
+    }
+
+    private RefreshResult<AwsCredentials> refreshFromSigninService(LoginAccessToken tokenFromDisc) {
+        log.debug(() -> "Credentials are near expiration/expired, refreshing from Signin service.");
+
+        try {
+            CreateOAuth2TokenRequest refreshRequest =
+                CreateOAuth2TokenRequest
+                    .builder()
+                    .tokenInput(t -> t
+                        .clientId(tokenFromDisc.getClientId())
+                        .refreshToken(tokenFromDisc.getRefreshToken())
+                        .grantType("refresh_token"))
+                    .dpopProof("TODO") // TODO: This will be implemented in a separate PR
+                    .build();
+
+            CreateOAuth2TokenResponse createTokenResponse = signinClient.createOAuth2Token(refreshRequest);
+
+            Instant newExpiration = Instant.now().plusSeconds(createTokenResponse.tokenOutput().expiresIn());
+            AwsSessionCredentials updatedCredentials = AwsSessionCredentials
+                .builder()
+                .accessKeyId(createTokenResponse.tokenOutput().accessToken().accessKeyId())
+                .secretAccessKey(createTokenResponse.tokenOutput().accessToken().secretAccessKey())
+                .sessionToken(createTokenResponse.tokenOutput().accessToken().sessionToken())
+                .accountId(tokenFromDisc.getAccessToken().accountId().orElseThrow(
+                    () -> SdkClientException.create("Invalid access token, missing account ID. You must re-authenticate.")
+                ))
+                .expirationTime(newExpiration)
+                .providerName(this.providerName)
+                .build();
+
+            onDiskTokenManager.storeToken(tokenFromDisc.toBuilder()
+                                                       .accessToken(updatedCredentials)
+                                                       .refreshToken(createTokenResponse.tokenOutput().refreshToken())
+                                                       .build());
+
+            return RefreshResult.builder((AwsCredentials) updatedCredentials)
+                                .staleTime(newExpiration.minus(staleTime))
+                                .prefetchTime(newExpiration.minus(prefetchTime))
+                                .build();
+        } catch (SigninException serviceException) {
+            throw SdkClientException.create(
+                "Unable to refresh AWS Signin Access Token: You must re-authenticate.",
+                serviceException);
+        }
     }
 
     /**
@@ -150,6 +236,16 @@ public class LoginCredentialsProvider implements
     @Override
     public Builder toBuilder() {
         return new BuilderImpl(this);
+    }
+
+
+    /**
+     *
+     * @return true if the token does NOT need to be refreshed - it is after the given refresh window, eg stale/prefetch time.
+     */
+    private static boolean shouldNotRefresh(Instant expiration, Duration refreshWindow) {
+        Instant now = Instant.now();
+        return expiration.isAfter(now.plus(refreshWindow));
     }
 
     /**
