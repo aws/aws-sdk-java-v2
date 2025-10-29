@@ -138,8 +138,8 @@ public class LoginCredentialsProvider implements
             () -> SdkClientException.create("Invalid token expiration time. You must re-authenticate.")
         );
 
-        if (shouldRefresh(currentExpirationTime, staleTime)
-            && shouldRefresh(currentExpirationTime, prefetchTime)) {
+        if (shouldNotRefresh(currentExpirationTime, staleTime)
+            && shouldNotRefresh(currentExpirationTime, prefetchTime)) {
             log.debug(() -> "Using access token from disk, current expiration time is : " + currentExpirationTime);
             AwsCredentials credentials = tokenFromDisc.getAccessToken()
                 .toBuilder()
@@ -241,9 +241,9 @@ public class LoginCredentialsProvider implements
 
     /**
      *
-     * @return true if the token should be refreshed (it is after the given refresh window, eg stale time or prefetch time)
+     * @return true if the token does NOT need to be refreshed - it is after the given refresh window, eg stale/prefetch time.
      */
-    private static boolean shouldRefresh(Instant expiration, Duration refreshWindow) {
+    private static boolean shouldNotRefresh(Instant expiration, Duration refreshWindow) {
         Instant now = Instant.now();
         return expiration.isAfter(now.plus(refreshWindow));
     }

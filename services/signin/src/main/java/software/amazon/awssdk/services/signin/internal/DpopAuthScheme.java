@@ -48,8 +48,8 @@ public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
         this.identityProvider = Validate.paramNotNull(identityProvider, "identityProvider");
     }
 
-    public static DpopAuthScheme create(ECPublicKey ecPublicKey) {
-        return new DpopAuthScheme(DpopIdentityProvider.create(ecPublicKey));
+    public static DpopAuthScheme create(DpopIdentityProvider identityProvider) {
+        return new DpopAuthScheme(identityProvider);
     }
 
     @Override
@@ -110,9 +110,9 @@ public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
         public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends DpopIdentity> request) {
             return CompletableFuture.completedFuture(
                 AsyncSignedRequest.builder()
-                                                                       .request(request.request())
-                                                                       .payload(request.payload().orElse(null))
-                                                                       .build());
+                                  .request(request.request())
+                                  .payload(request.payload().orElse(null))
+                                  .build());
         }
     }
 
@@ -123,8 +123,8 @@ public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
             this.identity = Validate.paramNotNull(identity, "identity");
         }
 
-        public static DpopIdentityProvider create(ECPublicKey ecPublicKey) {
-            return new DpopIdentityProvider(DpopIdentity.create(ecPublicKey));
+        public static DpopIdentityProvider create(String dpopKeyPem) {
+            return new DpopIdentityProvider(DpopIdentity.create(dpopKeyPem));
         }
 
         @Override
@@ -147,15 +147,23 @@ public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
     }
 
     public static class DpopAuthPlugin implements SdkPlugin {
-        private final ECPublicKey ecPublicKey;
+        private final String dpopKeyPem;
 
+        private DpopAuthPlugin(String dpopKeyPem) {
+            this.dpopKeyPem = Validate.paramNotNull(dpopKeyPem, "dpopKeyPem");
+        }
+
+        public static DpopAuthPlugin create(String dpopKeyPem) {
+            return new DpopAuthPlugin(dpopKeyPem);
+        }
 
         @Override
         public void configureClient(SdkServiceClientConfiguration.Builder config) {
             SigninServiceClientConfiguration.Builder scb =
-                Validate.isInstanceOf(SigninServiceClientConfiguration.Builder.class, config, "bad");
+                Validate.isInstanceOf(SigninServiceClientConfiguration.Builder.class, config,
+                                      "DpopAuthPlugin must be applied to a SigninServiceClient");
             scb.authSchemeProvider(new DpopAuthSchemeResolver());
-            scb.putAuthScheme(new DpopAuthScheme());
+            scb.putAuthScheme(DpopAuthScheme.create(DpopIdentityProvider.create(dpopKeyPem)));
         }
     }
 }
