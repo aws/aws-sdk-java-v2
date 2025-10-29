@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Add support for @DynamoDbFlatten to flatten a Map<String, String> to top level attributes of an object"
+}
