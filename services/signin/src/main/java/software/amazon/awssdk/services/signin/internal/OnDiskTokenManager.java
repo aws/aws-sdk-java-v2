@@ -22,6 +22,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -81,8 +82,13 @@ public final class OnDiskTokenManager implements AccessTokenManager {
 
     @Override
     public void storeToken(LoginAccessToken token) {
-        try (OutputStream os = Files.newOutputStream(tokenLocation)) {
-            os.write(marshalToken(token));
+        // atomic write (write to a temp file and then move/replace the destination location).
+        try {
+            Path temp = Files.createTempFile(tokenLocation.getParent(), "token-", ".tmp");
+            try (OutputStream os = Files.newOutputStream(temp)) {
+                os.write(marshalToken(token));
+            }
+            Files.move(temp, tokenLocation, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException | UncheckedIOException e) {
             throw SdkClientException.create("Unable to write token to location " + tokenLocation, e);
         }
