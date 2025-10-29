@@ -37,7 +37,6 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
@@ -49,6 +48,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 @SdkInternalApi
 public abstract class BaseClientHandler {
@@ -136,7 +136,7 @@ public abstract class BaseClientHandler {
             ContentStreamProvider streamProvider = contentStreamProviderOptional.get();
             if (contentLengthOptional.isPresent()) {
                 ContentStreamProvider toWrap = contentStreamProviderOptional.get();
-                streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
+                streamProvider = () -> new LengthAwareInputStream(toWrap.newStream(), contentLength);
             }
 
             return new SdkInternalOnlyRequestBody(streamProvider,

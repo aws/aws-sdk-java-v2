@@ -1,821 +1,219 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.36.3__ __2025-10-27__
-## __AWS AI Ops__
+# __2.37.0__ __2025-10-28__
+## __AWS Backup Search__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Backup Gateway__
+## __AWS Billing and Cost Management Pricing Calculator__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Control Tower__
+## __AWS Clean Rooms ML__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Cost Explorer Service__
-  - ### Features
-    - Updated endpoint for eusc-de-east-1 region.
-
-## __AWS Elastic Beanstalk__
+## __AWS Cloud9__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS End User Messaging Social__
+## __AWS CodeConnections__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS EntityResolution__
+## __AWS Elemental MediaPackage VOD__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Greengrass__
+## __AWS Ground Station__
+  - ### Features
+    - Enable use of AzEl ephemerides
+
+## __AWS Lambda__
+  - ### Features
+    - Added SerializedRequestEntityTooLargeException to Lambda Invoke API
+
+## __AWS Marketplace Deployment Service__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Identity and Access Management__
-  - ### Features
-    - Fixed missing SummaryMap keys in GetAccountSummary response that were being filtered out during deserialization in AWS Java SDK v2
-
-## __AWS Invoicing__
+## __AWS Migration Hub Orchestrator__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Launch Wizard__
+## __AWS Organizations__
+  - ### Features
+    - Added Account State field to the ListDelegatedAdministrators API response.
+
+## __AWS Resource Access Manager__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Outposts__
+## __AWS Resource Groups__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS RDS DataService__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Move `ApplyUserAgentStage` to later position in request pipeline to ensure all business metrics are properly recorded before finalizing user agent.
-
-## __AWS Secrets Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Shield__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS SimSpace Weaver__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Single Sign-On Admin__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Step Functions__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Systems Manager for SAP__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS WAF Regional__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS re:Post Private__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Access Analyzer__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Athena__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Chime SDK Identity__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Chime SDK Media Pipelines__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CodeGuru Profiler__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Cognito Identity Provider__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Comprehend__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon DynamoDB Accelerator (DAX)__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon EventBridge Scheduler__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Forecast Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis__
-  - ### Features
-    - Adds support for record sizes up to 10MiB and introduces new UpdateMaxRecordSize API to modify stream record size limits. Adds record size parameters to existing CreateStream and DescribeStreamSummary APIs for request and response payloads respectively.
-
-## __Amazon Lex Runtime Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Managed Blockchain__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Mechanical Turk__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Neptune Graph__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Pinpoint__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Recycle Bin__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Rekognition__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Route 53 Resolver__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon S3 Vectors__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Simple Email Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon WorkMail Message Flow__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AmazonConnectCampaignService__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Braket__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __CodeArtifact__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Cost Optimization Hub__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Data Automation for Amazon Bedrock__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Redshift Serverless__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Route 53 Profiles__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-# __2.36.2__ __2025-10-24__
-## __AWS Amplify UI Builder__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Billing__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Budgets__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Certificate Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Cloud Map__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudTrail__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CodePipeline__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Data Pipeline__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Elemental MediaPackage__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Elemental MediaStore__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Elemental MediaStore Data Plane__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Fault Injection Simulator__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Wireless__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Panorama__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS RoboMaker__
+## __AWS S3 Control__
   - ### Features
     - Update endpoint ruleset parameters casing
 
 ## __AWS SDK for Java v2__
   - ### Features
+    - Add business metric support for Sigv4A auth scheme to track when an operation is called using Sigv4A signing
+    - Adds business metrics for flexible checksum algorithms and configurations
     - Updated endpoint and partition metadata.
 
-## __AWS SSO OIDC__
+  - ### Bugfixes
+    - Add support for payload signing of async streaming requests signed with SigV4 using default `AwsV4HttpSigner` (using `AwsV4HttpSigner.create()`). Note, requests using the `http` URI scheme will not be signed regardless of the value of `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to remain consistent with existing behavior. This may change in a future release.
+    - Correctly use noProxyHosts from CrtProxyConfiguration.
+
+## __AWS Service Catalog App Registry__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS SecurityHub__
-  - ### Features
-    - Release 3 layer filter support in GetFindingsV2, GetFindingStatisticsV2, GetResourcesV2,GetResourcesStatisticsV2, AutomationRule V2 APIs. Update filter casing in GetResourcesV2, GetResourcesStatisticsV2 APIs. Add new filters in GetFindingsV2, GetFindingStatisticsV2, AutomationRule V2 APIs.
-
-## __AWS Snow Device Management__
+## __AWS Support App__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AWS Supply Chain__
+## __AWS User Notifications__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Chime SDK Messaging__
+## __AWS X-Ray__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudSearch Domain__
   - ### Features
     - Update endpoint ruleset parameters casing
 
 ## __Amazon CloudWatch Application Signals__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Added support for CloudWatch Synthetics Canary resources in ListAuditFindings API. This enhancement allows customers to retrieve audit findings specifically for CloudWatch Synthetics canaries and enables service-canary correlation analysis.
 
-## __Amazon Connect Wisdom Service__
+## __Amazon CloudWatch Events__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon DataZone__
-  - ### Features
-    - This release adds support for MLflow connections Creation in DataZone
-
-## __Amazon DocumentDB with MongoDB compatibility__
+## __Amazon CodeGuru Security__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon DynamoDB Streams__
+## __Amazon Detective__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Elastic Kubernetes Service__
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS supports native linear and canary service deployments, allowing you to shift traffic in increments for more control.
+
+## __Amazon EMR Containers__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Elastic VMware Service__
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This released the DescribeCapacityReservationTopology API.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon EventBridge Pipes__
   - ### Features
     - Update endpoint ruleset parameters casing
 
 ## __Amazon GameLift Streams__
   - ### Features
-    - Add status reasons for TERMINATED stream sessions
+    - Add stream group expiration date and expired status
 
-## __Amazon Inspector__
+## __Amazon Glacier__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Kinesis Analytics__
+## __Amazon Kinesis Video Streams__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Kinesis Video Signaling Channels__
+## __Amazon OpenSearch Service__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon Location Service__
+## __Amazon S3__
   - ### Features
-    - Added support for mobile app restrictions in Amazon Location API keys.
+    - Implemented business metrics tracking for S3_Express_Bucket (featureID "J") through User-Agent header.
 
-## __Amazon Location Service Maps V2__
-  - ### Features
-    - Added support for optional AdditionalFeatures parameter in the V2 GetTile API.
+  - ### Bugfixes
+    - Fix a bug where tags were being lost when creating buckets in us-east-1
 
-## __Amazon Lookout for Vision__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Route 53 Domains__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon S3 Tables__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon SageMaker Metrics Service__
+## __Amazon SageMaker Feature Store Runtime__
   - ### Features
     - Update endpoint ruleset parameters casing
 
 ## __Amazon SageMaker Service__
   - ### Features
-    - Added inference components model data caching feature
+    - Amazon SageMaker now supports deleting training and processing jobs in a terminal status.
 
-## __Amazon Translate__
+## __Amazon Simple Queue Service__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Amazon VPC Lattice__
+## __Amazon Simple Storage Service__
   - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Verified Permissions__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon WorkSpaces Thin Client__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AmazonMQ__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Elastic Load Balancing__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Managed integrations for AWS IoT Device Management__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Migration Hub Strategy Recommendations__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Payment Cryptography Control Plane__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Payment Cryptography Data Plane__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __PcaConnectorAd__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __QBusiness__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __RTBFabric__
-  - ### Features
-    - Add support for custom rate limits.
-
-# __2.36.1__ __2025-10-23__
-## __AWS Account__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Application Discovery Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudTrail Data Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CodeBuild__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CodeStar connections__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Config__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Cost and Usage Report Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Database Migration Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Events__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Jobs Data Plane__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Lambda__
-  - ### Features
-    - Add NodeJs 24 (nodejs24.x) support to AWS Lambda.
-
-## __AWS Marketplace Commerce Analytics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS MediaTailor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Migration Hub__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Multi-party Approval__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Resilience Hub__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Savings Plans__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Storage Gateway__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Aurora DSQL__
-  - ### Features
-    - Add support for resource-based policies for Aurora DSQL clusters. This will enable you to implement Block Public Access (BPA) which will help restrict access to your Aurora DSQL public or VPC endpoints.
-
-## __Amazon Bedrock AgentCore__
-  - ### Features
-    - Fixing the service documentation name
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - Fixing the service documentation name
-
-## __Amazon Chime SDK Voice__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudWatch Internet Monitor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudWatch Network Monitor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Contact Lens__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon DocumentDB Elastic Clusters__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Block Store__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Container Registry__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Container Registry Public__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon HealthLake__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis Video Streams Archived Media__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis Video WebRTC Storage__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Macie 2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Managed Blockchain Query__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon NeptuneData__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Omics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Personalize Events__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Pinpoint Email Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Sagemaker Edge Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Security Lake__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Simple Email Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Application Auto Scaling__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Application Migration Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __CloudWatch RUM__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Elastic Disaster Recovery Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __OpenSearch Service Serverless__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Private CA Connector for SCEP__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Synthetics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __odb__
-  - ### Features
-    - Doc-only update that removes duplicate values from descriptions of ODB peering APIs.
-
-# __2.36.0__ __2025-10-22__
-## __AWS B2B Data Interchange__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Billing and Cost Management Dashboards__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Chatbot__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudFormation__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudHSM V2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Comprehend Medical__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Cost Explorer Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Device Farm__
-  - ### Features
-    - This release adds support for optionally including an app as part of a CreateRemoteAccessSession request
-
-## __AWS Direct Connect__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Directory Service Data__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS EC2 Instance Connect__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Elemental MediaLive__
-  - ### Features
-    - Add 3 API operations for fetching alerts: ListAlerts (Channels), ListClusterAlerts (MediaLive Anywhere), and ListMultiplexAlerts
-
-## __AWS Identity and Access Management__
-  - ### Features
-    - Updated OIDC and SAML apis to reject multiple simultaneous requests to change a unique object.
-
-## __AWS IoT__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Analytics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT FleetWise__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Secure Tunneling__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT SiteWise__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Marketplace Agreement Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Parallel Computing Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Systems Manager Incident Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS User Notifications Contacts__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Augmented AI Runtime__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudHSM__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CodeGuru Reviewer__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Cognito Identity__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Participant Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Service__
-  - ### Features
-    - This release added support for email address alias configuration and outbound campaign preview mode.
-
-## __Amazon Elastic Compute Cloud__
-  - ### Features
-    - This release adds AvailabilityZoneId support for CreateNetworkInterface and DescribeNetworkInterfaces APIs.
-
-## __Amazon Forecast Query Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Interactive Video Service Chat__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis Analytics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Lex Model Building V2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Pinpoint SMS Voice V2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Route 53__
-  - ### Features
-    - Amazon Route 53 now supports the ISOB West Region for private DNS for Amazon VPCs and cloudwatch healthchecks.
-
-## __Amazon Simple Notification Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon WorkDocs__
-  - ### Features
-    - Update endpoint ruleset parameters casing
+    - Amazon Simple Storage Service / Features: Add conditional writes in CopyObject on destination key to prevent unintended object modifications.
 
-## __Amazon WorkMail__
+## __Amazon Transcribe Streaming Service__
   - ### Features
     - Update endpoint ruleset parameters casing
 
 ## __Amazon WorkSpaces__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Added IPv6 address support for WorkSpaces using Dual-Stack subnets
 
-## __AmazonConnectCampaignServiceV2__
-  - ### Features
-    - Updated Amazon Connect Outbound Campaigns V2 SDK to support Preview Outbound Mode
-
-## __AmazonMWAA__
+## __Amazon Workspaces Instances__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __AppFabric__
+## __AmazonApiGatewayV2__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Auto Scaling__
+## __Inspector Scan__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __CloudWatch Observability Access Manager__
+## __Managed Streaming for Kafka Connect__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Inspector2__
+## __Partner Central Selling API__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __MailManager__
+## __Security Incident Response__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __RTBFabric__
-  - ### Features
-    - Update for general availability of AWS RTB Fabric service.
-
-## __Redshift Data API Service__
+## __Tax Settings__
   - ### Features
     - Update endpoint ruleset parameters casing
 
-## __Route53 Recovery Cluster__
+## __TrustedAdvisor Public API__
   - ### Features
     - Update endpoint ruleset parameters casing
 

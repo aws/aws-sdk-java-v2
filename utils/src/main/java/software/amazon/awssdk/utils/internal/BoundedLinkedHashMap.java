@@ -13,28 +13,27 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.auth.signer.internal;
+package software.amazon.awssdk.utils.internal;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A bounded linked hash map that would remove the eldest entry when the map
- * size exceeds a configurable maximum.
+ * A bounded linked hash map that would remove the eldest entry when the map size exceeds a configurable maximum.
  */
 @SdkInternalApi
-final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
+public final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     private static final long serialVersionUID = 1L;
     private final int maxSize;
 
-    BoundedLinkedHashMap(int maxSize) {
+    public BoundedLinkedHashMap(int maxSize) {
         this.maxSize = maxSize;
     }
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Returns true if the size of this map exceeds the maximum.
      */
     @Override
@@ -43,10 +42,9 @@ final class BoundedLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     }
 
     /**
-     * Returns the maximum size of this map beyond which the eldest entry
-     * will get removed.
+     * Returns the maximum size of this map beyond which the eldest entry will get removed.
      */
-    int getMaxSize() {
+    public int getMaxSize() {
         return maxSize;
     }
 }
