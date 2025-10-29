@@ -109,8 +109,9 @@ public class UpdateItemOperation<T>
 
         Map<String, AttributeValue> itemMap = ignoreNullsMode == IgnoreNullsMode.SCALAR_ONLY ?
                                               transformItemToMapForUpdateExpression(itemMapImmutable) : itemMapImmutable;
-        
-        TableMetadata tableMetadata = tableSchema.tableMetadata();
+
+        TableSchema<? extends T> subtypeTableSchema = tableSchema.subtypeTableSchema(item);
+        TableMetadata tableMetadata = subtypeTableSchema.tableMetadata();
 
         WriteModification transformation =
             extension != null
@@ -118,7 +119,7 @@ public class UpdateItemOperation<T>
                                                                    .items(itemMap)
                                                                    .operationContext(operationContext)
                                                                    .tableMetadata(tableMetadata)
-                                                                   .tableSchema(tableSchema)
+                                                                   .tableSchema(subtypeTableSchema)
                                                                    .operationName(operationName())
                                                                    .build())
             : null;

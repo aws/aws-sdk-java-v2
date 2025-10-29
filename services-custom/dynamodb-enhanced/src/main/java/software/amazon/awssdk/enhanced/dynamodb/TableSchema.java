@@ -31,6 +31,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchem
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.TableSchemaFactory;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -200,16 +201,7 @@ public interface TableSchema<T> {
      * @return An initialized {@link TableSchema}
      */
     static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
-        if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
-            return fromImmutableClass(annotatedClass);
-        }
-
-        if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
-            return fromBean(annotatedClass);
-        }
-
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                               "\"" + annotatedClass + "\"]");
+        return TableSchemaFactory.fromClass(annotatedClass);
     }
 
     /**
@@ -343,5 +335,31 @@ public interface TableSchema<T> {
      */
     default AttributeConverter<T> converterForAttribute(Object key) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * If applicable, returns a {@link TableSchema} for a specific object subtype. If the implementation does not support
+     * polymorphic mapping, then this method will, by default, return the current instance. This method is primarily used to pass
+     * the right contextual information to extensions when they are invoked mid-operation. This method is not required to get a
+     * polymorphic {@link TableSchema} to correctly map subtype objects using 'mapToItem' or 'itemToMap'.
+     *
+     * @param itemContext the subtype object to retrieve the subtype {@link TableSchema} for.
+     * @return the subtype {@link TableSchema} or the current {@link TableSchema} if subtypes are not supported.
+     */
+    default TableSchema<? extends T> subtypeTableSchema(T itemContext) {
+        return this;
+    }
+
+    /**
+     * If applicable, returns a {@link TableSchema} for a specific object subtype. If the implementation does not support
+     * polymorphic mapping, then this method will, by default, return the current instance. This method is primarily used to pass
+     * the right contextual information to extensions when they are invoked mid-operation. This method is not required to get a
+     * polymorphic {@link TableSchema} to correctly map subtype objects using 'mapToItem' or 'itemToMap'.
+     *
+     * @param itemContext the subtype object map to retrieve the subtype {@link TableSchema} for.
+     * @return the subtype {@link TableSchema} or the current {@link TableSchema} if subtypes are not supported.
+     */
+    default TableSchema<? extends T> subtypeTableSchema(Map<String, AttributeValue> itemContext) {
+        return this;
     }
 }
