@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "contributor": "",
+    "description": "Added Account State field to the ListDelegatedAdministrators API response."
+}
