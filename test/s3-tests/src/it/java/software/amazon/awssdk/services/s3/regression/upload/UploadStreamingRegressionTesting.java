@@ -244,6 +244,8 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
             case BLOCKING_INPUT_STREAM:
             case BLOCKING_OUTPUT_STREAM:
             case INPUTSTREAM_NO_LENGTH:
+            case BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH:
+            case BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH:
                 Assumptions.abort("Test BodyType not supported for sync client: " + bodyType);
             default:
                 throw new RuntimeException("Unsupported body type: " + bodyType);
@@ -397,29 +399,40 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     }
 
     protected enum BodyType {
-        INPUTSTREAM_RESETABLE,
-        INPUTSTREAM_NOT_RESETABLE,
-        INPUTSTREAM_NO_LENGTH,
+        INPUTSTREAM_RESETABLE(true),
+        INPUTSTREAM_NOT_RESETABLE(true),
+        INPUTSTREAM_NO_LENGTH(false),
 
-        STRING,
+        STRING(true),
 
-        FILE,
+        FILE(true),
 
-        CONTENT_PROVIDER_WITH_LENGTH,
+        CONTENT_PROVIDER_WITH_LENGTH(true),
 
-        CONTENT_PROVIDER_NO_LENGTH,
+        CONTENT_PROVIDER_NO_LENGTH(false),
 
-        BYTES,
-        BYTE_BUFFER,
-        REMAINING_BYTE_BUFFER,
+        BYTES(true),
+        BYTE_BUFFER(true),
+        REMAINING_BYTE_BUFFER(true),
 
-        BUFFERS,
-        BUFFERS_REMAINING,
+        BUFFERS(true),
+        BUFFERS_REMAINING(true),
 
-        BLOCKING_INPUT_STREAM,
-        BLOCKING_OUTPUT_STREAM,
-        BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH,
-        BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH
+        BLOCKING_INPUT_STREAM(true),
+        BLOCKING_OUTPUT_STREAM(true),
+        BUFFERED_SPLITTABLE_KNOWN_CONTENT_LENGTH(true),
+        BUFFERED_SPLITTABLE_UNKNOWN_CONTENT_LENGTH(false)
+        ;
+
+        private final boolean contentLengthAvailable;
+
+        BodyType(boolean contentLengthAvailable) {
+            this.contentLengthAvailable = contentLengthAvailable;
+        }
+
+        public boolean isContentLengthAvailable() {
+            return contentLengthAvailable;
+        }
     }
 
     protected enum ContentSize {
