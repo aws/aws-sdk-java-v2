@@ -23,23 +23,10 @@ following in the AWS SDKs and Tools Shared Configuration and Credentials Referen
 The SDK versions all service clients (e.g. `S3`, `EC2`, `DynamoDb`, etc) and the runtime (e.g. `aws-config`) together under a single version. This allows customers to easily upgrade multiple SDK clients at once and keep dependencies, such as the core runtime, compatible. The SDK may in the future consider versioning service clients separately from one another.
 
 ## Component Version Compatibility
+**Always use the same version across all AWS SDK dependencies**. Mixed versions can cause runtime exceptions or compile time errors depending on which components are mismatched
 
-**Best Practice: Use matching versions across all SDK modules.**
+The easiest way to ensure version consistency is to use the [AWS SDK BOM](https://github.com/aws/aws-sdk-java-v2/?tab=readme-ov-file#importing-the-bom), which automatically manages all SDK dependency versions for you.
 
-The SDK supports mixed version combinations only within the same minor version boundary. Mixed version combinations create untested scenarios that are difficult to reproduce and debug. The SDK team cannot guarantee compatibility testing coverage for all possible version combinations, and issues may require upgrading to matching versions to resolve. 
-
-Cross minor version mixing is not supported and may cause runtime exceptions when newer core components call methods that older service modules only implement as default stubs.
-
-### Supported Version Combinations
-
-- ✅ **Recommended**: All modules at the same version (e.g., `2.34.5`)
-- ✅ **Limited Support**: New core + old service within the same minor version (e.g., `sdk-core 2.34.5` with `s3 2.34.2`)
-
-
-- ❌ **Not Supported**: Cross minor-version mixing (e.g., `sdk-core 2.34.x` with `s3 2.32.y`)
-- ❌ **Not Supported**: Old core + new service (causes compile-time failures)
-
-Use the [SDK BOM (Bill of Materials)](https://github.com/aws/aws-sdk-java-v2/?tab=readme-ov-file#importing-the-bom) to automatically manage compatible versions across all SDK modules and prevent version mismatches.
 
 ## Internal APIs
 
