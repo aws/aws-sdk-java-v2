@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon WorkSpaces",
-    "contributor": "",
-    "description": "Added IPv6 address support for WorkSpaces using Dual-Stack subnets"
-}

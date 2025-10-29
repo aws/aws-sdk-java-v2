@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add business metric support for Sigv4A auth scheme to track when an operation is called using Sigv4A signing"
-}
