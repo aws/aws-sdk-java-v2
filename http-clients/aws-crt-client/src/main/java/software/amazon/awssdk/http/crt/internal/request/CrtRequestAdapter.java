@@ -22,12 +22,10 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
-import software.amazon.awssdk.crtcore.CrtRequestBodyAdapter;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
-import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
 
@@ -52,13 +50,10 @@ public final class CrtRequestAdapter {
 
         HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest));
 
-        SdkHttpContentPublisher contentPublisher = sdkExecuteRequest.requestContentPublisher();
-
         return new HttpRequest(method,
                                encodedPath + encodedQueryString,
                                crtHeaderArray,
-                               new CrtRequestBodyAdapter(contentPublisher,
-                                                         contentPublisher.contentLength().orElse(0L),
+                               new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
                                                          request.readBufferSize()));
     }
 

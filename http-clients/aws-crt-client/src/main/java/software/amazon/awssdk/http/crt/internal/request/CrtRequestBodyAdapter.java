@@ -13,46 +13,38 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.crtcore;
+package software.amazon.awssdk.http.crt.internal.request;
 
 import java.nio.ByteBuffer;
-import org.reactivestreams.Publisher;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
 @SdkInternalApi
-public final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
-    private static final int BUFFER_SIZE = 4 * 1024 * 1024; // 4 MB
-    private final Publisher<ByteBuffer> requestPublisher;
-    private final long contentLength;
-    private ByteBufferStoringSubscriber requestBodySubscriber;
+final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
+    private final SdkHttpContentPublisher requestPublisher;
+    private final ByteBufferStoringSubscriber requestBodySubscriber;
+    private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
-    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength, long readLimit) {
+    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, long readLimit) {
         this.requestPublisher = requestPublisher;
-        this.contentLength = contentLength;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
-    }
-
-    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength) {
-        this(requestPublisher, contentLength, BUFFER_SIZE);
     }
 
     @Override
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
+        if (subscribed.compareAndSet(false, true)) {
+            requestPublisher.subscribe(requestBodySubscriber);
+        }
+
         return requestBodySubscriber.transferTo(bodyBytesOut) == TransferResult.END_OF_STREAM;
     }
 
     @Override
-    public boolean resetPosition() {
-        requestBodySubscriber = new ByteBufferStoringSubscriber(BUFFER_SIZE);
-        requestPublisher.subscribe(requestBodySubscriber);
-        return true;
-    }
-
-    @Override
     public long getLength() {
-        return contentLength;
+        return requestPublisher.contentLength().orElse(0L);
     }
 }
