@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
+package software.amazon.awssdk.crtcore;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
@@ -29,10 +29,14 @@ public final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private final long contentLength;
     private ByteBufferStoringSubscriber requestBodySubscriber;
 
-    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength) {
+    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength, long readLimit) {
         this.requestPublisher = requestPublisher;
         this.contentLength = contentLength;
-        this.requestBodySubscriber = new ByteBufferStoringSubscriber(BUFFER_SIZE);
+        this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
+    }
+
+    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength) {
+        this(requestPublisher, contentLength, BUFFER_SIZE);
     }
 
     @Override
