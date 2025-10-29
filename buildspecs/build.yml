@@ -16,7 +16,6 @@ phases:
       - echo $MAVEN_OPTIONS
       - |
         if [ "$JAVA_VERSION" -ge "9" ]; then
-          set -e
           cd test/module-path-tests
           mvn package
           mvn exec:exec -P mock-tests
