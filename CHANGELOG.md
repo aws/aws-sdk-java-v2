@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.37.1__ __2025-10-29__
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for system tool and web citation response.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Add support for @DynamoDbFlatten to flatten a Map<String, String> to top level attributes of an object
+
 # __2.37.0__ __2025-10-28__
 ## __AWS Backup Search__
   - ### Features
