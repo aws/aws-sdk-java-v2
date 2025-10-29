@@ -191,7 +191,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (attributeValue == null) {
             return null;
         }
-        return StrategyJsonSerializer.serializeSingleAttributeValue(attributeValue);
+        return DocumentJsonSerializer.serializeSingleAttributeValue(attributeValue);
     }
 
     @Override
@@ -228,7 +228,7 @@ public class DefaultEnhancedDocument implements EnhancedDocument {
         if (nonAttributeValueMap.isEmpty()) {
             return "{}";
         }
-        return StrategyJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
+        return DocumentJsonSerializer.serializeAttributeValueMap(attributeValueMap.getValue());
     }
 
     @Override

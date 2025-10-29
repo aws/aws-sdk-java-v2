@@ -121,62 +121,62 @@ public class JsonConversionBenchmark {
             .withJSON("data", payload1kb);
     }
 
-    // getJson() meant to get a sub structure of a larger json file. testing with different sizes.
-    @Benchmark
-    public String getJson50b() {
-        return doc50b.getJson("data");
-    }
-
-    @Benchmark
-    public String getJson100b() {
-        return doc100b.getJson("data");
-    }
-
-    @Benchmark
-    public String getJson500b() {
-        return doc500b.getJson("data");
-    }
-
-    @Benchmark
-    public String getJson1kb() {
-        return doc1kb.getJson("data");
-    }
-
-    @Benchmark
-    public String v1GetJson50b() {
-        return v1Item50b.getJSON("data");
-    }
-
-    @Benchmark
-    public String v1GetJson100b() {
-        return v1Item100b.getJSON("data");
-    }
-
-    @Benchmark
-    public String v1GetJson500b() {
-        return v1Item500b.getJSON("data");
-    }
-
-    @Benchmark
-    public String v1GetJson1kb() {
-        return v1Item1kb.getJSON("data");
-    }
-    
-    @Benchmark
-    public String v1GetJsonEntireDoc() {
-        return v1Item.getJSON("entireDocument");
-    }
-
-    @Benchmark
-    public String v2GetJsonEntireDoc() {
-        return entireDoc.getJson("entireDocument");
-    }
-
-    // toJson() benchmarking (only for large data set)
-    @Benchmark
-    public String v1ToJson() {
-        return v1Item.toJSON();
-    }
+    // // getJson() meant to get a sub structure of a larger json file. testing with different sizes.
+    // @Benchmark
+    // public String getJson50b() {
+    //     return doc50b.getJson("data");
+    // }
+    //
+    // @Benchmark
+    // public String getJson100b() {
+    //     return doc100b.getJson("data");
+    // }
+    //
+    // @Benchmark
+    // public String getJson500b() {
+    //     return doc500b.getJson("data");
+    // }
+    //
+    // @Benchmark
+    // public String getJson1kb() {
+    //     return doc1kb.getJson("data");
+    // }
+    //
+    // @Benchmark
+    // public String v1GetJson50b() {
+    //     return v1Item50b.getJSON("data");
+    // }
+    //
+    // @Benchmark
+    // public String v1GetJson100b() {
+    //     return v1Item100b.getJSON("data");
+    // }
+    //
+    // @Benchmark
+    // public String v1GetJson500b() {
+    //     return v1Item500b.getJSON("data");
+    // }
+    //
+    // @Benchmark
+    // public String v1GetJson1kb() {
+    //     return v1Item1kb.getJSON("data");
+    // }
+    //
+    // @Benchmark
+    // public String v1GetJsonEntireDoc() {
+    //     return v1Item.getJSON("entireDocument");
+    // }
+    //
+    // @Benchmark
+    // public String v2GetJsonEntireDoc() {
+    //     return entireDoc.getJson("entireDocument");
+    // }
+    //
+    // // toJson() benchmarking (only for large data set)
+    // @Benchmark
+    // public String v1ToJson() {
+    //     return v1Item.toJSON();
+    // }
 
     @Benchmark
     public String v2ToJson() {

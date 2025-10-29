@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.document;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -22,25 +24,21 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.protocols.json.SdkJsonGenerator;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonFactory;
+import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
 
+/**
+ * JSON serializer for DynamoDB Enhanced Client document operations.
+ */
 @SdkInternalApi
-public final class StrategyJsonSerializer {
-    private static final JsonFactory JSON_FACTORY = new JsonFactory();
+public final class DocumentJsonSerializer {
+    private static final JsonFactory JSON_FACTORY = new JsonFactory()   {
+        @Override
+        public JsonGenerator createGenerator(OutputStream out) throws IOException {
+            return super.createGenerator(out).enable(JsonGenerator.Feature.COMBINE_UNICODE_SURROGATES_IN_UTF8);
+        }
+    };
 
-    private StrategyJsonSerializer() {
-    }
-
-    private enum JsonSerializationStrategy {
-        NULL,
-        STRING,
-        NUMBER,
-        BOOLEAN,
-        BYTES,
-        LIST,
-        MAP,
-        STRING_SET,
-        NUMBER_SET,
-        BYTES_SET
+    private DocumentJsonSerializer() {
     }
 
     public static String serializeAttributeValueMap(Map<String, AttributeValue> map) {
@@ -63,32 +61,30 @@ public final class StrategyJsonSerializer {
     }
 
     public static void serializeAttributeValue(SdkJsonGenerator generator, AttributeValue av) {
-        JsonSerializationStrategy strategy = getStrategy(av);
-
-        switch (strategy) {
-            case NULL:
+        switch (av.type()) {
+            case NUL:
                 generator.writeNull();
                 break;
-            case STRING:
+            case S:
                 generator.writeValue(av.s());
                 break;
-            case NUMBER:
+            case N:
                 generator.writeNumber(av.n());
                 break;
-            case BOOLEAN:
+            case BOOL:
                 generator.writeValue(av.bool());
                 break;
-            case BYTES:
+            case B:
                 generator.writeValue(av.b().asByteBuffer());
                 break;
-            case LIST:
+            case L:
                 generator.writeStartArray();
                 for (AttributeValue item : av.l()) {
                     serializeAttributeValue(generator, item);
                 }
                 generator.writeEndArray();
                 break;
-            case MAP:
+            case M:
                 generator.writeStartObject();
                 for (Map.Entry<String, AttributeValue> entry : av.m().entrySet()) {
                     generator.writeFieldName(entry.getKey());
@@ -96,21 +92,21 @@ public final class StrategyJsonSerializer {
                 }
                 generator.writeEndObject();
                 break;
-            case STRING_SET:
+            case SS:
                 generator.writeStartArray();
                 for (String s : av.ss()) {
                     generator.writeValue(s);
                 }
                 generator.writeEndArray();
                 break;
-            case NUMBER_SET:
+            case NS:
                 generator.writeStartArray();
                 for (String n : av.ns()) {
                     generator.writeNumber(n);
                 }
                 generator.writeEndArray();
                 break;
-            case BYTES_SET:
+            case BS:
                 generator.writeStartArray();
                 for (SdkBytes b : av.bs()) {
                     generator.writeValue(b.asByteBuffer());
@@ -118,41 +114,8 @@ public final class StrategyJsonSerializer {
                 generator.writeEndArray();
                 break;
             default:
-                throw new IllegalStateException("Unsupported strategy: " + strategy);
+                throw new IllegalArgumentException("Unsupported AttributeValue type: " + av.type());
         }
     }
 
-    private static JsonSerializationStrategy getStrategy(AttributeValue av) {
-        if (av.nul() != null && av.nul()) {
-            return JsonSerializationStrategy.NULL;
-        }
-        if (av.s() != null) {
-            return JsonSerializationStrategy.STRING;
-        }
-        if (av.n() != null) {
-            return JsonSerializationStrategy.NUMBER;
-        }
-        if (av.bool() != null) {
-            return JsonSerializationStrategy.BOOLEAN;
-        }
-        if (av.b() != null) {
-            return JsonSerializationStrategy.BYTES;
-        }
-        if (av.hasL()) {
-            return JsonSerializationStrategy.LIST;
-        }
-        if (av.hasM()) {
-            return JsonSerializationStrategy.MAP;
-        }
-        if (av.hasSs()) {
-            return JsonSerializationStrategy.STRING_SET;
-        }
-        if (av.hasNs()) {
-            return JsonSerializationStrategy.NUMBER_SET;
-        }
-        if (av.hasBs()) {
-            return JsonSerializationStrategy.BYTES_SET;
-        }
-        throw new IllegalStateException("Unknown AttributeValue type: " + av);
-    }
 }

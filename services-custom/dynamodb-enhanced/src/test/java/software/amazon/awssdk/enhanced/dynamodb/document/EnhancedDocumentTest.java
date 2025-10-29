@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,6 +52,8 @@ import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttrib
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 
 class EnhancedDocumentTest {
+
+    ObjectMapper mapper = new ObjectMapper();
 
     private static Stream<Arguments> escapeDocumentStrings() {
         char c = 0x0a;
@@ -498,7 +501,7 @@ class EnhancedDocumentTest {
     }
 
     @Test
-    void toJson_numberFormatting_veryLargeNumbers() {
+    void toJson_numberFormatting_veryLargeNumbers() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putNumber("longMax", Long.MAX_VALUE)
@@ -509,13 +512,15 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"longMax\":9223372036854775807,\"longMin\":-9223372036854775808,"
-                                  + "\"doubleMax\":1.7976931348623157E308,\"scientific\":1.23E100,"
-                                  + "\"manyDecimals\":1.123456789012345}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"longMax\":9223372036854775807,\"longMin\":-9223372036854775808,"
+                                            + "\"doubleMax\":1.7976931348623157E308,\"scientific\":1.23E100,"
+                                            + "\"manyDecimals\":1.123456789012345}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_numberFormatting_trailingZeros() {
+    void toJson_numberFormatting_trailingZeros() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putNumber("twoPointZero", 2.0)
@@ -523,78 +528,93 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"twoPointZero\":2.0,\"tenPointZeroZero\":10.0}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"twoPointZero\":2.0,\"tenPointZeroZero\":10.0}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_stringEscaping_allControlCharacters() {
+    void toJson_stringEscaping_allControlCharacters() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putString("allEscapes", "line1\nline2\ttab\"quote\\backslash\r\f")
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"allEscapes\":\"line1\\nline2\\ttab\\\"quote\\\\backslash\\r\\f\"}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"allEscapes\":\"line1\\nline2\\ttab\\\"quote\\\\backslash\\r\\f\"}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_stringEscaping_forwardSlash() {
+    void toJson_stringEscaping_forwardSlash() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putString("slash", "path/to/resource")
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"slash\":\"path/to/resource\"}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"slash\":\"path/to/resource\"}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_emptyString() {
+    void toJson_emptyString() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putString("empty", "")
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"empty\":\"\"}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"empty\":\"\"}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_bytesEncoding_emptyBytes() {
+    void toJson_bytesEncoding_emptyBytes() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putBytes("empty", SdkBytes.fromByteArray(new byte[0]))
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"empty\":\"\"}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"empty\":\"\"}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_listWithAllNulls() {
+    void toJson_listWithAllNulls() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putJson("nullList", "[null,null,null]")
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"nullList\":[null,null,null]}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nullList\":[null,null,null]}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_mapWithNullValues() {
+    void toJson_mapWithNullValues() throws JsonProcessingException {
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
             .putJson("nullValues", "{\"key1\":null,\"key2\":\"value\",\"key3\":null}")
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"nullValues\":{\"key1\":null,\"key2\":\"value\",\"key3\":null}}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nullValues\":{\"key1\":null,\"key2\":\"value\",\"key3\":null}}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_deeplyNestedStructure() {
-        String deepJson = "{\"level1\":{\"level2\":{\"level3\":{\"level4\":{\"level5\":{\"level6\":{\"level7\":{\"value\":\"deep\"}}}}}}}}";
+    void toJson_deeplyNestedStructure() throws JsonProcessingException {
+        String deepJson = "{\"level1\":{\"level2\":{\"level3\":{\"level4\":"
+                          + "{\"level5\":{\"level6\":{\"level7\":{\"value\":\"deep\"}}}}}}}}";
         
         EnhancedDocument doc = EnhancedDocument.builder()
             .attributeConverterProviders(defaultProvider())
@@ -602,11 +622,14 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"nested\":" + deepJson + "}");
+
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nested\":" + deepJson + "}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
-    void toJson_deeplyNestedArrays() {
+    void toJson_deeplyNestedArrays() throws JsonProcessingException {
         String deepArrayJson = "[[[[[[\"innermost\"]]]]]]";
         
         EnhancedDocument doc = EnhancedDocument.builder()
@@ -615,7 +638,9 @@ class EnhancedDocumentTest {
             .build();
         
         String json = doc.toJson();
-        assertThat(json).isEqualTo("{\"nestedArrays\":" + deepArrayJson + "}");
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nestedArrays\":" + deepArrayJson + "}");
+        assertThat(expected).isEqualTo(actual);
     }
 
     @Test
