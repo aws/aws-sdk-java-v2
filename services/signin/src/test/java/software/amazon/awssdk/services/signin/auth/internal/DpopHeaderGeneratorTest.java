@@ -19,6 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.DPOP_IDENTITY;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.VALID_TEST_PEM;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtHeaderFromEncodedDpopHeader;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtPayloadFromEncodedDpopHeader;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.verifySignature;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
@@ -35,16 +40,10 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.Test;
+import software.amazon.awssdk.services.signin.internal.DpopAuthScheme;
 import software.amazon.awssdk.services.signin.internal.DpopHeaderGenerator;
 
 public class DpopHeaderGeneratorTest {
-    private static final String VALID_TEST_PEM =
-        "-----BEGIN EC PRIVATE KEY-----\n"
-        + "MHcCAQEEICeY73qhQO/3o1QnrL5Nu3HMDB9h3kVW6imRdcHks0tboAoGCCqGSM49"
-        + "AwEHoUQDQgAEbefyxjd/UlGwAPF6hy0k4yCW7dSghc6yPd4To0sBqX0tPS/aoLrl"
-        + "QnPjfDslgD29p4+Pgwxj1s8cFHVeDKdKTQ==\n"
-        + "-----END EC PRIVATE KEY-----";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
     public void testGenerateAndVerifyDPoPHeader() throws Exception {
@@ -54,7 +53,7 @@ public class DpopHeaderGeneratorTest {
         String uuid = UUID.randomUUID().toString();
 
         // Generate the DPoP proof JWT
-        String dpop = DpopHeaderGenerator.generateDPoPProofHeader(VALID_TEST_PEM, endpoint, httpMethod, epochSeconds, uuid);
+        String dpop = DpopHeaderGenerator.generateDPoPProofHeader(DPOP_IDENTITY, endpoint, httpMethod, epochSeconds, uuid);
         assertNotNull(dpop, "DPoP header should not be null");
 
         // JWT should be in form header.payload.signature
@@ -62,8 +61,7 @@ public class DpopHeaderGeneratorTest {
         assertEquals(3, parts.length, "DPoP header must have 3 JWT parts");
 
         // Decode and parse header
-        String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
-        Map<String, Object> header = MAPPER.readValue(headerJson, Map.class);
+        Map<String, Object> header = getJwtHeaderFromEncodedDpopHeader(dpop);
         assertEquals("ES256", header.get("alg"));
         assertEquals("dpop+jwt", header.get("typ"));
         assertTrue(header.containsKey("jwk"));
@@ -75,8 +73,7 @@ public class DpopHeaderGeneratorTest {
         assertNotNull(jwk.get("y"));
 
         // Decode and parse payload
-        String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-        Map<String, Object> payload = MAPPER.readValue(payloadJson, Map.class);
+        Map<String, Object> payload = getJwtPayloadFromEncodedDpopHeader(dpop);
         assertEquals(uuid, payload.get("jti"));
         assertEquals(httpMethod, payload.get("htm"));
         assertEquals(endpoint, payload.get("htu"));
@@ -89,107 +86,30 @@ public class DpopHeaderGeneratorTest {
 
     @Test
     public void missingArguments_raisesException() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                "", "https://example.com", "POST",
+                null, "https://example.com", "POST",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                VALID_TEST_PEM, "", "POST",
+                DPOP_IDENTITY, "", "POST",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                VALID_TEST_PEM, "https://example.com", "",
+                DPOP_IDENTITY, "https://example.com", "",
                 Instant.now().getEpochSecond(), UUID.randomUUID().toString());
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
             DpopHeaderGenerator.generateDPoPProofHeader(
-                VALID_TEST_PEM, "https://example.com", "POST",
+                DPOP_IDENTITY, "https://example.com", "POST",
                 Instant.now().getEpochSecond(), "");
         });
     }
 
-    @Test
-    public void invalidKey_raisesException() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            DpopHeaderGenerator.generateDPoPProofHeader(
-                "INVALID-KEY", "https://example.com", "POST",
-                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
-        });
-    }
 
-    /**
-     * Verifies an ES256 signature given base64url-encoded JWT parts and the JWK public key.
-     */
-    private static boolean verifySignature(Map<String, String> jwk, String encodedHeader, String encodedPayload, String encodedSignature) throws Exception {
-        byte[] sigBytes = Base64.getUrlDecoder().decode(encodedSignature);
-        byte[] message = (encodedHeader + "." + encodedPayload).getBytes(StandardCharsets.UTF_8);
-
-        // Convert x and y to BigIntegers
-        BigInteger x = new BigInteger(1, Base64.getUrlDecoder().decode(jwk.get("x")));
-        BigInteger y = new BigInteger(1, Base64.getUrlDecoder().decode(jwk.get("y")));
-        ECPoint w = new ECPoint(x, y);
-
-        // Use the NIST P-256 curve
-        KeyFactory kf = KeyFactory.getInstance("EC");
-        ECParameterSpec ecSpec = getECParameterSpec("secp256r1");
-        ECPublicKeySpec pubSpec = new ECPublicKeySpec(w, ecSpec);
-        ECPublicKey pubKey = (ECPublicKey) kf.generatePublic(pubSpec);
-
-        // Convert JWS (R||S) signature to DER for Java verification
-        byte[] derSignature = jwsToDer(sigBytes);
-
-        Signature verifier = Signature.getInstance("SHA256withECDSA");
-        verifier.initVerify(pubKey);
-        verifier.update(message);
-        return verifier.verify(derSignature);
-    }
-
-    /**
-     * Converts a 64-byte JWS (R||S) ECDSA signature to DER format.
-     */
-    private static byte[] jwsToDer(byte[] jwsSignature) throws Exception {
-        if (jwsSignature.length != 64) {
-            throw new IllegalArgumentException("Invalid ES256 signature length");
-        }
-        byte[] r = new byte[32];
-        byte[] s = new byte[32];
-        System.arraycopy(jwsSignature, 0, r, 0, 32);
-        System.arraycopy(jwsSignature, 32, s, 0, 32);
-
-        BigInteger R = new BigInteger(1, r);
-        BigInteger S = new BigInteger(1, s);
-
-        // ASN.1 encode sequence of two INTEGERs
-        byte[] derR = encodeDerInteger(R);
-        byte[] derS = encodeDerInteger(S);
-        int len = derR.length + derS.length;
-        byte[] der = new byte[len + 2];
-        der[0] = 0x30;
-        der[1] = (byte) len;
-        System.arraycopy(derR, 0, der, 2, derR.length);
-        System.arraycopy(derS, 0, der, 2 + derR.length, derS.length);
-        return der;
-    }
-
-    private static byte[] encodeDerInteger(BigInteger val) {
-        byte[] raw = val.toByteArray();
-        int len = raw.length;
-        byte[] out = new byte[len + 2];
-        out[0] = 0x02;
-        out[1] = (byte) len;
-        System.arraycopy(raw, 0, out, 2, len);
-        return out;
-    }
-
-    private static ECParameterSpec getECParameterSpec(String name) throws Exception {
-        java.security.AlgorithmParameters parameters = java.security.AlgorithmParameters.getInstance("EC");
-        parameters.init(new ECGenParameterSpec(name));
-        return parameters.getParameterSpec(ECParameterSpec.class);
-    }
 }

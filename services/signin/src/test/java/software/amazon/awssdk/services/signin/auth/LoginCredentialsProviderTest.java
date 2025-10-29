@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.signin.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,17 +26,36 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.VALID_TEST_PEM;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtPayloadFromEncodedDpopHeader;
+import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.verifySignature;
 
+import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
+import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
@@ -43,12 +63,16 @@ import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
 import software.amazon.awssdk.services.signin.model.SigninException;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 
 public class LoginCredentialsProviderTest {
     private static final String LOGIN_SESSION_ID = "loginSessionId";
 
     private AccessTokenManager tokenManager;
     private SigninClient signinClient;
+    private MockSyncHttpClient mockHttpClient;
+    private CaptureRequestInterceptor captureRequestInterceptor;
     private LoginCredentialsProvider loginCredentialsProvider;
 
     @TempDir
@@ -56,7 +80,16 @@ public class LoginCredentialsProviderTest {
 
     @BeforeEach
     public void setup() {
-        signinClient = mock(SigninClient.class);
+        mockHttpClient = new MockSyncHttpClient();
+        captureRequestInterceptor = new CaptureRequestInterceptor();
+        signinClient = SigninClient
+            .builder()
+            .region(Region.US_EAST_1)
+            .endpointOverride(URI.create("https://custom-signin-endpoint.com"))
+            .httpClient(mockHttpClient)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(captureRequestInterceptor))
+            .build();
+
         tokenManager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
 
         loginCredentialsProvider = LoginCredentialsProvider
@@ -89,7 +122,7 @@ public class LoginCredentialsProviderTest {
 
         AwsCredentials resolveCredentials = loginCredentialsProvider.resolveCredentials();
 
-        verify(signinClient, never()).createOAuth2Token(any(CreateOAuth2TokenRequest.class));
+        assertEquals(0, mockHttpClient.getRequests().size());
 
         assertEquals(creds.accessKeyId(), resolveCredentials.accessKeyId());
         assertEquals(creds.secretAccessKey(), resolveCredentials.secretAccessKey());
@@ -104,19 +137,17 @@ public class LoginCredentialsProviderTest {
         AwsSessionCredentials creds = buildCredentials(Instant.now().plusSeconds(10));
         LoginAccessToken token = buildAccessToken(creds);
         tokenManager.storeToken(token);
-        when(signinClient.createOAuth2Token(any(CreateOAuth2TokenRequest.class))).thenReturn(
-            buildSuccessfulRefreshResponse()
-        );
+        stubSuccessfulRefreshResponse();
+
         AwsCredentials resolvedCredentials = loginCredentialsProvider.resolveCredentials();
 
-        ArgumentCaptor<CreateOAuth2TokenRequest> captor =
-            ArgumentCaptor.forClass(CreateOAuth2TokenRequest.class);
-
         // verify the service was called with correct arguments
-        verify(signinClient, times(1)).createOAuth2Token(captor.capture());
-        assertEquals(token.getClientId(), captor.getValue().tokenInput().clientId());
-        assertEquals(token.getRefreshToken(), captor.getValue().tokenInput().refreshToken());
-        assertEquals("refresh_token", captor.getValue().tokenInput().grantType());
+        assertEquals(1, captureRequestInterceptor.requests.size());
+        assertInstanceOf(CreateOAuth2TokenRequest.class, captureRequestInterceptor.requests.get(0));
+        CreateOAuth2TokenRequest request = (CreateOAuth2TokenRequest) captureRequestInterceptor.requests.get(0);
+        assertEquals(token.getClientId(), request.tokenInput().clientId());
+        assertEquals(token.getRefreshToken(), request.tokenInput().refreshToken());
+        assertEquals("refresh_token", request.tokenInput().grantType());
         // TODO: Assert validity of DPoP header once implemented
 
         // verify that returned credentials are updated
@@ -126,28 +157,34 @@ public class LoginCredentialsProviderTest {
         verifyTokenCacheUpdated();
     }
 
-
-
     @Test
-    public void resolveCredentials_whenCredentialsExpired_refreshesAndUpdatesCache() {
+    public void resolveCredentials_whenCredentialsExpired_refreshesAndUpdatesCache() throws Exception {
         // within the stale time
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
         LoginAccessToken token = buildAccessToken(creds);
         tokenManager.storeToken(token);
-        when(signinClient.createOAuth2Token(any(CreateOAuth2TokenRequest.class))).thenReturn(
-            buildSuccessfulRefreshResponse()
-        );
+        stubSuccessfulRefreshResponse();
+
         AwsCredentials resolvedCredentials = loginCredentialsProvider.resolveCredentials();
 
-        ArgumentCaptor<CreateOAuth2TokenRequest> captor =
-            ArgumentCaptor.forClass(CreateOAuth2TokenRequest.class);
-
         // verify the service was called with correct arguments
-        verify(signinClient, times(1)).createOAuth2Token(captor.capture());
-        assertEquals(token.getClientId(), captor.getValue().tokenInput().clientId());
-        assertEquals(token.getRefreshToken(), captor.getValue().tokenInput().refreshToken());
-        assertEquals("refresh_token", captor.getValue().tokenInput().grantType());
-        // TODO: Assert validity of DPoP header once implemented
+        assertEquals(1, captureRequestInterceptor.requests.size());
+        assertInstanceOf(CreateOAuth2TokenRequest.class, captureRequestInterceptor.requests.get(0));
+        CreateOAuth2TokenRequest request = (CreateOAuth2TokenRequest) captureRequestInterceptor.requests.get(0);
+        assertEquals(token.getClientId(), request.tokenInput().clientId());
+        assertEquals(token.getRefreshToken(), request.tokenInput().refreshToken());
+        assertEquals("refresh_token", request.tokenInput().grantType());
+
+        // verify the request is correctly signed with DPoP header
+        List<String> dpopHeader = captureRequestInterceptor.httpRequests.get(0).headers().get("DPoP");
+        assertNotNull(dpopHeader);
+        assertEquals(1, dpopHeader.size());
+        assertTrue(verifySignature(dpopHeader.get(0)));
+
+        Map<String, Object> payload = getJwtPayloadFromEncodedDpopHeader(dpopHeader.get(0));
+        assertEquals("POST", payload.get("htm"));
+        assertEquals("https://custom-signin-endpoint.com/v1/token", payload.get("htu"));
+
 
         // verify that returned credentials are updated
         verifyResolvedCredentialsAreUpdated(resolvedCredentials);
@@ -162,7 +199,12 @@ public class LoginCredentialsProviderTest {
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
         LoginAccessToken token = buildAccessToken(creds);
         tokenManager.storeToken(token);
-        when(signinClient.createOAuth2Token(any(CreateOAuth2TokenRequest.class))).thenThrow(SigninException.class);
+        mockHttpClient.stubNextResponse(
+            HttpExecuteResponse
+                .builder()
+                .response(SdkHttpResponse.builder().statusCode(500).build())
+                .build()
+        );
         assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
     }
 
@@ -188,22 +230,23 @@ public class LoginCredentialsProviderTest {
         assertEquals("new-refresh-token", updatedToken.getRefreshToken());
     }
 
-    private static CreateOAuth2TokenResponse buildSuccessfulRefreshResponse() {
-        return CreateOAuth2TokenResponse
-            .builder()
-            .tokenOutput(
-                t ->
-                    t
-                        .expiresIn(600)
-                        .refreshToken("new-refresh-token")
-                        .accessToken(
-                            c ->
-                                c
-                                    .accessKeyId("new-akid")
-                                    .secretAccessKey("new-skid")
-                                    .sessionToken("new-session-token"))
-            )
-            .build();
+    private void stubSuccessfulRefreshResponse() {
+        String jsonBody =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"new-akid\","
+            + "\"secretAccessKey\":\"new-skid\","
+            + "\"sessionToken\":\"new-session-token\"},"
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"expiresIn\":600,"
+            + "\"refreshToken\":\"new-refresh-token\"}";
+
+        mockHttpClient.stubNextResponse(
+            HttpExecuteResponse
+                .builder()
+                .response(SdkHttpResponse.builder().statusCode(200).build())
+                .responseBody(AbortableInputStream.create(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8))))
+                .build()
+        );
     }
 
     private AwsSessionCredentials buildCredentials(Instant expirationTime) {
@@ -220,12 +263,22 @@ public class LoginCredentialsProviderTest {
         return LoginAccessToken.builder()
                                .accessToken(credentials)
                                .clientId("client-123")
-                               .dpopKey("dpop-key")
+                               .dpopKey(VALID_TEST_PEM)
                                .refreshToken("refresh-token")
                                .tokenType("aws_sigv4")
                                .identityToken("id-token")
                                .build();
     }
 
+    private static class CaptureRequestInterceptor implements ExecutionInterceptor {
 
+        private List<SdkHttpRequest> httpRequests = new ArrayList<>();
+        private List<SdkRequest> requests = new ArrayList<>();
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            this.httpRequests.add(context.httpRequest());
+            this.requests.add(context.request());
+        }
+    }
 }
