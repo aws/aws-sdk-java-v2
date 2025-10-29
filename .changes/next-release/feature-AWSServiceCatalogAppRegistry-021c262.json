@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Service Catalog App Registry",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
