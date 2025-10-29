@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CodeConnections",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
