@@ -1,12 +1,6 @@
 {
     "version": "1.0",
     "parameters": {
-        "Region": {
-            "builtIn": "AWS::Region",
-            "required": false,
-            "documentation": "The AWS region used to dispatch the request.",
-            "type": "string"
-        },
         "UseDualStack": {
             "builtIn": "AWS::UseDualStack",
             "required": true,
@@ -25,6 +19,12 @@
             "builtIn": "SDK::Endpoint",
             "required": false,
             "documentation": "Override the endpoint used to send this request",
+            "type": "string"
+        },
+        "Region": {
+            "builtIn": "AWS::Region",
+            "required": false,
+            "documentation": "The AWS region used to dispatch the request.",
             "type": "string"
         }
     },
@@ -122,6 +122,135 @@
                                 {
                                     "conditions": [
                                         {
+                                            "fn": "stringEquals",
+                                            "argv": [
+                                                {
+                                                    "fn": "getAttr",
+                                                    "argv": [
+                                                        {
+                                                            "ref": "PartitionResult"
+                                                        },
+                                                        "name"
+                                                    ]
+                                                },
+                                                "aws"
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseFIPS"
+                                                },
+                                                false
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseDualStack"
+                                                },
+                                                false
+                                            ]
+                                        }
+                                    ],
+                                    "endpoint": {
+                                        "url": "https://{Region}.signin.aws.amazon.com",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
+                                },
+                                {
+                                    "conditions": [
+                                        {
+                                            "fn": "stringEquals",
+                                            "argv": [
+                                                {
+                                                    "fn": "getAttr",
+                                                    "argv": [
+                                                        {
+                                                            "ref": "PartitionResult"
+                                                        },
+                                                        "name"
+                                                    ]
+                                                },
+                                                "aws-cn"
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseFIPS"
+                                                },
+                                                false
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseDualStack"
+                                                },
+                                                false
+                                            ]
+                                        }
+                                    ],
+                                    "endpoint": {
+                                        "url": "https://{Region}.signin.amazonaws.cn",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
+                                },
+                                {
+                                    "conditions": [
+                                        {
+                                            "fn": "stringEquals",
+                                            "argv": [
+                                                {
+                                                    "fn": "getAttr",
+                                                    "argv": [
+                                                        {
+                                                            "ref": "PartitionResult"
+                                                        },
+                                                        "name"
+                                                    ]
+                                                },
+                                                "aws-us-gov"
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseFIPS"
+                                                },
+                                                false
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseDualStack"
+                                                },
+                                                false
+                                            ]
+                                        }
+                                    ],
+                                    "endpoint": {
+                                        "url": "https://{Region}.signin.amazonaws-us-gov.com",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
+                                },
+                                {
+                                    "conditions": [
+                                        {
                                             "fn": "booleanEquals",
                                             "argv": [
                                                 {
@@ -177,18 +306,12 @@
                                             "rules": [
                                                 {
                                                     "conditions": [],
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [],
-                                                            "endpoint": {
-                                                                "url": "https://signin-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                                "properties": {},
-                                                                "headers": {}
-                                                            },
-                                                            "type": "endpoint"
-                                                        }
-                                                    ],
-                                                    "type": "tree"
+                                                    "endpoint": {
+                                                        "url": "https://signin-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                                        "properties": {},
+                                                        "headers": {}
+                                                    },
+                                                    "type": "endpoint"
                                                 }
                                             ],
                                             "type": "tree"
@@ -210,6 +333,15 @@
                                                     "ref": "UseFIPS"
                                                 },
                                                 true
+                                            ]
+                                        },
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseDualStack"
+                                                },
+                                                false
                                             ]
                                         }
                                     ],
@@ -235,18 +367,12 @@
                                             "rules": [
                                                 {
                                                     "conditions": [],
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [],
-                                                            "endpoint": {
-                                                                "url": "https://signin-fips.{Region}.{PartitionResult#dnsSuffix}",
-                                                                "properties": {},
-                                                                "headers": {}
-                                                            },
-                                                            "type": "endpoint"
-                                                        }
-                                                    ],
-                                                    "type": "tree"
+                                                    "endpoint": {
+                                                        "url": "https://signin-fips.{Region}.{PartitionResult#dnsSuffix}",
+                                                        "properties": {},
+                                                        "headers": {}
+                                                    },
+                                                    "type": "endpoint"
                                                 }
                                             ],
                                             "type": "tree"
@@ -261,6 +387,15 @@
                                 },
                                 {
                                     "conditions": [
+                                        {
+                                            "fn": "booleanEquals",
+                                            "argv": [
+                                                {
+                                                    "ref": "UseFIPS"
+                                                },
+                                                false
+                                            ]
+                                        },
                                         {
                                             "fn": "booleanEquals",
                                             "argv": [
@@ -293,18 +428,12 @@
                                             "rules": [
                                                 {
                                                     "conditions": [],
-                                                    "rules": [
-                                                        {
-                                                            "conditions": [],
-                                                            "endpoint": {
-                                                                "url": "https://signin.{Region}.{PartitionResult#dualStackDnsSuffix}",
-                                                                "properties": {},
-                                                                "headers": {}
-                                                            },
-                                                            "type": "endpoint"
-                                                        }
-                                                    ],
-                                                    "type": "tree"
+                                                    "endpoint": {
+                                                        "url": "https://signin.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                                                        "properties": {},
+                                                        "headers": {}
+                                                    },
+                                                    "type": "endpoint"
                                                 }
                                             ],
                                             "type": "tree"
@@ -319,18 +448,12 @@
                                 },
                                 {
                                     "conditions": [],
-                                    "rules": [
-                                        {
-                                            "conditions": [],
-                                            "endpoint": {
-                                                "url": "https://signin.{Region}.{PartitionResult#dnsSuffix}",
-                                                "properties": {},
-                                                "headers": {}
-                                            },
-                                            "type": "endpoint"
-                                        }
-                                    ],
-                                    "type": "tree"
+                                    "endpoint": {
+                                        "url": "https://signin.{Region}.{PartitionResult#dnsSuffix}",
+                                        "properties": {},
+                                        "headers": {}
+                                    },
+                                    "type": "endpoint"
                                 }
                             ],
                             "type": "tree"
