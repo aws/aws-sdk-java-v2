@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT Events Data",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
