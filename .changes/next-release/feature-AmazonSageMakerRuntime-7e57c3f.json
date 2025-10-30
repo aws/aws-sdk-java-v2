@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Runtime",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
