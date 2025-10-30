@@ -108,8 +108,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             log.info(() -> "onResponse invoked for " + response);
             Optional<String> contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
             if (!contentRangeOpt.isPresent()) {
+                log.info(() -> "x-amz-content-range not found for " + response);
                 contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
                 if (!contentRangeOpt.isPresent()) {
+                    log.info(() -> "content-range not found for " + response);
                     if (subscriber != null) {
                         log.info(() -> "Content range header is missing");
                         IllegalStateException e = new IllegalStateException("Content range header is missing");
@@ -153,7 +155,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 // On the first request we need to maintain the same config so
                 // that the file is actually created on disk if it doesn't exist (for example, if CREATE_NEW or
                 // CREATE_OR_REPLACE_EXISTING is used)
-                log.info(() -> "getDelegateTransformer for trnasformer 0");
+                log.info(() -> "getDelegateTransformer for transformer 0");
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {
