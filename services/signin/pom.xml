@@ -56,5 +56,11 @@
             <artifactId>http-auth-aws</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>profiles</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
