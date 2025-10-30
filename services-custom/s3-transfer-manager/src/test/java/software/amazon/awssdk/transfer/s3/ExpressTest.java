@@ -46,8 +46,8 @@ public class ExpressTest {
 
     int maxInflightDownloads = 50;
     String bucket = "hagrid-testing--usw2-az1--x-s3";
-    long partSize = 5L * 1024 * 1024 * 1024;
-    int chunkSize = 16 * 1024; //16KB
+    long partSize = 100L * 1024 * 1024;
+    int chunkSize = 16 * 1024; // 16KB
     long bufferSize = chunkSize * maxInflightDownloads;
 
     S3AsyncClient s3Client;
@@ -75,9 +75,6 @@ public class ExpressTest {
                                                .connectionAcquisitionTimeout(Duration.ofMinutes(30))
                                                .connectionMaxIdleTime(Duration.ofSeconds(5))
                                                .build())
-                                               // .buildWithDefaults(AttributeMap.builder()
-                                               //                                .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
-                                               //                                .build()))
             .build();
 
         crt = S3AsyncClient
@@ -155,7 +152,7 @@ public class ExpressTest {
 
     @Test
     void tm_download() {
-        Path path = Paths.get(String.format(testPath, System.currentTimeMillis()));
+        Path path = Paths.get(testPath);
         S3TransferManager manager = S3TransferManager.builder()
                                                      .s3Client(s3Client)
                                                      .build();

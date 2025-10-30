@@ -21,10 +21,10 @@ tm_dl='tm_download'
 tm_ul='tm_upload'
 
 # /mnt/raid0/1TiB
-key='50TiB'
-path="/mnt/raid0/$key"
-
-test=$tm_ul
+key='1TiB-1761661274568'
+#path="/mnt/raid0/$key"
+path='/dev/null'
+test=$tm_dl
 
 mvn test -pl :s3-transfer-manager \
     -Dtest=software.amazon.awssdk.transfer.s3.ExpressTest#$test \
