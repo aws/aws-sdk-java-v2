@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS App Mesh",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
