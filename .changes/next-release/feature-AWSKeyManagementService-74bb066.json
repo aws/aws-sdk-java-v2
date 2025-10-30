@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Key Management Service",
+    "contributor": "",
+    "description": "Add cross account VPC endpoint service connectivity support to CustomKeyStore."
+}
