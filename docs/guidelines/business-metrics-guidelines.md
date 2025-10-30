@@ -5,6 +5,7 @@
 - [Core Principles](#core-principles)
 - [Implementation Patterns](#implementation-patterns)
 - [Performance Considerations](#performance-considerations)
+- [Versioning and Backward Compatibility](#versioning-and-backward-compatibility)
 - [Testing Requirements](#testing-requirements)
 - [Examples and References](#examples-and-references)
 
@@ -94,6 +95,15 @@ private void recordFeatureBusinessMetric(ExecutionAttributes executionAttributes
     }
 }
 ```
+
+In cases of high-level features (for example, Transfer Manager, Batch Manager, Cross-Region operations) that are resolved before ExecutionContext is built and we don't have access to ExecutionAttributes, prefer using `AwsExecutionContextBuilder.resolveUserAgentBusinessMetrics()` if the feature can be detected from client configuration or execution parameters (for example, retry mode from client config or RPC v2 CBOR protocol from execution parameters). If there is no option then request mutation is acceptable.
+
+## Versioning and Backward Compatibility
+
+### Business Metrics Changes Are Backward Compatible
+
+In general, changes to existing business metrics can be treated as backward compatible since business metrics don't affect SDK functionality or customer code behavior, so customer applications remain unaffected. Business metrics are purely observational telemetry, so changes like modifying an existing business metric are safe changes. If we are making changes to existing business metrics, then discuss with the team and do a minor version bump if needed so that teams can identify the new metric from that version.
+
 
 ## Testing Requirements
 
