@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed integrations for AWS IoT Device Management",
-    "contributor": "",
-    "description": "Add a new GetManagedThingCertificate API to expose Iot ManagedIntegrations (MI) device certificate, and add \"-\" support for name, properties, actions and events in the CapabilityReportCapability object."
-}
