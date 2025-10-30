@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -57,7 +56,7 @@ public final class DpopHeaderGenerator {
      * <li><a href="https://datatracker.ietf.org/doc/html/rfc7517">RFC 7517 - JSON Web Key (JWK)</a></li>
      * </ul>
      *
-     * @param pemContent - EC1 / RFC 5915 ASN.1 formated PEM contents
+     * @param dpopIdentity - DpopIdentity containing ECPrivateKey and ECPublicKey
      * @param endpoint - The HTTP target URI (Section 7.1 of [RFC9110]) of the request to which the JWT is attached,
      *                 without query and fragment parts
      * @param httpMethod - the HTTP method of the request (eg: POST).
@@ -65,18 +64,17 @@ public final class DpopHeaderGenerator {
      * @param uuid - Unique identifier for the DPoP proof JWT - should be a UUID4 string.
      * @return DPoP header value
      */
-    public static String generateDPoPProofHeader(String pemContent, String endpoint, String httpMethod,
+    public static String generateDPoPProofHeader(DpopIdentity dpopIdentity, String endpoint, String httpMethod,
                                                  long epochSeconds, String uuid) {
-        Validate.paramNotBlank(pemContent, "pemContent");
+        Validate.paramNotNull(dpopIdentity, "dpopIdentity");
         Validate.paramNotBlank(endpoint, "endpoint");
         Validate.paramNotBlank(httpMethod, "httpMethod");
         Validate.paramNotBlank(uuid, "uuid");
 
         try {
             // Load EC public and private key from PEM
-            Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(pemContent);
-            ECPrivateKey privateKey = keys.left();
-            ECPublicKey publicKey = keys.right();
+            ECPrivateKey privateKey = dpopIdentity.getPrivateKey();
+            ECPublicKey publicKey = dpopIdentity.getPublicKey();
 
             // Build JSON strings (header, payload) with JsonGenerator
             byte[] headerJson = buildHeaderJson(publicKey);
