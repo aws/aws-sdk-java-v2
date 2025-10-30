@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore Control",
+    "contributor": "",
+    "description": "Web-Bot-Auth support for AgentCore Browser tool to help reduce captcha challenges."
+}
