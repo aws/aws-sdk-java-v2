@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "sullis",
+    "description": "upgrade maven-compiler-plugin to 3.14.1"
+}
