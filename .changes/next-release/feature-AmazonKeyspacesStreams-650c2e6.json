@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Keyspaces Streams",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
