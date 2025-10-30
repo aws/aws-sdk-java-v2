@@ -103,6 +103,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onResponse(T response) {
+            log.info(() -> "onResponse invoked for " + response);
             Optional<String> contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
             if (!contentRangeOpt.isPresent()) {
                 contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
@@ -134,6 +135,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
 
         private void handleError(Throwable e) {
+            log.error(() -> "onError: " + e.getMessage());
             subscriber.onError(e);
             future.completeExceptionally(e);
         }
@@ -169,6 +171,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            log.info(() -> "onStream invoked for " + publisher);
             // should never be null as per AsyncResponseTransformer runtime contract, but we never know
             if (delegate == null) {
                 if (future != null) {
