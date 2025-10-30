@@ -62,6 +62,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     public void subscribe(Subscriber<? super AsyncResponseTransformer<T, T>> s) {
         Validate.notNull(s, "Subscriber must not be null");
         this.subscriber = s;
+        log.info(() -> "subscribe " + s.toString());
         s.onSubscribe(EmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
                                           .downstreamSubscriber(s)
                                           .onCancel(this::onCancel)
@@ -97,6 +98,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public CompletableFuture<T> prepare() {
+            log.info(() -> "prepare() called");
             this.future = new CompletableFuture<>();
             return this.future;
         }
@@ -109,16 +111,20 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
                 if (!contentRangeOpt.isPresent()) {
                     if (subscriber != null) {
+                        log.info(() -> "Content range header is missing");
                         IllegalStateException e = new IllegalStateException("Content range header is missing");
-                        log.error(() -> "Content range header is missing", e);
                         handleError(e);
+                    } else {
+                        log.info(() -> "Content range header is missing --- null subscriber");
                     }
                 }
                 return;
             }
 
             String contentRange = contentRangeOpt.get();
+            log.info(() -> "content range retrieved from header: " + contentRange);
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
+            log.info(() -> "content range parsed: " + contentRangePair);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
                     IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
