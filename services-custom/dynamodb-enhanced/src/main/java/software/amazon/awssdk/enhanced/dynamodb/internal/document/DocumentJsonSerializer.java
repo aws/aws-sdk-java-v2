@@ -30,8 +30,8 @@ import software.amazon.awssdk.thirdparty.jackson.core.JsonGenerator;
  * JSON serializer for DynamoDB Enhanced Client document operations.
  */
 @SdkInternalApi
-public final class DocumentJsonSerializer {
-    private static final JsonFactory JSON_FACTORY = new JsonFactory()   {
+final class DocumentJsonSerializer {
+    private static final JsonFactory JSON_FACTORY = new JsonFactory() {
         @Override
         public JsonGenerator createGenerator(OutputStream out) throws IOException {
             return super.createGenerator(out).enable(JsonGenerator.Feature.COMBINE_UNICODE_SURROGATES_IN_UTF8);
