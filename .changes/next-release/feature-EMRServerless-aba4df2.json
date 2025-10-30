@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EMR Serverless",
+    "contributor": "",
+    "description": "This release adds the capability to enable User Background Sessions for customers running Trusted Identity Propagation enabled Interactive Sessions on EMR Serverless Applications."
+}
