@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -65,7 +64,7 @@ public final class DpopHeaderGenerator {
      * @param uuid - Unique identifier for the DPoP proof JWT - should be a UUID4 string.
      * @return DPoP header value
      */
-    public static String generateDPoPProofHeader(DpopAuthScheme.DpopIdentity dpopIdentity, String endpoint, String httpMethod,
+    public static String generateDPoPProofHeader(DpopIdentity dpopIdentity, String endpoint, String httpMethod,
                                                  long epochSeconds, String uuid) {
         Validate.paramNotNull(dpopIdentity, "dpopIdentity");
         Validate.paramNotBlank(endpoint, "endpoint");

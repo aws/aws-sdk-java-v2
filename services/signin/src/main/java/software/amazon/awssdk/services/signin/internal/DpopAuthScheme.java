@@ -15,46 +15,27 @@
 
 package software.amazon.awssdk.services.signin.internal;
 
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
-import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkRequest;
-import software.amazon.awssdk.core.SdkServiceClientConfiguration;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
-import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.signer.BaseSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
-import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
-import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
-import software.amazon.awssdk.services.signin.SigninServiceClientConfiguration;
-import software.amazon.awssdk.services.signin.auth.scheme.SigninAuthSchemeParams;
-import software.amazon.awssdk.services.signin.auth.scheme.SigninAuthSchemeProvider;
-import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
-public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
+/**
+ * An AuthScheme representing authentication withOAuth 2.0 Demonstrating Proof of Possession (DPoP) header.
+ */
+@SdkInternalApi
+public class DpopAuthScheme implements AuthScheme<DpopIdentity> {
     public static final String SCHEME_NAME = "DPOP";
 
-    private final DpopIdentityProvider identityProvider;
+    private final IdentityProvider<DpopIdentity> identityProvider;
 
-    private DpopAuthScheme(DpopIdentityProvider identityProvider) {
+    private DpopAuthScheme(IdentityProvider<DpopIdentity> identityProvider) {
         this.identityProvider = Validate.paramNotNull(identityProvider, "identityProvider");
     }
 
-    public static DpopAuthScheme create(DpopIdentityProvider identityProvider) {
+    public static DpopAuthScheme create(IdentityProvider<DpopIdentity> identityProvider) {
         return new DpopAuthScheme(identityProvider);
     }
 
@@ -73,130 +54,5 @@ public class DpopAuthScheme implements AuthScheme<DpopAuthScheme.DpopIdentity> {
     @Override
     public HttpSigner<DpopIdentity> signer() {
         return new DpopSigner();
-    }
-
-    public static class DpopIdentity implements Identity {
-        private final ECPublicKey publicKey;
-        private final ECPrivateKey privateKey;
-
-        private DpopIdentity(ECPublicKey publicKey, ECPrivateKey privateKey) {
-            this.publicKey = publicKey;
-            this.privateKey = privateKey;
-        }
-
-        public static DpopIdentity create(ECPublicKey publicKey, ECPrivateKey privateKey) {
-            return new DpopIdentity(publicKey, privateKey);
-        }
-
-        public static DpopIdentity create(String dpopKeyPem) {
-            Pair<ECPrivateKey, ECPublicKey> keys = EcKeyLoader.loadSec1Pem(dpopKeyPem);
-            return new DpopIdentity(keys.right(), keys.left());
-        }
-
-        public ECPublicKey getPublicKey() {
-            return publicKey;
-        }
-
-        public ECPrivateKey getPrivateKey() {
-            return privateKey;
-        }
-    }
-
-    private static class DpopSigner implements HttpSigner<DpopIdentity> {
-
-        @Override
-        public SignedRequest sign(SignRequest<? extends DpopIdentity> request) {
-            return SignedRequest.builder()
-                                .request(doSign(request))
-                                .payload(request.payload().orElse(null))
-                                .build();
-        }
-
-        @Override
-        public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends DpopIdentity> request) {
-            return CompletableFuture.completedFuture(
-                AsyncSignedRequest.builder()
-                                  .request(doSign(request))
-                                  .payload(request.payload().orElse(null))
-                                  .build());
-        }
-
-        /**
-         * Using {@link BaseSignRequest}, sign the request with a {@link BaseSignRequest} and re-build it.
-         */
-        private SdkHttpRequest doSign(BaseSignRequest<?, ? extends DpopIdentity> request) {
-            return request.request().toBuilder()
-                          .putHeader(
-                              "DPoP",
-                              buildDpopHeader(request))
-                          .build();
-        }
-
-        private String buildDpopHeader(BaseSignRequest<?, ? extends DpopIdentity> request) {
-            SdkHttpRequest httpRequest = request.request();
-            String endpoint = extractRequestEndpoint(httpRequest);
-            return DpopHeaderGenerator.generateDPoPProofHeader(
-                request.identity(), endpoint, httpRequest.method().name(),
-                Instant.now().getEpochSecond(), UUID.randomUUID().toString());
-        }
-
-        private static String extractRequestEndpoint(SdkHttpRequest httpRequest) {
-            // using SdkHttpRequest.getUri() results in creating a URI which is slow and we don't need the query components
-            // construct only the endpoint that we require for DPoP.
-            String portString =
-                SdkHttpUtils.isUsingStandardPort(httpRequest.protocol(), httpRequest.port()) ? "" : ":" + httpRequest.port();
-            return httpRequest.protocol() + "://" + httpRequest.host() + portString + httpRequest.encodedPath();
-        }
-    }
-
-    private static class DpopIdentityProvider implements IdentityProvider<DpopIdentity> {
-        private final DpopIdentity identity;
-
-        private DpopIdentityProvider(DpopIdentity identity) {
-            this.identity = Validate.paramNotNull(identity, "identity");
-        }
-
-        public static DpopIdentityProvider create(String dpopKeyPem) {
-            return new DpopIdentityProvider(DpopIdentity.create(dpopKeyPem));
-        }
-
-        @Override
-        public Class<DpopIdentity> identityType() {
-            return DpopIdentity.class;
-        }
-
-        @Override
-        public CompletableFuture<? extends DpopIdentity> resolveIdentity(ResolveIdentityRequest request) {
-            return CompletableFuture.completedFuture(identity);
-        }
-    }
-
-    public static class DpopAuthSchemeResolver implements SigninAuthSchemeProvider {
-
-        @Override
-        public List<AuthSchemeOption> resolveAuthScheme(SigninAuthSchemeParams authSchemeParams) {
-            return Collections.singletonList(AuthSchemeOption.builder().schemeId(SCHEME_NAME).build());
-        }
-    }
-
-    public static class DpopAuthPlugin implements SdkPlugin {
-        private final String dpopKeyPem;
-
-        private DpopAuthPlugin(String dpopKeyPem) {
-            this.dpopKeyPem = Validate.paramNotNull(dpopKeyPem, "dpopKeyPem");
-        }
-
-        public static DpopAuthPlugin create(String dpopKeyPem) {
-            return new DpopAuthPlugin(dpopKeyPem);
-        }
-
-        @Override
-        public void configureClient(SdkServiceClientConfiguration.Builder config) {
-            SigninServiceClientConfiguration.Builder scb =
-                Validate.isInstanceOf(SigninServiceClientConfiguration.Builder.class, config,
-                                      "DpopAuthPlugin must be applied to a SigninServiceClient");
-            scb.authSchemeProvider(new DpopAuthSchemeResolver());
-            scb.putAuthScheme(DpopAuthScheme.create(DpopIdentityProvider.create(dpopKeyPem)));
-        }
     }
 }

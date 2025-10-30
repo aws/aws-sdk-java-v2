@@ -20,27 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.DPOP_IDENTITY;
-import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.VALID_TEST_PEM;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtHeaderFromEncodedDpopHeader;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtPayloadFromEncodedDpopHeader;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.verifySignature;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.Signature;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPublicKeySpec;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.Test;
-import software.amazon.awssdk.services.signin.internal.DpopAuthScheme;
 import software.amazon.awssdk.services.signin.internal.DpopHeaderGenerator;
 
 public class DpopHeaderGeneratorTest {

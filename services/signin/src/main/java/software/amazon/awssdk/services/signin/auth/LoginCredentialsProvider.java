@@ -34,7 +34,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
-import software.amazon.awssdk.services.signin.internal.DpopAuthScheme;
+import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
@@ -161,7 +161,7 @@ public class LoginCredentialsProvider implements
         log.debug(() -> "Credentials are near expiration/expired, refreshing from Signin service.");
 
         try {
-            SdkPlugin dpopAuthPlugin = DpopAuthScheme.DpopAuthPlugin.create(tokenFromDisc.getDpopKey());
+            SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey());
             CreateOAuth2TokenRequest refreshRequest =
                 CreateOAuth2TokenRequest
                     .builder()

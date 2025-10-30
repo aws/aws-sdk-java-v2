@@ -132,7 +132,7 @@ public class LoginCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_whenCredentialsNearExpiration_refreshesAndUpdatesCache() {
+    public void resolveCredentials_whenCredentialsNearExpiration_refreshesAndUpdatesCache() throws Exception {
         // within the stale time
         AwsSessionCredentials creds = buildCredentials(Instant.now().plusSeconds(10));
         LoginAccessToken token = buildAccessToken(creds);
@@ -148,7 +148,9 @@ public class LoginCredentialsProviderTest {
         assertEquals(token.getClientId(), request.tokenInput().clientId());
         assertEquals(token.getRefreshToken(), request.tokenInput().refreshToken());
         assertEquals("refresh_token", request.tokenInput().grantType());
-        // TODO: Assert validity of DPoP header once implemented
+
+        // verify the request is correctly signed with DPoP header
+        verifyDpopHeader(captureRequestInterceptor.httpRequests.get(0));
 
         // verify that returned credentials are updated
         verifyResolvedCredentialsAreUpdated(resolvedCredentials);
@@ -176,15 +178,7 @@ public class LoginCredentialsProviderTest {
         assertEquals("refresh_token", request.tokenInput().grantType());
 
         // verify the request is correctly signed with DPoP header
-        List<String> dpopHeader = captureRequestInterceptor.httpRequests.get(0).headers().get("DPoP");
-        assertNotNull(dpopHeader);
-        assertEquals(1, dpopHeader.size());
-        assertTrue(verifySignature(dpopHeader.get(0)));
-
-        Map<String, Object> payload = getJwtPayloadFromEncodedDpopHeader(dpopHeader.get(0));
-        assertEquals("POST", payload.get("htm"));
-        assertEquals("https://custom-signin-endpoint.com/v1/token", payload.get("htu"));
-
+        verifyDpopHeader(captureRequestInterceptor.httpRequests.get(0));
 
         // verify that returned credentials are updated
         verifyResolvedCredentialsAreUpdated(resolvedCredentials);
@@ -208,7 +202,6 @@ public class LoginCredentialsProviderTest {
         assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
     }
 
-
     private static void verifyResolvedCredentialsAreUpdated(AwsCredentials resolvedCredentials) {
         assertEquals("new-akid", resolvedCredentials.accessKeyId());
         assertEquals("new-skid", resolvedCredentials.secretAccessKey());
@@ -220,6 +213,18 @@ public class LoginCredentialsProviderTest {
         Instant resolvedExpirationTime = resolvedCredentials.expirationTime().orElse(Instant.MIN);
         assertTrue(Math.abs(resolvedExpirationTime.toEpochMilli() - expectedExpirationTime.toEpochMilli()) < 1000);
     }
+
+    private void verifyDpopHeader(SdkHttpRequest httpRequest) throws Exception {
+        List<String> dpopHeader = httpRequest.headers().get("DPoP");
+        assertNotNull(dpopHeader);
+        assertEquals(1, dpopHeader.size());
+        assertTrue(verifySignature(dpopHeader.get(0)));
+
+        Map<String, Object> payload = getJwtPayloadFromEncodedDpopHeader(dpopHeader.get(0));
+        assertEquals("POST", payload.get("htm"));
+        assertEquals("https://custom-signin-endpoint.com/v1/token", payload.get("htu"));
+    }
+
 
     private void verifyTokenCacheUpdated() {
         LoginAccessToken updatedToken = tokenManager.loadToken()

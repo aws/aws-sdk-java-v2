@@ -30,7 +30,7 @@ import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.util.Base64;
 import java.util.Map;
-import software.amazon.awssdk.services.signin.internal.DpopAuthScheme;
+import software.amazon.awssdk.services.signin.internal.DpopIdentity;
 
 /**
  * Utilities and constants used in testing DPoP.
@@ -43,7 +43,7 @@ public final class DpopTestUtils {
         + "QnPjfDslgD29p4+Pgwxj1s8cFHVeDKdKTQ==\n"
         + "-----END EC PRIVATE KEY-----";
 
-    public static final DpopAuthScheme.DpopIdentity DPOP_IDENTITY = DpopAuthScheme.DpopIdentity.create(VALID_TEST_PEM);
+    public static final DpopIdentity DPOP_IDENTITY = DpopIdentity.create(VALID_TEST_PEM);
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
