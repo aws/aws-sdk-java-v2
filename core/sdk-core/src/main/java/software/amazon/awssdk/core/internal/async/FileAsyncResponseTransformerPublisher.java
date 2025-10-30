@@ -110,6 +110,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 if (!contentRangeOpt.isPresent()) {
                     if (subscriber != null) {
                         IllegalStateException e = new IllegalStateException("Content range header is missing");
+                        log.error(() -> "Content range header is missing", e);
                         handleError(e);
                     }
                 }
@@ -121,6 +122,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
                     IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
+                    log.error(() -> "Could not parse content range header: " + contentRange, e);
                     handleError(e);
                 }
                 return;
@@ -145,6 +147,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 // On the first request we need to maintain the same config so
                 // that the file is actually created on disk if it doesn't exist (for example, if CREATE_NEW or
                 // CREATE_OR_REPLACE_EXISTING is used)
+                log.info(() -> "getDelegateTransformer for trnasformer 0");
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {
