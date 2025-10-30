@@ -1,4 +1,212 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.37.2__ __2025-10-30__
+## __AWS App Mesh__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS AppSync__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Application Cost Profiler__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Artifact__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Audit Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Added support for advanced Spark configurations to optimize SQL performance
+
+## __AWS Cloud Control API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeCommit__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeDeploy__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Glue__
+  - ### Features
+    - This release adds the capability to enable User Background Sessions for customers running Trusted Identity Propagation enabled Interactive Sessions on AWS Glue.
+
+## __AWS IoT Events Data__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS IoT Greengrass V2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Key Management Service__
+  - ### Features
+    - Add cross account VPC endpoint service connectivity support to CustomKeyStore.
+
+## __AWS License Manager Linux Subscriptions__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Marketplace Reporting Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Removals
+    - Remove `apptest`, `iotfleethub`, `lookoutmetrics`, `lookoutvision`, `qldb-session`, `qldb` and `robomaker`
+
+## __AWS Security Token Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Service Catalog__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon API Gateway__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon AppConfig__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Appflow__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Web-Bot-Auth support for AgentCore Browser tool to help reduce captcha challenges.
+
+## __Amazon Chime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Cognito Sync__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Adding FailoverState and TagList to GlobalCluster and SynchronizationStatus to GlobalClusterMember.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS Service Connect now supports Envoy access logs, providing deeper observability into request-level traffic patterns and service interactions.
+
+## __Amazon EKS Auth__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Neptune__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Anomaly Detection APIs for Amazon Managed Prometheus
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to enable User Background Sessions for customers running Trusted Identity Propagation enabled Interactive Sessions on EMR Serverless Applications.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Add a new GetManagedThingCertificate API to expose Iot ManagedIntegrations (MI) device certificate, and add "-" support for name, properties, actions and events in the CapabilityReportCapability object.
+
+## __RTBFabric__
+  - ### Features
+    - RTB Fabric documentation update.
+
+## __Schemas__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
 # __2.37.1__ __2025-10-29__
 ## __Amazon Bedrock Runtime__
   - ### Features
