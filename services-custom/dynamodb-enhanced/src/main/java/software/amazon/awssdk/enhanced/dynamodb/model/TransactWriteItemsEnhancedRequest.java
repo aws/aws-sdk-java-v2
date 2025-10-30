@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -65,12 +66,14 @@ public final class TransactWriteItemsEnhancedRequest {
     private final String clientRequestToken;
     private final String returnConsumedCapacity;
     private final String returnItemCollectionMetrics;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private TransactWriteItemsEnhancedRequest(Builder builder) {
         this.transactWriteItems = getItemsFromSupplier(builder.itemSupplierList);
         this.clientRequestToken = builder.clientRequestToken;
         this.returnConsumedCapacity = builder.returnConsumedCapacity;
         this.returnItemCollectionMetrics = builder.returnItemCollectionMetrics;
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -145,6 +148,18 @@ public final class TransactWriteItemsEnhancedRequest {
         return transactWriteItems;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link TransactWriteItemsRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -157,7 +172,8 @@ public final class TransactWriteItemsEnhancedRequest {
         return Objects.equals(transactWriteItems, that.transactWriteItems) &&
                Objects.equals(clientRequestToken, that.clientRequestToken) &&
                Objects.equals(returnConsumedCapacity, that.returnConsumedCapacity) &&
-               Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics);
+               Objects.equals(returnItemCollectionMetrics, that.returnItemCollectionMetrics) &&
+               Objects.equals(overrideConfiguration, that.overrideConfiguration);
     }
 
     @Override
@@ -166,6 +182,7 @@ public final class TransactWriteItemsEnhancedRequest {
         result = 31 * result + Objects.hashCode(clientRequestToken);
         result = 31 * result + Objects.hashCode(returnConsumedCapacity);
         result = 31 * result + Objects.hashCode(returnItemCollectionMetrics);
+        result = 31 * result + Objects.hashCode(overrideConfiguration);
         return result;
     }
 
@@ -182,6 +199,7 @@ public final class TransactWriteItemsEnhancedRequest {
         private String clientRequestToken;
         private String returnConsumedCapacity;
         private String returnItemCollectionMetrics;
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -438,6 +456,30 @@ public final class TransactWriteItemsEnhancedRequest {
          */
         public Builder clientRequestToken(String clientRequestToken) {
             this.clientRequestToken = clientRequestToken;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link TransactWriteItemsRequest}.
+         *
+         * @see TransactWriteItemsRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link TransactWriteItemsRequest}.
+         *
+         * @see TransactWriteItemsRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
             return this;
         }
 
