@@ -151,7 +151,7 @@ public class ExpressTest {
     }
 
     @Test
-    void tm_download() {
+    void tm_download() throws Exception {
         Path path = Paths.get(testPath);
         S3TransferManager manager = S3TransferManager.builder()
                                                      .s3Client(s3Client)
@@ -169,7 +169,7 @@ public class ExpressTest {
         long latencyInSec = (end - start) / 1000;
         System.out.println("==========================================================");
         System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
-        printOutResult(latencyInSec, res.response().contentLength());
+        printOutResult(latencyInSec, Files.size(path));
     }
 
     public static void printOutResult(long latency, long contentLengthInByte) {

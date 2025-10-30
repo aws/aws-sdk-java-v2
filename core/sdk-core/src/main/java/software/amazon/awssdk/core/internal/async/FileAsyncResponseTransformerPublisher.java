@@ -62,7 +62,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     public void subscribe(Subscriber<? super AsyncResponseTransformer<T, T>> s) {
         Validate.notNull(s, "Subscriber must not be null");
         this.subscriber = s;
-        log.info(() -> "subscribe " + s.toString());
         s.onSubscribe(EmittingSubscription.<AsyncResponseTransformer<T, T>>builder()
                                           .downstreamSubscriber(s)
                                           .onCancel(this::onCancel)
@@ -98,7 +97,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public CompletableFuture<T> prepare() {
-            log.info(() -> "prepare() called");
             this.future = new CompletableFuture<>();
             return this.future;
         }
@@ -119,13 +117,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             }
 
             String contentRange = contentRangeOpt.get();
-            log.info(() -> "content range retrieved from header: " + contentRange);
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
-            log.info(() -> "content range parsed: " + contentRangePair);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
                     IllegalStateException e = new IllegalStateException("Could not parse content range header " + contentRange);
-                    log.error(() -> "Could not parse content range header: " + contentRange, e);
                     handleError(e);
                 }
                 return;
@@ -140,7 +135,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
 
         private void handleError(Throwable e) {
-            log.error(() -> "onError: " + e.getMessage());
             subscriber.onError(e);
             future.completeExceptionally(e);
         }
@@ -150,7 +144,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 // On the first request we need to maintain the same config so
                 // that the file is actually created on disk if it doesn't exist (for example, if CREATE_NEW or
                 // CREATE_OR_REPLACE_EXISTING is used)
-                log.info(() -> "getDelegateTransformer for transformer 0");
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {
@@ -177,7 +170,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onStream(SdkPublisher<ByteBuffer> publisher) {
-            log.info(() -> "onStream invoked for " + publisher);
             // should never be null as per AsyncResponseTransformer runtime contract, but we never know
             if (delegate == null) {
                 if (future != null) {
