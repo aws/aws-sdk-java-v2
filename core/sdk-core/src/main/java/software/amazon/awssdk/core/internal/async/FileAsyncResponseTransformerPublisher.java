@@ -103,16 +103,19 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onResponse(T response) {
-            Optional<String> contentRangeList = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
-            if (!contentRangeList.isPresent()) {
-                if (subscriber != null) {
-                    IllegalStateException e = new IllegalStateException("Content range header is missing");
-                    handleError(e);
+            Optional<String> contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
+            if (!contentRangeOpt.isPresent()) {
+                contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
+                if (!contentRangeOpt.isPresent()) {
+                    if (subscriber != null) {
+                        IllegalStateException e = new IllegalStateException("Content range header is missing");
+                        handleError(e);
+                    }
                 }
                 return;
             }
 
-            String contentRange = contentRangeList.get();
+            String contentRange = contentRangeOpt.get();
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
