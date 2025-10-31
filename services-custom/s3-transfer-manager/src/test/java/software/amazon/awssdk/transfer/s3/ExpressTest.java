@@ -44,7 +44,7 @@ import software.amazon.awssdk.utils.AttributeMap;
 
 public class ExpressTest {
 
-    int maxInflightDownloads = 50;
+    int maxInflightDownloads = 20;
     String bucket = "hagrid-testing--usw2-az1--x-s3";
     long partSize = 5L * 1024 * 1024 * 1024;
     int chunkSize = 16 * 1024; // 16KB
