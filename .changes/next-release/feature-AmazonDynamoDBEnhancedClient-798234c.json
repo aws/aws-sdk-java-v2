@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "Amazon DynamoDB Enhanced Client",
     "contributor": "",
-    "description": "Optimize implementation of the toJson() and getJson() used by the DDB Enhanced Client Serialization codepaths"
+    "description": "Optimize implementation of the `EnhancedDocument#toJson()` and `EnhancedDocument#getJson()`."
 }

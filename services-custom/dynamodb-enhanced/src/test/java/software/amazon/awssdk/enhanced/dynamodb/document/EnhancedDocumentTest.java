@@ -26,7 +26,11 @@ import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +50,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
@@ -679,4 +684,33 @@ class EnhancedDocumentTest {
         assertThat(result).isNull();
     }
 
+    @Test
+    void toJson_fixtureFile_largeData() throws IOException {
+        String largeDataJson = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/large_data_input.json")));
+
+        EnhancedDocument doc = EnhancedDocument.fromJson(largeDataJson);
+        String actualOutput = doc.toJson();
+
+        // This fixture file is generated after running legacy toJson()
+        String goldenOutput = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/large_data_fixture.json")));
+
+        assertThat(actualOutput).isEqualTo(goldenOutput);
+    }
+
+    @Test
+    void toJson_fixtureFile_binaryEdgeCases() throws IOException {
+        String inputJson = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/binary_edge_cases_input.json")), StandardCharsets.UTF_8);
+
+        EnhancedDocument doc = EnhancedDocument.fromJson(inputJson);
+        String actualOutput = doc.toJson();
+
+        // This fixture file is generated after running legacy toJson()
+        String goldenOutput = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/binary_edge_cases_fixture.json")), StandardCharsets.UTF_8);
+
+        assertThat(actualOutput).isEqualTo(goldenOutput);
+    }
 }
