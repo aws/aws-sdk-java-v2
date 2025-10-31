@@ -97,7 +97,7 @@ public class VersionedRecordWithSpecialCharactersTest extends LocalDynamoDbSyncT
                          .addAttribute(String.class, a -> a.name("_attribute")
                                                            .getter(Record::get_attribute)
                                                            .setter(Record::set_attribute))
-                         .addAttribute(Integer.class, a -> a.name("_version")
+                         .addAttribute(Integer.class, a -> a.name("my-version")
                                                             .getter(Record::get_version)
                                                             .setter(Record::set_version)
                                                             .tags(versionAttribute()))
