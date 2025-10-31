@@ -22,6 +22,7 @@ import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
+import software.amazon.awssdk.crtcore.CrtRequestBodyAdapter;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -54,6 +55,7 @@ public final class CrtRequestAdapter {
                                encodedPath + encodedQueryString,
                                crtHeaderArray,
                                new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
+                                                         sdkExecuteRequest.requestContentPublisher().contentLength().orElse(0L),
                                                          request.readBufferSize()));
     }
 

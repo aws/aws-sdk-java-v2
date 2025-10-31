@@ -17,12 +17,12 @@ package software.amazon.awssdk.crtcore;
 
 import java.nio.ByteBuffer;
 import org.reactivestreams.Publisher;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
-@SdkInternalApi
+@SdkProtectedApi
 public final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private static final int BUFFER_SIZE = 4 * 1024 * 1024; // 4 MB
     private final Publisher<ByteBuffer> requestPublisher;
