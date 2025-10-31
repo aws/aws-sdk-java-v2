@@ -38,6 +38,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
+import software.amazon.awssdk.authcrt.signer.AwsCrtS3V4aSigner;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -68,6 +69,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 public class ChecksumReuseTest {
     private static final String BUCKET = "test-bucket";
+    private static final String MRAP_ARN = "arn:aws:s3::123456789012:accesspoint/mfzwi23gnjvgw.mrap";
     private static final String KEY = "test-key";
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER = StaticCredentialsProvider.create(
         AwsBasicCredentials.create("akid", "skid"));
@@ -169,6 +171,35 @@ public class ChecksumReuseTest {
     }
 
     @Test
+    void asyncPutObject_mrapBucket_serverResponds500_usesSameChecksumOnRetries() {
+        MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
+
+        S3AsyncClient s3 = S3AsyncClient.builder()
+                                        .region(Region.US_WEST_2)
+                                        .credentialsProvider(CREDENTIALS_PROVIDER)
+                                        .requestChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED)
+                                        .httpClient(httpClient)
+                                        .overrideConfiguration(o -> o.retryStrategy(StandardRetryStrategy.builder()
+                                                                                                         .maxAttempts(4)
+                                                                                                         .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                                                         .build()))
+                                        .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromInputStream(new RandomInputStream(),
+                                                                        4096L,
+                                                                        executorService);
+
+        CompletableFuture<PutObjectResponse> responseFuture =
+            s3.putObject(r -> r.bucket(MRAP_ARN).key(KEY).checksumAlgorithm(ChecksumAlgorithm.CRC32), requestBody);
+
+        assertThatThrownBy(responseFuture::join)
+            .hasCauseInstanceOf(S3Exception.class)
+            .matches(e -> ((SdkException) e.getCause()).numAttempts() == 4);
+
+        assertAllTrailingChecksumsMatch(httpClient.requestPayloads);
+    }
+
+    @Test
     void asyncPutObject_nonSra_serverResponds500_usesSameChecksumOnRetries() {
         MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
 
@@ -192,6 +223,39 @@ public class ChecksumReuseTest {
                                .key(KEY)
                                .checksumAlgorithm(ChecksumAlgorithm.CRC32)
                                .overrideConfiguration(o -> o.signer(AwsS3V4Signer.create())),
+                         requestBody);
+
+        assertThatThrownBy(responseFuture::join)
+            .hasCauseInstanceOf(S3Exception.class)
+            .matches(e -> ((SdkException) e.getCause()).numAttempts() == 4);
+
+        assertAllTrailingChecksumsMatch(httpClient.requestPayloads);
+    }
+
+    @Test
+    void asyncPutObject_nonSra_mrapBucket_serverResponds500_usesSameChecksumOnRetries() {
+        MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
+
+        S3AsyncClient s3 = S3AsyncClient.builder()
+                                        .region(Region.US_WEST_2)
+                                        .credentialsProvider(CREDENTIALS_PROVIDER)
+                                        .requestChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED)
+                                        .httpClient(httpClient)
+                                        .overrideConfiguration(o -> o.retryStrategy(StandardRetryStrategy.builder()
+                                                                                                         .maxAttempts(4)
+                                                                                                         .backoffStrategy(BackoffStrategy.retryImmediately())
+                                                                                                         .build()))
+                                        .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromInputStream(new RandomInputStream(),
+                                                                        4096L,
+                                                                        executorService);
+
+        CompletableFuture<PutObjectResponse> responseFuture =
+            s3.putObject(r -> r.bucket(MRAP_ARN)
+                               .key(KEY)
+                               .checksumAlgorithm(ChecksumAlgorithm.CRC32)
+                               .overrideConfiguration(o -> o.signer(AwsCrtS3V4aSigner.create())),
                          requestBody);
 
         assertThatThrownBy(responseFuture::join)

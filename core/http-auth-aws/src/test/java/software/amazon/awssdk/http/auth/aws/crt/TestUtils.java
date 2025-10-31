@@ -23,11 +23,15 @@ import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.sa
 import static software.amazon.awssdk.http.auth.aws.crt.internal.util.CrtUtils.toCredentials;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
+import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningUtils;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -35,6 +39,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
@@ -66,6 +71,36 @@ public final class TestUtils {
                                                      .build()
                                                      .copy(requestOverrides))
                           .payload(() -> new ByteArrayInputStream(testPayload()))
+                          .putProperty(REGION_SET, RegionSet.create("aws-global"))
+                          .putProperty(SERVICE_SIGNING_NAME, "demo")
+                          .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
+                          .build()
+                          .copy(signRequestOverrides);
+    }
+
+    public static <T extends AwsCredentialsIdentity> AsyncSignRequest<T> generateBasicAsyncRequest(
+        T credentials,
+        Consumer<? super SdkHttpRequest.Builder> requestOverrides,
+        Consumer<? super AsyncSignRequest.Builder<T>> signRequestOverrides
+    ) {
+        ByteBuffer buffer = ByteBuffer.wrap(testPayload());
+        buffer.mark();
+        // The publisher may be subscribed to more than once during signing. Ensure that the buffers are reset each time.
+        Publisher<ByteBuffer> payload = Flowable.just(buffer).doOnEach(n -> {
+           if (n.isOnNext()) {
+               n.getValue().reset();
+           }
+        });
+        return AsyncSignRequest.builder(credentials)
+                          .request(SdkHttpRequest.builder()
+                                                 .method(SdkHttpMethod.POST)
+                                                 .putHeader("x-amz-archive-description", "test  test")
+                                                 .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                 .encodedPath("/")
+                                                 .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
+                                                 .build()
+                                                 .copy(requestOverrides))
+                          .payload(payload)
                           .putProperty(REGION_SET, RegionSet.create("aws-global"))
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK, new TickingClock(Instant.ofEpochMilli(1596476903000L)))
