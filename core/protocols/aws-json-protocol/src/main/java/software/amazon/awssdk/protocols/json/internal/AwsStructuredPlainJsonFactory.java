@@ -33,6 +33,7 @@ public final class AwsStructuredPlainJsonFactory {
      * Recommended to share JsonFactory instances per http://wiki.fasterxml.com/JacksonBestPracticesPerformance
      */
     private static final JsonFactory JSON_FACTORY = JsonFactory.builder()
+                                                               .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
                                                                .enable(StreamReadFeature.USE_FAST_BIG_NUMBER_PARSER)
                                                                .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
                                                                .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
