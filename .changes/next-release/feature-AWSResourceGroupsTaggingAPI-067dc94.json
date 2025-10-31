@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resource Groups Tagging API",
+    "contributor": "",
+    "description": "Update endpoint ruleset parameters casing"
+}
