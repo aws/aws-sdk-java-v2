@@ -55,7 +55,6 @@ public final class CrtRequestAdapter {
                                encodedPath + encodedQueryString,
                                crtHeaderArray,
                                new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
-                                                         sdkExecuteRequest.requestContentPublisher().contentLength().orElse(0L),
                                                          request.readBufferSize()));
     }
 
