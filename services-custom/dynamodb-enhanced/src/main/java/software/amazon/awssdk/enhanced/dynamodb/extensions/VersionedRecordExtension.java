@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.isNullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.keyRef;
 
@@ -58,7 +59,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkPublicApi
 @ThreadSafe
 public final class VersionedRecordExtension implements DynamoDbEnhancedClientExtension {
-    private static final Function<String, String> VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER = key -> ":old_" + key + "_value";
+    private static final Function<String, String> VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER =
+        key -> ":old_" + cleanAttributeName(key) + "_value";
     private static final String CUSTOM_METADATA_KEY = "VersionedRecordExtension:VersionAttribute";
     private static final VersionAttribute VERSION_ATTRIBUTE = new VersionAttribute();
 
