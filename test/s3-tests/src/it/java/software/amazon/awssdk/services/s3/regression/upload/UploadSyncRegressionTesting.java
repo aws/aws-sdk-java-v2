@@ -76,7 +76,7 @@ public class UploadSyncRegressionTesting extends UploadStreamingRegressionTestin
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
                                        .addExecutionInterceptor(recorder)
-                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
+                                       .apiCallTimeout(Duration.of(120, ChronoUnit.SECONDS));
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());

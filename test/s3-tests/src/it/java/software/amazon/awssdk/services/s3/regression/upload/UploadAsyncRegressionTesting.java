@@ -57,9 +57,6 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH,
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
-        Assumptions.assumeFalse(config.getBucketType() == BucketType.MRAP,
-                                "Async does not support currently Sigv4a");
-
         // Async java based clients don't support unknown content-length bodies
         Assumptions.assumeTrue(config.getBodyType().isContentLengthAvailable(),
                                "Async Java based does not support unknown content length");
@@ -82,7 +79,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
                                        .addExecutionInterceptor(recorder)
-                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
+                                       .apiCallTimeout(Duration.of(120, ChronoUnit.SECONDS));
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());
