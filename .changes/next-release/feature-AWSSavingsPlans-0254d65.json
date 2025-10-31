@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Savings Plans",
-    "contributor": "",
-    "description": "Add dual-stack endpoint support for Savings Plans"
-}

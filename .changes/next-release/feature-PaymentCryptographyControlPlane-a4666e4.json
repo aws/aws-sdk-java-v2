@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Control Plane",
-    "contributor": "",
-    "description": "Allow additional characters in the CertificateSubject for GetCertificateSigningRequest API."
-}
