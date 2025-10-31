@@ -28,7 +28,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.crt.internal.CrtAsyncRequestContext;
 import software.amazon.awssdk.http.crt.internal.CrtRequestContext;
-import software.amazon.awssdk.crtcore.CrtRequestBodyAdapter;
 
 @SdkInternalApi
 public final class CrtRequestAdapter {
@@ -55,7 +54,6 @@ public final class CrtRequestAdapter {
                                encodedPath + encodedQueryString,
                                crtHeaderArray,
                                new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
-                                                         sdkExecuteRequest.requestContentPublisher().contentLength().orElse(0L),
                                                          request.readBufferSize()));
     }
 
