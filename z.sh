@@ -21,7 +21,7 @@ tm_dl='tm_download'
 tm_ul='tm_upload'
 
 # /mnt/raid0/1TiB
-key='50TiB-1761801838117'
+key='40TiB-1761755973859'
 path="/mnt/raid0/$key"
 test=$tm_dl
 
