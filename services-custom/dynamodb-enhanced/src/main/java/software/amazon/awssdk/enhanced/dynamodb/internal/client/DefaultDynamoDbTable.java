@@ -39,6 +39,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TableOperati
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.UpdateItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteCompleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
@@ -133,6 +134,12 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
     }
 
     @Override
+    public T deleteItem(DeleteCompleteItemEnhancedRequest<T> request) {
+        TableOperation<T, ?, ?, DeleteItemEnhancedResponse<T>> operation = DeleteItemOperation.create(request);
+        return operation.executeOnPrimaryIndex(tableSchema, tableName, extension, dynamoDbClient).attributes();
+    }
+
+    @Override
     public T deleteItem(Consumer<DeleteItemEnhancedRequest.Builder> requestConsumer) {
         DeleteItemEnhancedRequest.Builder builder = DeleteItemEnhancedRequest.builder();
         requestConsumer.accept(builder);
@@ -146,7 +153,10 @@ public class DefaultDynamoDbTable<T> implements DynamoDbTable<T> {
 
     @Override
     public T deleteItem(T keyItem) {
-        return deleteItem(keyFrom(keyItem));
+        return (T) deleteItem(DeleteCompleteItemEnhancedRequest.builder()
+                                                               .key(keyFrom(keyItem))
+                                                               .item(keyItem)
+                                                               .build());
     }
 
     @Override
