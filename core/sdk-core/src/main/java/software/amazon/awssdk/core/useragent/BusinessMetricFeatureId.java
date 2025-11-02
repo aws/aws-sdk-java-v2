@@ -22,7 +22,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 /**
  * An enum class representing a short form of identity providers to record in the UA string.
  *
- * Unimplemented metrics: I,J,K,M,O,S,U-c
+ * Unimplemented metrics: I,K
  * Unsupported metrics (these will never be added): A,H
  */
 @SdkProtectedApi
@@ -34,12 +34,24 @@ public enum BusinessMetricFeatureId {
     RETRY_MODE_STANDARD("E"),
     RETRY_MODE_ADAPTIVE("F"),
     S3_TRANSFER("G"),
-    GZIP_REQUEST_COMPRESSION("L"), //TODO(metrics): Not working, compression happens after header
+    GZIP_REQUEST_COMPRESSION("L"),
+    PROTOCOL_RPC_V2_CBOR("M"),
     ENDPOINT_OVERRIDE("N"),
+    S3_EXPRESS_BUCKET("J"),
     ACCOUNT_ID_MODE_PREFERRED("P"),
     ACCOUNT_ID_MODE_DISABLED("Q"),
     ACCOUNT_ID_MODE_REQUIRED("R"),
+    SIGV4A_SIGNING("S"),
     RESOLVED_ACCOUNT_ID("T"),
+    FLEXIBLE_CHECKSUMS_REQ_CRC32("U"),
+    FLEXIBLE_CHECKSUMS_REQ_CRC32C("V"),
+    FLEXIBLE_CHECKSUMS_REQ_CRC64("W"),
+    FLEXIBLE_CHECKSUMS_REQ_SHA1("X"),
+    FLEXIBLE_CHECKSUMS_REQ_SHA256("Y"),
+    FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED("Z"),
+    FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED("a"),
+    FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED("b"),
+    FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED("c"),
     DDB_MAPPER("d"),
     BEARER_SERVICE_ENV_VARS("3"),
     CREDENTIALS_CODE("e"),

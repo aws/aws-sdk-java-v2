@@ -57,18 +57,12 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH,
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
-        // Payload signing doesn't work correctly for async java based
-        // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
-        Assumptions.assumeFalse(config.isPayloadSigning()
-                                // MRAP requires body signing
-                                || config.getBucketType() == BucketType.MRAP,
-                                "Async payload signing doesn't work with Java based clients");
+        Assumptions.assumeFalse(config.getBucketType() == BucketType.MRAP,
+                                "Async does not support currently Sigv4a");
 
-        // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
-        // Async java based clients don't currently support unknown content-length bodies
-        Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_NO_LENGTH
-                                || config.getBodyType() == BodyType.INPUTSTREAM_NO_LENGTH,
-                                "Async Java based support unknown content length");
+        // Async java based clients don't support unknown content-length bodies
+        Assumptions.assumeTrue(config.getBodyType().isContentLengthAvailable(),
+                               "Async Java based does not support unknown content length");
 
         LOG.info(() -> "Running UploadAsyncRegressionTesting putObject with config: " + config);
 

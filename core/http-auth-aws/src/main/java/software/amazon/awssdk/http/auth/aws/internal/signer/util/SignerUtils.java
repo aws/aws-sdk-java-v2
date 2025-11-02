@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -26,17 +26,22 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.cache.FifoCache;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 /**
@@ -198,7 +203,7 @@ public final class SignerUtils {
      * Move `Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, then
      * the payload is read in its entirety to calculate the length.
      */
-    public static long moveContentLength(SdkHttpRequest.Builder request, ContentStreamProvider contentStreamProvider) {
+    public static long computeAndMoveContentLength(SdkHttpRequest.Builder request, ContentStreamProvider contentStreamProvider) {
         Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
 
         if (decodedContentLength.isPresent()) {
@@ -219,6 +224,44 @@ public final class SignerUtils {
         request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, String.valueOf(contentLength))
                .removeHeader(Header.CONTENT_LENGTH);
         return contentLength;
+    }
+
+    /**
+     * Move Content-Length` to `x-amz-decoded-content-length` if not already present. If `Content-Length` is not present, the
+     * future is completed exceptionally. Note: this behavior differs from the sync version
+     * {@link #computeAndMoveContentLength(SdkHttpRequest.Builder, ContentStreamProvider)} as the sync version reads the entire
+     * stream to compute the length if the header is not present. The async version was introduced after the sync version; moving
+     * forward, requests that have an unknown content length should be done through chunked transfer encoding.
+     */
+    public static CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> moveContentLength(
+        SdkHttpRequest.Builder request, Publisher<ByteBuffer> contentPublisher) {
+        Optional<String> decodedContentLength = request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH);
+
+        if (decodedContentLength.isPresent()) {
+            request.removeHeader(Header.CONTENT_LENGTH);
+            return CompletableFuture.completedFuture(Pair.of(request, Optional.of(contentPublisher)));
+        }
+
+        CompletableFuture<Long> contentLengthFuture;
+
+        Optional<String> contentLengthFromHeader =
+            request.firstMatchingHeader(Header.CONTENT_LENGTH);
+        if (contentLengthFromHeader.isPresent()) {
+            long contentLength = Long.parseLong(contentLengthFromHeader.get());
+            contentLengthFuture = CompletableFuture.completedFuture(contentLength);
+        } else {
+            if (contentPublisher == null) {
+                contentLengthFuture = CompletableFuture.completedFuture(0L);
+            } else {
+                throw new UnsupportedOperationException("Content-Length header must be specified");
+            }
+        }
+
+        return contentLengthFuture.thenApply(cl -> {
+            request.putHeader(X_AMZ_DECODED_CONTENT_LENGTH, String.valueOf(cl))
+                   .removeHeader(Header.CONTENT_LENGTH);
+            return Pair.of(request, Optional.ofNullable(contentPublisher));
+        });
     }
 
     public static InputStream getBinaryRequestPayloadStream(ContentStreamProvider streamProvider) {

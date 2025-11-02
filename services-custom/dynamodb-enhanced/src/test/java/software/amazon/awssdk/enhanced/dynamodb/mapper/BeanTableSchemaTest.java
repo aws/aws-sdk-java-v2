@@ -45,6 +45,9 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
@@ -1175,5 +1178,99 @@ public class BeanTableSchemaTest {
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(fluentSetterBean, false);
 
         assertThat(beanTableSchema.mapToItem(itemMap), is(equalTo(fluentSetterBean)));
+    }
+
+    @Test
+    public void create_withMultipleFlattenMaps_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Multiple @DynamoDbFlatten Map<String, String> properties found. "
+                                + "Only one flattened map per class is supported.");
+        BeanTableSchema.create(MultipleFlattenMapsBean.class);
+    }
+
+    @Test
+    public void create_withInvalidMapType_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+        BeanTableSchema.create(InvalidMapTypeBean.class);
+    }
+
+    @Test
+    public void create_withValidFlattenMap_succeeds() {
+        BeanTableSchema.create(ValidFlattenMapBean.class);
+    }
+
+    @Test
+    public void create_withNonMapFlatten_succeeds() {
+        BeanTableSchema.create(NonMapFlattenBean.class);
+    }
+
+    @DynamoDbBean
+    public static class MultipleFlattenMapsBean {
+        private String id;
+        private Map<String, String> map1;
+        private Map<String, String> map2;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap1() { return map1; }
+        public void setMap1(Map<String, String> map1) { this.map1 = map1; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap2() { return map2; }
+        public void setMap2(Map<String, String> map2) { this.map2 = map2; }
+    }
+
+    @DynamoDbBean
+    public static class InvalidMapTypeBean {
+        private String id;
+        private Map<String, Integer> invalidMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, Integer> getInvalidMap() { return invalidMap; }
+        public void setInvalidMap(Map<String, Integer> invalidMap) { this.invalidMap = invalidMap; }
+    }
+
+    @DynamoDbBean
+    public static class ValidFlattenMapBean {
+        private String id;
+        private Map<String, String> validMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getValidMap() { return validMap; }
+        public void setValidMap(Map<String, String> validMap) { this.validMap = validMap; }
+    }
+
+    @DynamoDbBean
+    public static class NonMapFlattenBean {
+        private String id;
+        private NestedObject nested;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public NestedObject getNested() { return nested; }
+        public void setNested(NestedObject nested) { this.nested = nested; }
+    }
+
+    @DynamoDbBean
+    public static class NestedObject {
+        private String value;
+
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
     }
 }

@@ -1,156 +1,525 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.35.6__ __2025-10-13__
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+# __2.37.3__ __2025-10-31__
+## __AWS Elemental MediaConvert__
   - ### Features
-    - Updated http status code in control plane apis of agentcore runtime, tools and identity. Additional included provider types for AgentCore Identity
+    - Adds SlowPalPitchCorrection to audio pitch correction settings. Enables opacity for VideoOverlays. Adds REMUX_ALL option to enable multi-rendition passthrough to VideoSelector for allow listed accounts.
 
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+## __AWS Health APIs and Notifications__
   - ### Features
-    - Updated InvokeAgentRuntime API to accept account id optionally and added CompleteResourceTokenAuth API.
-
-## __Amazon Elastic Compute Cloud__
-  - ### Features
-    - Release Amazon EC2 c8i, c8i-flex, m8a, and r8gb
-
-## __CloudWatch Observability Admin Service__
-  - ### Features
-    - CloudWatch Observability Admin adds the ability to enable Resource tags for telemetry in a customer account. The release introduces new APIs to enable, disable and describe the status of Resource tags for telemetry feature. This new capability simplifies monitoring AWS resources using tags.
-
-# __2.35.5__ __2025-10-10__
-## __AWS Glue__
-  - ### Features
-    - Addition of AuditContext in GetTable/GetTables Request
+    - Update endpoint ruleset parameters casing
 
 ## __AWS Lambda__
   - ### Features
-    - Add InvokedViaFunctionUrl context key to limit invocations to only FURL invokes.
+    - Add Python3.14 (python3.14) and Java 25 (java25) support to AWS Lambda
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
 
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+## __AWS Savings Plans__
   - ### Features
-    - Bedrock AgentCore release for Gateway, and Memory including Self-Managed Strategies support for Memory.
+    - Add dual-stack endpoint support for Savings Plans
 
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+## __AWS Systems Manager QuickSetup__
   - ### Features
-    - Bedrock AgentCore release for Runtime, and Memory.
+    - Update endpoint ruleset parameters casing
 
-## __Amazon CloudFront__
+## __AWS WAF__
   - ### Features
-    - Added new viewer security policy, TLSv1.2_2025, for CloudFront.
+    - Update endpoint ruleset parameters casing
 
-## __Amazon Relational Database Service__
+## __Amazon CloudWatch Logs__
   - ### Features
-    - Updated the text in the Important section of the ModifyDBClusterParameterGroup page.
+    - Update endpoint ruleset parameters casing
 
-## __odb__
+## __Amazon Connect Cases__
   - ### Features
-    - This release adds APIs that allow you to specify CIDR ranges in your ODB peering connection.
+    - Added two new case rule types: Parent Child Field Options (restricts child field options based on parent field value) and Hidden (controls child field visibility based on parent field value). Both enable dynamic field behavior within templates.
 
-# __2.35.4__ __2025-10-09__
-## __AWS SDK for Java v2__
+## __Amazon EMR__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - Update endpoint ruleset parameters casing
 
-## __AWS WAFV2__
+## __Amazon Elastic Compute Cloud__
   - ### Features
-    - This release adds the ability to throw WafLimitsExceededException when the maximum number of Application Load Balancer (ALB) associations per AWS WAF v2 WebACL is exceeded.
+    - Amazon VPC IP Address Manager (IPAM) now supports automated prefix list management, allowing you to create rules that automatically populate customer-managed prefix lists with CIDRs from your IPAM pools or AWS resources based on tags, Regions, or other criteria.
 
-## __Amazon QuickSight__
+## __Amazon FSx__
   - ### Features
-    - This release adds support for ActionConnector and Flow, which are new resources associated with Amazon Quick Suite. Additional updates include expanded Data Source options, further branding customization, and new capabilities that can be restricted by Admins.
+    - Update endpoint ruleset parameters casing
 
-## __Amazon S3__
-  - ### Bugfixes
-    - Skip Expect: 100-continue header for PutObject and UploadPart requests with zero content length
-
-# __2.35.3__ __2025-10-08__
-## __AWS License Manager User Subscriptions__
+## __Amazon Import/Export Snowball__
   - ### Features
-    - Released support for IPv6 and dual-stack active directories
+    - Update endpoint ruleset parameters casing
 
-## __AWS Outposts__
+## __Amazon Kinesis__
   - ### Features
-    - This release adds the new StartOutpostDecommission API, which starts the decommission process to return Outposts racks or servers.
+    - Update endpoint ruleset parameters casing
 
-## __AWS SDK for Java v2__
+## __Amazon Omics__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - Added WDL_LENIENT engine type that enables implicit typecasting of variable values to its compatible declared types
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+## __Amazon Redshift__
   - ### Features
-    - Adding support for authorizer type AWS_IAM to AgentCore Control Gateway.
+    - Update endpoint ruleset parameters casing
 
-## __Service Quotas__
+## __Amazon SageMaker Service__
   - ### Features
-    - introduces Service Quotas Automatic Management. Users can opt-in to monitoring and managing service quotas, receive notifications when quota usage reaches thresholds, configure notification channels, subscribe to EventBridge events for automation, and view notifications in the AWS Health dashboard.
+    - Allow update of platform identifier via UpdateNotebookInstance operation.
 
-# __2.35.2__ __2025-10-07__
-## __AWS Proton__
+## __Amazon Textract__
   - ### Features
-    - Deprecating APIs in AWS Proton namespace.
+    - Update endpoint ruleset parameters casing
 
-## __AWS SDK for Java v2__
+## __Firewall Management Service__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - Update endpoint ruleset parameters casing
 
-# __2.35.1__ __2025-10-06__
-## __AWS Backup__
+## __Payment Cryptography Control Plane__
   - ### Features
-    - Adds optional MaxScheduledRunsPreview input to GetBackupPlan API to provide a preview of up to 10 next scheduled backup plan runs in the GetBackupPlan response.
+    - Allow additional characters in the CertificateSubject for GetCertificateSigningRequest API.
+
+# __2.37.2__ __2025-10-30__
+## __AWS App Mesh__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS AppSync__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Application Cost Profiler__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Artifact__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Audit Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Added support for advanced Spark configurations to optimize SQL performance
+
+## __AWS Cloud Control API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeCommit__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeDeploy__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Compute Optimizer__
+  - ### Features
+    - Update endpoint ruleset parameters casing
 
 ## __AWS Glue__
   - ### Features
-    - Adds labeling for DataQualityRuleResult for GetDataQualityResult and PublishDataQualityResult APIs
+    - This release adds the capability to enable User Background Sessions for customers running Trusted Identity Propagation enabled Interactive Sessions on AWS Glue.
 
-## __AWS MediaConnect__
+## __AWS IoT Events Data__
   - ### Features
-    - Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types
+    - Update endpoint ruleset parameters casing
 
-## __AWS Resource Explorer__
+## __AWS IoT Greengrass V2__
   - ### Features
-    - Add new AWS Resource Explorer APIs
+    - Update endpoint ruleset parameters casing
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+## __AWS Key Management Service__
   - ### Features
-    - Add support for VM lifecycle configuration parameters and A2A protocol
+    - Add cross account VPC endpoint service connectivity support to CustomKeyStore.
 
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+## __AWS License Manager Linux Subscriptions__
   - ### Features
-    - Add support for batch memory management, agent card retrieval and session termination
+    - Update endpoint ruleset parameters casing
 
-## __Amazon MemoryDB__
+## __AWS Marketplace Reporting Service__
   - ### Features
-    - Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API.
-
-## __Amazon QuickSight__
-  - ### Features
-    - Documentation improvements for QuickSight API documentation to clarify that delete operation APIs are global.
-
-## __Amazon Relational Database Service__
-  - ### Features
-    - Documentation updates to the CreateDBClusterMessage$PubliclyAccessible and CreateDBInstanceMessage$PubliclyAccessible properties.
-
-# __2.35.0__ __2025-10-03__
-## __AWS Clean Rooms Service__
-  - ### Features
-    - Added support for reading data sources across regions, and results delivery to allowedlisted regions.
-
-## __AWS Elemental MediaLive__
-  - ### Features
-    - AWS Elemental MediaLive enables Mediapackage V2 users to configure ID3, KLV, Nielsen ID3, and Segment Length related parameters through the Mediapackage output group.
+    - Update endpoint ruleset parameters casing
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Adds business metrics tracking for credential providers.
+    - Updated endpoint and partition metadata.
 
-## __Amazon Q Connect__
-  - ### Features
-    - Updated Amazon Q in Connect APIs to support Email Contact Recommendations.
+  - ### Removals
+    - Remove `apptest`, `iotfleethub`, `lookoutmetrics`, `lookoutvision`, `qldb-session`, `qldb` and `robomaker`
 
-## __Payment Cryptography Data Plane__
+## __AWS Security Token Service__
   - ### Features
-    - Added a new API - translateKeyMaterial; allows keys wrapped by ECDH derived keys to be rewrapped under a static AES keyblock without first importing the key into the service.
+    - Update endpoint ruleset parameters casing
+
+## __AWS Service Catalog__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Single Sign-On__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSServerlessApplicationRepository__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon API Gateway__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon AppConfig__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Appflow__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Web-Bot-Auth support for AgentCore Browser tool to help reduce captcha challenges.
+
+## __Amazon Chime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudSearch__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CodeCatalyst__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Cognito Sync__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Connect Cases__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon DevOps Guru__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Adding FailoverState and TagList to GlobalCluster and SynchronizationStatus to GlobalClusterMember.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS Service Connect now supports Envoy access logs, providing deeper observability into request-level traffic patterns and service interactions.
+
+## __Amazon EKS Auth__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Fraud Detector__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Keyspaces Streams__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Firehose__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Neptune__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add Anomaly Detection APIs for Amazon Managed Prometheus
+
+## __Amazon S3 on Outposts__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds the capability to enable User Background Sessions for customers running Trusted Identity Propagation enabled Interactive Sessions on EMR Serverless Applications.
+
+## __Managed integrations for AWS IoT Device Management__
+  - ### Features
+    - Add a new GetManagedThingCertificate API to expose Iot ManagedIntegrations (MI) device certificate, and add "-" support for name, properties, actions and events in the CapabilityReportCapability object.
+
+## __RTBFabric__
+  - ### Features
+    - RTB Fabric documentation update.
+
+## __Schemas__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+# __2.37.1__ __2025-10-29__
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support for system tool and web citation response.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Add support for @DynamoDbFlatten to flatten a Map<String, String> to top level attributes of an object
+
+# __2.37.0__ __2025-10-28__
+## __AWS Backup Search__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Clean Rooms ML__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Cloud9__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS CodeConnections__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Elemental MediaPackage VOD__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Ground Station__
+  - ### Features
+    - Enable use of AzEl ephemerides
+
+## __AWS Lambda__
+  - ### Features
+    - Added SerializedRequestEntityTooLargeException to Lambda Invoke API
+
+## __AWS Marketplace Deployment Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Migration Hub Orchestrator__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Organizations__
+  - ### Features
+    - Added Account State field to the ListDelegatedAdministrators API response.
+
+## __AWS Resource Access Manager__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Resource Groups__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS S3 Control__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add business metric support for Sigv4A auth scheme to track when an operation is called using Sigv4A signing
+    - Adds business metrics for flexible checksum algorithms and configurations
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Add support for payload signing of async streaming requests signed with SigV4 using default `AwsV4HttpSigner` (using `AwsV4HttpSigner.create()`). Note, requests using the `http` URI scheme will not be signed regardless of the value of `AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED` to remain consistent with existing behavior. This may change in a future release.
+    - Correctly use noProxyHosts from CrtProxyConfiguration.
+
+## __AWS Service Catalog App Registry__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS Support App__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS User Notifications__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWS X-Ray__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AWSKendraFrontendService__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudSearch Domain__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Added support for CloudWatch Synthetics Canary resources in ListAuditFindings API. This enhancement allows customers to retrieve audit findings specifically for CloudWatch Synthetics canaries and enables service-canary correlation analysis.
+
+## __Amazon CloudWatch Events__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon CodeGuru Security__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Detective__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon ECS supports native linear and canary service deployments, allowing you to shift traffic in increments for more control.
+
+## __Amazon EMR Containers__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This released the DescribeCapacityReservationTopology API.
+
+## __Amazon Elastic File System__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Elastic Transcoder__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon EventBridge Pipes__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Add stream group expiration date and expired status
+
+## __Amazon Glacier__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon S3__
+  - ### Features
+    - Implemented business metrics tracking for S3_Express_Bucket (featureID "J") through User-Agent header.
+
+  - ### Bugfixes
+    - Fix a bug where tags were being lost when creating buckets in us-east-1
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker now supports deleting training and processing jobs in a terminal status.
+
+## __Amazon Simple Queue Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon Simple Storage Service / Features: Add conditional writes in CopyObject on destination key to prevent unintended object modifications.
+
+## __Amazon Transcribe Streaming Service__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added IPv6 address support for WorkSpaces using Dual-Stack subnets
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __AmazonApiGatewayV2__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Inspector Scan__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Partner Central Selling API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Security Incident Response__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __Tax Settings__
+  - ### Features
+    - Update endpoint ruleset parameters casing
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - Update endpoint ruleset parameters casing
 
