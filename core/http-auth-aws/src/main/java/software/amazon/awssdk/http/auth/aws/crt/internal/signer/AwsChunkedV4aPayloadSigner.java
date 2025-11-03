@@ -102,7 +102,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     }
 
     /**
-     * Given a payload and result of request signing, sign the payload via the SigV4 process.
+     * Given a payload and result of request signing, sign the payload via the SigV4a process.
      */
     @Override
     public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4aRequestSigningResult requestSigningResult) {
