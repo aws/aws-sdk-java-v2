@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.37.4__ __2025-11-03__
+## __AWS Budgets__
+  - ### Features
+    - Fix the AWS Budgets endpoint for the aws-eusc partition.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Update Jackson and Jackson jr to 2.19.4
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for direct code deploy with CreateAgentRuntime and UpdateAgentRuntime
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Documentation-only update for LINEAR and CANARY deployment strategies.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Add Amazon EC2 trn2.3xlarge instance type.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Adds support for MinimumThroughputBillingCommitment with new UpdateAccountSettings API. Adds support to configure warm throughput for on-demand streams in new UpdateStreamWarmThroughput API and existing CreateStream API and UpdateStreamMode API.
+
 # __2.37.3__ __2025-10-31__
 ## __AWS Elemental MediaConvert__
   - ### Features
