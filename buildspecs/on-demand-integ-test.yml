@@ -12,6 +12,7 @@ phases:
       - echo $JAVA_VERSION
       - |
         if [ "$JAVA_VERSION" -ge "9" ]; then
+          set -e
           cd test/module-path-tests
           mvn package
           mvn exec:exec -P integ-tests
