@@ -22,6 +22,9 @@ import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferResult;
 
+/**
+ * This class adapts a {@link Publisher} of {@link ByteBuffer} to the CRT {@link HttpRequestBodyStream}.
+ */
 @SdkProtectedApi
 public final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private static final int BUFFER_SIZE = 4 * 1024 * 1024; // 4 MB
@@ -29,14 +32,10 @@ public final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private final long contentLength;
     private ByteBufferStoringSubscriber requestBodySubscriber;
 
-    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength, long readLimit) {
+    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength) {
         this.requestPublisher = requestPublisher;
         this.contentLength = contentLength;
-        this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
-    }
-
-    public CrtRequestBodyAdapter(Publisher<ByteBuffer> requestPublisher, long contentLength) {
-        this(requestPublisher, contentLength, BUFFER_SIZE);
+        this.requestBodySubscriber = new ByteBufferStoringSubscriber(BUFFER_SIZE);
     }
 
     @Override
