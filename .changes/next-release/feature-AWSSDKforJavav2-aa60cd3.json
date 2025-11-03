@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Implemented business metrics tracking for S3_Express_Bucket (featureID \"J\") through User-Agent header."
-}
