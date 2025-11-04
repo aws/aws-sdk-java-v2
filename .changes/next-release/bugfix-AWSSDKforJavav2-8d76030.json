@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Increased the default chunk size for async trailer based checksum data transfer request from 16KB to 64KB"
+}
