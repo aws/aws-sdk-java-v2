@@ -23,8 +23,8 @@ phases:
       - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
       - SONATYPE_URL="https://aws.oss.sonatype.org/service/local/repositories/releases/content/software/amazon/awssdk/aws-sdk-java/$RELEASE_VERSION/"
       - |
+        set -e
         if ! curl -f --head $SONATYPE_URL; then
-          set -e
           SONATYPE_USERNAME=`aws secretsmanager get-secret-value --secret-id $SONATYPE_USERNAME_ARN --query SecretString --output text`
           SONATYPE_PASSWORD=`aws secretsmanager get-secret-value --secret-id $SONATYPE_PASSWORD_ARN --query SecretString --output text`
           SDK_SIGNING_GPG_KEYNAME=`aws secretsmanager get-secret-value --secret-id $SDK_SIGNING_GPG_KEYNAME_ARN --query SecretString --output text`

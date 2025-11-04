@@ -11,8 +11,8 @@ phases:
       - JAVA_VERSION=$(java -version 2>&1 | grep -i version | cut -d'"' -f2 | cut -d'.' -f1-1)
       - echo $JAVA_VERSION
       - |
+        set -e
         if [ "$JAVA_VERSION" -ge "9" ]; then
-          set -e
           cd test/module-path-tests
           mvn package
           mvn exec:exec -P integ-tests
