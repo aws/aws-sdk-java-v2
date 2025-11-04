@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.37.5__ __2025-11-04__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This release adds support for the CarrierLookup API, which returns information about a destination phone number including if the number is valid, the carrier, and more.
+
+## __DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - The DynamoDB Enhanced Client now properly sanitizes version attribute names when building conditional expressions for optimistic locking. Version attributes with special characters in their names will now work correctly. See [#3279](https://github.com/aws/aws-sdk-java-v2/issues/3279)
+
 # __2.37.4__ __2025-11-03__
 ## __AWS Budgets__
   - ### Features
