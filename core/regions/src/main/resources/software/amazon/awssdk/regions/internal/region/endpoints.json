@@ -1448,71 +1448,6 @@
           }
         }
       },
-      "api.fleethub.iot" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-northeast-2" : { },
-          "ap-south-1" : { },
-          "ap-southeast-1" : { },
-          "ap-southeast-2" : { },
-          "ca-central-1" : {
-            "variants" : [ {
-              "hostname" : "api.fleethub.iot-fips.ca-central-1.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "eu-central-1" : { },
-          "eu-north-1" : { },
-          "eu-west-1" : { },
-          "eu-west-2" : { },
-          "fips-ca-central-1" : {
-            "credentialScope" : {
-              "region" : "ca-central-1"
-            },
-            "deprecated" : true,
-            "hostname" : "api.fleethub.iot-fips.ca-central-1.amazonaws.com"
-          },
-          "fips-us-east-1" : {
-            "credentialScope" : {
-              "region" : "us-east-1"
-            },
-            "deprecated" : true,
-            "hostname" : "api.fleethub.iot-fips.us-east-1.amazonaws.com"
-          },
-          "fips-us-east-2" : {
-            "credentialScope" : {
-              "region" : "us-east-2"
-            },
-            "deprecated" : true,
-            "hostname" : "api.fleethub.iot-fips.us-east-2.amazonaws.com"
-          },
-          "fips-us-west-2" : {
-            "credentialScope" : {
-              "region" : "us-west-2"
-            },
-            "deprecated" : true,
-            "hostname" : "api.fleethub.iot-fips.us-west-2.amazonaws.com"
-          },
-          "us-east-1" : {
-            "variants" : [ {
-              "hostname" : "api.fleethub.iot-fips.us-east-1.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-east-2" : {
-            "variants" : [ {
-              "hostname" : "api.fleethub.iot-fips.us-east-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-west-2" : {
-            "variants" : [ {
-              "hostname" : "api.fleethub.iot-fips.us-west-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          }
-        }
-      },
       "api.iotdeviceadvisor" : {
         "endpoints" : {
           "ap-northeast-1" : {
@@ -3002,21 +2937,6 @@
           }
         }
       },
-      "apptest" : {
-        "endpoints" : {
-          "ap-southeast-2" : { },
-          "eu-central-1" : { },
-          "fips-us-east-1" : {
-            "deprecated" : true
-          },
-          "sa-east-1" : { },
-          "us-east-1" : {
-            "variants" : [ {
-              "tags" : [ "fips" ]
-            } ]
-          }
-        }
-      },
       "aps" : {
         "defaults" : {
           "protocols" : [ "https" ]
@@ -4232,6 +4152,7 @@
             "deprecated" : true,
             "hostname" : "cassandra-fips.us-west-2.amazonaws.com"
           },
+          "me-central-1" : { },
           "me-south-1" : { },
           "sa-east-1" : { },
           "us-east-1" : {
@@ -6765,6 +6686,7 @@
           "ap-southeast-3" : { },
           "ap-southeast-4" : { },
           "ap-southeast-5" : { },
+          "ap-southeast-6" : { },
           "ap-southeast-7" : { },
           "ca-central-1" : {
             "variants" : [ {
@@ -15943,30 +15865,6 @@
           "us-east-1" : { }
         }
       },
-      "lookoutmetrics" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-southeast-1" : { },
-          "ap-southeast-2" : { },
-          "eu-central-1" : { },
-          "eu-north-1" : { },
-          "eu-west-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-2" : { }
-        }
-      },
-      "lookoutvision" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-northeast-2" : { },
-          "eu-central-1" : { },
-          "eu-west-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-2" : { }
-        }
-      },
       "m2" : {
         "endpoints" : {
           "af-south-1" : { },
@@ -19271,69 +19169,6 @@
           }
         }
       },
-      "qldb" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-northeast-2" : { },
-          "ap-southeast-1" : { },
-          "ap-southeast-2" : { },
-          "ca-central-1" : {
-            "variants" : [ {
-              "hostname" : "qldb-fips.ca-central-1.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "eu-central-1" : { },
-          "eu-west-1" : { },
-          "eu-west-2" : { },
-          "fips-ca-central-1" : {
-            "credentialScope" : {
-              "region" : "ca-central-1"
-            },
-            "deprecated" : true,
-            "hostname" : "qldb-fips.ca-central-1.amazonaws.com"
-          },
-          "fips-us-east-1" : {
-            "credentialScope" : {
-              "region" : "us-east-1"
-            },
-            "deprecated" : true,
-            "hostname" : "qldb-fips.us-east-1.amazonaws.com"
-          },
-          "fips-us-east-2" : {
-            "credentialScope" : {
-              "region" : "us-east-2"
-            },
-            "deprecated" : true,
-            "hostname" : "qldb-fips.us-east-2.amazonaws.com"
-          },
-          "fips-us-west-2" : {
-            "credentialScope" : {
-              "region" : "us-west-2"
-            },
-            "deprecated" : true,
-            "hostname" : "qldb-fips.us-west-2.amazonaws.com"
-          },
-          "us-east-1" : {
-            "variants" : [ {
-              "hostname" : "qldb-fips.us-east-1.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-east-2" : {
-            "variants" : [ {
-              "hostname" : "qldb-fips.us-east-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-west-2" : {
-            "variants" : [ {
-              "hostname" : "qldb-fips.us-west-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          }
-        }
-      },
       "query.timestream" : {
         "endpoints" : {
           "ap-northeast-1" : { },
@@ -20944,17 +20779,6 @@
               "tags" : [ "fips" ]
             } ]
           }
-        }
-      },
-      "robomaker" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-southeast-1" : { },
-          "eu-central-1" : { },
-          "eu-west-1" : { },
-          "us-east-1" : { },
-          "us-east-2" : { },
-          "us-west-2" : { }
         }
       },
       "rolesanywhere" : {
@@ -23874,57 +23698,6 @@
           "us-east-2" : { },
           "us-west-1" : { },
           "us-west-2" : { }
-        }
-      },
-      "session.qldb" : {
-        "endpoints" : {
-          "ap-northeast-1" : { },
-          "ap-northeast-2" : { },
-          "ap-southeast-1" : { },
-          "ap-southeast-2" : { },
-          "ca-central-1" : { },
-          "eu-central-1" : { },
-          "eu-west-1" : { },
-          "eu-west-2" : { },
-          "fips-us-east-1" : {
-            "credentialScope" : {
-              "region" : "us-east-1"
-            },
-            "deprecated" : true,
-            "hostname" : "session.qldb-fips.us-east-1.amazonaws.com"
-          },
-          "fips-us-east-2" : {
-            "credentialScope" : {
-              "region" : "us-east-2"
-            },
-            "deprecated" : true,
-            "hostname" : "session.qldb-fips.us-east-2.amazonaws.com"
-          },
-          "fips-us-west-2" : {
-            "credentialScope" : {
-              "region" : "us-west-2"
-            },
-            "deprecated" : true,
-            "hostname" : "session.qldb-fips.us-west-2.amazonaws.com"
-          },
-          "us-east-1" : {
-            "variants" : [ {
-              "hostname" : "session.qldb-fips.us-east-1.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-east-2" : {
-            "variants" : [ {
-              "hostname" : "session.qldb-fips.us-east-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          },
-          "us-west-2" : {
-            "variants" : [ {
-              "hostname" : "session.qldb-fips.us-west-2.amazonaws.com",
-              "tags" : [ "fips" ]
-            } ]
-          }
         }
       },
       "shield" : {
@@ -35217,11 +34990,6 @@
           }
         }
       },
-      "robomaker" : {
-        "endpoints" : {
-          "us-gov-west-1" : { }
-        }
-      },
       "rolesanywhere" : {
         "endpoints" : {
           "fips-us-gov-east-1" : {
@@ -36755,6 +36523,12 @@
       }
     },
     "services" : {
+      "acm" : {
+        "endpoints" : {
+          "us-iso-east-1" : { },
+          "us-iso-west-1" : { }
+        }
+      },
       "agreement-marketplace" : {
         "endpoints" : {
           "fips-us-iso-east-1" : {

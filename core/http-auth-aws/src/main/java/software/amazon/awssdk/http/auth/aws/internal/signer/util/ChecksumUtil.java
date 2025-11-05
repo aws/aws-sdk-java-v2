@@ -15,15 +15,15 @@
 
 package software.amazon.awssdk.http.auth.aws.internal.signer.util;
 
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_EVENTS_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.UNSIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED;
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_EVENTS_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.UNSIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 
 import java.io.InputStream;
 import java.nio.ByteBuffer;

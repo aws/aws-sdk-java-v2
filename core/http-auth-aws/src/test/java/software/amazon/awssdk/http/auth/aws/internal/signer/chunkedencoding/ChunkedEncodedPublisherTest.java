@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 
 import io.reactivex.Flowable;
 import io.reactivex.subscribers.TestSubscriber;
@@ -32,12 +33,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
+import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Pair;
 
 public class ChunkedEncodedPublisherTest {
@@ -65,7 +66,7 @@ public class ChunkedEncodedPublisherTest {
 
         assertThat(chunks.size()).isEqualTo(1);
 
-        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(0)).toString();
+        String trailerAsString = bufferAsString(chunks.get(0));
 
         assertThat(trailerAsString).isEqualTo(
             "0\r\n" +
@@ -92,8 +93,9 @@ public class ChunkedEncodedPublisherTest {
         List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
 
         String expectedTrailer = "foo:bar";
-        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        String trailerAsString = bufferAsString(chunks.get(1).duplicate()).trim();
         assertThat(trailerAsString).endsWith(expectedTrailer);
+        assertChunksHaveChecksum(chunks, upstream.wrappedChecksum());
     }
 
     @Test
@@ -114,8 +116,9 @@ public class ChunkedEncodedPublisherTest {
         List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
 
         String expectedTrailer = "foo:bar1,bar2,bar3";
-        String trailerAsString = StandardCharsets.UTF_8.decode(chunks.get(1)).toString().trim();
+        String trailerAsString = bufferAsString(chunks.get(1).duplicate()).trim();
         assertThat(trailerAsString).endsWith(expectedTrailer);
+        assertChunksHaveChecksum(chunks, upstream.wrappedChecksum());
     }
 
     @Test
@@ -132,7 +135,7 @@ public class ChunkedEncodedPublisherTest {
                                                                           .contentLength(contentLength)
                                                                           .addTrailer(trailerProvider).build();
 
-        getAllElements(chunkedPublisher);
+        assertChunksHaveChecksum(getAllElements(chunkedPublisher), upstream.wrappedChecksum());
 
         Mockito.verify(trailerProvider, Mockito.times(1)).get();
     }
@@ -158,7 +161,8 @@ public class ChunkedEncodedPublisherTest {
                           "foo:bar\r\n" +
                           "\r\n";
 
-        assertThat(chunkAsString(last)).isEqualTo(expected);
+        assertThat(bufferAsString(last.duplicate())).isEqualTo(expected);
+        assertChunksHaveChecksum(chunks, testPublisher.wrappedChecksum());
     }
 
     @Test
@@ -176,8 +180,9 @@ public class ChunkedEncodedPublisherTest {
         List<ByteBuffer> chunks = getAllElements(publisher);
 
         assertThat(chunks.size()).isEqualTo(1);
-        assertThat(stripEncoding(chunks.get(0)))
+        assertThat(stripEncoding(chunks.get(0).duplicate()))
             .isEqualTo(element);
+        assertChunksHaveChecksum(chunks, crc32(content));
     }
 
     @Test
@@ -197,7 +202,8 @@ public class ChunkedEncodedPublisherTest {
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher);
 
-        assertThat(getHeaderAsString(chunks.get(0))).endsWith(";foo");
+        assertThat(getHeaderAsString(chunks.get(0).duplicate())).endsWith(";foo");
+        assertChunksHaveChecksum(chunks, testPublisher.wrappedChecksum());
     }
 
     @Test
@@ -217,7 +223,8 @@ public class ChunkedEncodedPublisherTest {
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher.build());
 
-        chunks.forEach(chunk -> assertThat(getHeaderAsString(chunk)).endsWith(";key1=value1;key2=value2;key3=value3"));
+        chunks.forEach(chunk -> assertThat(getHeaderAsString(chunk.duplicate())).endsWith(";key1=value1;key2=value2;key3=value3"));
+        assertChunksHaveChecksum(chunks, testPublisher.wrappedChecksum());
     }
 
     @Test
@@ -264,9 +271,10 @@ public class ChunkedEncodedPublisherTest {
                                                                               .build();
 
             List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
+            assertThat(chunks.size()).isEqualTo(24);
 
             chunks.forEach(c -> {
-                String header = StandardCharsets.UTF_8.decode(getHeader(c)).toString();
+                String header = bufferAsString(getHeader(c.duplicate()));
                 assertThat(header).isEqualTo("4000;foo=bar");
             });
 
@@ -300,7 +308,8 @@ public class ChunkedEncodedPublisherTest {
         assertThat(chunks.size()).isEqualTo(3);
 
         ByteBuffer trailing = chunks.get(chunks.size() - 1);
-        assertThat(stripEncoding(trailing).remaining()).isEqualTo(0);
+        assertThat(stripEncoding(trailing.duplicate()).remaining()).isEqualTo(0);
+        assertChunksHaveChecksum(chunks, testPublisher.wrappedChecksum());
     }
 
     @Test
@@ -318,35 +327,35 @@ public class ChunkedEncodedPublisherTest {
         List<ByteBuffer> chunks = getAllElements(chunkedPublisher);
 
         assertThat(chunks.size()).isEqualTo(1);
+        assertChunksHaveChecksum(chunks, crc32(new byte[0]));
     }
 
     @Test
     void subscribe_extensionsPresent_extensionsInvokedForEachChunk() {
-        ChunkExtensionProvider mockProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
+        StaticExtensionProvider mockProvider = Mockito.spy(new StaticExtensionProvider("foo", "bar"));
 
+        int chunkSize = CHUNK_SIZE;
         int nChunks = 16;
-        int contentLength = CHUNK_SIZE * nChunks;
+        int contentLength = chunkSize * nChunks;
         TestPublisher elements = randomPublisherOfLength(contentLength);
 
         ChunkedEncodedPublisher chunkPublisher = ChunkedEncodedPublisher.builder()
                                                                         .publisher(elements)
                                                                         .contentLength(contentLength)
-                                                                        .chunkSize(CHUNK_SIZE)
+                                                                        .chunkSize(chunkSize)
                                                                         .addExtension(mockProvider)
                                                                         .build();
 
         List<ByteBuffer> chunks = getAllElements(chunkPublisher);
-
-        ArgumentCaptor<ByteBuffer> chunkCaptor = ArgumentCaptor.forClass(ByteBuffer.class);
-
-        Mockito.verify(mockProvider, Mockito.times(nChunks)).get(chunkCaptor.capture());
-        List<ByteBuffer> extensionChunks = chunkCaptor.getAllValues();
+        Mockito.verify(mockProvider, Mockito.times(nChunks)).get(any(ByteBuffer.class));
 
         for (int i = 0; i < chunks.size(); ++i) {
             ByteBuffer chunk = chunks.get(i);
-            ByteBuffer extensionChunk = extensionChunks.get(i);
-            assertThat(stripEncoding(chunk)).isEqualTo(extensionChunk);
+            ByteBuffer extensionChunk = mockProvider.recordedChunks.get(i);
+
+            assertThat(stripEncoding(chunk.duplicate())).isEqualTo(extensionChunk);
         }
+        assertChunksHaveChecksum(chunks, elements.wrappedChecksum());
     }
 
     @Test
@@ -388,7 +397,9 @@ public class ChunkedEncodedPublisherTest {
             bytes -= elementSize;
 
             byte[] elementContent = new byte[elementSize];
-            RNG.nextBytes(elementContent);
+            for (int i = 0; i < elementSize; ++i) {
+                elementContent[i] = (byte) ('A' + RNG.nextInt(8));
+            }
             CRC32.update(elementContent);
             elements.add(ByteBuffer.wrap(elementContent));
         }
@@ -402,8 +413,8 @@ public class ChunkedEncodedPublisherTest {
         return Flowable.fromPublisher(publisher).toList().blockingGet();
     }
 
-    private String chunkAsString(ByteBuffer chunk) {
-        return StandardCharsets.UTF_8.decode(chunk).toString();
+    private String bufferAsString(ByteBuffer buffer) {
+        return StandardCharsets.UTF_8.decode(buffer).toString();
     }
 
     private String getHeaderAsString(ByteBuffer chunk) {
@@ -412,22 +423,23 @@ public class ChunkedEncodedPublisherTest {
 
     private ByteBuffer getHeader(ByteBuffer chunk) {
         ByteBuffer header = chunk.duplicate();
-        byte a = header.get(0);
-        byte b = header.get(1);
+        header.mark();
+        byte a = header.get();
+        byte b = header.get();
 
         int i = 2;
         for (; i < header.limit() && a != '\r' && b != '\n'; ++i) {
             a = b;
-            b = header.get(i);
+            b = header.get();
         }
 
         header.limit(i - 2);
+        header.reset();
         return header;
     }
 
     private ByteBuffer stripEncoding(ByteBuffer chunk) {
         ByteBuffer header = getHeader(chunk);
-
         ByteBuffer lengthHex = header.duplicate();
 
         boolean semiFound = false;
@@ -445,7 +457,7 @@ public class ChunkedEncodedPublisherTest {
         // assume the whole line is the length (no extensions)
         lengthHex.flip();
 
-        int length = Integer.parseInt(StandardCharsets.UTF_8.decode(lengthHex).toString(), 16);
+        int length = Integer.parseInt(bufferAsString(lengthHex), 16);
 
         ByteBuffer stripped = chunk.duplicate();
 
@@ -456,8 +468,18 @@ public class ChunkedEncodedPublisherTest {
         return stripped;
     }
 
-    private long totalRemaining(List<ByteBuffer> buffers) {
-        return buffers.stream().mapToLong(ByteBuffer::remaining).sum();
+    private byte[] crc32(byte[] data) {
+        CRC32.reset();
+        CRC32.update(data);
+        byte[] checksum = CRC32.getChecksumBytes();
+        CRC32.reset();
+        return checksum;
+    }
+
+    private void assertChunksHaveChecksum(List<ByteBuffer> chunks, byte[] checksum) {
+        CRC32.reset();
+        chunks.forEach(chunk -> CRC32.update(stripEncoding(chunk).duplicate()));
+        assertThat(CRC32.getChecksumBytes()).isEqualTo(checksum);
     }
 
     private static class TestPublisher implements Publisher<ByteBuffer> {
@@ -483,6 +505,7 @@ public class ChunkedEncodedPublisherTest {
     private static class StaticExtensionProvider implements ChunkExtensionProvider {
         private final byte[] key;
         private final byte[] value;
+        private final List<ByteBuffer> recordedChunks = new ArrayList<>();
 
         public StaticExtensionProvider(String key, String value) {
             this.key = key.getBytes(StandardCharsets.UTF_8);
@@ -491,6 +514,7 @@ public class ChunkedEncodedPublisherTest {
 
         @Override
         public Pair<byte[], byte[]> get(ByteBuffer chunk) {
+            this.recordedChunks.add(BinaryUtils.immutableCopyOf(chunk));
             return Pair.of(key, value);
         }
     }

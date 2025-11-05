@@ -17,17 +17,22 @@ package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.fromChecksumAlgorithm;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.moveContentLength;
+import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.computeAndMoveContentLength;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -36,11 +41,15 @@ import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.http.auth.aws.internal.signer.NoOpPayloadChecksumStore;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.AsyncChunkEncodedPayload;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChecksumTrailerProvider;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedInputStream;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedPayload;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.ChunkedEncodedPublisher;
+import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.SyncChunkEncodedPayload;
 import software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding.TrailerProvider;
-import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ResettableContentStreamProvider;
+import software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils;
 import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Logger;
@@ -55,6 +64,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
     private static final Logger LOG = Logger.loggerFor(AwsChunkedV4aPayloadSigner.class);
+    // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
+    private static final int CHUNK_SIGNATURE_EXTENSION_LENGTH = 161;
 
     private final CredentialScope credentialScope;
     private final int chunkSize;
@@ -83,25 +94,59 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
             .chunkSize(chunkSize)
             .header(chunk -> Integer.toHexString(chunk.remaining()).getBytes(StandardCharsets.UTF_8));
 
-        preExistingTrailers.forEach(trailer -> chunkedEncodedInputStreamBuilder.addTrailer(() -> trailer));
+        SyncChunkEncodedPayload chunkedPayload = new SyncChunkEncodedPayload(chunkedEncodedInputStreamBuilder);
+
+        signCommon(chunkedPayload, requestSigningResult);
+
+        return new ResettableContentStreamProvider(chunkedEncodedInputStreamBuilder::build);
+    }
+
+    /**
+     * Given a payload and result of request signing, sign the payload via the SigV4a process.
+     */
+    @Override
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4aRequestSigningResult requestSigningResult) {
+        ChunkedEncodedPublisher.Builder chunkedStreamBuilder = ChunkedEncodedPublisher.builder()
+                                                                                      .publisher(payload)
+                                                                                      .chunkSize(chunkSize)
+                                                                                      .addEmptyTrailingChunk(true);
+        AsyncChunkEncodedPayload chunkedPayload = new AsyncChunkEncodedPayload(chunkedStreamBuilder);
+
+        signCommon(chunkedPayload, requestSigningResult);
+
+        return chunkedStreamBuilder.build();
+    }
+
+    private ChunkedEncodedPayload signCommon(ChunkedEncodedPayload payload, V4aRequestSigningResult requestSigningResult) {
+        SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
+
+        payload.decodedContentLength(request.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH)
+                                            .map(Long::parseLong)
+                                            .orElseThrow(() -> {
+                                                String msg = String.format("Expected header '%s' to be present",
+                                                                           X_AMZ_DECODED_CONTENT_LENGTH);
+                                                return new RuntimeException(msg);
+                                            }));
+
+        preExistingTrailers.forEach(trailer -> payload.addTrailer(() -> trailer));
 
         switch (requestSigningResult.getSigningConfig().getSignedBodyValue()) {
             case STREAMING_ECDSA_SIGNED_PAYLOAD: {
                 RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSignature(),
                                                                 requestSigningResult.getSigningConfig());
-                chunkedEncodedInputStreamBuilder.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
+                payload.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
                 break;
             }
             case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
-                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
+                setupChecksumTrailerIfNeeded(payload);
                 break;
             case STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER: {
                 RollingSigner rollingSigner = new RollingSigner(requestSigningResult.getSignature(),
                                                                 requestSigningResult.getSigningConfig());
-                chunkedEncodedInputStreamBuilder.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
-                setupChecksumTrailerIfNeeded(chunkedEncodedInputStreamBuilder);
-                chunkedEncodedInputStreamBuilder.addTrailer(
-                    new SigV4aTrailerProvider(chunkedEncodedInputStreamBuilder.trailers(), rollingSigner, credentialScope)
+                payload.addExtension(new SigV4aChunkExtensionProvider(rollingSigner, credentialScope));
+                setupChecksumTrailerIfNeeded(payload);
+                payload.addTrailer(
+                    new SigV4aTrailerProvider(payload.trailers(), rollingSigner, credentialScope)
                 );
                 break;
             }
@@ -109,33 +154,71 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
                 throw new UnsupportedOperationException();
         }
 
-        return new ResettableContentStreamProvider(chunkedEncodedInputStreamBuilder::build);
+        return payload;
     }
 
     @Override
     public void beforeSigning(SdkHttpRequest.Builder request, ContentStreamProvider payload, String checksum) {
-        long encodedContentLength = 0;
-        long contentLength = moveContentLength(request, payload);
+        long contentLength = computeAndMoveContentLength(request, payload);
         setupPreExistingTrailers(request);
 
-        // pre-existing trailers
+        long encodedContentLength = calculateEncodedContentLength(contentLength, checksum);
+
+        if (checksumAlgorithm != null) {
+            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+            request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
+        }
+        request.putHeader(Header.CONTENT_LENGTH, Long.toString(encodedContentLength));
+        // CRT-signed request doesn't expect 'aws-chunked' Content-Encoding, so we don't add it
+    }
+
+    @Override
+    public CompletableFuture<Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>>> beforeSigningAsync(
+        SdkHttpRequest.Builder request, Publisher<ByteBuffer> payload, String checksum) {
+
+        return SignerUtils.moveContentLength(request, payload)
+                          .thenApply(p -> {
+                              SdkHttpRequest.Builder requestBuilder = p.left();
+                              setupPreExistingTrailers(requestBuilder);
+
+                              long decodedContentLength =
+                                  requestBuilder.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH)
+                                                .map(Long::parseLong)
+                                                // should not happen, this header is added by
+                                                // moveContentLength
+                                                .orElseThrow(() -> new IllegalArgumentException(
+                                                    X_AMZ_DECODED_CONTENT_LENGTH + " header not present"));
+
+                              long encodedContentLength = calculateEncodedContentLength(decodedContentLength, checksum);
+
+                              if (checksumAlgorithm != null) {
+                                  String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
+                                  request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
+                              }
+                              request.putHeader(Header.CONTENT_LENGTH, Long.toString(encodedContentLength));
+
+                              return Pair.of(requestBuilder, p.right());
+                          });
+    }
+
+    private long calculateEncodedContentLength(long decodedContentLength, String checksum) {
+        long encodedContentLength = 0;
+
         encodedContentLength += calculateExistingTrailersLength();
 
         switch (checksum) {
             case STREAMING_ECDSA_SIGNED_PAYLOAD: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
-                encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
+                encodedContentLength += calculateChunksLength(decodedContentLength, CHUNK_SIGNATURE_EXTENSION_LENGTH);
                 break;
             }
             case STREAMING_UNSIGNED_PAYLOAD_TRAILER:
                 if (checksumAlgorithm != null) {
                     encodedContentLength += calculateChecksumTrailerLength(checksumHeaderName(checksumAlgorithm));
                 }
-                encodedContentLength += calculateChunksLength(contentLength, 0);
+                encodedContentLength += calculateChunksLength(decodedContentLength, 0);
                 break;
             case STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER: {
-                long extensionsLength = 161; // ;chunk-signature:<sigv4a-ecsda hex signature, 144 bytes>
-                encodedContentLength += calculateChunksLength(contentLength, extensionsLength);
+                encodedContentLength += calculateChunksLength(decodedContentLength, CHUNK_SIGNATURE_EXTENSION_LENGTH);
                 if (checksumAlgorithm != null) {
                     encodedContentLength += calculateChecksumTrailerLength(checksumHeaderName(checksumAlgorithm));
                 }
@@ -149,12 +232,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         // terminating \r\n
         encodedContentLength += 2;
 
-        if (checksumAlgorithm != null) {
-            String checksumHeaderName = checksumHeaderName(checksumAlgorithm);
-            request.appendHeader(X_AMZ_TRAILER, checksumHeaderName);
-        }
-        request.putHeader(Header.CONTENT_LENGTH, Long.toString(encodedContentLength));
-        // CRT-signed request doesn't expect 'aws-chunked' Content-Encoding, so we don't add it
+        return encodedContentLength;
     }
 
     /**
@@ -238,12 +316,7 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         return lengthInBytes + 2;
     }
 
-    /**
-     * Add the checksum as a trailer to the chunk-encoded stream.
-     * <p>
-     * If the checksum-algorithm is not present, then nothing is done.
-     */
-    private void setupChecksumTrailerIfNeeded(ChunkedEncodedInputStream.Builder builder) {
+    private void setupChecksumTrailerIfNeeded(ChunkedEncodedPayload payload) {
         if (checksumAlgorithm == null) {
             return;
         }
@@ -254,20 +327,17 @@ public final class AwsChunkedV4aPayloadSigner implements V4aPayloadSigner {
         if (cachedChecksum != null) {
             LOG.debug(() -> String.format("Cached payload checksum available for algorithm %s: %s. Using cached value",
                                           checksumAlgorithm.algorithmId(), checksumHeaderName));
-            builder.addTrailer(() -> Pair.of(checksumHeaderName, Collections.singletonList(cachedChecksum)));
+            payload.addTrailer(() -> Pair.of(checksumHeaderName, Collections.singletonList(cachedChecksum)));
             return;
         }
 
         SdkChecksum sdkChecksum = fromChecksumAlgorithm(checksumAlgorithm);
-        ChecksumInputStream checksumInputStream = new ChecksumInputStream(
-            builder.inputStream(),
-            Collections.singleton(sdkChecksum)
-        );
+        payload.checksumPayload(sdkChecksum);
 
         TrailerProvider checksumTrailer =
             new ChecksumTrailerProvider(sdkChecksum, checksumHeaderName, checksumAlgorithm, payloadChecksumStore);
 
-        builder.inputStream(checksumInputStream).addTrailer(checksumTrailer);
+        payload.addTrailer(checksumTrailer);
     }
 
     private String getCachedChecksum() {
