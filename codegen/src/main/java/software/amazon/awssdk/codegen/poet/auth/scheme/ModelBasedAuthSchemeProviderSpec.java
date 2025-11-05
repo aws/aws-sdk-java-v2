@@ -46,7 +46,8 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
  * <li><b>Services without endpoint-based auth:</b> The generated class serves as the default auth scheme provider,
  * directly implementing all auth scheme resolution logic based on the service model.</li>
  *
- * <li><b>Services with endpoint-based auth:</b> The generated class is named with a "Fallback" prefix and works
+ * <li><b>Services with endpoint-based auth</b>(enabled through enableEndpointAuthSchemeParams customization config): The
+ * generated class is named with a "Fallback" prefix and works
  * alongside the endpoint-based provider. It acts as a fallback when endpoint rules don't specify auth schemes, which could
  * happen if the endpoint provider is overridden by users. The auth schemes are derived from hardcoded
  * {@link AuthTypeToSigV4Default}</li>
