@@ -166,14 +166,14 @@ class S3CrtRequestBodyStreamAdapterTest {
             }
         }
 
-        public int requests() {
+        public long requests() {
             return subscription.requests;
         }
     }
 
     private static class RequestTrackingSubscription implements Subscription {
 
-            int requests = 0;
+            long requests = 0;
 
             @Override
             public void request(long n) {
