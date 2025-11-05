@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "Unsuppress the following operations that were previously suppressed:\n\n - AttachPrincipalPolicy\n - DetachPrincipalPolicy\n - ListPolicyPrincipals\n - ListPrincipalPolicies\n\nThese operations were previously supporessed because they were deprecated. However, this may be a blocker for customers moving from V1 to V2, so make these available for those customers."
+}
