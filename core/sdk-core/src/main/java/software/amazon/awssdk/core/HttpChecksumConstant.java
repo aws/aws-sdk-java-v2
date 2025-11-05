@@ -42,7 +42,7 @@ public final class HttpChecksumConstant {
     /**
      * Default chunk size for Async trailer based checksum data transfer*
      */
-    public static final int DEFAULT_ASYNC_CHUNK_SIZE = 64 * 1024;
+    public static final int DEFAULT_ASYNC_CHUNK_SIZE = 128 * 1024;
 
     private HttpChecksumConstant() {
     }
