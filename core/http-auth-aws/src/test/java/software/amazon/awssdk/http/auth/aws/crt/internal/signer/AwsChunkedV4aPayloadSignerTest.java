@@ -23,14 +23,25 @@ import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMI
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER;
 import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.STREAMING_UNSIGNED_PAYLOAD_TRAILER;
 
+import io.reactivex.Flowable;
+import io.reactivex.subscribers.TestSubscriber;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.Header;
@@ -38,6 +49,8 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Pair;
 
 /**
  * Test the delegation of signing to the correct implementations.
@@ -50,12 +63,12 @@ public class AwsChunkedV4aPayloadSignerTest {
 
     private static final byte[] DATA = "{\"TableName\": \"foo\"}".getBytes();
 
-    private static final ContentStreamProvider PAYLOAD = () -> new ByteArrayInputStream(DATA);
+    private static final ContentStreamProvider SYNC_PAYLOAD = () -> new ByteArrayInputStream(DATA);
 
     private SdkHttpRequest.Builder requestBuilder;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         requestBuilder = SdkHttpRequest
             .builder()
             .method(SdkHttpMethod.POST)
@@ -66,8 +79,9 @@ public class AwsChunkedV4aPayloadSignerTest {
             .uri(URI.create("http://demo.us-east-1.amazonaws.com"));
     }
 
-    @Test
-    public void sign_withSignedPayload_shouldChunkEncodeWithSigV4aExt() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withSignedPayload_shouldChunkEncodeWithSigV4aExt(String name, SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -80,21 +94,22 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .chunkSize(CHUNK_SIZE)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
-        assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
+        SdkHttpRequest.Builder finalResult = signingResult.left();
+        byte[] payloadBytes = signingResult.right();
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        assertThat(finalResult.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
 
         int expectedBytes = expectedByteCount(DATA, CHUNK_SIZE);
-        assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue(Integer.toString(actualBytes));
-        assertEquals(expectedBytes, actualBytes);
+        assertThat(requestBuilder.firstMatchingHeader(Header.CONTENT_LENGTH)).hasValue(Integer.toString(payloadBytes.length));
+        assertEquals(expectedBytes, payloadBytes.length);
     }
 
-    @Test
-    public void sign_withSignedPayloadAndChecksum_shouldChunkEncodeWithSigV4aExtAndSigV4aTrailer() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withSignedPayloadAndChecksum_shouldChunkEncodeWithSigV4aExtAndSigV4aTrailer(String name,
+                                                                                                 SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -108,14 +123,12 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .checksumAlgorithm(CRC32)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        int actualBytes = signingResult.right().length;
         int expectedBytes = expectedByteCount(DATA, CHUNK_SIZE);
         // include trailer bytes in the count:
         // (checksum-header + checksum-value + \r\n + trailer-sig-header + trailer-sig + \r\n)
@@ -125,8 +138,9 @@ public class AwsChunkedV4aPayloadSignerTest {
         assertEquals(expectedBytes, actualBytes);
     }
 
-    @Test
-    public void sign_withChecksum_shouldChunkEncodeWithChecksumTrailer() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withChecksum_shouldChunkEncodeWithChecksumTrailer(String name, SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -140,14 +154,12 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .checksumAlgorithm(CRC32)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        int actualBytes = signingResult.right().length;
         int expectedBytes = expectedByteCountUnsigned(DATA, CHUNK_SIZE);
         // include trailer bytes in the count:
         // (checksum-header + checksum-value + \r\n)
@@ -157,8 +169,9 @@ public class AwsChunkedV4aPayloadSignerTest {
         assertEquals(expectedBytes, actualBytes);
     }
 
-    @Test
-    public void sign_withPreExistingTrailers_shouldChunkEncodeWithExistingTrailers() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withPreExistingTrailers_shouldChunkEncodeWithExistingTrailers(String name, SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -173,15 +186,13 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .chunkSize(CHUNK_SIZE)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("aTrailer")).isNotPresent();
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("aTrailer");
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        int actualBytes = signingResult.right().length;
         int expectedBytes = expectedByteCountUnsigned(DATA, CHUNK_SIZE);
         // include trailer bytes in the count:
         // (aTrailer: + aValue + \r\n)
@@ -191,8 +202,9 @@ public class AwsChunkedV4aPayloadSignerTest {
         assertEquals(expectedBytes, actualBytes);
     }
 
-    @Test
-    public void sign_withPreExistingTrailersAndChecksum_shouldChunkEncodeWithTrailers() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withPreExistingTrailersAndChecksum_shouldChunkEncodeWithTrailers(String name, SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -208,15 +220,13 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .checksumAlgorithm(CRC32)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("aTrailer")).isNotPresent();
         assertThat(requestBuilder.matchingHeaders("x-amz-trailer")).contains("aTrailer", "x-amz-checksum-crc32");
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        int actualBytes = signingResult.right().length;
         int expectedBytes = expectedByteCountUnsigned(DATA, CHUNK_SIZE);
         // include trailer bytes in the count:
         // (aTrailer: + aValue + \r\n + checksum-header + checksum-value + \r\n)
@@ -226,8 +236,10 @@ public class AwsChunkedV4aPayloadSignerTest {
         assertEquals(expectedBytes, actualBytes);
     }
 
-    @Test
-    public void sign_withPreExistingTrailersAndChecksumAndSignedPayload_shouldAwsChunkEncode() throws IOException {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("signingImpls")
+    void sign_withPreExistingTrailersAndChecksumAndSignedPayload_shouldAwsChunkEncode(String name,
+                                                                                             SigningImplementation impl) throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -243,15 +255,13 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .checksumAlgorithm(CRC32)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        Pair<SdkHttpRequest.Builder, byte[]> signingResult = impl.sign(signer, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("aTrailer")).isNotPresent();
         assertThat(requestBuilder.matchingHeaders("x-amz-trailer")).contains("aTrailer", "x-amz-checksum-crc32");
 
-        byte[] tmp = new byte[2048];
-        int actualBytes = readAll(signedPayload.newStream(), tmp);
+        int actualBytes = signingResult.right().length;
         int expectedBytes = expectedByteCount(DATA, CHUNK_SIZE);
         // include trailer bytes in the count:
         // (aTrailer: + aValue + \r\n + checksum-header + checksum-value + \r\n + trailer-sig-header + trailer-sig + \r\n)
@@ -262,7 +272,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     }
 
     @Test
-    public void sign_withoutContentLength_calculatesContentLengthFromPayload() throws IOException {
+    void sign_withoutContentLength_calculatesContentLengthFromPayload() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_UNSIGNED_PAYLOAD_TRAILER);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -277,8 +287,8 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .build();
 
         requestBuilder.removeHeader(Header.CONTENT_LENGTH);
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        signer.beforeSigning(requestBuilder, SYNC_PAYLOAD, signingConfig.getSignedBodyValue());
+        ContentStreamProvider signedPayload = signer.sign(SYNC_PAYLOAD, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
         assertThat(requestBuilder.firstMatchingHeader("x-amz-trailer")).hasValue("x-amz-checksum-crc32");
@@ -295,7 +305,7 @@ public class AwsChunkedV4aPayloadSignerTest {
     }
 
     @Test
-    public void sign_shouldReturnResettableContentStreamProvider() throws IOException {
+    void sign_shouldReturnResettableContentStreamProvider() throws IOException {
         AwsSigningConfig signingConfig = basicSigningConfig();
         signingConfig.setSignedBodyValue(STREAMING_ECDSA_SIGNED_PAYLOAD);
         V4aRequestSigningResult result = new V4aRequestSigningResult(
@@ -308,8 +318,8 @@ public class AwsChunkedV4aPayloadSignerTest {
                                                                       .chunkSize(CHUNK_SIZE)
                                                                       .build();
 
-        signer.beforeSigning(requestBuilder, PAYLOAD, signingConfig.getSignedBodyValue());
-        ContentStreamProvider signedPayload = signer.sign(PAYLOAD, result);
+        signer.beforeSigning(requestBuilder, SYNC_PAYLOAD, signingConfig.getSignedBodyValue());
+        ContentStreamProvider signedPayload = signer.sign(SYNC_PAYLOAD, result);
 
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).hasValue(Integer.toString(DATA.length));
 
@@ -322,6 +332,64 @@ public class AwsChunkedV4aPayloadSignerTest {
             int actualBytes = readAll(signedPayload.newStream(), tmp);
             assertEquals(expectedBytes, actualBytes);
         }
+    }
+
+    public static Stream<Arguments> signingImpls() {
+        return Stream.of(
+            Arguments.of("SYNC", (SigningImplementation) AwsChunkedV4aPayloadSignerTest::doSign),
+            Arguments.of("ASYNC", (SigningImplementation) AwsChunkedV4aPayloadSignerTest::doSignAsync)
+
+        );
+    }
+
+    private static Pair<SdkHttpRequest.Builder, byte[]> doSign(AwsChunkedV4aPayloadSigner signer,
+                                                               V4aRequestSigningResult requestSigningResult) {
+        SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
+
+        ContentStreamProvider payload = () -> new ByteArrayInputStream(DATA);
+        signer.beforeSigning(request, payload, requestSigningResult.getSigningConfig().getSignedBodyValue());
+
+        ContentStreamProvider signedPayload = signer.sign(payload, requestSigningResult);
+
+        try {
+            byte[] signedPayloadBytes = IoUtils.toByteArray(signedPayload.newStream());
+            return Pair.of(request, signedPayloadBytes);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Pair<SdkHttpRequest.Builder, byte[]> doSignAsync(AwsChunkedV4aPayloadSigner signer,
+                                                               V4aRequestSigningResult requestSigningResult) {
+        SdkHttpRequest.Builder request = requestSigningResult.getSignedRequest();
+
+        ByteBuffer dataBuffer = ByteBuffer.wrap(DATA);
+        dataBuffer.mark();
+        // Ensure buffer is always reset before the downstream publisher receives it
+        Publisher<ByteBuffer> payload = Flowable.just(dataBuffer).doOnNext(ByteBuffer::reset);
+
+        Pair<SdkHttpRequest.Builder, Optional<Publisher<ByteBuffer>>> beforeSigningResult =
+            signer.beforeSigningAsync(request, payload, requestSigningResult.getSigningConfig().getSignedBodyValue()).join();
+
+        request = beforeSigningResult.left();
+
+        Publisher<ByteBuffer> signedPayload = signer.signAsync(beforeSigningResult.right().get(), requestSigningResult);
+
+        TestSubscriber<ByteBuffer> subscriber = new TestSubscriber<>();
+        signedPayload.subscribe(subscriber);
+
+        subscriber.awaitTerminalEvent(5, TimeUnit.SECONDS);
+        subscriber.assertComplete();
+
+        List<ByteBuffer> signedData = subscriber.values();
+
+        int signedDataSum = signedData.stream().mapToInt(ByteBuffer::remaining).sum();
+        byte[] array = new byte[signedDataSum];
+
+        ByteBuffer combined = ByteBuffer.wrap(array);
+        signedData.forEach(combined::put);
+
+        return Pair.of(request, array);
     }
 
     private int readAll(InputStream src, byte[] dst) throws IOException {
@@ -403,5 +471,10 @@ public class AwsChunkedV4aPayloadSignerTest {
         expectedBytes += finalChunkHeaderLength + 4;
 
         return expectedBytes;
+    }
+
+    interface SigningImplementation {
+        Pair<SdkHttpRequest.Builder, byte[]> sign(AwsChunkedV4aPayloadSigner signer,
+                                                  V4aRequestSigningResult requestSigningResult);
     }
 }
