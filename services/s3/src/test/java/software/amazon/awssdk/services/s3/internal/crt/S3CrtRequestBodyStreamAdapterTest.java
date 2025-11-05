@@ -28,7 +28,9 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 
 class S3CrtRequestBodyStreamAdapterTest {
 
@@ -54,6 +56,36 @@ class S3CrtRequestBodyStreamAdapterTest {
         adapter.sendRequestBody(inputBuffer);
 
         assertThat(inputBuffer.remaining()).isEqualTo(0);
+    }
+
+    @Test
+    void getRequestData_fillsInputBuffer_limitsOutstandingDemand() {
+        int inputBufferSize = 2000;
+        int maximumOutstandingDemand = 1024;
+
+        RequestTrackingPublisher requestTrackingPublisher = new RequestTrackingPublisher();
+        SdkHttpContentPublisher requestBody = requestBody(requestTrackingPublisher, 42L);
+
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+
+        ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
+        for (int i = 0; i < maximumOutstandingDemand; i++) {
+            // we are under the minimum buffer size, so each request here increases outstanding demand by 1
+            adapter.sendRequestBody(inputBuffer);
+            // release 1 byte of data, calling onNext (satisfies one request, but then requests 1 more)
+            requestTrackingPublisher.release(1);
+        }
+        // we should have 2x requests
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(maximumOutstandingDemand * 2);
+        // but the total released bytes is only maximumOutstandingDemand
+        assertThat(inputBuffer.remaining()).isEqualTo(inputBufferSize - maximumOutstandingDemand + 1);
+
+        // now that we have reached maximum outstanding demand, new requests won't be sent
+        adapter.sendRequestBody(inputBuffer);
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(maximumOutstandingDemand * 2);
+
+
+
     }
 
     private static SdkHttpContentPublisher requestBody(Publisher<ByteBuffer> delegate, long size) {
@@ -113,5 +145,45 @@ class S3CrtRequestBodyStreamAdapterTest {
         assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
             .isInstanceOf(RuntimeException.class)
             .hasCauseInstanceOf(IOException.class);
+    }
+
+    private static class RequestTrackingPublisher implements Publisher<ByteBuffer> {
+        ByteBufferStoringSubscriber subscriber;
+        RequestTrackingSubscription subscription = new RequestTrackingSubscription();
+
+        @Override
+        public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+            assertThat(subscriber).isInstanceOf(ByteBufferStoringSubscriber.class);
+            this.subscriber = (ByteBufferStoringSubscriber) subscriber;
+            this.subscriber.onSubscribe(subscription);
+        }
+
+        // publish up to n requests
+        public void release(int n) {
+            for (int i = 0; i < n; i++) {
+                ByteBuffer buffer = ByteBuffer.allocate(1);
+                subscriber.onNext(buffer);
+            }
+        }
+
+        public int requests() {
+            return subscription.requests;
+        }
+    }
+
+    private static class RequestTrackingSubscription implements Subscription {
+
+            int requests = 0;
+
+            @Override
+            public void request(long n) {
+                requests += n;
+            }
+
+            @Override
+            public void cancel() {
+
+            }
+
     }
 }

@@ -53,10 +53,13 @@ public class ByteBufferStoringSubscriberTest {
     public void constructorCalled_withNonPositiveSize_throwsException() {
         assertThatCode(() -> new ByteBufferStoringSubscriber(1)).doesNotThrowAnyException();
         assertThatCode(() -> new ByteBufferStoringSubscriber(Integer.MAX_VALUE)).doesNotThrowAnyException();
+        assertThatCode(() -> new ByteBufferStoringSubscriber(1, 1)).doesNotThrowAnyException();
 
         assertThatThrownBy(() -> new ByteBufferStoringSubscriber(0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new ByteBufferStoringSubscriber(-1)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new ByteBufferStoringSubscriber(Integer.MIN_VALUE)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new ByteBufferStoringSubscriber(1, 0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new ByteBufferStoringSubscriber(1, -1)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -73,6 +76,20 @@ public class ByteBufferStoringSubscriberTest {
         verify(subscription, times(3)).request(1);
 
         subscriber.onNext(fullByteBufferOfSize(1));
+        verifyNoMoreInteractions(subscription);
+    }
+
+    @Test
+    public void doesNotRequestMoreThanMaxDemand() {
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(5, 2);
+
+        subscriber.onSubscribe(subscription); // request 1, demand = 1
+        subscriber.onNext(fullByteBufferOfSize(3)); // demand = 0
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 1
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 2
+        verify(subscription, times(3)).request(1);
+
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // demand already maximum, no request
         verifyNoMoreInteractions(subscription);
     }
 

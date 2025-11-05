@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fix OutOfMemory issues when using S3CrtRequestBodyStreamAdapter on streams that produce data faster than they can be consumed."
+}

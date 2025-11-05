@@ -28,6 +28,8 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
 @SdkInternalApi
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
     private static final long MINIMUM_BYTES_BUFFERED = 1024 * 1024L;
+    // for 16 kb chunks, this limits to about 16 MB (2x the standard crt provided buffer size)
+    private static final int MAXIMUM_OUTSTANDING_DEMAND = 1024;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
 
@@ -35,7 +37,7 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
 
     public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher) {
         this.bodyPublisher = bodyPublisher;
-        this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED);
+        this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED, MAXIMUM_OUTSTANDING_DEMAND);
     }
 
     @Override

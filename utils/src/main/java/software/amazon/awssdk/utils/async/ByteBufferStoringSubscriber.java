@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -56,6 +57,10 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
 
     private final Phaser phaser = new Phaser(1);
 
+    private final AtomicInteger outstandingDemand = new AtomicInteger(0);
+
+    private final Optional<Integer> maximumOutstandingDemand;
+
     /**
      * The active subscription. Set when {@link #onSubscribe(Subscription)} is invoked.
      */
@@ -66,6 +71,19 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
      */
     public ByteBufferStoringSubscriber(long minimumBytesBuffered) {
         this.minimumBytesBuffered = Validate.isPositive(minimumBytesBuffered, "Data buffer minimum must be positive");
+        this.storingSubscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
+        this.maximumOutstandingDemand = Optional.empty();
+    }
+
+    /**
+     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval and which limits the
+     * maximum outstanding demand (requests) to its subscription.
+     */
+    public ByteBufferStoringSubscriber(long minimumBytesBuffered, int maximumOutstandingDemand) {
+        this.minimumBytesBuffered = Validate.isPositive(minimumBytesBuffered, "Data buffer minimum must be positive");
+        this.maximumOutstandingDemand = Optional.of(Validate.isPositive(maximumOutstandingDemand,
+                                                                    "maximumOutstandingDemand must be positive"));
+
         this.storingSubscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
     }
 
@@ -175,12 +193,14 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
         storingSubscriber.onSubscribe(new DemandIgnoringSubscription(s));
         subscription = s;
         subscription.request(1);
+        outstandingDemand.incrementAndGet();
         subscriptionLatch.countDown();
     }
 
     @Override
     public void onNext(ByteBuffer byteBuffer) {
         int remaining = byteBuffer.remaining();
+        outstandingDemand.decrementAndGet();
         storingSubscriber.onNext(byteBuffer.duplicate());
         addBufferedDataAmount(remaining);
         phaser.arrive();
@@ -204,7 +224,13 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     }
 
     private void maybeRequestMore(long currentDataBuffered) {
+        // if we have too many outstanding requests, no need to make more requests
+        if (maximumOutstandingDemand.isPresent() && outstandingDemand.get() >= maximumOutstandingDemand.get()) {
+            return;
+        }
+
         if (currentDataBuffered < minimumBytesBuffered) {
+            outstandingDemand.incrementAndGet();
             subscription.request(1);
         }
     }
