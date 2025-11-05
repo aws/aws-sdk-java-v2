@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Ground Station",
-    "contributor": "",
-    "description": "Introduce CreateDataflowEndpointGroupV2 action"
-}
