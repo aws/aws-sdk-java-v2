@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Consider outstanding demand in ByteBufferStoringSubscriber before requesting more - fixes OutOfMemoryIssues in S3CrtRequestBodyStreamAdapter"
+    "description": "Consider outstanding demand in ByteBufferStoringSubscriber before requesting more - fixes OutOfMemoryIssues that may occur when using AWS CRT-based S3 client to upload a large object."
 }
