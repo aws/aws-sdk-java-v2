@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Access Analyzer",
-    "contributor": "",
-    "description": "New field totalActiveErrors added to getFindingsStatistics response."
-}

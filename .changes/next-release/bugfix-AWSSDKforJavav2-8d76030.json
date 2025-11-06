@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Increased the default chunk size from 16KB to 128KB for async trailer-based checksum data transfers when using a custom legacy signer"
-}
