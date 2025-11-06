@@ -60,32 +60,25 @@ class S3CrtRequestBodyStreamAdapterTest {
 
     @Test
     void getRequestData_fillsInputBuffer_limitsOutstandingDemand() {
-        int inputBufferSize = 2000;
-        int maximumOutstandingDemand = 1024;
+        int minBytesBuffered  = 16 * 1024 * 1024;
+        int inputBufferSize = 1024;
 
         RequestTrackingPublisher requestTrackingPublisher = new RequestTrackingPublisher();
-        SdkHttpContentPublisher requestBody = requestBody(requestTrackingPublisher, 42L);
+        SdkHttpContentPublisher requestBody = requestBody(requestTrackingPublisher, minBytesBuffered);
 
         S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-        for (int i = 0; i < maximumOutstandingDemand; i++) {
-            // we are under the minimum buffer size, so each request here increases outstanding demand by 1
-            adapter.sendRequestBody(inputBuffer);
-            // release 1 byte of data, calling onNext (satisfies one request, but then requests 1 more)
-            requestTrackingPublisher.release(1);
-        }
-        // we should have 2x requests
-        assertThat(requestTrackingPublisher.requests()).isEqualTo(maximumOutstandingDemand * 2);
-        // but the total released bytes is only maximumOutstandingDemand
-        assertThat(inputBuffer.remaining()).isEqualTo(inputBufferSize - maximumOutstandingDemand + 1);
+        adapter.sendRequestBody(inputBuffer); // initiate the subscription, but no bytes available, makes 1 request
 
-        // now that we have reached maximum outstanding demand, new requests won't be sent
+        // release 1 request of minBytesBuffered bytes of data, calling onNext (satisfies one request, but then requests 1 more)
+        requestTrackingPublisher.release(1, minBytesBuffered-100);
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(2);
+
+        // call sendRequestBody, outstandingDemand=1, sizeHint=16*1024*1024-100 + existing data buffered is > our min
+        // so no more requests will be made
         adapter.sendRequestBody(inputBuffer);
-        assertThat(requestTrackingPublisher.requests()).isEqualTo(maximumOutstandingDemand * 2);
-
-
-
+        assertThat(requestTrackingPublisher.requests()).isEqualTo(2);
     }
 
     private static SdkHttpContentPublisher requestBody(Publisher<ByteBuffer> delegate, long size) {
@@ -159,9 +152,9 @@ class S3CrtRequestBodyStreamAdapterTest {
         }
 
         // publish up to n requests
-        public void release(int n) {
+        public void release(int n, int size) {
             for (int i = 0; i < n; i++) {
-                ByteBuffer buffer = ByteBuffer.allocate(1);
+                ByteBuffer buffer = ByteBuffer.allocate(size);
                 subscriber.onNext(buffer);
             }
         }

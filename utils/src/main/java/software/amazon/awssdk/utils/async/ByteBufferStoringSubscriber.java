@@ -59,7 +59,7 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
 
     private final AtomicInteger outstandingDemand = new AtomicInteger(0);
 
-    private final Optional<Integer> maximumOutstandingDemand;
+    private volatile long byteBufferSizeHint = 0L;
 
     /**
      * The active subscription. Set when {@link #onSubscribe(Subscription)} is invoked.
@@ -67,23 +67,12 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     private Subscription subscription;
 
     /**
-     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval.
+     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval. The subscriber will
+     * only request more from the subscription when fewer bytes are buffered AND in flight requests from the subscription will
+     * likely be under minimumBytesBuffered.
      */
     public ByteBufferStoringSubscriber(long minimumBytesBuffered) {
         this.minimumBytesBuffered = Validate.isPositive(minimumBytesBuffered, "Data buffer minimum must be positive");
-        this.storingSubscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
-        this.maximumOutstandingDemand = Optional.empty();
-    }
-
-    /**
-     * Create a subscriber that stores at least {@code minimumBytesBuffered} in memory for retrieval and which limits the
-     * maximum outstanding demand (requests) to its subscription.
-     */
-    public ByteBufferStoringSubscriber(long minimumBytesBuffered, int maximumOutstandingDemand) {
-        this.minimumBytesBuffered = Validate.isPositive(minimumBytesBuffered, "Data buffer minimum must be positive");
-        this.maximumOutstandingDemand = Optional.of(Validate.isPositive(maximumOutstandingDemand,
-                                                                    "maximumOutstandingDemand must be positive"));
-
         this.storingSubscriber = new StoringSubscriber<>(Integer.MAX_VALUE);
     }
 
@@ -201,6 +190,10 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     public void onNext(ByteBuffer byteBuffer) {
         int remaining = byteBuffer.remaining();
         outstandingDemand.decrementAndGet();
+        // atomic update not required here, in a race it does not matter which thread sets this value since it is not being
+        // incremented, just set.
+        byteBufferSizeHint = byteBuffer.remaining();
+
         storingSubscriber.onNext(byteBuffer.duplicate());
         addBufferedDataAmount(remaining);
         phaser.arrive();
@@ -224,12 +217,8 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     }
 
     private void maybeRequestMore(long currentDataBuffered) {
-        // if we have too many outstanding requests, no need to make more requests
-        if (maximumOutstandingDemand.isPresent() && outstandingDemand.get() >= maximumOutstandingDemand.get()) {
-            return;
-        }
-
-        if (currentDataBuffered < minimumBytesBuffered) {
+        long dataBufferedAndInFlight = currentDataBuffered + (byteBufferSizeHint * outstandingDemand.get());
+        if (dataBufferedAndInFlight < minimumBytesBuffered) {
             outstandingDemand.incrementAndGet();
             subscription.request(1);
         }
