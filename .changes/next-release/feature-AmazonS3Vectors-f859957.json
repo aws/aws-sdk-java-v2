@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Vectors",
+    "contributor": "",
+    "description": "Amazon S3 Vectors provides cost-effective, elastic, and durable vector storage for queries based on semantic meaning and similarity."
+}
