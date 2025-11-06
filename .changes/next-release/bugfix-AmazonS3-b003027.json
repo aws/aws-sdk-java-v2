@@ -1,6 +1,6 @@
 {
     "type": "bugfix",
-    "category": "Amazon S3",
+    "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fix OutOfMemory issues when using S3CrtRequestBodyStreamAdapter on streams that produce data faster than they can be consumed."
+    "description": "Consider outstanding demand in ByteBufferStoringSubscriber before requesting more - fixes OutOfMemoryIssues in S3CrtRequestBodyStreamAdapter"
 }
