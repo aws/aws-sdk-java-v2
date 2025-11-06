@@ -181,8 +181,8 @@ public class ByteBufferStoringSubscriber implements Subscriber<ByteBuffer> {
     public void onSubscribe(Subscription s) {
         storingSubscriber.onSubscribe(new DemandIgnoringSubscription(s));
         subscription = s;
-        subscription.request(1);
         outstandingDemand.incrementAndGet();
+        subscription.request(1);
         subscriptionLatch.countDown();
     }
 
