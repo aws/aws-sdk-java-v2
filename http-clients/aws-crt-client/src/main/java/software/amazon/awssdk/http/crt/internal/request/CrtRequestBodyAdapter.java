@@ -36,11 +36,9 @@ final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
 
     @Override
     public boolean sendRequestBody(ByteBuffer bodyBytesOut) {
-        System.out.println("ByteBufer size: " + bodyBytesOut.remaining());
         if (subscribed.compareAndSet(false, true)) {
             requestPublisher.subscribe(requestBodySubscriber);
         }
-        System.out.println("ByteBufer size: " + bodyBytesOut.remaining());
 
         return requestBodySubscriber.transferTo(bodyBytesOut) == TransferResult.END_OF_STREAM;
     }
