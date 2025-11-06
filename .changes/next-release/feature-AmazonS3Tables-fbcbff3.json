@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Tables",
+    "contributor": "",
+    "description": "Adds support for tagging APIs for S3 Tables"
+}
