@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS STS",
+    "contributor": "",
+    "description": "Raise exceptions in resolveCredentials instead of creation for StsWebIdentityTokenFileCredentialsProvider"
+}
