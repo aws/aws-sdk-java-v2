@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.2__ __2025-11-07__
+## __AWS Control Tower__
+  - ### Features
+    - Added Parent Identifier support to ListEnabledControls and GetEnabledControl API. Implemented RemediationType support for Landing Zone operations: CreateLandingZone, UpdateLandingZone and GetLandingZone APIs
+
+## __AWS Key Management Service__
+  - ### Features
+    - Added support for new ECC_NIST_EDWARDS25519 AWS KMS key spec
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Consider outstanding demand in ByteBufferStoringSubscriber before requesting more - fixes OutOfMemoryIssues that may occur when using AWS CRT-based S3 client to upload a large object.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds PrivateDnsPreference and PrivateDnsSpecifiedDomains to control private DNS resolution for resource and service network VPC endpoints and IpamScopeExternalAuthorityConfiguration to integrate Amazon VPC IPAM with a third-party IPAM service
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release introduces the Default Application feature, allowing users to set, change, or unset a preferred OpenSearch UI application on a per-region basis for a streamlined and consistent user experience.
+
+## __Amazon VPC Lattice__
+  - ### Features
+    - Amazon VPC Lattice now supports custom domain name for resource configurations
+
 # __2.38.1__ __2025-11-06__
 ## __AWS Backup__
   - ### Features

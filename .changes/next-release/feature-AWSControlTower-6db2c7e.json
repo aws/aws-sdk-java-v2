@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Control Tower",
-    "contributor": "",
-    "description": "Added Parent Identifier support to ListEnabledControls and GetEnabledControl API. Implemented RemediationType support for Landing Zone operations: CreateLandingZone, UpdateLandingZone and GetLandingZone APIs"
-}

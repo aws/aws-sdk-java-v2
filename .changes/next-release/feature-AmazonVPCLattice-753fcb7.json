@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "Amazon VPC Lattice now supports custom domain name for resource configurations"
-}
