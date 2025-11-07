@@ -97,4 +97,18 @@ class StsWebIdentityTokenCredentialProviderTest {
         provider.resolveCredentials();
         Mockito.verify(stsClient, Mockito.times(1)).assumeRoleWithWebIdentity(Mockito.any(AssumeRoleWithWebIdentityRequest.class));
     }
+
+    @Test
+    void createAssumeRoleWithWebIdentityTokenCredentialsProvider_raisesInResolveCredentials() {
+        ENVIRONMENT_VARIABLE_HELPER.remove(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE.environmentVariable());
+
+        StsWebIdentityTokenFileCredentialsProvider provider =
+            StsWebIdentityTokenFileCredentialsProvider.builder().stsClient(stsClient)
+                                                      .refreshRequest(r -> r.build())
+                                                      .roleArn("someRole")
+                                                      .roleSessionName("tempRoleSession")
+                                                      .build();
+        // exception should be raised lazily when resolving credentials, not at creation time.
+        Assert.assertThrows(IllegalStateException.class, provider::resolveCredentials);
+    }
 }
