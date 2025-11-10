@@ -17,6 +17,10 @@ package software.amazon.awssdk.core.internal.useragent;
 
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
@@ -55,4 +59,59 @@ public final class BusinessMetricsUtils {
         }
         return Optional.empty();
     }
+
+    public static Optional<String> resolveRequestChecksumCalculationMetric(
+        RequestChecksumCalculation requestChecksumCalculation) {
+        if (requestChecksumCalculation == null) {
+            return Optional.empty();
+        }
+        switch (requestChecksumCalculation) {
+            case WHEN_SUPPORTED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_SUPPORTED.value());
+            case WHEN_REQUIRED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_WHEN_REQUIRED.value());
+            default:
+                return Optional.empty();
+        }
+    }
+
+    public static Optional<String> resolveResponseChecksumValidationMetric(
+        ResponseChecksumValidation responseChecksumValidation) {
+        if (responseChecksumValidation == null) {
+            return Optional.empty();
+        }
+        switch (responseChecksumValidation) {
+            case WHEN_SUPPORTED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_SUPPORTED.value());
+            case WHEN_REQUIRED:
+                return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_RES_WHEN_REQUIRED.value());
+            default:
+                return Optional.empty();
+        }
+    }
+
+    public static Optional<String> resolveChecksumAlgorithmMetric(ChecksumAlgorithm algorithm) {
+        if (algorithm == null) {
+            return Optional.empty();
+        }
+
+        String algorithmId = algorithm.algorithmId();
+        if (algorithmId.equals(DefaultChecksumAlgorithm.CRC32.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32.value());
+        }
+        if (algorithmId.equals(DefaultChecksumAlgorithm.CRC32C.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32C.value());
+        }
+        if (algorithmId.equals(DefaultChecksumAlgorithm.CRC64NVME.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC64.value());
+        }
+        if (algorithmId.equals(DefaultChecksumAlgorithm.SHA1.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA1.value());
+        }
+        if (algorithmId.equals(DefaultChecksumAlgorithm.SHA256.algorithmId())) {
+            return Optional.of(BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA256.value());
+        }
+        return Optional.empty();
+    }
+
 }

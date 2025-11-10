@@ -48,6 +48,11 @@ public final class CrtCredentialsProviderAdapter implements SdkAutoCloseable {
 
                 AwsCredentialsIdentity sdkCredentials =
                     CompletableFutureUtils.joinLikeSync(credentialsProvider.resolveIdentity());
+
+                if (sdkCredentials.providerName().map("AnonymousCredentialsProvider"::equals).orElse(false)) {
+                    return Credentials.createAnonymousCredentials();
+                }
+
                 byte[] accessKey = sdkCredentials.accessKeyId().getBytes(StandardCharsets.UTF_8);
                 byte[] secreteKey = sdkCredentials.secretAccessKey().getBytes(StandardCharsets.UTF_8);
 

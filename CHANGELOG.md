@@ -1,407 +1,126 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.36.1__ __2025-10-23__
-## __AWS Account__
+# __2.38.2__ __2025-11-07__
+## __AWS Control Tower__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Added Parent Identifier support to ListEnabledControls and GetEnabledControl API. Implemented RemediationType support for Landing Zone operations: CreateLandingZone, UpdateLandingZone and GetLandingZone APIs
 
-## __AWS Application Discovery Service__
+## __AWS Key Management Service__
   - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudTrail Data Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CodeBuild__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CodeStar connections__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Config__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Cost and Usage Report Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Database Migration Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Events__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Jobs Data Plane__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Lambda__
-  - ### Features
-    - Add NodeJs 24 (nodejs24.x) support to AWS Lambda.
-
-## __AWS Marketplace Commerce Analytics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS MediaTailor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Migration Hub__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Multi-party Approval__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Resilience Hub__
-  - ### Features
-    - Update endpoint ruleset parameters casing
+    - Added support for new ECC_NIST_EDWARDS25519 AWS KMS key spec
 
 ## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Savings Plans__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Storage Gateway__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Aurora DSQL__
-  - ### Features
-    - Add support for resource-based policies for Aurora DSQL clusters. This will enable you to implement Block Public Access (BPA) which will help restrict access to your Aurora DSQL public or VPC endpoints.
-
-## __Amazon Bedrock AgentCore__
-  - ### Features
-    - Fixing the service documentation name
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - Fixing the service documentation name
-
-## __Amazon Chime SDK Voice__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudWatch Internet Monitor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudWatch Network Monitor__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Contact Lens__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon DocumentDB Elastic Clusters__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Block Store__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Container Registry__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Elastic Container Registry Public__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon HealthLake__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis Video Streams Archived Media__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Kinesis Video WebRTC Storage__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Macie 2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Managed Blockchain Query__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon NeptuneData__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Omics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Personalize Events__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Pinpoint Email Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Sagemaker Edge Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Security Lake__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Simple Email Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Application Auto Scaling__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Application Migration Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __CloudWatch RUM__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Elastic Disaster Recovery Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __OpenSearch Service Serverless__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Private CA Connector for SCEP__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Synthetics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __odb__
-  - ### Features
-    - Doc-only update that removes duplicate values from descriptions of ODB peering APIs.
-
-# __2.36.0__ __2025-10-22__
-## __AWS B2B Data Interchange__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Billing and Cost Management Dashboards__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Chatbot__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudFormation__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS CloudHSM V2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Comprehend Medical__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Cost Explorer Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Device Farm__
-  - ### Features
-    - This release adds support for optionally including an app as part of a CreateRemoteAccessSession request
-
-## __AWS Direct Connect__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Directory Service Data__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS EC2 Instance Connect__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Elemental MediaLive__
-  - ### Features
-    - Add 3 API operations for fetching alerts: ListAlerts (Channels), ListClusterAlerts (MediaLive Anywhere), and ListMultiplexAlerts
-
-## __AWS Identity and Access Management__
-  - ### Features
-    - Updated OIDC and SAML apis to reject multiple simultaneous requests to change a unique object.
-
-## __AWS IoT__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Analytics__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT FleetWise__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT Secure Tunneling__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS IoT SiteWise__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Marketplace Agreement Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS Parallel Computing Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Systems Manager Incident Manager__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __AWS User Notifications Contacts__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Augmented AI Runtime__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CloudHSM__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon CodeGuru Reviewer__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Cognito Identity__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Participant Service__
-  - ### Features
-    - Update endpoint ruleset parameters casing
-
-## __Amazon Connect Service__
-  - ### Features
-    - This release added support for email address alias configuration and outbound campaign preview mode.
+  - ### Bugfixes
+    - Consider outstanding demand in ByteBufferStoringSubscriber before requesting more - fixes OutOfMemoryIssues that may occur when using AWS CRT-based S3 client to upload a large object.
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
-    - This release adds AvailabilityZoneId support for CreateNetworkInterface and DescribeNetworkInterfaces APIs.
+    - Adds PrivateDnsPreference and PrivateDnsSpecifiedDomains to control private DNS resolution for resource and service network VPC endpoints and IpamScopeExternalAuthorityConfiguration to integrate Amazon VPC IPAM with a third-party IPAM service
 
-## __Amazon Forecast Query Service__
+## __Amazon OpenSearch Service__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - This release introduces the Default Application feature, allowing users to set, change, or unset a preferred OpenSearch UI application on a per-region basis for a streamlined and consistent user experience.
 
-## __Amazon Interactive Video Service Chat__
+## __Amazon VPC Lattice__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Amazon VPC Lattice now supports custom domain name for resource configurations
 
-## __Amazon Kinesis Analytics__
+# __2.38.1__ __2025-11-06__
+## __AWS Backup__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - AWS Backup now supports customer-managed keys (CMK) for logically air-gapped vaults, enabling customers to maintain full control over their encryption key lifecycle. This feature helps organizations meet specific internal governance requirements or external regulatory compliance standards.
 
-## __Amazon Lex Model Building V2__
+## __AWS IoT__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Unsuppress the following operations that were previously suppressed:
 
-## __Amazon Pinpoint SMS Voice V2__
-  - ### Features
-    - Update endpoint ruleset parameters casing
+       - AttachPrincipalPolicy
+       - DetachPrincipalPolicy
+       - ListPolicyPrincipals
+       - ListPrincipalPolicies
 
-## __Amazon Route 53__
-  - ### Features
-    - Amazon Route 53 now supports the ISOB West Region for private DNS for Amazon VPCs and cloudwatch healthchecks.
+      These operations were previously supporessed because they were deprecated. However, this may be a blocker for customers moving from V1 to V2, so make these available for those customers.
 
-## __Amazon Simple Notification Service__
+## __AWS SDK for Java v2__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Updated endpoint and partition metadata.
 
-## __Amazon WorkDocs__
-  - ### Features
-    - Update endpoint ruleset parameters casing
+  - ### Bugfixes
+    - Increased the default chunk size from 16KB to 128KB for async trailer-based checksum data transfers when using a custom legacy signer
 
-## __Amazon WorkMail__
+## __AWS SSO Identity Store__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - IdentityStore API: added new KMSExceptionReason fields to the Exception object; added multiple new fields to the User APIs - UserStatus, Birthdate, Website and Photos; added multiple new metadata fields for User, Groups and Membership APIs - CreatedAt, CreatedBy, UpdatedAt and UpdatedBy.
 
-## __Amazon WorkSpaces__
+## __Access Analyzer__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - New field totalActiveErrors added to getFindingsStatistics response.
 
-## __AmazonConnectCampaignServiceV2__
+## __Amazon Connect Service__
   - ### Features
-    - Updated Amazon Connect Outbound Campaigns V2 SDK to support Preview Outbound Mode
+    - Added support for Conditional Questions in Evaluation Forms. Introduced Auto Evaluation capability for Evaluation Forms and Contact Evaluations. Added new API operations: SearchEvaluationForms and SearchContactEvaluations.
 
-## __AmazonMWAA__
+## __Amazon Elastic Compute Cloud__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Add Amazon EC2 R8a instance types
 
-## __AppFabric__
+## __Amazon GameLift__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Amazon GameLift Servers now supports game builds that use the Windows 2022 operating system.
 
-## __Auto Scaling__
+## __Amazon QuickSight__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Support for New Data Prep Experience
 
-## __CloudWatch Observability Access Manager__
+## __Amazon S3 Tables__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Adds support for tagging APIs for S3 Tables
 
-## __Inspector2__
+## __Amazon S3 Vectors__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Amazon S3 Vectors provides cost-effective, elastic, and durable vector storage for queries based on semantic meaning and similarity.
 
-## __MailManager__
+## __Amazon SageMaker Service__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Added NodeProvisioningMode parameter to UpdateCluster API to determine how instance provisioning is handled during cluster operations; in Continuous mode. Added VpcId field in UpdateDomain request for SageMaker Unified Studio domains with no VPC to add a customer VPC.
 
-## __RTBFabric__
+## __Amazon Simple Systems Manager (SSM)__
   - ### Features
-    - Update for general availability of AWS RTB Fabric service.
+    - Provides NoLongerSupportedException error message
 
-## __Redshift Data API Service__
+# __2.38.0__ __2025-11-05__
+## __AWS Ground Station__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Introduce CreateDataflowEndpointGroupV2 action
 
-## __Route53 Recovery Cluster__
+## __AWS SDK for Java v2__
   - ### Features
-    - Update endpoint ruleset parameters casing
+    - Add support for signing async payloads in the default `AwsV4aHttpSigner`.
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds new and updated API operations. You can now use the IpAddressType field to specify either ipv4 or dualstack for your Anycast static IP list. You can also enable cross-account resource sharing to share your VPC origins with other AWS accounts
+
+## __Amazon DataZone__
+  - ### Features
+    - Added support for Project Resource Tags
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Optimize implementation of the `EnhancedDocument#toJson()` and `EnhancedDocument#getJson()`.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for DescribeFastSnapshotRestores, DisableFastSnapshotRestores, and EnableFastSnapshotRestores APIs.
+
+## __Amazon FSx__
+  - ### Features
+    - Amazon FSx now enables secure management of Active Directory credentials through AWS Secrets Manager integration. Customers can use Secret ARNs instead of direct credentials when joining resources to Active Directory domains.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add new fields in SageMaker Hyperpod DescribeCluster API response: TargetStateCount, SoftwareUpdateStatus and ActiveSoftwareDeploymentConfig to provide AMI update progress visibility .
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Launch IPv6 dual-stack support for S3 Express
 

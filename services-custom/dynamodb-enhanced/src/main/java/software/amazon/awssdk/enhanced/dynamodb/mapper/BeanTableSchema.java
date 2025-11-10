@@ -222,6 +222,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             throw new IllegalArgumentException(e);
         }
 
+        List<PropertyDescriptor> mappableProperties = Arrays.stream(beanInfo.getPropertyDescriptors())
+                                                            .filter(p -> isMappableProperty(beanClass, p))
+                                                            .collect(Collectors.toList());
+
+        validateDynamoDbFlattenAnnotations(mappableProperties);
+
         Supplier<T> newObjectSupplier = newObjectSupplierForClass(beanClass, lookup);
 
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
@@ -231,31 +237,38 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
-        Arrays.stream(beanInfo.getPropertyDescriptors())
-              .filter(p -> isMappableProperty(beanClass, p))
-              .forEach(propertyDescriptor -> {
-                  DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
+        mappableProperties.forEach(propertyDescriptor -> {
+            DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
-                  if (dynamoDbFlatten != null) {
-                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
-                                      getterForProperty(propertyDescriptor, beanClass, lookup),
-                                      setterForProperty(propertyDescriptor, beanClass, lookup));
-                  } else {
-                      AttributeConfiguration attributeConfiguration =
-                          resolveAttributeConfiguration(propertyDescriptor);
+            if (dynamoDbFlatten != null) {
+                Type returnType = propertyDescriptor.getReadMethod().getGenericReturnType();
+                if (isValidFlattenMapType(returnType)) {
+                    // Map flattening
+                    builder.flatten(propertyDescriptor.getName(),
+                                    getterForProperty(propertyDescriptor, beanClass, lookup),
+                                    setterForProperty(propertyDescriptor, beanClass, lookup));
+                } else {
+                    // Object flattening
+                    builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
+                                    getterForProperty(propertyDescriptor, beanClass, lookup),
+                                    setterForProperty(propertyDescriptor, beanClass, lookup));
+                }
+            } else {
+                AttributeConfiguration attributeConfiguration =
+                    resolveAttributeConfiguration(propertyDescriptor);
 
-                      StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
-                                                 attributeConfiguration);
+                StaticAttribute.Builder<T, ?> attributeBuilder =
+                    staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
+                                           attributeConfiguration);
 
-                      Optional<AttributeConverter> attributeConverter =
-                              createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
-                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+                Optional<AttributeConverter> attributeConverter =
+                    createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
+                attributeConverter.ifPresent(attributeBuilder::attributeConverter);
 
-                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
-                      attributes.add(attributeBuilder.build());
-                  }
-              });
+                addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                attributes.add(attributeBuilder.build());
+            }
+        });
 
         builder.attributes(attributes);
 
@@ -284,6 +297,50 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                   && m.getParameterCount() == 1
                                   && m.getReturnType().equals(beanClass))
                      .findFirst();
+    }
+
+    private static void validateDynamoDbFlattenAnnotations(List<PropertyDescriptor> mappableProperties) {
+        int mapCount = 0;
+        
+        for (PropertyDescriptor property : mappableProperties) {
+            if (!hasFlattenAnnotation(property)) {
+                continue;
+            }
+            
+            Type type = property.getReadMethod().getGenericReturnType();
+            if (isValidFlattenMapType(type)) {
+                mapCount++;
+            } else if (isMapType(type)) {
+                throw new IllegalArgumentException(
+                    "@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+            }
+        }
+        
+        if (mapCount > 1) {
+            throw new IllegalArgumentException("Multiple @DynamoDbFlatten Map<String, String> properties found. "
+                                               + "Only one flattened map per class is supported.");
+        }
+    }
+    
+    private static boolean hasFlattenAnnotation(PropertyDescriptor property) {
+        return getPropertyAnnotation(property, DynamoDbFlatten.class) != null;
+    }
+    
+    private static boolean isMapType(Type type) {
+        return type instanceof ParameterizedType && 
+               Map.class.equals(((ParameterizedType) type).getRawType());
+    }
+    
+    private static boolean isValidFlattenMapType(Type type) {
+        if (!isMapType(type)) {
+            return false;
+        }
+        
+        Type[] mapTypes = ((ParameterizedType) type).getActualTypeArguments();
+
+        return mapTypes.length == 2 &&
+               String.class.equals(mapTypes[0]) &&
+               String.class.equals(mapTypes[1]);
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {

@@ -22,6 +22,12 @@ following in the AWS SDKs and Tools Shared Configuration and Credentials Referen
 
 The SDK versions all service clients (e.g. `S3`, `EC2`, `DynamoDb`, etc) and the runtime (e.g. `aws-config`) together under a single version. This allows customers to easily upgrade multiple SDK clients at once and keep dependencies, such as the core runtime, compatible. The SDK may in the future consider versioning service clients separately from one another.
 
+## Component Version Compatibility
+**Always use the same version across all AWS SDK dependencies**. Mixed versions can cause runtime exceptions or compile time errors depending on which components are mismatched
+
+The easiest way to ensure version consistency is to use the [AWS SDK BOM](https://github.com/aws/aws-sdk-java-v2/?tab=readme-ov-file#importing-the-bom), which automatically manages all SDK dependency versions for you.
+
+
 ## Internal APIs
 
 Any API marked with either `@SdkInternalApi` or `@SdkTestInternalApi` is not subject to any backwards compatibility guarantee. These are meant to be consumed only by the SDK and may be changed or removed without notice. The SDK MAY bump the `MINOR` version when making such a change.

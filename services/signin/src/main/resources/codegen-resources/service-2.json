@@ -23,15 +23,34 @@
       "input":{"shape":"CreateOAuth2TokenRequest"},
       "output":{"shape":"CreateOAuth2TokenResponse"},
       "errors":[
-        {"shape":"ForbiddenError"},
         {"shape":"TooManyRequestsError"},
-        {"shape":"InvalidRequestError"},
-        {"shape":"UnauthorizedError"}
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>DPoP proof JWT header for demonstrating proof-of-possession of private key</li> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>DPoP proof JWT header (same private key as original auth_code redemption)</li> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
+      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
     }
   },
   "shapes":{
+    "AccessDeniedException":{
+      "type":"structure",
+      "required":[
+        "error",
+        "message"
+      ],
+      "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating the specific type of access denial Can be TOKEN_EXPIRED, AUTHCODE_EXPIRED, USER_CREDENTIALS_CHANGED, or INSUFFICIENT_PERMISSIONS</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>Detailed message explaining the access denial Provides specific information about why access was denied</p>"
+        }
+      },
+      "documentation":"<p>Error thrown for access denied scenarios with flexible HTTP status mapping</p> <p>Runtime HTTP Status Code Mapping:</p> <ul> <li>HTTP 401 (Unauthorized): TOKEN_EXPIRED, AUTHCODE_EXPIRED</li> <li>HTTP 403 (Forbidden): USER_CREDENTIALS_CHANGED, INSUFFICIENT_PERMISSIONS</li> </ul> <p>The specific HTTP status code is determined at runtime based on the error enum value. Consumers should use the error field to determine the specific access denial reason.</p>",
+      "exception":true
+    },
     "AccessToken":{
       "type":"structure",
       "required":[
@@ -79,17 +98,8 @@
     },
     "CreateOAuth2TokenRequest":{
       "type":"structure",
-      "required":[
-        "dpopProof",
-        "tokenInput"
-      ],
+      "required":["tokenInput"],
       "members":{
-        "dpopProof":{
-          "shape":"DPoPProof",
-          "documentation":"<p>DPoP proof JWT header for demonstrating proof-of-possession of the private key</p> <p>Header format: {&quot;typ&quot;: &quot;dpop+jwt&quot;, &quot;alg&quot;: &quot;ES256&quot;, &quot;jwk&quot;: {...}} Payload format: {&quot;htm&quot;: &quot;POST&quot;, &quot;htu&quot;: &quot;https://server.example.com/token&quot;, &quot;iat&quot;: timestamp, &quot;jti&quot;: &quot;unique-id&quot;} Must be signed with the private key corresponding to the embedded jwk</p>",
-          "location":"header",
-          "locationName":"DPoP"
-        },
         "tokenInput":{
           "shape":"CreateOAuth2TokenRequestBody",
           "documentation":"<p>Flattened token operation inputs The specific operation is determined by grant_type in the request body</p>"
@@ -186,34 +196,12 @@
       },
       "documentation":"<p>Response body payload for CreateOAuth2Token operation</p> <p>The response content depends on the grant_type from the request:</p> <ul> <li>grant_type=authorization_code: Returns all fields including refresh_token and id_token</li> <li>grant_type=refresh_token: Returns access_token, token_type, expires_in, refresh_token (no id_token)</li> </ul>"
     },
-    "DPoPProof":{
-      "type":"string",
-      "documentation":"<p>DPoP proof JWT for demonstrating proof-of-possession</p> <p>DPoP (Demonstration of Proof-of-Possession) JWT header structure: Header: {&quot;typ&quot;: &quot;dpop+jwt&quot;, &quot;alg&quot;: &quot;ES256&quot;, &quot;jwk&quot;: {...}} Payload: {&quot;htm&quot;: &quot;POST&quot;, &quot;htu&quot;: &quot;https://server.example.com/token&quot;, &quot;iat&quot;: timestamp, &quot;jti&quot;: &quot;unique-id&quot;}</p> <p>Key components:</p> <ul> <li>htm: HTTP method being used (POST)</li> <li>htu: HTTP URI being accessed (e.g., https://us-east-1.signin.aws.amazon.com/v1/token)</li> <li>iat: Issued at timestamp</li> <li>jti: Unique identifier for the JWT</li> </ul> <p>For token refresh: Must be generated with same private key as original auth_code redemption. Only iat changes (within acceptable clock skew).</p>",
-      "max":4096,
-      "min":1
-    },
     "ExpiresIn":{
       "type":"integer",
       "documentation":"<p>Time to expiry in seconds</p> <p>The time to expiry in seconds, for these purposes will be at most 900 (15 minutes).</p>",
       "box":true,
       "max":900,
       "min":1
-    },
-    "ForbiddenError":{
-      "type":"structure",
-      "required":["message"],
-      "members":{
-        "message":{
-          "shape":"String",
-          "documentation":"<p>Detailed message explaining the authorization failure Provides information about permission or policy violations</p>"
-        }
-      },
-      "documentation":"<p>Error thrown when the client is not authorized or has insufficient permissions</p> <p>HTTP Status Code: 403 Forbidden</p> <p>Possible causes:</p> <ul> <li>Unauthorized widget or client_id not registered</li> <li>Insufficient permissions for the requested scope</li> <li>Client not authorized to use the specified grant_type</li> <li>DPoP key binding validation failure (cnf.jkt mismatch)</li> <li>Policy evaluation failure for credential scoping</li> </ul>",
-      "error":{
-        "httpStatusCode":403,
-        "senderFault":true
-      },
-      "exception":true
     },
     "GrantType":{
       "type":"string",
@@ -226,21 +214,38 @@
       "max":4096,
       "min":1
     },
-    "InvalidRequestError":{
+    "InternalServerException":{
       "type":"structure",
-      "required":["message"],
+      "required":[
+        "error",
+        "message"
+      ],
       "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating server error Will be SERVER_ERROR for internal server errors</p>"
+        },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message explaining the request validation failure Provides specific information about which parameter or validation failed</p>"
+          "documentation":"<p>Detailed message explaining the server error May include error details for debugging purposes</p>"
         }
       },
-      "documentation":"<p>Error thrown when the request is malformed or missing required parameters</p> <p>HTTP Status Code: 400 Bad Request</p> <p>Possible causes:</p> <ul> <li>Malformed request body (invalid form encoding)</li> <li>Missing required parameters (client_id, grant_type, code, etc.)</li> <li>Invalid parameter values (malformed client_id ARN, invalid grant_type)</li> <li>Invalid DPoP proof JWT format or signature</li> <li>PKCE code_verifier validation failure</li> <li>Redirect URI mismatch with original authorization request</li> </ul>",
-      "error":{
-        "httpStatusCode":400,
-        "senderFault":true
-      },
-      "exception":true
+      "documentation":"<p>Error thrown when an internal server error occurs</p> <p>HTTP Status Code: 500 Internal Server Error</p> <p>Used for unexpected server-side errors that prevent request processing.</p>",
+      "error":{"httpStatusCode":500},
+      "exception":true,
+      "fault":true
+    },
+    "OAuth2ErrorCode":{
+      "type":"string",
+      "documentation":"<p>OAuth 2.0 error codes returned by the server</p> <p>Standard OAuth 2.0 error codes used in error responses to indicate the specific type of error that occurred during token operations.</p>",
+      "enum":[
+        "TOKEN_EXPIRED",
+        "USER_CREDENTIALS_CHANGED",
+        "INSUFFICIENT_PERMISSIONS",
+        "AUTHCODE_EXPIRED",
+        "server_error",
+        "INVALID_REQUEST"
+      ]
     },
     "RedirectUri":{
       "type":"string",
@@ -263,32 +268,46 @@
     },
     "TooManyRequestsError":{
       "type":"structure",
-      "required":["message"],
+      "required":[
+        "error",
+        "message"
+      ],
       "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating the specific type of error Will be INVALID_REQUEST for rate limiting scenarios</p>"
+        },
         "message":{
           "shape":"String",
           "documentation":"<p>Detailed message about the rate limiting May include retry-after information or rate limit details</p>"
         }
       },
-      "documentation":"<p>Error thrown when rate limit is exceeded</p> <p>HTTP Status Code: 429 Too Many Requests</p> <p>Possible causes:</p> <ul> <li>Too many token requests from the same client</li> <li>Rate limiting based on client_id or IP address</li> <li>Abuse prevention mechanisms triggered</li> <li>Service protection against excessive token generation</li> </ul>",
+      "documentation":"<p>Error thrown when rate limit is exceeded</p> <p>HTTP Status Code: 429 Too Many Requests</p> <p>Possible OAuth2ErrorCode values:</p> <ul> <li>INVALID_REQUEST: Rate limiting, too many requests, abuse prevention</li> </ul> <p>Possible causes:</p> <ul> <li>Too many token requests from the same client</li> <li>Rate limiting based on client_id or IP address</li> <li>Abuse prevention mechanisms triggered</li> <li>Service protection against excessive token generation</li> </ul>",
       "error":{
         "httpStatusCode":429,
         "senderFault":true
       },
       "exception":true
     },
-    "UnauthorizedError":{
+    "ValidationException":{
       "type":"structure",
-      "required":["message"],
+      "required":[
+        "error",
+        "message"
+      ],
       "members":{
+        "error":{
+          "shape":"OAuth2ErrorCode",
+          "documentation":"<p>OAuth 2.0 error code indicating validation failure Will be INVALID_REQUEST for validation errors</p>"
+        },
         "message":{
           "shape":"String",
-          "documentation":"<p>Detailed message explaining the authentication failure Indicates specific authentication issue (expired token, invalid signature, etc.)</p>"
+          "documentation":"<p>Detailed message explaining the validation failure Provides specific information about which validation failed</p>"
         }
       },
-      "documentation":"<p>Error thrown when the access token is invalid or expired</p> <p>HTTP Status Code: 401 Unauthorized</p> <p>Possible causes:</p> <ul> <li>Invalid or expired authorization code</li> <li>Invalid or expired refresh token</li> <li>DPoP proof JWT validation failure (invalid signature, expired, wrong key)</li> <li>Authorization code already used (replay attack prevention)</li> <li>Refresh token revoked or invalid</li> </ul>",
+      "documentation":"<p>Error thrown when request validation fails</p> <p>HTTP Status Code: 400 Bad Request</p> <p>Used for request validation errors such as malformed parameters, missing required fields, or invalid parameter values.</p>",
       "error":{
-        "httpStatusCode":401,
+        "httpStatusCode":400,
         "senderFault":true
       },
       "exception":true
