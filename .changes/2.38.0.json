@@ -1,0 +1,60 @@
+{
+    "version": "2.38.0",
+    "date": "2025-11-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "contributor": "",
+            "description": "Introduce CreateDataflowEndpointGroupV2 action"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for signing async payloads in the default `AwsV4aHttpSigner`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "This release adds new and updated API operations. You can now use the IpAddressType field to specify either ipv4 or dualstack for your Anycast static IP list. You can also enable cross-account resource sharing to share your VPC origins with other AWS accounts"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Added support for Project Resource Tags"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Optimize implementation of the `EnhancedDocument#toJson()` and `EnhancedDocument#getJson()`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds AvailabilityZoneId support for DescribeFastSnapshotRestores, DisableFastSnapshotRestores, and EnableFastSnapshotRestores APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Amazon FSx now enables secure management of Active Directory credentials through AWS Secrets Manager integration. Customers can use Secret ARNs instead of direct credentials when joining resources to Active Directory domains."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Add new fields in SageMaker Hyperpod DescribeCluster API response: TargetStateCount, SoftwareUpdateStatus and ActiveSoftwareDeploymentConfig to provide AMI update progress visibility ."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Launch IPv6 dual-stack support for S3 Express"
+        }
+    ]
+}

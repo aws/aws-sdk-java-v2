@@ -16,7 +16,7 @@
 package software.amazon.awssdk.auth.signer.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.Aws4SignerUtils.calculateRequestContentLength;
-import static software.amazon.awssdk.auth.signer.internal.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.io.InputStream;
 import java.util.Optional;

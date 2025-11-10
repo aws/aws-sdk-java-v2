@@ -47,7 +47,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * A stage for adding the user agent header to the request, after retrieving the current string
- * from execution attributes and adding any additional information. 
+ * from execution attributes and adding any additional information.
  */
 @SdkInternalApi
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
@@ -152,11 +152,11 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
         businessMetrics.merge(metricsFromApiNames);
 
         credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
-        
+
         if (businessMetrics.recordedMetrics().isEmpty()) {
             return Optional.empty();
         }
-        
+
         return Optional.of(businessMetrics.asBoundedString());
     }
 
