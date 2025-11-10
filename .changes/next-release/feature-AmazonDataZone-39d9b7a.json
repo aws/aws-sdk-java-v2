@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DataZone",
+    "contributor": "",
+    "description": "Remove trackingServerName from DataZone Connection MLflowProperties"
+}
