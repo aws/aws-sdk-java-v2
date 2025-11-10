@@ -26,7 +26,6 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.ContentStreamProvider;
@@ -39,6 +38,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * Delegate to the HTTP implementation to make an HTTP request and receive the response.
@@ -119,8 +119,8 @@ public class MakeHttpRequestStage
         }
 
         ContentStreamProvider requestContentProvider = requestContentStreamProviderOptional.get();
-        ContentStreamProvider lengthVerifyingProvider = () -> new SdkLengthAwareInputStream(requestContentProvider.newStream(),
-                                                                                            contentLength.get());
+        ContentStreamProvider lengthVerifyingProvider = () -> new LengthAwareInputStream(requestContentProvider.newStream(),
+                                                                                         contentLength.get());
         return request.toBuilder()
                       .contentStreamProvider(lengthVerifyingProvider)
                       .build();

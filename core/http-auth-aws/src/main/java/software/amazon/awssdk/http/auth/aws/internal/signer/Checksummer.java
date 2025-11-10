@@ -19,7 +19,7 @@ import static software.amazon.awssdk.checksums.DefaultChecksumAlgorithm.SHA256;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.FlexibleChecksummer.option;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.ConstantChecksumAlgorithm;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.checksumHeaderName;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_CONTENT_SHA256;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_CONTENT_SHA256;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
