@@ -40,9 +40,9 @@ import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
+import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
-import software.amazon.awssdk.services.signin.model.SigninException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
@@ -198,10 +198,32 @@ public final class LoginCredentialsProvider implements
                                 .staleTime(newExpiration.minus(staleTime))
                                 .prefetchTime(newExpiration.minus(prefetchTime))
                                 .build();
-        } catch (SigninException serviceException) {
-            throw SdkClientException.create(
-                "Unable to refresh AWS Signin Access Token: You must re-authenticate.",
-                serviceException);
+        } catch (AccessDeniedException accessDeniedException) {
+            if (accessDeniedException.error() == null) {
+                throw accessDeniedException;
+            }
+
+            switch (accessDeniedException.error()) {
+                case TOKEN_EXPIRED:
+                    throw SdkClientException.create(
+                        "Your session has expired. Please reauthenticate.",
+                        accessDeniedException);
+                case USER_CREDENTIALS_CHANGED:
+                    throw SdkClientException.create(
+                        "Unable to refresh credentials because of a change in your password. "
+                        + "Please reauthenticate with your new password.",
+                        accessDeniedException
+                    );
+                case INSUFFICIENT_PERMISSIONS:
+                    throw SdkClientException.create(
+                        "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
+                        + "for the 'CreateOAuth2Token' action.",
+                        accessDeniedException
+                    );
+                default:
+                    throw accessDeniedException;
+
+            }
         }
     }
 
