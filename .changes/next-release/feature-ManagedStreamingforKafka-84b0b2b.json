@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "contributor": "",
-    "description": "Amazon MSK now supports intelligent rebalancing for MSK Express brokers."
-}

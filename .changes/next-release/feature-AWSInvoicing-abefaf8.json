@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Invoicing",
-    "contributor": "",
-    "description": "Added new invoicing get-invoice-pdf API Operation"
-}

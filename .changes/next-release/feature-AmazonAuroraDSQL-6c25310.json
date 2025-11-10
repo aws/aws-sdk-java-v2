@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Aurora DSQL",
-    "contributor": "",
-    "description": "Cluster endpoint added to CreateCluster and GetCluster API responses"
-}
