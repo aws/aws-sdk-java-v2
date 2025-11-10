@@ -239,12 +239,12 @@
       "type":"string",
       "documentation":"<p>OAuth 2.0 error codes returned by the server</p> <p>Standard OAuth 2.0 error codes used in error responses to indicate the specific type of error that occurred during token operations.</p>",
       "enum":[
-        "token_expired",
-        "user_credentials_changed",
-        "insufficient_permissions",
-        "authcode_expired",
+        "TOKEN_EXPIRED",
+        "USER_CREDENTIALS_CHANGED",
+        "INSUFFICIENT_PERMISSIONS",
+        "AUTHCODE_EXPIRED",
         "server_error",
-        "invalid_request"
+        "INVALID_REQUEST"
       ]
     },
     "RedirectUri":{
