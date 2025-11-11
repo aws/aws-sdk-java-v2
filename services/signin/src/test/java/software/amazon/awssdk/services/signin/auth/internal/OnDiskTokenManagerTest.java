@@ -114,16 +114,9 @@ public class OnDiskTokenManagerTest {
 
     @Test
     void storeToken_whenIoFails_raisesException() {
-        Path readOnlyDir = tempDir.resolve("readonly");
-        try {
-            Files.createDirectory(readOnlyDir);
-            readOnlyDir.toFile().setReadOnly();
-        } catch (IOException e) {
-            fail("Unable to set up readonly dir");
-        }
-
+        Path readOnlyDir = tempDir.resolve("pathdoesnotexist");
         OnDiskTokenManager manager = OnDiskTokenManager.create(readOnlyDir, LOGIN_SESSION_ID);
-        assertThrows(SdkClientException.class, () -> manager.storeToken(token));
+        SdkClientException e = assertThrows(SdkClientException.class, () -> manager.storeToken(token));
     }
 
     @Test
