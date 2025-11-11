@@ -145,7 +145,7 @@ public class OnDiskTokenManagerTest {
 
     private Path tokenLocation(String loginSession) {
         try {
-            MessageDigest sha1 = MessageDigest.getInstance("sha256");
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-256");
             sha1.update(loginSession.getBytes(StandardCharsets.UTF_8));
             String cacheKey = BinaryUtils.toHex(sha1.digest()).toLowerCase(Locale.ENGLISH);
             return tempDir.resolve(cacheKey + ".json");
