@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkServiceClientConfiguration;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -63,7 +64,11 @@ public class DpopAuthPlugin implements SdkPlugin {
         // the refresh request takes the clientId/refreshToken sourced from the access token on disk as input
         // so we must sign the request with the dpopKey loaded from the same load.  IE: do not read the
         // access token file twice!
-        scb.putAuthScheme(DpopAuthScheme.create(StaticDpopIdentityProvider.create(dpopKeyPem)));
+        try {
+            scb.putAuthScheme(DpopAuthScheme.create(StaticDpopIdentityProvider.create(dpopKeyPem)));
+        } catch (Exception e) {
+            throw SdkClientException.create("Unable to refresh Login credentials. Please reauthenticate ", e);
+        }
     }
 
     private static class DpopAuthSchemeProvider implements SigninAuthSchemeProvider {

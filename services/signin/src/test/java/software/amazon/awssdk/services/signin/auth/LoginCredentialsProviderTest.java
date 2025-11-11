@@ -20,12 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.VALID_TEST_PEM;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.getJwtPayloadFromEncodedDpopHeader;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.verifySignature;
@@ -41,10 +36,8 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -61,10 +54,10 @@ import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
-import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
+import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.services.signin.model.SigninException;
-import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class LoginCredentialsProviderTest {
     private static final String LOGIN_SESSION_ID = "loginSessionId";
@@ -188,7 +181,7 @@ public class LoginCredentialsProviderTest {
     }
 
     @Test
-    public void resolveCredentials_whenCredentialsExpired_serviceCallFails_raisesException() {
+    public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithGeneric500_raisesException() {
         // expired
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
         LoginAccessToken token = buildAccessToken(creds);
@@ -199,7 +192,43 @@ public class LoginCredentialsProviderTest {
                 .response(SdkHttpResponse.builder().statusCode(500).build())
                 .build()
         );
-        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertThrows(SigninException.class, () -> loginCredentialsProvider.resolveCredentials());
+    }
+
+    @Test
+    public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithTokenExpired_raisesException() {
+        // expired
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("Your session has expired"));
+    }
+
+    @Test
+    public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithUserExpired_raisesException() {
+        // expired
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("change in your password"));
+    }
+
+    @Test
+    public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithInsufficentPermissions_raisesException() {
+        // expired
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        stubAccessDeniedException(OAuth2ErrorCode.INSUFFICIENT_PERMISSIONS);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("insufficient permissions"));
     }
 
     private static void verifyResolvedCredentialsAreUpdated(AwsCredentials resolvedCredentials) {
@@ -250,6 +279,22 @@ public class LoginCredentialsProviderTest {
                 .builder()
                 .response(SdkHttpResponse.builder().statusCode(200).build())
                 .responseBody(AbortableInputStream.create(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8))))
+                .build()
+        );
+    }
+
+    private void stubAccessDeniedException(OAuth2ErrorCode errorCode) {
+        String errorBody = "{\"error\":\"" + errorCode + "\",\"message\":\"The refresh token has expired.\"}";
+        mockHttpClient.stubNextResponse(
+            HttpExecuteResponse
+                .builder()
+                .response(
+                    SdkHttpResponse
+                        .builder()
+                        .putHeader("X-Amzn-Errortype", "AccessDeniedException")
+                        .statusCode(401)
+                        .build())
+                .responseBody(AbortableInputStream.create(new StringInputStream(errorBody)))
                 .build()
         );
     }

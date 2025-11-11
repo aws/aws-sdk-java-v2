@@ -54,7 +54,7 @@ public final class OnDiskTokenManager implements AccessTokenManager {
 
     private String deriveCacheKey(String loginSession) {
         try {
-            MessageDigest sha1 = MessageDigest.getInstance("sha256");
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-256");
             sha1.update(loginSession.getBytes(StandardCharsets.UTF_8));
             return BinaryUtils.toHex(sha1.digest()).toLowerCase(Locale.ENGLISH);
         } catch (NoSuchAlgorithmException e) {
