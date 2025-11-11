@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.4__ __2025-11-11__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update: update API and doc descriptions per EKS ImageType default value switch from AL2 to AL2023.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added new fields in existing APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports VPN connections with up to 5 Gbps bandwidth per tunnel, a 4x improvement from existing limit of 1.25 Gbps.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix NullPointerException when using AnonymousCredentials in a CredentialsChain with the S3 CRT Client.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Language Expansion feature for BDA Audio modality.
+
+## __RTBFabric__
+  - ### Features
+    - Added LogSettings and LinkAttribute fields to external links
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for configuring communication preferences as well as clearly displaying case comment author identities.
+
 # __2.38.3__ __2025-11-10__
 ## __AWS Backup__
   - ### Features
