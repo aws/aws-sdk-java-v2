@@ -24,6 +24,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import software.amazon.awssdk.annotations.NotThreadSafe;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -38,9 +40,9 @@ import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
+import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenResponse;
-import software.amazon.awssdk.services.signin.model.SigninException;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
@@ -55,17 +57,17 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  * It periodically sends a {@link CreateOAuth2TokenRequest} to the AWS
  * Sign-On Service to refresh short-lived sessions to use for authentication. These sessions are updated using a single
  * calling thread (by default) or asynchronously (if {@link Builder#asyncCredentialUpdateEnabled(Boolean)} is set).
- *
+ * <p>
  * If the credentials are not successfully updated before expiration, calls to {@link #resolveCredentials()} will block until
  * they are updated successfully.
- *
+ * <p>
  * Users of this provider must {@link #close()} it when they are finished using it.
- *
+ * <p>
  * This is created using {@link LoginCredentialsProvider#builder()}.
  */
 @SdkPublicApi
 @ThreadSafe
-public class LoginCredentialsProvider implements
+public final class LoginCredentialsProvider implements
                                       AwsCredentialsProvider, SdkAutoCloseable,
                                       ToCopyableBuilder<LoginCredentialsProvider.Builder, LoginCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(LoginCredentialsProvider.class);
@@ -196,10 +198,32 @@ public class LoginCredentialsProvider implements
                                 .staleTime(newExpiration.minus(staleTime))
                                 .prefetchTime(newExpiration.minus(prefetchTime))
                                 .build();
-        } catch (SigninException serviceException) {
-            throw SdkClientException.create(
-                "Unable to refresh AWS Signin Access Token: You must re-authenticate.",
-                serviceException);
+        } catch (AccessDeniedException accessDeniedException) {
+            if (accessDeniedException.error() == null) {
+                throw accessDeniedException;
+            }
+
+            switch (accessDeniedException.error()) {
+                case TOKEN_EXPIRED:
+                    throw SdkClientException.create(
+                        "Your session has expired. Please reauthenticate.",
+                        accessDeniedException);
+                case USER_CREDENTIALS_CHANGED:
+                    throw SdkClientException.create(
+                        "Unable to refresh credentials because of a change in your password. "
+                        + "Please reauthenticate with your new password.",
+                        accessDeniedException
+                    );
+                case INSUFFICIENT_PERMISSIONS:
+                    throw SdkClientException.create(
+                        "Unable to refresh credentials due to insufficient permissions. You may be missing permission "
+                        + "for the 'CreateOAuth2Token' action.",
+                        accessDeniedException
+                    );
+                default:
+                    throw accessDeniedException;
+
+            }
         }
     }
 
@@ -222,7 +246,7 @@ public class LoginCredentialsProvider implements
     /**
      * Get a builder for creating a custom {@link LoginCredentialsProvider}.
      */
-    public static BuilderImpl builder() {
+    public static Builder builder() {
         return new BuilderImpl();
     }
 
@@ -243,7 +267,6 @@ public class LoginCredentialsProvider implements
 
 
     /**
-     *
      * @return true if the token does NOT need to be refreshed - it is after the given refresh window, eg stale/prefetch time.
      */
     private static boolean shouldNotRefresh(Instant expiration, Duration refreshWindow) {
@@ -254,6 +277,7 @@ public class LoginCredentialsProvider implements
     /**
      * A builder for creating a custom {@link LoginCredentialsProvider}.
      */
+    @NotThreadSafe
     public interface Builder extends CopyableBuilder<Builder, LoginCredentialsProvider> {
         /**
          * Configure the {@link SigninClient} to use when calling Signin to update the session. This client should not be shut
@@ -265,15 +289,15 @@ public class LoginCredentialsProvider implements
          * Configure whether the provider should fetch credentials asynchronously in the background. If this is true, threads are
          * less likely to block when credentials are loaded, but additional resources are used to maintain the provider.
          *
-         * <p>By default, this is disabled.</p>
+         * <p>By default, this is enabled.
          */
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
 
         /**
-         * Configure the amount of time, relative to signin token expiration, that the cached credentials are considered stale and
+         * Configure the amount of time, relative to login token expiration, that the cached credentials are considered stale and
          * should no longer be used. All threads will block until the value is updated.
          *
-         * <p>By default, this is 1 minute.</p>
+         * <p>By default, this is 1 minute.
          */
         Builder staleTime(Duration staleTime);
 
@@ -284,7 +308,7 @@ public class LoginCredentialsProvider implements
          * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
          * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
          *
-         * <p>By default, this is 5 minutes.</p>
+         * <p>By default, this is 5 minutes.
          */
         Builder prefetchTime(Duration prefetchTime);
 
@@ -303,19 +327,18 @@ public class LoginCredentialsProvider implements
          * An optional string denoting previous credentials providers that are chained with this one. This method is primarily
          * intended for use by AWS SDK internal components and should not be used directly by external users.
          */
+        @SdkInternalApi
         Builder sourceChain(String sourceChain);
 
         /**
          * Create a {@link LoginCredentialsProvider} using the configuration applied to this builder.
-         *
-         * @return
          */
         @Override
         LoginCredentialsProvider build();
     }
 
     protected static final class BuilderImpl implements Builder {
-        private Boolean asyncCredentialUpdateEnabled = false;
+        private Boolean asyncCredentialUpdateEnabled = true;
         private SigninClient signinClient;
         private Duration staleTime;
         private Duration prefetchTime;
