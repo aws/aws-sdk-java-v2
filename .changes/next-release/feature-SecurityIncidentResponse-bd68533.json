@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Security Incident Response",
+    "contributor": "",
+    "description": "Added support for configuring communication preferences as well as clearly displaying case comment author identities."
+}
