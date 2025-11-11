@@ -121,7 +121,6 @@ public final class EcKeyLoader {
         byte[] publicBytes;
     }
 
-
     /**
      * Follows the SEC1 / RFC 5915 ASN.1 format: PrivateKeyInfo ::= SEQUENCE { version INTEGER (0), privateKeyAlgorithm
      * AlgorithmIdentifier, -- ecPublicKey + curve OID privateKey OCTET STRING -- contains the SEC1 DER parameters [0]
