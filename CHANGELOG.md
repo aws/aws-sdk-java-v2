@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.5__ __2025-11-12__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added support of SQL statements creation, metadata model discovery and selection rules transformation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated Authentication Profile APIs to add support for automatic logout on user inactivity
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds complete AMI ancestry tracing from immediate parent through each preceding generation back to the root AMI
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add VPC source configuration support enabling Amazon Managed Service for Prometheus Collector to collect metrics from MSK clusters.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added GetIdentityCenterAuthToken API to retrieve encrypted authentication tokens for Identity Center integrated applications. This API enables programmatic access to secure Identity Center tokens with proper error handling and parameter validation across supported SDK languages.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Adds support for request metrics metrics APIs for S3 Tables
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for trn2.3xlarge instance type for SageMaker Hyperpod
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release expands ALB Authentication to support JWT verification and adds support for a new JWT validation action in listener rule.
+
 # __2.38.4__ __2025-11-11__
 ## __AWS Batch__
   - ### Features

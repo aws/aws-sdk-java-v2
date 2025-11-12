@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.38.5-SNAPSHOT</version>
+        <version>2.38.5</version>
     </parent>
     <artifactId>sagemakeredge</artifactId>
     <name>AWS Java SDK :: Services :: Sagemaker Edge</name>

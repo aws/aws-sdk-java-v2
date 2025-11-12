@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Compute Cloud",
-    "contributor": "",
-    "description": "Adds complete AMI ancestry tracing from immediate parent through each preceding generation back to the root AMI"
-}

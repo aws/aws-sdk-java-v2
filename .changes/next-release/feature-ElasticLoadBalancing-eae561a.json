@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Elastic Load Balancing",
-    "contributor": "",
-    "description": "This release expands ALB Authentication to support JWT verification and adds support for a new JWT validation action in listener rule."
-}

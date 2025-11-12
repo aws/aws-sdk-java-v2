@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Database Migration Service",
-    "contributor": "",
-    "description": "Added support of SQL statements creation, metadata model discovery and selection rules transformation."
-}

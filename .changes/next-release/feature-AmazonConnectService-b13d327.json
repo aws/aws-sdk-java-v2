@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Service",
-    "contributor": "",
-    "description": "Updated Authentication Profile APIs to add support for automatic logout on user inactivity"
-}
