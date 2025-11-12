@@ -1,4 +1,94 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.4__ __2025-11-11__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update: update API and doc descriptions per EKS ImageType default value switch from AL2 to AL2023.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added new fields in existing APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports VPN connections with up to 5 Gbps bandwidth per tunnel, a 4x improvement from existing limit of 1.25 Gbps.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix NullPointerException when using AnonymousCredentials in a CredentialsChain with the S3 CRT Client.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Language Expansion feature for BDA Audio modality.
+
+## __RTBFabric__
+  - ### Features
+    - Added LogSettings and LinkAttribute fields to external links
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for configuring communication preferences as well as clearly displaying case comment author identities.
+
+# __2.38.3__ __2025-11-10__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup supports backups of Amazon EKS clusters, including Kubernetes cluster state and persistent storage attached to the EKS cluster via a persistent volume claim (EBS volumes, EFS file systems, and S3 buckets).
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports ML-DSA key algorithms.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added CreateDelegationRequest API, which is not available for general use at this time.
+
+## __AWS Invoicing__
+  - ### Features
+    - Added new invoicing get-invoice-pdf API Operation
+
+## __AWS STS__
+  - ### Bugfixes
+    - Raise exceptions in resolveCredentials instead of creation for StsWebIdentityTokenFileCredentialsProvider
+
+## __AWS Security Token Service__
+  - ### Features
+    - Added GetDelegatedAccessToken API, which is not available for general use at this time.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports CLOUDWATCH_TELEMETRY_RULE_MANAGED as a LogScope option, enabling automated logging configuration through Amazon CloudWatch Logs for telemetry data collection and analysis.
+
+## __Amazon AppStream__
+  - ### Features
+    - AWS Appstream support for IPv6
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Cluster endpoint added to CreateCluster and GetCluster API responses
+
+## __Amazon DataZone__
+  - ### Features
+    - Remove trackingServerName from DataZone Connection MLflowProperties
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet customers can now filter instance types based on encryption-in-transit support using Attribute-Based Instance Type Selection (ABIS), eliminating the manual effort of identifying and selecting compatible instance types for security-sensitive workloads.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Include tags filed in CreatePublishingDestinationRequest and DescribePublishingDestinationResponse.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for entity Cedar tags.
+
+## __Braket__
+  - ### Features
+    - Adds ExperimentalCapabilities field to CreateQuantumTask request and GetQuantumTask response objects. Enables use of experimental software capabilities when creating quantum tasks.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports intelligent rebalancing for MSK Express brokers.
+
 # __2.38.2__ __2025-11-07__
 ## __AWS Control Tower__
   - ### Features

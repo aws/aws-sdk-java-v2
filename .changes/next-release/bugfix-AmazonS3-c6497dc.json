@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fix NullPointerException when using AnonymousCredentials in a CredentialsChain with the S3 CRT Client."
-}
