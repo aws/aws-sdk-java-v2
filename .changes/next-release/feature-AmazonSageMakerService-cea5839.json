@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Add support for trn2.3xlarge instance type for SageMaker Hyperpod"
+}
