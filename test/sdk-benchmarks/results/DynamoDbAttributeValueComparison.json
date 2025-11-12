@@ -1,0 +1,328 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.getItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "TINY"
+        },
+        "primaryMetric" : {
+            "score" : 460.8853339834782,
+            "scoreError" : 6.179993650134398,
+            "scoreConfidence" : [
+                454.70534033334377,
+                467.0653276336126
+            ],
+            "scorePercentiles" : {
+                "0.0" : 459.7799807945713,
+                "50.0" : 460.30494679085126,
+                "90.0" : 463.6911060509816,
+                "95.0" : 463.6911060509816,
+                "99.0" : 463.6911060509816,
+                "99.9" : 463.6911060509816,
+                "99.99" : 463.6911060509816,
+                "99.999" : 463.6911060509816,
+                "99.9999" : 463.6911060509816,
+                "100.0" : 463.6911060509816
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    460.30494679085126,
+                    459.7799807945713,
+                    460.6752368091121,
+                    459.97539947187477,
+                    463.6911060509816
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.getItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "SMALL"
+        },
+        "primaryMetric" : {
+            "score" : 967.4990145357931,
+            "scoreError" : 16.418321711324555,
+            "scoreConfidence" : [
+                951.0806928244685,
+                983.9173362471176
+            ],
+            "scorePercentiles" : {
+                "0.0" : 962.5163321107844,
+                "50.0" : 966.7616239722239,
+                "90.0" : 974.322641568966,
+                "95.0" : 974.322641568966,
+                "99.0" : 974.322641568966,
+                "99.9" : 974.322641568966,
+                "99.99" : 974.322641568966,
+                "99.999" : 974.322641568966,
+                "99.9999" : 974.322641568966,
+                "100.0" : 974.322641568966
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    974.322641568966,
+                    966.7616239722239,
+                    966.6490648237983,
+                    967.2454102031929,
+                    962.5163321107844
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.getItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE"
+        },
+        "primaryMetric" : {
+            "score" : 6238.773177597917,
+            "scoreError" : 43.518684628131844,
+            "scoreConfidence" : [
+                6195.254492969785,
+                6282.2918622260495
+            ],
+            "scorePercentiles" : {
+                "0.0" : 6230.387882150592,
+                "50.0" : 6235.090206127745,
+                "90.0" : 6257.790807622215,
+                "95.0" : 6257.790807622215,
+                "99.0" : 6257.790807622215,
+                "99.9" : 6257.790807622215,
+                "99.99" : 6257.790807622215,
+                "99.999" : 6257.790807622215,
+                "99.9999" : 6257.790807622215,
+                "100.0" : 6257.790807622215
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    6230.387882150592,
+                    6235.090206127745,
+                    6257.790807622215,
+                    6239.838095172755,
+                    6230.758896916275
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.putItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "TINY"
+        },
+        "primaryMetric" : {
+            "score" : 759.8269217326895,
+            "scoreError" : 14.407608478089323,
+            "scoreConfidence" : [
+                745.4193132546002,
+                774.2345302107788
+            ],
+            "scorePercentiles" : {
+                "0.0" : 753.7060325261901,
+                "50.0" : 760.1495067788234,
+                "90.0" : 763.8299837806042,
+                "95.0" : 763.8299837806042,
+                "99.0" : 763.8299837806042,
+                "99.9" : 763.8299837806042,
+                "99.99" : 763.8299837806042,
+                "99.999" : 763.8299837806042,
+                "99.9999" : 763.8299837806042,
+                "100.0" : 763.8299837806042
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    763.8299837806042,
+                    761.3543395574852,
+                    760.0947460203444,
+                    760.1495067788234,
+                    753.7060325261901
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.putItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "SMALL"
+        },
+        "primaryMetric" : {
+            "score" : 1542.6036652801893,
+            "scoreError" : 12.695638552689388,
+            "scoreConfidence" : [
+                1529.9080267274999,
+                1555.2993038328786
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1538.2693907039502,
+                "50.0" : 1543.3718735002774,
+                "90.0" : 1546.7700456608297,
+                "95.0" : 1546.7700456608297,
+                "99.0" : 1546.7700456608297,
+                "99.9" : 1546.7700456608297,
+                "99.99" : 1546.7700456608297,
+                "99.999" : 1546.7700456608297,
+                "99.9999" : 1546.7700456608297,
+                "100.0" : 1546.7700456608297
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    1544.1154534778864,
+                    1543.3718735002774,
+                    1546.7700456608297,
+                    1540.4915630580022,
+                    1538.2693907039502
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.marshaller.dynamodb.V2DynamoDbAttributeValue.putItem",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE"
+        },
+        "primaryMetric" : {
+            "score" : 9479.026808434335,
+            "scoreError" : 373.7133442319499,
+            "scoreConfidence" : [
+                9105.313464202385,
+                9852.740152666285
+            ],
+            "scorePercentiles" : {
+                "0.0" : 9388.53007946049,
+                "50.0" : 9443.746005266205,
+                "90.0" : 9604.753360206667,
+                "95.0" : 9604.753360206667,
+                "99.0" : 9604.753360206667,
+                "99.9" : 9604.753360206667,
+                "99.99" : 9604.753360206667,
+                "99.999" : 9604.753360206667,
+                "99.9999" : 9604.753360206667,
+                "100.0" : 9604.753360206667
+            },
+            "scoreUnit" : "ns/op",
+            "rawData" : [
+                [
+                    9443.746005266205,
+                    9604.753360206667,
+                    9557.903213849684,
+                    9400.201383388625,
+                    9388.53007946049
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+

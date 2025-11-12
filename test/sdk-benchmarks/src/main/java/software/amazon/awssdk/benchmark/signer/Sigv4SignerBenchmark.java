@@ -15,6 +15,11 @@
 
 package software.amazon.awssdk.benchmark.signer;
 
+import com.amazonaws.DefaultRequest;
+import com.amazonaws.auth.AWS4Signer;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.http.HttpMethodName;
 import java.net.URI;
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +53,11 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 public class Sigv4SignerBenchmark {
     SdkHttpRequest.Builder request;
     V4RequestSigner siger;
+    
+    // V1 fields
+    DefaultRequest<?> v1Request;
+    AWS4Signer v1Signer;
+    AWSCredentials v1Credentials;
 
     // Setup runs once per trial or iteration (not measured)
     @Setup(Level.Iteration)
@@ -71,11 +81,30 @@ public class Sigv4SignerBenchmark {
                            .build();
 
         siger = V4RequestSigner.create(properties, "abc123");
+        
+        // V1 setup
+        v1Request = new DefaultRequest<>("demo");
+        v1Request.setEndpoint(URI.create("https://test.com/"));
+        v1Request.setHttpMethod(HttpMethodName.GET);
+        v1Request.addHeader("x-amz-content-sha256", "checksum");
+        v1Request.addHeader("x-amz-archive-description", "test  test");
+        
+        v1Credentials = new BasicAWSCredentials("access", "secret");
+        
+        v1Signer = new AWS4Signer();
+        v1Signer.setServiceName("demo");
+        v1Signer.setRegionName("us-east-1");
     }
 
     @Benchmark
     public void benchmarkSign(Blackhole blackhole) {
         V4RequestSigningResult signingResult = siger.sign(request);
         blackhole.consume(signingResult);
+    }
+    
+    @Benchmark
+    public void benchmarkV1Sign(Blackhole blackhole) {
+        v1Signer.sign(v1Request, v1Credentials);
+        blackhole.consume(v1Request);
     }
 }

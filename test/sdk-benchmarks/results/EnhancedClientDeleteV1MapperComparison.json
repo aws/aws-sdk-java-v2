@@ -1,0 +1,436 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v1Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "TINY"
+        },
+        "primaryMetric" : {
+            "score" : 1.203456432637055E7,
+            "scoreError" : 102576.95904506418,
+            "scoreConfidence" : [
+                1.1931987367325487E7,
+                1.2137141285415614E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.1990574508099174E7,
+                "50.0" : 1.204284729536686E7,
+                "90.0" : 1.20615449364945E7,
+                "95.0" : 1.20615449364945E7,
+                "99.0" : 1.20615449364945E7,
+                "99.9" : 1.20615449364945E7,
+                "99.99" : 1.20615449364945E7,
+                "99.999" : 1.20615449364945E7,
+                "99.9999" : 1.20615449364945E7,
+                "100.0" : 1.20615449364945E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.1990574508099174E7,
+                    1.2033062824063692E7,
+                    1.204284729536686E7,
+                    1.20615449364945E7,
+                    1.2044792067828527E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v1Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "SMALL"
+        },
+        "primaryMetric" : {
+            "score" : 1.2632743981959505E7,
+            "scoreError" : 620785.7027373891,
+            "scoreConfidence" : [
+                1.2011958279222116E7,
+                1.3253529684696894E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.2370373456056492E7,
+                "50.0" : 1.2679042593041023E7,
+                "90.0" : 1.2807714774072787E7,
+                "95.0" : 1.2807714774072787E7,
+                "99.0" : 1.2807714774072787E7,
+                "99.9" : 1.2807714774072787E7,
+                "99.99" : 1.2807714774072787E7,
+                "99.999" : 1.2807714774072787E7,
+                "99.9999" : 1.2807714774072787E7,
+                "100.0" : 1.2807714774072787E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.2807714774072787E7,
+                    1.2679042593041023E7,
+                    1.2370373456056492E7,
+                    1.2680873599269168E7,
+                    1.2625715487358056E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v1Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE"
+        },
+        "primaryMetric" : {
+            "score" : 1.2755564788535085E7,
+            "scoreError" : 411789.8755767818,
+            "scoreConfidence" : [
+                1.2343774912958303E7,
+                1.3167354664111866E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.2670847985484114E7,
+                "50.0" : 1.269886481453285E7,
+                "90.0" : 1.292552255920205E7,
+                "95.0" : 1.292552255920205E7,
+                "99.0" : 1.292552255920205E7,
+                "99.9" : 1.292552255920205E7,
+                "99.99" : 1.292552255920205E7,
+                "99.999" : 1.292552255920205E7,
+                "99.9999" : 1.292552255920205E7,
+                "100.0" : 1.292552255920205E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.292552255920205E7,
+                    1.2686247311373731E7,
+                    1.279634127208268E7,
+                    1.2670847985484114E7,
+                    1.269886481453285E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v1Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE_FLAT"
+        },
+        "primaryMetric" : {
+            "score" : 1.2373468082187273E7,
+            "scoreError" : 111210.89548228883,
+            "scoreConfidence" : [
+                1.2262257186704984E7,
+                1.2484678977669561E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.2342276775161121E7,
+                "50.0" : 1.2381425397215523E7,
+                "90.0" : 1.2412839904786257E7,
+                "95.0" : 1.2412839904786257E7,
+                "99.0" : 1.2412839904786257E7,
+                "99.9" : 1.2412839904786257E7,
+                "99.99" : 1.2412839904786257E7,
+                "99.999" : 1.2412839904786257E7,
+                "99.9999" : 1.2412839904786257E7,
+                "100.0" : 1.2412839904786257E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.2342276775161121E7,
+                    1.2383004618266622E7,
+                    1.2412839904786257E7,
+                    1.234779371550684E7,
+                    1.2381425397215523E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v2Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "TINY"
+        },
+        "primaryMetric" : {
+            "score" : 1.0951031756747168E7,
+            "scoreError" : 1046517.6040687109,
+            "scoreConfidence" : [
+                9904514.152678456,
+                1.1997549360815879E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.0637872841622282E7,
+                "50.0" : 1.104294766847975E7,
+                "90.0" : 1.1198105771234611E7,
+                "95.0" : 1.1198105771234611E7,
+                "99.0" : 1.1198105771234611E7,
+                "99.9" : 1.1198105771234611E7,
+                "99.99" : 1.1198105771234611E7,
+                "99.999" : 1.1198105771234611E7,
+                "99.9999" : 1.1198105771234611E7,
+                "100.0" : 1.1198105771234611E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.0637872841622282E7,
+                    1.0685573809631106E7,
+                    1.104294766847975E7,
+                    1.1190658692768095E7,
+                    1.1198105771234611E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v2Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "SMALL"
+        },
+        "primaryMetric" : {
+            "score" : 1.0567803510166802E7,
+            "scoreError" : 636142.1154362063,
+            "scoreConfidence" : [
+                9931661.394730596,
+                1.1203945625603007E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.0300535232541628E7,
+                "50.0" : 1.060141118641815E7,
+                "90.0" : 1.070683374568346E7,
+                "95.0" : 1.070683374568346E7,
+                "99.0" : 1.070683374568346E7,
+                "99.9" : 1.070683374568346E7,
+                "99.99" : 1.070683374568346E7,
+                "99.999" : 1.070683374568346E7,
+                "99.9999" : 1.070683374568346E7,
+                "100.0" : 1.070683374568346E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.070683374568346E7,
+                    1.060141118641815E7,
+                    1.0695121487277675E7,
+                    1.0535115898913098E7,
+                    1.0300535232541628E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v2Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE"
+        },
+        "primaryMetric" : {
+            "score" : 1.080556727281564E7,
+            "scoreError" : 596201.4902042302,
+            "scoreConfidence" : [
+                1.020936578261141E7,
+                1.140176876301987E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.0605950108562157E7,
+                "50.0" : 1.0854493489177708E7,
+                "90.0" : 1.0943482671643855E7,
+                "95.0" : 1.0943482671643855E7,
+                "99.0" : 1.0943482671643855E7,
+                "99.9" : 1.0943482671643855E7,
+                "99.99" : 1.0943482671643855E7,
+                "99.999" : 1.0943482671643855E7,
+                "99.9999" : 1.0943482671643855E7,
+                "100.0" : 1.0943482671643855E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.0605950108562157E7,
+                    1.0854493489177708E7,
+                    1.0680523910077868E7,
+                    1.0943386184616609E7,
+                    1.0943482671643855E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark.v2Delete",
+        "mode" : "thrpt",
+        "threads" : 1,
+        "forks" : 1,
+        "jvm" : "/Users/rvaknin/.sdkman/candidates/java/8.0.452-amzn/jre/bin/java",
+        "jvmArgs" : [
+        ],
+        "jdkVersion" : "1.8.0_452",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "25.452-b09",
+        "warmupIterations" : 3,
+        "warmupTime" : "10 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 5,
+        "measurementTime" : "10 s",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "testItem" : "HUGE_FLAT"
+        },
+        "primaryMetric" : {
+            "score" : 1.0982413821178976E7,
+            "scoreError" : 108519.34260677922,
+            "scoreConfidence" : [
+                1.0873894478572197E7,
+                1.1090933163785756E7
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.0933269080226472E7,
+                "50.0" : 1.0992551718292642E7,
+                "90.0" : 1.1004872918446032E7,
+                "95.0" : 1.1004872918446032E7,
+                "99.0" : 1.1004872918446032E7,
+                "99.9" : 1.1004872918446032E7,
+                "99.99" : 1.1004872918446032E7,
+                "99.999" : 1.1004872918446032E7,
+                "99.9999" : 1.1004872918446032E7,
+                "100.0" : 1.1004872918446032E7
+            },
+            "scoreUnit" : "ops/s",
+            "rawData" : [
+                [
+                    1.0933269080226472E7,
+                    1.0993656025059558E7,
+                    1.1004872918446032E7,
+                    1.0992551718292642E7,
+                    1.098771936387017E7
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
