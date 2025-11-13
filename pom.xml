@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.38.6</version>
+    <version>2.38.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -103,8 +103,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.38.5</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.38.4</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.38.6</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.38.5</awsjavasdk.previous-previous.version>
         <jackson.version>2.19.4</jackson.version>
         <jackson.databind.version>2.19.4</jackson.databind.version>
         <jacksonjr.version>2.19.4</jacksonjr.version>
