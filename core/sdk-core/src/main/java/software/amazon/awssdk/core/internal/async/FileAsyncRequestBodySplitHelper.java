@@ -186,9 +186,7 @@ public final class FileAsyncRequestBodySplitHelper {
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback
                                 // will never be invoked, and if the current buffer is full, the publisher will stop
                                 // sending new FileAsyncRequestBody, leading to uncompleted future.
-                                .doAfterOnCancel(() -> {
-                                    startNextRequestBody(simplePublisher, position);
-                                })
+                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher, position))
                                 .subscribe(s);
         }
 
