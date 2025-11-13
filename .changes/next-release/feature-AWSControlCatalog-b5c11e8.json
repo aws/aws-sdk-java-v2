@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Control Catalog",
+    "contributor": "",
+    "description": "Added support for related control mappings with new RELATED_CONTROL mapping type in ListControlMappings API."
+}
