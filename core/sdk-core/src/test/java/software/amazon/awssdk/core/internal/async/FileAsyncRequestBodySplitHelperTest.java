@@ -87,13 +87,12 @@ public class FileAsyncRequestBodySplitHelperTest {
 
     private static Runnable verifyConcurrentRequests(FileAsyncRequestBodySplitHelper helper, AtomicInteger maxConcurrency) {
         return () -> {
-            int concurrency = helper.numAsyncRequestBodiesInFlight();
+            int concurrency = helper.numAsyncRequestBodiesInFlight().get();
 
             if (concurrency > maxConcurrency.get()) {
                 maxConcurrency.set(concurrency);
             }
-            assertThat(helper.numAsyncRequestBodiesInFlight()).isLessThan(10);
-            assertThat(helper.numAsyncRequestBodiesInFlight()).isGreaterThanOrEqualTo(0);
+            assertThat(helper.numAsyncRequestBodiesInFlight()).hasValueBetween(0,10);
         };
     }
 }

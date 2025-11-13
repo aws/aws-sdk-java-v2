@@ -18,10 +18,7 @@ package software.amazon.awssdk.core.internal.async;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -55,7 +52,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private volatile boolean isDone = false;
 
-    private Set<Long> requestBodyStartPositionsInFlight = Collections.synchronizedSet(new HashSet<>());
+    private AtomicInteger numAsyncRequestBodiesInFlight = new AtomicInteger(0);
     private AtomicInteger chunkIndex = new AtomicInteger(0);
     private final FileTime modifiedTimeAtStart;
     private final long sizeAtStart;
@@ -109,10 +106,9 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private void doSendAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
         while (shouldSendMore()) {
-            long position = chunkSize * chunkIndex.getAndIncrement();
-            AsyncRequestBody currentAsyncRequestBody = newFileAsyncRequestBody(position, simplePublisher);
+            AsyncRequestBody currentAsyncRequestBody = newFileAsyncRequestBody(simplePublisher);
             simplePublisher.send(currentAsyncRequestBody);
-            requestBodyStartPositionsInFlight.add(position);
+            numAsyncRequestBodiesInFlight.incrementAndGet();
             checkCompletion(simplePublisher, currentAsyncRequestBody);
         }
     }
@@ -130,12 +126,16 @@ public final class FileAsyncRequestBodySplitHelper {
         }
     }
 
-    private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher, long completedPosition) {
-        requestBodyStartPositionsInFlight.remove(completedPosition);
+    private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
+        int d = numAsyncRequestBodiesInFlight.decrementAndGet();
+        if (d < 0) {
+            throw new RuntimeException("Unexpected error occurred. numAsyncRequestBodiesInFlight is negative: " + d);
+        }
         sendAsyncRequestBody(simplePublisher);
     }
 
-    private AsyncRequestBody newFileAsyncRequestBody(long position, SimplePublisher<AsyncRequestBody> simplePublisher) {
+    private AsyncRequestBody newFileAsyncRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
+        long position = chunkSize * chunkIndex.getAndIncrement();
         long numBytesToReadForThisChunk = Math.min(totalContentLength - position, chunkSize);
         FileAsyncRequestBody fileAsyncRequestBody = FileAsyncRequestBody.builder()
                                                                         .path(path)
@@ -145,7 +145,7 @@ public final class FileAsyncRequestBodySplitHelper {
                                                                         .modifiedTimeAtStart(modifiedTimeAtStart)
                                                                         .sizeAtStart(sizeAtStart)
                                                                         .build();
-        return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher, position);
+        return new FileAsyncRequestBodyWrapper(fileAsyncRequestBody, simplePublisher);
     }
 
     /**
@@ -156,38 +156,43 @@ public final class FileAsyncRequestBodySplitHelper {
             return false;
         }
 
-        long currentUsedBuffer = (long) requestBodyStartPositionsInFlight.size() * bufferPerAsyncRequestBody;
+        long currentUsedBuffer = (long) numAsyncRequestBodiesInFlight.get() * bufferPerAsyncRequestBody;
         return currentUsedBuffer + bufferPerAsyncRequestBody <= totalBufferSize;
     }
 
     @SdkTestInternalApi
-    int numAsyncRequestBodiesInFlight() {
-        return requestBodyStartPositionsInFlight.size();
+    AtomicInteger numAsyncRequestBodiesInFlight() {
+        return numAsyncRequestBodiesInFlight;
     }
 
     private final class FileAsyncRequestBodyWrapper implements AsyncRequestBody {
 
         private final FileAsyncRequestBody fileAsyncRequestBody;
         private final SimplePublisher<AsyncRequestBody> simplePublisher;
-        private final long position;
+        private final AtomicBoolean isDone = new AtomicBoolean(false);
 
         FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
-                                    SimplePublisher<AsyncRequestBody> simplePublisher, long position) {
+                                    SimplePublisher<AsyncRequestBody> simplePublisher) {
             this.fileAsyncRequestBody = fileAsyncRequestBody;
             this.simplePublisher = simplePublisher;
-            this.position = position;
         }
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            fileAsyncRequestBody.doAfterOnComplete(() -> startNextRequestBody(simplePublisher, position))
+            fileAsyncRequestBody.doAfterOnComplete(this::startNextIfNeeded)
                                 // The reason we still need to call startNextRequestBody when the subscription is
                                 // cancelled is that upstream could cancel the subscription even though the stream has
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback
                                 // will never be invoked, and if the current buffer is full, the publisher will stop
                                 // sending new FileAsyncRequestBody, leading to uncompleted future.
-                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher, position))
+                                .doAfterOnCancel(this::startNextIfNeeded)
                                 .subscribe(s);
+        }
+
+        private void startNextIfNeeded() {
+            if (isDone.compareAndSet(false, true)) {
+                startNextRequestBody(simplePublisher);
+            }
         }
 
         @Override
