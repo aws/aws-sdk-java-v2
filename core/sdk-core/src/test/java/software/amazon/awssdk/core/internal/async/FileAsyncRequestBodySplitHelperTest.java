@@ -92,8 +92,8 @@ public class FileAsyncRequestBodySplitHelperTest {
             if (concurrency > maxConcurrency.get()) {
                 maxConcurrency.set(concurrency);
             }
-            assertThat(concurrency).isLessThan(10);
-            assertThat(concurrency).isGreaterThanOrEqualTo(0);
+            assertThat(helper.numAsyncRequestBodiesInFlight()).isLessThan(10);
+            assertThat(helper.numAsyncRequestBodiesInFlight()).isGreaterThanOrEqualTo(0);
         };
     }
 }
