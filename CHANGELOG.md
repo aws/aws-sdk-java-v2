@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.6__ __2025-11-13__
+## __AWS CloudFormation__
+  - ### Features
+    - CloudFormation now supports GetHookResult API with annotations to retrieve structured compliance check results and remediation guidance for each evaluated resource, replacing the previous single-message limitation with detailed validation outcomes.
+
+## __AWS Control Catalog__
+  - ### Features
+    - Added support for related control mappings with new RELATED_CONTROL mapping type in ListControlMappings API.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Lowers minimum duration for black video generator. Adds support for embedding and signing C2PA content credentials in DASH and CMAF HLS outputs.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Integration of Device Location with Amazon Sidewalk network for Amazon Sidewalk enabled devices
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for new accelerator types ("media") and accelerator names ("L4", "L40s", "GAUDI_HL_205", "INFERENTIA2", "TRAINIUM", "TRAINIUM2", "U30") in Attributes Based Instance Type Selection for launched instance types.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Amazon ECR FIPS PrivateLink endpoint support
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated endpoint and service metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for minor version upgrades and AWS Identity Center integration for SageMaker Hadron Partner Apps, enabling automated version management and IdC group-based access control.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Support for managing web content filtering for defining, tracking and regulating type of content accessed with WorkSpaces Secure Browser as part of browser settings.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - QUIC and TCP_QUIC protocol support for Network Load Balancer (NLB). This capability enables customers to forward QUIC traffic to their targets with ultra-low latency while maintaining session stickiness using QUIC Connection IDs.
+
 # __2.38.5__ __2025-11-12__
 ## __AWS Database Migration Service__
   - ### Features
