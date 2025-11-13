@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT Wireless",
-    "contributor": "",
-    "description": "Integration of Device Location with Amazon Sidewalk network for Amazon Sidewalk enabled devices"
-}

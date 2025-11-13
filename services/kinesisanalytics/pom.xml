@@ -22,7 +22,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.38.6-SNAPSHOT</version>
+        <version>2.38.6</version>
     </parent>
     <artifactId>kinesisanalytics</artifactId>
     <name>AWS Java SDK :: Services :: Amazon Kinesis Analytics</name>
