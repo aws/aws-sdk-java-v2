@@ -128,9 +128,6 @@ public final class FileAsyncRequestBodySplitHelper {
 
     private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
         int d = numAsyncRequestBodiesInFlight.decrementAndGet();
-        if (d < 0) {
-            throw new RuntimeException("Unexpected error occurred. numAsyncRequestBodiesInFlight is negative: " + d);
-        }
         sendAsyncRequestBody(simplePublisher);
     }
 
@@ -169,7 +166,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
         private final FileAsyncRequestBody fileAsyncRequestBody;
         private final SimplePublisher<AsyncRequestBody> simplePublisher;
-        private final AtomicBoolean isDone = new AtomicBoolean(false);
+        private final AtomicBoolean hasCompleted = new AtomicBoolean(false);
 
         FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
                                     SimplePublisher<AsyncRequestBody> simplePublisher) {
@@ -190,7 +187,7 @@ public final class FileAsyncRequestBodySplitHelper {
         }
 
         private void startNextIfNeeded() {
-            if (isDone.compareAndSet(false, true)) {
+            if (hasCompleted.compareAndSet(false, true)) {
                 startNextRequestBody(simplePublisher);
             }
         }
