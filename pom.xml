@@ -691,6 +691,7 @@
                             <exclude>software.amazon.awssdk.annotations.ReviewBeforeRelease</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <exclude>software.amazon.awssdk.services.rds.model.*</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
