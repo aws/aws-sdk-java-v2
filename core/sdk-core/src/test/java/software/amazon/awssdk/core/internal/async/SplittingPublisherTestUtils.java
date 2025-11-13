@@ -33,6 +33,7 @@ public final class SplittingPublisherTestUtils {
                                                         Path file,
                                                         int chunkSize) throws Exception {
 
+        long contentLength = file.toFile().length();
         List<CompletableFuture<ByteBuffer>> futures = new ArrayList<>();
         publisher.subscribe(requestBody -> {
             CompletableFuture<ByteBuffer> baosFuture = new CompletableFuture<>();
@@ -47,7 +48,6 @@ public final class SplittingPublisherTestUtils {
             futures.add(baosFuture);
         }).get(5, TimeUnit.SECONDS);
 
-        long contentLength = file.toFile().length();
         Assertions.assertThat(futures.size()).isEqualTo((int) Math.ceil(contentLength / (double) chunkSize));
 
         for (int i = 0; i < futures.size(); i++) {
