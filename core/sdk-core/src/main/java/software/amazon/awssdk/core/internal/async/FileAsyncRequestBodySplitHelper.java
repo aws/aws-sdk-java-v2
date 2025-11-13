@@ -127,7 +127,7 @@ public final class FileAsyncRequestBodySplitHelper {
     }
 
     private void startNextRequestBody(SimplePublisher<AsyncRequestBody> simplePublisher) {
-        int d = numAsyncRequestBodiesInFlight.decrementAndGet();
+        numAsyncRequestBodiesInFlight.decrementAndGet();
         sendAsyncRequestBody(simplePublisher);
     }
 
