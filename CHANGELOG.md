@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.7__ __2025-11-14__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Removed all the value constraint (min/max) for the shape definitions (e.g. integerMin0Max3600) on the C2j models to get rid of the need to request an exemption from the SDK team whenever a shape definition (e.g. integerMin0Max3600) is changed.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for granting read and write access to Amazon S3 general purpose buckets using CreateSubscriptionRequest and AcceptSubscriptionRequest APIs. Also adds search filters for SSOUser and SSOGroup to ListSubscriptions APIs and deprecates "sortBy" parameter for ListSubscriptions APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateInstanceConnectEndpoint, DescribeInstanceConnectEndpoints, and DeleteInstanceConnectEndpoint APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports invoking Lambda functions and executing Step Functions state machine through image workflows.
+
 # __2.38.6__ __2025-11-13__
 ## __AWS CloudFormation__
   - ### Features
