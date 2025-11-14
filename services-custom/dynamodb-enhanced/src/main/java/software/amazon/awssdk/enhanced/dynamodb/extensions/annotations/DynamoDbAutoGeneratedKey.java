@@ -54,9 +54,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbUpdat
  *
  * <h3>Behavior with UpdateBehavior</h3>
  * <p><strong>Primary Keys:</strong> {@link DynamoDbUpdateBehavior} has <strong>no effect</strong> on primary partition keys
- * or primary sort keys. Primary keys are required for UpdateItem operations in DynamoDB and cannot be conditionally
- * updated. UUIDs will be generated whenever the primary key attribute is missing or empty, regardless of any
- * {@code UpdateBehavior} setting.</p>
+ * or primary sort keys. Primary keys are immutable in DynamoDB and cannot use conditional update behaviors like
+ * {@link UpdateBehavior#WRITE_IF_NOT_EXISTS}. UUIDs will be generated whenever the primary key attribute is missing
+ * or empty, regardless of any {@code UpdateBehavior} setting.</p>
  *
  * <p><strong>Secondary Index Keys:</strong> For GSI/LSI keys, {@link DynamoDbUpdateBehavior} can be used:
  * <ul>
