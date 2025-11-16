@@ -1,4 +1,189 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.7__ __2025-11-14__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Removed all the value constraint (min/max) for the shape definitions (e.g. integerMin0Max3600) on the C2j models to get rid of the need to request an exemption from the SDK team whenever a shape definition (e.g. integerMin0Max3600) is changed.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for granting read and write access to Amazon S3 general purpose buckets using CreateSubscriptionRequest and AcceptSubscriptionRequest APIs. Also adds search filters for SSOUser and SSOGroup to ListSubscriptions APIs and deprecates "sortBy" parameter for ListSubscriptions APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateInstanceConnectEndpoint, DescribeInstanceConnectEndpoints, and DeleteInstanceConnectEndpoint APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports invoking Lambda functions and executing Step Functions state machine through image workflows.
+
+# __2.38.6__ __2025-11-13__
+## __AWS CloudFormation__
+  - ### Features
+    - CloudFormation now supports GetHookResult API with annotations to retrieve structured compliance check results and remediation guidance for each evaluated resource, replacing the previous single-message limitation with detailed validation outcomes.
+
+## __AWS Control Catalog__
+  - ### Features
+    - Added support for related control mappings with new RELATED_CONTROL mapping type in ListControlMappings API.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Lowers minimum duration for black video generator. Adds support for embedding and signing C2PA content credentials in DASH and CMAF HLS outputs.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Integration of Device Location with Amazon Sidewalk network for Amazon Sidewalk enabled devices
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for new accelerator types ("media") and accelerator names ("L4", "L40s", "GAUDI_HL_205", "INFERENTIA2", "TRAINIUM", "TRAINIUM2", "U30") in Attributes Based Instance Type Selection for launched instance types.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Amazon ECR FIPS PrivateLink endpoint support
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated endpoint and service metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for minor version upgrades and AWS Identity Center integration for SageMaker Hadron Partner Apps, enabling automated version management and IdC group-based access control.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Support for managing web content filtering for defining, tracking and regulating type of content accessed with WorkSpaces Secure Browser as part of browser settings.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - QUIC and TCP_QUIC protocol support for Network Load Balancer (NLB). This capability enables customers to forward QUIC traffic to their targets with ultra-low latency while maintaining session stickiness using QUIC Connection IDs.
+
+# __2.38.5__ __2025-11-12__
+## __AWS Database Migration Service__
+  - ### Features
+    - Added support of SQL statements creation, metadata model discovery and selection rules transformation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Updated Authentication Profile APIs to add support for automatic logout on user inactivity
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds complete AMI ancestry tracing from immediate parent through each preceding generation back to the root AMI
+
+## __Amazon Prometheus Service__
+  - ### Features
+    - Add VPC source configuration support enabling Amazon Managed Service for Prometheus Collector to collect metrics from MSK clusters.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added GetIdentityCenterAuthToken API to retrieve encrypted authentication tokens for Identity Center integrated applications. This API enables programmatic access to secure Identity Center tokens with proper error handling and parameter validation across supported SDK languages.
+
+## __Amazon S3 Tables__
+  - ### Features
+    - Adds support for request metrics metrics APIs for S3 Tables
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for trn2.3xlarge instance type for SageMaker Hyperpod
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release expands ALB Authentication to support JWT verification and adds support for a new JWT validation action in listener rule.
+
+# __2.38.4__ __2025-11-11__
+## __AWS Batch__
+  - ### Features
+    - Documentation-only update: update API and doc descriptions per EKS ImageType default value switch from AL2 to AL2023.
+
+## __AWS Health Imaging__
+  - ### Features
+    - Added new fields in existing APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports VPN connections with up to 5 Gbps bandwidth per tunnel, a 4x improvement from existing limit of 1.25 Gbps.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix NullPointerException when using AnonymousCredentials in a CredentialsChain with the S3 CRT Client.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Language Expansion feature for BDA Audio modality.
+
+## __RTBFabric__
+  - ### Features
+    - Added LogSettings and LinkAttribute fields to external links
+
+## __Security Incident Response__
+  - ### Features
+    - Added support for configuring communication preferences as well as clearly displaying case comment author identities.
+
+# __2.38.3__ __2025-11-10__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup supports backups of Amazon EKS clusters, including Kubernetes cluster state and persistent storage attached to the EKS cluster via a persistent volume claim (EBS volumes, EFS file systems, and S3 buckets).
+
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports ML-DSA key algorithms.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added CreateDelegationRequest API, which is not available for general use at this time.
+
+## __AWS Invoicing__
+  - ### Features
+    - Added new invoicing get-invoice-pdf API Operation
+
+## __AWS STS__
+  - ### Bugfixes
+    - Raise exceptions in resolveCredentials instead of creation for StsWebIdentityTokenFileCredentialsProvider
+
+## __AWS Security Token Service__
+  - ### Features
+    - Added GetDelegatedAccessToken API, which is not available for general use at this time.
+
+## __AWS WAFV2__
+  - ### Features
+    - AWS WAF now supports CLOUDWATCH_TELEMETRY_RULE_MANAGED as a LogScope option, enabling automated logging configuration through Amazon CloudWatch Logs for telemetry data collection and analysis.
+
+## __Amazon AppStream__
+  - ### Features
+    - AWS Appstream support for IPv6
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Cluster endpoint added to CreateCluster and GetCluster API responses
+
+## __Amazon DataZone__
+  - ### Features
+    - Remove trackingServerName from DataZone Connection MLflowProperties
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 Fleet customers can now filter instance types based on encryption-in-transit support using Attribute-Based Instance Type Selection (ABIS), eliminating the manual effort of identifying and selecting compatible instance types for security-sensitive workloads.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Include tags filed in CreatePublishingDestinationRequest and DescribePublishingDestinationResponse.
+
+## __Amazon Verified Permissions__
+  - ### Features
+    - Amazon Verified Permissions / Features : Adds support for entity Cedar tags.
+
+## __Braket__
+  - ### Features
+    - Adds ExperimentalCapabilities field to CreateQuantumTask request and GetQuantumTask response objects. Enables use of experimental software capabilities when creating quantum tasks.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK now supports intelligent rebalancing for MSK Express brokers.
+
 # __2.38.2__ __2025-11-07__
 ## __AWS Control Tower__
   - ### Features
