@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Parallel Computing Service",
-    "contributor": "",
-    "description": "Added support for the managed Slurm REST API endpoint"
-}
