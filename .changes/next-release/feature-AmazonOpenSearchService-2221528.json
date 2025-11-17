@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "This release adds index operation APIs to support Automatic Semantic Enrichment feature"
+}
