@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix an issue with `AsyncResponseTransformer.toBlockingInputStream()` where `read()` operations on the stream can hang if there if the transformer encounters an error while the stream is being read. Fixes [#5755](https://github.com/aws/aws-sdk-java-v2/issues/5755)."
+}
