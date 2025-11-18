@@ -6,7 +6,7 @@
     "endpointPrefix":"signin",
     "protocol":"rest-json",
     "protocols":["rest-json"],
-    "serviceFullName":"AWS Sign-In Data Plane",
+    "serviceFullName":"AWS Sign-In Service",
     "serviceId":"Signin",
     "signatureVersion":"v4",
     "signingName":"signin",
@@ -28,7 +28,9 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>"
+      "documentation":"<p>CreateOAuth2Token API</p> <p>Path: /v1/token Request Method: POST Content-Type: application/json or application/x-www-form-urlencoded</p> <p>This API implements OAuth 2.0 flows for AWS Sign-In CLI clients, supporting both:</p> <ol> <li>Authorization code redemption (grant_type=authorization_code) - NOT idempotent</li> <li>Token refresh (grant_type=refresh_token) - Idempotent within token validity window</li> </ol> <p>The operation behavior is determined by the grant_type parameter in the request body:</p> <p><strong>Authorization Code Flow (NOT Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=authorization_code, code, redirect_uri, code_verifier</li> <li>Returns access_token, token_type, expires_in, refresh_token, and id_token</li> <li>Each authorization code can only be used ONCE for security (prevents replay attacks)</li> </ul> <p><strong>Token Refresh Flow (Idempotent):</strong></p> <ul> <li>JSON or form-encoded body with client_id, grant_type=refresh_token, refresh_token</li> <li>Returns access_token, token_type, expires_in, and refresh_token (no id_token)</li> <li>Multiple calls with same refresh_token return consistent results within validity window</li> </ul> <p>Authentication and authorization:</p> <ul> <li>Confidential clients: sigv4 signing required with signin:ExchangeToken permissions</li> <li>CLI clients (public): authn/authz skipped based on client_id &amp; grant_type</li> </ul> <p>Note: This operation cannot be marked as @idempotent because it handles both idempotent (token refresh) and non-idempotent (auth code redemption) flows in a single endpoint.</p>",
+      "auth":["smithy.api#noAuth"],
+      "authtype":"none"
     }
   },
   "shapes":{
@@ -86,8 +88,8 @@
     },
     "ClientId":{
       "type":"string",
-      "documentation":"<p>Client identifier pattern for AWS Sign-In CLI clients</p> <p>The ARN used by client as part of Sign-In onboarding. Expected values:</p> <ul> <li>aws:signin:::cli/same-device (for CLI login on same device)</li> <li>aws:signin:::cli/cross-device (for cross-device CLI login)</li> <li>aws:signin:::cli/in-band (for in-band CLI login)</li> <li>aws:signin:::cli/out-of-band (for out-of-band CLI login)</li> </ul> <p>This will be finalized after consulting with UX as this is visible to end customer.</p>",
-      "pattern":"aws:signin:::cli/(same-device|cross-device|in-band|out-of-band)"
+      "documentation":"<p>Client identifier pattern for AWS Sign-In devtools clients</p> <p>The ARN used by client as part of Sign-In onboarding. Expected values:</p> <ul> <li>arn:aws:signin:::devtools/cross-device (for cross-device devtools login)</li> <li>arn:aws:signin:::devtools/same-device (for same-device devtools login)</li> </ul> <p>This will be finalized after consulting with UX as this is visible to end customer.</p>",
+      "pattern":"arn:aws:signin:::devtools/(cross-device|same-device)"
     },
     "CodeVerifier":{
       "type":"string",
@@ -313,5 +315,5 @@
       "exception":true
     }
   },
-  "documentation":"<p>AWS Sign-In Data Plane Service</p> <p>This service implements OAuth 2.0 flows for AWS CLI authentication, providing secure token exchange and refresh capabilities.</p>"
+  "documentation":"<p>AWS Sign-In manages authentication for AWS services. This service provides secure authentication flows for accessing AWS resources from the console and developer tools.</p>"
 }
