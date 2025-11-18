@@ -27,6 +27,7 @@ import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.poet.bddrules.BddtoEpRuleEndpointProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
@@ -52,7 +53,14 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         tasks.add(generateInterface());
         tasks.add(generateParams());
         if (shouldGenerateCompiledEndpointRules()) {
-            tasks.add(generateDefaultProvider2());
+            if (generatorTaskParams.getModel().getEndpointBddModel() == null) {
+                throw new RuntimeException("Endpoint BDD model is null");
+            }
+            if (generatorTaskParams.getModel().getEndpointBddModel() != null) {
+                tasks.add(generateDefaultProviderBdd());
+            } else {
+                tasks.add(generateDefaultProvider2());
+            }
             tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
             tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
         } else {
@@ -90,6 +98,14 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     private GeneratorTask generateDefaultProvider2() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec2(model));
+    }
+
+    private GeneratorTask generateDefaultProviderBdd() {
+        return new PoetGeneratorTask(
+            endpointRulesInternalDir(),
+            model.getFileHeader(),
+            new BddtoEpRuleEndpointProviderSpec(model)
+        );
     }
 
     private GeneratorTask generateDefaultPartitionsProvider() {

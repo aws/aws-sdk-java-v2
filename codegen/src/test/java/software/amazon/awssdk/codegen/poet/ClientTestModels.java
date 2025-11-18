@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -319,6 +320,29 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    public static IntermediateModel queryServiceModelsWithBddEndpoints() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-default-regional.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+        File endpointBddModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-default-regional.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .endpointBddModel(getEndpointBdd(endpointBddModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel granularAuthProvidersServiceModels() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/fine-grained-auth/service-2.json").getFile());
         File customizationModel =
@@ -601,6 +625,10 @@ public class ClientTestModels {
 
     private static EndpointTestSuiteModel getEndpointTestSuite(File file) {
         return ModelLoaderUtils.loadModel(EndpointTestSuiteModel.class, file);
+    }
+
+    private static EndpointBddModel getEndpointBdd(File file) {
+        return ModelLoaderUtils.loadModel(EndpointBddModel.class, file);
     }
 
     private static Paginators getPaginatorsModel(File file) {

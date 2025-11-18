@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -62,6 +63,7 @@ public class GenerationMojo extends AbstractMojo {
     private static final String PAGINATORS_FILE = "paginators-1.json";
     private static final String ENDPOINT_RULE_SET_FILE = "endpoint-rule-set.json";
     private static final String ENDPOINT_TESTS_FILE = "endpoint-tests.json";
+    private static final String ENDPOINT_BDD_FILE = "endpoint-bdd.json";
 
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
@@ -144,6 +146,7 @@ public class GenerationMojo extends AbstractMojo {
                                            .waitersModel(loadWaiterModel(modelRootPath))
                                            .paginatorsModel(loadPaginatorModel(modelRootPath))
                                            .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                           .endpointBddModel(loadEndpointBddModel(modelRootPath))
                                            .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
                                            .build();
             String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(c2jModels);
@@ -216,6 +219,10 @@ public class GenerationMojo extends AbstractMojo {
 
     private EndpointTestSuiteModel loadEndpointTestSuiteModel(Path root) {
         return loadOptionalModel(EndpointTestSuiteModel.class, root.resolve(ENDPOINT_TESTS_FILE)).orElse(null);
+    }
+
+    private EndpointBddModel loadEndpointBddModel(Path root) {
+        return loadOptionalModel(EndpointBddModel.class, root.resolve(ENDPOINT_BDD_FILE)).orElse(null);
     }
 
     /**
