@@ -1548,6 +1548,16 @@
       "output":{"shape":"CreateVpcPeeringConnectionResult"},
       "documentation":"<p>Requests a VPC peering connection between two VPCs: a requester VPC that you own and an accepter VPC with which to create the connection. The accepter VPC can belong to another Amazon Web Services account and can be in a different Region to the requester VPC. The requester VPC and accepter VPC cannot have overlapping CIDR blocks.</p> <note> <p>Limitations and rules apply to a VPC peering connection. For more information, see the <a href=\"https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html#vpc-peering-limitations\">VPC peering limitations</a> in the <i>VPC Peering Guide</i>.</p> </note> <p>The owner of the accepter VPC must accept the peering request to activate the peering connection. The VPC peering connection request expires after 7 days, after which it cannot be accepted or rejected.</p> <p>If you create a VPC peering connection request between VPCs with overlapping CIDR blocks, the VPC peering connection has a status of <code>failed</code>.</p>"
     },
+    "CreateVpnConcentrator":{
+      "name":"CreateVpnConcentrator",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreateVpnConcentratorRequest"},
+      "output":{"shape":"CreateVpnConcentratorResult"},
+      "documentation":"<p>Creates a VPN concentrator that aggregates multiple VPN connections to a transit gateway.</p>"
+    },
     "CreateVpnConnection":{
       "name":"CreateVpnConnection",
       "http":{
@@ -2382,6 +2392,16 @@
       "output":{"shape":"DeleteVpcPeeringConnectionResult"},
       "documentation":"<p>Deletes a VPC peering connection. Either the owner of the requester VPC or the owner of the accepter VPC can delete the VPC peering connection if it's in the <code>active</code> state. The owner of the requester VPC can delete a VPC peering connection in the <code>pending-acceptance</code> state. You cannot delete a VPC peering connection that's in the <code>failed</code> or <code>rejected</code> state.</p>"
     },
+    "DeleteVpnConcentrator":{
+      "name":"DeleteVpnConcentrator",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteVpnConcentratorRequest"},
+      "output":{"shape":"DeleteVpnConcentratorResult"},
+      "documentation":"<p>Deletes the specified VPN concentrator.</p>"
+    },
     "DeleteVpnConnection":{
       "name":"DeleteVpnConnection",
       "http":{
@@ -3108,6 +3128,26 @@
       "input":{"shape":"DescribeInstanceImageMetadataRequest"},
       "output":{"shape":"DescribeInstanceImageMetadataResult"},
       "documentation":"<p>Describes the AMI that was used to launch an instance, even if the AMI is deprecated, deregistered, made private (no longer public or shared with your account), or not allowed.</p> <p>If you specify instance IDs, the output includes information for only the specified instances. If you specify filters, the output includes information for only those instances that meet the filter criteria. If you do not specify instance IDs or filters, the output includes information for all instances, which can affect performance.</p> <p>If you specify an instance ID that is not valid, an instance that doesn't exist, or an instance that you do not own, an error (<code>InvalidInstanceID.NotFound</code>) is returned.</p> <p>Recently terminated instances might appear in the returned results. This interval is usually less than one hour.</p> <p>In the rare case where an Availability Zone is experiencing a service disruption and you specify instance IDs that are in the affected Availability Zone, or do not specify any instance IDs at all, the call fails. If you specify only instance IDs that are in an unaffected Availability Zone, the call works normally.</p> <note> <p>The order of the elements in the response, including those within nested structures, might vary. Applications should not assume the elements appear in a particular order.</p> </note>"
+    },
+    "DescribeInstanceSqlHaHistoryStates":{
+      "name":"DescribeInstanceSqlHaHistoryStates",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeInstanceSqlHaHistoryStatesRequest"},
+      "output":{"shape":"DescribeInstanceSqlHaHistoryStatesResult"},
+      "documentation":"<p>Describes the historical SQL Server High Availability states for Amazon EC2 instances that are enabled for Amazon EC2 High Availability for SQL Server monitoring.</p>"
+    },
+    "DescribeInstanceSqlHaStates":{
+      "name":"DescribeInstanceSqlHaStates",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeInstanceSqlHaStatesRequest"},
+      "output":{"shape":"DescribeInstanceSqlHaStatesResult"},
+      "documentation":"<p>Describes the SQL Server High Availability states for Amazon EC2 instances that are enabled for Amazon EC2 High Availability for SQL Server monitoring.</p>"
     },
     "DescribeInstanceStatus":{
       "name":"DescribeInstanceStatus",
@@ -4229,6 +4269,16 @@
       "output":{"shape":"DescribeVpcsResult"},
       "documentation":"<p>Describes your VPCs. The default is to describe all your VPCs. Alternatively, you can specify specific VPC IDs or filter the results to include only the VPCs that match specific criteria.</p>"
     },
+    "DescribeVpnConcentrators":{
+      "name":"DescribeVpnConcentrators",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribeVpnConcentratorsRequest"},
+      "output":{"shape":"DescribeVpnConcentratorsResult"},
+      "documentation":"<p>Describes one or more of your VPN concentrators.</p>"
+    },
     "DescribeVpnConnections":{
       "name":"DescribeVpnConnections",
       "http":{
@@ -4415,6 +4465,16 @@
       "input":{"shape":"DisableImageDeregistrationProtectionRequest"},
       "output":{"shape":"DisableImageDeregistrationProtectionResult"},
       "documentation":"<p>Disables deregistration protection for an AMI. When deregistration protection is disabled, the AMI can be deregistered.</p> <p>If you chose to include a 24-hour cooldown period when you enabled deregistration protection for the AMI, then, when you disable deregistration protection, you won’t immediately be able to deregister the AMI.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html\">Protect an Amazon EC2 AMI from deregistration</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
+    "DisableInstanceSqlHaStandbyDetections":{
+      "name":"DisableInstanceSqlHaStandbyDetections",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DisableInstanceSqlHaStandbyDetectionsRequest"},
+      "output":{"shape":"DisableInstanceSqlHaStandbyDetectionsResult"},
+      "documentation":"<p>Disable Amazon EC2 instances running in an SQL Server High Availability cluster from SQL Server High Availability instance standby detection monitoring. Once disabled, Amazon Web Services no longer monitors the metadata for the instances to determine whether they are active or standby nodes in the SQL Server High Availability cluster.</p>"
     },
     "DisableIpamOrganizationAdminAccount":{
       "name":"DisableIpamOrganizationAdminAccount",
@@ -4782,6 +4842,16 @@
       "input":{"shape":"EnableImageDeregistrationProtectionRequest"},
       "output":{"shape":"EnableImageDeregistrationProtectionResult"},
       "documentation":"<p>Enables deregistration protection for an AMI. When deregistration protection is enabled, the AMI can't be deregistered.</p> <p>To allow the AMI to be deregistered, you must first disable deregistration protection.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-deregistration-protection.html\">Protect an Amazon EC2 AMI from deregistration</a> in the <i>Amazon EC2 User Guide</i>.</p>"
+    },
+    "EnableInstanceSqlHaStandbyDetections":{
+      "name":"EnableInstanceSqlHaStandbyDetections",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"EnableInstanceSqlHaStandbyDetectionsRequest"},
+      "output":{"shape":"EnableInstanceSqlHaStandbyDetectionsResult"},
+      "documentation":"<p>Enable Amazon EC2 instances running in an SQL Server High Availability cluster for SQL Server High Availability instance standby detection monitoring. Once enabled, Amazon Web Services monitors the metadata for the instances to determine whether they are active or standby nodes in the SQL Server High Availability cluster. If the instances are determined to be standby failover nodes, Amazon Web Services automatically applies SQL Server licensing fee waiver for those instances.</p> <p>To register an instance, it must be running a Windows SQL Server license-included AMI and have the Amazon Web Services Systems Manager agent installed and running. Only Windows Server 2019 and later and SQL Server (Standard and Enterprise editions) 2017 and later are supported. For more information, see <a href=\"https://docs.aws.amazon.com/sql-server-ec2/latest/userguide/prerequisites-and-requirements.html\"> Prerequisites for using SQL Server High Availability instance standby detection</a>.</p>"
     },
     "EnableIpamOrganizationAdminAccount":{
       "name":"EnableIpamOrganizationAdminAccount",
@@ -7194,7 +7264,14 @@
         "v100",
         "a10g",
         "h100",
-        "t4g"
+        "t4g",
+        "l40s",
+        "l4",
+        "gaudi-hl-205",
+        "inferentia2",
+        "trainium",
+        "trainium2",
+        "u30"
       ]
     },
     "AcceleratorNameSet":{
@@ -7239,7 +7316,8 @@
       "enum":[
         "gpu",
         "fpga",
-        "inference"
+        "inference",
+        "media"
       ]
     },
     "AcceleratorTypeSet":{
@@ -19442,6 +19520,39 @@
         }
       }
     },
+    "CreateVpnConcentratorRequest":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"VpnConcentratorType",
+          "documentation":"<p>The type of VPN concentrator to create.</p>"
+        },
+        "TransitGatewayId":{
+          "shape":"TransitGatewayId",
+          "documentation":"<p>The ID of the transit gateway to attach the VPN concentrator to.</p>"
+        },
+        "TagSpecifications":{
+          "shape":"TagSpecificationList",
+          "documentation":"<p>The tags to apply to the VPN concentrator during creation.</p>",
+          "locationName":"TagSpecification"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "CreateVpnConcentratorResult":{
+      "type":"structure",
+      "members":{
+        "VpnConcentrator":{
+          "shape":"VpnConcentrator",
+          "documentation":"<p>Information about the VPN concentrator.</p>",
+          "locationName":"vpnConcentrator"
+        }
+      }
+    },
     "CreateVpnConnectionRequest":{
       "type":"structure",
       "required":[
@@ -19464,6 +19575,10 @@
         "TransitGatewayId":{
           "shape":"TransitGatewayId",
           "documentation":"<p>The ID of the transit gateway. If you specify a transit gateway, you cannot specify a virtual private gateway.</p>"
+        },
+        "VpnConcentratorId":{
+          "shape":"VpnConcentratorId",
+          "documentation":"<p>The ID of the VPN concentrator to associate with the VPN connection.</p>"
         },
         "TagSpecifications":{
           "shape":"TagSpecificationList",
@@ -22083,6 +22198,30 @@
           "shape":"Boolean",
           "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>",
           "locationName":"dryRun"
+        }
+      }
+    },
+    "DeleteVpnConcentratorRequest":{
+      "type":"structure",
+      "required":["VpnConcentratorId"],
+      "members":{
+        "VpnConcentratorId":{
+          "shape":"VpnConcentratorId",
+          "documentation":"<p>The ID of the VPN concentrator to delete.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DeleteVpnConcentratorResult":{
+      "type":"structure",
+      "members":{
+        "Return":{
+          "shape":"Boolean",
+          "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
+          "locationName":"return"
         }
       }
     },
@@ -25248,6 +25387,103 @@
         "NextToken":{
           "shape":"String",
           "documentation":"<p>The token to include in another request to get the next page of items. This value is <code>null</code> when there are no more items to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "DescribeInstanceSqlHaHistoryStatesRequest":{
+      "type":"structure",
+      "members":{
+        "InstanceIds":{
+          "shape":"InstanceIdStringList",
+          "documentation":"<p>The IDs of the SQL Server High Availability instances to describe. If omitted, the API returns historical states for all SQL Server High Availability instances.</p>",
+          "locationName":"InstanceId"
+        },
+        "StartTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The start data and time of the period for which to get the historical SQL Server High Availability states. If omitted, the API returns all available historical states.</p> <p>Timezone: UTC</p> <p>Format: <code>YYYY-MM-DDThh:mm:ss.sssZ</code> </p>"
+        },
+        "EndTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The end data and time of the period for which to get historical SQL Server High Availability states. If omitted, the API returns historical states up to the current date and time.</p> <p>Timezone: UTC</p> <p>Format: <code>YYYY-MM-DDThh:mm:ss.sssZ</code> </p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeInstanceSqlHaStatesRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of results to return for the request in a single page. The remaining results can be seen by sending another request with the returned <code>nextToken</code> value.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters to apply to the results. Supported filters include:</p> <ul> <li> <p> <code>tag:&lt;key&gt;</code> - The tag key and value pair assigned to the instance. For example, to find all instances tagged with <code>Owner:TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The tag key assigned to the instance.</p> </li> <li> <p> <code>haStatus</code> - The SQL Server High Availability status of the SQL Server High Availability instance (<code>processing</code> | <code>active</code> | <code>standby</code> | <code>invalid</code>).</p> </li> <li> <p> <code>sqlServerLicenseUsage</code> - The license type for the SQL Server license (<code>full</code> | <code>waived</code>).</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeInstanceSqlHaHistoryStatesResult":{
+      "type":"structure",
+      "members":{
+        "Instances":{
+          "shape":"RegisteredInstanceList",
+          "documentation":"<p>Information about the historical SQL Server High Availability states of the SQL Server High Availability instances.</p>",
+          "locationName":"instanceSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "DescribeInstanceSqlHaStatesRequest":{
+      "type":"structure",
+      "members":{
+        "InstanceIds":{
+          "shape":"InstanceIdStringList",
+          "documentation":"<p>The IDs of the SQL Server High Availability instances to describe. If omitted, the API returns SQL Server High Availability states for all SQL Server High Availability instances.</p>",
+          "locationName":"InstanceId"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"DescribeInstanceSqlHaStatesRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of results to return for the request in a single page. The remaining results can be seen by sending another request with the returned <code>nextToken</code> value.</p>"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters to apply to the results. Supported filters include:</p> <ul> <li> <p> <code>tag:&lt;key&gt;</code> - The tag key and value pair assigned to the instance. For example, to find all instances tagged with <code>Owner:TeamA</code>, specify <code>tag:Owner</code> for the filter name and <code>TeamA</code> for the filter value.</p> </li> <li> <p> <code>tag-key</code> - The tag key assigned to the instance.</p> </li> <li> <p> <code>haStatus</code> - The SQL Server High Availability status of the SQL Server High Availability instance (<code>processing</code> | <code>active</code> | <code>standby</code> | <code>invalid</code>).</p> </li> <li> <p> <code>sqlServerLicenseUsage</code> - The license type for the SQL Server license (<code>full</code> | <code>waived</code>).</p> </li> </ul>",
+          "locationName":"Filter"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeInstanceSqlHaStatesRequestMaxResultsInteger":{
+      "type":"integer",
+      "max":1000,
+      "min":1
+    },
+    "DescribeInstanceSqlHaStatesResult":{
+      "type":"structure",
+      "members":{
+        "Instances":{
+          "shape":"RegisteredInstanceList",
+          "documentation":"<p>Information about the SQL Server High Availability instances.</p>",
+          "locationName":"instanceSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
           "locationName":"nextToken"
         }
       }
@@ -30258,6 +30494,48 @@
         }
       }
     },
+    "DescribeVpnConcentratorsRequest":{
+      "type":"structure",
+      "members":{
+        "VpnConcentratorIds":{
+          "shape":"VpnConcentratorIdStringList",
+          "documentation":"<p>One or more VPN concentrator IDs.</p>",
+          "locationName":"VpnConcentratorId"
+        },
+        "Filters":{
+          "shape":"FilterList",
+          "documentation":"<p>One or more filters to limit the results.</p>",
+          "locationName":"Filter"
+        },
+        "MaxResults":{
+          "shape":"GVCDMaxResults",
+          "documentation":"<p>The maximum number of results to return with a single call. To retrieve the remaining results, make another call with the returned <code>nextToken</code> value.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next page of results.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DescribeVpnConcentratorsResult":{
+      "type":"structure",
+      "members":{
+        "VpnConcentrators":{
+          "shape":"VpnConcentratorList",
+          "documentation":"<p>Information about the VPN concentrators.</p>",
+          "locationName":"vpnConcentratorSet"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to use to retrieve the next page of results. This value is <code>null</code> when there are no more results to return.</p>",
+          "locationName":"nextToken"
+        }
+      }
+    },
     "DescribeVpnConnectionsRequest":{
       "type":"structure",
       "members":{
@@ -31150,6 +31428,31 @@
           "shape":"Boolean",
           "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
           "locationName":"return"
+        }
+      }
+    },
+    "DisableInstanceSqlHaStandbyDetectionsRequest":{
+      "type":"structure",
+      "required":["InstanceIds"],
+      "members":{
+        "InstanceIds":{
+          "shape":"InstanceIdUpdateStringList",
+          "documentation":"<p>The IDs of the instances to disable from SQL Server High Availability standby detection monitoring.</p>",
+          "locationName":"InstanceId"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "DisableInstanceSqlHaStandbyDetectionsResult":{
+      "type":"structure",
+      "members":{
+        "Instances":{
+          "shape":"RegisteredInstanceList",
+          "documentation":"<p>Information about the instances that were disabled from SQL Server High Availability standby detection monitoring.</p>",
+          "locationName":"instanceSet"
         }
       }
     },
@@ -32539,6 +32842,11 @@
           "shape":"InstanceConnectEndpointPublicDnsNames",
           "documentation":"<p>The public DNS names of the endpoint.</p>",
           "locationName":"publicDnsNames"
+        },
+        "AvailabilityZoneId":{
+          "shape":"AvailabilityZoneId",
+          "documentation":"<p>The ID of the Availability Zone of the EC2 Instance Connect Endpoint.</p>",
+          "locationName":"availabilityZoneId"
         }
       },
       "documentation":"<p>Describes an EC2 Instance Connect Endpoint.</p>"
@@ -33408,6 +33716,35 @@
           "shape":"Boolean",
           "documentation":"<p>Returns <code>true</code> if the request succeeds; otherwise, it returns an error.</p>",
           "locationName":"return"
+        }
+      }
+    },
+    "EnableInstanceSqlHaStandbyDetectionsRequest":{
+      "type":"structure",
+      "required":["InstanceIds"],
+      "members":{
+        "InstanceIds":{
+          "shape":"InstanceIdUpdateStringList",
+          "documentation":"<p>The IDs of the instances to enable for SQL Server High Availability standby detection monitoring.</p>",
+          "locationName":"InstanceId"
+        },
+        "SqlServerCredentials":{
+          "shape":"SecretArn",
+          "documentation":"<p>The ARN of the Secrets Manager secret containing the SQL Server access credentials. The specified secret must contain valid SQL Server credentials for the specified instances. If not specified, deafult local user credentials will be used by the Amazon Web Services Systems Manager agent. To enable instances with different credentials, you must make separate requests.</p>"
+        },
+        "DryRun":{
+          "shape":"Boolean",
+          "documentation":"<p>Checks whether you have the required permissions for the action, without actually making the request, and provides an error response. If you have the required permissions, the error response is <code>DryRunOperation</code>. Otherwise, it is <code>UnauthorizedOperation</code>.</p>"
+        }
+      }
+    },
+    "EnableInstanceSqlHaStandbyDetectionsResult":{
+      "type":"structure",
+      "members":{
+        "Instances":{
+          "shape":"RegisteredInstanceList",
+          "documentation":"<p>Information about the instances that were enabled for SQL Server High Availability standby detection monitoring.</p>",
+          "locationName":"instanceSet"
         }
       }
     },
@@ -38543,6 +38880,15 @@
         "locationName":"GroupName"
       }
     },
+    "HaStatus":{
+      "type":"string",
+      "enum":[
+        "processing",
+        "active",
+        "standby",
+        "invalid"
+      ]
+    },
     "HibernationFlag":{"type":"boolean"},
     "HibernationOptions":{
       "type":"structure",
@@ -41817,6 +42163,15 @@
         "locationName":"InstanceId"
       }
     },
+    "InstanceIdUpdateStringList":{
+      "type":"list",
+      "member":{
+        "shape":"InstanceId",
+        "locationName":"item"
+      },
+      "max":30,
+      "min":1
+    },
     "InstanceIdWithVolumeResolver":{"type":"string"},
     "InstanceIdsSet":{
       "type":"list",
@@ -42647,7 +43002,7 @@
         },
         "AcceleratorTypes":{
           "shape":"AcceleratorTypeSet",
-          "documentation":"<p>The accelerator types that must be on the instance type.</p> <ul> <li> <p>For instance types with FPGA accelerators, specify <code>fpga</code>.</p> </li> <li> <p>For instance types with GPU accelerators, specify <code>gpu</code>.</p> </li> <li> <p>For instance types with Inference accelerators, specify <code>inference</code>.</p> </li> </ul> <p>Default: Any accelerator type</p>",
+          "documentation":"<p>The accelerator types that must be on the instance type.</p> <ul> <li> <p>For instance types with FPGA accelerators, specify <code>fpga</code>.</p> </li> <li> <p>For instance types with GPU accelerators, specify <code>gpu</code>.</p> </li> <li> <p>For instance types with Inference accelerators, specify <code>inference</code>.</p> </li> <li> <p>For instance types with Media accelerators, specify <code>media</code>.</p> </li> </ul> <p>Default: Any accelerator type</p>",
           "locationName":"acceleratorTypeSet"
         },
         "AcceleratorCount":{
@@ -42662,7 +43017,7 @@
         },
         "AcceleratorNames":{
           "shape":"AcceleratorNameSet",
-          "documentation":"<p>The accelerators that must be on the instance type.</p> <ul> <li> <p>For instance types with NVIDIA A10G GPUs, specify <code>a10g</code>.</p> </li> <li> <p>For instance types with NVIDIA A100 GPUs, specify <code>a100</code>.</p> </li> <li> <p>For instance types with NVIDIA H100 GPUs, specify <code>h100</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia chips, specify <code>inferentia</code>.</p> </li> <li> <p>For instance types with NVIDIA GRID K520 GPUs, specify <code>k520</code>.</p> </li> <li> <p>For instance types with NVIDIA K80 GPUs, specify <code>k80</code>.</p> </li> <li> <p>For instance types with NVIDIA M60 GPUs, specify <code>m60</code>.</p> </li> <li> <p>For instance types with AMD Radeon Pro V520 GPUs, specify <code>radeon-pro-v520</code>.</p> </li> <li> <p>For instance types with NVIDIA T4 GPUs, specify <code>t4</code>.</p> </li> <li> <p>For instance types with NVIDIA T4G GPUs, specify <code>t4g</code>.</p> </li> <li> <p>For instance types with Xilinx VU9P FPGAs, specify <code>vu9p</code>.</p> </li> <li> <p>For instance types with NVIDIA V100 GPUs, specify <code>v100</code>.</p> </li> </ul> <p>Default: Any accelerator</p>",
+          "documentation":"<p>The accelerators that must be on the instance type.</p> <ul> <li> <p>For instance types with NVIDIA A10G GPUs, specify <code>a10g</code>.</p> </li> <li> <p>For instance types with NVIDIA A100 GPUs, specify <code>a100</code>.</p> </li> <li> <p>For instance types with NVIDIA H100 GPUs, specify <code>h100</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia chips, specify <code>inferentia</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia2 chips, specify <code>inferentia2</code>.</p> </li> <li> <p>For instance types with Habana Gaudi HL-205 GPUs, specify <code>gaudi-hl-205</code>.</p> </li> <li> <p>For instance types with NVIDIA GRID K520 GPUs, specify <code>k520</code>.</p> </li> <li> <p>For instance types with NVIDIA K80 GPUs, specify <code>k80</code>.</p> </li> <li> <p>For instance types with NVIDIA L4 GPUs, specify <code>l4</code>.</p> </li> <li> <p>For instance types with NVIDIA L40S GPUs, specify <code>l40s</code>.</p> </li> <li> <p>For instance types with NVIDIA M60 GPUs, specify <code>m60</code>.</p> </li> <li> <p>For instance types with AMD Radeon Pro V520 GPUs, specify <code>radeon-pro-v520</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Trainium chips, specify <code>trainium</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Trainium2 chips, specify <code>trainium2</code>.</p> </li> <li> <p>For instance types with NVIDIA T4 GPUs, specify <code>t4</code>.</p> </li> <li> <p>For instance types with NVIDIA T4G GPUs, specify <code>t4g</code>.</p> </li> <li> <p>For instance types with Xilinx U30 cards, specify <code>u30</code>.</p> </li> <li> <p>For instance types with Xilinx VU9P FPGAs, specify <code>vu9p</code>.</p> </li> <li> <p>For instance types with NVIDIA V100 GPUs, specify <code>v100</code>.</p> </li> </ul> <p>Default: Any accelerator</p>",
           "locationName":"acceleratorNameSet"
         },
         "AcceleratorTotalMemoryMiB":{
@@ -42775,7 +43130,7 @@
         },
         "AcceleratorTypes":{
           "shape":"AcceleratorTypeSet",
-          "documentation":"<p>The accelerator types that must be on the instance type.</p> <ul> <li> <p>For instance types with FPGA accelerators, specify <code>fpga</code>.</p> </li> <li> <p>For instance types with GPU accelerators, specify <code>gpu</code>.</p> </li> <li> <p>For instance types with Inference accelerators, specify <code>inference</code>.</p> </li> </ul> <p>Default: Any accelerator type</p>",
+          "documentation":"<p>The accelerator types that must be on the instance type.</p> <ul> <li> <p>For instance types with FPGA accelerators, specify <code>fpga</code>.</p> </li> <li> <p>For instance types with GPU accelerators, specify <code>gpu</code>.</p> </li> <li> <p>For instance types with Inference accelerators, specify <code>inference</code>.</p> </li> <li> <p>For instance types with Media accelerators, specify <code>media</code>.</p> </li> </ul> <p>Default: Any accelerator type</p>",
           "locationName":"AcceleratorType"
         },
         "AcceleratorCount":{
@@ -42789,7 +43144,7 @@
         },
         "AcceleratorNames":{
           "shape":"AcceleratorNameSet",
-          "documentation":"<p>The accelerators that must be on the instance type.</p> <ul> <li> <p>For instance types with NVIDIA A10G GPUs, specify <code>a10g</code>.</p> </li> <li> <p>For instance types with NVIDIA A100 GPUs, specify <code>a100</code>.</p> </li> <li> <p>For instance types with NVIDIA H100 GPUs, specify <code>h100</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia chips, specify <code>inferentia</code>.</p> </li> <li> <p>For instance types with NVIDIA GRID K520 GPUs, specify <code>k520</code>.</p> </li> <li> <p>For instance types with NVIDIA K80 GPUs, specify <code>k80</code>.</p> </li> <li> <p>For instance types with NVIDIA M60 GPUs, specify <code>m60</code>.</p> </li> <li> <p>For instance types with AMD Radeon Pro V520 GPUs, specify <code>radeon-pro-v520</code>.</p> </li> <li> <p>For instance types with NVIDIA T4 GPUs, specify <code>t4</code>.</p> </li> <li> <p>For instance types with NVIDIA T4G GPUs, specify <code>t4g</code>.</p> </li> <li> <p>For instance types with Xilinx VU9P FPGAs, specify <code>vu9p</code>.</p> </li> <li> <p>For instance types with NVIDIA V100 GPUs, specify <code>v100</code>.</p> </li> </ul> <p>Default: Any accelerator</p>",
+          "documentation":"<p>The accelerators that must be on the instance type.</p> <ul> <li> <p>For instance types with NVIDIA A10G GPUs, specify <code>a10g</code>.</p> </li> <li> <p>For instance types with NVIDIA A100 GPUs, specify <code>a100</code>.</p> </li> <li> <p>For instance types with NVIDIA H100 GPUs, specify <code>h100</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia chips, specify <code>inferentia</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Inferentia2 chips, specify <code>inferentia2</code>.</p> </li> <li> <p>For instance types with Habana Gaudi HL-205 GPUs, specify <code>gaudi-hl-205</code>.</p> </li> <li> <p>For instance types with NVIDIA GRID K520 GPUs, specify <code>k520</code>.</p> </li> <li> <p>For instance types with NVIDIA K80 GPUs, specify <code>k80</code>.</p> </li> <li> <p>For instance types with NVIDIA L4 GPUs, specify <code>l4</code>.</p> </li> <li> <p>For instance types with NVIDIA L40S GPUs, specify <code>l40s</code>.</p> </li> <li> <p>For instance types with NVIDIA M60 GPUs, specify <code>m60</code>.</p> </li> <li> <p>For instance types with AMD Radeon Pro V520 GPUs, specify <code>radeon-pro-v520</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Trainium chips, specify <code>trainium</code>.</p> </li> <li> <p>For instance types with Amazon Web Services Trainium2 chips, specify <code>trainium2</code>.</p> </li> <li> <p>For instance types with NVIDIA T4 GPUs, specify <code>t4</code>.</p> </li> <li> <p>For instance types with NVIDIA T4G GPUs, specify <code>t4g</code>.</p> </li> <li> <p>For instance types with Xilinx U30 cards, specify <code>u30</code>.</p> </li> <li> <p>For instance types with Xilinx VU9P FPGAs, specify <code>vu9p</code>.</p> </li> <li> <p>For instance types with NVIDIA V100 GPUs, specify <code>v100</code>.</p> </li> </ul> <p>Default: Any accelerator</p>",
           "locationName":"AcceleratorName"
         },
         "AcceleratorTotalMemoryMiB":{
@@ -57988,6 +58343,54 @@
         }
       }
     },
+    "RegisteredInstance":{
+      "type":"structure",
+      "members":{
+        "InstanceId":{
+          "shape":"InstanceId",
+          "documentation":"<p>The ID of the SQL Server High Availability instance.</p>",
+          "locationName":"instanceId"
+        },
+        "SqlServerLicenseUsage":{
+          "shape":"SqlServerLicenseUsage",
+          "documentation":"<p>The license type for the SQL Server license. Valid values include:</p> <ul> <li> <p> <code>full</code> - The SQL Server High Availability instance is using a full SQL Server license.</p> </li> <li> <p> <code>waived</code> - The SQL Server High Availability instance is waived from the SQL Server license.</p> </li> </ul>",
+          "locationName":"sqlServerLicenseUsage"
+        },
+        "HaStatus":{
+          "shape":"HaStatus",
+          "documentation":"<p>The SQL Server High Availability status of the instance. Valid values are:</p> <ul> <li> <p> <code>processing</code> - The SQL Server High Availability status for the SQL Server High Availability instance is being updated.</p> </li> <li> <p> <code>active</code> - The SQL Server High Availability instance is an active node in an SQL Server High Availability cluster.</p> </li> <li> <p> <code>standby</code> - The SQL Server High Availability instance is a standby failover node in an SQL Server High Availability cluster.</p> </li> <li> <p> <code>invalid</code> - An error occurred due to misconfigured permissions, or unable to dertemine SQL Server High Availability status for the SQL Server High Availability instance.</p> </li> </ul>",
+          "locationName":"haStatus"
+        },
+        "ProcessingStatus":{
+          "shape":"String",
+          "documentation":"<p>A brief description of the SQL Server High Availability status. If the instance is in the <code>invalid</code> High Availability status, this parameter includes the error message.</p>",
+          "locationName":"processingStatus"
+        },
+        "LastUpdatedTime":{
+          "shape":"MillisecondDateTime",
+          "documentation":"<p>The date and time when the instance's SQL Server High Availability status was last updated, in the ISO 8601 format in the UTC time zone (<code>YYYY-MM-DDThh:mm:ss.sssZ</code>).</p>",
+          "locationName":"lastUpdatedTime"
+        },
+        "SqlServerCredentials":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the Secrets Manager secret containing the SQL Server access credentials for the SQL Server High Availability instance. If not specified, deafult local user credentials will be used by the Amazon Web Services Systems Manager agent.</p>",
+          "locationName":"sqlServerCredentials"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags assigned to the SQL Server High Availability instance.</p>",
+          "locationName":"tagSet"
+        }
+      },
+      "documentation":"<p>Describes an Amazon EC2 instance that is enabled for SQL Server High Availability standby detection monitoring.</p>"
+    },
+    "RegisteredInstanceList":{
+      "type":"list",
+      "member":{
+        "shape":"RegisteredInstance",
+        "locationName":"item"
+      }
+    },
     "RejectCapacityReservationBillingOwnershipRequest":{
       "type":"structure",
       "required":["CapacityReservationId"],
@@ -60151,7 +60554,8 @@
         "mac-modification-task",
         "ipam-prefix-list-resolver",
         "ipam-prefix-list-resolver-target",
-        "capacity-manager-data-export"
+        "capacity-manager-data-export",
+        "vpn-concentrator"
       ]
     },
     "ResourceTypeOption":{
@@ -62686,6 +63090,10 @@
         }
       }
     },
+    "SecretArn":{
+      "type":"string",
+      "pattern":"^(?=.{20,2048}$)arn:aws[a-z-]*:secretsmanager:[a-z0-9-]+:\\d{12}:secret:[a-zA-Z0-9/_+=.@-]+"
+    },
     "SecurityGroup":{
       "type":"structure",
       "members":{
@@ -64837,6 +65245,13 @@
         "rack"
       ]
     },
+    "SqlServerLicenseUsage":{
+      "type":"string",
+      "enum":[
+        "full",
+        "waived"
+      ]
+    },
     "StaleIpPermission":{
       "type":"structure",
       "members":{
@@ -66901,6 +67316,7 @@
       "enum":[
         "vpc",
         "vpn",
+        "vpn-concentrator",
         "direct-connect-gateway",
         "connect",
         "peering",
@@ -71780,6 +72196,61 @@
       "type":"string",
       "enum":["default"]
     },
+    "VpnConcentrator":{
+      "type":"structure",
+      "members":{
+        "VpnConcentratorId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the VPN concentrator.</p>",
+          "locationName":"vpnConcentratorId"
+        },
+        "State":{
+          "shape":"String",
+          "documentation":"<p>The current state of the VPN concentrator.</p>",
+          "locationName":"state"
+        },
+        "TransitGatewayId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the transit gateway associated with the VPN concentrator.</p>",
+          "locationName":"transitGatewayId"
+        },
+        "TransitGatewayAttachmentId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the transit gateway attachment for the VPN concentrator.</p>",
+          "locationName":"transitGatewayAttachmentId"
+        },
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of VPN concentrator.</p>",
+          "locationName":"type"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Any tags assigned to the VPN concentrator.</p>",
+          "locationName":"tagSet"
+        }
+      },
+      "documentation":"<p>Describes a VPN concentrator.</p>"
+    },
+    "VpnConcentratorId":{"type":"string"},
+    "VpnConcentratorIdStringList":{
+      "type":"list",
+      "member":{
+        "shape":"VpnConcentratorId",
+        "locationName":"VpnConcentratorId"
+      }
+    },
+    "VpnConcentratorList":{
+      "type":"list",
+      "member":{
+        "shape":"VpnConcentrator",
+        "locationName":"item"
+      }
+    },
+    "VpnConcentratorType":{
+      "type":"string",
+      "enum":["ipsec.1"]
+    },
     "VpnConnection":{
       "type":"structure",
       "members":{
@@ -71792,6 +72263,11 @@
           "shape":"String",
           "documentation":"<p>The ID of the transit gateway associated with the VPN connection.</p>",
           "locationName":"transitGatewayId"
+        },
+        "VpnConcentratorId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the VPN concentrator associated with the VPN connection.</p>",
+          "locationName":"vpnConcentratorId"
         },
         "CoreNetworkArn":{
           "shape":"String",

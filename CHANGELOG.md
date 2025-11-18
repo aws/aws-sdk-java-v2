@@ -1,4 +1,187 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.9__ __2025-11-18__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup now supports a low-cost warm storage tier for Amazon S3 backup data.
+
+## __AWS CloudFormation__
+  - ### Features
+    - New CloudFormation DescribeEvents API with operation ID tracking and failure filtering capabilities to quickly identify root causes of deployment failures. Also, a DeploymentMode parameter for the CreateChangeSet API that enables creation of drift-aware change sets for safe drift management.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added the AssociateDelegationRequest, GetDelegationRequest, AcceptDelegationRequest, RejectDelegatonRequest, ListDelegationRequests, UpdateDelegationRequest, SendDelegationToken and GetHumanReadableSummary APIs for the IAM temporary delegation feature.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Add support for new ListRequiredTags API used to retrieve the required tags specified in a customer's effective tag policy.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue with `AsyncResponseTransformer.toBlockingInputStream()` where `read()` operations on the stream can hang if there if the transformer encounters an error while the stream is being read. Fixes [#5755](https://github.com/aws/aws-sdk-java-v2/issues/5755).
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adds support for European Sovereign Cloud ARNs in Storage Gateway API parameters.
+
+## __AWS WAFV2__
+  - ### Features
+    - AssociateWebACL, UpdateWebACL and PutLoggingConfiguration will now throw WAFFeatureNotIncludedInPricingPlanException when the request contains a feature that is not included in the CloudFront pricing plan of the WebACL.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Runtime Service Tier Support Launch
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs updates: Added capability to setup a recurring schedule for log insights queries. Logs introduced Scheduled Queries (managed through Create/Update/Get/Delete/List/History Scheduled Query APIs). For more information, see CloudWatch Logs API documentation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release added support for ring timer configuration for campaign calls.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports VPN Concentrator, a new feature that enables customers to connect multiple low-bandwidth sites connections through a single attachment, simplifying multi-site connectivity for distributed enterprises.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds the new LaunchInstances API, which can launch instances synchronously in an AutoScaling group. The API also returns instances info and launch error back immediately.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK adds three new APIs, ListTopics, DescribeTopic, and DescribeTopicPartitions for viewing Kafka topics in your MSK clusters.
+
+# __2.38.8__ __2025-11-17__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup now supports specifying a logically air-gapped backup vault as a primary backup target in backup plans and on-demand backup jobs.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - This release introduces the SAP ASE(Sybase) Data Provider for AWS Data Migration Service (DMS). In addition, DMS Schema Conversion now supports this provider, enabling customers to migrate SAP ASE(Sybase) databases to Amazon RDS for PostgreSQL or Aurora PostgreSQL seamlessly.
+
+## __AWS Device Farm__
+  - ### Features
+    - This release adds support for interacting with devices during a remote access session using the remoteDriverEndpoint interface
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Adds configurations for spatial/temporal adaptive quantization in AV1 codec, and conversion to HLG output color space in H265 codec.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Add support for SCTE messages in Segment file output
+
+## __AWS Glue__
+  - ### Features
+    - Amazon Glue Releasing 2 the new API ListIntegrationResourceProperties and DeleteIntegrationResourceProperty along with minor improvement on existing API(s).
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Added support for the managed Slurm REST API endpoint
+
+## __Amazon AppStream__
+  - ### Features
+    - Adding support for additional instances and extended storage
+
+## __Amazon Bedrock__
+  - ### Features
+    - Automated Reasoning checks in Amazon Bedrock Guardrails now automatically generate Q&A tests for new Automated Reasoning policies. The GetAutomatedReasoningPolicyBuildWorkflowResultAssets API adds GENERATED_TEST_CASES asset type, allowing customers to retrieve tests generated by the build workflow.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release introduces new APIs: DescribeInstanceSqlHaStates, DescribeInstanceSqlHaHistoryStates, EnableInstanceSqlHaStandbyDetections and DisableInstanceSqlHaStandbyDetections on Amazon EC2, allowing customers to enroll and monitor SQL Server licensing fee savings for their SQL HA EC2 instances.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add S3 On-Demand Object Scanning
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for LLM as Primary, allowing usage of LLMs as the default NLU system.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds index operation APIs to support Automatic Semantic Enrichment feature
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adding DICTIONARY_DGA to dns-threat-protection as a new enum type. Customers can now set rules for dictionary dga protection
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix bug in S3 Multipart uploads with FileAsyncRequestBody - ensure that concurrency is limited correctly by bufferSizeInBytes
+
+## __AmazonMWAAServerless__
+  - ### Features
+    - Amazon MWAA now offers serverless deployment, eliminating operational overhead while optimizing costs. The service supports YAML and Python-based workflows, with 80+ AWS Operators. It provides isolated execution, IAM permissions, and automatic scaling with pay-per-use pricing.
+
+# __2.38.7__ __2025-11-14__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Removed all the value constraint (min/max) for the shape definitions (e.g. integerMin0Max3600) on the C2j models to get rid of the need to request an exemption from the SDK team whenever a shape definition (e.g. integerMin0Max3600) is changed.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for granting read and write access to Amazon S3 general purpose buckets using CreateSubscriptionRequest and AcceptSubscriptionRequest APIs. Also adds search filters for SSOUser and SSOGroup to ListSubscriptions APIs and deprecates "sortBy" parameter for ListSubscriptions APIs.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateInstanceConnectEndpoint, DescribeInstanceConnectEndpoints, and DeleteInstanceConnectEndpoint APIs.
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now supports invoking Lambda functions and executing Step Functions state machine through image workflows.
+
+# __2.38.6__ __2025-11-13__
+## __AWS CloudFormation__
+  - ### Features
+    - CloudFormation now supports GetHookResult API with annotations to retrieve structured compliance check results and remediation guidance for each evaluated resource, replacing the previous single-message limitation with detailed validation outcomes.
+
+## __AWS Control Catalog__
+  - ### Features
+    - Added support for related control mappings with new RELATED_CONTROL mapping type in ListControlMappings API.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Lowers minimum duration for black video generator. Adds support for embedding and signing C2PA content credentials in DASH and CMAF HLS outputs.
+
+## __AWS IoT Wireless__
+  - ### Features
+    - Integration of Device Location with Amazon Sidewalk network for Amazon Sidewalk enabled devices
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Added support for new accelerator types ("media") and accelerator names ("L4", "L40s", "GAUDI_HL_205", "INFERENTIA2", "TRAINIUM", "TRAINIUM2", "U30") in Attributes Based Instance Type Selection for launched instance types.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add Amazon ECR FIPS PrivateLink endpoint support
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Updated endpoint and service metadata
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added support for minor version upgrades and AWS Identity Center integration for SageMaker Hadron Partner Apps, enabling automated version management and IdC group-based access control.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Support for managing web content filtering for defining, tracking and regulating type of content accessed with WorkSpaces Secure Browser as part of browser settings.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - QUIC and TCP_QUIC protocol support for Network Load Balancer (NLB). This capability enables customers to forward QUIC traffic to their targets with ultra-low latency while maintaining session stickiness using QUIC Connection IDs.
+
 # __2.38.5__ __2025-11-12__
 ## __AWS Database Migration Service__
   - ### Features
