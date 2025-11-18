@@ -58,4 +58,11 @@ class EndpointProviderCompiledRulesClassSpecTest {
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-metric-values-class.java"));
     }
+
+    @Test
+    void endpointProviderClassWithCoalesce() {
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithCoalesceEndpoints());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-coalesce-class.java"));
+    }
 }

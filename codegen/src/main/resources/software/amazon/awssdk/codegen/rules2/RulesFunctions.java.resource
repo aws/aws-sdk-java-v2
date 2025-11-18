@@ -135,6 +135,22 @@ public class RulesFunctions {
         return VIRTUAL_HOSTABLE_BUCKET_NO_SUBDOMAINS.matcher(hostLabel).matches();
     }
 
+    @SafeVarargs
+    public static <T> T coalesce(T... args) {
+        if (args == null || args.length < 2) {
+            throw new IllegalArgumentException("coalesce requires at least two arguments");
+        }
+
+        for (T arg : args) {
+            if (arg != null) {
+                return arg;
+            }
+        }
+
+        // All preceding arguments empty, return last argument (even if empty)
+        return args[args.length - 1];
+    }
+
     private static PartitionData loadPartitionData() {
         PartitionDataProvider provider = new DefaultPartitionDataProvider();
 

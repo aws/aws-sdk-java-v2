@@ -82,6 +82,19 @@ public final class AssignTypesVisitor extends RewriteRuleExpressionVisitor {
                 } else {
                     expr = expr.toBuilder().type(RuleRuntimeTypeMirror.BOOLEAN).build();
                 }
+            } else if ("coalesce".equals(name)) {
+                if (expr.arguments().size() < 2) {
+                    addError("Function `coalesce` expects at least two arguments, got `%s`", expr.arguments());
+                }
+                RuleType argumentType = expr.arguments().get(0).type();
+                expr.arguments().forEach(arg -> {
+                    if (!arg.type().equals(argumentType)) {
+                        addError("Function `coalesce` expects all arguments to be of the same type. "
+                                 + "Expected argument `%s` to be `%s`, got `%s`",
+                                 arg, argumentType, arg.type());
+                    }
+                });
+                expr = expr.toBuilder().type(argumentType).build();
             } else {
                 addError("Function `%s` not found", name);
             }

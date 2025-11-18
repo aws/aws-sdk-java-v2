@@ -1,0 +1,29 @@
+{
+  "version": "1.1",
+  "parameters": {
+    "bar": {
+      "type": "string",
+      "documentation": "docs"
+    },
+    "baz": {
+      "type": "string",
+      "documentation": "docs"
+    }
+  },
+  "rules": [
+    {
+      "documentation": "Template baz into URI when bar is set",
+      "conditions": [
+        {
+          "fn": "coalesce",
+          "argv": [{"ref": "bar"}, {"ref": "baz"}, "oops"],
+          "assign": "hi"
+        }
+      ],
+      "endpoint": {
+        "url": "https://example.com/{hi}"
+      },
+      "type": "endpoint"
+    }
+  ]
+}
