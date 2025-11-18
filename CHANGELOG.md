@@ -1,4 +1,60 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.38.9__ __2025-11-18__
+## __AWS Backup__
+  - ### Features
+    - AWS Backup now supports a low-cost warm storage tier for Amazon S3 backup data.
+
+## __AWS CloudFormation__
+  - ### Features
+    - New CloudFormation DescribeEvents API with operation ID tracking and failure filtering capabilities to quickly identify root causes of deployment failures. Also, a DeploymentMode parameter for the CreateChangeSet API that enables creation of drift-aware change sets for safe drift management.
+
+## __AWS Identity and Access Management__
+  - ### Features
+    - Added the AssociateDelegationRequest, GetDelegationRequest, AcceptDelegationRequest, RejectDelegatonRequest, ListDelegationRequests, UpdateDelegationRequest, SendDelegationToken and GetHumanReadableSummary APIs for the IAM temporary delegation feature.
+
+## __AWS Resource Groups Tagging API__
+  - ### Features
+    - Add support for new ListRequiredTags API used to retrieve the required tags specified in a customer's effective tag policy.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix an issue with `AsyncResponseTransformer.toBlockingInputStream()` where `read()` operations on the stream can hang if there if the transformer encounters an error while the stream is being read. Fixes [#5755](https://github.com/aws/aws-sdk-java-v2/issues/5755).
+
+## __AWS Storage Gateway__
+  - ### Features
+    - Adds support for European Sovereign Cloud ARNs in Storage Gateway API parameters.
+
+## __AWS WAFV2__
+  - ### Features
+    - AssociateWebACL, UpdateWebACL and PutLoggingConfiguration will now throw WAFFeatureNotIncludedInPricingPlanException when the request contains a feature that is not included in the CloudFront pricing plan of the WebACL.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Runtime Service Tier Support Launch
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - CloudWatch Logs updates: Added capability to setup a recurring schedule for log insights queries. Logs introduced Scheduled Queries (managed through Create/Update/Get/Delete/List/History Scheduled Query APIs). For more information, see CloudWatch Logs API documentation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release added support for ring timer configuration for campaign calls.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Site-to-Site VPN now supports VPN Concentrator, a new feature that enables customers to connect multiple low-bandwidth sites connections through a single attachment, simplifying multi-site connectivity for distributed enterprises.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds the new LaunchInstances API, which can launch instances synchronously in an AutoScaling group. The API also returns instances info and launch error back immediately.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK adds three new APIs, ListTopics, DescribeTopic, and DescribeTopicPartitions for viewing Kafka topics in your MSK clusters.
+
 # __2.38.8__ __2025-11-17__
 ## __AWS Backup__
   - ### Features

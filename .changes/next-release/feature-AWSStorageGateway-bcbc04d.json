@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Storage Gateway",
-    "contributor": "",
-    "description": "Adds support for European Sovereign Cloud ARNs in Storage Gateway API parameters."
-}
