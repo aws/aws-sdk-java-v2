@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Billing and Cost Management Pricing Calculator",
+    "contributor": "",
+    "description": "Add GroupSharingPreference, CostCategoryGroupSharingPreferenceArn, and CostCategoryGroupSharingPreferenceEffectiveDate to Bill Estimate. Add GroupSharingPreference and CostCategoryGroupSharingPreferenceArn to Bill Scenario."
+}
