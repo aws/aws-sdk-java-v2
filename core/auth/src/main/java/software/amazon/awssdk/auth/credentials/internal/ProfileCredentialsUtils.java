@@ -57,6 +57,8 @@ public final class ProfileCredentialsUtils {
         "software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory";
     private static final String SSO_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
         "software.amazon.awssdk.services.sso.auth.SsoProfileCredentialsProviderFactory";
+    private static final String LOGIN_PROFILE_CREDENTIALS_PROVIDER_FACTORY =
+        "software.amazon.awssdk.services.signin.auth.LoginProfileCredentialsProviderFactory";
 
     /**
      * The profile file containing {@code profile}.
@@ -142,6 +144,10 @@ public final class ProfileCredentialsUtils {
             if (hasCredentialSource) {
                 return Optional.of(roleAndCredentialSourceBasedProfileCredentialsProvider());
             }
+        }
+
+        if (properties.containsKey(ProfileProperty.LOGIN_SESSION)) {
+            return Optional.of(loginProfileCredentialsProvider());
         }
 
         if (properties.containsKey(ProfileProperty.CREDENTIAL_PROCESS)) {
@@ -241,6 +247,20 @@ public final class ProfileCredentialsUtils {
 
     private boolean isLegacySsoConfiguration() {
         return !properties.containsKey(ProfileSection.SSO_SESSION.getPropertyKeyName());
+    }
+
+    /**
+     * Create the SSO credentials provider based on the related profile properties.
+     */
+    private CredentialsWithFeatureId loginProfileCredentialsProvider() {
+        AwsCredentialsProvider provider = loginCredentialsProviderFactory().create(
+            ProfileProviderCredentialsContext.builder()
+                                             .profile(profile)
+                                             .profileFile(profileFile)
+                                             .sourceChain(BusinessMetricFeatureId.CREDENTIALS_PROFILE_LOGIN.value())
+                                             .build());
+
+        return new CredentialsWithFeatureId(provider, BusinessMetricFeatureId.CREDENTIALS_PROFILE_LOGIN.value());
     }
 
     private CredentialsWithFeatureId roleAndWebIdentityTokenProfileCredentialsProvider() {
@@ -413,6 +433,19 @@ public final class ProfileCredentialsUtils {
             return (ProfileCredentialsProviderFactory) ssoProfileCredentialsProviderFactory.getConstructor().newInstance();
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("To use Sso related properties in the '" + name + "' profile, the 'sso' service "
+                                            + "module must be on the class path.", e);
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new IllegalStateException("Failed to create the '" + name + "' profile credentials provider.", e);
+        }
+    }
+
+    private ProfileCredentialsProviderFactory loginCredentialsProviderFactory() {
+        try {
+            Class<?> loginProfileCredentialsProviderFactory =
+                ClassLoaderHelper.loadClass(LOGIN_PROFILE_CREDENTIALS_PROVIDER_FACTORY, getClass());
+            return (ProfileCredentialsProviderFactory) loginProfileCredentialsProviderFactory.getConstructor().newInstance();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("To use login_session property in the '" + name + "' profile, the 'signin' service "
                                             + "module must be on the class path.", e);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Failed to create the '" + name + "' profile credentials provider.", e);
