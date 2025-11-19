@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Network Flow Monitor",
-    "contributor": "",
-    "description": "Added new enum value (AWS::EKS::Cluster) for type field under MonitorLocalResource"
-}

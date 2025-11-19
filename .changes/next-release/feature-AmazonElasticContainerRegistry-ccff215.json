@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Container Registry",
-    "contributor": "",
-    "description": "Add support for ECR archival storage class and Inspector org policy for scanning"
-}

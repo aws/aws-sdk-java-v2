@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Identity and Access Management",
-    "contributor": "",
-    "description": "Added the EnableOutboundWebIdentityFederation, DisableOutboundWebIdentityFederation and GetOutboundWebIdentityFederationInfo APIs for the IAM outbound federation feature."
-}

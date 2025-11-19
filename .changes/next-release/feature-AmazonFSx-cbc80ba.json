@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon FSx",
-    "contributor": "",
-    "description": "Adding File Server Resource Manager configuration to FSx Windows"
-}

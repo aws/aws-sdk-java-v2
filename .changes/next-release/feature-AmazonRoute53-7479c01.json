@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Route 53",
-    "contributor": "",
-    "description": "Add dual-stack endpoint support for Route53"
-}

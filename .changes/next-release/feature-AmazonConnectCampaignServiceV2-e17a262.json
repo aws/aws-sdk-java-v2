@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonConnectCampaignServiceV2",
-    "contributor": "",
-    "description": "This release added support for ring timer configuration for campaign calls."
-}

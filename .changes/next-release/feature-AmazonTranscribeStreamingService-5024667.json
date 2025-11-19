@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Transcribe Streaming Service",
-    "contributor": "",
-    "description": "This release adds support for additional locales in AWS transcribe streaming."
-}
