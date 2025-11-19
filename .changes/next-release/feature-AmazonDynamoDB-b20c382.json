@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Extended Global Secondary Index (GSI) composite keys to support up to 8 attributes."
+}
