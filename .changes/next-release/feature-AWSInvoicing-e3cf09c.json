@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Invoicing",
+    "contributor": "",
+    "description": "Add support for adding Billing transfers in Invoice configuration"
+}
