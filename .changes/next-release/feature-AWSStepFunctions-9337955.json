@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Step Functions",
+    "contributor": "",
+    "description": "Adds support to TestState for mocked results and exceptions, along with additional inspection data."
+}
