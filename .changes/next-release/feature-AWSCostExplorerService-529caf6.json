@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Cost Explorer Service",
+    "contributor": "",
+    "description": "Add support for COST_CATEGORY, TAG, and LINKED_ACCOUNT AWS managed cost anomaly detection monitors"
+}
