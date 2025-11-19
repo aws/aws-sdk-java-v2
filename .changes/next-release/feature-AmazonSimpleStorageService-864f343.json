@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Storage Service",
+    "contributor": "",
+    "description": "Adds support for blocking SSE-C writes to general purpose buckets."
+}
