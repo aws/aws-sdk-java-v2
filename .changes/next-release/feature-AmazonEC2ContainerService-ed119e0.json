@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EC2 Container Service",
+    "contributor": "",
+    "description": "Added support for Amazon ECS Managed Instances infrastructure optimization configuration."
+}
