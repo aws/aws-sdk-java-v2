@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Signin",
-    "contributor": "",
-    "description": "Add the LoginCredentialsProvider which allows use of AWS credentials vended by AWS Sign-In that correspond to an AWS Console session. AWS Sign-In credentials will be used automatically by the Credential resolution chain when `login_session` is set in the profile."
-}
