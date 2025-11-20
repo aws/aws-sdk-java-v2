@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "contributor": "",
+    "description": "Added ServiceIntegrations as a request parameter for CreateLakeFormationIdentityCenterConfigurationRequest and UpdateLakeFormationIdentityCenterConfigurationRequest and response parameter for DescribeLakeFormationIdentityCenterConfigurationResponse"
+}
