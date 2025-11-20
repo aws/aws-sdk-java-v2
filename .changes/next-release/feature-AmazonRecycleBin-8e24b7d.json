@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Recycle Bin",
+    "contributor": "",
+    "description": "Add support for EBS volume in Recycle Bin"
+}
