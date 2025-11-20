@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Budgets",
+    "contributor": "",
+    "description": "Add BillingViewHealthStatusException to DescribeBudgetPerformanceHistory and ServiceQuotaExceededException to UpdateBudget for improved error handling with Billing Views."
+}
