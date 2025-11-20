@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Manager",
+    "contributor": "",
+    "description": "This release adds support for Cloud WAN Routing Policy providing customers sophisticated routing controls to better manage their global networks"
+}
