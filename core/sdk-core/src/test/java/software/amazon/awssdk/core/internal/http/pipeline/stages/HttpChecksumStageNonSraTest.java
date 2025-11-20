@@ -23,6 +23,7 @@ import static software.amazon.awssdk.core.internal.signer.SigningMethod.UNSIGNED
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.http.Header.CONTENT_MD5;
 
+import java.nio.charset.StandardCharsets;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -41,6 +42,10 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
+import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import utils.ValidSdkObjects;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -48,6 +53,8 @@ public class HttpChecksumStageNonSraTest {
     private static final String CHECKSUM_SPECS_HEADER = "x-amz-checksum-sha256";
     private static final RequestBody REQUEST_BODY = RequestBody.fromString("TestBody");
     private static final AsyncRequestBody ASYNC_REQUEST_BODY = AsyncRequestBody.fromString("TestBody");
+    private static final String PAYLOAD_CHECKSUM_SHA256 = "/T5YuTxNWthvWXg+TJMwl60XKcAnLMrrOZe/jA9Y+eI=";
+
     private final HttpChecksumStage syncStage = new HttpChecksumStage(ClientType.SYNC);
     private final HttpChecksumStage asyncStage = new HttpChecksumStage(ClientType.ASYNC);
 
@@ -67,6 +74,40 @@ public class HttpChecksumStageNonSraTest {
         assertThat(requestBuilder.firstMatchingHeader("x-amz-decoded-content-length")).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(CONTENT_LENGTH)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
+    }
+
+    @Test
+    public void sync_md5Required_checksumValueInStore_usesExistingValue() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        boolean isAsyncStreaming = false;
+        RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
+
+        byte[] checksumValue = "my-md5".getBytes(StandardCharsets.UTF_8);
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        store.putChecksumValue(DefaultChecksumAlgorithm.MD5, checksumValue);
+
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(CONTENT_MD5)).containsExactly(BinaryUtils.toBase64(checksumValue));
+    }
+
+    @Test
+    public void sync_md5Required_checksumStoreEmpty_storesComputedMd5() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        boolean isAsyncStreaming = false;
+        RequestExecutionContext ctx = md5RequiredRequestContext(isAsyncStreaming);
+
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        String expectedChecksum = "9dzKaiLL99all2ZyHa76RA==";
+
+        assertThat(requestBuilder.headers().get(CONTENT_MD5)).containsExactly(expectedChecksum);
+        assertThat(store.getChecksumValue(DefaultChecksumAlgorithm.MD5)).isEqualTo(BinaryUtils.fromBase64(expectedChecksum));
     }
 
     @Test
@@ -117,6 +158,40 @@ public class HttpChecksumStageNonSraTest {
 
         assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader(CHECKSUM_SPECS_HEADER)).isEmpty();
+    }
+
+    @Test
+    public void syncWithCustomSigner_flexibleChecksumInTrailerRequired_storeEmpty_storesComputedValue() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+
+        RequestExecutionContext ctx = noOpSignerRequestContext(ClientType.SYNC);
+
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        String content = IoUtils.toUtf8String(requestBuilder.build().contentStreamProvider().get().newStream());
+        assertThat(getTrailingChecksum(content)).isEqualTo(String.format("%s:%s", CHECKSUM_SPECS_HEADER, PAYLOAD_CHECKSUM_SHA256));
+        assertThat(store.getChecksumValue(DefaultChecksumAlgorithm.SHA256)).isEqualTo(BinaryUtils.fromBase64(PAYLOAD_CHECKSUM_SHA256));
+    }
+
+    @Test
+    public void syncWithCustomSigner_flexibleChecksumInTrailerRequired_checksumValueInStore_usesExistingValue() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+
+        RequestExecutionContext ctx = noOpSignerRequestContext(ClientType.SYNC);
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        byte[] checksumValue = "my-sha256".getBytes(StandardCharsets.UTF_8);
+        store.putChecksumValue(DefaultChecksumAlgorithm.SHA256, checksumValue);
+
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        String content = IoUtils.toUtf8String(requestBuilder.build().contentStreamProvider().get().newStream());
+        assertThat(getTrailingChecksum(content)).isEqualTo(String.format("%s:%s", CHECKSUM_SPECS_HEADER,
+                                                                         BinaryUtils.toBase64(checksumValue)));
     }
 
     @Test
@@ -181,7 +256,7 @@ public class HttpChecksumStageNonSraTest {
 
         syncStage.execute(requestBuilder, ctx);
 
-        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly("/T5YuTxNWthvWXg+TJMwl60XKcAnLMrrOZe/jA9Y+eI=");
+        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly(PAYLOAD_CHECKSUM_SHA256);
 
         assertThat(requestBuilder.firstMatchingHeader(HEADER_FOR_TRAILER_REFERENCE)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader("Content-encoding")).isEmpty();
@@ -192,6 +267,44 @@ public class HttpChecksumStageNonSraTest {
     }
 
     @Test
+    public void sync_flexibleChecksumInHeaderRequired_checksumValueInStore_usesExistingValue() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        boolean isStreaming = false;
+
+        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(isStreaming);
+
+        byte[] checksumValue = "my-sha256".getBytes(StandardCharsets.UTF_8);
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+        // Test context uses SHA-256 as the flexible checksum
+        store.putChecksumValue(DefaultChecksumAlgorithm.SHA256, checksumValue);
+
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly(BinaryUtils.toBase64(checksumValue));
+
+    }
+
+    @Test
+    public void sync_flexibleChecksumInHeaderRequired_checksumStoreEmpty_storesComputedSha256() throws Exception {
+        SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
+        boolean isStreaming = false;
+
+        RequestExecutionContext ctx = syncFlexibleChecksumRequiredRequestContext(isStreaming);
+
+        PayloadChecksumStore store = PayloadChecksumStore.create();
+
+        ctx.executionAttributes().putAttribute(SdkInternalExecutionAttribute.CHECKSUM_STORE, store);
+
+        syncStage.execute(requestBuilder, ctx);
+
+        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly(PAYLOAD_CHECKSUM_SHA256);
+        // Test context uses SHA-256 as the flexible checksum
+        assertThat(store.getChecksumValue(DefaultChecksumAlgorithm.SHA256)).isEqualTo(BinaryUtils.fromBase64(PAYLOAD_CHECKSUM_SHA256));
+    }
+
+    @Test
     public void async_flexibleChecksumInHeaderRequired_addsFlexibleChecksumInHeader_doesNotAddMd5ChecksumAndFlexibleChecksumInTrailer() throws Exception {
         SdkHttpFullRequest.Builder requestBuilder = createHttpRequestBuilder();
         boolean isStreaming = false;
@@ -199,7 +312,7 @@ public class HttpChecksumStageNonSraTest {
 
         asyncStage.execute(requestBuilder, ctx);
 
-        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly("/T5YuTxNWthvWXg+TJMwl60XKcAnLMrrOZe/jA9Y+eI=");
+        assertThat(requestBuilder.headers().get(CHECKSUM_SPECS_HEADER)).containsExactly(PAYLOAD_CHECKSUM_SHA256);
 
         assertThat(requestBuilder.firstMatchingHeader(HEADER_FOR_TRAILER_REFERENCE)).isEmpty();
         assertThat(requestBuilder.firstMatchingHeader("Content-encoding")).isEmpty();
@@ -209,8 +322,21 @@ public class HttpChecksumStageNonSraTest {
         assertThat(requestBuilder.firstMatchingHeader(CONTENT_MD5)).isEmpty();
     }
 
+    private static String getTrailingChecksum(String payload) {
+        for (String line : payload.split("\r\n")) {
+            if (line.startsWith("x-amz-checksum")) {
+                return line;
+            }
+        }
+        return null;
+    }
+
     private SdkHttpFullRequest.Builder createHttpRequestBuilder() {
-        return SdkHttpFullRequest.builder().contentStreamProvider(REQUEST_BODY.contentStreamProvider());
+        return SdkHttpFullRequest.builder()
+                                 .method(SdkHttpMethod.GET)
+                                 .protocol("https")
+                                 .host("sdk.aws")
+                                 .contentStreamProvider(REQUEST_BODY.contentStreamProvider());
     }
 
     private RequestExecutionContext md5RequiredRequestContext(boolean isAsyncStreaming) {

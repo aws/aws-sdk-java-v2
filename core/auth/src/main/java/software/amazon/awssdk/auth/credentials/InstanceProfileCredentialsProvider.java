@@ -37,6 +37,7 @@ import software.amazon.awssdk.auth.credentials.internal.StaticResourcesEndpointP
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -44,6 +45,7 @@ import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.util.HttpResourcesUtils;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -67,7 +69,8 @@ public final class InstanceProfileCredentialsProvider
     implements HttpCredentialsProvider,
                ToCopyableBuilder<InstanceProfileCredentialsProvider.Builder, InstanceProfileCredentialsProvider> {
     private static final Logger log = Logger.loggerFor(InstanceProfileCredentialsProvider.class);
-    private static final String PROVIDER_NAME = "InstanceProfileCredentialsProvider";
+    private static final String CLASS_NAME = "InstanceProfileCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_IMDS.value();
     private static final String EC2_METADATA_TOKEN_HEADER = "x-aws-ec2-metadata-token";
     private static final String SECURITY_CREDENTIALS_RESOURCE = "/latest/meta-data/iam/security-credentials/";
     private static final String TOKEN_RESOURCE = "/latest/api/token";
@@ -90,6 +93,9 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
+    private final String sourceChain;
+    private final String providerName;
+
     /**
      * @see #builder()
      */
@@ -102,8 +108,12 @@ public final class InstanceProfileCredentialsProvider
                                    .orElseGet(() -> ProfileFileSupplier.fixedProfileFile(ProfileFile.defaultProfileFile()));
         this.profileName = Optional.ofNullable(builder.profileName)
                                    .orElseGet(ProfileFileSystemSetting.AWS_PROFILE::getStringValueOrThrow);
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
+            ? PROVIDER_NAME 
+            : builder.sourceChain + "," + PROVIDER_NAME;
 
-        this.httpCredentialsLoader = HttpCredentialsLoader.create(PROVIDER_NAME);
+        this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
         this.configProvider =
             Ec2MetadataConfigProvider.builder()
                                      .profileFile(profileFile)
@@ -204,7 +214,7 @@ public final class InstanceProfileCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.create(PROVIDER_NAME);
+        return ToString.create(CLASS_NAME);
     }
 
     private ResourcesEndpointProvider createEndpointProvider() {
@@ -372,6 +382,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
+        private String sourceChain;
 
         private BuilderImpl() {
             asyncThreadName("instance-profile-credentials-provider");
@@ -385,6 +396,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
+            this.sourceChain = provider.sourceChain;
         }
 
         Builder clock(Clock clock) {
@@ -461,6 +473,21 @@ public final class InstanceProfileCredentialsProvider
 
         public void setStaleTime(Duration duration) {
             staleTime(duration);
+        }
+
+        /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
+        @Override
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
+            return this;
+        }
+
+        public void setSourceChain(String sourceChain) {
+            sourceChain(sourceChain);
         }
 
         @Override

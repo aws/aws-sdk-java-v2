@@ -1169,6 +1169,25 @@
       ],
       "documentation":"<p>Deletes the specified Zero-ETL integration.</p>"
     },
+    "DeleteIntegrationResourceProperty":{
+      "name":"DeleteIntegrationResourceProperty",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DeleteIntegrationResourcePropertyRequest"},
+      "output":{"shape":"DeleteIntegrationResourcePropertyResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p>This API is used for deleting the <code>ResourceProperty</code> of the Glue connection (for the source) or Glue database ARN (for the target).</p>"
+    },
     "DeleteIntegrationTableProperties":{
       "name":"DeleteIntegrationTableProperties",
       "http":{
@@ -3059,6 +3078,25 @@
       ],
       "documentation":"<p>Returns the available entities supported by the connection type. </p>"
     },
+    "ListIntegrationResourceProperties":{
+      "name":"ListIntegrationResourceProperties",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListIntegrationResourcePropertiesRequest"},
+      "output":{"shape":"ListIntegrationResourcePropertiesResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"InvalidInputException"}
+      ],
+      "documentation":"<p>List integration resource properties for a single customer. It supports the filters, maxRecords and markers.</p>"
+    },
     "ListJobs":{
       "name":"ListJobs",
       "http":{
@@ -4918,6 +4956,10 @@
         "SecretArn":{
           "shape":"SecretArn",
           "documentation":"<p>The secret manager ARN to store credentials.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt sensitive authentication information. This key is used to protect credentials and other sensitive data stored within the authentication configuration.</p>"
         },
         "OAuth2Properties":{
           "shape":"OAuth2Properties",
@@ -7840,7 +7882,7 @@
         },
         "ConnectionProperties":{
           "shape":"ConnectionProperties",
-          "documentation":"<p>These key-value pairs define parameters for the connection when using the version 1 Connection schema:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, <code>\"AWS_MSK_IAM\"</code>, or <code>\"PLAIN\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_USERNAME</code> - A plaintext username used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_PASSWORD</code> - A plaintext password used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD</code> - The encrypted version of the Kafka SASL PLAIN password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> <li> <p> <code>ROLE_ARN</code> - The role to be used for running queries.</p> </li> <li> <p> <code>REGION</code> - The Amazon Web Services Region where queries will be run.</p> </li> <li> <p> <code>WORKGROUP_NAME</code> - The name of an Amazon Redshift serverless workgroup or Amazon Athena workgroup in which queries will run.</p> </li> <li> <p> <code>CLUSTER_IDENTIFIER</code> - The cluster identifier of an Amazon Redshift cluster in which queries will run.</p> </li> <li> <p> <code>DATABASE</code> - The Amazon Redshift database that you are connecting to.</p> </li> </ul>"
+          "documentation":"<p>These key-value pairs define parameters for the connection when using the version 1 Connection schema:</p> <ul> <li> <p> <code>HOST</code> - The host URI: either the fully qualified domain name (FQDN) or the IPv4 address of the database host.</p> </li> <li> <p> <code>PORT</code> - The port number, between 1024 and 65535, of the port on which the database host is listening for database connections.</p> </li> <li> <p> <code>USER_NAME</code> - The name under which to log in to the database. The value string for <code>USER_NAME</code> is \"<code>USERNAME</code>\".</p> </li> <li> <p> <code>PASSWORD</code> - A password, if one is used, for the user name.</p> </li> <li> <p> <code>ENCRYPTED_PASSWORD</code> - When you enable connection password protection by setting <code>ConnectionPasswordEncryption</code> in the Data Catalog encryption settings, this field stores the encrypted password.</p> </li> <li> <p> <code>JDBC_DRIVER_JAR_URI</code> - The Amazon Simple Storage Service (Amazon S3) path of the JAR file that contains the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_DRIVER_CLASS_NAME</code> - The class name of the JDBC driver to use.</p> </li> <li> <p> <code>JDBC_ENGINE</code> - The name of the JDBC engine to use.</p> </li> <li> <p> <code>JDBC_ENGINE_VERSION</code> - The version of the JDBC engine to use.</p> </li> <li> <p> <code>CONFIG_FILES</code> - (Reserved for future use.)</p> </li> <li> <p> <code>INSTANCE_ID</code> - The instance ID to use.</p> </li> <li> <p> <code>JDBC_CONNECTION_URL</code> - The URL for connecting to a JDBC data source.</p> </li> <li> <p> <code>JDBC_ENFORCE_SSL</code> - A case-insensitive Boolean string (true, false) specifying whether Secure Sockets Layer (SSL) with hostname matching is enforced for the JDBC connection on the client. The default is false.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT</code> - An Amazon S3 location specifying the customer's root certificate. Glue uses this root certificate to validate the customer’s certificate when connecting to the customer database. Glue only handles X.509 certificates. The certificate provided must be DER-encoded and supplied in Base64 encoding PEM format.</p> </li> <li> <p> <code>SKIP_CUSTOM_JDBC_CERT_VALIDATION</code> - By default, this is <code>false</code>. Glue validates the Signature algorithm and Subject Public Key Algorithm for the customer certificate. The only permitted algorithms for the Signature algorithm are SHA256withRSA, SHA384withRSA or SHA512withRSA. For the Subject Public Key Algorithm, the key length must be at least 2048. You can set the value of this property to <code>true</code> to skip Glue’s validation of the customer certificate.</p> </li> <li> <p> <code>CUSTOM_JDBC_CERT_STRING</code> - A custom JDBC certificate string which is used for domain match or distinguished name match to prevent a man-in-the-middle attack. In Oracle database, this is used as the <code>SSL_SERVER_CERT_DN</code>; in Microsoft SQL Server, this is used as the <code>hostNameInCertificate</code>.</p> </li> <li> <p> <code>CONNECTION_URL</code> - The URL for connecting to a general (non-JDBC) data source.</p> </li> <li> <p> <code>SECRET_ID</code> - The secret ID used for the secret manager of credentials.</p> </li> <li> <p> <code>CONNECTOR_URL</code> - The connector URL for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_TYPE</code> - The connector type for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>CONNECTOR_CLASS_NAME</code> - The connector class name for a MARKETPLACE or CUSTOM connection.</p> </li> <li> <p> <code>KAFKA_BOOTSTRAP_SERVERS</code> - A comma-separated list of host and port pairs that are the addresses of the Apache Kafka brokers in a Kafka cluster to which a Kafka client will connect to and bootstrap itself.</p> </li> <li> <p> <code>KAFKA_SSL_ENABLED</code> - Whether to enable or disable SSL on an Apache Kafka connection. Default value is \"true\".</p> </li> <li> <p> <code>KAFKA_CUSTOM_CERT</code> - The Amazon S3 URL for the private CA cert file (.pem format). The default is an empty string.</p> </li> <li> <p> <code>KAFKA_SKIP_CUSTOM_CERT_VALIDATION</code> - Whether to skip the validation of the CA cert file or not. Glue validates for three algorithms: SHA256withRSA, SHA384withRSA and SHA512withRSA. Default value is \"false\".</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE</code> - The Amazon S3 location of the client keystore file for Kafka client side authentication (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The password to access the provided keystore (Optional).</p> </li> <li> <p> <code>KAFKA_CLIENT_KEY_PASSWORD</code> - A keystore can consist of multiple keys, so this is the password to access the client key to be used with the Kafka server side key (Optional).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEYSTORE_PASSWORD</code> - The encrypted version of the Kafka client keystore password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_CLIENT_KEY_PASSWORD</code> - The encrypted version of the Kafka client key password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_MECHANISM</code> - <code>\"SCRAM-SHA-512\"</code>, <code>\"GSSAPI\"</code>, <code>\"AWS_MSK_IAM\"</code>, or <code>\"PLAIN\"</code>. These are the supported <a href=\"https://www.iana.org/assignments/sasl-mechanisms/sasl-mechanisms.xhtml\">SASL Mechanisms</a>.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_USERNAME</code> - A plaintext username used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_PLAIN_PASSWORD</code> - A plaintext password used to authenticate with the \"PLAIN\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_PLAIN_PASSWORD</code> - The encrypted version of the Kafka SASL PLAIN password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_USERNAME</code> - A plaintext username used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_PASSWORD</code> - A plaintext password used to authenticate with the \"SCRAM-SHA-512\" mechanism.</p> </li> <li> <p> <code>ENCRYPTED_KAFKA_SASL_SCRAM_PASSWORD</code> - The encrypted version of the Kafka SASL SCRAM password (if the user has the Glue encrypt passwords setting selected).</p> </li> <li> <p> <code>KAFKA_SASL_SCRAM_SECRETS_ARN</code> - The Amazon Resource Name of a secret in Amazon Web Services Secrets Manager.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KEYTAB</code> - The S3 location of a Kerberos <code>keytab</code> file. A keytab stores long-term keys for one or more principals. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-latest/doc/basic/keytab_def.html\">MIT Kerberos Documentation: Keytab</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_KRB5_CONF</code> - The S3 location of a Kerberos <code>krb5.conf</code> file. A krb5.conf stores Kerberos configuration information, such as the location of the KDC server. For more information, see <a href=\"https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html\">MIT Kerberos Documentation: krb5.conf</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_SERVICE</code> - The Kerberos service name, as set with <code>sasl.kerberos.service.name</code> in your <a href=\"https://kafka.apache.org/documentation/#brokerconfigs_sasl.kerberos.service.name\">Kafka Configuration</a>.</p> </li> <li> <p> <code>KAFKA_SASL_GSSAPI_PRINCIPAL</code> - The name of the Kerberos princial used by Glue. For more information, see <a href=\"https://kafka.apache.org/documentation/#security_sasl_kerberos_clientconfig\">Kafka Documentation: Configuring Kafka Brokers</a>.</p> </li> <li> <p> <code>ROLE_ARN</code> - The role to be used for running queries.</p> </li> <li> <p> <code>REGION</code> - The Amazon Web Services Region where queries will be run.</p> </li> <li> <p> <code>WORKGROUP_NAME</code> - The name of an Amazon Redshift serverless workgroup or Amazon Athena workgroup in which queries will run.</p> </li> <li> <p> <code>CLUSTER_IDENTIFIER</code> - The cluster identifier of an Amazon Redshift cluster in which queries will run.</p> </li> <li> <p> <code>DATABASE</code> - The Amazon Redshift database that you are connecting to.</p> </li> </ul>"
         },
         "SparkProperties":{
           "shape":"PropertyMap",
@@ -8095,10 +8137,73 @@
         "ZOHOCRM",
         "SALESFORCEPARDOT",
         "SALESFORCEMARKETINGCLOUD",
+        "ADOBEANALYTICS",
         "SLACK",
+        "LINKEDIN",
+        "MIXPANEL",
+        "ASANA",
         "STRIPE",
+        "SMARTSHEET",
+        "DATADOG",
+        "WOOCOMMERCE",
         "INTERCOM",
-        "SNAPCHATADS"
+        "SNAPCHATADS",
+        "PAYPAL",
+        "QUICKBOOKS",
+        "FACEBOOKPAGEINSIGHTS",
+        "FRESHDESK",
+        "TWILIO",
+        "DOCUSIGNMONITOR",
+        "FRESHSALES",
+        "ZOOM",
+        "GOOGLESEARCHCONSOLE",
+        "SALESFORCECOMMERCECLOUD",
+        "SAPCONCUR",
+        "DYNATRACE",
+        "MICROSOFTDYNAMIC365FINANCEANDOPS",
+        "MICROSOFTTEAMS",
+        "BLACKBAUDRAISEREDGENXT",
+        "MAILCHIMP",
+        "GITLAB",
+        "PENDO",
+        "PRODUCTBOARD",
+        "CIRCLECI",
+        "PIPEDIVE",
+        "SENDGRID",
+        "AZURECOSMOS",
+        "AZURESQL",
+        "BIGQUERY",
+        "BLACKBAUD",
+        "CLOUDERAHIVE",
+        "CLOUDERAIMPALA",
+        "CLOUDWATCH",
+        "CLOUDWATCHMETRICS",
+        "CMDB",
+        "DATALAKEGEN2",
+        "DB2",
+        "DB2AS400",
+        "DOCUMENTDB",
+        "DOMO",
+        "DYNAMODB",
+        "GOOGLECLOUDSTORAGE",
+        "HBASE",
+        "KUSTOMER",
+        "MICROSOFTDYNAMICS365CRM",
+        "MONDAY",
+        "MYSQL",
+        "OKTA",
+        "OPENSEARCH",
+        "ORACLE",
+        "PIPEDRIVE",
+        "POSTGRESQL",
+        "SAPHANA",
+        "SQLSERVER",
+        "SYNAPSE",
+        "TERADATA",
+        "TERADATANOS",
+        "TIMESTREAM",
+        "TPCDS",
+        "VERTICA"
       ]
     },
     "ConnectionTypeBrief":{
@@ -9168,6 +9273,10 @@
         "Scopes":{
           "shape":"IdentityCenterScopesList",
           "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        },
+        "UserBackgroundSessionsEnabled":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether users can run background sessions when using Identity Center authentication with Glue services.</p>"
         }
       },
       "documentation":"<p>Request to create a new Glue Identity Center configuration.</p>"
@@ -9252,11 +9361,11 @@
           "documentation":"<p>A unique name for an integration in Glue.</p>"
         },
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the source resource for the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the target resource for the integration.</p>"
         },
         "Description":{
@@ -9290,7 +9399,7 @@
       "required":["ResourceArn"],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
         },
         "SourceProcessingProperties":{
@@ -9300,6 +9409,10 @@
         "TargetProcessingProperties":{
           "shape":"TargetProcessingProperties",
           "documentation":"<p>The resource properties associated with the integration target.</p>"
+        },
+        "Tags":{
+          "shape":"IntegrationTagsList",
+          "documentation":"<p>Metadata assigned to the resource consisting of a list of key-value pairs.</p>"
         }
       }
     },
@@ -9308,8 +9421,12 @@
       "required":["ResourceArn"],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+        },
+        "ResourcePropertyArn":{
+          "shape":"String512",
+          "documentation":"<p>The resource ARN created through this create API. The format is something like arn:aws:glue:&lt;region&gt;:&lt;account_id&gt;:integrationresourceproperty/*</p>"
         },
         "SourceProcessingProperties":{
           "shape":"SourceProcessingProperties",
@@ -9333,11 +9450,11 @@
       ],
       "members":{
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the source resource for the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the target resource for the integration.</p>"
         },
         "IntegrationName":{
@@ -9394,7 +9511,7 @@
       ],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to create integration table properties. Currently, this API only supports creating integration table properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for creating integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
@@ -11035,6 +11152,10 @@
         "RuleMetrics":{
           "shape":"RuleMetricsMap",
           "documentation":"<p>A map containing metrics associated with the evaluation of the rule based on row-level results. </p>"
+        },
+        "Labels":{
+          "shape":"Labels",
+          "documentation":"<p>A map containing labels assigned to the data quality rule. </p>"
         }
       },
       "documentation":"<p>Describes the result of the evaluation of a data quality rule.</p>"
@@ -11722,6 +11843,20 @@
         }
       }
     },
+    "DeleteIntegrationResourcePropertyRequest":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"String512",
+          "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+        }
+      }
+    },
+    "DeleteIntegrationResourcePropertyResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "DeleteIntegrationResponse":{
       "type":"structure",
       "required":[
@@ -11734,11 +11869,11 @@
       ],
       "members":{
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the source for the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the target for the integration.</p>"
         },
         "IntegrationName":{
@@ -11791,7 +11926,7 @@
       ],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
         },
         "TableName":{
@@ -12353,7 +12488,7 @@
           "documentation":"<p>The total number of items to return in the output.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The Amazon Resource Name (ARN) of the target resource in the integration.</p>"
         }
       }
@@ -14885,6 +15020,10 @@
         "Scopes":{
           "shape":"OrchestrationStringList",
           "documentation":"<p>A list of Identity Center scopes that define the permissions and access levels for the Glue configuration.</p>"
+        },
+        "UserBackgroundSessionsEnabled":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Indicates whether users can run background sessions when using Identity Center authentication with Glue services.</p>"
         }
       },
       "documentation":"<p>Response containing the Glue Identity Center configuration details.</p>"
@@ -14894,7 +15033,7 @@
       "required":["ResourceArn"],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
         }
       }
@@ -14903,8 +15042,12 @@
       "type":"structure",
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+        },
+        "ResourcePropertyArn":{
+          "shape":"String512",
+          "documentation":"<p>The resource ARN created through this create API. The format is something like arn:aws:glue:&lt;region&gt;:&lt;account_id&gt;:integrationresourceproperty/*</p>"
         },
         "SourceProcessingProperties":{
           "shape":"SourceProcessingProperties",
@@ -14924,7 +15067,7 @@
       ],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to retrieve integration table properties. Currently, this API only supports retrieving properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for retrieving integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
@@ -14937,7 +15080,7 @@
       "type":"structure",
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The Amazon Resource Name (ARN) of the target table for which to retrieve integration table properties. Currently, this API only supports retrieving properties for target tables, and the provided ARN should be the ARN of the target table in the Glue Data Catalog. Support for retrieving integration table properties for source connections (using the connection ARN) is not yet implemented and will be added in a future release. </p>"
         },
         "TableName":{
@@ -15986,6 +16129,10 @@
           "shape":"Timestamp",
           "documentation":"<p>The time as of when to read the table contents. If not set, the most recent transaction commit time will be used. Cannot be specified along with <code>TransactionId</code>.</p>"
         },
+        "AuditContext":{
+          "shape":"AuditContext",
+          "documentation":"<p>A structure containing the Lake Formation <a href=\"https://docs.aws.amazon.com/glue/latest/webapi/API_AuditContext.html\">audit context</a>.</p>"
+        },
         "IncludeStatusDetails":{
           "shape":"BooleanNullable",
           "documentation":"<p>Specifies whether to include status details related to a request to create or update an Glue Data Catalog view.</p>"
@@ -16112,6 +16259,10 @@
         "QueryAsOfTime":{
           "shape":"Timestamp",
           "documentation":"<p>The time as of when to read the table contents. If not set, the most recent transaction commit time will be used. Cannot be specified along with <code>TransactionId</code>.</p>"
+        },
+        "AuditContext":{
+          "shape":"AuditContext",
+          "documentation":"<p>A structure containing the Lake Formation <a href=\"https://docs.aws.amazon.com/glue/latest/webapi/API_AuditContext.html\">audit context</a>.</p>"
         },
         "IncludeStatusDetails":{
           "shape":"BooleanNullable",
@@ -17547,11 +17698,11 @@
       ],
       "members":{
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the source resource for the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the target resource for the integration.</p>"
         },
         "IntegrationArn":{
@@ -17615,11 +17766,11 @@
       ],
       "members":{
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN for the source of the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN for the target of the integration.</p>"
         },
         "Description":{
@@ -17679,7 +17830,7 @@
       "members":{
         "RefreshInterval":{
           "shape":"String128",
-          "documentation":"<p>Specifies the frequency at which CDC (Change Data Capture) pulls or incremental loads should occur. This parameter provides flexibility to align the refresh rate with your specific data update patterns, system load considerations, and performance optimization goals. Time increment can be set from 15 minutes to 8640 minutes (six days). Currently supports creation of <code>RefreshInterval</code> only.</p>"
+          "documentation":"<p>Specifies the frequency at which CDC (Change Data Capture) pulls or incremental loads should occur. This parameter provides flexibility to align the refresh rate with your specific data update patterns, system load considerations, and performance optimization goals. Time increment can be set from 15 minutes to 8640 minutes (six days).</p>"
         },
         "SourceProperties":{
           "shape":"IntegrationSourcePropertiesMap",
@@ -17793,6 +17944,55 @@
       },
       "documentation":"<p>The data processed through your integration exceeded your quota.</p>",
       "exception":true
+    },
+    "IntegrationResourceProperty":{
+      "type":"structure",
+      "required":["ResourceArn"],
+      "members":{
+        "ResourceArn":{
+          "shape":"String512",
+          "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+        },
+        "ResourcePropertyArn":{
+          "shape":"String512",
+          "documentation":"<p>The resource ARN created through this create API. The format is something like arn:aws:glue:&lt;region&gt;:&lt;account_id&gt;:integrationresourceproperty/*</p>"
+        },
+        "SourceProcessingProperties":{
+          "shape":"SourceProcessingProperties",
+          "documentation":"<p>The resource properties associated with the integration source.</p>"
+        },
+        "TargetProcessingProperties":{
+          "shape":"TargetProcessingProperties",
+          "documentation":"<p>The resource properties associated with the integration target.</p>"
+        }
+      },
+      "documentation":"<p>A structure representing an integration resource property.</p>"
+    },
+    "IntegrationResourcePropertyFilter":{
+      "type":"structure",
+      "members":{
+        "Name":{
+          "shape":"String128",
+          "documentation":"<p>The name of the filter. Supported filter keys are <code>SourceArn</code> and <code>TargetArn</code>.</p>"
+        },
+        "Values":{
+          "shape":"IntegrationResourcePropertyFilterValues",
+          "documentation":"<p>A list of filter values.</p>"
+        }
+      },
+      "documentation":"<p>A filter for integration resource properties.</p>"
+    },
+    "IntegrationResourcePropertyFilterList":{
+      "type":"list",
+      "member":{"shape":"IntegrationResourcePropertyFilter"}
+    },
+    "IntegrationResourcePropertyFilterValues":{
+      "type":"list",
+      "member":{"shape":"String128"}
+    },
+    "IntegrationResourcePropertyList":{
+      "type":"list",
+      "member":{"shape":"IntegrationResourceProperty"}
     },
     "IntegrationSourcePropertiesMap":{
       "type":"map",
@@ -18914,6 +19114,11 @@
       },
       "documentation":"<p>Specifies configuration properties for a labeling set generation task run.</p>"
     },
+    "Labels":{
+      "type":"map",
+      "key":{"shape":"NameString"},
+      "value":{"shape":"NameString"}
+    },
     "LakeFormationConfiguration":{
       "type":"structure",
       "members":{
@@ -19467,6 +19672,36 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>A continuation token, present if the current segment is not the last.</p>"
+        }
+      }
+    },
+    "ListIntegrationResourcePropertiesRequest":{
+      "type":"structure",
+      "members":{
+        "Marker":{
+          "shape":"String1024",
+          "documentation":"<p>This is the pagination token for next page, initial value is <code>null</code>.</p>"
+        },
+        "Filters":{
+          "shape":"IntegrationResourcePropertyFilterList",
+          "documentation":"<p>A list of filters, supported filter Key is <code>SourceArn</code> and <code>TargetArn</code>.</p>"
+        },
+        "MaxRecords":{
+          "shape":"IntegrationInteger",
+          "documentation":"<p>This is total number of items to be evaluated.</p>"
+        }
+      }
+    },
+    "ListIntegrationResourcePropertiesResponse":{
+      "type":"structure",
+      "members":{
+        "IntegrationResourcePropertyList":{
+          "shape":"IntegrationResourcePropertyList",
+          "documentation":"<p>A list of integration resource property meeting the filter criteria.</p>"
+        },
+        "Marker":{
+          "shape":"String1024",
+          "documentation":"<p>This is the pagination token for the next page.</p>"
         }
       }
     },
@@ -20342,7 +20577,10 @@
           "shape":"String2048",
           "documentation":"<p>Selects source tables for the integration using Maxwell filter syntax.</p>"
         },
-        "IntegrationConfig":{"shape":"IntegrationConfig"},
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>The configuration settings for the integration. Currently, only the RefreshInterval can be modified. </p>"
+        },
         "IntegrationName":{
           "shape":"String128",
           "documentation":"<p>A unique name for an integration in Glue.</p>"
@@ -20361,11 +20599,11 @@
       ],
       "members":{
         "SourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the source for the integration.</p>"
         },
         "TargetArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The ARN of the target for the integration.</p>"
         },
         "IntegrationName":{
@@ -20408,7 +20646,10 @@
           "shape":"String2048",
           "documentation":"<p>Selects source tables for the integration using Maxwell filter syntax.</p>"
         },
-        "IntegrationConfig":{"shape":"IntegrationConfig"}
+        "IntegrationConfig":{
+          "shape":"IntegrationConfig",
+          "documentation":"<p>The updated configuration settings for the integration.</p>"
+        }
       }
     },
     "MongoDBTarget":{
@@ -25607,6 +25848,11 @@
       "documentation":"<p>Specifies options related to data preview for viewing a sample of your data.</p>"
     },
     "String":{"type":"string"},
+    "String1024":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
     "String128":{
       "type":"string",
       "max":128,
@@ -25615,6 +25861,11 @@
     "String2048":{
       "type":"string",
       "max":2048,
+      "min":1
+    },
+    "String512":{
+      "type":"string",
+      "max":512,
       "min":1
     },
     "StringColumnStatisticsData":{
@@ -27373,6 +27624,10 @@
         "Scopes":{
           "shape":"IdentityCenterScopesList",
           "documentation":"<p>A list of Identity Center scopes that define the updated permissions and access levels for the Glue configuration.</p>"
+        },
+        "UserBackgroundSessionsEnabled":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether users can run background sessions when using Identity Center authentication with Glue services.</p>"
         }
       },
       "documentation":"<p>Request to update an existing Glue Identity Center configuration.</p>"
@@ -27432,7 +27687,7 @@
       "required":["ResourceArn"],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
         },
         "SourceProcessingProperties":{
@@ -27449,8 +27704,12 @@
       "type":"structure",
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
+        },
+        "ResourcePropertyArn":{
+          "shape":"String512",
+          "documentation":"<p>The resource ARN created through this create API. The format is something like arn:aws:glue:&lt;region&gt;:&lt;account_id&gt;:integrationresourceproperty/*</p>"
         },
         "SourceProcessingProperties":{
           "shape":"SourceProcessingProperties",
@@ -27470,7 +27729,7 @@
       ],
       "members":{
         "ResourceArn":{
-          "shape":"String128",
+          "shape":"String512",
           "documentation":"<p>The connection ARN of the source, or the database ARN of the target.</p>"
         },
         "TableName":{
@@ -27881,7 +28140,10 @@
           "shape":"Boolean",
           "documentation":"<p>A flag that can be set to true to ignore matching storage descriptor and subobject matching requirements.</p>"
         },
-        "UpdateOpenTableFormatInput":{"shape":"UpdateOpenTableFormatInput"}
+        "UpdateOpenTableFormatInput":{
+          "shape":"UpdateOpenTableFormatInput",
+          "documentation":"<p>Input parameters for updating open table format tables in GlueData Catalog, serving as a wrapper for format-specific update operations such as Apache Iceberg.</p>"
+        }
       }
     },
     "UpdateTableResponse":{

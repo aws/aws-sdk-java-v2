@@ -49,6 +49,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
@@ -220,7 +221,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates an asset in Amazon DataZone catalog.</p> <p>Before creating assets, make sure that the following requirements are met:</p> <ul> <li> <p> <code>--domain-identifier</code> must refer to an existing domain.</p> </li> <li> <p> <code>--owning-project-identifier</code> must be a valid project within the domain.</p> </li> <li> <p>Asset type must be created beforehand using <code>create-asset-type</code>, or be a supported system-defined type. For more information, see <a href=\"https://docs.aws.amazon.com/cli/latest/reference/datazone/create-asset-type.html\">create-asset-type</a>.</p> </li> <li> <p> <code>--type-revision</code> (if used) must match a valid revision of the asset type.</p> </li> <li> <p>Form type must exist and be associated with the asset type. Use <code>create-form-type</code> to define. For more information, see <a href=\"https://docs.aws.amazon.com/cli/latest/reference/datazone/create-form-type.html\">create-form-type</a>.</p> </li> <li> <p>Form content must include all required fields as per the form schema (e.g., <code>bucketArn</code>).</p> </li> </ul> <p>You must invoke the following pre-requisite commands before invoking this API:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/datazone/latest/APIReference/API_CreateFormType.html\">CreateFormType</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/datazone/latest/APIReference/API_CreateAssetType.html\">CreateAssetType</a> </p> </li> </ul>",
+      "documentation":"<p>Creates an asset in Amazon DataZone catalog.</p> <p>Before creating assets, make sure that the following requirements are met:</p> <ul> <li> <p> <code>--domain-identifier</code> must refer to an existing domain.</p> </li> <li> <p> <code>--owning-project-identifier</code> must be a valid project within the domain.</p> </li> <li> <p>Asset type must be created beforehand using <code>create-asset-type</code>, or be a supported system-defined type. For more information, see <a href=\"https://docs.aws.amazon.com/cli/latest/reference/datazone/create-asset-type.html\">create-asset-type</a>.</p> </li> <li> <p> <code>--type-revision</code> (if used) must match a valid revision of the asset type.</p> </li> <li> <p> <code>formsInput</code> is required when it is associated as required in the <code>asset-type</code>. For more information, see <a href=\"https://docs.aws.amazon.com/cli/latest/reference/datazone/create-form-type.html\">create-form-type</a>.</p> </li> <li> <p>Form content must include all required fields as per the form schema (e.g., <code>bucketArn</code>).</p> </li> </ul> <p>You must invoke the following pre-requisite commands before invoking this API:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/datazone/latest/APIReference/API_CreateFormType.html\">CreateFormType</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/datazone/latest/APIReference/API_CreateAssetType.html\">CreateAssetType</a> </p> </li> </ul>",
       "idempotent":true
     },
     "CreateAssetFilter":{
@@ -263,7 +264,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates a revision of the asset.</p> <p>Asset revisions represent new versions of existing assets, capturing changes to either the underlying data or its metadata. They maintain a historical record of how assets evolve over time, who made changes, and when those changes occurred. This versioning capability is crucial for governance and compliance, allowing organizations to track changes, understand their impact, and roll back if necessary.</p> <p>Prerequisites:</p> <ul> <li> <p>Asset must already exist in the domain with identifier. </p> </li> <li> <p>The form type with correct revision must be registered in the same domain.</p> </li> <li> <p>The form content must include all required fields (e.g., <code>bucketArn</code> for <code>S3ObjectCollectionForm</code>).</p> </li> <li> <p>The owning project of the original asset must still exist and be active.</p> </li> <li> <p>User must have write access to the project and domain.</p> </li> </ul>",
+      "documentation":"<p>Creates a revision of the asset.</p> <p>Asset revisions represent new versions of existing assets, capturing changes to either the underlying data or its metadata. They maintain a historical record of how assets evolve over time, who made changes, and when those changes occurred. This versioning capability is crucial for governance and compliance, allowing organizations to track changes, understand their impact, and roll back if necessary.</p> <p>Prerequisites:</p> <ul> <li> <p>Asset must already exist in the domain with identifier. </p> </li> <li> <p> <code>formsInput</code> is required when asset has the form type. <code>typeRevision</code> should be the latest version of form type. </p> </li> <li> <p>The form content must include all required fields (e.g., <code>bucketArn</code> for <code>S3ObjectCollectionForm</code>).</p> </li> <li> <p>The owning project of the original asset must still exist and be active.</p> </li> <li> <p>User must have write access to the project and domain.</p> </li> </ul>",
       "idempotent":true
     },
     "CreateAssetType":{
@@ -284,7 +285,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates a custom asset type.</p> <p>Prerequisites:</p> <ul> <li> <p>The form type with <code>typeIdentifier</code> and <code>typeRevision</code> must exist and be published. </p> </li> <li> <p>You must have <code>CreateAssetType</code> permissions.</p> </li> <li> <p>The domain-identifier and owning-project-identifier must be valid and active.</p> </li> <li> <p>The name of the asset type must be unique within the domain — duplicate names will cause failure.</p> </li> <li> <p>JSON input must be valid — incorrect formatting causes Invalid JSON errors.</p> </li> </ul>"
+      "documentation":"<p>Creates a custom asset type.</p> <p>Prerequisites:</p> <ul> <li> <p>The <code>formsInput</code> field is required, however, can be passed as empty (e.g. <code>-forms-input {})</code>. </p> </li> <li> <p>You must have <code>CreateAssetType</code> permissions.</p> </li> <li> <p>The domain-identifier and owning-project-identifier must be valid and active.</p> </li> <li> <p>The name of the asset type must be unique within the domain — duplicate names will cause failure.</p> </li> <li> <p>JSON input must be valid — incorrect formatting causes Invalid JSON errors.</p> </li> </ul>"
     },
     "CreateConnection":{
       "name":"CreateConnection",
@@ -327,7 +328,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates a data product.</p> <p>A data product is a comprehensive package that combines data assets with their associated metadata, documentation, and access controls. It's designed to serve specific business needs or use cases, making it easier for users to find and consume data appropriately. Data products include important information about data quality, freshness, and usage guidelines, effectively bridging the gap between data producers and consumers while ensuring proper governance.</p> <p>Prerequisites:</p> <ul> <li> <p>The domain must exist and be accessible. </p> </li> <li> <p>The owning project must be valid and active.</p> </li> <li> <p>The name must be unique within the domain (no existing data product with the same name).</p> </li> <li> <p>User must have create permissions for data products in the project.</p> </li> <li> <p>The domain must have Amazon DataZone publishing enabled.</p> </li> </ul>",
+      "documentation":"<p>Creates a data product.</p> <p>A data product is a comprehensive package that combines data assets with their associated metadata, documentation, and access controls. It's designed to serve specific business needs or use cases, making it easier for users to find and consume data appropriately. Data products include important information about data quality, freshness, and usage guidelines, effectively bridging the gap between data producers and consumers while ensuring proper governance.</p> <p>Prerequisites:</p> <ul> <li> <p>The domain must exist and be accessible. </p> </li> <li> <p>The owning project must be valid and active.</p> </li> <li> <p>The name must be unique within the domain (no existing data product with the same name).</p> </li> <li> <p>User must have create permissions for data products in the project.</p> </li> </ul>",
       "idempotent":true
     },
     "CreateDataProductRevision":{
@@ -516,7 +517,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates a metadata form type.</p> <p>Prerequisites:</p> <ul> <li> <p>The domain must exist and be in an <code>ENABLED</code> state. </p> </li> <li> <p>The owning project must exist and be accessible.</p> </li> <li> <p>The name must be unique within the domain.</p> </li> </ul>"
+      "documentation":"<p>Creates a metadata form type.</p> <p>Prerequisites:</p> <ul> <li> <p>The domain must exist and be in an <code>ENABLED</code> state. </p> </li> <li> <p>The owning project must exist and be accessible.</p> </li> <li> <p>The name must be unique within the domain.</p> </li> </ul> <p>For custom form types, to indicate that a field should be searchable, annotate it with <code>@amazon.datazone#searchable</code>. By default, searchable fields are indexed for semantic search, where related query terms will match the attribute value even if they are not stemmed or keyword matches. To indicate that a field should be indexed for lexical search (which disables semantic search but supports stemmed and partial matches), annotate it with <code>@amazon.datazone#searchable(modes:[\"LEXICAL\"])</code>. To indicate that a field should be indexed for technical identifier search (for more information on technical identifier search, see: <a href=\"https://aws.amazon.com/blogs/big-data/streamline-data-discovery-with-precise-technical-identifier-search-in-amazon-sagemaker-unified-studio/\">https://aws.amazon.com/blogs/big-data/streamline-data-discovery-with-precise-technical-identifier-search-in-amazon-sagemaker-unified-studio/</a>), annotate it with <code>@amazon.datazone#searchable(modes:[\"TECHNICAL\"])</code>.</p> <p>To denote that a field will store glossary term ids (which are filterable via the Search/SearchListings APIs), annotate it with <code>@amazon.datazone#glossaryterm(\"${GLOSSARY_ID}\")</code>, where <code>${GLOSSARY_ID}</code> is the id of the glossary that the glossary terms stored in the field belong to. </p>"
     },
     "CreateGlossary":{
       "name":"CreateGlossary",
@@ -558,7 +559,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Creates a business glossary term.</p> <p>A glossary term represents an individual entry within the Amazon DataZone glossary, serving as a standardized definition for a specific business concept or data element. Each term can include rich metadata such as detailed definitions, synonyms, related terms, and usage examples. Glossary terms can be linked directly to data assets, providing business context to technical data elements. This linking capability helps users understand the business meaning of data fields and ensures consistent interpretation across different systems and teams. Terms can also have relationships with other terms, creating a semantic network that reflects the complexity of business concepts.</p> <p>Prerequisites:</p> <ul> <li> <p>Domain must exist. </p> </li> <li> <p>Glossary must exist and be in an ENABLED state.</p> </li> <li> <p>The term name must be unique within the glossary.</p> </li> <li> <p>Ensure term does not conflict with existing terms in hierarchy.</p> </li> </ul>",
+      "documentation":"<p>Creates a business glossary term.</p> <p>A glossary term represents an individual entry within the Amazon DataZone glossary, serving as a standardized definition for a specific business concept or data element. Each term can include rich metadata such as detailed definitions, synonyms, related terms, and usage examples. Glossary terms can be linked directly to data assets, providing business context to technical data elements. This linking capability helps users understand the business meaning of data fields and ensures consistent interpretation across different systems and teams. Terms can also have relationships with other terms, creating a semantic network that reflects the complexity of business concepts.</p> <p>Prerequisites:</p> <ul> <li> <p>Domain must exist. </p> </li> <li> <p>Glossary must exist.</p> </li> <li> <p>The term name must be unique within the glossary.</p> </li> <li> <p>Ensure term does not conflict with existing terms in hierarchy.</p> </li> </ul>",
       "idempotent":true
     },
     "CreateGroupProfile":{
@@ -719,6 +720,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
@@ -884,7 +886,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Deletes a data product in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>The data product must exist and not be deleted or archived. </p> </li> <li> <p>The user must have delete permissions for the data product.</p> </li> <li> <p>Ensure there are no active dependencies (e.g., published links, assets using the product).</p> </li> <li> <p>Domain and project must be active.</p> </li> </ul>",
+      "documentation":"<p>Deletes a data product in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>The data product must exist and not be deleted or archived. </p> </li> <li> <p>The user must have delete permissions for the data product.</p> </li> <li> <p>Domain and project must be active.</p> </li> </ul>",
       "idempotent":true
     },
     "DeleteDataSource":{
@@ -1086,7 +1088,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Deletes a business glossary in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>The glossary must be in DISABLED state. </p> </li> <li> <p>The glossary must not have any glossary terms associated with it.</p> </li> <li> <p>The glossary must exist in the specified domain.</p> </li> <li> <p>The caller must have the <code>datazone:DeleteGlossary</code> permission in the domain and glossary.</p> </li> <li> <p>There should be no active assets or metadata linked to the glossary.</p> </li> </ul>",
+      "documentation":"<p>Deletes a business glossary in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>The glossary must be in DISABLED state. </p> </li> <li> <p>The glossary must not have any glossary terms associated with it.</p> </li> <li> <p>The glossary must exist in the specified domain.</p> </li> <li> <p>The caller must have the <code>datazone:DeleteGlossary</code> permission in the domain and glossary.</p> </li> <li> <p>Glossary should not be linked to any active metadata forms.</p> </li> </ul>",
       "idempotent":true
     },
     "DeleteGlossaryTerm":{
@@ -1657,7 +1659,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Gets a metadata form type in Amazon DataZone.</p> <p>Form types define the structure and validation rules for collecting metadata about assets in Amazon DataZone. They act as templates that ensure consistent metadata capture across similar types of assets, while allowing for customization to meet specific organizational needs. Form types can include required fields, validation rules, and dependencies, helping maintain high-quality metadata that makes data assets more discoverable and usable.</p> <ul> <li> <p>The form type with the specified identifier must exist in the given domain. </p> </li> <li> <p>The domain must be valid and active.</p> </li> <li> <p>User must have permission on the form type.</p> </li> <li> <p>The form type should not be deleted or in an invalid state.</p> </li> </ul>"
+      "documentation":"<p>Gets a metadata form type in Amazon DataZone.</p> <p>Form types define the structure and validation rules for collecting metadata about assets in Amazon DataZone. They act as templates that ensure consistent metadata capture across similar types of assets, while allowing for customization to meet specific organizational needs. Form types can include required fields, validation rules, and dependencies, helping maintain high-quality metadata that makes data assets more discoverable and usable.</p> <ul> <li> <p>The form type with the specified identifier must exist in the given domain. </p> </li> <li> <p>The domain must be valid and active.</p> </li> <li> <p>User must have permission on the form type.</p> </li> <li> <p>The form type should not be deleted or in an invalid state.</p> </li> </ul> <p>One use case for this API is to determine whether a form field is indexed for search. </p> <p>A searchable field will be annotated with <code>@amazon.datazone#searchable</code>. By default, searchable fields are indexed for semantic search, where related query terms will match the attribute value even if they are not stemmed or keyword matches. If a field is indexed technical identifier search, it will be annotated with <code>@amazon.datazone#searchable(modes:[\"TECHNICAL\"])</code>. If a field is indexed for lexical search (supports stemmed and prefix matches but not semantic matches), it will be annotated with <code>@amazon.datazone#searchable(modes:[\"LEXICAL\"])</code>.</p> <p>A field storing glossary term IDs (which is filterable) will be annotated with <code>@amazon.datazone#glossaryterm(\"${glossaryId}\")</code>. </p>"
     },
     "GetGlossary":{
       "name":"GetGlossary",
@@ -2846,7 +2848,7 @@
         {"shape":"ValidationException"},
         {"shape":"UnauthorizedException"}
       ],
-      "documentation":"<p>Searches listings (records of an asset at a given time) in Amazon DataZone.</p>"
+      "documentation":"<p>Searches listings in Amazon DataZone.</p> <p>SearchListings is a powerful capability that enables users to discover and explore published assets and data products across their organization. It provides both basic and advanced search functionality, allowing users to find resources based on names, descriptions, metadata, and other attributes. SearchListings also supports filtering using various criteria such as creation date, owner, or status. This API is essential for making the wealth of data resources in an organization discoverable and usable, helping users find the right data for their needs quickly and efficiently.</p> <p>SearchListings returns results in a paginated format. When the result set is large, the response will include a nextToken, which can be used to retrieve the next page of results.</p> <p>The SearchListings API gives users flexibility in specifying what kind of search is run.</p> <p>To run a free-text search, the <code>searchText</code> parameter must be supplied. By default, all searchable fields are indexed for semantic search and will return semantic matches for SearchListings queries. To prevent semantic search indexing for a custom form attribute, see the <a href=\"https://docs.aws.amazon.com/datazone/latest/APIReference/API_CreateFormType.html\">CreateFormType API documentation</a>. To run a lexical search query, enclose the query with double quotes (\"\"). This will disable semantic search even for fields that have semantic search enabled and will only return results that contain the keywords wrapped by double quotes (order of tokens in the query is not enforced). Free-text search is supported for all attributes annotated with @amazon.datazone#searchable.</p> <p>To run a filtered search, provide filter clause using the filters parameter. To filter on glossary terms, use the special attribute <code>__DataZoneGlossaryTerms</code>.</p> <p> To find out whether an attribute has been annotated and indexed for a given search type, use the GetFormType API to retrieve the form containing the attribute.</p>"
     },
     "SearchTypes":{
       "name":"SearchTypes",
@@ -3504,6 +3506,10 @@
         "identifier"
       ],
       "members":{
+        "assetPermissions":{
+          "shape":"AssetPermissions",
+          "documentation":"<p>The asset permissions of the accept subscription request.</p>"
+        },
         "assetScopes":{
           "shape":"AcceptedAssetScopes",
           "documentation":"<p>The asset scopes of the accept subscription request.</p>"
@@ -3949,6 +3955,96 @@
       "members":{},
       "documentation":"<p>The all users grant filter.</p>"
     },
+    "AmazonQPropertiesInput":{
+      "type":"structure",
+      "required":["isEnabled"],
+      "members":{
+        "authMode":{
+          "shape":"AmazonQPropertiesInputAuthModeString",
+          "documentation":"<p>The authentication mode of the connection's Amazon Q properties.</p>"
+        },
+        "isEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Amazon Q is enabled for the connection.</p>"
+        },
+        "profileArn":{
+          "shape":"AmazonQPropertiesInputProfileArnString",
+          "documentation":"<p>The profile ARN of the connection's Amazon Q properties.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Q properties of the connection.</p>"
+    },
+    "AmazonQPropertiesInputAuthModeString":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
+    "AmazonQPropertiesInputProfileArnString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws[a-z\\-]*:[a-z0-9\\-]+:[a-z0-9\\-]*:[0-9]*:.*"
+    },
+    "AmazonQPropertiesOutput":{
+      "type":"structure",
+      "required":["isEnabled"],
+      "members":{
+        "authMode":{
+          "shape":"AmazonQPropertiesOutputAuthModeString",
+          "documentation":"<p>The authentication mode of the connection's Amazon Q properties.</p>"
+        },
+        "isEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Amazon Q is enabled for the connection.</p>"
+        },
+        "profileArn":{
+          "shape":"AmazonQPropertiesOutputProfileArnString",
+          "documentation":"<p>The profile ARN of the connection's Amazon Q properties.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Q properties of the connection.</p>"
+    },
+    "AmazonQPropertiesOutputAuthModeString":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
+    "AmazonQPropertiesOutputProfileArnString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws[a-z\\-]*:[a-z0-9\\-]+:[a-z0-9\\-]*:[0-9]*:.*"
+    },
+    "AmazonQPropertiesPatch":{
+      "type":"structure",
+      "required":["isEnabled"],
+      "members":{
+        "authMode":{
+          "shape":"AmazonQPropertiesPatchAuthModeString",
+          "documentation":"<p>The authentication mode of the connection's Amazon Q properties.</p>"
+        },
+        "isEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Amazon Q is enabled for the connection.</p>"
+        },
+        "profileArn":{
+          "shape":"AmazonQPropertiesPatchProfileArnString",
+          "documentation":"<p>The profile ARN of the connection's Amazon Q properties.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Q properties of the connection.</p>"
+    },
+    "AmazonQPropertiesPatchAuthModeString":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
+    "AmazonQPropertiesPatchProfileArnString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws[a-z\\-]*:[a-z0-9\\-]+:[a-z0-9\\-]*:[0-9]*:.*"
+    },
     "ApplicableAssetTypes":{
       "type":"list",
       "member":{"shape":"TypeName"}
@@ -4313,6 +4409,28 @@
       "max":256,
       "min":1,
       "sensitive":true
+    },
+    "AssetPermission":{
+      "type":"structure",
+      "required":[
+        "assetId",
+        "permissions"
+      ],
+      "members":{
+        "assetId":{
+          "shape":"AssetId",
+          "documentation":"<p>The asset ID as part of the asset permissions.</p>"
+        },
+        "permissions":{
+          "shape":"Permissions",
+          "documentation":"<p>The details as part of the asset permissions.</p>"
+        }
+      },
+      "documentation":"<p>The asset permissions.</p>"
+    },
+    "AssetPermissions":{
+      "type":"list",
+      "member":{"shape":"AssetPermission"}
     },
     "AssetRevision":{
       "type":"structure",
@@ -5101,6 +5219,10 @@
     "ConnectionPropertiesInput":{
       "type":"structure",
       "members":{
+        "amazonQProperties":{
+          "shape":"AmazonQPropertiesInput",
+          "documentation":"<p>The Amazon Q properties of the connection.</p>"
+        },
         "athenaProperties":{
           "shape":"AthenaPropertiesInput",
           "documentation":"<p>The Amazon Athena properties of a connection.</p>"
@@ -5116,6 +5238,10 @@
         "iamProperties":{
           "shape":"IamPropertiesInput",
           "documentation":"<p>The IAM properties of a connection.</p>"
+        },
+        "mlflowProperties":{
+          "shape":"MlflowPropertiesInput",
+          "documentation":"<p>The MLflow properties of a connection.</p>"
         },
         "redshiftProperties":{
           "shape":"RedshiftPropertiesInput",
@@ -5140,6 +5266,10 @@
     "ConnectionPropertiesOutput":{
       "type":"structure",
       "members":{
+        "amazonQProperties":{
+          "shape":"AmazonQPropertiesOutput",
+          "documentation":"<p>The Amazon Q properties of the connection.</p>"
+        },
         "athenaProperties":{
           "shape":"AthenaPropertiesOutput",
           "documentation":"<p>The Amazon Athena properties of a connection.</p>"
@@ -5155,6 +5285,10 @@
         "iamProperties":{
           "shape":"IamPropertiesOutput",
           "documentation":"<p>The IAM properties of a connection.</p>"
+        },
+        "mlflowProperties":{
+          "shape":"MlflowPropertiesOutput",
+          "documentation":"<p>The MLflow properties of a connection.</p>"
         },
         "redshiftProperties":{
           "shape":"RedshiftPropertiesOutput",
@@ -5179,6 +5313,10 @@
     "ConnectionPropertiesPatch":{
       "type":"structure",
       "members":{
+        "amazonQProperties":{
+          "shape":"AmazonQPropertiesPatch",
+          "documentation":"<p>The Amazon Q properties of the connection.</p>"
+        },
         "athenaProperties":{
           "shape":"AthenaPropertiesPatch",
           "documentation":"<p>The Amazon Athena properties of a connection properties patch.</p>"
@@ -5190,6 +5328,10 @@
         "iamProperties":{
           "shape":"IamPropertiesPatch",
           "documentation":"<p>The IAM properties of a connection properties patch.</p>"
+        },
+        "mlflowProperties":{
+          "shape":"MlflowPropertiesPatch",
+          "documentation":"<p>The MLflow properties of a connection.</p>"
         },
         "redshiftProperties":{
           "shape":"RedshiftPropertiesPatch",
@@ -5211,6 +5353,13 @@
       "type":"string",
       "max":2048,
       "min":1
+    },
+    "ConnectionScope":{
+      "type":"string",
+      "enum":[
+        "DOMAIN",
+        "PROJECT"
+      ]
     },
     "ConnectionStatus":{
       "type":"string",
@@ -5272,6 +5421,10 @@
           "shape":"ConnectionPropertiesOutput",
           "documentation":"<p>The connection props.</p>"
         },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>"
+        },
         "type":{
           "shape":"ConnectionType",
           "documentation":"<p>The connection type.</p>"
@@ -5301,7 +5454,9 @@
         "SQLSERVER",
         "TERADATA",
         "VERTICA",
-        "WORKFLOWS_MWAA"
+        "WORKFLOWS_MWAA",
+        "AMAZON_Q",
+        "MLFLOW"
       ]
     },
     "CreateAccountPoolInput":{
@@ -5903,7 +6058,6 @@
       "type":"structure",
       "required":[
         "domainIdentifier",
-        "environmentIdentifier",
         "name"
       ],
       "members":{
@@ -5926,6 +6080,10 @@
           "location":"uri",
           "locationName":"domainIdentifier"
         },
+        "enableTrustedIdentityPropagation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the trusted identity propagation is enabled.</p>"
+        },
         "environmentIdentifier":{
           "shape":"EnvironmentId",
           "documentation":"<p>The ID of the environment where the connection is created.</p>"
@@ -5937,6 +6095,10 @@
         "props":{
           "shape":"ConnectionPropertiesInput",
           "documentation":"<p>The connection props.</p>"
+        },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>"
         }
       }
     },
@@ -5992,6 +6154,10 @@
         "props":{
           "shape":"ConnectionPropertiesOutput",
           "documentation":"<p>The connection props.</p>"
+        },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>"
         },
         "type":{
           "shape":"ConnectionType",
@@ -7450,11 +7616,22 @@
           "shape":"ProjectProfileId",
           "documentation":"<p>The ID of the project profile.</p>"
         },
+        "resourceTags":{
+          "shape":"CreateProjectInputResourceTagsMap",
+          "documentation":"<p>The resource tags of the project.</p>"
+        },
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of the project.</p>"
         }
       }
+    },
+    "CreateProjectInputResourceTagsMap":{
+      "type":"map",
+      "key":{"shape":"TagKey"},
+      "value":{"shape":"TagValue"},
+      "max":25,
+      "min":0
     },
     "CreateProjectMembershipInput":{
       "type":"structure",
@@ -7552,6 +7729,10 @@
           "shape":"ProjectStatus",
           "documentation":"<p>The status of the Amazon DataZone project that was created.</p>"
         },
+        "resourceTags":{
+          "shape":"ResourceTags",
+          "documentation":"<p>The resource tags of the project.</p>"
+        },
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of the project.</p>"
@@ -7575,6 +7756,10 @@
         "name"
       ],
       "members":{
+        "allowCustomProjectResourceTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether custom project resource tags are supported.</p>"
+        },
         "description":{
           "shape":"Description",
           "documentation":"<p>A description of a project profile.</p>"
@@ -7597,6 +7782,14 @@
           "shape":"ProjectProfileName",
           "documentation":"<p>Project profile name.</p>"
         },
+        "projectResourceTags":{
+          "shape":"ProjectResourceTagParameters",
+          "documentation":"<p>The resource tags of the project profile.</p>"
+        },
+        "projectResourceTagsDescription":{
+          "shape":"Description",
+          "documentation":"<p>Field viewable through the UI that provides a project user with the allowed resource tag specifications.</p>"
+        },
         "status":{
           "shape":"Status",
           "documentation":"<p>Project profile status.</p>"
@@ -7612,6 +7805,10 @@
         "name"
       ],
       "members":{
+        "allowCustomProjectResourceTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether custom project resource tags are supported.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>A timestamp at which a project profile is created.</p>"
@@ -7647,6 +7844,14 @@
         "name":{
           "shape":"ProjectProfileName",
           "documentation":"<p>Project profile name.</p>"
+        },
+        "projectResourceTags":{
+          "shape":"ProjectResourceTagParameters",
+          "documentation":"<p>The resource tags of the project profile.</p>"
+        },
+        "projectResourceTagsDescription":{
+          "shape":"Description",
+          "documentation":"<p>Field viewable through the UI that provides a project user with the allowed resource tag specifications.</p>"
         },
         "status":{
           "shape":"Status",
@@ -7828,6 +8033,10 @@
           "shape":"DomainId",
           "documentation":"<p>The ID of the Amazon DataZone domain in which the subscription grant is created.</p>"
         },
+        "environmentId":{
+          "shape":"EnvironmentId",
+          "documentation":"<p>The environment ID for which subscription grant is created.</p>"
+        },
         "grantedEntity":{
           "shape":"GrantedEntity",
           "documentation":"<p>The entity to which the subscription is granted.</p>"
@@ -7869,6 +8078,14 @@
         "subscribedPrincipals"
       ],
       "members":{
+        "assetPermissions":{
+          "shape":"AssetPermissions",
+          "documentation":"<p>The asset permissions of the subscription request.</p>"
+        },
+        "assetScopes":{
+          "shape":"AcceptedAssetScopes",
+          "documentation":"<p>The asset scopes of the subscription request.</p>"
+        },
         "clientToken":{
           "shape":"String",
           "documentation":"<p>A unique, case-sensitive identifier that is provided to ensure the idempotency of the request.</p>",
@@ -8152,7 +8369,10 @@
     "CreateUserProfileOutput":{
       "type":"structure",
       "members":{
-        "details":{"shape":"UserProfileDetails"},
+        "details":{
+          "shape":"UserProfileDetails",
+          "documentation":"<p>The user profile details.</p>"
+        },
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The identifier of the Amazon DataZone domain in which a user profile is created.</p>"
@@ -9591,6 +9811,10 @@
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The ID of the Amazon DataZone domain in which the subscription grant is deleted.</p>"
+        },
+        "environmentId":{
+          "shape":"EnvironmentId",
+          "documentation":"<p>The ID of the environment in which the subscription grant is deleted.</p>"
         },
         "grantedEntity":{
           "shape":"GrantedEntity",
@@ -11560,6 +11784,10 @@
           "shape":"ConnectionPropertiesOutput",
           "documentation":"<p>Connection props.</p>"
         },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>"
+        },
         "type":{
           "shape":"ConnectionType",
           "documentation":"<p>The type of the connection.</p>"
@@ -13263,6 +13491,10 @@
           "shape":"ProjectStatus",
           "documentation":"<p>The status of the project.</p>"
         },
+        "resourceTags":{
+          "shape":"ResourceTags",
+          "documentation":"<p>The resource tags of the project.</p>"
+        },
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of a project.</p>"
@@ -13299,6 +13531,10 @@
         "name"
       ],
       "members":{
+        "allowCustomProjectResourceTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether custom project resource tags are supported.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the project profile was created.</p>"
@@ -13334,6 +13570,14 @@
         "name":{
           "shape":"ProjectProfileName",
           "documentation":"<p>The name of the project profile.</p>"
+        },
+        "projectResourceTags":{
+          "shape":"ProjectResourceTagParameters",
+          "documentation":"<p>The resource tags of the project profile.</p>"
+        },
+        "projectResourceTagsDescription":{
+          "shape":"Description",
+          "documentation":"<p>Field viewable through the UI that provides a project user with the allowed resource tag specifications.</p>"
         },
         "status":{
           "shape":"Status",
@@ -13492,6 +13736,10 @@
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The ID of the Amazon DataZone domain in which the subscription grant exists.</p>"
+        },
+        "environmentId":{
+          "shape":"EnvironmentId",
+          "documentation":"<p>The environment ID of the subscription grant.</p>"
         },
         "grantedEntity":{
           "shape":"GrantedEntity",
@@ -13914,7 +14162,10 @@
     "GetUserProfileOutput":{
       "type":"structure",
       "members":{
-        "details":{"shape":"UserProfileDetails"},
+        "details":{
+          "shape":"UserProfileDetails",
+          "documentation":"<p>The user profile details.</p>"
+        },
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>the identifier of the Amazon DataZone domain of which you want to get the user profile.</p>"
@@ -14755,14 +15006,14 @@
       "members":{
         "arn":{
           "shape":"String",
-          "documentation":"<p>The ARN of an IAM user profile in Amazon DataZone.</p>"
+          "documentation":"<p>The ARN of the IAM user.</p>"
         },
         "principalId":{
           "shape":"String",
-          "documentation":"<p>Principal ID of the IAM user.</p>"
+          "documentation":"<p>The principal ID as part of the IAM user profile details.</p>"
         }
       },
-      "documentation":"<p>The details of an IAM user profile in Amazon DataZone.</p>"
+      "documentation":"<p/>"
     },
     "Import":{
       "type":"structure",
@@ -15521,10 +15772,7 @@
     },
     "ListConnectionsInput":{
       "type":"structure",
-      "required":[
-        "domainIdentifier",
-        "projectIdentifier"
-      ],
+      "required":["domainIdentifier"],
       "members":{
         "domainIdentifier":{
           "shape":"DomainId",
@@ -15561,6 +15809,12 @@
           "documentation":"<p>The ID of the project where you want to list connections.</p>",
           "location":"querystring",
           "locationName":"projectIdentifier"
+        },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>",
+          "location":"querystring",
+          "locationName":"scope"
         },
         "sortBy":{
           "shape":"SortFieldConnection",
@@ -16924,15 +17178,29 @@
           "location":"querystring",
           "locationName":"nextToken"
         },
+        "owningGroupId":{
+          "shape":"GroupProfileId",
+          "documentation":"<p>The ID of the owning group.</p>",
+          "location":"querystring",
+          "locationName":"owningGroupId"
+        },
         "owningProjectId":{
           "shape":"ProjectId",
           "documentation":"<p>The ID of the owning project of the subscription grants.</p>",
           "location":"querystring",
           "locationName":"owningProjectId"
         },
+        "owningUserId":{
+          "shape":"UserProfileId",
+          "documentation":"<p>The ID of the owning user.</p>",
+          "location":"querystring",
+          "locationName":"owningUserId"
+        },
         "sortBy":{
           "shape":"SortKey",
           "documentation":"<p>Specifies the way of sorting the results of this action.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Results are always sorted by updatedAt",
           "location":"querystring",
           "locationName":"sortBy"
         },
@@ -17004,15 +17272,29 @@
           "location":"querystring",
           "locationName":"nextToken"
         },
+        "owningGroupId":{
+          "shape":"GroupProfileId",
+          "documentation":"<p>The ID of the owning group.</p>",
+          "location":"querystring",
+          "locationName":"owningGroupId"
+        },
         "owningProjectId":{
           "shape":"ProjectId",
           "documentation":"<p>The identifier of the project for the subscription requests.</p>",
           "location":"querystring",
           "locationName":"owningProjectId"
         },
+        "owningUserId":{
+          "shape":"UserProfileId",
+          "documentation":"<p>The ID of the owning user.</p>",
+          "location":"querystring",
+          "locationName":"owningUserId"
+        },
         "sortBy":{
           "shape":"SortKey",
           "documentation":"<p>Specifies the way to sort the results of this action.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Results are always sorted by updatedAt",
           "location":"querystring",
           "locationName":"sortBy"
         },
@@ -17137,15 +17419,29 @@
           "location":"querystring",
           "locationName":"nextToken"
         },
+        "owningGroupId":{
+          "shape":"GroupProfileId",
+          "documentation":"<p>The ID of the owning group.</p>",
+          "location":"querystring",
+          "locationName":"owningGroupId"
+        },
         "owningProjectId":{
           "shape":"ProjectId",
           "documentation":"<p>The identifier of the owning project.</p>",
           "location":"querystring",
           "locationName":"owningProjectId"
         },
+        "owningUserId":{
+          "shape":"UserProfileId",
+          "documentation":"<p>The ID of the owning user.</p>",
+          "location":"querystring",
+          "locationName":"owningUserId"
+        },
         "sortBy":{
           "shape":"SortKey",
           "documentation":"<p>Specifies the way in which the results of this action are to be sorted.</p>",
+          "deprecated":true,
+          "deprecatedMessage":"Results are always sorted by updatedAt",
           "location":"querystring",
           "locationName":"sortBy"
         },
@@ -17399,6 +17695,26 @@
       "max":4096,
       "min":0,
       "sensitive":true
+    },
+    "ManagedEndpointCredentials":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"ManagedEndpointCredentialsIdString",
+          "documentation":"<p>The identifier of the managed endpoint credentials.</p>"
+        },
+        "token":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the managed endpoint credentials.</p>"
+        }
+      },
+      "documentation":"<p>The managed endpoint credentials of the EMR on EKS cluster.</p>",
+      "sensitive":true
+    },
+    "ManagedEndpointCredentialsIdString":{
+      "type":"string",
+      "max":64,
+      "min":0
     },
     "ManagedPolicyType":{
       "type":"string",
@@ -17663,6 +17979,36 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"}
+    },
+    "MlflowPropertiesInput":{
+      "type":"structure",
+      "members":{
+        "trackingServerArn":{
+          "shape":"String",
+          "documentation":"<p>The tracking server ARN as part of the MLflow properties of a connection.</p>"
+        }
+      },
+      "documentation":"<p>The MLflow properties of a connection.</p>"
+    },
+    "MlflowPropertiesOutput":{
+      "type":"structure",
+      "members":{
+        "trackingServerArn":{
+          "shape":"String",
+          "documentation":"<p>The tracking server ARN as part of the MLflow properties of a connection.</p>"
+        }
+      },
+      "documentation":"<p>The MLflow properties of a connection.</p>"
+    },
+    "MlflowPropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "trackingServerArn":{
+          "shape":"String",
+          "documentation":"<p>The tracking server ARN as part of the MLflow properties of a connection.</p>"
+        }
+      },
+      "documentation":"<p>The MLflow properties of a connection.</p>"
     },
     "Model":{
       "type":"structure",
@@ -18091,6 +18437,17 @@
       "min":0,
       "sensitive":true
     },
+    "Permissions":{
+      "type":"structure",
+      "members":{
+        "s3":{
+          "shape":"S3Permissions",
+          "documentation":"<p>The S3 details of the asset permissions.</p>"
+        }
+      },
+      "documentation":"<p>The asset permissions.</p>",
+      "union":true
+    },
     "PhysicalConnectionRequirements":{
       "type":"structure",
       "members":{
@@ -18124,6 +18481,10 @@
         "awsLocation":{
           "shape":"AwsLocation",
           "documentation":"<p>The location of a connection.</p>"
+        },
+        "enableTrustedIdentityPropagation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specified whether trusted identity propagation for the connection is enabled.</p>"
         },
         "glueConnection":{
           "shape":"GlueConnection",
@@ -18541,6 +18902,12 @@
         }
       },
       "documentation":"<p>The summary of a project profile.</p>"
+    },
+    "ProjectResourceTagParameters":{
+      "type":"list",
+      "member":{"shape":"ResourceTagParameter"},
+      "max":25,
+      "min":0
     },
     "ProjectStatus":{
       "type":"string",
@@ -19554,6 +19921,65 @@
       },
       "exception":true
     },
+    "ResourceTag":{
+      "type":"structure",
+      "required":[
+        "key",
+        "source",
+        "value"
+      ],
+      "members":{
+        "key":{
+          "shape":"TagKey",
+          "documentation":"<p>The key of the resource tag of the project.</p>"
+        },
+        "source":{
+          "shape":"ResourceTagSource",
+          "documentation":"<p>The source of the resource tag of the project.</p>"
+        },
+        "value":{
+          "shape":"TagValue",
+          "documentation":"<p>The value of the resource tag of the project.</p>"
+        }
+      },
+      "documentation":"<p>The resource tag of the project.</p>"
+    },
+    "ResourceTagParameter":{
+      "type":"structure",
+      "required":[
+        "isValueEditable",
+        "key",
+        "value"
+      ],
+      "members":{
+        "isValueEditable":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the value of the resource tag parameter of the project profile is editable at the project level.</p>"
+        },
+        "key":{
+          "shape":"TagKey",
+          "documentation":"<p>The key of the resource tag parameter of the project profile.</p>"
+        },
+        "value":{
+          "shape":"TagValue",
+          "documentation":"<p>The value of the resource tag parameter key of the project profile.</p>"
+        }
+      },
+      "documentation":"<p>The resource tag parameter of the project profile.</p>"
+    },
+    "ResourceTagSource":{
+      "type":"string",
+      "enum":[
+        "PROJECT",
+        "PROJECT_PROFILE"
+      ]
+    },
+    "ResourceTags":{
+      "type":"list",
+      "member":{"shape":"ResourceTag"},
+      "max":25,
+      "min":0
+    },
     "Revision":{
       "type":"string",
       "max":64,
@@ -19926,6 +20352,18 @@
       "member":{"shape":"S3Location"},
       "max":20,
       "min":0
+    },
+    "S3Permission":{
+      "type":"string",
+      "enum":[
+        "READ",
+        "WRITE"
+      ]
+    },
+    "S3Permissions":{
+      "type":"list",
+      "member":{"shape":"S3Permission"},
+      "documentation":"<p>S3 permissions as a simple enum list.</p>"
     },
     "S3PropertiesInput":{
       "type":"structure",
@@ -20630,6 +21068,10 @@
           "shape":"SparkEmrPropertiesInputLogUriString",
           "documentation":"<p>The log URI of the Spark EMR.</p>"
         },
+        "managedEndpointArn":{
+          "shape":"SparkEmrPropertiesInputManagedEndpointArnString",
+          "documentation":"<p>The managed endpoint ARN of the EMR on EKS cluster.</p>"
+        },
         "pythonVirtualEnv":{
           "shape":"SparkEmrPropertiesInputPythonVirtualEnvString",
           "documentation":"<p>The Python virtual env of the Spark EMR.</p>"
@@ -20647,8 +21089,9 @@
     },
     "SparkEmrPropertiesInputComputeArnString":{
       "type":"string",
-      "max":256,
-      "min":0
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws(-(cn|us-gov|iso(-[bef])?))?:(elasticmapreduce|emr-serverless|emr-containers):.*"
     },
     "SparkEmrPropertiesInputInstanceProfileArnString":{
       "type":"string",
@@ -20663,6 +21106,11 @@
     "SparkEmrPropertiesInputLogUriString":{
       "type":"string",
       "max":256,
+      "min":0
+    },
+    "SparkEmrPropertiesInputManagedEndpointArnString":{
+      "type":"string",
+      "max":2048,
       "min":0
     },
     "SparkEmrPropertiesInputPythonVirtualEnvString":{
@@ -20682,6 +21130,10 @@
     "SparkEmrPropertiesOutput":{
       "type":"structure",
       "members":{
+        "certificateData":{
+          "shape":"String",
+          "documentation":"<p>The certificate data of the EMR on EKS cluster.</p>"
+        },
         "computeArn":{
           "shape":"String",
           "documentation":"<p>The compute ARN of the Spark EMR.</p>"
@@ -20714,6 +21166,14 @@
           "shape":"String",
           "documentation":"<p>The log URI of the Spark EMR.</p>"
         },
+        "managedEndpointArn":{
+          "shape":"SparkEmrPropertiesOutputManagedEndpointArnString",
+          "documentation":"<p>The managed endpoint ARN of the EMR on EKS cluster.</p>"
+        },
+        "managedEndpointCredentials":{
+          "shape":"ManagedEndpointCredentials",
+          "documentation":"<p>The managed endpoint credentials of the EMR on EKS cluster.</p>"
+        },
         "pythonVirtualEnv":{
           "shape":"String",
           "documentation":"<p>The Python virtual env of the Spark EMR.</p>"
@@ -20728,6 +21188,11 @@
         }
       },
       "documentation":"<p>The Spark EMR properties.</p>"
+    },
+    "SparkEmrPropertiesOutputManagedEndpointArnString":{
+      "type":"string",
+      "max":2048,
+      "min":0
     },
     "SparkEmrPropertiesPatch":{
       "type":"structure",
@@ -20748,6 +21213,10 @@
           "shape":"SparkEmrPropertiesPatchLogUriString",
           "documentation":"<p>The log URI in the Spark EMR properties patch.</p>"
         },
+        "managedEndpointArn":{
+          "shape":"SparkEmrPropertiesPatchManagedEndpointArnString",
+          "documentation":"<p>The managed endpoint ARN of the EMR on EKS cluster.</p>"
+        },
         "pythonVirtualEnv":{
           "shape":"SparkEmrPropertiesPatchPythonVirtualEnvString",
           "documentation":"<p>The Python virtual env in the Spark EMR properties patch.</p>"
@@ -20765,8 +21234,9 @@
     },
     "SparkEmrPropertiesPatchComputeArnString":{
       "type":"string",
-      "max":256,
-      "min":0
+      "max":2048,
+      "min":0,
+      "pattern":"^arn:aws(-(cn|us-gov|iso(-[bef])?))?:(elasticmapreduce|emr-serverless|emr-containers):.*"
     },
     "SparkEmrPropertiesPatchInstanceProfileArnString":{
       "type":"string",
@@ -20781,6 +21251,11 @@
     "SparkEmrPropertiesPatchLogUriString":{
       "type":"string",
       "max":256,
+      "min":0
+    },
+    "SparkEmrPropertiesPatchManagedEndpointArnString":{
+      "type":"string",
+      "max":2048,
       "min":0
     },
     "SparkEmrPropertiesPatchPythonVirtualEnvString":{
@@ -20913,18 +21388,18 @@
       "members":{
         "firstName":{
           "shape":"FirstName",
-          "documentation":"<p>The first name included in the single sign-on details of the user profile.</p>"
+          "documentation":"<p>The first name as part of the SSO user profile detail.</p>"
         },
         "lastName":{
           "shape":"LastName",
-          "documentation":"<p>The last name included in the single sign-on details of the user profile.</p>"
+          "documentation":"<p>The last name as part of the SSO user profile detail.</p>"
         },
         "username":{
           "shape":"UserProfileName",
-          "documentation":"<p>The username included in the single sign-on details of the user profile.</p>"
+          "documentation":"<p>The username as part of the SSO user profile detail. </p>"
         }
       },
-      "documentation":"<p>The single sign-on details of the user profile.</p>"
+      "documentation":"<p>The SSO user profile detail.</p>"
     },
     "StartDataSourceRunInput":{
       "type":"structure",
@@ -21146,6 +21621,10 @@
           "shape":"Timestamp",
           "documentation":"<p>The timestamp of when the subscription grant to the asset is created.</p>"
         },
+        "permissions":{
+          "shape":"Permissions",
+          "documentation":"<p>The asset permissions.</p>"
+        },
         "status":{
           "shape":"SubscriptionGrantStatus",
           "documentation":"<p>The status of the asset for which the subscription grant is created.</p>"
@@ -21183,6 +21662,10 @@
         "glossaryTerms":{
           "shape":"DetailedGlossaryTerms",
           "documentation":"<p>The glossary terms attached to the published asset for which the subscription grant is created.</p>"
+        },
+        "permissions":{
+          "shape":"Permissions",
+          "documentation":"<p>The asset permissions.</p>"
         }
       },
       "documentation":"<p>The details of the published asset for which the subscription grant is created.</p>"
@@ -21190,6 +21673,30 @@
     "SubscribedAssets":{
       "type":"list",
       "member":{"shape":"SubscribedAsset"}
+    },
+    "SubscribedGroup":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"GroupProfileId",
+          "documentation":"<p>The ID of the subscribed group.</p>"
+        },
+        "name":{
+          "shape":"GroupProfileName",
+          "documentation":"<p>The name of the subscribed group.</p>"
+        }
+      },
+      "documentation":"<p>The group that subscribes to the asset.</p>"
+    },
+    "SubscribedGroupInput":{
+      "type":"structure",
+      "members":{
+        "identifier":{
+          "shape":"GroupProfileId",
+          "documentation":"<p>The ID of the subscribed group.</p>"
+        }
+      },
+      "documentation":"<p>The details of the subscribed group.</p>"
     },
     "SubscribedListing":{
       "type":"structure",
@@ -21267,9 +21774,17 @@
     "SubscribedPrincipal":{
       "type":"structure",
       "members":{
+        "group":{
+          "shape":"SubscribedGroup",
+          "documentation":"<p>The subscribed group.</p>"
+        },
         "project":{
           "shape":"SubscribedProject",
           "documentation":"<p>The project that has the subscription grant.</p>"
+        },
+        "user":{
+          "shape":"SubscribedUser",
+          "documentation":"<p>The subscribed user.</p>"
         }
       },
       "documentation":"<p>The principal that has the subscription grant for the asset.</p>",
@@ -21278,9 +21793,17 @@
     "SubscribedPrincipalInput":{
       "type":"structure",
       "members":{
+        "group":{
+          "shape":"SubscribedGroupInput",
+          "documentation":"<p>The subscribed group.</p>"
+        },
         "project":{
           "shape":"SubscribedProjectInput",
           "documentation":"<p>The project that is to be given a subscription grant.</p>"
+        },
+        "user":{
+          "shape":"SubscribedUserInput",
+          "documentation":"<p>The subscribed user.</p>"
         }
       },
       "documentation":"<p>The principal that is to be given a subscriptiong grant.</p>",
@@ -21346,6 +21869,30 @@
       },
       "documentation":"<p>The project that is to be given a subscription grant.</p>"
     },
+    "SubscribedUser":{
+      "type":"structure",
+      "members":{
+        "details":{
+          "shape":"UserProfileDetails",
+          "documentation":"<p>The subscribed user details.</p>"
+        },
+        "id":{
+          "shape":"UserProfileId",
+          "documentation":"<p>The ID of the subscribed user.</p>"
+        }
+      },
+      "documentation":"<p>The subscribed user.</p>"
+    },
+    "SubscribedUserInput":{
+      "type":"structure",
+      "members":{
+        "identifier":{
+          "shape":"UserProfileId",
+          "documentation":"<p>The ID of the subscribed user.</p>"
+        }
+      },
+      "documentation":"<p>The subscribed user.</p>"
+    },
     "SubscriptionGrantId":{
       "type":"string",
       "pattern":"^[a-zA-Z0-9_-]{1,36}$"
@@ -21403,6 +21950,10 @@
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The identifier of the Amazon DataZone domain in which a subscription grant exists.</p>"
+        },
+        "environmentId":{
+          "shape":"EnvironmentId",
+          "documentation":"<p>The environment ID of the subscription grant.</p>"
         },
         "grantedEntity":{
           "shape":"GrantedEntity",
@@ -22461,6 +23012,10 @@
           "shape":"ConnectionPropertiesOutput",
           "documentation":"<p>The connection props.</p>"
         },
+        "scope":{
+          "shape":"ConnectionScope",
+          "documentation":"<p>The scope of the connection.</p>"
+        },
         "type":{
           "shape":"ConnectionType",
           "documentation":"<p>The connection type.</p>"
@@ -23446,11 +24001,22 @@
           "shape":"String",
           "documentation":"<p>The project profile version to which the project should be updated. You can only specify the following string for this parameter: <code>latest</code>.</p>"
         },
+        "resourceTags":{
+          "shape":"UpdateProjectInputResourceTagsMap",
+          "documentation":"<p>The resource tags of the project.</p>"
+        },
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of the project.</p>"
         }
       }
+    },
+    "UpdateProjectInputResourceTagsMap":{
+      "type":"map",
+      "key":{"shape":"TagKey"},
+      "value":{"shape":"TagValue"},
+      "max":25,
+      "min":0
     },
     "UpdateProjectOutput":{
       "type":"structure",
@@ -23513,6 +24079,10 @@
           "shape":"ProjectStatus",
           "documentation":"<p>The status of the project.</p>"
         },
+        "resourceTags":{
+          "shape":"ResourceTags",
+          "documentation":"<p>The resource tags of the project.</p>"
+        },
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of the project.</p>"
@@ -23526,6 +24096,10 @@
         "identifier"
       ],
       "members":{
+        "allowCustomProjectResourceTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether custom project resource tags are supported.</p>"
+        },
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of a project profile.</p>"
@@ -23554,6 +24128,14 @@
           "shape":"ProjectProfileName",
           "documentation":"<p>The name of a project profile.</p>"
         },
+        "projectResourceTags":{
+          "shape":"ProjectResourceTagParameters",
+          "documentation":"<p>The resource tags of the project profile.</p>"
+        },
+        "projectResourceTagsDescription":{
+          "shape":"Description",
+          "documentation":"<p>Field viewable through the UI that provides a project user with the allowed resource tag specifications.</p>"
+        },
         "status":{
           "shape":"Status",
           "documentation":"<p>The status of a project profile.</p>"
@@ -23569,6 +24151,10 @@
         "name"
       ],
       "members":{
+        "allowCustomProjectResourceTags":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether custom project resource tags are supported.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp at which a project profile is created.</p>"
@@ -23604,6 +24190,14 @@
         "name":{
           "shape":"ProjectProfileName",
           "documentation":"<p>The name of the project profile.</p>"
+        },
+        "projectResourceTags":{
+          "shape":"ProjectResourceTagParameters",
+          "documentation":"<p>The resource tags of the project profile.</p>"
+        },
+        "projectResourceTagsDescription":{
+          "shape":"Description",
+          "documentation":"<p>Field viewable through the UI that provides a project user with the allowed resource tag specifications.</p>"
         },
         "status":{
           "shape":"Status",
@@ -23792,6 +24386,10 @@
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The identifier of the Amazon DataZone domain in which a subscription grant status is to be updated.</p>"
+        },
+        "environmentId":{
+          "shape":"EnvironmentId",
+          "documentation":"<p>The ID of the environment in which the subscription grant is updated.</p>"
         },
         "grantedEntity":{
           "shape":"GrantedEntity",
@@ -24099,7 +24697,10 @@
     "UpdateUserProfileOutput":{
       "type":"structure",
       "members":{
-        "details":{"shape":"UserProfileDetails"},
+        "details":{
+          "shape":"UserProfileDetails",
+          "documentation":"<p>The results of the UpdateUserProfile action.</p>"
+        },
         "domainId":{
           "shape":"DomainId",
           "documentation":"<p>The identifier of the Amazon DataZone domain in which a user profile is updated.</p>"
@@ -24182,14 +24783,14 @@
       "members":{
         "iam":{
           "shape":"IamUserProfileDetails",
-          "documentation":"<p>The IAM details included in the user profile details.</p>"
+          "documentation":"<p>The IAM details of the user profile.</p>"
         },
         "sso":{
           "shape":"SsoUserProfileDetails",
-          "documentation":"<p>The single sign-on details included in the user profile details.</p>"
+          "documentation":"<p>The SSO details of the user profile.</p>"
         }
       },
-      "documentation":"<p>The details of the user profile in Amazon DataZone.</p>",
+      "documentation":"<p>The user profile details.</p>",
       "union":true
     },
     "UserProfileId":{

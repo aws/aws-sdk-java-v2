@@ -31,9 +31,14 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.services.s3.LegacyMd5Plugin;
 import software.amazon.awssdk.utils.Md5Utils;
 import software.amazon.awssdk.utils.StringUtils;
 
+/**
+ * Not directly used in the SDK; it's used in a standalone SDK plugin - {@link LegacyMd5Plugin} that enables md5 checksum
+ * calculation.
+ */
 @SdkInternalApi
 public class LegacyMd5ExecutionInterceptor implements ExecutionInterceptor {
 

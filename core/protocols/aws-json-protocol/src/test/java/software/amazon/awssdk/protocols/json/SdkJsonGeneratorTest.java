@@ -41,7 +41,9 @@ public class SdkJsonGeneratorTest {
 
     @BeforeEach
     public void setup() {
-        jsonGenerator = new SdkJsonGenerator(JsonFactory.builder().enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION).build(), "application/json");
+        jsonGenerator = new SdkJsonGenerator(JsonFactory.builder()
+                                                        .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+                                                        .build(), "application/json");
     }
 
     @Test

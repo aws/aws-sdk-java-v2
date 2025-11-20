@@ -70,7 +70,9 @@ class SdkPojoConversionUtilsTest {
                                                                  "Key",
                                                                  "SSECustomerKeyMD5",
                                                                  "SSECustomerKey",
-                                                                 "SSECustomerAlgorithm"));
+                                                                 "SSECustomerAlgorithm",
+                                                                 "IfMatch",
+                                                                 "IfNoneMatch"));
         verifyFieldsAreCopied(randomCopyObject, convertedToHeadObject, fieldsToIgnore,
                               CopyObjectRequest.builder().sdkFields(),
                               HeadObjectRequest.builder().sdkFields());

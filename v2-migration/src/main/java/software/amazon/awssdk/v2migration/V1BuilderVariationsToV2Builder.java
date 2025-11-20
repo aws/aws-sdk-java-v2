@@ -135,6 +135,8 @@ public class V1BuilderVariationsToV2Builder extends Recipe {
                 Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()
             );
 

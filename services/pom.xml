@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.33.11-SNAPSHOT</version>
+        <version>2.38.9-SNAPSHOT</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -166,7 +166,6 @@
         <module>neptune</module>
         <module>quicksight</module>
         <module>rdsdata</module>
-        <module>robomaker</module>
         <module>transfer</module>
         <module>globalaccelerator</module>
         <module>comprehendmedical</module>
@@ -198,8 +197,6 @@
         <module>lakeformation</module>
         <module>forecast</module>
         <module>forecastquery</module>
-        <module>qldb</module>
-        <module>qldbsession</module>
         <module>workmailmessageflow</module>
         <module>codestarnotifications</module>
         <module>savingsplans</module>
@@ -251,7 +248,6 @@
         <module>ecrpublic</module>
         <module>amplifybackend</module>
         <module>connectcontactlens</module>
-        <module>lookoutvision</module>
         <module>customerprofiles</module>
         <module>emrcontainers</module>
         <module>sagemakeredge</module>
@@ -260,14 +256,12 @@
         <module>amp</module>
         <module>greengrassv2</module>
         <module>iotwireless</module>
-        <module>iotfleethub</module>
         <module>iotdeviceadvisor</module>
         <module>location</module>
         <module>wellarchitected</module>
         <module>lexruntimev2</module>
         <module>lexmodelsv2</module>
         <module>fis</module>
-        <module>lookoutmetrics</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
         <module>finspacedata</module>
@@ -393,7 +387,6 @@
         <module>taxsettings</module>
         <module>applicationsignals</module>
         <module>pcaconnectorscep</module>
-        <module>apptest</module>
         <module>qapps</module>
         <module>ssmquicksetup</module>
         <module>pcs</module>
@@ -433,6 +426,8 @@
         <module>arcregionswitch</module>
         <module>bcmrecommendedactions</module>
         <module>bcmdashboards</module>
+        <module>rtbfabric</module>
+        <module>mwaaserverless</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>

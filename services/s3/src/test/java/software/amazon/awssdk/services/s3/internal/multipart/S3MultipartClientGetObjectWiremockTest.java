@@ -218,7 +218,8 @@ public class S3MultipartClientGetObjectWiremockTest {
                     .hasMessageContaining("Connection reset")
             );
 
-        verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
+        verify(moreThan(0), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
+        verify(lessThanOrExactly(2), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
     }
 
     @ParameterizedTest

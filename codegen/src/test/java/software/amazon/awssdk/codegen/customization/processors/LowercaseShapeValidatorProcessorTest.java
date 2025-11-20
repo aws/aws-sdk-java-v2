@@ -23,6 +23,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 
 public class LowercaseShapeValidatorProcessorTest {
 
@@ -40,7 +44,14 @@ public class LowercaseShapeValidatorProcessorTest {
     @Test
     public void preprocess_serviceWithLowercaseShape_throwsException() {
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Shape name 'lowercaseshape' starts with a lowercase character");
+            .isInstanceOf(ModelInvalidException.class)
+            .hasMessageContaining("Shape name 'lowercaseshape' starts with a lowercase character")
+            .matches(e -> {
+                ModelInvalidException modelInvalid = (ModelInvalidException) e;
+                ValidationEntry entry = modelInvalid.validationEntries().get(0);
+
+                return entry.getErrorId() == ValidationErrorId.INVALID_IDENTIFIER_NAME &&
+                       entry.getSeverity() == ValidationErrorSeverity.DANGER;
+            }, "Validation entry details are correct");
     }
 }

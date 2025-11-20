@@ -424,7 +424,9 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
+        {"shape":"ResourceInUseException"},
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes an Automated Reasoning policy or policy version. This operation is idempotent. If you delete a policy more than once, each call succeeds. Deleting a policy removes it permanently and cannot be undone.</p>",
@@ -445,6 +447,7 @@
         {"shape":"ValidationException"},
         {"shape":"ConflictException"},
         {"shape":"InternalServerException"},
+        {"shape":"ResourceInUseException"},
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes an Automated Reasoning policy build workflow and its associated artifacts. This permanently removes the workflow history and any generated assets.</p>",
@@ -700,7 +703,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Exports the policy definition for an Automated Reasoning policy version. Returns the complete policy definition including rules, variables, and custom variable types in a structured format.</p>"
+      "documentation":"<p>Exports the policy definition for an Automated Reasoning policy version. Returns the complete policy definition including rules, variables, and custom variable types in a structured format.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicy":{
       "name":"GetAutomatedReasoningPolicy",
@@ -718,7 +722,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves details about an Automated Reasoning policy or policy version. Returns information including the policy definition, metadata, and timestamps.</p>"
+      "documentation":"<p>Retrieves details about an Automated Reasoning policy or policy version. Returns information including the policy definition, metadata, and timestamps.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyAnnotations":{
       "name":"GetAutomatedReasoningPolicyAnnotations",
@@ -736,7 +741,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the current annotations for an Automated Reasoning policy build workflow. Annotations contain corrections to the rules, variables and types to be applied to the policy.</p>"
+      "documentation":"<p>Retrieves the current annotations for an Automated Reasoning policy build workflow. Annotations contain corrections to the rules, variables and types to be applied to the policy.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyBuildWorkflow":{
       "name":"GetAutomatedReasoningPolicyBuildWorkflow",
@@ -754,7 +760,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves detailed information about an Automated Reasoning policy build workflow, including its status, configuration, and metadata.</p>"
+      "documentation":"<p>Retrieves detailed information about an Automated Reasoning policy build workflow, including its status, configuration, and metadata.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyBuildWorkflowResultAssets":{
       "name":"GetAutomatedReasoningPolicyBuildWorkflowResultAssets",
@@ -772,7 +779,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the resulting assets from a completed Automated Reasoning policy build workflow, including build logs, quality reports, and generated policy artifacts.</p>"
+      "documentation":"<p>Retrieves the resulting assets from a completed Automated Reasoning policy build workflow, including build logs, quality reports, and generated policy artifacts.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyNextScenario":{
       "name":"GetAutomatedReasoningPolicyNextScenario",
@@ -790,7 +798,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the next test scenario for validating an Automated Reasoning policy. This is used during the interactive policy refinement process to test policy behavior.</p>"
+      "documentation":"<p>Retrieves the next test scenario for validating an Automated Reasoning policy. This is used during the interactive policy refinement process to test policy behavior.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyTestCase":{
       "name":"GetAutomatedReasoningPolicyTestCase",
@@ -808,7 +817,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves details about a specific Automated Reasoning policy test.</p>"
+      "documentation":"<p>Retrieves details about a specific Automated Reasoning policy test.</p>",
+      "readonly":true
     },
     "GetAutomatedReasoningPolicyTestResult":{
       "name":"GetAutomatedReasoningPolicyTestResult",
@@ -826,7 +836,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the test result for a specific Automated Reasoning policy test. Returns detailed validation findings and execution status.</p>"
+      "documentation":"<p>Retrieves the test result for a specific Automated Reasoning policy test. Returns detailed validation findings and execution status.</p>",
+      "readonly":true
     },
     "GetCustomModel":{
       "name":"GetCustomModel",
@@ -844,7 +855,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get the properties associated with a Amazon Bedrock custom model that you have created. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Get the properties associated with a Amazon Bedrock custom model that you have created. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "GetCustomModelDeployment":{
       "name":"GetCustomModelDeployment",
@@ -862,7 +874,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves information about a custom model deployment, including its status, configuration, and metadata. Use this operation to monitor the deployment status and retrieve details needed for inference requests.</p> <p>The following actions are related to the <code>GetCustomModelDeployment</code> operation:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModelDeployment.html\">CreateCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_ListCustomModelDeployments.html\">ListCustomModelDeployments</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModelDeployment.html\">DeleteCustomModelDeployment</a> </p> </li> </ul>"
+      "documentation":"<p>Retrieves information about a custom model deployment, including its status, configuration, and metadata. Use this operation to monitor the deployment status and retrieve details needed for inference requests.</p> <p>The following actions are related to the <code>GetCustomModelDeployment</code> operation:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModelDeployment.html\">CreateCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_ListCustomModelDeployments.html\">ListCustomModelDeployments</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModelDeployment.html\">DeleteCustomModelDeployment</a> </p> </li> </ul>",
+      "readonly":true
     },
     "GetEvaluationJob":{
       "name":"GetEvaluationJob",
@@ -880,7 +893,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets information about an evaluation job, such as the status of the job.</p>"
+      "documentation":"<p>Gets information about an evaluation job, such as the status of the job.</p>",
+      "readonly":true
     },
     "GetFoundationModel":{
       "name":"GetFoundationModel",
@@ -898,7 +912,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get details about a Amazon Bedrock foundation model.</p>"
+      "documentation":"<p>Get details about a Amazon Bedrock foundation model.</p>",
+      "readonly":true
     },
     "GetFoundationModelAvailability":{
       "name":"GetFoundationModelAvailability",
@@ -916,7 +931,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get information about the Foundation model availability.</p>"
+      "documentation":"<p>Get information about the Foundation model availability.</p>",
+      "readonly":true
     },
     "GetGuardrail":{
       "name":"GetGuardrail",
@@ -934,7 +950,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets details about a guardrail. If you don't specify a version, the response returns details for the <code>DRAFT</code> version.</p>"
+      "documentation":"<p>Gets details about a guardrail. If you don't specify a version, the response returns details for the <code>DRAFT</code> version.</p>",
+      "readonly":true
     },
     "GetImportedModel":{
       "name":"GetImportedModel",
@@ -952,7 +969,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets properties associated with a customized model you imported. </p>"
+      "documentation":"<p>Gets properties associated with a customized model you imported. </p>",
+      "readonly":true
     },
     "GetInferenceProfile":{
       "name":"GetInferenceProfile",
@@ -970,7 +988,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets information about an inference profile. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">Increase throughput and resilience with cross-region inference in Amazon Bedrock</a>. in the Amazon Bedrock User Guide.</p>"
+      "documentation":"<p>Gets information about an inference profile. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">Increase throughput and resilience with cross-region inference in Amazon Bedrock</a>. in the Amazon Bedrock User Guide.</p>",
+      "readonly":true
     },
     "GetMarketplaceModelEndpoint":{
       "name":"GetMarketplaceModelEndpoint",
@@ -988,7 +1007,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves details about a specific endpoint for a model from Amazon Bedrock Marketplace.</p>"
+      "documentation":"<p>Retrieves details about a specific endpoint for a model from Amazon Bedrock Marketplace.</p>",
+      "readonly":true
     },
     "GetModelCopyJob":{
       "name":"GetModelCopyJob",
@@ -1006,7 +1026,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves information about a model copy job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/copy-model.html\">Copy models to be used in other regions</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Retrieves information about a model copy job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/copy-model.html\">Copy models to be used in other regions</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "GetModelCustomizationJob":{
       "name":"GetModelCustomizationJob",
@@ -1024,7 +1045,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the properties associated with a model-customization job, including the status of the job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Retrieves the properties associated with a model-customization job, including the status of the job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "GetModelImportJob":{
       "name":"GetModelImportJob",
@@ -1042,7 +1064,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the properties associated with import model job, including the status of the job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Retrieves the properties associated with import model job, including the status of the job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "GetModelInvocationJob":{
       "name":"GetModelInvocationJob",
@@ -1060,7 +1083,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets details about a batch inference job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-monitor\">Monitor batch inference jobs</a> </p>"
+      "documentation":"<p>Gets details about a batch inference job. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-monitor\">Monitor batch inference jobs</a> </p>",
+      "readonly":true
     },
     "GetModelInvocationLoggingConfiguration":{
       "name":"GetModelInvocationLoggingConfiguration",
@@ -1076,7 +1100,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get the current configuration values for model invocation logging.</p>"
+      "documentation":"<p>Get the current configuration values for model invocation logging.</p>",
+      "readonly":true
     },
     "GetPromptRouter":{
       "name":"GetPromptRouter",
@@ -1094,7 +1119,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves details about a prompt router.</p>"
+      "documentation":"<p>Retrieves details about a prompt router.</p>",
+      "readonly":true
     },
     "GetProvisionedModelThroughput":{
       "name":"GetProvisionedModelThroughput",
@@ -1112,7 +1138,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns details for a Provisioned Throughput. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns details for a Provisioned Throughput. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "GetUseCaseForModelAccess":{
       "name":"GetUseCaseForModelAccess",
@@ -1129,7 +1156,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get usecase for model access.</p>"
+      "documentation":"<p>Get usecase for model access.</p>",
+      "readonly":true
     },
     "ListAutomatedReasoningPolicies":{
       "name":"ListAutomatedReasoningPolicies",
@@ -1147,7 +1175,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists all Automated Reasoning policies in your account, with optional filtering by policy ARN. This helps you manage and discover existing policies.</p>"
+      "documentation":"<p>Lists all Automated Reasoning policies in your account, with optional filtering by policy ARN. This helps you manage and discover existing policies.</p>",
+      "readonly":true
     },
     "ListAutomatedReasoningPolicyBuildWorkflows":{
       "name":"ListAutomatedReasoningPolicyBuildWorkflows",
@@ -1165,7 +1194,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists all build workflows for an Automated Reasoning policy, showing the history of policy creation and modification attempts.</p>"
+      "documentation":"<p>Lists all build workflows for an Automated Reasoning policy, showing the history of policy creation and modification attempts.</p>",
+      "readonly":true
     },
     "ListAutomatedReasoningPolicyTestCases":{
       "name":"ListAutomatedReasoningPolicyTestCases",
@@ -1183,7 +1213,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists tests for an Automated Reasoning policy. We recommend using pagination to ensure that the operation returns quickly and successfully.</p>"
+      "documentation":"<p>Lists tests for an Automated Reasoning policy. We recommend using pagination to ensure that the operation returns quickly and successfully.</p>",
+      "readonly":true
     },
     "ListAutomatedReasoningPolicyTestResults":{
       "name":"ListAutomatedReasoningPolicyTestResults",
@@ -1202,7 +1233,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists test results for an Automated Reasoning policy, showing how the policy performed against various test scenarios and validation checks.</p>"
+      "documentation":"<p>Lists test results for an Automated Reasoning policy, showing how the policy performed against various test scenarios and validation checks.</p>",
+      "readonly":true
     },
     "ListCustomModelDeployments":{
       "name":"ListCustomModelDeployments",
@@ -1219,7 +1251,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists custom model deployments in your account. You can filter the results by creation time, name, status, and associated model. Use this operation to manage and monitor your custom model deployments.</p> <p>We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>The following actions are related to the <code>ListCustomModelDeployments</code> operation:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModelDeployment.html\">CreateCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetCustomModelDeployment.html\">GetCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModelDeployment.html\">DeleteCustomModelDeployment</a> </p> </li> </ul>"
+      "documentation":"<p>Lists custom model deployments in your account. You can filter the results by creation time, name, status, and associated model. Use this operation to manage and monitor your custom model deployments.</p> <p>We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>The following actions are related to the <code>ListCustomModelDeployments</code> operation:</p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_CreateCustomModelDeployment.html\">CreateCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_GetCustomModelDeployment.html\">GetCustomModelDeployment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/bedrock/latest/APIReference/API_DeleteCustomModelDeployment.html\">DeleteCustomModelDeployment</a> </p> </li> </ul>",
+      "readonly":true
     },
     "ListCustomModels":{
       "name":"ListCustomModels",
@@ -1236,7 +1269,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of the custom models that you have created with the <code>CreateModelCustomizationJob</code> operation.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns a list of the custom models that you have created with the <code>CreateModelCustomizationJob</code> operation.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListEvaluationJobs":{
       "name":"ListEvaluationJobs",
@@ -1253,7 +1287,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists all existing evaluation jobs.</p>"
+      "documentation":"<p>Lists all existing evaluation jobs.</p>",
+      "readonly":true
     },
     "ListFoundationModelAgreementOffers":{
       "name":"ListFoundationModelAgreementOffers",
@@ -1271,7 +1306,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Get the offers associated with the specified model.</p>"
+      "documentation":"<p>Get the offers associated with the specified model.</p>",
+      "readonly":true
     },
     "ListFoundationModels":{
       "name":"ListFoundationModels",
@@ -1288,7 +1324,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists Amazon Bedrock foundation models that you can use. You can filter the results with the request parameters. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/foundation-models.html\">Foundation models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Lists Amazon Bedrock foundation models that you can use. You can filter the results with the request parameters. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/foundation-models.html\">Foundation models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListGuardrails":{
       "name":"ListGuardrails",
@@ -1306,7 +1343,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists details about all the guardrails in an account. To list the <code>DRAFT</code> version of all your guardrails, don't specify the <code>guardrailIdentifier</code> field. To list all versions of a guardrail, specify the ARN of the guardrail in the <code>guardrailIdentifier</code> field.</p> <p>You can set the maximum number of results to return in a response in the <code>maxResults</code> field. If there are more results than the number you set, the response returns a <code>nextToken</code> that you can send in another <code>ListGuardrails</code> request to see the next batch of results.</p>"
+      "documentation":"<p>Lists details about all the guardrails in an account. To list the <code>DRAFT</code> version of all your guardrails, don't specify the <code>guardrailIdentifier</code> field. To list all versions of a guardrail, specify the ARN of the guardrail in the <code>guardrailIdentifier</code> field.</p> <p>You can set the maximum number of results to return in a response in the <code>maxResults</code> field. If there are more results than the number you set, the response returns a <code>nextToken</code> that you can send in another <code>ListGuardrails</code> request to see the next batch of results.</p>",
+      "readonly":true
     },
     "ListImportedModels":{
       "name":"ListImportedModels",
@@ -1323,7 +1361,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of models you've imported. You can filter the results to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns a list of models you've imported. You can filter the results to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListInferenceProfiles":{
       "name":"ListInferenceProfiles",
@@ -1340,7 +1379,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of inference profiles that you can use. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">Increase throughput and resilience with cross-region inference in Amazon Bedrock</a>. in the Amazon Bedrock User Guide.</p>"
+      "documentation":"<p>Returns a list of inference profiles that you can use. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html\">Increase throughput and resilience with cross-region inference in Amazon Bedrock</a>. in the Amazon Bedrock User Guide.</p>",
+      "readonly":true
     },
     "ListMarketplaceModelEndpoints":{
       "name":"ListMarketplaceModelEndpoints",
@@ -1358,7 +1398,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists the endpoints for models from Amazon Bedrock Marketplace in your Amazon Web Services account.</p>"
+      "documentation":"<p>Lists the endpoints for models from Amazon Bedrock Marketplace in your Amazon Web Services account.</p>",
+      "readonly":true
     },
     "ListModelCopyJobs":{
       "name":"ListModelCopyJobs",
@@ -1376,7 +1417,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of model copy jobs that you have submitted. You can filter the jobs to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/copy-model.html\">Copy models to be used in other regions</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns a list of model copy jobs that you have submitted. You can filter the jobs to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/copy-model.html\">Copy models to be used in other regions</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListModelCustomizationJobs":{
       "name":"ListModelCustomizationJobs",
@@ -1393,7 +1435,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of model customization jobs that you have submitted. You can filter the jobs to return based on one or more criteria.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns a list of model customization jobs that you have submitted. You can filter the jobs to return based on one or more criteria.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/custom-models.html\">Custom models</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListModelImportJobs":{
       "name":"ListModelImportJobs",
@@ -1410,7 +1453,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of import jobs you've submitted. You can filter the results to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Returns a list of import jobs you've submitted. You can filter the results to return based on one or more criteria. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html\">Import a customized model</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListModelInvocationJobs":{
       "name":"ListModelInvocationJobs",
@@ -1427,7 +1471,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists all batch inference jobs in the account. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-view.html\">View details about a batch inference job</a>.</p>"
+      "documentation":"<p>Lists all batch inference jobs in the account. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-view.html\">View details about a batch inference job</a>.</p>",
+      "readonly":true
     },
     "ListPromptRouters":{
       "name":"ListPromptRouters",
@@ -1444,7 +1489,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves a list of prompt routers.</p>"
+      "documentation":"<p>Retrieves a list of prompt routers.</p>",
+      "readonly":true
     },
     "ListProvisionedModelThroughputs":{
       "name":"ListProvisionedModelThroughputs",
@@ -1461,7 +1507,8 @@
         {"shape":"InternalServerException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Lists the Provisioned Throughputs in the account. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>"
+      "documentation":"<p>Lists the Provisioned Throughputs in the account. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html\">Provisioned Throughput</a> in the <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/what-is-service.html\">Amazon Bedrock User Guide</a>.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1827,8 +1874,7 @@
     },
     "AdditionalModelRequestFieldsValue":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "document":true
     },
     "AgreementAvailability":{
@@ -2061,8 +2107,7 @@
     },
     "AutomatedReasoningCheckNoTranslationsFinding":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Indicates that no relevant logical information could be extracted from the input for validation.</p>"
     },
     "AutomatedReasoningCheckResult":{
@@ -2129,8 +2174,7 @@
     },
     "AutomatedReasoningCheckTooComplexFinding":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Indicates that the input exceeds the processing capacity due to the volume or complexity of the logical information.</p>"
     },
     "AutomatedReasoningCheckTranslation":{
@@ -2477,6 +2521,12 @@
       "min":1,
       "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:automated-reasoning-policy/[a-z0-9]{12}(:([1-9][0-9]{0,11}))?"
     },
+    "AutomatedReasoningPolicyBuildDocumentBlob":{
+      "type":"blob",
+      "max":5000000,
+      "min":1,
+      "sensitive":true
+    },
     "AutomatedReasoningPolicyBuildDocumentContentType":{
       "type":"string",
       "enum":[
@@ -2547,7 +2597,8 @@
       "enum":[
         "BUILD_LOG",
         "QUALITY_REPORT",
-        "POLICY_DEFINITION"
+        "POLICY_DEFINITION",
+        "GENERATED_TEST_CASES"
       ]
     },
     "AutomatedReasoningPolicyBuildResultAssets":{
@@ -2564,9 +2615,13 @@
         "buildLog":{
           "shape":"AutomatedReasoningPolicyBuildLog",
           "documentation":"<p>The complete build log containing detailed information about each step in the policy generation process.</p>"
+        },
+        "generatedTestCases":{
+          "shape":"AutomatedReasoningPolicyGeneratedTestCases",
+          "documentation":"<p>A comprehensive test suite generated by the build workflow, providing validation capabilities for automated reasoning policies.</p>"
         }
       },
-      "documentation":"<p>Contains the various assets generated during a policy build workflow, including logs, quality reports, and the final policy definition.</p>",
+      "documentation":"<p>Contains the various assets generated during a policy build workflow, including logs, quality reports, test cases, and the final policy definition.</p>",
       "union":true
     },
     "AutomatedReasoningPolicyBuildStep":{
@@ -2641,7 +2696,7 @@
       ],
       "members":{
         "document":{
-          "shape":"AutomatedReasoningPolicyBuildWorkflowDocumentDocumentBlob",
+          "shape":"AutomatedReasoningPolicyBuildDocumentBlob",
           "documentation":"<p>The actual content of the source document that will be analyzed to extract policy rules and concepts.</p>"
         },
         "documentContentType":{
@@ -2658,11 +2713,6 @@
         }
       },
       "documentation":"<p>Represents a source document used in the policy build workflow, containing the content and metadata needed for policy generation.</p>"
-    },
-    "AutomatedReasoningPolicyBuildWorkflowDocumentDocumentBlob":{
-      "type":"blob",
-      "max":4500000,
-      "min":1
     },
     "AutomatedReasoningPolicyBuildWorkflowDocumentList":{
       "type":"list",
@@ -3183,6 +3233,44 @@
       "min":0
     },
     "AutomatedReasoningPolicyFormatVersion":{"type":"string"},
+    "AutomatedReasoningPolicyGeneratedTestCase":{
+      "type":"structure",
+      "required":[
+        "queryContent",
+        "guardContent",
+        "expectedAggregatedFindingsResult"
+      ],
+      "members":{
+        "queryContent":{
+          "shape":"AutomatedReasoningPolicyTestQueryContent",
+          "documentation":"<p>The input query or prompt that generated the content. This provides context for the validation.</p>"
+        },
+        "guardContent":{
+          "shape":"AutomatedReasoningPolicyTestGuardContent",
+          "documentation":"<p>The output content that's validated by the Automated Reasoning policy. This represents the foundation model response that will be checked for accuracy.</p>"
+        },
+        "expectedAggregatedFindingsResult":{
+          "shape":"AutomatedReasoningCheckResult",
+          "documentation":"<p>The expected results of the generated test case. Possible values include:</p> <ul> <li> <p> <code>VALID</code> - The claims are true. The claims are implied by the premises and the Automated Reasoning policy. Given the Automated Reasoning policy and premises, it is not possible for these claims to be false. In other words, there are no alternative answers that are true that contradict the claims.</p> </li> <li> <p> <code>INVALID</code> - The claims are false. The claims are not implied by the premises and Automated Reasoning policy. Furthermore, there exists different claims that are consistent with the premises and Automated Reasoning policy.</p> </li> <li> <p> <code>SATISFIABLE</code> - The claims can be true or false. It depends on what assumptions are made for the claim to be implied from the premises and Automated Reasoning policy rules. In this situation, different assumptions can make input claims false and alternative claims true.</p> </li> <li> <p> <code>IMPOSSIBLE</code> - Automated Reasoning can’t make a statement about the claims. This can happen if the premises are logically incorrect, or if there is a conflict within the Automated Reasoning policy itself.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Represents a generated test case, consisting of query content, guard content, and expected results.</p>"
+    },
+    "AutomatedReasoningPolicyGeneratedTestCaseList":{
+      "type":"list",
+      "member":{"shape":"AutomatedReasoningPolicyGeneratedTestCase"}
+    },
+    "AutomatedReasoningPolicyGeneratedTestCases":{
+      "type":"structure",
+      "required":["generatedTestCases"],
+      "members":{
+        "generatedTestCases":{
+          "shape":"AutomatedReasoningPolicyGeneratedTestCaseList",
+          "documentation":"<p>Represents a collection of generated test cases.</p>"
+        }
+      },
+      "documentation":"<p>Contains a comprehensive test suite generated by the build workflow, providing validation capabilities for automated reasoning policies.</p>"
+    },
     "AutomatedReasoningPolicyHash":{
       "type":"string",
       "max":128,
@@ -3258,8 +3346,7 @@
     },
     "AutomatedReasoningPolicyPlanning":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Represents the planning phase of policy build workflow, where the system analyzes source content and determines what operations to perform.</p>"
     },
     "AutomatedReasoningPolicyScenario":{
@@ -3863,8 +3950,7 @@
     },
     "CancelAutomatedReasoningPolicyBuildWorkflowResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CloudWatchConfig":{
       "type":"structure",
@@ -3931,6 +4017,10 @@
         "policyDefinition":{
           "shape":"AutomatedReasoningPolicyDefinition",
           "documentation":"<p>The policy definition that contains the formal logic rules, variables, and custom variable types used to validate foundation model responses in your application.</p>"
+        },
+        "kmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The identifier of the KMS key to use for encrypting the automated reasoning policy and its associated artifacts. If you don't specify a KMS key, Amazon Bedrock uses an KMS managed key for encryption. For enhanced security and control, you can specify a customer managed KMS key.</p>"
         },
         "tags":{
           "shape":"TagList",
@@ -4885,7 +4975,7 @@
       "type":"string",
       "max":1011,
       "min":20,
-      "pattern":"arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model/(imported|[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2})/[a-z0-9]{12}"
+      "pattern":"arn:aws(|-us-gov|-cn|-iso|-iso-b):bedrock:[a-z0-9-]{1,20}:[0-9]{12}:custom-model/(imported|[a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2})/[a-z0-9]{12}"
     },
     "CustomModelDeploymentArn":{
       "type":"string",
@@ -5099,8 +5189,7 @@
     },
     "DeleteAutomatedReasoningPolicyBuildWorkflowResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteAutomatedReasoningPolicyRequest":{
       "type":"structure",
@@ -5111,13 +5200,18 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the Automated Reasoning policy to delete.</p>",
           "location":"uri",
           "locationName":"policyArn"
+        },
+        "force":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to force delete the automated reasoning policy even if it has active resources. When <code>false</code>, Amazon Bedrock validates if all artifacts have been deleted (e.g. policy version, test case, test result) for a policy before deletion. When <code>true</code>, Amazon Bedrock will delete the policy and all its artifacts without validation. Default is <code>false</code>. </p>",
+          "location":"querystring",
+          "locationName":"force"
         }
       }
     },
     "DeleteAutomatedReasoningPolicyResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteAutomatedReasoningPolicyTestCaseRequest":{
       "type":"structure",
@@ -5149,8 +5243,7 @@
     },
     "DeleteAutomatedReasoningPolicyTestCaseResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCustomModelDeploymentRequest":{
       "type":"structure",
@@ -5166,8 +5259,7 @@
     },
     "DeleteCustomModelDeploymentResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCustomModelRequest":{
       "type":"structure",
@@ -5183,8 +5275,7 @@
     },
     "DeleteCustomModelResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteFoundationModelAgreementRequest":{
       "type":"structure",
@@ -5198,8 +5289,7 @@
     },
     "DeleteFoundationModelAgreementResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteGuardrailRequest":{
       "type":"structure",
@@ -5221,8 +5311,7 @@
     },
     "DeleteGuardrailResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteImportedModelRequest":{
       "type":"structure",
@@ -5238,8 +5327,7 @@
     },
     "DeleteImportedModelResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteInferenceProfileRequest":{
       "type":"structure",
@@ -5255,8 +5343,7 @@
     },
     "DeleteInferenceProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteMarketplaceModelEndpointRequest":{
       "type":"structure",
@@ -5272,18 +5359,15 @@
     },
     "DeleteMarketplaceModelEndpointResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteModelInvocationLoggingConfigurationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteModelInvocationLoggingConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePromptRouterRequest":{
       "type":"structure",
@@ -5299,8 +5383,7 @@
     },
     "DeletePromptRouterResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteProvisionedModelThroughputRequest":{
       "type":"structure",
@@ -5316,8 +5399,7 @@
     },
     "DeleteProvisionedModelThroughputResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeregisterMarketplaceModelEndpointRequest":{
       "type":"structure",
@@ -5333,8 +5415,7 @@
     },
     "DeregisterMarketplaceModelEndpointResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DimensionalPriceRate":{
       "type":"structure",
@@ -6023,8 +6104,7 @@
     },
     "FilterValue":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "document":true
     },
     "FineTuningJobStatus":{
@@ -6448,6 +6528,10 @@
           "shape":"AutomatedReasoningPolicyHash",
           "documentation":"<p>The hash of the policy definition used as a concurrency token.</p>"
         },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the automated reasoning policy and its associated artifacts. If a KMS key is not provided during the initial CreateAutomatedReasoningPolicyRequest, the kmsKeyArn won't be included in the GetAutomatedReasoningPolicyResponse. </p>"
+        },
         "createdAt":{
           "shape":"Timestamp",
           "documentation":"<p>The timestamp when the policy was created.</p>"
@@ -6808,12 +6892,18 @@
         }
       }
     },
+    "GetFoundationModelIdentifier":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}::foundation-model/[a-z0-9-]{1,63}[.]{1}([a-z0-9-]{1,63}[.]){0,2}[a-z0-9-]{1,63}([:][a-z0-9-]{1,63}){0,2})|([a-z0-9-]{1,63}[.]{1}[a-z0-9-]{1,63}([.]?[a-z0-9-]{1,63})([:][a-z0-9-]{1,63}){0,2})"
+    },
     "GetFoundationModelRequest":{
       "type":"structure",
       "required":["modelIdentifier"],
       "members":{
         "modelIdentifier":{
-          "shape":"ModelIdentifier",
+          "shape":"GetFoundationModelIdentifier",
           "documentation":"<p>The model identifier. </p>",
           "location":"uri",
           "locationName":"modelIdentifier"
@@ -7385,7 +7475,7 @@
         },
         "status":{
           "shape":"ModelInvocationJobStatus",
-          "documentation":"<p>The status of the batch inference job.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web ServicesSupport Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>"
+          "documentation":"<p>The status of the batch inference job.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web Services Support Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>"
         },
         "message":{
           "shape":"Message",
@@ -7427,8 +7517,7 @@
     },
     "GetModelInvocationLoggingConfigurationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "GetModelInvocationLoggingConfigurationResponse":{
       "type":"structure",
@@ -7588,8 +7677,7 @@
     },
     "GetUseCaseForModelAccessRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "GetUseCaseForModelAccessResponse":{
       "type":"structure",
@@ -8896,7 +8984,7 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9])*"
+      "pattern":"[a-zA-Z0-9]([-a-zA-Z0-9]{0,254}[a-zA-Z0-9])?"
     },
     "Identifier":{
       "type":"string",
@@ -10178,7 +10266,7 @@
         },
         "statusEquals":{
           "shape":"ModelInvocationJobStatus",
-          "documentation":"<p>Specify a status to filter for batch inference jobs whose statuses match the string you specify.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web ServicesSupport Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>",
+          "documentation":"<p>Specify a status to filter for batch inference jobs whose statuses match the string you specify.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web Services Support Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>",
           "location":"querystring",
           "locationName":"statusEquals"
         },
@@ -10984,7 +11072,7 @@
         },
         "status":{
           "shape":"ModelInvocationJobStatus",
-          "documentation":"<p>The status of the batch inference job.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web ServicesSupport Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>"
+          "documentation":"<p>The status of the batch inference job.</p> <p>The following statuses are possible:</p> <ul> <li> <p>Submitted – This job has been submitted to a queue for validation.</p> </li> <li> <p>Validating – This job is being validated for the requirements described in <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/batch-inference-data.html\">Format and upload your batch inference data</a>. The criteria include the following:</p> <ul> <li> <p>Your IAM service role has access to the Amazon S3 buckets containing your files.</p> </li> <li> <p>Your files are .jsonl files and each individual record is a JSON object in the correct format. Note that validation doesn't check if the <code>modelInput</code> value matches the request body for the model.</p> </li> <li> <p>Your files fulfill the requirements for file size and number of records. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/quotas.html\">Quotas for Amazon Bedrock</a>.</p> </li> </ul> </li> <li> <p>Scheduled – This job has been validated and is now in a queue. The job will automatically start when it reaches its turn.</p> </li> <li> <p>Expired – This job timed out because it was scheduled but didn't begin before the set timeout duration. Submit a new job request.</p> </li> <li> <p>InProgress – This job has begun. You can start viewing the results in the output S3 location.</p> </li> <li> <p>Completed – This job has successfully completed. View the output files in the output S3 location.</p> </li> <li> <p>PartiallyCompleted – This job has partially completed. Not all of your records could be processed in time. View the output files in the output S3 location.</p> </li> <li> <p>Failed – This job has failed. Check the failure message for any further details. For further assistance, reach out to the <a href=\"https://console.aws.amazon.com/support/home/\">Amazon Web Services Support Center</a>.</p> </li> <li> <p>Stopped – This job was stopped by a user.</p> </li> <li> <p>Stopping – This job is being stopped by a user.</p> </li> </ul>"
         },
         "message":{
           "shape":"Message",
@@ -11392,8 +11480,7 @@
     },
     "PutModelInvocationLoggingConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PutUseCaseForModelAccessRequest":{
       "type":"structure",
@@ -11407,8 +11494,7 @@
     },
     "PutUseCaseForModelAccessResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "QueryTransformationConfiguration":{
       "type":"structure",
@@ -11766,7 +11852,6 @@
     },
     "RoleArn":{
       "type":"string",
-      "documentation":"<p>ARN of a IAM role</p>",
       "max":2048,
       "min":0,
       "pattern":"arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+"
@@ -12062,8 +12147,7 @@
     },
     "StopEvaluationJobResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopModelCustomizationJobRequest":{
       "type":"structure",
@@ -12079,8 +12163,7 @@
     },
     "StopModelCustomizationJobResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopModelInvocationJobRequest":{
       "type":"structure",
@@ -12096,8 +12179,7 @@
     },
     "StopModelInvocationJobResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "String":{"type":"string"},
     "SubnetId":{
@@ -12177,8 +12259,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -12368,8 +12449,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAutomatedReasoningPolicyAnnotationsRequest":{
       "type":"structure",
@@ -12524,10 +12604,6 @@
         "confidenceThreshold":{
           "shape":"AutomatedReasoningCheckTranslationConfidence",
           "documentation":"<p>The updated minimum confidence level for logic validation. If null is provided, the threshold will be removed.</p>"
-        },
-        "kmsKeyArn":{
-          "shape":"KmsKeyArn",
-          "documentation":"<p>The KMS key ARN for encrypting the test at rest. If not provided, the key will not be updated. Use <code>DISCARD</code> to remove the key.</p>"
         },
         "clientRequestToken":{
           "shape":"IdempotencyToken",
@@ -12701,8 +12777,7 @@
     },
     "UpdateProvisionedModelThroughputResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UsePromptResponse":{"type":"boolean"},
     "ValidationDataConfig":{
