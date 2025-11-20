@@ -77,6 +77,21 @@ public class ByteBufferStoringSubscriberTest {
     }
 
     @Test
+    public void doesNotRequestMoreWhenInflightMoreThanMinBytes() {
+        ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(5);
+
+        subscriber.onSubscribe(subscription); // request 1, demand = 1
+        subscriber.onNext(fullByteBufferOfSize(3)); // demand = 0, sizeHint=3
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 1
+        subscriber.transferTo(emptyByteBufferOfSize(1)); // requests more, demand = 2
+        verify(subscription, times(3)).request(1);
+
+        //sizeHint=3, demand=2, dataBufferedAndInFlight=6. 6 > 5, so no new request
+        subscriber.transferTo(emptyByteBufferOfSize(1));
+        verifyNoMoreInteractions(subscription);
+    }
+
+    @Test
     public void canStoreMoreThanMaxBytesButWontAskForMoreUntilBelowMax() {
         ByteBufferStoringSubscriber subscriber = new ByteBufferStoringSubscriber(3);
 

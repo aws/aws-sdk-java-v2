@@ -18,6 +18,10 @@ package software.amazon.awssdk.codegen.customization.processors;
 import software.amazon.awssdk.codegen.customization.CodegenCustomizationProcessor;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 
 /**
  * A processor that validates shape names in service models to ensure they start with uppercase letters.
@@ -31,11 +35,12 @@ public class LowercaseShapeValidatorProcessor implements CodegenCustomizationPro
 
         serviceModel.getShapes().forEach((shapeName, shape) -> {
             if ("structure".equals(shape.getType()) && Character.isLowerCase(shapeName.charAt(0))) {
-                throw new IllegalStateException(
-                    String.format("Shape name '%s' starts with a lowercase character." +
-                                  "Shape names must start with an uppercase character." +
-                                  "Please update the shape name in your service model",
-                                  shapeName));
+                String errorMsg = String.format("Shape name '%s' starts with a lowercase character. Shape names must start with"
+                                                + " an uppercase character. Please update the shape name in your service model",
+                                                shapeName);
+                ValidationEntry entry = ValidationEntry.create(ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                                                               ValidationErrorSeverity.DANGER, errorMsg);
+                throw ModelInvalidException.fromEntry(entry);
             }
         });
     }

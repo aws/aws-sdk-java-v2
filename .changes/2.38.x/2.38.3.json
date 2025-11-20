@@ -1,0 +1,96 @@
+{
+    "version": "2.38.3",
+    "date": "2025-11-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS STS",
+            "contributor": "",
+            "description": "Raise exceptions in resolveCredentials instead of creation for StsWebIdentityTokenFileCredentialsProvider"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup",
+            "contributor": "",
+            "description": "AWS Backup supports backups of Amazon EKS clusters, including Kubernetes cluster state and persistent storage attached to the EKS cluster via a persistent volume claim (EBS volumes, EFS file systems, and S3 buckets)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Private Certificate Authority service now supports ML-DSA key algorithms."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Added CreateDelegationRequest API, which is not available for general use at this time."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "Added new invoicing get-invoice-pdf API Operation"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Token Service",
+            "contributor": "",
+            "description": "Added GetDelegatedAccessToken API, which is not available for general use at this time."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF now supports CLOUDWATCH_TELEMETRY_RULE_MANAGED as a LogScope option, enabling automated logging configuration through Amazon CloudWatch Logs for telemetry data collection and analysis."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "AWS Appstream support for IPv6"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Cluster endpoint added to CreateCluster and GetCluster API responses"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Remove trackingServerName from DataZone Connection MLflowProperties"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon EC2 Fleet customers can now filter instance types based on encryption-in-transit support using Attribute-Based Instance Type Selection (ABIS), eliminating the manual effort of identifying and selecting compatible instance types for security-sensitive workloads."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Include tags filed in CreatePublishingDestinationRequest and DescribePublishingDestinationResponse."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Amazon Verified Permissions / Features : Adds support for entity Cedar tags."
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "Adds ExperimentalCapabilities field to CreateQuantumTask request and GetQuantumTask response objects. Enables use of experimental software capabilities when creating quantum tasks."
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Amazon MSK now supports intelligent rebalancing for MSK Express brokers."
+        }
+    ]
+}

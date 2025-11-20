@@ -12,7 +12,6 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
 package software.amazon.awssdk.services.query.auth.scheme.internal;
 
 import java.util.ArrayList;
@@ -27,13 +26,13 @@ import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-public final class ModeledQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
-    private static final ModeledQueryAuthSchemeProvider DEFAULT = new ModeledQueryAuthSchemeProvider();
+public final class FallbackQueryAuthSchemeProvider implements QueryAuthSchemeProvider {
+    private static final FallbackQueryAuthSchemeProvider DEFAULT = new FallbackQueryAuthSchemeProvider();
 
-    private ModeledQueryAuthSchemeProvider() {
+    private FallbackQueryAuthSchemeProvider() {
     }
 
-    public static ModeledQueryAuthSchemeProvider create() {
+    public static FallbackQueryAuthSchemeProvider create() {
         return DEFAULT;
     }
 
@@ -41,17 +40,17 @@ public final class ModeledQueryAuthSchemeProvider implements QueryAuthSchemeProv
     public List<AuthSchemeOption> resolveAuthScheme(QueryAuthSchemeParams params) {
         List<AuthSchemeOption> options = new ArrayList<>();
         switch (params.operation()) {
-        case "BearerAuthOperation":
-            options.add(AuthSchemeOption.builder().schemeId("smithy.api#httpBearerAuth").build());
-            break;
-        case "OperationWithNoneAuthType":
-            options.add(AuthSchemeOption.builder().schemeId("smithy.api#noAuth").build());
-            break;
-        default:
-            options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
-                    .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
-                    .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
-            break;
+            case "BearerAuthOperation":
+                options.add(AuthSchemeOption.builder().schemeId("smithy.api#httpBearerAuth").build());
+                break;
+            case "OperationWithNoneAuthType":
+                options.add(AuthSchemeOption.builder().schemeId("smithy.api#noAuth").build());
+                break;
+            default:
+                options.add(AuthSchemeOption.builder().schemeId("aws.auth#sigv4")
+                                            .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, "query-service")
+                                            .putSignerProperty(AwsV4HttpSigner.REGION_NAME, params.region().id()).build());
+                break;
         }
         return Collections.unmodifiableList(options);
     }

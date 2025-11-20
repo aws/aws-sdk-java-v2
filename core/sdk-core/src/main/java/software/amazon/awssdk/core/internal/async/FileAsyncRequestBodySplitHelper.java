@@ -166,6 +166,7 @@ public final class FileAsyncRequestBodySplitHelper {
 
         private final FileAsyncRequestBody fileAsyncRequestBody;
         private final SimplePublisher<AsyncRequestBody> simplePublisher;
+        private final AtomicBoolean hasCompleted = new AtomicBoolean(false);
 
         FileAsyncRequestBodyWrapper(FileAsyncRequestBody fileAsyncRequestBody,
                                     SimplePublisher<AsyncRequestBody> simplePublisher) {
@@ -175,14 +176,20 @@ public final class FileAsyncRequestBodySplitHelper {
 
         @Override
         public void subscribe(Subscriber<? super ByteBuffer> s) {
-            fileAsyncRequestBody.doAfterOnComplete(() -> startNextRequestBody(simplePublisher))
+            fileAsyncRequestBody.doAfterOnComplete(this::startNextIfNeeded)
                                 // The reason we still need to call startNextRequestBody when the subscription is
                                 // cancelled is that upstream could cancel the subscription even though the stream has
                                 // finished successfully before onComplete. If this happens, doAfterOnComplete callback
                                 // will never be invoked, and if the current buffer is full, the publisher will stop
                                 // sending new FileAsyncRequestBody, leading to uncompleted future.
-                                .doAfterOnCancel(() -> startNextRequestBody(simplePublisher))
+                                .doAfterOnCancel(this::startNextIfNeeded)
                                 .subscribe(s);
+        }
+
+        private void startNextIfNeeded() {
+            if (hasCompleted.compareAndSet(false, true)) {
+                startNextRequestBody(simplePublisher);
+            }
         }
 
         @Override

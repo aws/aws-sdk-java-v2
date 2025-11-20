@@ -27,7 +27,7 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber;
  */
 @SdkInternalApi
 public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStream {
-    private static final long MINIMUM_BYTES_BUFFERED = 1024 * 1024L;
+    private static final long MINIMUM_BYTES_BUFFERED = 16 * 1024 * 1024L;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
 

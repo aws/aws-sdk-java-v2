@@ -62,7 +62,7 @@ public final class StsWebIdentityTokenFileCredentialsProvider
 
     private final AwsCredentialsProvider credentialsProvider;
     private final RuntimeException loadException;
-    private final Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
+    private Supplier<AssumeRoleWithWebIdentityRequest> assumeRoleWithWebIdentityRequest;
 
     private final Path webIdentityTokenFile;
     private final String roleArn;
@@ -71,35 +71,36 @@ public final class StsWebIdentityTokenFileCredentialsProvider
 
     private StsWebIdentityTokenFileCredentialsProvider(Builder builder) {
         super(builder, "sts-assume-role-with-web-identity-credentials-provider");
-        Path webIdentityTokenFile =
-            builder.webIdentityTokenFile != null ? builder.webIdentityTokenFile
-                                                 : Paths.get(trim(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE
-                                                                      .getStringValueOrThrow()));
-
-        String roleArn = builder.roleArn != null ? builder.roleArn
-                                                 : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
-
-        String sessionName = builder.roleSessionName != null ? builder.roleSessionName :
-                             SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue()
-                                                                   .orElse("aws-sdk-java-" + System.currentTimeMillis());
-
-        WebIdentityTokenCredentialProperties credentialProperties =
-            WebIdentityTokenCredentialProperties.builder()
-                                                .roleArn(roleArn)
-                                                .roleSessionName(builder.roleSessionName)
-                                                .webIdentityTokenFile(webIdentityTokenFile)
-                                                .build();
-
-        this.assumeRoleWithWebIdentityRequest = builder.assumeRoleWithWebIdentityRequestSupplier != null
-                                                ? builder.assumeRoleWithWebIdentityRequestSupplier
-                                                : () -> AssumeRoleWithWebIdentityRequest.builder()
-                                                                                        .roleArn(credentialProperties.roleArn())
-                                                                                        .roleSessionName(sessionName)
-                                                                                        .build();
-
         AwsCredentialsProvider credentialsProviderLocal = null;
         RuntimeException loadExceptionLocal = null;
         try {
+            Path webIdentityTokenFile =
+                builder.webIdentityTokenFile != null ? builder.webIdentityTokenFile
+                                                     : Paths.get(trim(SdkSystemSetting.AWS_WEB_IDENTITY_TOKEN_FILE
+                                                                          .getStringValueOrThrow()));
+
+            String roleArn = builder.roleArn != null ? builder.roleArn
+                                                     : trim(SdkSystemSetting.AWS_ROLE_ARN.getStringValueOrThrow());
+
+            String sessionName = builder.roleSessionName != null ? builder.roleSessionName :
+                                 SdkSystemSetting.AWS_ROLE_SESSION_NAME.getStringValue()
+                                                                       .orElse("aws-sdk-java-" + System.currentTimeMillis());
+
+            WebIdentityTokenCredentialProperties credentialProperties =
+                WebIdentityTokenCredentialProperties.builder()
+                                                    .roleArn(roleArn)
+                                                    .roleSessionName(builder.roleSessionName)
+                                                    .webIdentityTokenFile(webIdentityTokenFile)
+                                                    .build();
+
+            this.assumeRoleWithWebIdentityRequest =
+                builder.assumeRoleWithWebIdentityRequestSupplier != null
+                ? builder.assumeRoleWithWebIdentityRequestSupplier
+                : () -> AssumeRoleWithWebIdentityRequest.builder()
+                                                        .roleArn(credentialProperties.roleArn())
+                                                        .roleSessionName(sessionName)
+                                                        .build();
+
             AssumeRoleWithWebIdentityRequestSupplier supplier =
                 AssumeRoleWithWebIdentityRequestSupplier.builder()
                                                         .assumeRoleWithWebIdentityRequest(assumeRoleWithWebIdentityRequest.get())
@@ -148,7 +149,9 @@ public final class StsWebIdentityTokenFileCredentialsProvider
 
     @Override
     protected AwsSessionCredentials getUpdatedCredentials(StsClient stsClient) {
-        AssumeRoleWithWebIdentityRequest request = assumeRoleWithWebIdentityRequest.get();
+        AssumeRoleWithWebIdentityRequest request =
+            assumeRoleWithWebIdentityRequest != null ? assumeRoleWithWebIdentityRequest.get() : null;
+
         notNull(request, "AssumeRoleWithWebIdentityRequest can't be null");
         AssumeRoleWithWebIdentityResponse assumeRoleWithWebIdentityResponse = stsClient.assumeRoleWithWebIdentity(request);
         return fromStsCredentials(assumeRoleWithWebIdentityResponse.credentials(),

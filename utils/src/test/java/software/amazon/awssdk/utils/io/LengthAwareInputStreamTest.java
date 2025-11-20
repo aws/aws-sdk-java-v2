@@ -293,7 +293,7 @@ class LengthAwareInputStreamTest {
         LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int bytesToSkip = 8;
-        int skippedBytes = 0;
+        long skippedBytes = 0;
         while (skippedBytes != bytesToSkip) {
             long skipped = is.skip(1);
             if (skipped > 0) {
@@ -301,7 +301,7 @@ class LengthAwareInputStreamTest {
             }
         }
 
-        int totalRead = 0;
+        long totalRead = 0;
         while (is.read() != -1) {
             ++totalRead;
         }
@@ -318,7 +318,7 @@ class LengthAwareInputStreamTest {
         LengthAwareInputStream is = new LengthAwareInputStream(delegate, delegateLength);
 
         int bytesToSkip = 8;
-        int skippedBytes = 0;
+        long skippedBytes = 0;
         while (skippedBytes != bytesToSkip) {
             long skipped = is.skip(1);
             if (skipped > 0) {
@@ -326,7 +326,7 @@ class LengthAwareInputStreamTest {
             }
         }
 
-        int totalRead = 0;
+        long totalRead = 0;
         byte[] buff = new byte[8];
         int read;
 
