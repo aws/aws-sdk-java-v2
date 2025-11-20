@@ -18,10 +18,9 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import static java.util.Collections.emptyList;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.readAndTransformSingleItem;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -30,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
@@ -94,21 +94,32 @@ public final class BatchGetResultPage {
         KeysAndAttributes keysAndAttributes = this.batchGetItemResponse.unprocessedKeys().get(mappedTable.tableName());
 
         if (keysAndAttributes == null) {
-            return Collections.emptyList();
+            return emptyList();
         }
 
-        String partitionKey = mappedTable.tableSchema().tableMetadata().primaryPartitionKey();
-        Optional<String> sortKey = mappedTable.tableSchema().tableMetadata().primarySortKey();
+        List<String> partitionKeys = mappedTable.tableSchema().tableMetadata()
+                                                .indexPartitionKeys(TableMetadata.primaryIndexName());
+        List<String> sortKeys = mappedTable.tableSchema().tableMetadata()
+                                           .indexSortKeys(TableMetadata.primaryIndexName());
 
         return keysAndAttributes.keys()
                                 .stream()
                                 .map(keyMap -> {
-                                    AttributeValue partitionValue = keyMap.get(partitionKey);
-                                    AttributeValue sortValue = sortKey.map(keyMap::get).orElse(null);
+                                    List<AttributeValue> partitionValues = partitionKeys.stream()
+                                                                                        .map(keyMap::get)
+                                                                                        .filter(Objects::nonNull)
+                                                                                        .collect(Collectors.toList());
+
+                                    List<AttributeValue> sortValues = sortKeys.stream()
+                                                                              .map(keyMap::get)
+                                                                              .filter(Objects::nonNull)
+                                                                              .collect(Collectors.toList());
+
                                     return Key.builder()
-                                              .partitionValue(partitionValue)
-                                              .sortValue(sortValue)
-                                              .build(); })
+                                              .partitionValues(partitionValues)
+                                              .sortValues(sortValues)
+                                              .build();
+                                })
                                 .collect(Collectors.toList());
     }
 
