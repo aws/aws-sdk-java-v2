@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Relational Database Service",
+    "contributor": "",
+    "description": "Add support for VPC Encryption Controls."
+}
