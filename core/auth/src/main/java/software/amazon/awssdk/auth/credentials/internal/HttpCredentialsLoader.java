@@ -104,6 +104,7 @@ public final class HttpCredentialsLoader {
                                         .accessKeyId(accessKeyId)
                                         .secretAccessKey(secretKey)
                                         .sessionToken(token)
+                                        .expirationTime(expiration)
                                         .providerName(providerName)
                                         .build() :
                    AwsBasicCredentials.builder()
