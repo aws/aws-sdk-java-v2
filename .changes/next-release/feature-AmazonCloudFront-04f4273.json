@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "This release adds support for bring your own IP (BYOIP) to CloudFront's CreateAnycastIpList API through an optional IpamCidrConfigs field."
+}
