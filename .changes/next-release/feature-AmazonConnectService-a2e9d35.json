@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Connect Service",
+    "contributor": "",
+    "description": "Add optional ability to exclude users from send notification actions for Contact Lens Rules."
+}
