@@ -1,4 +1,141 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.1__ __2025-11-20__
+## __AWS Budgets__
+  - ### Features
+    - Add BillingViewHealthStatusException to DescribeBudgetPerformanceHistory and ServiceQuotaExceededException to UpdateBudget for improved error handling with Billing Views.
+
+## __AWS CloudTrail__
+  - ### Features
+    - AWS launches CloudTrail aggregated events to simplify monitoring of data events at scale. This feature delivers both granular and summarized data events for resources like S3/Lambda, helping security teams identify patterns without custom aggregation logic.
+
+## __AWS DataSync__
+  - ### Features
+    - The partition value "aws-eusc" is now permitted for ARN (Amazon Resource Name) fields.
+
+## __AWS Database Migration Service__
+  - ### Features
+    - Added support for customer-managed KMS key (CMK) for encryption for import private key certificate. Additionally added Amazon SageMaker Lakehouse endpoint used for zero-ETL integrations with data warehouses.
+
+## __AWS Device Farm__
+  - ### Features
+    - Add support for environment variables and an IAM execution role.
+
+## __AWS Glue__
+  - ### Features
+    - Added FunctionType parameter to Glue GetuserDefinedFunctions.
+
+## __AWS Lake Formation__
+  - ### Features
+    - Added ServiceIntegrations as a request parameter for CreateLakeFormationIdentityCenterConfigurationRequest and UpdateLakeFormationIdentityCenterConfigurationRequest and response parameter for DescribeLakeFormationIdentityCenterConfigurationResponse
+
+## __AWS License Manager__
+  - ### Features
+    - Added cross-account resource aggregation via license asset groups and expiry tracking for Self-Managed Licenses. Extended Org-Wide View to Self-Managed Licenses, added reporting for license asset groups, and removed Athena/Glue dependencies for cross-account resource discovery in commercial regions.
+
+## __AWS Network Manager__
+  - ### Features
+    - This release adds support for Cloud WAN Routing Policy providing customers sophisticated routing controls to better manage their global networks
+
+## __AWS Organizations__
+  - ### Features
+    - Added new APIs for Billing Transfer, new policy type INSPECTOR_POLICY, and allow an account to transfer between organizations
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release Findings and Resources Trends APIs- GetFindingsTrendsV2 and GetResourcesTrendsV2. This supports time-series aggregated counts with composite filtering for 1-year of historical data analysis of Findings and Resources.
+
+## __AWS Signin__
+  - ### Features
+    - Add the LoginCredentialsProvider which allows use of AWS credentials vended by AWS Sign-In that correspond to an AWS Console session. AWS Sign-In credentials will be used automatically by the Credential resolution chain when `login_session` is set in the profile.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Added clusterVpcEndpoint field to GetVpcEndpointServiceName API response, returning the VPC connection endpoint for the cluster
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Bedrock AgentCore Memory release for redriving memory extraction jobs (StartMemoryExtractionJob and ListMemoryExtractionJob)
+
+## __Amazon CloudFront__
+  - ### Features
+    - This release adds support for bring your own IP (BYOIP) to CloudFront's CreateAnycastIpList API through an optional IpamCidrConfigs field.
+
+## __Amazon CloudWatch Application Signals__
+  - ### Features
+    - Amazon CloudWatch Application Signals now supports un-instrumented services discovery, cross-account views, and change history, helping SRE and DevOps teams monitor and troubleshoot their large-scale distributed applications.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add optional ability to exclude users from send notification actions for Contact Lens Rules.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Launching Amazon ECS Express Mode - a new feature that enables developers to quickly launch highly available, scalable containerized applications with a single command.
+
+## __Amazon EMR__
+  - ### Features
+    - Add support for configuring S3 destination for step logs on a per-step basis.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for multiple features including: VPC Encryption Control for the status of traffic flow; S2S VPN BGP Logging; TGW Flexible Costs; IPAM allocation of static IPs from IPAM pools to CF Anycast IP lists used on CloudFront distribution; and EBS Volume Integration with Recycle Bin
+
+## __Amazon Kinesis__
+  - ### Features
+    - Kinesis Data Streams now supports up to 50 Enhance Fan-out consumers for On-demand Advantage Streams. On-demand Standard and Provisioned streams will continue with the existing limit of 20 consumers for Enhanced Fan-out.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Introducing comprehensive theme styling controls. New features include border customization (radius, width, color), flexible padding controls, background styling for cards and sheets, centralized typography management, and visual-level override support across layouts.
+
+## __Amazon Recycle Bin__
+  - ### Features
+    - Add support for EBS volume in Recycle Bin
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for VPC Encryption Controls.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added training plan support for inference endpoints. Added HyperPod task governance with accelerator partition-based quota allocation. Added BatchRebootClusterNodes and BatchReplaceClusterNodes APIs. Updated ListClusterNodes to include privateDnsHostName.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Enable / Disable ABAC on a general purpose bucket.
+
+## __Auto Scaling__
+  - ### Features
+    - This release adds support for three new features: 1) Image ID overrides in mixed instances policy, 2) Replace Root Volume - a new strategy for Instance Refresh, and 3) Instance Lifecycle Policy for enhanced instance lifecycle management.
+
+## __Braket__
+  - ### Features
+    - Add support for Braket spending limits.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Added support for Synchronous project type and PII Detection and Redaction
+
+## __EC2 Image Builder__
+  - ### Features
+    - EC2 Image Builder now enables the distribution of existing AMIs, retry distribution, and define distribution workflows. It also supports automatic versioning for recipes and components, allowing automatic version increments and dynamic referencing in pipelines.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds the target optimizer feature in ALB, enabling strict concurrency enforcement on targets.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Increasing the length limit of Statement Name from 500 to 2048.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Bedrock Data Automation Runtime Sync API
+
 # __2.39.0__ __2025-11-19__
 ## __AWS Backup__
   - ### Features

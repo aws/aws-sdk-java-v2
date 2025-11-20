@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudTrail",
-    "contributor": "",
-    "description": "AWS launches CloudTrail aggregated events to simplify monitoring of data events at scale. This feature delivers both granular and summarized data events for resources like S3/Lambda, helping security teams identify patterns without custom aggregation logic."
-}

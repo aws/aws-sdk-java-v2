@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Data API Service",
-    "contributor": "",
-    "description": "Increasing the length limit of Statement Name from 500 to 2048."
-}

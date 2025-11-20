@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Device Farm",
-    "contributor": "",
-    "description": "Add support for environment variables and an IAM execution role."
-}

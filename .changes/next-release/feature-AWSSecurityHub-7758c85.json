@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SecurityHub",
-    "contributor": "",
-    "description": "Release Findings and Resources Trends APIs- GetFindingsTrendsV2 and GetResourcesTrendsV2. This supports time-series aggregated counts with composite filtering for 1-year of historical data analysis of Findings and Resources."
-}
