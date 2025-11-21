@@ -70,11 +70,6 @@ public class HttpChecksumCalculationTest {
         return ProtocolRestJsonClient.builder().httpClient(httpClient)
                                      .credentialsProvider(AnonymousCredentialsProvider.create())
                                      .requestChecksumCalculation(calculation)
-                                     .overrideConfiguration(
-                                         //     // TODO(sra-identity-and-auth): we should remove these
-                                         //     //  overrides once we set up codegen to set chunk-encoding to true
-                                         //     //  for requests that are streaming and checksum-enabled
-                                         o -> o.addExecutionInterceptor(new EnableChunkedEncodingInterceptor()))
                                      .region(Region.US_WEST_2);
     }
 
@@ -82,11 +77,6 @@ public class HttpChecksumCalculationTest {
         return ProtocolRestJsonAsyncClient.builder().httpClient(httpAsyncClient)
                                           .credentialsProvider(AnonymousCredentialsProvider.create())
                                           .requestChecksumCalculation(calculation)
-                                          .overrideConfiguration(
-                                              // TODO(sra-identity-and-auth): we should remove these
-                                              //  overrides once we set up codegen to set chunk-encoding to true
-                                              //  for requests that are streaming and checksum-enabled
-                                              o -> o.addExecutionInterceptor(new EnableChunkedEncodingInterceptor()))
                                           .region(Region.US_WEST_2);
     }
 

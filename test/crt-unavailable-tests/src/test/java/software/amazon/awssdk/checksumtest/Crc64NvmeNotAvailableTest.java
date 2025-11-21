@@ -89,11 +89,7 @@ public class Crc64NvmeNotAvailableTest {
         return ProtocolRestJsonAsyncClient.builder().httpClient(httpAsyncClient)
                                           .credentialsProvider(AnonymousCredentialsProvider.create())
                                           .overrideConfiguration(
-                                              // TODO(sra-identity-and-auth): we should remove these
-                                              //  overrides once we set up codegen to set chunk-encoding to true
-                                              //  for requests that are streaming and checksum-enabled
-                                              o -> o.addExecutionInterceptor(new EnableChunkedEncodingInterceptor())
-                                                    .addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
+                                              o -> o.addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
                                           .region(Region.US_WEST_2);
     }
 
@@ -101,11 +97,7 @@ public class Crc64NvmeNotAvailableTest {
         return ProtocolRestJsonClient.builder().httpClient(httpClient)
                                      .credentialsProvider(AnonymousCredentialsProvider.create())
                                      .overrideConfiguration(
-                                         //     // TODO(sra-identity-and-auth): we should remove these
-                                         //     //  overrides once we set up codegen to set chunk-encoding to true
-                                         //     //  for requests that are streaming and checksum-enabled
-                                         o -> o.addExecutionInterceptor(new EnableChunkedEncodingInterceptor())
-                                               .addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
+                                         o -> o.addExecutionInterceptor(new CaptureChecksumValidationInterceptor()))
                                      .region(Region.US_WEST_2);
     }
 
