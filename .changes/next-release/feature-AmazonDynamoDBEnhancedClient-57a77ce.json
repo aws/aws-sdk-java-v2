@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Add support for GSI composite key to handle up to 4 partition and 4 sort keys"
+}

@@ -29,6 +29,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchemaParams;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.TableSchemaFactory;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPreserveEmptyObject;
@@ -200,16 +201,7 @@ public interface TableSchema<T> {
      * @return An initialized {@link TableSchema}
      */
     static <T> TableSchema<T> fromClass(Class<T> annotatedClass) {
-        if (annotatedClass.getAnnotation(DynamoDbImmutable.class) != null) {
-            return fromImmutableClass(annotatedClass);
-        }
-
-        if (annotatedClass.getAnnotation(DynamoDbBean.class) != null) {
-            return fromBean(annotatedClass);
-        }
-
-        throw new IllegalArgumentException("Class does not appear to be a valid DynamoDb annotated class. [class = " +
-                                               "\"" + annotatedClass + "\"]");
+        return TableSchemaFactory.fromClass(annotatedClass, ExecutionContext.ROOT);
     }
 
     /**

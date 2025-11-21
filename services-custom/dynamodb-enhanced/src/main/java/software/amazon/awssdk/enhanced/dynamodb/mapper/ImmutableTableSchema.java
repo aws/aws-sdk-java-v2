@@ -37,7 +37,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -46,6 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.immutable.ImmutableInfo;
@@ -136,8 +136,15 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
      */
     @SuppressWarnings("unchecked")
     public static <T> ImmutableTableSchema<T> create(ImmutableTableSchemaParams<T> params) {
-        return (ImmutableTableSchema<T>) IMMUTABLE_TABLE_SCHEMA_CACHE.computeIfAbsent(
-            params.immutableClass(), clz -> create(params, new MetaTableSchemaCache()));
+        return create(params, ExecutionContext.ROOT);
+    }
+
+    private static <T> ImmutableTableSchema<T> create(ImmutableTableSchemaParams<T> params, ExecutionContext context) {
+        if (context == ExecutionContext.ROOT) {
+            return (ImmutableTableSchema<T>) IMMUTABLE_TABLE_SCHEMA_CACHE.computeIfAbsent(
+                params.immutableClass(), clz -> create(params, new MetaTableSchemaCache(), context));
+        }
+        return create(params, new MetaTableSchemaCache(), context);
     }
 
     /**
@@ -158,11 +165,16 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
      */
     @SuppressWarnings("unchecked")
     public static <T> ImmutableTableSchema<T> create(Class<T> immutableClass) {
-        return create(ImmutableTableSchemaParams.builder(immutableClass).build());
+        return create(immutableClass, ExecutionContext.ROOT);
+    }
+
+    static <T> ImmutableTableSchema<T> create(Class<T> immutableClass, ExecutionContext context) {
+        return create(ImmutableTableSchemaParams.builder(immutableClass).build(), context);
     }
 
     private static <T> ImmutableTableSchema<T> create(ImmutableTableSchemaParams<T> params,
-                                                      MetaTableSchemaCache metaTableSchemaCache) {
+                                                      MetaTableSchemaCache metaTableSchemaCache,
+                                                      ExecutionContext context) {
         debugLog(params.immutableClass(), () -> "Creating immutable schema");
 
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
@@ -172,6 +184,11 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
             new ImmutableTableSchema<>(createStaticImmutableTableSchema(params.immutableClass(),
                                                                         params.lookup(),
                                                                         metaTableSchemaCache));
+
+        if (context == ExecutionContext.ROOT) {
+            IndexValidator.validateAllIndices(newTableSchema.delegateTableSchema().tableMetadata().indices());
+        }
+
         metaTableSchema.initialize(newTableSchema);
         return newTableSchema;
     }
@@ -195,7 +212,8 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
         }
 
         // Otherwise: cache doesn't know about this class; create a new one from scratch
-        return create(ImmutableTableSchemaParams.builder(immutableClass).lookup(lookup).build(), metaTableSchemaCache);
+        return create(ImmutableTableSchemaParams.builder(immutableClass).lookup(lookup).build(), metaTableSchemaCache,
+                      ExecutionContext.ROOT);
 
     }
 
@@ -231,7 +249,8 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
                   DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
                   if (dynamoDbFlatten != null) {
-                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getter().getReturnType()),
+                      builder.flatten(TableSchemaFactory.fromClass(propertyDescriptor.getter().getReturnType(),
+                                                                   ExecutionContext.FLATTENED),
                                       getterForProperty(propertyDescriptor, immutableClass, lookup),
                                       setterForProperty(propertyDescriptor, builderClass, lookup));
                   } else {
@@ -466,9 +485,8 @@ public final class ImmutableTableSchema<T> extends WrappedTableSchema<T, StaticI
     }
 
     private static List<? extends Annotation> propertyAnnotations(ImmutablePropertyDescriptor propertyDescriptor) {
-        return Stream.concat(Arrays.stream(propertyDescriptor.getter().getAnnotations()),
-                             Arrays.stream(propertyDescriptor.setter().getAnnotations()))
-                     .collect(Collectors.toList());
+        return AnnotationUtils.expandAnnotations(propertyDescriptor.getter().getAnnotations(),
+                                                 propertyDescriptor.setter().getAnnotations());
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(ImmutablePropertyDescriptor propertyDescriptor) {

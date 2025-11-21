@@ -16,11 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.Order;
 
 /**
  * Denotes an optional sort key for a global or local secondary index.
@@ -36,6 +38,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @BeanTableSchemaAttributeTag(BeanTableSchemaAttributeTags.class)
+@Repeatable(DynamoDbSecondarySortKeys.class)
 public @interface DynamoDbSecondarySortKey {
     /**
      * The names of one or more local or global secondary indices that this sort key should participate in.
@@ -45,4 +48,10 @@ public @interface DynamoDbSecondarySortKey {
      * secondary indexes.
      */
     String[] indexNames();
+    
+    /**
+     * The order of this sort key attribute in composite keys (0-3).
+     * Required when multiple sort keys are defined.
+     */
+    Order order() default Order.UNSPECIFIED;
 }

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -31,12 +33,43 @@ public interface IndexMetadata {
     String name();
 
     /**
-     * The partition key for the index; if there is one.
+     * The partition keys for the index in order.
+     * @default For backward compatibility the default implementation returns singleton list of partitionKey if present or empty
+     * list.
+     * External implementations of the interface must explicitly override this method to return the partitionKeys collection and
+     * to enable the composite key support to return multiple elements in the correct order.
      */
-    Optional<KeyAttributeMetadata> partitionKey();
+    default List<KeyAttributeMetadata> partitionKeys() {
+        return partitionKey().map(Collections::singletonList).orElse(Collections.emptyList());
+    }
+
+    /**
+     * The sort keys for the index in order.
+     * @default For backward compatibility the default implementation returns singleton list of sortKey if present or empty list.
+     * External implementations of the interface must explicitly override this method to return the sortKeys collection and
+     * to enable the composite key support to return multiple elements in the correct order.
+     */
+    default List<KeyAttributeMetadata> sortKeys() {
+        return sortKey().map(Collections::singletonList).orElse(Collections.emptyList());
+    }
+
+    /**
+     * The partition key for the index; if there is one.
+     * @deprecated Use {@link #partitionKeys()} for unified single/composite key support
+     */
+    @Deprecated
+    default Optional<KeyAttributeMetadata> partitionKey() {
+        List<KeyAttributeMetadata> keys = partitionKeys();
+        return keys.isEmpty() ? Optional.empty() : Optional.of(keys.get(0));
+    }
 
     /**
      * The sort key for the index; if there is one.
+     * @deprecated Use {@link #sortKeys()} for unified single/composite key support
      */
-    Optional<KeyAttributeMetadata> sortKey();
+    @Deprecated
+    default Optional<KeyAttributeMetadata> sortKey() {
+        List<KeyAttributeMetadata> keys = sortKeys();
+        return keys.isEmpty() ? Optional.empty() : Optional.of(keys.get(0));
+    }
 }

@@ -16,6 +16,8 @@
 package software.amazon.awssdk.enhanced.dynamodb;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -29,23 +31,63 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 @ThreadSafe
 public interface TableMetadata {
     /**
-     * Returns the attribute name of the partition key for an index.
+     * Returns the attribute names of all the composite partition keys for an index.
      *
      * @param indexName The name of the index.
-     * @return The attribute name representing the partition key for this index.
-     * @throws IllegalArgumentException if the index does not exist in the metadata or does not have a partition key
-     * associated with it..
+     * @return A list of attribute names representing the composite partition keys for this index.
+     * @throws IllegalArgumentException if the index does not exist in the metadata or does not have partition keys
+     * associated with it.
+     * @default For backward compatibility the default implementation returns singleton list of indexPartitionKey if present, or
+     * empty list.
+     * External implementations of the interface must explicitly override this method to return the indexPartitionKeys
+     * collection for composite key support.
      */
-    String indexPartitionKey(String indexName);
+    default List<String> indexPartitionKeys(String indexName) {
+        String indexPartitionKey = indexPartitionKey(indexName);
+        return indexPartitionKey == null ? Collections.emptyList() : Collections.singletonList(indexPartitionKey);
+    }
 
     /**
-     * Returns the attribute name of the sort key for an index.
+     * Returns the attribute name of the single partition key for an index.
+     * <p>
+     * Use {@link #indexPartitionKeys(String)} for composite key support
+     * @param indexName The name of the index.
+     * @return The attribute name representing the first partition key for this index.
+     * @throws IllegalArgumentException if the index does not exist in the metadata or does not have a partition key
+     * associated with it.
+     */
+    default String indexPartitionKey(String indexName) {
+        List<String> keys = indexPartitionKeys(indexName);
+        return keys.isEmpty() ? null : keys.get(0);
+    }
+
+    /**
+     * Returns the attribute names of all the composite sort keys for an index.
      *
      * @param indexName The name of the index.
-     * @return Optional of the attribute name representing the sort key for this index; empty if the index does not
+     * @return A list of attribute names representing the composite sort keys for this index.
+     * @default For backward compatibility the default implementation returns singleton list of indexSortKey if present, or
+     * empty list.
+     * External implementations of the interface must explicitly override this method to return the indexSortKeys
+     * collection for composite key support.
+     */
+    default List<String> indexSortKeys(String indexName) {
+        Optional<String> indexSortKey = indexSortKey(indexName);
+        return indexSortKey.map(Collections::singletonList).orElse(Collections.emptyList());
+    }
+
+    /**
+     * Returns the attribute name of the single sort key for an index.
+     * <p>
+     * Use {@link #indexSortKeys(String)} for composite key support
+     * @param indexName The name of the index.
+     * @return Optional of the attribute name representing the first sort key for this index; empty if the index does not
      * have a sort key.
      */
-    Optional<String> indexSortKey(String indexName);
+    default Optional<String> indexSortKey(String indexName) {
+        List<String> keys = indexSortKeys(indexName);
+        return keys.isEmpty() ? Optional.empty() : Optional.of(keys.get(0));
+    }
 
     /**
      * Returns a custom metadata object. These objects are used by extensions to the library, therefore the type of

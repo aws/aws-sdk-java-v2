@@ -42,7 +42,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
@@ -140,8 +140,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      */
     @SuppressWarnings("unchecked")
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
+        return create(beanClass, ExecutionContext.ROOT);
+    }
+
+    static <T> BeanTableSchema<T> create(Class<T> beanClass, ExecutionContext context) {
         BeanTableSchemaParams<T> params = BeanTableSchemaParams.builder(beanClass).build();
-        return create(params);
+        return create(params, context);
     }
 
     /**
@@ -162,19 +166,28 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      */
     @SuppressWarnings("unchecked")
     public static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params) {
-        return (BeanTableSchema<T>) BEAN_TABLE_SCHEMA_CACHE.computeIfAbsent(params.beanClass(),
-                                                                            clz -> create(params,
-                                                                                          new MetaTableSchemaCache()));
+        return create(params, ExecutionContext.ROOT);
     }
 
-    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache) {
+    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, ExecutionContext context) {
+        if (context == ExecutionContext.ROOT) {
+            return (BeanTableSchema<T>) BEAN_TABLE_SCHEMA_CACHE.computeIfAbsent(params.beanClass(),
+                                                                               clz -> create(params,
+                                                                                             new MetaTableSchemaCache(),
+                                                                                             context));
+        }
+        return create(params, new MetaTableSchemaCache(), context);
+    }
+
+    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache,
+                                                 ExecutionContext context) {
         Class<T> beanClass = params.beanClass();
         debugLog(beanClass, () -> "Creating bean schema");
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
         MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(beanClass);
 
         BeanTableSchema<T> newTableSchema =
-            new BeanTableSchema<>(createStaticTableSchema(params.beanClass(), params.lookup(), metaTableSchemaCache));
+            new BeanTableSchema<>(createStaticTableSchema(params.beanClass(), params.lookup(), metaTableSchemaCache, context));
         metaTableSchema.initialize(newTableSchema);
         return newTableSchema;
     }
@@ -204,7 +217,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass,
                                                                     MethodHandles.Lookup lookup,
-                                                                    MetaTableSchemaCache metaTableSchemaCache) {
+                                                                    MetaTableSchemaCache metaTableSchemaCache,
+                                                                    ExecutionContext context) {
 
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
@@ -249,7 +263,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                     setterForProperty(propertyDescriptor, beanClass, lookup));
                 } else {
                     // Object flattening
-                    builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
+                    builder.flatten(TableSchemaFactory.fromClass(propertyDescriptor.getReadMethod().getReturnType(),
+                                                                 ExecutionContext.FLATTENED),
                                     getterForProperty(propertyDescriptor, beanClass, lookup),
                                     setterForProperty(propertyDescriptor, beanClass, lookup));
                 }
@@ -272,7 +287,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         builder.attributes(attributes);
 
-        return builder.build();
+        return builder.build(context);
     }
 
     // Enhance beanInfo descriptors with fluent setter when the default set method is absent
@@ -301,12 +316,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static void validateDynamoDbFlattenAnnotations(List<PropertyDescriptor> mappableProperties) {
         int mapCount = 0;
-        
+
         for (PropertyDescriptor property : mappableProperties) {
             if (!hasFlattenAnnotation(property)) {
                 continue;
             }
-            
+
             Type type = property.getReadMethod().getGenericReturnType();
             if (isValidFlattenMapType(type)) {
                 mapCount++;
@@ -315,27 +330,27 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                     "@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
             }
         }
-        
+
         if (mapCount > 1) {
             throw new IllegalArgumentException("Multiple @DynamoDbFlatten Map<String, String> properties found. "
                                                + "Only one flattened map per class is supported.");
         }
     }
-    
+
     private static boolean hasFlattenAnnotation(PropertyDescriptor property) {
         return getPropertyAnnotation(property, DynamoDbFlatten.class) != null;
     }
-    
+
     private static boolean isMapType(Type type) {
-        return type instanceof ParameterizedType && 
+        return type instanceof ParameterizedType &&
                Map.class.equals(((ParameterizedType) type).getRawType());
     }
-    
+
     private static boolean isValidFlattenMapType(Type type) {
         if (!isMapType(type)) {
             return false;
         }
-        
+
         Type[] mapTypes = ((ParameterizedType) type).getActualTypeArguments();
 
         return mapTypes.length == 2 &&
@@ -575,9 +590,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     }
 
     private static List<? extends Annotation> propertyAnnotations(PropertyDescriptor propertyDescriptor) {
-        return Stream.concat(Arrays.stream(propertyDescriptor.getReadMethod().getAnnotations()),
-                             Arrays.stream(propertyDescriptor.getWriteMethod().getAnnotations()))
-                     .collect(Collectors.toList());
+        return AnnotationUtils.expandAnnotations(propertyDescriptor.getReadMethod().getAnnotations(),
+                                                 propertyDescriptor.getWriteMethod().getAnnotations());
     }
 
     private static void debugLog(Class<?> beanClass, Supplier<String> logMessage) {
