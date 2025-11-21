@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 
@@ -33,6 +34,7 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
@@ -64,6 +66,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final HttpMonitoringOptions httpMonitoringOptions;
     private final Boolean useEnvironmentVariableProxyOptionsValues;
     private final long maxNativeMemoryLimitInBytes;
+    private final Boolean memoryBufferDisabled;
 
     public S3NativeClientConfiguration(Builder builder) {
         this.signingRegion = builder.signingRegion == null ? DefaultAwsRegionProviderChain.builder().build().getRegion().id() :
@@ -113,6 +116,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+        this.memoryBufferDisabled =
+            builder.advancedOptions == null ? null : builder.advancedOptions.get(CRT_MEMORY_BUFFER_DISABLED);
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -191,6 +196,10 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return readBufferSizeInBytes;
     }
 
+    public Boolean memoryBufferDisabled() {
+        return memoryBufferDisabled;
+    }
+
     @Override
     public void close() {
         clientBootstrap.close();
@@ -212,6 +221,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         private StandardRetryOptions standardRetryOptions;
         private Long thresholdInBytes;
         private Long maxNativeMemoryLimitInBytes;
+
+        private AttributeMap advancedOptions;
 
         private Builder() {
         }
@@ -272,6 +283,11 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         public Builder thresholdInBytes(Long thresholdInBytes) {
             this.thresholdInBytes = thresholdInBytes;
+            return this;
+        }
+
+        public Builder advancedOptions(AttributeMap advancedOptions) {
+            this.advancedOptions = advancedOptions;
             return this;
         }
     }
