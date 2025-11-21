@@ -55,6 +55,15 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
 
+    /**
+     * Advanced configuration for the native S3CrtAsyncClient which only applies for multipart uploads. When set to true,
+     * the client will skip buffering the part in native memory before sending the request. Default to false on small objects,
+     * and true when the object size exceed a certain threshold. When set to true, the client will also skip
+     * buffering for small objects.
+     */
+    public static final SdkAdvancedAsyncClientOption<Boolean> CRT_MEMORY_BUFFER_DISABLED =
+        new SdkAdvancedAsyncClientOption<>(Boolean.class);
+
     private SdkAdvancedAsyncClientOption(Class<T> valueClass) {
         super(valueClass);
     }
