@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Launching Enhanced Error Handling and ESM Grouping capabilities for Kafka ESMs"
+}
