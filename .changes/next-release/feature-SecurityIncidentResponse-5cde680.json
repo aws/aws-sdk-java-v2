@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Security Incident Response",
+    "contributor": "",
+    "description": "Add ListInvestigations and SendFeedback APIs to support SecurityIR AI agents"
+}
