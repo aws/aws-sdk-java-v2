@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Runtime for Amazon Bedrock Data Automation",
-    "contributor": "",
-    "description": "Adding new fields to GetDataAutomationStatus: jobSubmissionTime, jobCompletionTime, and jobDurationInSeconds"
-}

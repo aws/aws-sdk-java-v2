@@ -1,4 +1,149 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.2__ __2025-11-21__
+## __AWS CloudFormation__
+  - ### Features
+    - Adds the DependsOn field to the AutoDeployment configuration parameter for CreateStackSet, UpdateStackSet, and DescribeStackSet APIs, allowing users to set and read auto-deployment dependencies between StackSets
+
+## __AWS Control Tower__
+  - ### Features
+    - The manifest field is now optional for the AWS Control Tower CreateLandingZone and UpdateLandingZone APIs for Landing Zone version 4.0
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Adds support for excluding session key tags from HLS multivariant playlists
+
+## __AWS Invoicing__
+  - ### Features
+    - Added the CreateProcurementPortalPreference, GetProcurementPortalPreference, PutProcurementPortalPreference, UpdateProcurementPortalPreferenceStatus, ListProcurementPortalPreferences and DeleteProcurementPortalPreference APIs for procurement portal preference management.
+
+## __AWS Key Management Service__
+  - ### Features
+    - Support for on-demand rotation of AWS KMS Multi-Region keys with imported key material
+
+## __AWS Lambda__
+  - ### Features
+    - Launching Enhanced Error Handling and ESM Grouping capabilities for Kafka ESMs
+
+## __AWS Marketplace Entitlement Service__
+  - ### Features
+    - Endpoint update for new region
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the UPGRADE_ROLLOUT_POLICY policy type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Transfer Family__
+  - ### Features
+    - Adds support for creating Webapps accessible from a VPC.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Endpoint update for new region
+
+## __Amazon API Gateway__
+  - ### Features
+    - API Gateway supports VPC link V2 for REST APIs.
+
+## __Amazon Athena__
+  - ### Features
+    - Introduces Spark workgroup features including log persistence, S3/CloudWatch delivery, UI and History Server APIs, and SparkConnect 3.5.6 support. Adds DPU usage limits at workgroup and query levels as well as DPU usage tracking for Capacity Reservation queries to optimize performance and costs.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Add support to automatically enforce safeguards across accounts within an AWS Organization.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Support for agentcore gateway interceptor configurations and NONE authorizer type
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Add support to automatically enforce safeguards across accounts within an AWS Organization.
+
+## __Amazon Connect Service__
+  - ### Features
+    - New APIs to support aliases and versions for ContactFlowModule. Updated ContactFlowModule APIs to support custom blocks.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds a new capability to create and manage interruptible EC2 Capacity Reservations.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Add support for ECR managed signing
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Adds support for controlPlaneScalingConfig on EKS Clusters.
+
+## __Amazon Kinesis Video Streams__
+  - ### Features
+    - This release adds support for Tiered Storage
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for Intent Disambiguation, allowing resolution of ambiguous user inputs when multiple intents match by presenting clarifying questions to users. Also adds Speech Detection Sensitivity configuration for optimizing voice activity detection sensitivity levels in various noise environments.
+
+## __Amazon Q Connect__
+  - ### Features
+    - This release introduces two new messaging channel subtypes: Push, WhatsApp, under MessageTemplate which is a resource in Amazon Q in Connect.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Amazon Quick Suite now supports QuickChat as an embedding type when calling the GenerateEmbedUrlForRegisteredUser API, enabling developers to embed conversational AI agents directly into their applications.
+
+## __Amazon Redshift__
+  - ### Features
+    - Added support for Amazon Redshift Federated Permissions and AWS IAM Identity Center trusted identity propagation.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Add support for Upgrade Rollout Order
+
+## __Amazon SageMaker Runtime HTTP2__
+  - ### Features
+    - Add support for bidirectional streaming invocations on SageMaker AI real-time endpoints
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Enhanced SageMaker HyperPod instance groups with support for MinInstanceCount, CapacityRequirements (Spot/On-Demand), and KubernetesConfig (labels and taints). Also Added speculative decoding and MaxInstanceCount for model optimization jobs.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added support for new SES regions - Asia Pacific (Malaysia) and Canada (Calgary)
+
+## __Compute Optimizer Automation__
+  - ### Features
+    - Initial release of AWS Compute Optimizer Automation. Create automation rules to implement recommended actions on a recurring schedule based on your specified criteria. Supported actions include: snapshot and delete unattached EBS volumes and upgrade volume types to the latest generation.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds the health check log feature in ALB, allowing customers to send detailed target health check log data directly to their designated Amazon S3 bucket.
+
+## __MailManager__
+  - ### Features
+    - Add support for resources in the aws-eusc partition.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added UpdateLakehouseConfiguration API to manage Amazon Redshift Federated Permissions and AWS IAM Identity Center trusted identity propagation for namespaces.
+
+## __Runtime for Amazon Bedrock Data Automation__
+  - ### Features
+    - Adding new fields to GetDataAutomationStatus: jobSubmissionTime, jobCompletionTime, and jobDurationInSeconds
+
+## __Security Incident Response__
+  - ### Features
+    - Add ListInvestigations and SendFeedback APIs to support SecurityIR AI agents
+
+## __odb__
+  - ### Features
+    - Adds AssociateIamRoleToResource and DisassociateIamRoleFromResource APIs for managing IAM roles. Enhances CreateOdbNetwork and UpdateOdbNetwork APIs with KMS, STS, and cross-region S3 parameters. Adds OCI identity domain support to InitializeService API.
+
 # __2.39.1__ __2025-11-20__
 ## __AWS Budgets__
   - ### Features

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock",
-    "contributor": "",
-    "description": "Add support to automatically enforce safeguards across accounts within an AWS Organization."
-}

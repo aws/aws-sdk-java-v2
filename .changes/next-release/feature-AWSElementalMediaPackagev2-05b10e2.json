@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaPackage v2",
-    "contributor": "",
-    "description": "Adds support for excluding session key tags from HLS multivariant playlists"
-}

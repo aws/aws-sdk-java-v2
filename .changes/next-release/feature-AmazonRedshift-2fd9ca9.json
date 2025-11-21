@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Redshift",
-    "contributor": "",
-    "description": "Added support for Amazon Redshift Federated Permissions and AWS IAM Identity Center trusted identity propagation."
-}

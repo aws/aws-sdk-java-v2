@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Kinesis Video Streams",
-    "contributor": "",
-    "description": "This release adds support for Tiered Storage"
-}

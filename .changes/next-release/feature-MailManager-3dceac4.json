@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "MailManager",
-    "contributor": "",
-    "description": "Add support for resources in the aws-eusc partition."
-}
