@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Transfer Family",
+    "contributor": "",
+    "description": "Adds support for creating Webapps accessible from a VPC."
+}
