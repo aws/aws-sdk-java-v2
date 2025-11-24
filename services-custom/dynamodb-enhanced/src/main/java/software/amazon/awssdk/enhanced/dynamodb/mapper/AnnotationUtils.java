@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-public final class AnnotationUtils {
+final class AnnotationUtils {
 
     private AnnotationUtils() {
     }
@@ -35,7 +35,7 @@ public final class AnnotationUtils {
      * Expands annotation arrays to handle repeatable annotations by extracting individual
      * annotations from container annotations.
      */
-    public static List<Annotation> expandAnnotations(Annotation[]... annotationArrays) {
+    static List<Annotation> expandAnnotations(Annotation[]... annotationArrays) {
         if (annotationArrays == null || annotationArrays.length == 0) {
             return Collections.emptyList();
         }

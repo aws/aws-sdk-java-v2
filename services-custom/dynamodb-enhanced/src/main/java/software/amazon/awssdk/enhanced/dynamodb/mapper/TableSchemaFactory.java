@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 
-@SdkInternalApi
+@SdkProtectedApi
 public class TableSchemaFactory {
 
     private TableSchemaFactory() {
