@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Add TrustStore, ConnectionFunction APIs to CloudFront SDK"
-}
