@@ -348,7 +348,8 @@ public class ClientTestModels {
         File endpointTestsModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
         File endpointBddModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-default-regional.json").getFile());
+            // new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-default-regional.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-s3.json").getFile());
 
         C2jModels models = C2jModels
             .builder()

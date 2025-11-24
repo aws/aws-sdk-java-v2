@@ -38,6 +38,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointResolverInterceptorSpec
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.RequestEndpointInterceptorSpec;
 import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
+import software.amazon.awssdk.codegen.poet.rules2.bdd.BddEndpointProviderSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -53,9 +54,6 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         tasks.add(generateInterface());
         tasks.add(generateParams());
         if (shouldGenerateCompiledEndpointRules()) {
-            if (generatorTaskParams.getModel().getEndpointBddModel() == null) {
-                throw new RuntimeException("Endpoint BDD model is null");
-            }
             if (generatorTaskParams.getModel().getEndpointBddModel() != null) {
                 tasks.add(generateDefaultProviderBdd());
             } else {
@@ -104,7 +102,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return new PoetGeneratorTask(
             endpointRulesInternalDir(),
             model.getFileHeader(),
-            new BddtoEpRuleEndpointProviderSpec(model)
+            new BddEndpointProviderSpec(model)
         );
     }
 

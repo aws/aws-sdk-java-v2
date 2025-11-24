@@ -21,11 +21,14 @@ import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.poet.rules2.bdd.BddEndpointProviderSpec;
 
 public class EndpointProviderCompiledBddClassSpecTest {
+
     @Test
     public void endpointProviderClass() {
-        ClassSpec endpointProviderSpec = new BddtoEpRuleEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints());
+        ClassSpec endpointProviderSpec = new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints());
+        // System.out.println(endpointProviderSpec.poetSpec());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-bdd-class.java"));
     }
 }

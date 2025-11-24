@@ -117,6 +117,18 @@ public class EndpointRulesSpecUtils {
                              md.getServiceName() + "ClientContextParams");
     }
 
+    public ClassName conditionFnInterfaceName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             "ConditionFn");
+    }
+
+    public ClassName resultFnInterfaceName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             "ResultFn");
+    }
+
     public String paramMethodName(String param) {
         return Utils.unCapitalize(CodegenNamingUtils.pascalCase(param));
     }
