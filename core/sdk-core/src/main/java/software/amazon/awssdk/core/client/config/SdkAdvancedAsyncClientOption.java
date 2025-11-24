@@ -56,10 +56,14 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
             new SdkAdvancedAsyncClientOption<>(Executor.class);
 
     /**
-     * Advanced configuration for the native S3CrtAsyncClient which only applies for multipart uploads. When set to true,
-     * the client will skip buffering the part in native memory before sending the request. Default to false on small objects,
-     * and true when the object size exceed a certain threshold. When set to true, the client will also skip
-     * buffering for small objects.
+     * Advanced configuration for the native S3CrtAsyncClient, which only applies for file-based multipart uploads.
+     * By default, the S3CrtAsyncClient will skip buffering parts in memory for large objects.
+     * <p>
+     * When set to false, the client will not buffer parts for large object, but will buffer parts for smaller objects .
+     * When set to true, the client will skip buffering parts even for small objects.
+     * Parts for large objects are never buffered.
+     * <p>
+     * Default to {@code false}.
      */
     public static final SdkAdvancedAsyncClientOption<Boolean> CRT_MEMORY_BUFFER_DISABLED =
         new SdkAdvancedAsyncClientOption<>(Boolean.class);
