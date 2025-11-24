@@ -29,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.ResolvedImmutableAttribute;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -228,5 +229,44 @@ public class ImmutableAttributeTest {
         AttributeValue resultAttributeValue = attributeValueFunction.apply(item);
 
         assertThat(resultAttributeValue.s()).isEqualTo("test-string-custom");
+    }
+
+    @Test
+    public void getAttributeValue_getterThrowsRuntimeException_propagatesException() {
+        ImmutableAttribute<SimpleItem, SimpleItem, String> staticAttribute =
+            ImmutableAttribute.builder(SimpleItem.class, SimpleItem.class, String.class)
+                              .name("test-attribute")
+                              .getter(item -> { throw new RuntimeException("getter failed"); })
+                              .setter(SimpleItem::setAString)
+                              .build();
+
+        ResolvedImmutableAttribute<SimpleItem, SimpleItem, String> resolvedAttribute =
+            staticAttribute.resolve(AttributeConverterProvider.defaultProvider());
+
+        Function<SimpleItem, AttributeValue> attributeValueFunction = resolvedAttribute.attributeGetterMethod();
+        SimpleItem item = new SimpleItem("test");
+
+        assertThatThrownBy(() -> attributeValueFunction.apply(item))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("getter failed");
+    }
+
+    @Test
+    public void getAttributeValue_nullFromGetter_returnsNullAttributeValue() {
+        ImmutableAttribute<SimpleItem, SimpleItem, String> staticAttribute =
+            ImmutableAttribute.builder(SimpleItem.class, SimpleItem.class, String.class)
+                              .name("test-attribute")
+                              .getter(item -> null)
+                              .setter(SimpleItem::setAString)
+                              .build();
+
+        ResolvedImmutableAttribute<SimpleItem, SimpleItem, String> resolvedAttribute =
+            staticAttribute.resolve(AttributeConverterProvider.defaultProvider());
+
+        Function<SimpleItem, AttributeValue> attributeValueFunction = resolvedAttribute.attributeGetterMethod();
+        SimpleItem item = new SimpleItem("test");
+        AttributeValue result = attributeValueFunction.apply(item);
+
+        assertThat(result.nul()).isTrue();
     }
 }
