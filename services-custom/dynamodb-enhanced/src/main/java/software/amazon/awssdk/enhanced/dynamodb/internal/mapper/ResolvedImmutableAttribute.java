@@ -27,33 +27,40 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
-public final class ResolvedImmutableAttribute<T, B> {
+public final class ResolvedImmutableAttribute<T, B, R> {
     private final String attributeName;
-    private final Function<T, AttributeValue> getAttributeMethod;
     private final BiConsumer<B, AttributeValue> updateBuilderMethod;
     private final StaticTableMetadata tableMetadata;
     private final AttributeConverter attributeConverter;
+    private final Function<T, R> getter;
+    private final AttributeType<R> attributeType;
+
 
     private ResolvedImmutableAttribute(String attributeName,
-                                       Function<T, AttributeValue> getAttributeMethod,
                                        BiConsumer<B, AttributeValue> updateBuilderMethod,
                                        StaticTableMetadata tableMetadata,
-                                       AttributeConverter attributeConverter) {
+                                       AttributeConverter attributeConverter,
+                                       Function<T, R> getter,
+                                       AttributeType<R> attributeType) {
         this.attributeName = attributeName;
-        this.getAttributeMethod = getAttributeMethod;
         this.updateBuilderMethod =  updateBuilderMethod;
         this.tableMetadata = tableMetadata;
         this.attributeConverter = attributeConverter;
+        this.getter = getter;
+        this.attributeType = attributeType;
     }
 
-    public static <T, B, R> ResolvedImmutableAttribute<T, B> create(ImmutableAttribute<T, B, R> immutableAttribute,
+    AttributeValue getAttributeValue(T item) {
+        R value = getter.apply(item);
+        return value == null ? nullAttributeValue()
+                             : attributeType.objectToAttributeValue(value);
+    }
+
+    public static <T, B, R> ResolvedImmutableAttribute<T, B, R> create(ImmutableAttribute<T, B, R> immutableAttribute,
                                                                     AttributeConverter<R> attributeConverter) {
 
         AttributeType<R> attributeType = StaticAttributeType.create(attributeConverter);
-        Function<T, AttributeValue> getAttributeValueWithTransform = item -> {
-            R value = immutableAttribute.getter().apply(item);
-            return value == null ? nullAttributeValue() : attributeType.objectToAttributeValue(value);
-        };
+        Function<T, R> getter = immutableAttribute.getter();
 
         // When setting a value on the java object, do not explicitly set nulls as this can cause an NPE to be thrown
         // if the target attribute type is a primitive.
@@ -78,27 +85,27 @@ public final class ResolvedImmutableAttribute<T, B> {
             tag.modifyMetadata(immutableAttribute.name(), attributeType.attributeValueType()).accept(tableMetadataBuilder);
         });
         return new ResolvedImmutableAttribute<>(immutableAttribute.name(),
-                                                getAttributeValueWithTransform,
                                                 updateBuilderWithTransform,
                                                 tableMetadataBuilder.build(),
-                                                attributeConverter);
+                                                attributeConverter,
+                                                getter,
+                                                attributeType);
     }
 
-    public <T1, B1> ResolvedImmutableAttribute<T1, B1> transform(
+    public <T1, B1> ResolvedImmutableAttribute<T1, B1, R> transform(
         Function<T1, T> transformItem,
         Function<B1, B> transformBuilder) {
 
         return new ResolvedImmutableAttribute<>(
             attributeName,
+            (item, value) -> updateBuilderMethod.accept(transformBuilder.apply(item), value),
+            tableMetadata,
+            attributeConverter,
             item -> {
                 T otherItem = transformItem.apply(item);
-
-                // If the containing object is null don't attempt to read attributes from it
-                return otherItem == null ?
-                    nullAttributeValue() : getAttributeMethod.apply(otherItem);
+                return otherItem == null ? null : getter.apply(otherItem);
             },
-            (item, value) -> updateBuilderMethod.accept(transformBuilder.apply(item), value),
-            tableMetadata, attributeConverter);
+            attributeType);
     }
 
     public String attributeName() {
@@ -106,7 +113,7 @@ public final class ResolvedImmutableAttribute<T, B> {
     }
 
     public Function<T, AttributeValue> attributeGetterMethod() {
-        return getAttributeMethod;
+        return this::getAttributeValue;
     }
 
     public BiConsumer<B, AttributeValue> updateItemMethod() {

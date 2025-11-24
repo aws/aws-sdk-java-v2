@@ -173,7 +173,7 @@ public final class ImmutableAttribute<T, B, R> {
     }
 
 
-    ResolvedImmutableAttribute<T, B> resolve(AttributeConverterProvider attributeConverterProvider) {
+    ResolvedImmutableAttribute<T, B, R> resolve(AttributeConverterProvider attributeConverterProvider) {
         return ResolvedImmutableAttribute.create(this,
                                                  converterFrom(attributeConverterProvider));
     }

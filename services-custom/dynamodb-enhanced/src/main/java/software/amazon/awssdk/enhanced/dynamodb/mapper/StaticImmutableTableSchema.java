@@ -78,10 +78,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 @SdkPublicApi
 @ThreadSafe
 public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
-    private final List<ResolvedImmutableAttribute<T, B>> attributeMappers;
+    private final List<ResolvedImmutableAttribute<T, B, ?>> attributeMappers;
     private final Supplier<B> newBuilderSupplier;
     private final Function<B, T> buildItemFunction;
-    private final Map<String, ResolvedImmutableAttribute<T, B>> indexedMappers;
+    private final Map<String, ResolvedImmutableAttribute<T, B, ?>> indexedMappers;
     private final StaticTableMetadata tableMetadata;
     private final EnhancedType<T> itemType;
     private final AttributeConverterProvider attributeConverterProvider;
@@ -203,12 +203,12 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
                 ConverterProviderResolver.resolveProviders(builder.attributeConverterProviders);
 
         // Resolve declared attributes and find converters for them
-        Stream<ResolvedImmutableAttribute<T, B>> attributesStream = builder.attributes == null ?
+        Stream<ResolvedImmutableAttribute<T, B, ?>> attributesStream = builder.attributes == null ?
             Stream.empty() : builder.attributes.stream().map(a -> a.resolve(this.attributeConverterProvider));
 
         // Merge resolved declared attributes
-        List<ResolvedImmutableAttribute<T, B>> mutableAttributeMappers = new ArrayList<>();
-        Map<String, ResolvedImmutableAttribute<T, B>>  mutableIndexedMappers = new HashMap<>();
+        List<ResolvedImmutableAttribute<T, B, ?>> mutableAttributeMappers = new ArrayList<>();
+        Map<String, ResolvedImmutableAttribute<T, B, ?>>  mutableIndexedMappers = new HashMap<>();
         Set<String> mutableAttributeNames = new LinkedHashSet<>();
         Stream.concat(attributesStream, builder.additionalAttributes.stream()).forEach(
             resolvedAttribute -> {
@@ -300,7 +300,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
     public static final class Builder<T, B> {
         private final EnhancedType<T> itemType;
         private final EnhancedType<B> builderType;
-        private final List<ResolvedImmutableAttribute<T, B>> additionalAttributes = new ArrayList<>();
+        private final List<ResolvedImmutableAttribute<T, B, ?>> additionalAttributes = new ArrayList<>();
         private final List<FlattenedMapper<T, B, ?>> flattenedObjectMappers = new ArrayList<>();
 
         private FlattenedMapperForMaps<T, B> flattenedMapMapper;
@@ -447,7 +447,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
          * table schema.
          */
         public Builder<T, B> extend(StaticImmutableTableSchema<? super T, ? super B> superTableSchema) {
-            Stream<ResolvedImmutableAttribute<T, B>> attributeStream =
+            Stream<ResolvedImmutableAttribute<T, B, ?>> attributeStream =
                 upcastingTransformForAttributes(superTableSchema.attributeMappers);
             attributeStream.forEach(this.additionalAttributes::add);
             return this;
@@ -508,8 +508,8 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             return new StaticImmutableTableSchema<>(this);
         }
 
-        private static <T extends T1, T1, B extends B1, B1> Stream<ResolvedImmutableAttribute<T, B>>
-            upcastingTransformForAttributes(Collection<ResolvedImmutableAttribute<T1, B1>> superAttributes) {
+        private static <T extends T1, T1, B extends B1, B1> Stream<ResolvedImmutableAttribute<T, B, ?>>
+            upcastingTransformForAttributes(Collection<ResolvedImmutableAttribute<T1, B1, ?>> superAttributes) {
 
             return superAttributes.stream().map(attribute -> attribute.transform(x -> x, x -> x));
         }
@@ -538,7 +538,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
             AttributeValue value = entry.getValue();
             
             if (!isNullAttributeValue(value)) {
-                ResolvedImmutableAttribute<T, B> attributeMapper = indexedMappers.get(key);
+                ResolvedImmutableAttribute<T, B, ?> attributeMapper = indexedMappers.get(key);
 
                 if (attributeMapper != null) {
                     if (builder == null) {
@@ -647,7 +647,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
     @Override
     public AttributeValue attributeValue(T item, String key) {
-        ResolvedImmutableAttribute<T, B> attributeMapper = indexedMappers.get(key);
+        ResolvedImmutableAttribute<T, B, ?> attributeMapper = indexedMappers.get(key);
 
         if (attributeMapper == null) {
             FlattenedMapper<T, B, ?> flattenedMapper = flattenedObjectMappers.get(key);
@@ -700,7 +700,7 @@ public final class StaticImmutableTableSchema<T, B> implements TableSchema<T> {
 
     @Override
     public AttributeConverter<T> converterForAttribute(Object key) {
-        ResolvedImmutableAttribute<T, B> resolvedImmutableAttribute = indexedMappers.get(key);
+        ResolvedImmutableAttribute<T, B, ?> resolvedImmutableAttribute = indexedMappers.get(key);
         if (resolvedImmutableAttribute != null) {
             return resolvedImmutableAttribute.attributeConverter();
         }

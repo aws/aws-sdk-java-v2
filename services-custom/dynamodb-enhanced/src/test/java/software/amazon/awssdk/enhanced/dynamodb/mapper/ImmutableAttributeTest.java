@@ -219,7 +219,7 @@ public class ImmutableAttributeTest {
                               .attributeConverter(attributeConverter)
                               .build();
 
-        ResolvedImmutableAttribute<SimpleItem, SimpleItem> resolvedAttribute =
+        ResolvedImmutableAttribute<SimpleItem, SimpleItem, String> resolvedAttribute =
             staticAttribute.resolve(AttributeConverterProvider.defaultProvider());
 
         Function<SimpleItem, AttributeValue> attributeValueFunction = resolvedAttribute.attributeGetterMethod();
