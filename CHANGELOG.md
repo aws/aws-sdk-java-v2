@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.3__ __2025-11-24__
+## __Amazon CloudFront__
+  - ### Features
+    - Add TrustStore, ConnectionFunction APIs to CloudFront SDK
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - New CloudWatch Logs feature - LogGroup Deletion Protection, a capability that allows customers to safeguard their critical CloudWatch log groups from accidental or unintended deletion.
+
 # __2.39.2__ __2025-11-21__
 ## __AWS CloudFormation__
   - ### Features
