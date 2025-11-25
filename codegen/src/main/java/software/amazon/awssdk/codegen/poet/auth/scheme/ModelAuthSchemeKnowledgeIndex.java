@@ -56,15 +56,62 @@ public final class ModelAuthSchemeKnowledgeIndex {
     }
 
     /**
-     * Computes a map from operations to codegen metadata objects. The intermediate model is used to compute mappings to
-     * {@link AuthType} values for the service and for each operation that has an override. Then we group all the operations that
-     * share the same set of auth types together and finally convert the auth types to their corresponding codegen metadata
-     * instances that then we can use to codegen switch statements. The service wide codegen metadata instances are keyed using
-     * {@link Collections#emptyList()}.
+     * Returns a map from a list of operations to the list of auth-types modeled for those operations. The {@link AuthTrait}
+     * values are taken directly from the {@link OperationModel}.
+     *
+     * <p>This method groups operations by their authentication requirements and chunked encoding needs:
+     * <ul>
+     *   <li>Operations with identical auth traits are grouped together</li>
+     *   <li>Operations requiring chunked encoding (streaming operations with HTTP checksum traits - either
+     *       requestAlgorithmMember or isRequestChecksumRequired) are separated from regular operations and marked 
+     *       with CHUNK_ENCODING_ENABLED property. This ensures they get distinct auth scheme metadata even if they 
+     *       share the same base auth traits.</li>
+     *   <li>Operations using service defaults are keyed with an empty list</li>
+     * </ul>
+     *
+     * <p>Processing flow:
+     * <ol>
+     *   <li>Identify all operations requiring chunked encoding
+     *     <br>Example: PutObject (streaming + checksum) → chunked encoding needed</li>
+     *   <li>Get operations with custom auth traits (validation applied during this step:
+     *     WriteGetObjectResponse is filtered out for services with custom auth scheme overrides, 
+     *     other operations with custom auth in those services throw exception)
+     *     <br>Example: Operations with bearer auth → grouped by auth trait</li>
+     *   <li>Process each operation group:
+     *     <ul>
+     *       <li>Split into regular and chunked encoding operations
+     *         <br>Example: [GetObject, PutObject] with SigV4 → [GetObject] regular, [PutObject] chunked</li>
+     *       <li>Add regular operations with their auth metadata
+     *         <br>Example: [GetObject] → SigV4 metadata</li>
+     *       <li>Add chunked operations with CHUNK_ENCODING_ENABLED property
+     *         <br>Example: [PutObject] → SigV4 metadata + CHUNK_ENCODING_ENABLED</li>
+     *     </ul>
+     *   </li>
+     *   <li>Process remaining chunked encoding operations that use service defaults
+     *     <br>Example: [UploadPart] (chunked, no custom auth) → service defaults + CHUNK_ENCODING_ENABLED</li>
+     *   <li>Add service-wide defaults with empty list key
+     *     <br>Example: [] → SigV4 metadata (fallback for all other operations)</li>
+     * </ol>
+     *
+     * @return Map where keys are lists of operation names and values are their auth scheme metadata. Empty list key represents
+     * service-wide defaults.
      */
-
     public Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata() {
-        return operationsToModeledMetadata();
+
+        Set<String> chunkedEncodingOps = operationsShouldUseChunkedEncoding();
+        List<AuthSchemeCodegenMetadata> serviceDefaults = serviceDefaultAuthSchemeCodeGenMetadata();
+
+        Map<List<String>, List<AuthSchemeCodegenMetadata>> result = new LinkedHashMap<>();
+        Set<String> processedChunkedOps = new HashSet<>();
+
+        processOperationsWithAuthTraits(chunkedEncodingOps, serviceDefaults, result, processedChunkedOps);
+
+        // Handle chunked encoding operations that use service defaults
+        processRemainingChunkedEncodingOperations(result, chunkedEncodingOps, processedChunkedOps, serviceDefaults);
+
+        // Add service-wide defaults
+        result.put(Collections.emptyList(), serviceDefaults);
+        return result;
     }
 
     private boolean shouldUseChunkedEncoding(OperationModel opModel) {
@@ -80,11 +127,11 @@ public final class ModelAuthSchemeKnowledgeIndex {
         return httpChecksum.getRequestAlgorithmMember() != null || httpChecksum.isRequestChecksumRequired();
     }
 
-    private List<String> operationsShouldUseChunkedEncoding() {
+    private Set<String> operationsShouldUseChunkedEncoding() {
         return intermediateModel.getOperations().entrySet().stream()
                                 .filter(entry -> shouldUseChunkedEncoding(entry.getValue()))
                                 .map(v -> v.getKey())
-                                .collect(Collectors.toList());
+                                .collect(Collectors.toSet());
     }
 
     private Map<List<String>, List<AuthTrait>> operationsToAuthOptions() {
@@ -152,65 +199,6 @@ public final class ModelAuthSchemeKnowledgeIndex {
 
         throw new UnsupportedOperationException(
             String.format("Operation %s has auth trait and requires special handling: ", op.getKey()));
-    }
-
-    /**
-     * Returns a map from a list of operations to the list of auth-types modeled for those operations. The {@link AuthTrait}
-     * values are taken directly from the {@link OperationModel}.
-     *
-     * <p>This method groups operations by their authentication requirements and chunked encoding needs:
-     * <ul>
-     *   <li>Operations with identical auth traits are grouped together</li>
-     *   <li>Operations requiring chunked encoding (streaming operations with HTTP checksum traits - either
-     *       requestAlgorithmMember or isRequestChecksumRequired) are separated from regular operations and marked 
-     *       with CHUNK_ENCODING_ENABLED property. This ensures they get distinct auth scheme metadata even if they 
-     *       share the same base auth traits.</li>
-     *   <li>Operations using service defaults are keyed with an empty list</li>
-     * </ul>
-     *
-     * <p>Processing flow:
-     * <ol>
-     *   <li>Identify all operations requiring chunked encoding
-     *     <br>Example: PutObject (streaming + checksum) → chunked encoding needed</li>
-     *   <li>Get operations with custom auth traits (validation applied during this step:
-     *     WriteGetObjectResponse is filtered out for services with custom auth scheme overrides, 
-     *     other operations with custom auth in those services throw exception)
-     *     <br>Example: Operations with bearer auth → grouped by auth trait</li>
-     *   <li>Process each operation group:
-     *     <ul>
-     *       <li>Split into regular and chunked encoding operations
-     *         <br>Example: [GetObject, PutObject] with SigV4 → [GetObject] regular, [PutObject] chunked</li>
-     *       <li>Add regular operations with their auth metadata
-     *         <br>Example: [GetObject] → SigV4 metadata</li>
-     *       <li>Add chunked operations with CHUNK_ENCODING_ENABLED property
-     *         <br>Example: [PutObject] → SigV4 metadata + CHUNK_ENCODING_ENABLED</li>
-     *     </ul>
-     *   </li>
-     *   <li>Process remaining chunked encoding operations that use service defaults
-     *     <br>Example: [UploadPart] (chunked, no custom auth) → service defaults + CHUNK_ENCODING_ENABLED</li>
-     *   <li>Add service-wide defaults with empty list key
-     *     <br>Example: [] → SigV4 metadata (fallback for all other operations)</li>
-     * </ol>
-     *
-     * @return Map where keys are lists of operation names and values are their auth scheme metadata. Empty list key represents
-     * service-wide defaults.
-     */
-    private Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToModeledMetadata() {
-
-        Set<String> chunkedEncodingOps = new HashSet<>(operationsShouldUseChunkedEncoding());
-        List<AuthSchemeCodegenMetadata> serviceDefaults = serviceDefaultAuthSchemeCodeGenMetadata();
-
-        Map<List<String>, List<AuthSchemeCodegenMetadata>> result = new LinkedHashMap<>();
-        Set<String> processedChunkedOps = new HashSet<>();
-
-        processOperationsWithAuthTraits(chunkedEncodingOps, serviceDefaults, result, processedChunkedOps);
-
-        // Handle chunked encoding operations that use service defaults
-        processRemainingChunkedEncodingOperations(result, chunkedEncodingOps, processedChunkedOps, serviceDefaults);
-
-        // Add service-wide defaults
-        result.put(Collections.emptyList(), serviceDefaults);
-        return result;
     }
 
     private void processOperationsWithAuthTraits(Set<String> chunkedEncodingOps,
