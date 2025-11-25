@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Route 53",
+    "contributor": "",
+    "description": "Adds support for new route53 feature: accelerated recovery."
+}
