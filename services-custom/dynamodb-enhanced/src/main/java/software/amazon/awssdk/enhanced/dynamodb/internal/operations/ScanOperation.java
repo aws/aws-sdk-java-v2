@@ -85,7 +85,8 @@ public class ScanOperation<T> implements PaginatedTableOperation<T, ScanRequest,
             .select(this.request.select())
             .expressionAttributeValues(expressionValues)
             .expressionAttributeNames(expressionNames)
-            .projectionExpression(projectionExpressionAsString);
+            .projectionExpression(projectionExpressionAsString)
+            .overrideConfiguration(this.request.overrideConfiguration());
 
         if (!TableMetadata.primaryIndexName().equals(operationContext.indexName())) {
             scanRequest = scanRequest.indexName(operationContext.indexName());

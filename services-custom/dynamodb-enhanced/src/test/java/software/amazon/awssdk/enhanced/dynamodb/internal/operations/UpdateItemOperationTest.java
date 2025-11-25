@@ -26,6 +26,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
@@ -43,6 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -56,6 +58,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynam
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.update.DeleteAction;
 import software.amazon.awssdk.enhanced.dynamodb.update.UpdateExpression;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -669,6 +672,29 @@ public class UpdateItemOperationTest {
             .thenThrow(RuntimeException.class);
 
         transformResponse(createUniqueFakeItem());
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        UpdateItemEnhancedRequest<FakeItem> updateItemEnhancedRequest = UpdateItemEnhancedRequest.builder(FakeItem.class)
+                                                                                       .item(fakeItem)
+                                                                                       .overrideConfiguration(overrideConfiguration)
+                                                                                       .build();
+
+        UpdateItemOperation<FakeItem> updateItemOperation = UpdateItemOperation.create(updateItemEnhancedRequest);
+
+        UpdateItemRequest updateItemRequest = updateItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                                  PRIMARY_CONTEXT,
+                                                                                  null);
+
+        assertThat(updateItemRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
     private Map<String, AttributeValue> ddbKey(String partitionKey) {

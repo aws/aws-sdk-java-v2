@@ -20,12 +20,16 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.mock;
 
+import java.util.Collections;
 import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -109,7 +113,6 @@ public class GetItemEnhancedRequestTest {
         assertThat(builtObject1.hashCode(), equalTo(builtObject2.hashCode()));
     }
 
-
     @Test
     public void test_hashCode_includes_returnConsumedCapacity() {
         GetItemEnhancedRequest emptyRequest = GetItemEnhancedRequest.builder().build();
@@ -126,7 +129,6 @@ public class GetItemEnhancedRequestTest {
         assertThat(requestWithCC1.hashCode(), not(equalTo(requestWithCC2.hashCode())));
     }
 
-
     @Test
     public void test_returnConsumedCapacity_unknownToSdkVersion() {
         String newValue = UUID.randomUUID().toString();
@@ -139,6 +141,93 @@ public class GetItemEnhancedRequestTest {
         assertThat(request.returnConsumedCapacity(), equalTo(ReturnConsumedCapacity.UNKNOWN_TO_SDK_VERSION));
     }
 
+    @Test
+    public void test_hashCode_includes_overrideConfiguration() {
+        GetItemEnhancedRequest emptyRequest = GetItemEnhancedRequest.builder().build();
+        GetItemEnhancedRequest requestWithOverrideConfig = GetItemEnhancedRequest.builder()
+                                                                                 .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                                                 .build();
+
+        assertThat(emptyRequest.hashCode(), not(equalTo(requestWithOverrideConfig.hashCode())));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isSame() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        GetItemEnhancedRequest builtObject1 = GetItemEnhancedRequest.builder()
+                                                                    .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                          .addMetricPublisher(mockMetricPublisher)
+                                                                                                                          .build())
+                                                                    .build();
+
+        GetItemEnhancedRequest builtObject2 = GetItemEnhancedRequest.builder()
+                                                                    .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                          .addMetricPublisher(mockMetricPublisher)
+                                                                                                                          .build())
+                                                                    .build();
+
+        assertThat(builtObject1, equalTo(builtObject2));
+        assertThat(builtObject1.hashCode(), equalTo(builtObject2.hashCode()));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isDifferent() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        GetItemEnhancedRequest builtObject1 = GetItemEnhancedRequest.builder()
+                                                                    .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                          .addMetricPublisher(mockMetricPublisher)
+                                                                                                                          .build())
+                                                                    .build();
+
+        GetItemEnhancedRequest builtObject2 = GetItemEnhancedRequest.builder()
+                                                                    .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                          .build())
+                                                                    .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+        assertThat(builtObject1.hashCode(), not(equalTo(builtObject2.hashCode())));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
+                                                               .overrideConfiguration(overrideConfiguration)
+                                                               .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
+    public void builder_withoutOverrideConfiguration() {
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder().build();
+
+        assertThat(request.overrideConfiguration(), is(nullValue()));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationConsumerAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        GetItemEnhancedRequest request = GetItemEnhancedRequest.builder()
+                                                               .overrideConfiguration(b -> b.addApiName(api -> api.name(
+                                                                   "TestApi").version("1.0"))
+                                                                                            .metricPublishers(Collections.singletonList(mockMetricPublisher)))
+                                                               .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
 
     @Test
     public void toBuilder() {
@@ -151,5 +240,43 @@ public class GetItemEnhancedRequestTest {
 
         GetItemEnhancedRequest copiedObject = builtObject.toBuilder().build();
         assertThat(copiedObject, is(builtObject));
+    }
+
+    @Test
+    public void toBuilder_withOverrideConfigurationAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        GetItemEnhancedRequest originalRequest = GetItemEnhancedRequest.builder()
+                                                                       .overrideConfiguration(overrideConfiguration)
+                                                                       .build();
+
+        GetItemEnhancedRequest copiedRequest = originalRequest.toBuilder().build();
+
+        assertThat(copiedRequest.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
+    public void toBuilder_withOverrideConfigurationConsumerAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        GetItemEnhancedRequest originalRequest = GetItemEnhancedRequest.builder()
+                                                                       .overrideConfiguration(b -> b.addApiName(api -> api.name(
+                                                                                                        "TestApi").version("1.0"))
+                                                                                                    .metricPublishers(Collections.singletonList(mockMetricPublisher)))
+                                                                       .build();
+
+        GetItemEnhancedRequest copiedRequest = originalRequest.toBuilder().build();
+
+        assertThat(copiedRequest.overrideConfiguration(), is(overrideConfiguration));
     }
 }

@@ -76,6 +76,7 @@ public class GetItemOperation<T> implements TableOperation<T, GetItemRequest, Ge
                              .key(this.request.key().keyMap(tableSchema, context.indexName()))
                              .consistentRead(this.request.consistentRead())
                              .returnConsumedCapacity(this.request.returnConsumedCapacityAsString())
+                             .overrideConfiguration(this.request.overrideConfiguration())
                              .build();
     }
 

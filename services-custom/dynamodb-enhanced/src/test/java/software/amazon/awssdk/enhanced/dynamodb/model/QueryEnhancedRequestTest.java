@@ -18,8 +18,10 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.*;
@@ -27,8 +29,11 @@ import java.util.*;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.mock;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.keyEqualTo;
@@ -175,6 +180,93 @@ public class QueryEnhancedRequestTest {
     }
 
     @Test
+    public void test_hashCode_includes_overrideConfiguration() {
+        QueryEnhancedRequest emptyRequest = QueryEnhancedRequest.builder().build();
+        QueryEnhancedRequest requestWithOverrideConfig = QueryEnhancedRequest.builder()
+                                                                             .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                                             .build();
+
+        assertThat(emptyRequest.hashCode(), not(equalTo(requestWithOverrideConfig.hashCode())));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isSame() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        QueryEnhancedRequest builtObject1 = QueryEnhancedRequest.builder()
+                                                                .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                      .addMetricPublisher(mockMetricPublisher)
+                                                                                                                      .build())
+                                                                .build();
+
+        QueryEnhancedRequest builtObject2 = QueryEnhancedRequest.builder()
+                                                                .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                      .addMetricPublisher(mockMetricPublisher)
+                                                                                                                      .build())
+                                                                .build();
+
+        assertThat(builtObject1, equalTo(builtObject2));
+        assertThat(builtObject1.hashCode(), equalTo(builtObject2.hashCode()));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isDifferent() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        QueryEnhancedRequest builtObject1 = QueryEnhancedRequest.builder()
+                                                                .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                      .addMetricPublisher(mockMetricPublisher)
+                                                                                                                      .build())
+                                                                .build();
+
+        QueryEnhancedRequest builtObject2 = QueryEnhancedRequest.builder()
+                                                                .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                      .build())
+                                                                .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+        assertThat(builtObject1.hashCode(), not(equalTo(builtObject2.hashCode())));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .overrideConfiguration(overrideConfiguration)
+                                                           .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
+    public void builder_withoutOverrideConfiguration() {
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder().build();
+
+        assertThat(request.overrideConfiguration(), is(nullValue()));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationConsumerAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .overrideConfiguration(b -> b.addApiName(api -> api.name("TestApi").version("1.0"))
+                                                                                        .metricPublishers(Collections.singletonList(mockMetricPublisher)))
+                                                           .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
     public void toBuilder() {
         QueryEnhancedRequest builtObject = QueryEnhancedRequest.builder().build();
 
@@ -183,4 +275,41 @@ public class QueryEnhancedRequestTest {
         assertThat(copiedObject, is(builtObject));
     }
 
+    @Test
+    public void toBuilder_withOverrideConfigurationAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        QueryEnhancedRequest originalRequest = QueryEnhancedRequest.builder()
+                                                                   .overrideConfiguration(overrideConfiguration)
+                                                                   .build();
+
+        QueryEnhancedRequest copiedRequest = originalRequest.toBuilder().build();
+
+        assertThat(copiedRequest.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
+    public void toBuilder_withOverrideConfigurationConsumerAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        QueryEnhancedRequest originalRequest = QueryEnhancedRequest.builder()
+                                                                   .overrideConfiguration(b -> b.addApiName(api -> api.name(
+                                                                                                    "TestApi").version("1.0"))
+                                                                                                .metricPublishers(Collections.singletonList(mockMetricPublisher)))
+                                                                   .build();
+
+        QueryEnhancedRequest copiedRequest = originalRequest.toBuilder().build();
+
+        assertThat(copiedRequest.overrideConfiguration(), is(overrideConfiguration));
+    }
 }

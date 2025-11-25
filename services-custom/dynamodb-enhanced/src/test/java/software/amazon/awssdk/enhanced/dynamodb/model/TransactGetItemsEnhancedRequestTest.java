@@ -16,11 +16,15 @@
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.mock;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.junit.Before;
@@ -28,9 +32,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
@@ -92,16 +98,102 @@ public class TransactGetItemsEnhancedRequestTest {
         assertThat(builtObject.transactGetItems(), is(getTransactGetItems(fakeItem)));
     }
 
-    
+    @Test
+    public void test_hashCode_includes_overrideConfiguration() {
+        TransactGetItemsEnhancedRequest emptyRequest = TransactGetItemsEnhancedRequest.builder().build();
+        TransactGetItemsEnhancedRequest requestWithOverrideConfig = TransactGetItemsEnhancedRequest.builder()
+                                                                                                   .overrideConfiguration(AwsRequestOverrideConfiguration.builder().build())
+                                                                                                   .build();
+
+        assertThat(emptyRequest.hashCode(), not(equalTo(requestWithOverrideConfig.hashCode())));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isSame() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        TransactGetItemsEnhancedRequest builtObject1 = TransactGetItemsEnhancedRequest.builder()
+                                                                                      .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                                            .addMetricPublisher(mockMetricPublisher)
+                                                                                                                                            .build())
+                                                                                      .build();
+
+        TransactGetItemsEnhancedRequest builtObject2 = TransactGetItemsEnhancedRequest.builder()
+                                                                                      .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                                            .addMetricPublisher(mockMetricPublisher)
+                                                                                                                                            .build())
+                                                                                      .build();
+
+        assertThat(builtObject1, equalTo(builtObject2));
+        assertThat(builtObject1.hashCode(), equalTo(builtObject2.hashCode()));
+    }
+
+    @Test
+    public void test_equalsAndHashCode_when_overrideConfiguration_isDifferent() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        TransactGetItemsEnhancedRequest builtObject1 = TransactGetItemsEnhancedRequest.builder()
+                                                                                      .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                                            .addMetricPublisher(mockMetricPublisher)
+                                                                                                                                            .build())
+                                                                                      .build();
+
+        TransactGetItemsEnhancedRequest builtObject2 = TransactGetItemsEnhancedRequest.builder()
+                                                                                      .overrideConfiguration(AwsRequestOverrideConfiguration.builder()
+                                                                                                                                            .build())
+                                                                                      .build();
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+        assertThat(builtObject1.hashCode(), not(equalTo(builtObject2.hashCode())));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        TransactGetItemsEnhancedRequest request = TransactGetItemsEnhancedRequest.builder()
+                                                                                 .overrideConfiguration(overrideConfiguration)
+                                                                                 .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
+
+    @Test
+    public void builder_withoutOverrideConfiguration() {
+        TransactGetItemsEnhancedRequest request = TransactGetItemsEnhancedRequest.builder().build();
+
+        assertThat(request.overrideConfiguration(), is(nullValue()));
+    }
+
+    @Test
+    public void builder_withOverrideConfigurationConsumerAndMetricPublisher() {
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi"
+                                                                                               ).version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        TransactGetItemsEnhancedRequest request = TransactGetItemsEnhancedRequest.builder()
+                                                                                 .overrideConfiguration(b -> b.addApiName(api -> api.name("TestApi").version("1.0"))
+                                                                                                              .metricPublishers(Collections.singletonList(mockMetricPublisher)))
+                                                                                 .build();
+
+        assertThat(request.overrideConfiguration(), is(overrideConfiguration));
+    }
+
     private List<TransactGetItem> getTransactGetItems(FakeItem fakeItem) {
         final Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
 
         TransactGetItem getItem = TransactGetItem.builder()
-                                                      .get(Get.builder()
-                                                              .key(fakeItemMap)
-                                                              .tableName(TABLE_NAME)
-                                                              .build())
-                                                      .build();
+                                                 .get(Get.builder()
+                                                         .key(fakeItemMap)
+                                                         .tableName(TABLE_NAME)
+                                                         .build())
+                                                 .build();
 
         return Arrays.asList(getItem, getItem);
     }

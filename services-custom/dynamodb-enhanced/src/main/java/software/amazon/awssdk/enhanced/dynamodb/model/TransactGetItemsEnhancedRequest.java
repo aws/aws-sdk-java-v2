@@ -19,10 +19,12 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUt
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.MappedTableResource;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOpera
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.GetItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.TransactableReadOperation;
 import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
 
 /**
  * Defines parameters used for the transaction operation transactGetItems() (such as
@@ -45,9 +48,11 @@ import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
 public final class TransactGetItemsEnhancedRequest {
 
     private final List<TransactGetItem> transactGetItems;
+    private final AwsRequestOverrideConfiguration overrideConfiguration;
 
     private TransactGetItemsEnhancedRequest(Builder builder) {
         this.transactGetItems = getItemsFromSupplier(builder.itemSupplierList);
+        this.overrideConfiguration = builder.overrideConfiguration;
     }
 
     /**
@@ -64,6 +69,18 @@ public final class TransactGetItemsEnhancedRequest {
         return transactGetItems;
     }
 
+    /**
+     * Returns the override configuration to apply to the low-level {@link TransactGetItemsRequest}.
+     * <p>
+     * This can be used to customize the request, such as adding custom headers, MetricPublisher or AwsCredentialsProvider.
+     * </p>
+     *
+     * @return the {@link AwsRequestOverrideConfiguration} to apply to the underlying service call.
+     */
+    public AwsRequestOverrideConfiguration overrideConfiguration() {
+        return overrideConfiguration;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -75,12 +92,18 @@ public final class TransactGetItemsEnhancedRequest {
 
         TransactGetItemsEnhancedRequest that = (TransactGetItemsEnhancedRequest) o;
 
+        if (overrideConfiguration != null ? !overrideConfiguration.equals(that.overrideConfiguration) :
+            that.overrideConfiguration != null) {
+            return false;
+        }
         return transactGetItems != null ? transactGetItems.equals(that.transactGetItems) : that.transactGetItems == null;
     }
 
     @Override
     public int hashCode() {
-        return transactGetItems != null ? transactGetItems.hashCode() : 0;
+        int result = transactGetItems != null ? transactGetItems.hashCode() : 0;
+        result = 31 * result + (overrideConfiguration != null ? overrideConfiguration.hashCode() : 0);
+        return result;
     }
 
     /**
@@ -91,6 +114,7 @@ public final class TransactGetItemsEnhancedRequest {
     @NotThreadSafe
     public static final class Builder {
         private List<Supplier<TransactGetItem>> itemSupplierList = new ArrayList<>();
+        private AwsRequestOverrideConfiguration overrideConfiguration;
 
         private Builder() {
         }
@@ -129,6 +153,30 @@ public final class TransactGetItemsEnhancedRequest {
         public <T> Builder addGetItem(MappedTableResource<T> mappedTableResource,
                                       T keyItem) {
             return addGetItem(mappedTableResource, mappedTableResource.keyFrom(keyItem));
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link TransactGetItemsRequest}.
+         *
+         * @see TransactGetItemsRequest.Builder#overrideConfiguration(AwsRequestOverrideConfiguration)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(AwsRequestOverrideConfiguration overrideConfiguration) {
+            this.overrideConfiguration = overrideConfiguration;
+            return this;
+        }
+
+        /**
+         * Sets the override configuration to apply to the low-level {@link TransactGetItemsRequest}.
+         *
+         * @see TransactGetItemsRequest.Builder#overrideConfiguration(Consumer)
+         * @return a builder of this type
+         */
+        public Builder overrideConfiguration(Consumer<AwsRequestOverrideConfiguration.Builder> overrideConfigurationBuilder) {
+            AwsRequestOverrideConfiguration.Builder builder = AwsRequestOverrideConfiguration.builder();
+            overrideConfigurationBuilder.accept(builder);
+            this.overrideConfiguration = builder.build();
+            return this;
         }
 
         /**

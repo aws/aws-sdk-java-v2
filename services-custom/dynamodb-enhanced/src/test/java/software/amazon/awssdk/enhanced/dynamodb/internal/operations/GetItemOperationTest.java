@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
@@ -47,6 +49,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemW
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedResponse;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
@@ -264,6 +267,29 @@ public class GetItemOperationTest {
                                                               .operationContext(PRIMARY_CONTEXT)
                                                               .tableSchema(FakeItem.getTableSchema())
                                                               .items(baseFakeItemMap).build());
+    }
+
+    @Test
+    public void generateRequest_withOverrideConfiguration() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        MetricPublisher mockMetricPublisher = mock(MetricPublisher.class);
+        AwsRequestOverrideConfiguration overrideConfiguration = AwsRequestOverrideConfiguration.builder()
+                                                                                               .addApiName(b -> b.name("TestApi").version("1.0"))
+                                                                                               .addMetricPublisher(mockMetricPublisher)
+                                                                                               .build();
+
+        GetItemEnhancedRequest getItemEnhancedRequest = GetItemEnhancedRequest.builder()
+                                                                                       .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                                       .overrideConfiguration(overrideConfiguration)
+                                                                                       .build();
+
+        GetItemOperation<FakeItem> getItemOperation = GetItemOperation.create(getItemEnhancedRequest);
+
+        GetItemRequest getItemRequest = getItemOperation.generateRequest(FakeItem.getTableSchema(),
+                                                                                  PRIMARY_CONTEXT,
+                                                                                  null);
+
+        assertThat(getItemRequest.overrideConfiguration().get(), is(overrideConfiguration));
     }
 
 }
