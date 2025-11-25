@@ -81,7 +81,7 @@ public final class AuthSchemeGeneratorTasks extends BaseGeneratorTasks {
     }
 
     private GeneratorTask generateEndpointAwareAuthSchemeParams() {
-        return new PoetGeneratorTask(authSchemeDir(), model.getFileHeader(), new EndpointAwareAuthSchemeParamsSpec(model));
+        return new PoetGeneratorTask(authSchemeInternalDir(), model.getFileHeader(), new EndpointAwareAuthSchemeParamsSpec(model));
 
     }
 
