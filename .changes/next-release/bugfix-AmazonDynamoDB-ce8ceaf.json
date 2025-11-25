@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB",
+    "contributor": "",
+    "description": "Throw converter not found instead of generic IndexOutOfBound exception"
+}
