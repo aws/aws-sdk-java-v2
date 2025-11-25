@@ -691,6 +691,9 @@
                             <exclude>software.amazon.awssdk.annotations.ReviewBeforeRelease</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey</exclude>
+                            <exclude>software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
