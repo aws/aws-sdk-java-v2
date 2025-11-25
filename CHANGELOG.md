@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.4__ __2025-11-25__
+## __AWS Network Firewall__
+  - ### Features
+    - Network Firewall release of the Proxy feature.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the S3_POLICY and BEDROCK_POLICY policy type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Add support for GSI composite key to handle up to 4 partition and 4 sort keys
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to view Network firewall proxy appliances attached to an existing NAT Gateway via DescribeNatGateways API NatGatewayAttachedAppliance structure.
+
+## __Amazon Route 53__
+  - ### Features
+    - Adds support for new route53 feature: accelerated recovery.
+
 # __2.39.3__ __2025-11-24__
 ## __Amazon CloudFront__
   - ### Features
