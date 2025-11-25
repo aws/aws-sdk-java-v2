@@ -103,16 +103,20 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
 
         @Override
         public void onResponse(T response) {
-            Optional<String> contentRangeList = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
-            if (!contentRangeList.isPresent()) {
-                if (subscriber != null) {
-                    IllegalStateException e = new IllegalStateException("Content range header is missing");
-                    handleError(e);
+            Optional<String> contentRangeOpt;
+            contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("x-amz-content-range");
+            if (!contentRangeOpt.isPresent()) {
+                contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
+                if (!contentRangeOpt.isPresent()) {
+                    // Bad state! This is intended to cancel everything
+                    if (subscriber != null) {
+                        subscriber.onError(new IllegalStateException("Content range header is missing"));
+                    }
+                    return;
                 }
-                return;
             }
 
-            String contentRange = contentRangeList.get();
+            String contentRange = contentRangeOpt.get();
             Optional<Pair<Long, Long>> contentRangePair = ContentRangeParser.range(contentRange);
             if (!contentRangePair.isPresent()) {
                 if (subscriber != null) {
@@ -136,10 +140,10 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
         }
 
         private AsyncResponseTransformer<T, T> getDelegateTransformer(Long startAt) {
-            if (transformerCount.get() == 0) {
+            if (transformerCount.get() == 0 &&
+                initialConfig.fileWriteOption() != FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION) {
                 // On the first request we need to maintain the same config so
-                // that the file is actually created on disk if it doesn't exist (for example, if CREATE_NEW or
-                // CREATE_OR_REPLACE_EXISTING is used)
+                // that the file is actually created on disk if it doesn't exist (for CREATE_NEW or CREATE_OR_REPLACE_EXISTING)
                 return AsyncResponseTransformer.toFile(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {

@@ -79,8 +79,11 @@ class ParallelMultipartDownloaderSubscriberWiremockTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10, 49})
-    void happyPath_multipartDownload_partsLessThanMaxInFlight(int numParts) throws Exception {
+    @ValueSource(ints = {2, 3, 4, 5, 6, 7, 8, 9, 10, 49, // less than maxInFlightParts
+                         50, // == maxInFlightParts
+                         51, 100, 101 // more than  maxInFlightParts
+    })
+    void happyPath_multipartDownload(int numParts) throws Exception {
         int partSize = 1024;
         byte[] expectedBody = utils.stubAllParts(testBucket, testKey, numParts, partSize);
 
