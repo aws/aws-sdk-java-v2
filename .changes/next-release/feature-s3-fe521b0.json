@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "s3",
-    "contributor": "",
-    "description": "Add CRT shouldStream config as CRT_MEMORY_BUFFER_DISABLED SDK advanced client option"
-}
