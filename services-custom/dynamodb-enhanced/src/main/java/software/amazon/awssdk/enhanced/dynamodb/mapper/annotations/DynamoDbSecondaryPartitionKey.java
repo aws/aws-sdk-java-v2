@@ -16,11 +16,13 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaAttributeTags;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.Order;
 
 /**
  * Denotes a partition key for a global secondary index.
@@ -34,9 +36,16 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanTableSchemaA
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @BeanTableSchemaAttributeTag(BeanTableSchemaAttributeTags.class)
+@Repeatable(DynamoDbSecondaryPartitionKeys.class)
 public @interface DynamoDbSecondaryPartitionKey {
     /**
      * The names of one or more global secondary indices that this partition key should participate in.
      */
     String[] indexNames();
+    
+    /**
+     * The order of this partition key attribute in composite keys (0-3).
+     * Required when multiple partition keys are defined.
+     */
+    Order order() default Order.UNSPECIFIED;
 }

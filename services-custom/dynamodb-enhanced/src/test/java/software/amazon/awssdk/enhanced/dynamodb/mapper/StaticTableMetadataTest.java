@@ -15,14 +15,17 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.TableMetadata.primaryIndexName;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Rule;
@@ -188,6 +191,172 @@ public class StaticTableMetadataTest {
                                                          .build();
 
         tableMetadata.primaryKeys();
+    }
+
+    @Test
+    public void singleKeyImplicitOrdering() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.UNSPECIFIED);
+        builder.addIndexSortKey("gsi1", "sort1", AttributeValueType.S, Order.UNSPECIFIED);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("key1"));
+        assertThat(metadata.indexSortKeys("gsi1"), contains("sort1"));
+    }
+
+    @Test
+    public void singleKeyExplicitOrdering() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexSortKey("gsi1", "sort1", AttributeValueType.S, Order.FIRST);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("key1"));
+        assertThat(metadata.indexSortKeys("gsi1"), contains("sort1"));
+    }
+
+    @Test
+    public void compositeKeysAllExplicit() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
+        builder.addIndexSortKey("gsi1", "sort1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexSortKey("gsi1", "sort2", AttributeValueType.S, Order.SECOND);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("key1", "key2"));
+        assertThat(metadata.indexSortKeys("gsi1"), contains("sort1", "sort2"));
+    }
+
+    @Test
+    public void separatePartitionAndSort() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "pk1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi1", "pk2", AttributeValueType.S, Order.SECOND);
+
+        builder.addIndexSortKey("gsi1", "sk1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexSortKey("gsi1", "sk2", AttributeValueType.S, Order.SECOND);
+        builder.addIndexSortKey("gsi1", "sk3", AttributeValueType.S, Order.THIRD);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("pk1", "pk2"));
+        assertThat(metadata.indexSortKeys("gsi1"), contains("sk1", "sk2", "sk3"));
+    }
+
+    @Test
+    public void multipleIndicesIndependent() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
+
+        builder.addIndexPartitionKey("gsi2", "single_key", AttributeValueType.S, Order.UNSPECIFIED);
+
+        builder.addIndexPartitionKey("gsi3", "keyA", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi3", "keyB", AttributeValueType.S, Order.SECOND);
+        builder.addIndexPartitionKey("gsi3", "keyC", AttributeValueType.S, Order.THIRD);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("key1", "key2"));
+        assertThat(metadata.indexPartitionKeys("gsi2"), contains("single_key"));
+        assertThat(metadata.indexPartitionKeys("gsi3"), contains("keyA", "keyB", "keyC"));
+    }
+
+    @Test
+    public void primaryIndexSkipped() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey(primaryIndexName(), "id", AttributeValueType.S, Order.UNSPECIFIED);
+        builder.addIndexSortKey(primaryIndexName(), "sort", AttributeValueType.S, Order.UNSPECIFIED);
+
+        builder.addIndexPartitionKey("gsi1", "gsi_key", AttributeValueType.S, Order.UNSPECIFIED);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys(primaryIndexName()), contains("id"));
+        assertThat(metadata.indexSortKeys(primaryIndexName()), contains("sort"));
+        assertThat(metadata.indexPartitionKeys("gsi1"), contains("gsi_key"));
+    }
+
+    @Test
+    public void emptyIndex_throwsException() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.UNSPECIFIED);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThatThrownBy(() -> metadata.indexPartitionKeys("empty_index"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Attempt to execute an operation that requires a secondary index without defining the index "
+                                  + "attributes in the table metadata.");
+    }
+
+    @Test
+    public void maxFourKeys_partitionKeys() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
+        builder.addIndexPartitionKey("gsi1", "key3", AttributeValueType.S, Order.THIRD);
+        builder.addIndexPartitionKey("gsi1", "key4", AttributeValueType.S, Order.FOURTH);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexPartitionKeys("gsi1"), hasSize(4));
+    }
+
+    @Test
+    public void maxFourKeys_sortKeys() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "pk", AttributeValueType.S, Order.UNSPECIFIED);
+        builder.addIndexSortKey("gsi1", "sort1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexSortKey("gsi1", "sort2", AttributeValueType.S, Order.SECOND);
+        builder.addIndexSortKey("gsi1", "sort3", AttributeValueType.S, Order.THIRD);
+        builder.addIndexSortKey("gsi1", "sort4", AttributeValueType.S, Order.FOURTH);
+
+        StaticTableMetadata metadata = builder.build();
+
+        assertThat(metadata.indexSortKeys("gsi1"), hasSize(4));
+    }
+
+    @Test
+    public void orderingPreservation() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key3", AttributeValueType.S, Order.THIRD);
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
+
+        StaticTableMetadata metadata = builder.build();
+
+        List<String> partitionKeys = metadata.indexPartitionKeys("gsi1");
+
+        assertThat(partitionKeys, hasSize(3));
+        assertThat(partitionKeys, contains("key1", "key2", "key3"));
+    }
+
+    @Test
+    public void builderReuse_independentValidation() {
+        StaticTableMetadata.Builder builder = StaticTableMetadata.builder();
+
+        builder.addIndexPartitionKey("gsi1", "key1", AttributeValueType.S, Order.FIRST);
+        StaticTableMetadata metadata1 = builder.build();
+        assertThat(metadata1.indexPartitionKeys("gsi1"), contains("key1"));
+
+        builder.addIndexPartitionKey("gsi1", "key2", AttributeValueType.S, Order.SECOND);
+        StaticTableMetadata metadata2 = builder.build();
+        assertThat(metadata2.indexPartitionKeys("gsi1"), contains("key1", "key2"));
     }
 
     @Test
@@ -367,10 +536,10 @@ public class StaticTableMetadataTest {
         StaticTableMetadata.Builder builder = StaticTableMetadata.builder().addIndexPartitionKey(INDEX_NAME, "id", AttributeValueType.S);
 
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("partition key");
+        exception.expectMessage("key");
         exception.expectMessage(INDEX_NAME);
 
-        builder.mergeWith(builder.build());
+        builder.mergeWith(builder.build()).build();
     }
 
     @Test
@@ -378,10 +547,10 @@ public class StaticTableMetadataTest {
         StaticTableMetadata.Builder builder = StaticTableMetadata.builder().addIndexSortKey(INDEX_NAME, "id", AttributeValueType.S);
 
         exception.expect(IllegalArgumentException.class);
-        exception.expectMessage("sort key");
+        exception.expectMessage("key");
         exception.expectMessage(INDEX_NAME);
 
-        builder.mergeWith(builder.build());
+        builder.mergeWith(builder.build()).build();
     }
 
     @Test
