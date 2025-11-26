@@ -94,7 +94,7 @@ final class RemoveUnusedShapes {
 
             if (members != null) {
                 for (MemberModel member : members) {
-                    List<String> memberShapes = resolveMemberShapes(member);
+                    List<String> memberShapes = resolveMemberShapes(member, in);
                     if (memberShapes == null) {
                         continue;
                     }
@@ -111,7 +111,7 @@ final class RemoveUnusedShapes {
      * both the key shape and the value shape of the map will be resolved, so that the
      * returning list could have more than one elements.
      */
-    private static List<String> resolveMemberShapes(MemberModel member) {
+    private static List<String> resolveMemberShapes(MemberModel member, Map<String, ShapeModel> in) {
 
         if (member == null) {
             return new LinkedList<>();
@@ -119,16 +119,24 @@ final class RemoveUnusedShapes {
         if (member.getEnumType() != null) {
             return Collections.singletonList(member.getEnumType());
         } else if (member.isList()) {
-            return resolveMemberShapes(member.getListModel().getListMemberModel());
+            return resolveMemberShapes(member.getListModel().getListMemberModel(), in);
         } else if (member.isMap()) {
             List<String> memberShapes = new LinkedList<>();
-            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getKeyModel()));
-            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getValueModel()));
+            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getKeyModel(), in));
+            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getValueModel(), in));
             return memberShapes;
         } else if (member.isSimple()) {
             // member is scalar, do nothing
             return new LinkedList<>();
         } else {
+            // Find shape by C2J name, e.g., exceptions
+            String c2jName = member.getC2jShape();
+            for (ShapeModel shape : in.values()) {
+                if (c2jName.equals(shape.getC2jName())) {
+                    return Collections.singletonList(shape.getShapeName());
+                }
+            }
+
             // member is a structure.
             return Collections.singletonList(member.getVariable().getSimpleType());
         }
