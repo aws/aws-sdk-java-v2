@@ -16,25 +16,30 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.conditional;
 
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
-import static software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils.cleanAttributeName;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.BETWEEN_OPERATOR;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.SECOND_VALUE_TOKEN_MAPPER;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addNonRightmostSortKeyConditions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addPartitionKeyConditions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.buildExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.resolveKeys;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validatePartitionKeyConstraints;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validateSortKeyConstraints;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.KeyResolution;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @SdkInternalApi
 public class BetweenConditional implements QueryConditional {
-
-    private static final UnaryOperator<String> EXPRESSION_OTHER_VALUE_KEY_MAPPER =
-        k -> ":AMZN_MAPPED_" + cleanAttributeName(k) + "2";
+    private static final String BETWEEN_NULL_SORT_KEY_ERROR =
+        "Attempt to query using a 'between' condition operator where one of the keys has a null sort key. Index: %s";
 
     private final Key key1;
     private final Key key2;
@@ -46,40 +51,61 @@ public class BetweenConditional implements QueryConditional {
 
     @Override
     public Expression expression(TableSchema<?> tableSchema, String indexName) {
-        QueryConditionalKeyValues queryConditionalKeyValues1 = QueryConditionalKeyValues.from(key1, tableSchema, indexName);
-        QueryConditionalKeyValues queryConditionalKeyValues2 = QueryConditionalKeyValues.from(key2, tableSchema, indexName);
+        KeyResolution keyResolution1 = resolveKeys(key1, tableSchema, indexName);
+        KeyResolution keyResolution2 = resolveKeys(key2, tableSchema, indexName);
 
-        if (queryConditionalKeyValues1.sortValue().equals(nullAttributeValue()) ||
-            queryConditionalKeyValues2.sortValue().equals(nullAttributeValue())) {
-            throw new IllegalArgumentException("Attempt to query using a 'between' condition operator where one "
-                                               + "of the items has a null sort key.");
+        validateBetweenConstraints(keyResolution1, keyResolution2, indexName);
+
+        return buildBetweenExpression(keyResolution1, keyResolution2);
+    }
+
+    private void validateBetweenConstraints(KeyResolution keyResolution1, KeyResolution keyResolution2, String indexName) {
+        validatePartitionKeyConstraints(keyResolution1, indexName);
+        validateSortKeyConstraints(keyResolution1, indexName);
+
+        if (!keyResolution1.hasSortValues() || !keyResolution2.hasSortValues() ||
+            keyResolution2.sortValues.contains(nullAttributeValue())) {
+            throw new IllegalArgumentException(String.format(BETWEEN_NULL_SORT_KEY_ERROR, indexName));
         }
+    }
 
-        String partitionKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues1.partitionKey());
-        String partitionValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues1.partitionKey());
-        String sortKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues1.sortKey());
-        String sortKeyValueToken1 = EnhancedClientUtils.valueRef(queryConditionalKeyValues1.sortKey());
-        String sortKeyValueToken2 = EXPRESSION_OTHER_VALUE_KEY_MAPPER.apply(queryConditionalKeyValues2.sortKey());
+    private Expression buildBetweenExpression(KeyResolution keyResolution1, KeyResolution keyResolution2) {
+        StringBuilder expression = new StringBuilder();
+        Map<String, String> names = new HashMap<>();
+        Map<String, AttributeValue> values = new HashMap<>();
 
-        String queryExpression = String.format("%s = %s AND %s BETWEEN %s AND %s",
-                                               partitionKeyToken,
-                                               partitionValueToken,
-                                               sortKeyToken,
-                                               sortKeyValueToken1,
-                                               sortKeyValueToken2);
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(partitionValueToken, queryConditionalKeyValues1.partitionValue());
-        expressionAttributeValues.put(sortKeyValueToken1, queryConditionalKeyValues1.sortValue());
-        expressionAttributeValues.put(sortKeyValueToken2, queryConditionalKeyValues2.sortValue());
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put(partitionKeyToken, queryConditionalKeyValues1.partitionKey());
-        expressionAttributeNames.put(sortKeyToken, queryConditionalKeyValues1.sortKey());
+        addPartitionKeyConditions(expression, names, values,
+                                  keyResolution1.partitionKeys, keyResolution1.partitionValues);
 
-        return Expression.builder()
-                         .expression(queryExpression)
-                         .expressionValues(Collections.unmodifiableMap(expressionAttributeValues))
-                         .expressionNames(expressionAttributeNames)
-                         .build();
+        addNonRightmostSortKeyConditions(expression, names, values,
+                                         keyResolution1.sortKeys, keyResolution1.sortValues);
+
+        addBetweenCondition(expression, names, values, keyResolution1, keyResolution2);
+
+        return buildExpression(expression, names, values);
+    }
+
+    private void addBetweenCondition(StringBuilder expression, Map<String, String> names,
+                                     Map<String, AttributeValue> values,
+                                     KeyResolution keyResolution1, KeyResolution keyResolution2) {
+        String rightmostSortKey = keyResolution1.getRightmostSortKey();
+        AttributeValue rightmostSortValue1 = keyResolution1.getRightmostSortValue();
+        AttributeValue rightmostSortValue2 = keyResolution2.getRightmostSortValue();
+
+        String keyToken = EnhancedClientUtils.keyRef(rightmostSortKey);
+        String valueToken1 = EnhancedClientUtils.valueRef(rightmostSortKey);
+        String valueToken2 = SECOND_VALUE_TOKEN_MAPPER.apply(rightmostSortKey);
+
+        expression.append(QueryConditionalUtils.AND_OPERATOR)
+                  .append(keyToken)
+                  .append(BETWEEN_OPERATOR)
+                  .append(valueToken1)
+                  .append(QueryConditionalUtils.AND_OPERATOR)
+                  .append(valueToken2);
+
+        names.put(keyToken, rightmostSortKey);
+        values.put(valueToken1, rightmostSortValue1);
+        values.put(valueToken2, rightmostSortValue2);
     }
 
     @Override
@@ -93,7 +119,7 @@ public class BetweenConditional implements QueryConditional {
 
         BetweenConditional that = (BetweenConditional) o;
 
-        if (key1 != null ? ! key1.equals(that.key1) : that.key1 != null) {
+        if (key1 != null ? !key1.equals(that.key1) : that.key1 != null) {
             return false;
         }
         return key2 != null ? key2.equals(that.key2) : that.key2 == null;

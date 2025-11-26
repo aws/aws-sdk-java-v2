@@ -15,7 +15,13 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.conditional;
 
-import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.MISSING_SORT_VALUE_ERROR;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addNonRightmostSortKeyConditions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.addPartitionKeyConditions;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.buildExpression;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.resolveKeys;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validatePartitionKeyConstraints;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.validateSortKeyConstraints;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
+import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.QueryConditionalUtils.KeyResolution;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -47,36 +54,54 @@ public class SingleKeyItemConditional implements QueryConditional {
 
     @Override
     public Expression expression(TableSchema<?> tableSchema, String indexName) {
-        QueryConditionalKeyValues queryConditionalKeyValues = QueryConditionalKeyValues.from(key, tableSchema, indexName);
+        KeyResolution keyResolution = resolveKeys(key, tableSchema, indexName);
 
-        if (queryConditionalKeyValues.sortValue().equals(nullAttributeValue())) {
-            throw new IllegalArgumentException("Attempt to query using a relative condition operator against a "
-                                               + "null sort key.");
+        validateSingleKeyConstraints(keyResolution, indexName);
+
+        return buildSingleKeyExpression(keyResolution);
+    }
+
+    private void validateSingleKeyConstraints(KeyResolution keyResolution, String indexName) {
+        validatePartitionKeyConstraints(keyResolution, indexName);
+        validateSortKeyConstraints(keyResolution, indexName);
+        if (keyResolution.sortValues.isEmpty()) {
+            throw new IllegalArgumentException(String.format(MISSING_SORT_VALUE_ERROR, indexName));
         }
+    }
 
-        String partitionKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues.partitionKey());
-        String partitionValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues.partitionKey());
-        String sortKeyToken = EnhancedClientUtils.keyRef(queryConditionalKeyValues.sortKey());
-        String sortValueToken = EnhancedClientUtils.valueRef(queryConditionalKeyValues.sortKey());
+    private Expression buildSingleKeyExpression(KeyResolution keyResolution) {
+        StringBuilder expression = new StringBuilder();
+        Map<String, String> names = new HashMap<>();
+        Map<String, AttributeValue> values = new HashMap<>();
 
-        String queryExpression = String.format("%s = %s AND %s %s %s",
-                                               partitionKeyToken,
-                                               partitionValueToken,
-                                               sortKeyToken,
-                                               operator,
-                                               sortValueToken);
-        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
-        expressionAttributeValues.put(partitionValueToken, queryConditionalKeyValues.partitionValue());
-        expressionAttributeValues.put(sortValueToken, queryConditionalKeyValues.sortValue());
-        Map<String, String> expressionAttributeNames = new HashMap<>();
-        expressionAttributeNames.put(partitionKeyToken, queryConditionalKeyValues.partitionKey());
-        expressionAttributeNames.put(sortKeyToken, queryConditionalKeyValues.sortKey());
+        addPartitionKeyConditions(expression, names, values,
+                                  keyResolution.partitionKeys, keyResolution.partitionValues);
 
-        return Expression.builder()
-                         .expression(queryExpression)
-                         .expressionValues(expressionAttributeValues)
-                         .expressionNames(expressionAttributeNames)
-                         .build();
+        addNonRightmostSortKeyConditions(expression, names, values,
+                                         keyResolution.sortKeys, keyResolution.sortValues);
+
+        addOperatorCondition(expression, names, values, keyResolution);
+
+        return buildExpression(expression, names, values);
+    }
+
+    private void addOperatorCondition(StringBuilder expression, Map<String, String> names,
+                                      Map<String, AttributeValue> values, KeyResolution keyResolution) {
+        String rightmostSortKey = keyResolution.getRightmostSortKey();
+        AttributeValue rightmostSortValue = keyResolution.getRightmostSortValue();
+
+        String keyToken = EnhancedClientUtils.keyRef(rightmostSortKey);
+        String valueToken = EnhancedClientUtils.valueRef(rightmostSortKey);
+
+        expression.append(QueryConditionalUtils.AND_OPERATOR)
+                  .append(keyToken)
+                  .append(" ")
+                  .append(operator)
+                  .append(" ")
+                  .append(valueToken);
+
+        names.put(keyToken, rightmostSortKey);
+        values.put(valueToken, rightmostSortValue);
     }
 
     @Override
@@ -90,7 +115,7 @@ public class SingleKeyItemConditional implements QueryConditional {
 
         SingleKeyItemConditional that = (SingleKeyItemConditional) o;
 
-        if (key != null ? ! key.equals(that.key) : that.key != null) {
+        if (key != null ? !key.equals(that.key) : that.key != null) {
             return false;
         }
         return operator != null ? operator.equals(that.operator) : that.operator == null;
