@@ -31,6 +31,8 @@ import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
@@ -43,8 +45,15 @@ import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithBinaryKey;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithByteBufferKey;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithCompositeGsi;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithFlattenedGsi;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
+import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithMixedCompositeGsi;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithNumericSort;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.ImmutableTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeMetadataImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CrossIndexImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedFlattenedImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedGlobalSecondaryIndex;
 import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedLocalSecondaryIndex;
@@ -53,6 +62,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.BillingMode;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.Projection;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
@@ -472,5 +482,398 @@ public class CreateTableOperationTest {
         CreateTableResponse response = CreateTableResponse.builder().build();
 
         operation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+    }
+
+    @Test
+    public void generateRequest_gsiWithSingleKeys_buildsCorrectly() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("gsi_1")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithIndices> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithIndices.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("gsi_1"));
+        assertThat(gsi.keySchema().size(), is(2));
+    }
+
+    @Test
+    public void generateRequest_gsiWithCompositeKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("composite_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(5L).writeCapacityUnits(5L))
+                .build());
+
+        CreateTableOperation<FakeItemWithCompositeGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithCompositeGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+
+        assertThat(gsi.indexName(), is("composite_gsi"));
+        assertThat(gsi.keySchema().size(), is(4));
+
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("gsi_pk1", "gsi_pk2"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("gsi_sk1", "gsi_sk2"));
+    }
+
+    @Test
+    public void generateRequest_gsiWithFlattenedPartitionKey() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("flatten_partition_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithFlattenedGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("flatten_partition_gsi"));
+        assertThat(gsi.keySchema().size(), is(1));
+        assertThat(gsi.keySchema().get(0).attributeName(), is("gsiPartitionKey"));
+        assertThat(gsi.keySchema().get(0).keyType(), is(HASH));
+    }
+
+    @Test
+    public void generateRequest_gsiWithFlattenedSortKey() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("flatten_sort_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithFlattenedGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("flatten_sort_gsi"));
+        assertThat(gsi.keySchema().size(), is(2));
+        assertThat(gsi.keySchema().get(0).attributeName(), is("id"));
+        assertThat(gsi.keySchema().get(0).keyType(), is(HASH));
+        assertThat(gsi.keySchema().get(1).attributeName(), is("gsiSortKey"));
+        assertThat(gsi.keySchema().get(1).keyType(), is(RANGE));
+    }
+
+    @Test
+    public void generateRequest_gsiWithMixedFlattenedKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("flatten_mixed_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithFlattenedGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("flatten_mixed_gsi"));
+        assertThat(gsi.keySchema().size(), is(2));
+        
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("gsiMixedPartitionKey"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("gsiMixedSortKey"));
+    }
+
+    @Test
+    public void generateRequest_gsiWithBothFlattenedKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("flatten_both_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithFlattenedGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithFlattenedGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("flatten_both_gsi"));
+        assertThat(gsi.keySchema().size(), is(2));
+        
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("gsiBothSortKey"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("gsiBothSortKey"));
+    }
+
+    @Test
+    public void generateRequest_gsiWithMixedCompositePartitionKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("mixed_partition_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithMixedCompositeGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("mixed_partition_gsi"));
+        assertThat(gsi.keySchema().size(), is(4));
+        
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2"));
+    }
+
+    @Test
+    public void generateRequest_gsiWithMixedCompositeSortKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("mixed_sort_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithMixedCompositeGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("mixed_sort_gsi"));
+        assertThat(gsi.keySchema().size(), is(6));
+
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2"));
+    }
+
+    @Test
+    public void generateRequest_gsiWithFullMixedCompositeKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("full_mixed_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<FakeItemWithMixedCompositeGsi> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(FakeItemWithMixedCompositeGsi.getTableSchema(),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("full_mixed_gsi"));
+        assertThat(gsi.keySchema().size(), is(8));
+        
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("rootPartitionKey1", "rootPartitionKey2", "flattenedPartitionKey1", "flattenedPartitionKey2"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("rootSortKey1", "rootSortKey2", "flattenedSortKey1", "flattenedSortKey2"));
+    }
+
+    @Test
+    public void generateRequest_immutableGsiWithCompositeKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("gsi1")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(5L).writeCapacityUnits(5L))
+                .build());
+
+        CreateTableOperation<CompositeMetadataImmutable> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(CompositeMetadataImmutable.class),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("gsi1"));
+        assertThat(gsi.keySchema().size(), is(4));
+
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("gsiPk1", "gsiPk2"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("gsiSk1", "gsiSk2"));
+    }
+
+    @Test
+    public void generateRequest_immutableGsiWithCrossIndexKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Arrays.asList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("gsi1")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build(),
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("gsi2")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<CrossIndexImmutable> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(CrossIndexImmutable.class),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(2));
+        
+        GlobalSecondaryIndex gsi1 = request.globalSecondaryIndexes().stream()
+            .filter(gsi -> "gsi1".equals(gsi.indexName()))
+            .findFirst().orElse(null);
+        assertThat(gsi1.keySchema().size(), is(2));
+        assertThat(gsi1.keySchema().get(0).attributeName(), is("attr1"));
+        assertThat(gsi1.keySchema().get(0).keyType(), is(HASH));
+        assertThat(gsi1.keySchema().get(1).attributeName(), is("attr2"));
+        assertThat(gsi1.keySchema().get(1).keyType(), is(HASH));
+        
+        GlobalSecondaryIndex gsi2 = request.globalSecondaryIndexes().stream()
+            .filter(gsi -> "gsi2".equals(gsi.indexName()))
+            .findFirst().orElse(null);
+        assertThat(gsi2.keySchema().size(), is(2));
+        assertThat(gsi2.keySchema().get(0).attributeName(), is("attr3"));
+        assertThat(gsi2.keySchema().get(0).keyType(), is(HASH));
+        assertThat(gsi2.keySchema().get(1).attributeName(), is("attr1"));
+        assertThat(gsi2.keySchema().get(1).keyType(), is(RANGE));
+    }
+
+    @Test
+    public void generateRequest_immutableGsiWithMixedFlattenedKeys() {
+        List<EnhancedGlobalSecondaryIndex> gsiList = Collections.singletonList(
+            EnhancedGlobalSecondaryIndex.builder()
+                .indexName("mixed_gsi")
+                .projection(p -> p.projectionType(ProjectionType.ALL))
+                .provisionedThroughput(p -> p.readCapacityUnits(1L).writeCapacityUnits(1L))
+                .build());
+
+        CreateTableOperation<MixedFlattenedImmutable> operation =
+            CreateTableOperation.create(CreateTableEnhancedRequest.builder()
+                .globalSecondaryIndices(gsiList)
+                .build());
+
+        CreateTableRequest request = operation.generateRequest(ImmutableTableSchema.create(MixedFlattenedImmutable.class),
+                                                               PRIMARY_CONTEXT, null);
+
+        assertThat(request.globalSecondaryIndexes().size(), is(1));
+        GlobalSecondaryIndex gsi = request.globalSecondaryIndexes().get(0);
+        assertThat(gsi.indexName(), is("mixed_gsi"));
+        assertThat(gsi.keySchema().size(), is(4));
+
+        Set<String> partitionKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == HASH)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(partitionKeyNames, containsInAnyOrder("rootKey1", "flatKey1"));
+
+        Set<String> sortKeyNames = gsi.keySchema().stream()
+            .filter(key -> key.keyType() == RANGE)
+            .map(KeySchemaElement::attributeName)
+            .collect(Collectors.toSet());
+        assertThat(sortKeyNames, containsInAnyOrder("rootKey2", "flatKey2"));
     }
 }

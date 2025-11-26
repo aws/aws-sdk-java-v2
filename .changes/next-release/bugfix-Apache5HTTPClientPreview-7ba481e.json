@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Apache5 HTTP Client (Preview)",
+    "contributor": "",
+    "description": "Fix bug where preemptive Basic authentication was not honored for proxies. Similar to fix for Apache 4.x in [#6333](https://github.com/aws/aws-sdk-java-v2/issues/6333)."
+}
