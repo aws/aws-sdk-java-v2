@@ -163,12 +163,8 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
 
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
-        int registerI = registerInfoMap.get(e.variableName()).getIndex();
-        RuleType type = registerInfoMap.get(e.variableName()).getRuleType();
-        if (type == null) {
-            throw new IllegalStateException("Assigned registry `" + e.variableName() + "` is missing type information");
-        }
-        builder.add("(($L)registers[$L])", type.javaType(), registerI);
+        String registerName = registerInfoMap.get(e.variableName()).getName();
+        builder.add("registers.$L", registerName);
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 

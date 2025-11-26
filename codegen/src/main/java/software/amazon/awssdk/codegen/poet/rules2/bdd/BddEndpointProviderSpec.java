@@ -61,6 +61,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
     private final Map<String, RegistryInfo> registerInfoMap;
     private final boolean endpointCaching;
 
+    private final ClassName registersType;
+    private final ClassName conditionFnType;
+    private final ClassName resultFnType;
+
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.endpointBddModel = intermediateModel.getEndpointBddModel();
@@ -71,6 +75,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
         this.registerInfoMap = buildRegisterInfoMap();
         this.endpointCaching = intermediateModel.getCustomizationConfig().getEnableEndpointProviderUriCaching();
+
+        this.registersType = className().nestedClass("Registers");
+        this.conditionFnType = className().nestedClass("ConditionFn");
+        this.resultFnType = className().nestedClass("ResultFn");
     }
 
     @Override
@@ -78,12 +86,49 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         TypeSpec.Builder builder = PoetUtils.createClassBuilder(className())
                                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
+                                            .addType(registersClass())
+                                            .addType(conditionFnInterface())
+                                            .addType(resultFnInterface())
                                             .addField(bddDefinition())
                                             .addField(conditionFns())
                                             .addField(resultFns())
                                             .addAnnotation(SdkInternalApi.class);
 
         builder.addMethod(resolveEndpointMethod());
+
+        return builder.build();
+    }
+
+    private TypeSpec conditionFnInterface() {
+        return TypeSpec.interfaceBuilder(conditionFnType)
+            .addAnnotation(FunctionalInterface.class)
+            .addMethod(MethodSpec.methodBuilder("test")
+                             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
+                             .returns(boolean.class)
+                               .addParameter(registersType, "registers")
+                               .build()).build();
+        }
+
+    private TypeSpec resultFnInterface() {
+        return TypeSpec.interfaceBuilder(resultFnType)
+                       .addAnnotation(FunctionalInterface.class)
+                       .addMethod(MethodSpec.methodBuilder("apply")
+                                            .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
+                                            .returns(typeMirror.rulesResult().type())
+                                            .addParameter(registersType, "registers")
+                                            .build()).build();
+    }
+
+    private TypeSpec registersClass() {
+        TypeSpec.Builder builder = TypeSpec.classBuilder(registersType)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+        registerInfoMap.forEach((k,r) -> {
+            builder.addField(
+                FieldSpec
+                    .builder(r.getRuleType().type().box(), r.getName())
+                    .build()
+            );
+        });
 
         return builder.build();
     }
@@ -123,7 +168,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         }
         arrayInit.unindent().add("\n}");
 
-        TypeName conditionFnArrayType = ArrayTypeName.of(endpointRulesSpecUtils.conditionFnInterfaceName());
+        TypeName conditionFnArrayType = ArrayTypeName.of(conditionFnType);
         return FieldSpec.builder(conditionFnArrayType, "CONDITION_FNS",
                                  Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer(arrayInit.build())
@@ -160,7 +205,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                        .add("\n}")
                                        .build();
 
-        TypeName resultFnArrayType = ArrayTypeName.of(endpointRulesSpecUtils.resultFnInterfaceName());
+        TypeName resultFnArrayType = ArrayTypeName.of(resultFnType);
         return FieldSpec.builder(resultFnArrayType, "RESULT_FNS",
                                  Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
                         .initializer(arrayInit)
@@ -190,22 +235,22 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         builder.beginControlFlow("try");
         builder.addCode(validateRequiredParams());
 
-        builder.addStatement("Object[] registers = new Object[$L]", registerInfoMap.size());
+        builder.addStatement("$T registers = new $T()", registersType, registersType);
 
         // region builtin parameter needs to be mapped from Region to String
         String regionParamName = regionParamName();
         if (regionParamName != null) {
             String regionMethodName = endpointRulesSpecUtils.paramMethodName(regionParamName);
-            builder.addStatement("registers[$L] = params.$L() == null ? null : params.$L().id()" ,
-                                 registerInfoMap.get(regionParamName).getIndex(),
+            builder.addStatement("registers.$L = params.$L() == null ? null : params.$L().id()" ,
+                                 registerInfoMap.get(regionParamName).getName(),
                                  regionMethodName, regionMethodName);
         }
 
         // add all other parameters
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
             if (!entry.getKey().equals(regionParamName)) {
-                builder.addStatement("registers[$L] = params.$L()",
-                                     registerInfoMap.get(entry.getKey()).getIndex(),
+                builder.addStatement("registers.$L = params.$L()",
+                                     registerInfoMap.get(entry.getKey()).getName(),
                                      endpointRulesSpecUtils.paramMethodName(entry.getKey()));
             }
         }

@@ -151,12 +151,8 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
 
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
-        int registerI = registerInfoMap.get(e.variableName()).getIndex();
-        RuleType type = registerInfoMap.get(e.variableName()).getRuleType();
-        if (type == null) {
-            throw new IllegalStateException("Assigned registry `" + e.variableName() + "` is missing type information");
-        }
-        builder.add("(($L)registers[$L])", type.javaType().box(), registerI);
+        String registerName = registerInfoMap.get(e.variableName()).getName();
+        builder.add("registers.$L", registerName);
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 
@@ -200,11 +196,11 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
         for (Map.Entry<String, RuleExpression> kvp : e.bindings().entrySet()) {
             String k = kvp.getKey();
             RuleExpression v = kvp.getValue();
-            int registerI = registerInfoMap.get(k).getIndex();
-            builder.add("registers[$L] = ", registerI);
+            String registerName = registerInfoMap.get(k).getName();
+            builder.add("registers.$L = ", registerName);
             v.accept(this);
             builder.addStatement(""); // end the statement we started
-            builder.addStatement("return registers[$L] != null", registerI);
+            builder.addStatement("return registers.$L != null", registerName);
         }
         return RuleRuntimeTypeMirror.BOOLEAN;
     }
