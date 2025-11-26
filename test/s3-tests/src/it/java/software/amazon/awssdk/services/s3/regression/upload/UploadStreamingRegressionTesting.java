@@ -176,6 +176,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
                 CompletedUpload completedUpload = CompletableFutureUtils.joinLikeSync(upload.completionFuture());
                 return completedUpload.response();
             } catch (Exception e) {
+                LOG.error(() -> "Upload failed for " + config.toString());
                 throw new RuntimeException(e);
             } finally {
                 transferManager.close();
