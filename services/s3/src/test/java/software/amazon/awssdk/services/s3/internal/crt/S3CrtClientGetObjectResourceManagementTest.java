@@ -144,7 +144,7 @@ public class S3CrtClientGetObjectResourceManagementTest {
         }
 
         // final part
-        String contentRange = "bytes " + PART_SIZE * numOfParts + "-" + (totalContentSize - 1) + "/" + totalContentSize;
+        String contentRange = "bytes " + PART_SIZE * (numOfParts - 1)  + "-" + (totalContentSize - 1) + "/" + totalContentSize;
         String range = "bytes=" + PART_SIZE * (numOfParts - 1) + "-" + (totalContentSize - 1);
         stubFor(get(anyUrl()).withHeader("Range", equalTo(range)).willReturn(aResponse().withStatus(200)
                                                                                         .withHeader("content-length", String.valueOf(finalPartSize))
