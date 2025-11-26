@@ -51,7 +51,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     private final ClientBootstrap clientBootstrap;
     private final CrtCredentialsProviderAdapter credentialProviderAdapter;
     private final CredentialsProvider credentialsProvider;
-    private final long partSizeInBytes;
+    private final Long partSizeInBytes;
     private final long thresholdInBytes;
     private final double targetThroughputInGbps;
     private final int maxConcurrency;
@@ -85,10 +85,8 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.credentialsProvider = credentialProviderAdapter.crtCredentials();
 
-        this.partSizeInBytes = builder.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
-                               builder.partSizeInBytes;
-        this.thresholdInBytes = builder.thresholdInBytes == null ? this.partSizeInBytes :
-                                builder.thresholdInBytes;
+        this.partSizeInBytes = builder.partSizeInBytes;
+        this.thresholdInBytes = resolveThresholdInBytes(builder);
         this.targetThroughputInGbps = builder.targetThroughputInGbps == null ?
                                       DEFAULT_TARGET_THROUGHPUT_IN_GBPS : builder.targetThroughputInGbps;
 
@@ -98,8 +96,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         this.endpointOverride = builder.endpointOverride;
 
-        this.readBufferSizeInBytes = builder.readBufferSizeInBytes == null ?
-                                     partSizeInBytes * 10 : builder.readBufferSizeInBytes;
+        this.readBufferSizeInBytes = resolveReadBufferSizeInBytes(builder);
 
         if (builder.httpConfiguration != null) {
             this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
@@ -113,6 +110,21 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         }
         this.standardRetryOptions = builder.standardRetryOptions;
         this.useEnvironmentVariableProxyOptionsValues = resolveUseEnvironmentVariableValues(builder);
+    }
+
+    private Long resolveReadBufferSizeInBytes(Builder builder) {
+        if (builder.readBufferSizeInBytes != null) {
+            return builder.readBufferSizeInBytes;
+        }
+        long partSize = this.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES : this.partSizeInBytes;
+        return partSize * 10;
+    }
+
+    private long resolveThresholdInBytes(Builder builder) {
+        if (builder.thresholdInBytes != null) {
+            return builder.thresholdInBytes;
+        }
+        return this.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES : this.partSizeInBytes;
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
@@ -159,7 +171,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
         return tlsContext;
     }
 
-    public long partSizeBytes() {
+    public Long partSizeBytes() {
         return partSizeInBytes;
     }
 
