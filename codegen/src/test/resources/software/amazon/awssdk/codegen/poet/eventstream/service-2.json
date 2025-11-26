@@ -68,6 +68,9 @@
       "members": {
         "EventStream": {
           "shape": "EventStream"
+        },
+        "EventStreamError": {
+          "shape": "EventStreamError"
         }
       }
     },
@@ -126,6 +129,16 @@
         }
       },
       "event": true
+    },
+    "EventStreamError": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "exception": true,
+      "fault": true
     },
     "EventStreamOperationWithOnlyInputRequest": {
       "type": "structure",

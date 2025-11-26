@@ -26,6 +26,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ReturnTypeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 
 /**
@@ -111,7 +112,7 @@ final class RemoveUnusedShapes {
      * both the key shape and the value shape of the map will be resolved, so that the
      * returning list could have more than one elements.
      */
-    private static List<String> resolveMemberShapes(MemberModel member, Map<String, ShapeModel> in) {
+    private static List<String> resolveMemberShapes(MemberModel member, Map<String, ShapeModel> modelShapes) {
 
         if (member == null) {
             return new LinkedList<>();
@@ -119,20 +120,19 @@ final class RemoveUnusedShapes {
         if (member.getEnumType() != null) {
             return Collections.singletonList(member.getEnumType());
         } else if (member.isList()) {
-            return resolveMemberShapes(member.getListModel().getListMemberModel(), in);
+            return resolveMemberShapes(member.getListModel().getListMemberModel(), modelShapes);
         } else if (member.isMap()) {
             List<String> memberShapes = new LinkedList<>();
-            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getKeyModel(), in));
-            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getValueModel(), in));
+            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getKeyModel(), modelShapes));
+            memberShapes.addAll(resolveMemberShapes(member.getMapModel().getValueModel(), modelShapes));
             return memberShapes;
         } else if (member.isSimple()) {
             // member is scalar, do nothing
             return new LinkedList<>();
         } else {
-            // Find shape by C2J name, e.g., exceptions
-            String c2jName = member.getC2jShape();
-            for (ShapeModel shape : in.values()) {
-                if (c2jName.equals(shape.getC2jName())) {
+            // Exceptions have suffix appended, find shape by C2J name
+            for (ShapeModel shape : modelShapes.values()) {
+                if (shape.getShapeType().equals(ShapeType.Exception) && member.getC2jShape().equals(shape.getC2jName())) {
                     return Collections.singletonList(shape.getShapeName());
                 }
             }
