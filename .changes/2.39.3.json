@@ -1,0 +1,18 @@
+{
+    "version": "2.39.3",
+    "date": "2025-11-24",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add TrustStore, ConnectionFunction APIs to CloudFront SDK"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "New CloudWatch Logs feature - LogGroup Deletion Protection, a capability that allows customers to safeguard their critical CloudWatch log groups from accidental or unintended deletion."
+        }
+    ]
+}
