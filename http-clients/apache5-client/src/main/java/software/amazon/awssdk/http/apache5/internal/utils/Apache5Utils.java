@@ -22,6 +22,7 @@ import org.apache.hc.client5.http.auth.AuthScope;
 import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.CredentialsProvider;
 import org.apache.hc.client5.http.auth.NTCredentials;
+import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
@@ -35,7 +36,6 @@ import software.amazon.awssdk.http.apache5.ProxyConfiguration;
 
 @SdkInternalApi
 public final class Apache5Utils {
-
     private Apache5Utils() {
     }
 
@@ -71,14 +71,14 @@ public final class Apache5Utils {
      */
     public static CredentialsProvider newProxyCredentialsProvider(ProxyConfiguration proxyConfiguration) {
         BasicCredentialsProvider provider = new BasicCredentialsProvider();
-        provider.setCredentials(newAuthScope(proxyConfiguration), newNtCredentials(proxyConfiguration));
+        provider.setCredentials(newAuthScope(proxyConfiguration), proxyCredentials(proxyConfiguration));
         return provider;
     }
 
     /**
      * Returns a new instance of NTCredentials used for proxy authentication.
      */
-    private static Credentials newNtCredentials(ProxyConfiguration proxyConfiguration) {
+    private static NTCredentials ntCredentials(ProxyConfiguration proxyConfiguration) {
         // Deprecated NTCredentials is used to maintain backward compatibility with Apache4.
         return new NTCredentials(
             proxyConfiguration.username(),
@@ -86,6 +86,23 @@ public final class Apache5Utils {
             proxyConfiguration.ntlmWorkstation(),
             proxyConfiguration.ntlmDomain()
         );
+    }
+
+    /**
+     * Returns the credentials object used to authenticate with a proxy. This method returns either an {@link NTCredentials}
+     * object if either {@link ProxyConfiguration#ntlmDomain()} or {@link ProxyConfiguration#ntlmWorkstation()} are present,
+     * otherwise it returns a {@link UsernamePasswordCredentials}.
+     */
+    private static Credentials proxyCredentials(ProxyConfiguration proxyConfiguration) {
+        if (proxyConfiguration.ntlmWorkstation() != null || proxyConfiguration.ntlmDomain() != null) {
+            return ntCredentials(proxyConfiguration);
+        }
+        return usernamePasswordCredentials(proxyConfiguration);
+    }
+
+    public static UsernamePasswordCredentials usernamePasswordCredentials(ProxyConfiguration proxyConfiguration) {
+        return new UsernamePasswordCredentials(proxyConfiguration.username(),
+                                               proxyConfiguration.password().toCharArray());
     }
 
     /**
@@ -106,6 +123,7 @@ public final class Apache5Utils {
             AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
+            basicAuth.initPreemptive(credsProvider.getCredentials(newAuthScope(proxyConfiguration), clientContext));
             authCache.put(targetHost, basicAuth);
 
             clientContext.setCredentialsProvider(credsProvider);

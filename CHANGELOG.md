@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.5__ __2025-11-26__
+## __AWS Compute Optimizer__
+  - ### Features
+    - Compute Optimizer now identifies idle NAT Gateway resources for cost optimization based on traffic patterns and backup configuration analysis. Access recommendations via the GetIdleRecommendations API.
+
+## __Amazon Bedrock Runtime__
+  - ### Features
+    - Bedrock Runtime Reserved Service Support
+
+## __Apache5 HTTP Client (Preview)__
+  - ### Bugfixes
+    - Fix bug where Basic proxy authentication fails with credentials not found.
+    - Fix bug where preemptive Basic authentication was not honored for proxies. Similar to fix for Apache 4.x in [#6333](https://github.com/aws/aws-sdk-java-v2/issues/6333).
+
+## __Cost Optimization Hub__
+  - ### Features
+    - This release enables AWS Cost Optimization Hub to show cost optimization recommendations for NAT Gateway.
+
+## __s3__
+  - ### Features
+    - Add CRT shouldStream config as CRT_MEMORY_BUFFER_DISABLED SDK advanced client option
+
 # __2.39.4__ __2025-11-25__
 ## __AWS Network Firewall__
   - ### Features
