@@ -443,7 +443,7 @@ public class ParallelMultipartDownloaderSubscriber
         synchronized (initialCompletedParts) {
             int part = partNumber.incrementAndGet();
             while (initialCompletedParts.contains(part)) {
-                final int finalPart = part;
+                int finalPart = part;
                 log.debug(() -> "skipping part " + finalPart + " because already completed");
                 part = partNumber.incrementAndGet();
             }
