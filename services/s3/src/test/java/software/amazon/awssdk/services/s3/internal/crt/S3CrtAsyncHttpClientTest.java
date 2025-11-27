@@ -510,6 +510,25 @@ public class S3CrtAsyncHttpClientTest {
     }
 
     @Test
+    public void build_noPartSize_shouldUseDefaultsForThresholdAndReadWindowSize() {
+        S3NativeClientConfiguration configuration =
+            S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("test",
+                                                                                                                        "test")))
+                                       .signingRegion("us-west-2")
+                                       .build();
+        try (S3CrtAsyncHttpClient client =
+                 (S3CrtAsyncHttpClient) S3CrtAsyncHttpClient.builder()
+                                                            .s3ClientConfiguration(configuration).build()) {
+            long defaultPartSizeInBytes = 1024 * 1024L * 8L;
+            S3ClientOptions clientOptions = client.s3ClientOptions();
+            assertThat(clientOptions.getPartSize()).isEqualTo(0);
+            assertThat(clientOptions.getMultiPartUploadThreshold()).isEqualTo(defaultPartSizeInBytes);
+            assertThat(clientOptions.getInitialReadWindowSize()).isEqualTo(defaultPartSizeInBytes * 10);
+        }
+    }
+
+    @Test
     void build_nullHttpConfiguration() {
         S3NativeClientConfiguration configuration =
             S3NativeClientConfiguration.builder()

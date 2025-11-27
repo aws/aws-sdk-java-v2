@@ -106,7 +106,7 @@ public class UploadConfig {
 
     @Override
     public String toString() {
-        return ToString.builder("FlattenUploadConfig")
+        return ToString.builder("UploadConfig")
                        .add("bucketType", bucketType)
                        .add("forcePathStyle", forcePathStyle)
                        .add("requestChecksumValidation", requestChecksumValidation)
