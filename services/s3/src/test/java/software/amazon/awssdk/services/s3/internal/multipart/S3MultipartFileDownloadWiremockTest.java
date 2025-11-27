@@ -63,7 +63,7 @@ class S3MultipartFileDownloadWiremockTest {
     private Path testFile;
 
     @BeforeEach
-    public void init(WireMockRuntimeInfo wiremock) throws Exception {
+    void init(WireMockRuntimeInfo wiremock) {
         s3AsyncClient = S3AsyncClient.builder()
                                      .credentialsProvider(StaticCredentialsProvider.create(
                                          AwsBasicCredentials.create("key", "secret")))
@@ -316,7 +316,25 @@ class S3MultipartFileDownloadWiremockTest {
                                     .withHeader("ETag", "test-etag")
                                     .withBody(part3Data)));
 
+        CompletableFuture<GetObjectResponse> resp = s3AsyncClient.getObject(b -> b
+                                                                                .bucket(testBucket)
+                                                                                .key(testKey)
+                                                                                .build(),
+                                                                            AsyncResponseTransformer.toFile(testFile));
 
+        assertThat(resp).succeedsWithin(Duration.of(10, ChronoUnit.SECONDS));
+
+        verify(exactly(3), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", testBucket, testKey))));
+        verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=2", testBucket, testKey))));
+        verify(exactly(1), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=3", testBucket, testKey))));
+
+        assertThat(Files.exists(testFile)).isTrue();
+        byte[] actualBody = Files.readAllBytes(testFile);
+        byte[] expectedBody = new byte[partSize * totalPart];
+        System.arraycopy(part1Data, 0, expectedBody, 0, partSize);
+        System.arraycopy(part2Data, 0, expectedBody, partSize, partSize);
+        System.arraycopy(part3Data, 0, expectedBody, partSize * 2, partSize);
+        assertThat(actualBody).isEqualTo(expectedBody);
     }
 
     @Test

@@ -147,9 +147,8 @@ public class S3MultipartClientGetObjectWiremockTest {
         }
     }
 
-    // todo temporary, remove when support for resume is added to multipart file download
-    // @ParameterizedTest
-    // @MethodSource("partSizeAndTransformerParams")
+    @ParameterizedTest
+    @MethodSource("partSizeAndTransformerParams")
     public <T> void partCountValidationFailure_shouldThrowException(
         AsyncResponseTransformerTestSupplier<T> supplier,
         int partSize) {

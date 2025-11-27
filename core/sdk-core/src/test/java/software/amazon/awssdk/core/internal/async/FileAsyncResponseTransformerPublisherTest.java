@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal.async;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,7 +41,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
@@ -60,7 +58,7 @@ class FileAsyncResponseTransformerPublisherTest {
     private Path testFile;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         fileSystem = Jimfs.newFileSystem();
         testFile = fileSystem.getPath(String.format("/test-file-%s.txt", UUID.randomUUID()));
     }
@@ -75,8 +73,6 @@ class FileAsyncResponseTransformerPublisherTest {
     void singleDemand_shouldEmitOneTransformer(
         Function<Path, AsyncResponseTransformer<SdkResponse, SdkResponse>> transformerFunction) throws Exception {
         // Given
-        // FileAsyncResponseTransformer<SdkResponse> initialTransformer =
-        //     (FileAsyncResponseTransformer<SdkResponse>) AsyncResponseTransformer.<SdkResponse>toFile(testFile);
 
         AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = transformerFunction.apply(testFile);
         createFileIfNeeded(initialTransformer);
@@ -151,6 +147,7 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void cancel() {
+                // unused for tests
             }
         });
     }
@@ -212,6 +209,7 @@ class FileAsyncResponseTransformerPublisherTest {
 
             @Override
             public void onComplete() {
+                // unused for test
             }
         });
 
@@ -228,7 +226,7 @@ class FileAsyncResponseTransformerPublisherTest {
             initialTransformer.config().fileWriteOption() == FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION
             ? (int) initialTransformer.position()
             : 0;
-        assertThat(fileContent.length).isEqualTo(80 + offset);
+        assertThat(fileContent).hasSize(80 + offset);
         for (int i = 0; i < numTransformers; i++) {
             int startPos = i * 10;
             byte[] expectedData = new byte[10];
@@ -290,7 +288,7 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     @Test
-    void createOrAppendToExisting_shouldThrowException() throws Exception {
+    void createOrAppendToExisting_shouldThrowException() {
         AsyncResponseTransformer<Object, Object> initialTransformer = AsyncResponseTransformer.toFile(
             testFile,
             FileTransformerConfiguration.builder()

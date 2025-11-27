@@ -39,11 +39,9 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
     implements SdkPublisher<AsyncResponseTransformer<T, T>> {
-    private static final Logger log = Logger.loggerFor(FileAsyncResponseTransformerPublisher.class);
 
     private final Path path;
     private final FileTransformerConfiguration initialConfig;
-    private final long initialPosition;
     private Subscriber<?> subscriber;
     private final AtomicLong transformerCount;
 
@@ -54,7 +52,6 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                         != FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING,
                         "CREATE_OR_APPEND_TO_EXISTING is not supported for non-serial operations");
         this.initialConfig = Validate.paramNotNull(responseTransformer.config(), "fileTransformerConfiguration");
-        this.initialPosition = responseTransformer.position();
         this.transformerCount = new AtomicLong(0);
     }
 
