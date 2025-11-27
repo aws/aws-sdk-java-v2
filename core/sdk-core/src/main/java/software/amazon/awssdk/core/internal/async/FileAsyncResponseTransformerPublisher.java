@@ -28,7 +28,6 @@ import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.ContentRangeParser;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
