@@ -141,8 +141,6 @@ public class IntermediateModelBuilder {
 
         customization.postprocess(fullModel);
 
-        linkMembersToShapes(fullModel);
-
         log.info("{} shapes remained after applying customizations.", fullModel.getShapes().size());
 
         Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
