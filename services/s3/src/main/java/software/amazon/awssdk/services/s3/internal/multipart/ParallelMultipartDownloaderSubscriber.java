@@ -114,7 +114,7 @@ public class ParallelMultipartDownloaderSubscriber
     private final Map<Integer, CompletableFuture<GetObjectResponse>> inFlightRequests = new ConcurrentHashMap<>();
 
     /**
-     * Trasck the amount of in flight requests
+     * Track the amount of in flight requests
      */
     private final AtomicInteger inFlightRequestsNum = new AtomicInteger(0);
 
@@ -221,9 +221,12 @@ public class ParallelMultipartDownloaderSubscriber
         if (currentPartNum == 1) {
             sendFirstRequest(asyncResponseTransformer);
         } else {
-            pendingTransformers.offer(Pair.of(currentPartNum, asyncResponseTransformer));
             totalPartsFuture.thenAccept(
-                totalParts -> processingRequests(asyncResponseTransformer, currentPartNum, totalParts));
+                totalParts -> {
+                    if (currentPartNum <= totalParts) {
+                        processingRequests(asyncResponseTransformer, currentPartNum, totalParts);
+                    }
+                });
         }
     }
 
@@ -258,7 +261,6 @@ public class ParallelMultipartDownloaderSubscriber
 
         CompletableFuture<GetObjectResponse> response = s3.getObject(request, asyncResponseTransformer);
 
-        inFlightRequestsNum.incrementAndGet();
         inFlightRequests.put(currentPartNumber, response);
         CompletableFutureUtils.forwardExceptionTo(resultFuture, response);
 
@@ -272,7 +274,6 @@ public class ParallelMultipartDownloaderSubscriber
             log.debug(() -> "Completed part: " + currentPartNumber);
 
             inFlightRequests.remove(currentPartNumber);
-            inFlightRequestsNum.decrementAndGet();
             completedParts.incrementAndGet();
             MultipartDownloadUtils.multipartDownloadResumeContext(getObjectRequest)
                                   .ifPresent(ctx -> ctx.addCompletedPart(currentPartNumber));
