@@ -77,9 +77,9 @@ public final class MultipartUploadTestUtils {
 
                 @Override
                 public CompletableFuture<PutObjectResponse> answer(InvocationOnMock invocationOnMock) {
-                    AsyncRequestBody AsyncRequestBody = invocationOnMock.getArgument(1);
+                    AsyncRequestBody asyncRequestBody = invocationOnMock.getArgument(1);
                     // Draining the request body
-                    AsyncRequestBody.subscribe(b -> {
+                    asyncRequestBody.subscribe(b -> {
                     });
 
                     return CompletableFuture.completedFuture(PutObjectResponse.builder()
