@@ -19,8 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.STANDARD_ASYNC;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -79,7 +77,7 @@ public class UploadAsyncRegressionTesting extends UploadStreamingRegressionTesti
         ClientOverrideConfiguration.Builder overrideConfiguration =
             ClientOverrideConfiguration.builder()
                                        .addExecutionInterceptor(recorder)
-                                       .apiCallTimeout(Duration.of(30, ChronoUnit.SECONDS));
+                                       .apiCallTimeout(API_CALL_TIMEOUT);
 
         if (config.isPayloadSigning()) {
             overrideConfiguration.addExecutionInterceptor(new EnablePayloadSigningInterceptor());

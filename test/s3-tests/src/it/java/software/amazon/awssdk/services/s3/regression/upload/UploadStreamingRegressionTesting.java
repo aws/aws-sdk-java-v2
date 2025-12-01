@@ -30,6 +30,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,6 +77,7 @@ public class UploadStreamingRegressionTesting extends BaseS3RegressionTest {
     private static final Logger LOG = Logger.loggerFor(UploadStreamingRegressionTesting.class);
 
     private static final ExecutorService ASYNC_REQUEST_BODY_EXECUTOR = Executors.newSingleThreadExecutor();
+    static final Duration API_CALL_TIMEOUT = Duration.ofMinutes(1);
 
     static final byte[] smallContent = "Hello world".getBytes(StandardCharsets.UTF_8);
     static final byte[] largeContent = largeContent();
