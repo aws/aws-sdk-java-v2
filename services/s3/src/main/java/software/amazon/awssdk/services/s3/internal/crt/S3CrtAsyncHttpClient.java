@@ -105,7 +105,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                                  .withCredentialsProvider(s3NativeClientConfiguration.credentialsProvider())
                                  .withClientBootstrap(s3NativeClientConfiguration.clientBootstrap())
                                  .withTlsContext(s3NativeClientConfiguration.tlsContext())
-                                 .withPartSize(s3NativeClientConfiguration.partSizeBytes())
                                  .withMultipartUploadThreshold(s3NativeClientConfiguration.thresholdInBytes())
                                  .withComputeContentMd5(false)
                                  .withEnableS3Express(true)
@@ -121,6 +120,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (Boolean.FALSE.equals(s3NativeClientConfiguration.isUseEnvironmentVariableValues())) {
             options.withProxyEnvironmentVariableSetting(disabledHttpProxyEnvironmentVariableSetting());
         }
+        Optional.ofNullable(s3NativeClientConfiguration.partSizeBytes()).ifPresent(options::withPartSize);
         Optional.ofNullable(s3NativeClientConfiguration.proxyOptions()).ifPresent(options::withProxyOptions);
         Optional.ofNullable(s3NativeClientConfiguration.connectionTimeout())
                 .map(Duration::toMillis)
