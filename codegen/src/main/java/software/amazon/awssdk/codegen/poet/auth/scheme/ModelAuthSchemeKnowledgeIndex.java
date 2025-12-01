@@ -98,16 +98,19 @@ public final class ModelAuthSchemeKnowledgeIndex {
      */
     public Map<List<String>, List<AuthSchemeCodegenMetadata>> operationsToMetadata() {
 
-        Set<String> chunkedEncodingOps = operationsShouldUseChunkedEncoding();
+        Set<String> allChunkedOps = operationsShouldUseChunkedEncoding();
         List<AuthSchemeCodegenMetadata> serviceDefaults = serviceDefaultAuthSchemeCodeGenMetadata();
 
         Map<List<String>, List<AuthSchemeCodegenMetadata>> result = new LinkedHashMap<>();
-        Set<String> processedChunkedOps = new HashSet<>();
+        Set<String> chunkedOpsWithAuthTrait = new HashSet<>();
 
-        processOperationsWithAuthTraits(chunkedEncodingOps, serviceDefaults, result, processedChunkedOps);
+        // Add metadata for all operations with auth traits. If an operation also supports chunked encoding, merge chunked
+        // encoding trait with the defined auth traits
+        processAllOperationsWithAuthTraits(allChunkedOps, serviceDefaults, result, chunkedOpsWithAuthTrait);
 
-        // Handle chunked encoding operations that use service defaults
-        processRemainingChunkedEncodingOperations(result, chunkedEncodingOps, processedChunkedOps, serviceDefaults);
+        // Add metadata for remaining chunked encoding operations (chunked encoding operations without auth trait) by merging
+        // chunked encoding trait with service defaults
+        processChunkedEncodingOperationsWithoutAuthTraits(result, allChunkedOps, chunkedOpsWithAuthTrait, serviceDefaults);
 
         // Add service-wide defaults
         result.put(Collections.emptyList(), serviceDefaults);
@@ -170,8 +173,6 @@ public final class ModelAuthSchemeKnowledgeIndex {
     }
 
     /**
-     * Determines if an operation should be included based on whether it has auth traits.
-     *
      * <p>Returns false if:
      * <ul>
      *   <li>The operation has no modeled auth traits (empty auth list)</li>
@@ -201,22 +202,22 @@ public final class ModelAuthSchemeKnowledgeIndex {
             String.format("Operation %s has auth trait and requires special handling: ", op.getKey()));
     }
 
-    private void processOperationsWithAuthTraits(Set<String> chunkedEncodingOps,
-                                                 List<AuthSchemeCodegenMetadata> serviceDefaults,
-                                                 Map<List<String>, List<AuthSchemeCodegenMetadata>> result,
-                                                 Set<String> processedChunkedOps) {
+    private void processAllOperationsWithAuthTraits(Set<String> allChunkedEncodingOps,
+                                                    List<AuthSchemeCodegenMetadata> serviceDefaults,
+                                                    Map<List<String>, List<AuthSchemeCodegenMetadata>> result,
+                                                    Set<String> chunkedEncodingOpsWithAuthTrait) {
         Map<List<String>, List<AuthTrait>> operationsToAuthOption = operationsToAuthOptions();
         for (Map.Entry<List<String>, List<AuthTrait>> entry : operationsToAuthOption.entrySet()) {
             List<String> allOperations = entry.getKey();
             List<AuthTrait> authTraits = entry.getValue();
 
-            // Split operations into regular and chunked encoding
+            // Split operations with auth trait into regular and chunked encoding
             List<String> regularOps = new ArrayList<>();
             List<String> chunkedOps = new ArrayList<>();
             for (String op : allOperations) {
-                if (chunkedEncodingOps.contains(op)) {
+                if (allChunkedEncodingOps.contains(op)) {
                     chunkedOps.add(op);
-                    processedChunkedOps.add(op);
+                    chunkedEncodingOpsWithAuthTrait.add(op);
                 } else {
                     regularOps.add(op);
                 }
@@ -253,14 +254,14 @@ public final class ModelAuthSchemeKnowledgeIndex {
         return false;
     }
 
-    private void processRemainingChunkedEncodingOperations(Map<List<String>, List<AuthSchemeCodegenMetadata>> result,
-                                                           Set<String> allChunkedOps,
-                                                           Set<String> processedChunkedOps,
-                                                           List<AuthSchemeCodegenMetadata> serviceDefaults) {
-        Set<String> unprocessedOps = new HashSet<>(allChunkedOps);
-        unprocessedOps.removeAll(processedChunkedOps);
-        if (!unprocessedOps.isEmpty()) {
-            result.put(new ArrayList<>(unprocessedOps), addChunkedEncodingEnabledProperty(serviceDefaults));
+    private void processChunkedEncodingOperationsWithoutAuthTraits(Map<List<String>, List<AuthSchemeCodegenMetadata>> result,
+                                                                   Set<String> allChunkedOps,
+                                                                   Set<String> chunkedOpsWithAuthTrait,
+                                                                   List<AuthSchemeCodegenMetadata> serviceDefaults) {
+        Set<String> remainingChunkedOps = new HashSet<>(allChunkedOps);
+        remainingChunkedOps.removeAll(chunkedOpsWithAuthTrait);
+        if (!remainingChunkedOps.isEmpty()) {
+            result.put(new ArrayList<>(remainingChunkedOps), addChunkedEncodingEnabledProperty(serviceDefaults));
         }
     }
 
