@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonConnectCampaignServiceV2",
+    "contributor": "",
+    "description": "This release added support for new WhatsApp channel and Journey type outbound campaign"
+}
