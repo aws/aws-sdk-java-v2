@@ -167,7 +167,7 @@ public final class UploadWithUnknownContentLengthHelper {
                 NullPointerException exception = new NullPointerException("asyncRequestBody passed to onNext MUST NOT be null.");
                 multipartUploadHelper.failRequestsElegantly(futures,
                                                             exception, uploadId, returnFuture, putObjectRequest);
-                return;
+                throw exception;
             }
 
             if (isDone) {

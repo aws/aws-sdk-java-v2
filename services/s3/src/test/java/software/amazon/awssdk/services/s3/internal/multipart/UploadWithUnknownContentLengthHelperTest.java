@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -164,7 +165,8 @@ public class UploadWithUnknownContentLengthHelperTest {
 
         Subscription subscription = mock(Subscription.class);
         subscriber.onSubscribe(subscription);
-        subscriber.onNext(null);
+        assertThatThrownBy(() -> subscriber.onNext(null)).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "asyncRequestBody");
 
         assertThat(future).isCompletedExceptionally();
         future.exceptionally(throwable -> {
