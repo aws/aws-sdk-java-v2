@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Clean Rooms ML",
-    "contributor": "",
-    "description": "AWS Clean Rooms ML now supports privacy-enhancing synthetic dataset generation for custom ML training."
-}

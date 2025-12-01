@@ -1,4 +1,93 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.39.6__ __2025-11-30__
+## __AWS Clean Rooms ML__
+  - ### Features
+    - AWS Clean Rooms ML now supports privacy-enhancing synthetic dataset generation for custom ML training.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - AWS Clean Rooms now supports privacy-enhancing synthetic dataset generation for custom ML training.
+
+## __AWS Glue__
+  - ### Features
+    - feature: Glue: Add support for Iceberg materialized view in Glue Data Catalog, including updated CreateTable API to support materialized views and new APIs for managing data refresh for materialized views. feature: Glue: Add support for Iceberg table encryption keys and struct field defaults.
+
+## __AWS Lambda__
+  - ### Features
+    - Launching Lambda Managed Instances - a new feature to run Lambda on EC2.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release supports 1/multi-product transactions via offer sets. DescribeAgreement and SearchAgreements APIs now return offer set IDs. SearchAgreements also supports filtering by offer set ID and 2/variable payment pricing terms will be returned through GetAgreementTerms.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release introduces offer set entity in AWS Marketplace Catalog API to enable multi-product transaction. Offer set enables sellers to group multiple private offers into a single-click purchase experience, simplifying procurement for customers purchasing multi-product solutions.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Support audio and video ingestion on Bedrock Knowledge Bases.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Support audio and video content retrieval on Bedrock Knowledge Bases.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds support for MCP servers via the ApplicationType field, allowing customers to register their Bedrock AgentCore gateways as third party applications.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces, CRUD APIs for the DomainObjectType and Recommender resources, APIs to offer statistical insights on Object Type Attributes, Changes to SegmentDefinition APIs to support SQL queries to create Segments, and Changes to Domain APIs to support Data Store.
+
+## __Amazon Connect Participant Service__
+  - ### Features
+    - Amazon Connect now supports message processing that intercepts and processes chat messages before they reach any participant.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This is a combined re:Invent release for Amazon Connect.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This release adds support for EKS Capabilities
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for speech-to-speech models for human-like, adaptive, and expressive voice interactions. Also adds support for speech model preference, allowing customers to select which speech model they want to use for speech-to-text requests.
+
+## __Amazon Personalize__
+  - ### Features
+    - This release adds support for includedDatasetColumns and performIncrementalUpdate in solution APIs, and rankingInfluence in campaign and batch inference APIs.
+
+## __Amazon Q Connect__
+  - ### Features
+    - New AIAgent types: Orchestration for ModelContextProtocol tool integration, CaseSummary for Amazon Connect Case summaries, NoteTaker for Agent Assistance notes. Added ListSpans and Retrieve APIs. Enhanced Q in Connect AssistantAssociationType to support Bring Your Own Bedrock Knowledge Bases.
+
+## __Amazon Route 53 Global Resolver__
+  - ### Features
+    - Add SDK for Amazon Route 53 Global Resolver, a fully managed DNS resolver service that offers broad DNS-filtering security controls.
+
+## __AmazonConnectCampaignServiceV2__
+  - ### Features
+    - This release added support for new WhatsApp channel and Journey type outbound campaign
+
+## __Partner Central Account API__
+  - ### Features
+    - Initial GA launch of Partner Central Account
+
+## __Partner Central Benefits API__
+  - ### Features
+    - Initial GA launch of Partner Central Benefits
+
+## __Partner Central Selling API__
+  - ### Features
+    - New Features: Lead Management APIs for capturing and nurturing leads Lead invitation support for partner collaboration Lead-to-opportunity conversion operations AWS Marketplace OfferSets support for opportunities
+
+## __s3__
+  - ### Features
+    - Pass null part-size to CRT when not configured
+
 # __2.39.5__ __2025-11-26__
 ## __AWS Compute Optimizer__
   - ### Features

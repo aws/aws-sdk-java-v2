@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>aws-sdk-java-pom</artifactId>
-        <version>2.39.6-SNAPSHOT</version>
+        <version>2.39.6</version>
     </parent>
     <artifactId>services</artifactId>
     <name>AWS Java SDK :: Services</name>
@@ -432,6 +432,9 @@
         <module>partnercentralchannel</module>
         <module>computeoptimizerautomation</module>
         <module>sagemakerruntimehttp2</module>
+        <module>partnercentralaccount</module>
+        <module>route53globalresolver</module>
+        <module>partnercentralbenefits</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
