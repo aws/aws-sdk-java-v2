@@ -23,19 +23,21 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
+import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
  * S3-specific signing attributes attached to the execution.
  *
- * @deprecated Signer execution attributes have been deprecated in favor of signer properties, set on the auth scheme's signer
- * option.
+ * @deprecated Signer execution attributes have been deprecated in favor of {@link SignerProperty}s, set on the
+ * {@link AuthSchemeOption}. See {@link AuthSchemeProvider} and {@link SignerProperty} for how to use it.
  */
 @SdkProtectedApi
 @Deprecated
