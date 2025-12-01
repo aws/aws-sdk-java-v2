@@ -24,7 +24,6 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 
 
 /**
