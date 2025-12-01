@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "s3",
-    "contributor": "",
-    "description": "Pass null part-size to CRT when not configured"
-}
