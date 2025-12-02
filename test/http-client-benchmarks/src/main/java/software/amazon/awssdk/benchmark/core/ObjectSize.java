@@ -19,7 +19,7 @@ public enum ObjectSize {
 
     SMALL(1024L * 1024),
     MEDIUM(8L * 1024 * 1024),
-    LARGE(64L * 1024 * 1024),;
+    LARGE(64L * 1024 * 1024);
 
     private final long sizeInBytes;
 
