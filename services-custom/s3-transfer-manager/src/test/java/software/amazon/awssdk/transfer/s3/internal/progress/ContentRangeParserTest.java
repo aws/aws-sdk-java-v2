@@ -17,12 +17,14 @@ package software.amazon.awssdk.transfer.s3.internal.progress;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.utils.ContentRangeParser;
+import software.amazon.awssdk.utils.Pair;
 
 class ContentRangeParserTest {
 
@@ -49,6 +51,20 @@ class ContentRangeParserTest {
             Arguments.of("mib 1-2/3", OptionalLong.empty()),
             Arguments.of("mib/bla 1-2/3", OptionalLong.empty()),
             Arguments.of("bla bla bla", OptionalLong.empty()));
+    }
+
+    @ParameterizedTest
+    @MethodSource("testRange")
+    void testRange(String contentRange, Optional<Pair<Long, Long>> expected) {
+        assertThat(ContentRangeParser.range(contentRange)).isEqualTo(expected);
+    }
+
+    static Stream<Arguments> testRange() {
+        return Stream.of(
+            Arguments.of("bytes 0-9/10", Optional.of(Pair.of(0L, 9L))),
+            Arguments.of("bytes */10", Optional.empty()),
+            Arguments.of("bytes 12000000-17999999/30000000", Optional.of(Pair.of(12000000L, 17999999L)))
+        );
     }
 
 }
