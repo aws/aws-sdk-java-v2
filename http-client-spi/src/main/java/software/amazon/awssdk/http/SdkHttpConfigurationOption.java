@@ -60,8 +60,8 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("ConnectionMaxIdleTimeout", Duration.class);
 
     /**
-     * Timeout after which a connection should be closed, regardless of whether it is idle. A value less than or equal to 0
-     * indicates an infinite amount of time.
+     * Timeout after which a connection should be closed, regardless of whether it is idle. Zero indicates an infinite amount
+     * of time.
      */
     public static final SdkHttpConfigurationOption<Duration> CONNECTION_TIME_TO_LIVE =
             new SdkHttpConfigurationOption<>("ConnectionTimeToLive", Duration.class);
@@ -142,7 +142,7 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(2);
     private static final Duration DEFAULT_CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration DEFAULT_CONNECTION_MAX_IDLE_TIMEOUT = Duration.ofSeconds(60);
-    private static final Duration DEFAULT_CONNECTION_TIME_TO_LIVE = Duration.ofMillis(-1);
+    private static final Duration DEFAULT_CONNECTION_TIME_TO_LIVE = Duration.ZERO;
     /**
      * 5 seconds = 3 seconds (RTO for 2 packets loss) + 2 seconds (startup latency and RTT buffer)
      */
