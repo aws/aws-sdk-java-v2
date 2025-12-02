@@ -110,24 +110,7 @@ public class VirtualThreadBenchmark {
                 "Virtual threads require Java 21 or higher. Current version: " + JavaSystemSetting.JAVA_VERSION);
         }
 
-        SdkHttpClient.Builder<?> httpClientBuilder;
-
-        switch (client) {
-            case Apache5:
-                httpClientBuilder = Apache5HttpClient.builder();
-                break;
-            case Apache4:
-                httpClientBuilder = ApacheHttpClient.builder();
-                break;
-            case UrlConnection:
-                httpClientBuilder = UrlConnectionHttpClient.builder();
-                break;
-            case Crt:
-                httpClientBuilder = AwsCrtHttpClient.builder();
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown HTTP client: " + client);
-        }
+        SdkHttpClient.Builder<?> httpClientBuilder = httpClientBuilder();
 
         s3Client = S3Client.builder()
                            .region(Region.US_WEST_2)
@@ -216,6 +199,21 @@ public class VirtualThreadBenchmark {
             virtualThreadExecutor.submit(runnable).get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Error during execution", e);
+        }
+    }
+
+    SdkHttpClient.Builder<?> httpClientBuilder() {
+        switch (client) {
+            case Apache5:
+                return Apache5HttpClient.builder();
+            case Apache4:
+                return ApacheHttpClient.builder();
+            case UrlConnection:
+                return UrlConnectionHttpClient.builder();
+            case Crt:
+                return AwsCrtHttpClient.builder();
+            default:
+                throw new IllegalArgumentException("Unknown HTTP client: " + client);
         }
     }
 }

@@ -109,18 +109,12 @@ public class Apache5Benchmark implements CoreBenchmark {
 
     @Benchmark
     public void simpleGet(Blackhole blackhole) {
-        ResponseInputStream<GetObjectResponse> object = s3Client.getObject(
-            r -> r.bucket(benchmarkHelper.bucketName()).key(benchmarkHelper.objKey(objectSize)));
-        blackhole.consume(object.response());
-        IoUtils.drainInputStream(object);
+        executeGet(blackhole);
     }
 
     @Benchmark
     public void simplePut(Blackhole blackhole) {
-        PutObjectResponse response = s3Client.putObject(
-            r -> r.bucket(benchmarkHelper.bucketName()).key("Apache4Benchmark-" + Thread.currentThread().getName()),
-            benchmarkHelper.requestBody(objectSize));
-        blackhole.consume(response);
+        executePut(blackhole);
     }
 
     @Benchmark

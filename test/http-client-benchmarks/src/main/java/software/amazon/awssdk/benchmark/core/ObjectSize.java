@@ -17,9 +17,9 @@ package software.amazon.awssdk.benchmark.core;
 
 public enum ObjectSize {
 
-    SMALL(1024 * 1024),
-    MEDIUM(8 * 1024 * 1024),
-    LARGE(64 * 1024 * 1024),;
+    SMALL(1024L * 1024),
+    MEDIUM(8L * 1024 * 1024),
+    LARGE(64L * 1024 * 1024),;
 
     private final long sizeInBytes;
 

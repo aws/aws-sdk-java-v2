@@ -127,7 +127,7 @@ public class Apache4Benchmark implements CoreBenchmark {
         runMultiThreaded(platformThreadPool, threadCount, blackhole, false);
     }
 
-    private void executeGet(Blackhole blackhole) throws Exception {
+    private void executeGet(Blackhole blackhole) {
         ResponseInputStream<GetObjectResponse> object = s3Client.getObject(
             r -> r.bucket(benchmarkHelper.bucketName()).key(benchmarkHelper.objKey(objectSize)));
         blackhole.consume(object.response());
