@@ -70,12 +70,14 @@ public class AsyncVirtualThreadBenchmark {
     static {
         try {
             Path tmp = Paths.get(AsyncVirtualThreadBenchmark.class.getSimpleName() + "-stdout-" + UUID.randomUUID() + ".log");
-            PrintStream fileOut = new PrintStream(Files.newOutputStream(tmp, StandardOpenOption.APPEND, StandardOpenOption.CREATE));
+            PrintStream fileOut = new PrintStream(
+                Files.newOutputStream(tmp, StandardOpenOption.APPEND, StandardOpenOption.CREATE));
             System.setOut(fileOut);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create STDOUT file", e);
         }
     }
+
     public enum Client {
         Netty,
         Crt

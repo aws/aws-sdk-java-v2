@@ -28,9 +28,14 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
  */
 public interface S3Wrapper {
     void createBucket(CreateBucketRequest request);
+
     void putObject(PutObjectRequest request, Path file);
+
     ListObjectsV2Response listObjectsV2(ListObjectsV2Request request);
+
     void deleteObject(DeleteObjectRequest request);
+
     void deleteBucket(DeleteBucketRequest request);
+
     void waitUntilBucketExists(String bucketName);
 }

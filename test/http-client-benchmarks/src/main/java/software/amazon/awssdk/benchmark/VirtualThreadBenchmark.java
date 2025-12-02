@@ -57,7 +57,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.JavaSystemSetting;
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * Http client benchmark using virtual threads. This class requires Java 21+.
@@ -73,12 +72,14 @@ public class VirtualThreadBenchmark {
         // benchmark run.
         try {
             Path tmp = Paths.get(VirtualThreadBenchmark.class.getSimpleName() + "-stdout-" + UUID.randomUUID() + ".log");
-            PrintStream fileOut = new PrintStream(Files.newOutputStream(tmp, StandardOpenOption.APPEND, StandardOpenOption.CREATE));
+            PrintStream fileOut = new PrintStream(
+                Files.newOutputStream(tmp, StandardOpenOption.APPEND, StandardOpenOption.CREATE));
             System.setOut(fileOut);
         } catch (IOException e) {
             throw new RuntimeException("Unable to create STDOUT file", e);
         }
     }
+
     public enum Client {
         Apache5,
         Apache4,

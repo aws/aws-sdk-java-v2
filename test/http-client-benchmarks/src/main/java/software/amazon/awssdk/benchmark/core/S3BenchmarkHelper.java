@@ -59,7 +59,7 @@ public class S3BenchmarkHelper {
 
     public void setup() {
         try {
-            this.bucketName = name.toLowerCase(Locale.ENGLISH)+ "-bucket-" + System.currentTimeMillis();
+            this.bucketName = name.toLowerCase(Locale.ENGLISH) + "-bucket-" + System.currentTimeMillis();
             // Create bucket
             s3Wrapper.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
 

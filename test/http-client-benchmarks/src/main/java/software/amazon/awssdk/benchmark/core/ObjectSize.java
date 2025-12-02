@@ -23,7 +23,7 @@ public enum ObjectSize {
 
     private final long sizeInBytes;
 
-    private ObjectSize(long sizeInBytes) {
+    ObjectSize(long sizeInBytes) {
         this.sizeInBytes = sizeInBytes;
     }
 
