@@ -132,6 +132,13 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
     private static final String CLIENT_NAME = "Apache5Preview";
 
+    // The global SdkHttpConfigurationOption.DEFAULT_CONNECTION_TIME_TO_LIVE is defined as Duration.ZERO to indicate infinite
+    // TTL. However, Apache 5.x defines 0 as immediate expiry. Shadow this default to -1 instead so that we still default to
+    // infinite TTL when not explicitly configured.
+    private static final AttributeMap APACHE5_HTTP_DEFAULTS = AttributeMap.builder()
+        .put(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE, Duration.ofMillis(-1))
+        .build();
+
     private static final Logger log = Logger.loggerFor(Apache5HttpClient.class);
     private static final HostnameVerifier DEFAULT_HOSTNAME_VERIFIER = new DefaultHostnameVerifier();
     private final Apache5HttpRequestFactory apacheHttpRequestFactory = new Apache5HttpRequestFactory();
@@ -736,8 +743,10 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         @Override
         public SdkHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
-            AttributeMap resolvedOptions = standardOptions.build().merge(serviceDefaults).merge(
-                SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
+            AttributeMap resolvedOptions = standardOptions.build()
+                                                          .merge(serviceDefaults)
+                                                          .merge(APACHE5_HTTP_DEFAULTS)
+                                                          .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS);
             return new Apache5HttpClient(this, resolvedOptions);
         }
     }
@@ -769,7 +778,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                 .setSocketTimeout(Timeout.ofMilliseconds(
                                     standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
             Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isNegative()) {
+            if (!connectionTtl.isNegative() && !connectionTtl.isZero()) {
                 // Note: TTL=0 is infinite in 4.x vs immediate expiration in 5.x
                 connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
             }
