@@ -17,7 +17,6 @@ package software.amazon.awssdk.identity.spi.internal;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -27,7 +26,6 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -38,20 +36,13 @@ import software.amazon.awssdk.utils.Validate;
 @Immutable
 @SdkInternalApi
 public final class DefaultIdentityProviders implements IdentityProviders {
-    // /**
-    //  * TODO(sra-identity-auth): Currently, some customers assume we won't interact with the identity providers when we create
-    //  * the client. This isn't true - we need to call identityType. To TEMPORARILY work around those customer's tests failing,
-    //  * this is marked lazy. Once we fully migrate over to the SRA as the default code path, we should remove this lazy and
-    //  * ticket everyone in live who is making those bad assumptions.
-    //  */
+
     private final Map<Class<?>, IdentityProvider<?>> identityProviders;
-    private final List<IdentityProvider<?>> identityProvidersList;
 
     private DefaultIdentityProviders(BuilderImpl builder) {
-        this.identityProvidersList = new ArrayList<>(builder.identityProviders);
-        this.identityProviders = identityProvidersList.stream().collect(
+        this.identityProviders = builder.identityProviders.stream().collect(
             Collectors.toMap(identityProvider -> identityProvider.identityType(),
-                             Function.identity()));
+                             Function.identity(), (m1, m2) -> m2, HashMap::new));
     }
 
     public static Builder builder() {
@@ -71,7 +62,7 @@ public final class DefaultIdentityProviders implements IdentityProviders {
     @Override
     public String toString() {
         return ToString.builder("IdentityProviders")
-                       .add("identityProviders", identityProvidersList)
+                       .add("identityProviders", identityProviders.values())
                        .build();
     }
 
@@ -82,7 +73,7 @@ public final class DefaultIdentityProviders implements IdentityProviders {
         }
 
         private BuilderImpl(DefaultIdentityProviders identityProviders) {
-            this.identityProviders.addAll(identityProviders.identityProvidersList);
+            this.identityProviders.addAll(identityProviders.identityProviders.values());
         }
 
         @Override
