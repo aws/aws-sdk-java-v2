@@ -26,6 +26,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
@@ -88,13 +89,24 @@ public class ManualTest {
                                                      .s3Client(s3AsyncClient)
                                                      .build();
 
-        manager.uploadFile(
+        CompletableFuture<CompletedFileUpload> fut = manager.uploadFile(
             UploadFileRequest.builder()
                              .putObjectRequest(
                                  put -> put.key(key).bucket("do-not-delete-java-hagrid-test"))
                              .source(path)
                              .addTransferListener(LoggingTransferListener.create())
-                             .build());
+                             .build())
+                .completionFuture();
+
+        long start = System.currentTimeMillis();
+        CompletedFileUpload res = fut.join();
+        long end = System.currentTimeMillis();
+        System.out.println(res.response());
+        long latencyInSec = (end - start) / 1000;
+        System.out.printf("total time for %d inflight: %d sec%n", maxInflightDownloads, latencyInSec);
+        printOutResult(latencyInSec, Paths.get(testPath).toFile().length());
+
+
     }
 
     public static void printOutResult(long latency, long contentLengthInByte) {
