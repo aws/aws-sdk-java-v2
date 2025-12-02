@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "S3",
-    "contributor": "",
-    "description": "Add support for parallel download for individual part-get for multipart GetObject in s3 async client and Transfer Manager"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "Support for AgentCore Evaluations and Episodic memory strategy for AgentCore Memory."
-}
