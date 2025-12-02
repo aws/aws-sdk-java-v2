@@ -37,7 +37,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
-import software.amazon.awssdk.benchmark.apache4.Apache4Benchmark;
 import software.amazon.awssdk.benchmark.core.CoreBenchmark;
 import software.amazon.awssdk.benchmark.core.ObjectSize;
 import software.amazon.awssdk.benchmark.core.S3BenchmarkHelper;
