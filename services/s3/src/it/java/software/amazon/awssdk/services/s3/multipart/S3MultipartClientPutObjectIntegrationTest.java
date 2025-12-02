@@ -89,6 +89,7 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Md5Utils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 @Timeout(value = 60, unit = SECONDS)
 public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTestBase {
@@ -102,6 +103,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
     private static ExecutorService executorService = Executors.newFixedThreadPool(5);
     private static byte[] bytes;
     private static byte[] expectedChecksum;
+    private static byte[] expectedChecksumForEmptyString;
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -111,6 +113,7 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
         testFile = new RandomTempFile(OBJ_SIZE);
         bytes = Files.readAllBytes(testFile.toPath());
         expectedChecksum = ChecksumUtils.computeCheckSum(Files.newInputStream(testFile.toPath()));
+        expectedChecksumForEmptyString = ChecksumUtils.computeCheckSum(new StringInputStream(""));
         mpuS3Client = S3AsyncClient
             .builder()
             .region(DEFAULT_REGION)
@@ -137,8 +140,14 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
                                                                        executorService)),
                          Arguments.of("inputStream_unknownLength",
                                       AsyncRequestBody.fromInputStream(new ByteArrayInputStream(bytes), null,
-                                                                       executorService))
-        );
+                                                                       executorService)));
+    }
+
+    public static Stream<Arguments> emptyAsyncRequestBodies() {
+        return Stream.of(Arguments.of("knownLength", AsyncRequestBody.fromString("")),
+                         Arguments.of("unknownLength",
+                                      AsyncRequestBody.fromInputStream(new StringInputStream(""), null,
+                                                                       executorService)));
     }
 
     @BeforeEach
@@ -179,6 +188,17 @@ public class S3MultipartClientPutObjectIntegrationTest extends S3IntegrationTest
 
         assertThat(objContent.response().contentLength()).isEqualTo(testFile.length());
         assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksum);
+    }
+
+    @ParameterizedTest
+    @MethodSource("emptyAsyncRequestBodies")
+    void putObject_variousEmptyRequestBody_objectSentCorrectly(String description, AsyncRequestBody body) throws Exception {
+        mpuS3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), body).join();
+
+        ResponseInputStream<GetObjectResponse> objContent = s3.getObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY),
+                                                                         ResponseTransformer.toInputStream());
+        assertThat(objContent.response().contentLength()).isEqualTo(0);
+        assertThat(ChecksumUtils.computeCheckSum(objContent)).isEqualTo(expectedChecksumForEmptyString);
     }
 
 
