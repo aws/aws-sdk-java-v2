@@ -74,6 +74,7 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
                                               .multipartEnabled(true)
                                               .multipartConfiguration(c -> c.minimumPartSizeInBytes(PART_SIZE))
                                               .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                              .region(DEFAULT_REGION)
                                               .build();
         log.info(() -> "put multipart object");
         s3Client.putObject(r -> r.bucket(TEST_BUCKET).key(TEST_KEY), AsyncRequestBody.fromFile(localFile))
@@ -89,6 +90,7 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
                                      .multipartEnabled(true)
                                      .overrideConfiguration(o -> o.addExecutionInterceptor(this.interceptor))
                                      .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                     .region(DEFAULT_REGION)
                                      .build();
     }
 
