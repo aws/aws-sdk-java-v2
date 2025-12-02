@@ -92,7 +92,7 @@ public class Apache5Benchmark implements CoreBenchmark {
                            .httpClient(httpClient)
                            .build();
 
-        benchmarkHelper = new S3BenchmarkHelper(Apache4Benchmark.class.getSimpleName(), s3Client);
+        benchmarkHelper = new S3BenchmarkHelper(Apache5Benchmark.class.getSimpleName(), s3Client);
         benchmarkHelper.setup();
 
         // Always use platform threads
