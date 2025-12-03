@@ -110,7 +110,7 @@ public class ConnectionTtlTest {
     }
 
     @Test
-    public void execute_ttlIsZero_connectionNotClosed() throws Exception {
+    public void execute_ttlIsZero_connectionClosed() throws Exception {
         TestTlsSocketStrategy socketStrategy = TestTlsSocketStrategy.create();
 
         apache5 = Apache5HttpClient.builder()
@@ -123,7 +123,7 @@ public class ConnectionTtlTest {
         doGetCall(apache5);
 
         List<SSLSocket> sockets = socketStrategy.getCreatedSockets();
-        assertThat(sockets).hasSize(1);
+        assertThat(sockets).hasSize(2);
     }
 
     @Test

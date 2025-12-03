@@ -778,10 +778,7 @@ public final class Apache5HttpClient implements SdkHttpClient {
                                 .setSocketTimeout(Timeout.ofMilliseconds(
                                     standardOptions.get(SdkHttpConfigurationOption.READ_TIMEOUT).toMillis()));
             Duration connectionTtl = standardOptions.get(SdkHttpConfigurationOption.CONNECTION_TIME_TO_LIVE);
-            if (!connectionTtl.isNegative() && !connectionTtl.isZero()) {
-                // Note: TTL=0 is infinite in 4.x vs immediate expiration in 5.x
-                connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
-            }
+            connectionConfigBuilder.setTimeToLive(TimeValue.ofMilliseconds(connectionTtl.toMillis()));
             return connectionConfigBuilder.build();
         }
 
