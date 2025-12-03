@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.1__ __2025-12-03__
+## __Amazon Bedrock__
+  - ### Features
+    - Adding support in Amazon Bedrock to customize models with reinforcement fine-tuning (RFT) and support for updating the existing Custom Model Deployments.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fix NPE issue thrown when using multipart S3 client to upload an object containing empty content without supplying a content length. See [#6464](https://github.com/aws/aws-sdk-java-v2/issues/6464)
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Introduces Serverless training: A fully managed compute infrastructure that abstracts away all infrastructure complexity, allowing you to focus purely on model development. Added AI model customization assets used to train, refine, and evaluate custom models during the model customization process.
+
 # __2.40.0__ __2025-12-02__
 ## __AWS Cost Explorer Service__
   - ### Features
