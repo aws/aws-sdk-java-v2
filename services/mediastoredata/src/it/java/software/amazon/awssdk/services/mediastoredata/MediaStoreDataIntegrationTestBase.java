@@ -37,8 +37,6 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.ContentStreamProvider;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -61,15 +59,12 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
     @BeforeAll
     public static void init() {
         credentialsProvider = getCredentialsProvider();
-        SdkHttpClient sdkHttpClient = ApacheHttpClient.builder().build();
         mediaStoreClient = MediaStoreClient.builder()
                                            .credentialsProvider(credentialsProvider)
-                                           .httpClient(sdkHttpClient)
                                            .build();
         StsClient stsClient = StsClient.builder()
                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                                        .region(Region.US_WEST_2)
-                                       .httpClient(sdkHttpClient)
                                        .build();
         String accountId = stsClient.getCallerIdentity().account();
         String containerName = "do-not-delete-mediastoredata-tests-container-" + accountId;

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
@@ -44,7 +44,7 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
         syncClientWithApache = MediaStoreDataClient.builder()
                                                    .endpointOverride(uri)
                                                    .credentialsProvider(credentialsProvider)
-                                                   .httpClient(ApacheHttpClient.builder().build())
+                                                   .httpClient(Apache5HttpClient.builder().build())
                                                    .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor()))
                                                    .build();
 

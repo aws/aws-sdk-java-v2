@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.mediastoredata.model.GetObjectRequest;
@@ -71,7 +70,6 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
         syncClient = MediaStoreDataClient.builder()
                                          .endpointOverride(uri)
                                          .credentialsProvider(credentialsProvider)
-                                         .httpClient(ApacheHttpClient.builder().build())
                                          .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor())
                                                                       .addExecutionInterceptor(new CaptureContentEncodingHeaderInterceptor())
                                                                       .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
