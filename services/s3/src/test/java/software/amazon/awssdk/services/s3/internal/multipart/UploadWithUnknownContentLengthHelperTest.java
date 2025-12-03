@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCompleteMultipartCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulCreateMultipartCall;
+import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulPutObjectCall;
 import static software.amazon.awssdk.services.s3.internal.multipart.utils.MultipartUploadTestUtils.stubSuccessfulUploadPartCalls;
 
 import java.io.FileInputStream;
@@ -55,6 +57,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
+import software.amazon.awssdk.utils.StringInputStream;
 
 public class UploadWithUnknownContentLengthHelperTest {
     private static final String BUCKET = "bucket";
@@ -117,10 +120,60 @@ public class UploadWithUnknownContentLengthHelperTest {
     }
 
     @Test
+    void uploadObject_emptyBody_shouldSucceed() {
+        stubSuccessfulPutObjectCall(s3AsyncClient);
+
+        BlockingInputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingInputStream(null);
+        CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), body);
+        body.writeInputStream(new StringInputStream(""));
+        future.join();
+
+        ArgumentCaptor<PutObjectRequest> requestArgumentCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+        ArgumentCaptor<AsyncRequestBody> requestBodyArgumentCaptor = ArgumentCaptor.forClass(AsyncRequestBody.class);
+        verify(s3AsyncClient, times(1)).putObject(requestArgumentCaptor.capture(),
+                                                                 requestBodyArgumentCaptor.capture());
+
+        List<PutObjectRequest> actualRequests = requestArgumentCaptor.getAllValues();
+        List<AsyncRequestBody> actualRequestBodies = requestBodyArgumentCaptor.getAllValues();
+        assertThat(actualRequestBodies).hasSize(1);
+        assertThat(actualRequests).hasSize(1);
+
+        PutObjectRequest putObjectRequest = actualRequests.get(0);
+        assertThat(putObjectRequest.bucket()).isEqualTo(BUCKET);
+        assertThat(putObjectRequest.key()).isEqualTo(KEY);
+        assertThat(actualRequestBodies.get(0).contentLength()).hasValue(0L);
+    }
+
+    @Test
     void uploadObject_withPartSizeExceedingLimit_shouldFailRequest() {
         CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE + 1);
         CompletableFuture<PutObjectResponse> future = setupAndTriggerUploadFailure(asyncRequestBody);
         verifyFailureWithMessage(future, "Content length must not be greater than part size");
+    }
+
+    @Test
+    void uploadObject_nullAsyncRequestBody_shouldFailRequest() {
+        CloseableAsyncRequestBody asyncRequestBody = createMockAsyncRequestBody(PART_SIZE);
+        SdkPublisher<CloseableAsyncRequestBody> mockPublisher = mock(SdkPublisher.class);
+        when(asyncRequestBody.splitCloseable(any(Consumer.class))).thenReturn(mockPublisher);
+
+        ArgumentCaptor<Subscriber<CloseableAsyncRequestBody>> subscriberCaptor = ArgumentCaptor.forClass(Subscriber.class);
+        CompletableFuture<PutObjectResponse> future = helper.uploadObject(createPutObjectRequest(), asyncRequestBody);
+
+        verify(mockPublisher).subscribe(subscriberCaptor.capture());
+        Subscriber<CloseableAsyncRequestBody> subscriber = subscriberCaptor.getValue();
+
+        Subscription subscription = mock(Subscription.class);
+        subscriber.onSubscribe(subscription);
+        assertThatThrownBy(() -> subscriber.onNext(null)).isInstanceOf(NullPointerException.class).hasMessageContaining(
+            "asyncRequestBody");
+
+        assertThat(future).isCompletedExceptionally();
+        future.exceptionally(throwable -> {
+            assertThat(throwable.getCause()).isInstanceOf(NullPointerException.class);
+            assertThat(throwable.getCause().getMessage()).contains("MUST NOT be null");
+            return null;
+        }).join();
     }
 
     private PutObjectRequest createPutObjectRequest() {
