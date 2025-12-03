@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache5 HTTP Client (Preview)",
-    "contributor": "",
-    "description": "Update `Apache5HttpClient` so that it uses connection TTL as 'infinite' if `CONNECTION_TIME_TO_LIVE` is not explicitly configured by the user."
-}

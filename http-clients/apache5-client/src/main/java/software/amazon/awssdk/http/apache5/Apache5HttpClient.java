@@ -453,10 +453,8 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
 
         /**
-         * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency.
-         *
-         * <p>Note: A duration of 0 is treated as infinite to maintain backward compatibility with Apache 4.x behavior.
-         * The SDK handles this internally by not setting the TTL when the value is 0.</p>
+         * The maximum amount of time that a connection should be allowed to remain open, regardless of usage frequency. Only
+         * positive values have an effect.
          */
         Builder connectionTimeToLive(Duration connectionTimeToLive);
 
