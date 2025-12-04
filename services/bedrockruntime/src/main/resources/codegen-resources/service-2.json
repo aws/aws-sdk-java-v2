@@ -253,6 +253,32 @@
       "members":{},
       "documentation":"<p>The model must request at least one tool (no text is generated). For example, <code>{\"any\" : {}}</code>. For more information, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/tool-use.html\">Call a tool with the Converse API</a> in the Amazon Bedrock User Guide.</p>"
     },
+    "AppliedGuardrailDetails":{
+      "type":"structure",
+      "members":{
+        "guardrailId":{
+          "shape":"GuardrailId",
+          "documentation":"<p>The unique ID of the guardrail that was applied.</p>"
+        },
+        "guardrailVersion":{
+          "shape":"GuardrailVersion",
+          "documentation":"<p>The version of the guardrail that was applied.</p>"
+        },
+        "guardrailArn":{
+          "shape":"GuardrailArn",
+          "documentation":"<p>The ARN of the guardrail that was applied.</p>"
+        },
+        "guardrailOrigin":{
+          "shape":"GuardrailOriginList",
+          "documentation":"<p>The origin of how the guardrail was applied. This can be either requested at the API level or enforced at the account or organization level as a default guardrail.</p>"
+        },
+        "guardrailOwnership":{
+          "shape":"GuardrailOwnership",
+          "documentation":"<p>The ownership type of the guardrail, indicating whether it is owned by the requesting account or is a cross-account guardrail shared from another AWS account.</p>"
+        }
+      },
+      "documentation":"<p>Details about the specific guardrail that was applied during this assessment, including its identifier, version, ARN, origin, and ownership information.</p>"
+    },
     "ApplyGuardrailRequest":{
       "type":"structure",
       "required":[
@@ -436,6 +462,68 @@
         }
       },
       "documentation":"<p>A summary of an asynchronous invocation.</p>"
+    },
+    "AudioBlock":{
+      "type":"structure",
+      "required":[
+        "format",
+        "source"
+      ],
+      "members":{
+        "format":{
+          "shape":"AudioFormat",
+          "documentation":"<p>The format of the audio data, such as MP3, WAV, FLAC, or other supported audio formats.</p>"
+        },
+        "source":{
+          "shape":"AudioSource",
+          "documentation":"<p>The source of the audio data, which can be provided as raw bytes or an S3 location.</p>"
+        },
+        "error":{
+          "shape":"ErrorBlock",
+          "documentation":"<p>Error information if the audio block could not be processed or contains invalid data.</p>"
+        }
+      },
+      "documentation":"<p>An audio content block that contains audio data in various supported formats.</p>"
+    },
+    "AudioFormat":{
+      "type":"string",
+      "enum":[
+        "mp3",
+        "opus",
+        "wav",
+        "aac",
+        "flac",
+        "mp4",
+        "ogg",
+        "mkv",
+        "mka",
+        "x-aac",
+        "m4a",
+        "mpeg",
+        "mpga",
+        "pcm",
+        "webm"
+      ]
+    },
+    "AudioSource":{
+      "type":"structure",
+      "members":{
+        "bytes":{
+          "shape":"AudioSourceBytesBlob",
+          "documentation":"<p>Audio data encoded in base64.</p>"
+        },
+        "s3Location":{
+          "shape":"S3Location",
+          "documentation":"<p>A reference to audio data stored in an Amazon S3 bucket. To see which models support S3 uploads, see <a href=\"https://docs.aws.amazon.com/bedrock/latest/userguide/conversation-inference-supported-models-features.html\">Supported models and features for Converse</a>.</p>"
+        }
+      },
+      "documentation":"<p>The source of audio data, which can be provided either as raw bytes or a reference to an S3 location.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "AudioSourceBytesBlob":{
+      "type":"blob",
+      "min":1
     },
     "AutoToolChoice":{
       "type":"structure",
@@ -673,6 +761,10 @@
           "shape":"VideoBlock",
           "documentation":"<p>Video to include in the message. </p>"
         },
+        "audio":{
+          "shape":"AudioBlock",
+          "documentation":"<p>An audio content block containing audio data in the conversation.</p>"
+        },
         "toolUse":{
           "shape":"ToolUseBlock",
           "documentation":"<p>Information about a tool use request from a model.</p>"
@@ -727,6 +819,10 @@
         "citation":{
           "shape":"CitationsDelta",
           "documentation":"<p>Incremental citation information that is streamed as part of the response generation process.</p>"
+        },
+        "image":{
+          "shape":"ImageBlockDelta",
+          "documentation":"<p>A streaming delta event containing incremental image data.</p>"
         }
       },
       "documentation":"<p>A block of content in a streaming response.</p>",
@@ -761,6 +857,10 @@
         "toolResult":{
           "shape":"ToolResultBlockStart",
           "documentation":"<p>The </p>"
+        },
+        "image":{
+          "shape":"ImageBlockStart",
+          "documentation":"<p>The initial event indicating the start of a streaming image block.</p>"
         }
       },
       "documentation":"<p>Content block start information.</p>",
@@ -1405,6 +1505,17 @@
       "type":"blob",
       "min":1
     },
+    "ErrorBlock":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A human-readable error message describing what went wrong during content processing.</p>"
+        }
+      },
+      "documentation":"<p>A block containing error information when content processing fails.</p>",
+      "sensitive":true
+    },
     "FoundationModelVersionIdentifier":{
       "type":"string",
       "documentation":"<p>ARN or ID of a Bedrock model</p>",
@@ -1479,6 +1590,12 @@
         "GUARDRAIL_INTERVENED"
       ]
     },
+    "GuardrailArn":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+)"
+    },
     "GuardrailAssessment":{
       "type":"structure",
       "members":{
@@ -1509,7 +1626,8 @@
         "invocationMetrics":{
           "shape":"GuardrailInvocationMetrics",
           "documentation":"<p>The invocation metrics for the guardrail assessment.</p>"
-        }
+        },
+        "appliedGuardrailDetails":{"shape":"AppliedGuardrailDetails"}
       },
       "documentation":"<p>A behavior assessment of the guardrail policies used in a call to the Converse API. </p>"
     },
@@ -1851,10 +1969,6 @@
     },
     "GuardrailConfiguration":{
       "type":"structure",
-      "required":[
-        "guardrailIdentifier",
-        "guardrailVersion"
-      ],
       "members":{
         "guardrailIdentifier":{
           "shape":"GuardrailIdentifier",
@@ -2199,11 +2313,17 @@
       "type":"list",
       "member":{"shape":"GuardrailCustomWord"}
     },
+    "GuardrailId":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"([a-z0-9]+)"
+    },
     "GuardrailIdentifier":{
       "type":"string",
       "max":2048,
       "min":0,
-      "pattern":"(([a-z0-9]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+))"
+      "pattern":"(|([a-z0-9]+)|(arn:aws(-[^:]+)?:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:guardrail/[a-z0-9]+))"
     },
     "GuardrailImageBlock":{
       "type":"structure",
@@ -2314,6 +2434,18 @@
       "type":"string",
       "enum":["PROFANITY"]
     },
+    "GuardrailOrigin":{
+      "type":"string",
+      "enum":[
+        "REQUEST",
+        "ACCOUNT_ENFORCED",
+        "ORGANIZATION_ENFORCED"
+      ]
+    },
+    "GuardrailOriginList":{
+      "type":"list",
+      "member":{"shape":"GuardrailOrigin"}
+    },
     "GuardrailOutputContent":{
       "type":"structure",
       "members":{
@@ -2336,6 +2468,13 @@
       ]
     },
     "GuardrailOutputText":{"type":"string"},
+    "GuardrailOwnership":{
+      "type":"string",
+      "enum":[
+        "SELF",
+        "CROSS_ACCOUNT"
+      ]
+    },
     "GuardrailPiiEntityFilter":{
       "type":"structure",
       "required":[
@@ -2474,10 +2613,6 @@
     },
     "GuardrailStreamConfiguration":{
       "type":"structure",
-      "required":[
-        "guardrailIdentifier",
-        "guardrailVersion"
-      ],
       "members":{
         "guardrailIdentifier":{
           "shape":"GuardrailIdentifier",
@@ -2673,7 +2808,7 @@
     },
     "GuardrailVersion":{
       "type":"string",
-      "pattern":"(([1-9][0-9]{0,7})|(DRAFT))"
+      "pattern":"(|([1-9][0-9]{0,7})|(DRAFT))"
     },
     "GuardrailWordPolicyAction":{
       "type":"string",
@@ -2718,9 +2853,38 @@
         "source":{
           "shape":"ImageSource",
           "documentation":"<p>The source for the image.</p>"
+        },
+        "error":{
+          "shape":"ErrorBlock",
+          "documentation":"<p>Error information if the image block could not be processed or contains invalid data.</p>"
         }
       },
       "documentation":"<p>Image content for a message.</p>"
+    },
+    "ImageBlockDelta":{
+      "type":"structure",
+      "members":{
+        "source":{
+          "shape":"ImageSource",
+          "documentation":"<p>The incremental image source data for this delta event.</p>"
+        },
+        "error":{
+          "shape":"ErrorBlock",
+          "documentation":"<p>Error information if this image delta could not be processed.</p>"
+        }
+      },
+      "documentation":"<p>A streaming delta event that contains incremental image data during streaming responses.</p>"
+    },
+    "ImageBlockStart":{
+      "type":"structure",
+      "required":["format"],
+      "members":{
+        "format":{
+          "shape":"ImageFormat",
+          "documentation":"<p>The format of the image data that will be streamed in subsequent delta events.</p>"
+        }
+      },
+      "documentation":"<p>The initial event in a streaming image block that indicates the start of image content.</p>"
     },
     "ImageFormat":{
       "type":"string",
@@ -2744,6 +2908,7 @@
         }
       },
       "documentation":"<p>The source for an image.</p>",
+      "sensitive":true,
       "union":true
     },
     "ImageSourceBytesBlob":{
@@ -3629,7 +3794,8 @@
       "enum":[
         "priority",
         "default",
-        "flex"
+        "flex",
+        "reserved"
       ]
     },
     "ServiceUnavailableException":{
@@ -3720,6 +3886,8 @@
         "stop_sequence",
         "guardrail_intervened",
         "content_filtered",
+        "malformed_model_output",
+        "malformed_tool_use",
         "model_context_window_exceeded"
       ]
     },
@@ -3981,6 +4149,10 @@
         "text":{
           "shape":"String",
           "documentation":"<p>The reasoning the model used to return the output.</p>"
+        },
+        "json":{
+          "shape":"Document",
+          "documentation":"<p>The JSON schema for the tool result content block. see <a href=\"https://json-schema.org/understanding-json-schema/reference\">JSON Schema Reference</a>.</p>"
         }
       },
       "documentation":"<p>Contains incremental updates to tool results information during streaming responses. This allows clients to build up tool results data progressively as the response is generated.</p>",

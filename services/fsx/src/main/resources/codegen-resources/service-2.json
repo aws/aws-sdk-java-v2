@@ -4917,7 +4917,7 @@
       "members":{
         "Name":{
           "shape":"OntapFileSystemUserName",
-          "documentation":"<p>The name of the Windows user. The name can be up to 256 characters long and supports Active Directory users in the format <code>DOMAIN\\\\username</code>.</p>"
+          "documentation":"<p>The name of the Windows user. The name can be up to 256 characters long and supports Active Directory users.</p>"
         }
       },
       "documentation":"<p>The FSx for ONTAP Windows file system user that is used for authorizing all file access requests that are made using the S3 access point.</p>"

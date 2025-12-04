@@ -27,12 +27,14 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
 
     private final SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
     private final CompletableFuture<ResultT> future;
+    private final Boolean parallelSplitSupported;
 
     private DefaultAsyncResponseTransformerSplitResult(Builder<ResponseT, ResultT> builder) {
         this.publisher = Validate.paramNotNull(
             builder.publisher(), "asyncResponseTransformerPublisher");
         this.future = Validate.paramNotNull(
             builder.resultFuture(), "future");
+        this.parallelSplitSupported = Validate.getOrDefault(builder.parallelSplitSupported(), () -> false);
     }
 
     /**
@@ -53,6 +55,11 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
     }
 
     @Override
+    public Boolean parallelSplitSupported() {
+        return this.parallelSplitSupported;
+    }
+
+    @Override
     public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> toBuilder() {
         return new DefaultBuilder<>(this);
     }
@@ -65,6 +72,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         implements AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> {
         private SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher;
         private CompletableFuture<ResultT> future;
+        private Boolean parallelSplitSupported;
 
         DefaultBuilder() {
         }
@@ -72,6 +80,7 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         DefaultBuilder(DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT> split) {
             this.publisher = split.publisher;
             this.future = split.future;
+            this.parallelSplitSupported = split.parallelSplitSupported;
         }
 
         @Override
@@ -92,8 +101,21 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         }
 
         @Override
-        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future) {
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> resultFuture(
+            CompletableFuture<ResultT> future) {
             this.future = future;
+            return this;
+        }
+
+        @Override
+        public Boolean parallelSplitSupported() {
+            return parallelSplitSupported;
+        }
+
+        @Override
+        public AsyncResponseTransformer.SplitResult.Builder<ResponseT, ResultT> parallelSplitSupported(
+            Boolean parallelSplitSupported) {
+            this.parallelSplitSupported = parallelSplitSupported;
             return this;
         }
 
@@ -101,5 +123,6 @@ public final class DefaultAsyncResponseTransformerSplitResult<ResponseT, ResultT
         public AsyncResponseTransformer.SplitResult<ResponseT, ResultT> build() {
             return new DefaultAsyncResponseTransformerSplitResult<>(this);
         }
+
     }
 }

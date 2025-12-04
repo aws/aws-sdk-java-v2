@@ -92,11 +92,11 @@ public final class UploadWithUnknownContentLengthHelper {
         return returnFuture;
     }
 
-    private class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody> {
+    final class UnknownContentLengthAsyncRequestBodySubscriber implements Subscriber<CloseableAsyncRequestBody> {
         /**
          * Indicates whether this is the first async request body or not.
          */
-        private final AtomicBoolean isFirstAsyncRequestBody = new AtomicBoolean(true);
+        private final AtomicBoolean firstAsyncRequestBodyReceived = new AtomicBoolean(false);
 
         /**
          * Indicates whether CreateMultipartUpload has been initiated or not
@@ -163,9 +163,17 @@ public final class UploadWithUnknownContentLengthHelper {
 
         @Override
         public void onNext(CloseableAsyncRequestBody asyncRequestBody) {
+            if (asyncRequestBody == null) {
+                NullPointerException exception = new NullPointerException("asyncRequestBody passed to onNext MUST NOT be null.");
+                multipartUploadHelper.failRequestsElegantly(futures,
+                                                            exception, uploadId, returnFuture, putObjectRequest);
+                throw exception;
+            }
+
             if (isDone) {
                 return;
             }
+
             int currentPartNum = partNumber.incrementAndGet();
             log.trace(() -> "Received asyncRequestBody " + asyncRequestBody.contentLength());
             asyncRequestBodyInFlight.incrementAndGet();
@@ -178,7 +186,7 @@ public final class UploadWithUnknownContentLengthHelper {
                 return;
             }
 
-            if (isFirstAsyncRequestBody.compareAndSet(true, false)) {
+            if (firstAsyncRequestBodyReceived.compareAndSet(false, true)) {
                 log.trace(() -> "Received first async request body");
                 // If this is the first AsyncRequestBody received, request another one because we don't know if there is more
                 firstRequestBody = asyncRequestBody;
@@ -276,10 +284,13 @@ public final class UploadWithUnknownContentLengthHelper {
         @Override
         public void onComplete() {
             log.debug(() -> "Received onComplete()");
-            // If CreateMultipartUpload has not been initiated at this point, we know this is a single object upload
+            // If CreateMultipartUpload has not been initiated at this point, we know this is a single object upload, and if no
+            // async request body has been received, it's an empty stream
             if (createMultipartUploadInitiated.get() == false) {
                 log.debug(() -> "Starting the upload as a single object upload request");
-                multipartUploadHelper.uploadInOneChunk(putObjectRequest, firstRequestBody, returnFuture);
+                AsyncRequestBody entireRequestBody = firstAsyncRequestBodyReceived.get() ? firstRequestBody :
+                                                       AsyncRequestBody.empty();
+                multipartUploadHelper.uploadInOneChunk(putObjectRequest, entireRequestBody, returnFuture);
             } else {
                 isDone = true;
                 completeMultipartUploadIfFinish(asyncRequestBodyInFlight.get());
