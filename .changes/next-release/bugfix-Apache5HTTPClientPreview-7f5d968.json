@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache 5 HTTP Client (Preview)",
-    "contributor": "",
-    "description": "Ignore negative values set `connectionTimeToLive`. There is no behavior change on the client as negative values have no meaning for Apache 5."
-}
