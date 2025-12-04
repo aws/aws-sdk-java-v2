@@ -47,7 +47,6 @@ public final class AwsBasicCredentials implements AwsCredentials,
      * <p>
      * This should be accessed via {@link AnonymousCredentialsProvider#resolveCredentials()}.
      */
-    // TODO(sra-identity-and-auth): Check if this static member can be removed after cleanup
     @SdkInternalApi
     static final AwsBasicCredentials ANONYMOUS_CREDENTIALS = builder().validateCredentials(false).build();
 
