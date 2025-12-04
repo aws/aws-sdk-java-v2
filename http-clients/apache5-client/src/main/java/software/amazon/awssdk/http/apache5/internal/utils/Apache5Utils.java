@@ -123,6 +123,7 @@ public final class Apache5Utils {
             AuthCache authCache = new BasicAuthCache();
             // Generate BASIC scheme object and add it to the local auth cache
             BasicScheme basicAuth = new BasicScheme();
+            basicAuth.initPreemptive(credsProvider.getCredentials(newAuthScope(proxyConfiguration), clientContext));
             authCache.put(targetHost, basicAuth);
 
             clientContext.setCredentialsProvider(credsProvider);

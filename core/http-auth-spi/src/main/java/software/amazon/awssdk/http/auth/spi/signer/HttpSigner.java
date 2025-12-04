@@ -22,11 +22,65 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultAsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.internal.signer.DefaultSignRequest;
 import software.amazon.awssdk.http.auth.spi.internal.signer.NoOpHttpSigner;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.identity.spi.Identity;
 
 /**
- * Interface for the process of modifying a request destined for a service so that the service can authenticate the SDK
- * customer’s identity.
+ * Interface for the process of modifying a request destined for a service so that the service can authenticate the SDK customer’s
+ * identity.
+ *
+ * <p>
+ * You can configure the signer by first implementing a custom {@link AuthScheme} returning this signer and then configuring
+ * the {@link AuthScheme}s on the client builder via {@code SdkClientBuilder#putAuthScheme(AuthScheme)}.
+ *
+ * <p>
+ * Example - Custom signer implementation:
+ *
+ * {@snippet :
+ * S3AsyncClient s3 = S3AsyncClient.builder()
+ *                                 .region(Region.US_WEST_2)
+ *                                 .credentialsProvider(CREDENTIALS)
+ *                                 .putAuthScheme(new CustomSigV4AuthScheme())
+ *                                 .build();
+ *
+ * public class CustomSigV4AuthScheme implements AwsV4AuthScheme {
+ *     @Override
+ *     public String schemeId() {
+ *         return AwsV4AuthScheme.SCHEME_ID;
+ *     }
+ *
+ *     @Override
+ *     public IdentityProvider<AwsCredentialsIdentity> identityProvider(IdentityProviders providers) {
+ *         return providers.identityProvider(AwsCredentialsIdentity.class);
+ *     }
+ *
+ *     @Override
+ *     public AwsV4HttpSigner signer() {
+ *         return new CustomSigV4Signer();
+ *     }
+ *
+ *     private class CustomSigV4Signer implements AwsV4HttpSigner {
+ *         @Override
+ *         public SignedRequest sign(SignRequest<? extends AwsCredentialsIdentity> request) {
+ *             // Custom implementation
+ *         }
+ *
+ *         @Override
+ *         public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
+ *             // Custom implementation
+ *         }
+ *     }
+ * }
+ *  }
+ *
+ * <p>
+ * <b>When to Use Each Approach</b>
+ * <ul>
+ * <li>Use custom {@link AuthSchemeProvider} when you only need to override signing properties
+ *     (service name, region, etc.). See {@link AuthSchemeProvider} for examples.</li>
+ * <li>Use custom {@link HttpSigner} when you need to change the signing algorithm or logic itself.</li>
+ * </ul>
  *
  * @param <IdentityT> The type of the identity.
  */
