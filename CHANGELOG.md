@@ -1,4 +1,13 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.2__ __2025-12-04__
+## __AWS Lambda__
+  - ### Features
+    - Add DisallowedByVpcEncryptionControl to the LastUpdateStatusReasonCode and StateReasonCode enums to represent failures caused by VPC Encryption Controls.
+
+## __Apache 5 HTTP Client (Preview)__
+  - ### Bugfixes
+    - Ignore negative values set `connectionTimeToLive`. There is no behavior change on the client as negative values have no meaning for Apache 5.
+
 # __2.40.1__ __2025-12-03__
 ## __Amazon Bedrock__
   - ### Features
