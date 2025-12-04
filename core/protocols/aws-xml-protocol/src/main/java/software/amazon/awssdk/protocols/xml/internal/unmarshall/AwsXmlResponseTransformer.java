@@ -16,6 +16,7 @@
 package software.amazon.awssdk.protocols.xml.internal.unmarshall;
 
 import static software.amazon.awssdk.awscore.util.AwsHeader.AWS_REQUEST_ID;
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +38,6 @@ import software.amazon.awssdk.protocols.query.unmarshall.XmlElement;
 @SdkInternalApi
 public final class AwsXmlResponseTransformer<T extends AwsResponse>
         implements Function<AwsXmlUnmarshallingContext, T> {
-
-    private static final String X_AMZN_REQUEST_ID_HEADER = "x-amzn-RequestId";
 
     private final XmlProtocolUnmarshaller unmarshaller;
     private final Function<SdkHttpFullResponse, SdkPojo> pojoSupplier;
