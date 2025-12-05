@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteCompleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
@@ -171,6 +172,39 @@ public interface DynamoDbTable<T> extends MappedTableResource<T> {
      * @return The item that was persisted in the database before it was deleted.
      */
     default T deleteItem(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied {@link DeleteCompleteItemEnhancedRequest}.
+     * <p>
+     * Unlike {@link #deleteItem(DeleteItemEnhancedRequest)}, this variant allows you to provide the full item being deleted. If
+     * the table is configured with a version attribute (e.g., when using the {@code VersionedRecordExtension}), the enhanced
+     * client will apply <strong>optimistic locking</strong> semantics to ensure that the delete operation only succeeds if the
+     * provided item’s version matches the one currently stored in the table.
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link DeleteCompleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for further
+     * details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem itemToDelete = ...; // previously loaded item
+     * MyItem deletedItem = mappedTable.deleteItem(
+     *     DeleteItemEnhancedRequestWithItem.builder(MyItem.class)
+     *                                     .item(itemToDelete)
+     *                                     .build());
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteCompleteItemEnhancedRequest} with the item and optional directives for deleting it.
+     * @return The item that was persisted in the database before it was deleted.
+     */
+    default T deleteItem(DeleteCompleteItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 
