@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
@@ -40,7 +41,6 @@ import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -68,7 +68,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
 
-        if (request.firstMatchingHeader(HEADER_USER_AGENT).isPresent()) {
+        if (hasUserAgentInAdditionalHeaders()) {
             return request;
         }
         String headerValue = finalizeUserAgent(context);
@@ -76,12 +76,15 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     /**
-     * Checks if User-Agent header exists with a non-null value (including empty string).
-     * This is done to maintain backward compatibility since MergeCustomHeadersStage merges non-null headers only.
+     * Checks if User-Agent header is present in ADDITIONAL_HTTP_HEADERS configuration.
+     * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header in additional header of client
      */
-    private boolean hasNonNullUserAgentHeader(SdkHttpFullRequest.Builder request) {
-        List<String> userAgentValues = request.matchingHeaders(HEADER_USER_AGENT);
-        return CollectionUtils.firstIfPresent(userAgentValues) != null;
+    private boolean hasUserAgentInAdditionalHeaders() {
+        Map<String, List<String>> additionalHeaders = clientConfig.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
+        if (additionalHeaders == null) {
+            return false;
+        }
+        return additionalHeaders.containsKey(HEADER_USER_AGENT);
     }
 
     /**

@@ -25,7 +25,9 @@ import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.R
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -153,7 +155,7 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
-    public void when_userAgentHeaderAlreadyPresent_doesNotOverwrite() throws Exception {
+    public void when_userAgentHeaderAlreadyPresent_AndSdkOptionAdditionalHeaderNotPresent_doesNotOverwrite() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         String existingUserAgent = "CustomUserAgent/1.0";
@@ -165,13 +167,11 @@ public class ApplyUserAgentStageTest {
 
         List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).isEqualTo(existingUserAgent);
-        // Verify it does NOT contain SDK user agent values
-        assertThat(userAgentHeaders.get(0)).doesNotContain("aws-sdk-java");
+        assertThat(userAgentHeaders.get(0)).startsWith("aws-sdk-java");
     }
 
     @Test
-    public void when_userAgentHeaderPresentButEmpty_EmptyHeaderIsPreserved() throws Exception {
+    public void when_userAgentHeaderPresentButEmpty_sdkAddsUserAgent() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         SdkHttpFullRequest.Builder requestWithEmptyHeader = SdkHttpFullRequest.builder()
@@ -182,18 +182,18 @@ public class ApplyUserAgentStageTest {
 
         List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains("aws-sdk-java");
+        assertThat(userAgentHeaders.get(0)).startsWith("aws-sdk-java");
     }
 
     @Test
     public void when_userAgentHeaderPresentButNull_sdkAddsHeader() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
         String headerValue = null;
-        SdkHttpFullRequest.Builder requestWithEmptyHeader = SdkHttpFullRequest.builder()
-                                                                              .putHeader(HEADER_USER_AGENT, headerValue);
+        SdkHttpFullRequest.Builder requestWithNullHeader = SdkHttpFullRequest.builder()
+                                                                             .putHeader(HEADER_USER_AGENT, headerValue);
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
-        SdkHttpFullRequest.Builder result = stage.execute(requestWithEmptyHeader, ctx);
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithNullHeader, ctx);
 
         List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
@@ -201,7 +201,7 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
-    public void when_userAgentHeaderAbsent_addsHeader() throws Exception {
+    public void when_userAgentHeaderAbsent_sdkAddsHeader() throws Exception {
         ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
 
         SdkHttpFullRequest.Builder requestWithoutHeader = SdkHttpFullRequest.builder();
@@ -215,21 +215,32 @@ public class ApplyUserAgentStageTest {
     }
 
     @Test
-    public void when_multipleUserAgentHeadersPresent_doesNotOverwrite() throws Exception {
-        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+    public void when_userAgentInAdditionalHeaders_doesNotOverwriteUserAgent() throws Exception {
+        Map<String, List<String>> headerMap = new LinkedHashMap<>();
+        headerMap.put(HEADER_USER_AGENT, Arrays.asList("CustomAgent/1.0", "AnotherAgent/2.0"));
 
-        SdkHttpFullRequest.Builder requestWithMultipleHeaders =
-            SdkHttpFullRequest.builder()
-                              .putHeader(HEADER_USER_AGENT, "CustomAgent/1.0")
-                              .appendHeader(HEADER_USER_AGENT, "AnotherAgent/2.0");
+        SdkClientConfiguration clientConfiguration =
+            SdkClientConfiguration.builder()
+                                  .option(SdkClientOption.CLIENT_USER_AGENT, clientUserAgent())
+                                  .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, headerMap)
+                                  .build();
+        HttpClientDependencies httpClientDependencies = HttpClientDependencies.builder()
+                                                                              .clientConfiguration(clientConfiguration)
+                                                                              .build();
+
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(httpClientDependencies);
+
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder();
 
         RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
-        SdkHttpFullRequest.Builder result = stage.execute(requestWithMultipleHeaders, ctx);
+        SdkHttpFullRequest.Builder result = stage.execute(request, ctx);
 
+        // ApplyUserAgentStage should skip adding User-Agent since it's in ADDITIONAL_HTTP_HEADERS
+        // The actual merging happens in MergeCustomHeadersStage
         List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
-        assertThat(userAgentHeaders).hasSize(2);
-        assertThat(userAgentHeaders).containsExactly("CustomAgent/1.0", "AnotherAgent/2.0");
+        assertThat(userAgentHeaders).isNull();
     }
+
 
     private static HttpClientDependencies dependencies(String clientUserAgent) {
         return dependencies(clientUserAgent, null, null);
