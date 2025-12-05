@@ -46,6 +46,15 @@
       ]
     },
     {
+      "fn": "booleanEquals",
+      "argv": [
+        {
+          "ref": "UseFIPS"
+        },
+        true
+      ]
+    },
+    {
       "fn": "aws.partition",
       "argv": [
         {
@@ -58,7 +67,7 @@
       "fn": "booleanEquals",
       "argv": [
         {
-          "ref": "UseFIPS"
+          "ref": "UseDualStack"
         },
         true
       ]
@@ -82,7 +91,13 @@
       "fn": "booleanEquals",
       "argv": [
         {
-          "ref": "UseDualStack"
+          "fn": "getAttr",
+          "argv": [
+            {
+              "ref": "PartitionResult"
+            },
+            "supportsDualStack"
+          ]
         },
         true
       ]
@@ -100,21 +115,6 @@
             "name"
           ]
         }
-      ]
-    },
-    {
-      "fn": "booleanEquals",
-      "argv": [
-        {
-          "fn": "getAttr",
-          "argv": [
-            {
-              "ref": "PartitionResult"
-            },
-            "supportsDualStack"
-          ]
-        },
-        true
       ]
     }
   ],
@@ -206,7 +206,7 @@
       "type": "error"
     }
   ],
-  "root": 2,
-  "nodeCount": 14,
-  "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABQAAAAcF9eELAAAABwX14QkF9eEKAAAABAAAAAoAAAAJAAAABQX14QUF9eEIAAAABQAAAAwAAAALAAAABgX14QYF9eEHAAAABwX14QQF9eEFAAAAAwX14QEAAAAOAAAABQX14QIF9eED"
+  "root": 15,
+  "nodeCount": 15,
+  "nodes": "/////wAAAAH/////AAAABAX14QIF9eEDAAAAAgX14QEAAAACAAAABgX14QQF9eEFAAAABQAAAAQF9eEFAAAABwX14QYF9eEHAAAABQAAAAYF9eEIAAAABAAAAAUAAAAHAAAAAwAAAAgF9eEMAAAABgX14QkF9eEKAAAABAAAAAoF9eELAAAAAwAAAAsF9eEMAAAAAgAAAAkAAAAMAAAAAQAAAA0F9eEMAAAAAAAAAAMAAAAO"
 }
