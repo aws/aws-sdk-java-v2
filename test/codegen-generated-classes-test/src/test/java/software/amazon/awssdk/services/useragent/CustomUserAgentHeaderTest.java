@@ -63,8 +63,6 @@ class CustomUserAgentHeaderTest {
         );
     }
 
-    // ========== Default Behavior Tests ==========
-
     private static Stream<Arguments> customUserAgentListValues() {
         return Stream.of(
             Arguments.of(Arrays.asList("Agent1")),
@@ -73,12 +71,12 @@ class CustomUserAgentHeaderTest {
         );
     }
 
-    // ========== Custom User-Agent Preservation Tests ==========
-
     @BeforeEach
     void setUp() {
         interceptor = new CapturingInterceptor();
     }
+
+    // ========== Default Behavior Tests ==========
 
     @Test
     void executeRequest_withoutCustomUserAgent_shouldAddSdkDefaultUserAgent() {
@@ -88,7 +86,7 @@ class CustomUserAgentHeaderTest {
         assertUserAgentContains(SDK_USER_AGENT_PREFIX);
     }
 
-    // ========== API Name Handling Tests ==========
+    // ========== Custom User-Agent Preservation Tests ==========
 
     @ParameterizedTest(name = "Custom User-Agent ''{0}'' should be preserved without SDK prefix")
     @MethodSource("customUserAgentValues")
@@ -112,6 +110,69 @@ class CustomUserAgentHeaderTest {
         assertThat(userAgentList).isEqualTo(customUserAgentList);
     }
 
+    // ========== Request-Level User-Agent Tests ==========
+
+    @ParameterizedTest(name = "Request-level User-Agent ''{0}'' should be preserved")
+    @MethodSource("customUserAgentValues")
+    void executeRequest_withRequestLevelCustomUserAgent_shouldPreserveAndNotOverwrite(String customUserAgent) {
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o.putHeader(USER_AGENT_HEADER, customUserAgent))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        String userAgent = getCapturedUserAgent();
+        assertThat(userAgent)
+            .isEqualTo(customUserAgent)
+            .doesNotContain(SDK_USER_AGENT_PREFIX);
+    }
+
+    @ParameterizedTest(name = "Request-level User-Agent list {0} should be preserved")
+    @MethodSource("customUserAgentListValues")
+    void executeRequest_withRequestLevelCustomUserAgentList_shouldPreserveAllValues(List<String> customUserAgentList) {
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o.putHeader(USER_AGENT_HEADER, customUserAgentList))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        List<String> userAgentList = getCapturedUserAgentList();
+        assertThat(userAgentList).isEqualTo(customUserAgentList);
+    }
+
+    @Test
+    void executeRequest_withRequestLevelCustomUserAgentAndApiName_shouldNotAppendApiName() {
+        String customUserAgent = "CustomUserAgentHeaderValue";
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o
+                .addApiName(api -> api.name(TEST_API_NAME).version(TEST_API_VERSION))
+                .putHeader(USER_AGENT_HEADER, customUserAgent))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        String userAgent = getCapturedUserAgent();
+        assertThat(userAgent)
+            .isEqualTo(customUserAgent)
+            .doesNotContain(TEST_API_NAME);
+    }
+
+    @ParameterizedTest(name = "Request-level User-Agent list {0} with API name should not append API name")
+    @MethodSource("customUserAgentListValues")
+    void executeRequest_withRequestLevelCustomUserAgentListAndApiName_shouldNotAppendApiName(List<String> customUserAgentList) {
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o
+                .addApiName(api -> api.name(TEST_API_NAME).version(TEST_API_VERSION))
+                .putHeader(USER_AGENT_HEADER, customUserAgentList))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        List<String> userAgentList = getCapturedUserAgentList();
+        assertThat(userAgentList).isEqualTo(customUserAgentList);
+        assertThat(String.join(" ", userAgentList)).doesNotContain(TEST_API_NAME);
+    }
+
     // ========== Header via Interceptors ==========
 
     @Test
@@ -133,7 +194,7 @@ class CustomUserAgentHeaderTest {
         assertUserAgentContains(SDK_USER_AGENT_PREFIX);
     }
 
-    // ========== Edge Case Tests ==========
+    // ========== API Name Handling Tests ==========
 
     @Test
     void executeRequest_withCustomUserAgentAndApiName_shouldNotAppendApiName() {
@@ -155,12 +216,8 @@ class CustomUserAgentHeaderTest {
         assertUserAgentContains(TEST_API_NAME + "/" + TEST_API_VERSION);
     }
 
-    /**
-     * Verifies that null User-Agent list throws NullPointerException.
-     *
-     * <p>This ensures the SDK fails fast with clear error rather than allowing
-     * invalid configuration.
-     */
+    // ========== Edge Case Tests ==========
+
     @Test
     void buildClient_withNullListUserAgent_shouldThrowNullPointerException() {
         assertThatThrownBy(() -> clientWithCustomUserAgentList(null))
@@ -195,17 +252,40 @@ class CustomUserAgentHeaderTest {
             .hasSize(1)
             .allSatisfy(ua -> {
                 assertThat(ua).isNull();
-
             });
     }
+
+    @Test
+    void executeRequest_withRequestLevelEmptyCustomUserAgent_shouldStoreEmptyUserAgent() {
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o.putHeader(USER_AGENT_HEADER, ""))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        assertUserAgentContains("");
+    }
+
+    @Test
+    void executeRequest_withRequestLevelEmptyListUserAgent_shouldResultInNoUserAgent() {
+        RestJsonEndpointProvidersClient client = defaultClientBuilder().build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> r
+            .overrideConfiguration(o -> o.putHeader(USER_AGENT_HEADER, Collections.emptyList()))))
+            .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
+
+        List<String> userAgentList = getCapturedUserAgentList();
+        assertThat(userAgentList).isNull();
+    }
+
+    // ========== Helper Methods ==========
 
     private void assertUserAgentContains(String expected) {
         assertThat(getCapturedUserAgent()).contains(expected);
     }
 
     private void executeRequestExpectingInterception(RestJsonEndpointProvidersClient client) {
-        assertThatThrownBy(() -> client.allTypes(r -> {
-        }))
+        assertThatThrownBy(() -> client.allTypes(r -> {}))
             .hasMessageContaining(INTERCEPTOR_STOP_MESSAGE);
     }
 
