@@ -40,6 +40,7 @@ import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -66,8 +67,21 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
+
+        if (hasNonNullUserAgentHeader(request)) {
+            return request;
+        }
         String headerValue = finalizeUserAgent(context);
         return request.putHeader(HEADER_USER_AGENT, headerValue);
+    }
+
+    /**
+     * Checks if User-Agent header exists with a non-null value (including empty string).
+     * This is done to maintain backward compatibility since MergeCustomHeadersStage merges non-null headers only.
+     */
+    private boolean hasNonNullUserAgentHeader(SdkHttpFullRequest.Builder request) {
+        List<String> userAgentValues = request.matchingHeaders(HEADER_USER_AGENT);
+        return CollectionUtils.firstIfPresent(userAgentValues) != null;
     }
 
     /**

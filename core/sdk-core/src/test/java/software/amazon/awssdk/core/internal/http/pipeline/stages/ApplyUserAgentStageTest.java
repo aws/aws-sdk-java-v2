@@ -152,6 +152,85 @@ public class ApplyUserAgentStageTest {
         assertThat(userAgentHeaders.get(0)).contains("m/w");
     }
 
+    @Test
+    public void when_userAgentHeaderAlreadyPresent_doesNotOverwrite() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        String existingUserAgent = "CustomUserAgent/1.0";
+        SdkHttpFullRequest.Builder requestWithExistingHeader = SdkHttpFullRequest.builder()
+                                                                                 .putHeader(HEADER_USER_AGENT, existingUserAgent);
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithExistingHeader, ctx);
+
+        List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).isEqualTo(existingUserAgent);
+        // Verify it does NOT contain SDK user agent values
+        assertThat(userAgentHeaders.get(0)).doesNotContain("aws-sdk-java");
+    }
+
+    @Test
+    public void when_userAgentHeaderPresentButEmpty_EmptyHeaderIsPreserved() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        SdkHttpFullRequest.Builder requestWithEmptyHeader = SdkHttpFullRequest.builder()
+                                                                              .putHeader(HEADER_USER_AGENT, "");
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithEmptyHeader, ctx);
+
+        List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).doesNotContain("aws-sdk-java");
+    }
+
+    @Test
+    public void when_userAgentHeaderPresentButNull_sdkAddsHeader() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+        String headerValue = null;
+        SdkHttpFullRequest.Builder requestWithEmptyHeader = SdkHttpFullRequest.builder()
+                                                                              .putHeader(HEADER_USER_AGENT, headerValue);
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithEmptyHeader, ctx);
+
+        List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).startsWith("aws-sdk-java");
+    }
+
+    @Test
+    public void when_userAgentHeaderAbsent_addsHeader() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        SdkHttpFullRequest.Builder requestWithoutHeader = SdkHttpFullRequest.builder();
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithoutHeader, ctx);
+
+        List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertThat(userAgentHeaders.get(0)).startsWith("aws-sdk-java");
+    }
+
+    @Test
+    public void when_multipleUserAgentHeadersPresent_doesNotOverwrite() throws Exception {
+        ApplyUserAgentStage stage = new ApplyUserAgentStage(dependencies(clientUserAgent()));
+
+        SdkHttpFullRequest.Builder requestWithMultipleHeaders =
+            SdkHttpFullRequest.builder()
+                              .putHeader(HEADER_USER_AGENT, "CustomAgent/1.0")
+                              .appendHeader(HEADER_USER_AGENT, "AnotherAgent/2.0");
+
+        RequestExecutionContext ctx = requestExecutionContext(executionAttributes(IDENTITY_WITHOUT_SOURCE), noOpRequest());
+        SdkHttpFullRequest.Builder result = stage.execute(requestWithMultipleHeaders, ctx);
+
+        List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
+        assertThat(userAgentHeaders).hasSize(2);
+        assertThat(userAgentHeaders).containsExactly("CustomAgent/1.0", "AnotherAgent/2.0");
+    }
+
     private static HttpClientDependencies dependencies(String clientUserAgent) {
         return dependencies(clientUserAgent, null, null);
     }
@@ -219,6 +298,5 @@ public class ApplyUserAgentStageTest {
         return RequestExecutionContext.builder()
                                       .executionContext(executionContext)
                                       .originalRequest(request).build();
-
     }
 }
