@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.3__ __2025-12-05__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Adding the ExpirationTime attribute to the delegation request resource.
+
+## __AWS SDK for Java v2 Codegen__
+  - ### Features
+    - Automatically enable `AwsV4HttpSigner.CHUNK_ENCODING_ENABLED` signer property for input streaming operations that support checksums in generated auth scheme provider class
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updating stop-task API to encapsulate containers with custom stop signal
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2
+
+## __Inspector2__
+  - ### Features
+    - This release adds a new ScanStatus called "Unsupported Code Artifacts". This ScanStatus will be returned when a Lambda function was not code scanned because it has unsupported code artifacts.
+
+## __Partner Central Account API__
+  - ### Features
+    - Adding Verification API's to Partner Central Account SDK.
+
 # __2.40.2__ __2025-12-04__
 ## __AWS Lambda__
   - ### Features
