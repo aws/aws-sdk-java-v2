@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Simple Email Service",
+    "contributor": "",
+    "description": "Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2"
+}
