@@ -61,6 +61,8 @@ public class BddEndpointProviderSpec implements ClassSpec  {
     private final Map<String, RegistryInfo> registerInfoMap;
     private final boolean endpointCaching;
 
+    private final ClassName registersType;
+
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
         this.endpointBddModel = intermediateModel.getEndpointBddModel();
@@ -71,6 +73,8 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
         this.registerInfoMap = buildRegisterInfoMap();
         this.endpointCaching = intermediateModel.getCustomizationConfig().getEnableEndpointProviderUriCaching();
+
+        this.registersType = className().nestedClass("Registers");
     }
 
     @Override
@@ -79,10 +83,27 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                             .addAnnotation(SdkInternalApi.class)
                                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
+                                            .addType(registersClass())
                                             .addField(bddDefinition())
                                             .addMethod(resolveEndpointMethod())
+                                            .addMethod(evaluateConditionMethod())
+                                            .addMethod(evaluateResultMethod())
             .build();
 
+    }
+
+    private TypeSpec registersClass() {
+        TypeSpec.Builder builder = TypeSpec.classBuilder(registersType)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+        registerInfoMap.forEach((k,r) -> {
+            builder.addField(
+                FieldSpec
+                    .builder(r.getRuleType().type().box(), r.getName())
+                    .build()
+            );
+        });
+
+        return builder.build();
     }
 
     // generate the BDD_DEFINITION array which defines the nodes in a compact form:
@@ -98,9 +119,15 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                         .build();
     }
 
-    private CodeBlock conditionSwitchBlock() {
+    private MethodSpec evaluateConditionMethod() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("evaluateCondition")
+            .addModifiers(Modifier.PRIVATE)
+            .returns(boolean.class)
+            .addParameter(int.class, "conditionIndex")
+            .addParameter(registersType, "registers");
+
         CodeBlock.Builder builder = CodeBlock.builder();
-        builder.beginControlFlow("switch (BDD_DEFINITION[nodeI*3])");
+        builder.beginControlFlow("switch (conditionIndex)");
 
         for (int cI  = 0; cI < endpointBddModel.getConditions().size(); cI++) {
             builder
@@ -118,21 +145,26 @@ public class BddEndpointProviderSpec implements ClassSpec  {
 
             parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap));
 
-            builder
-                .addStatement("break")
-                .unindent();
+            builder.unindent();
         }
 
         builder
             .addStatement("default: throw new $T(\"Unknown condition index\")", IllegalArgumentException.class)
             .endControlFlow(); // end switch
 
-        return builder.build();
+
+        return methodBuilder.addCode(builder.build()).build();
     }
 
-    private CodeBlock resultSwitchBlock() {
+    private MethodSpec evaluateResultMethod() {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("evaluateResult")
+                                                     .addModifiers(Modifier.PRIVATE)
+                                                     .returns(typeMirror.rulesResult().type())
+                                                     .addParameter(int.class, "resultIndex")
+                                                     .addParameter(registersType, "registers");
+
         CodeBlock.Builder builder = CodeBlock.builder();
-        builder.beginControlFlow("switch (nodeRef-100000001)");
+        builder.beginControlFlow("switch (resultIndex)");
 
         for (int rI  = 0; rI < endpointBddModel.getResults().size(); rI++) {
             builder
@@ -147,9 +179,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
             parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
                 builder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointCaching));
 
-            builder
-                .addStatement("break")
-                .unindent();
+            builder.unindent();
         }
 
         builder
@@ -157,7 +187,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
             .endControlFlow(); // end switch
 
 
-        return builder.build();
+        return methodBuilder.addCode(builder.build()).build();
     }
 
     private MethodSpec resolveEndpointMethod() {
@@ -170,16 +200,13 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         builder.beginControlFlow("try");
         builder.addCode(validateRequiredParams());
 
-        // initialize all variables to null
-        registerInfoMap.forEach((k,r) -> {
-            builder.addStatement("$T $L = null", r.getRuleType().type().box(), r.getName());
-        });
+        builder.addStatement("$T registers = new $T()", registersType, registersType);
 
         // region builtin parameter needs to be mapped from Region to String
         String regionParamName = regionParamName();
         if (regionParamName != null) {
             String regionMethodName = endpointRulesSpecUtils.paramMethodName(regionParamName);
-            builder.addStatement("$L = params.$L() == null ? null : params.$L().id()" ,
+            builder.addStatement("registers.$L = params.$L() == null ? null : params.$L().id()" ,
                                  registerInfoMap.get(regionParamName).getName(),
                                  regionMethodName, regionMethodName);
         }
@@ -187,7 +214,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         // add all other parameters
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
             if (!entry.getKey().equals(regionParamName)) {
-                builder.addStatement("$L = params.$L()",
+                builder.addStatement("registers.$L = params.$L()",
                                      registerInfoMap.get(entry.getKey()).getName(),
                                      endpointRulesSpecUtils.paramMethodName(entry.getKey()));
             }
@@ -198,8 +225,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
             .beginControlFlow("while (nodeRef != 1 && nodeRef != -1 && nodeRef < 100000000)")
             .addStatement("boolean complemented = nodeRef < 0")
             .addStatement("int nodeI = $L.abs(nodeRef) - 1", ClassName.get(Math.class))
-            .addStatement("boolean conditionResult = false")
-            .addCode(conditionSwitchBlock())
+            .addStatement("boolean conditionResult = evaluateCondition(BDD_DEFINITION[nodeI*3], registers)")
             .beginControlFlow("if (complemented == conditionResult)")
             .addStatement("nodeRef = BDD_DEFINITION[nodeI*3+2]") // follow highRef
             .nextControlFlow("else")
@@ -211,8 +237,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
                                                                               + "endpoint result")
                .nextControlFlow("else")
-               .addStatement("RuleResult result = null")
-               .addCode(resultSwitchBlock())
+               .addStatement("RuleResult result = evaluateResult(nodeRef-100000001, registers)")
                .beginControlFlow("if (result.isError())")
                .addStatement("String errorMsg = result.error()")
                .beginControlFlow("if (errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
@@ -271,8 +296,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
 
         // first add an entry for every parameter
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
-            String name = intermediateModel.getNamingStrategy().getVariableName(entry.getKey());
-            registryInfo.put(entry.getKey(), new RegistryInfo(name, index, fromParameterModel(entry.getValue())));
+            registryInfo.put(entry.getKey(), new RegistryInfo(entry.getKey(), index, fromParameterModel(entry.getValue())));
             index += 1;
         }
 
@@ -285,10 +309,9 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 synthetic.setType("error");
                 synthetic.setError("synthetic");
                 synthetic.setConditions(Collections.singletonList(conditionModel));
-                String name = intermediateModel.getNamingStrategy().getVariableName(conditionModel.getAssign());
                 registryInfo.put(
                     conditionModel.getAssign(),
-                    new RegistryInfo(name, index, ExpressionParser.parseRuleSetExpression(synthetic)));
+                    new RegistryInfo(conditionModel.getAssign(), index, ExpressionParser.parseRuleSetExpression(synthetic)));
                 index += 1;
             }
         }
