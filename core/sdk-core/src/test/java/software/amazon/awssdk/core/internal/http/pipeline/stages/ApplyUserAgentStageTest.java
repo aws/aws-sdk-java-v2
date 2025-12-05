@@ -182,7 +182,7 @@ public class ApplyUserAgentStageTest {
 
         List<String> userAgentHeaders = result.headers().get(HEADER_USER_AGENT);
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).doesNotContain("aws-sdk-java");
+        assertThat(userAgentHeaders.get(0)).contains("aws-sdk-java");
     }
 
     @Test

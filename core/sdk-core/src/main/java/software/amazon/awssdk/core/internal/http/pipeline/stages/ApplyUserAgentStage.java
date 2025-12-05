@@ -68,7 +68,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
 
-        if (hasNonNullUserAgentHeader(request)) {
+        if (request.firstMatchingHeader(HEADER_USER_AGENT).isPresent()) {
             return request;
         }
         String headerValue = finalizeUserAgent(context);
