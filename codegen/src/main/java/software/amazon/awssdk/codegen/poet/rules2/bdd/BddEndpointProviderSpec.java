@@ -22,6 +22,10 @@ import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -62,8 +66,6 @@ public class BddEndpointProviderSpec implements ClassSpec  {
     private final boolean endpointCaching;
 
     private final ClassName registersType;
-    private final ClassName conditionFnType;
-    private final ClassName resultFnType;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -77,8 +79,6 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         this.endpointCaching = intermediateModel.getCustomizationConfig().getEnableEndpointProviderUriCaching();
 
         this.registersType = className().nestedClass("Registers");
-        this.conditionFnType = className().nestedClass("ConditionFn");
-        this.resultFnType = className().nestedClass("ResultFn");
     }
 
     @Override
@@ -87,11 +87,13 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
                                             .addType(registersClass())
-                                            .addType(conditionFnInterface())
-                                            .addType(resultFnInterface())
                                             .addField(bddDefinition())
-                                            .addField(conditionFns())
-                                            .addField(resultFns())
+                                            .addMethods(conditionFns())
+                                            .addMethods(resultFns())
+            .addField(conditionMethodHandlesArray())
+            .addStaticBlock(conditionMethodsInit())
+            .addField(resultMethodHandlesArray())
+                                            .addStaticBlock(resultMethodsInit())
                                             .addAnnotation(SdkInternalApi.class);
 
         builder.addMethod(resolveEndpointMethod());
@@ -99,24 +101,70 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         return builder.build();
     }
 
-    private TypeSpec conditionFnInterface() {
-        return TypeSpec.interfaceBuilder(conditionFnType)
-            .addAnnotation(FunctionalInterface.class)
-            .addMethod(MethodSpec.methodBuilder("test")
-                             .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-                             .returns(boolean.class)
-                               .addParameter(registersType, "registers")
-                               .build()).build();
+    private CodeBlock conditionMethodsInit() {
+        // Build the array entries
+        CodeBlock.Builder builder = CodeBlock.builder()
+            .beginControlFlow("try")
+            .addStatement("$T.Lookup lookup = $T.lookup()", MethodHandles.class, MethodHandles.class)
+            .beginControlFlow("CONDITION_FNS = new $T[]", MethodHandle.class);
+
+        for (int cI  = 0; cI < endpointBddModel.getConditions().size(); cI++) {
+            builder.add("lookup.findStatic($T.class, $S, $T.methodType($T.class, $T.class))",
+                                 className(), "c" + cI, MethodType.class, boolean.class, registersType);
+            if (cI < endpointBddModel.getConditions().size() - 1) {
+                builder.add(",\n");
+            } else {
+                builder.add("\n");
+            }
         }
 
-    private TypeSpec resultFnInterface() {
-        return TypeSpec.interfaceBuilder(resultFnType)
-                       .addAnnotation(FunctionalInterface.class)
-                       .addMethod(MethodSpec.methodBuilder("apply")
-                                            .addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
-                                            .returns(typeMirror.rulesResult().type())
-                                            .addParameter(registersType, "registers")
-                                            .build()).build();
+            builder
+                .endControlFlow()
+                .add(";")
+                .nextControlFlow("catch ($T | $T e)", NoSuchMethodException.class, IllegalAccessException.class)
+                // TODO: handle this exception?
+                .endControlFlow();
+        return builder.build();
+    }
+
+    private CodeBlock resultMethodsInit() {
+        // Build the array entries
+        CodeBlock.Builder builder = CodeBlock.builder()
+                                             .beginControlFlow("try")
+                                             .addStatement("$T.Lookup lookup = $T.lookup()",
+                                                           MethodHandles.class, MethodHandles.class)
+                                             .beginControlFlow("RESULT_FNS = new $T[]", MethodHandle.class);
+
+        for (int rI  = 0; rI < endpointBddModel.getResults().size(); rI++) {
+            builder.add("lookup.findStatic($T.class, $S, $T.methodType($T.class, $T.class))",
+                                 className(), "r" + rI, MethodType.class, typeMirror.rulesResult().javaType(), registersType);
+            if (rI < endpointBddModel.getResults().size() - 1) {
+                builder.add(",\n");
+            } else {
+                builder.add("\n");
+            }
+        }
+
+        builder
+            .endControlFlow()
+            .add(";")
+            .nextControlFlow("catch ($T | $T e)", NoSuchMethodException.class, IllegalAccessException.class)
+            // TODO: handle this exception?
+            .endControlFlow();
+        return builder.build();
+    }
+
+    private FieldSpec resultMethodHandlesArray() {
+        return FieldSpec.builder(MethodHandle[].class, "CONDITION_FNS",
+                                 Modifier.PRIVATE, Modifier.STATIC)
+                                 .build();
+
+    }
+
+    private FieldSpec conditionMethodHandlesArray() {
+        return FieldSpec.builder(MethodHandle[].class, "RESULT_FNS",
+                                 Modifier.PRIVATE, Modifier.STATIC)
+                        .build();
     }
 
     private TypeSpec registersClass() {
@@ -147,82 +195,51 @@ public class BddEndpointProviderSpec implements ClassSpec  {
     }
 
     // generate the CONDITION_FNS array with functions for every condition
-    private FieldSpec conditionFns() {
-        CodeBlock.Builder arrayInit = CodeBlock.builder()
-                                       .add("{\n")
-                                       .indent();
+    private List<MethodSpec> conditionFns() {
+        List<MethodSpec> conditionFns = new ArrayList<>();
         for (int cI  = 0; cI < endpointBddModel.getConditions().size(); cI++) {
             ConditionModel c = endpointBddModel.getConditions().get(cI);
+            // hack for now to work around ExpressionParser
+            RuleModel synthetic = new RuleModel();
+            synthetic.setType("error");
+            synthetic.setError("synthetic");
+            synthetic.setConditions(Collections.singletonList(c));
+            RuleExpression parsedSynthetic = ExpressionParser
+                .parseRuleSetExpression(synthetic)
+                .accept(new PrepareForCodegenVisitor());
 
-            if (c.getAssign() != null) {
-                arrayInit.add("// condition $L, assign $L\n", cI, c.getAssign());
-            } else {
-                arrayInit
-                    .add("// condition $L\n", cI);
-            }
-            arrayInit
-                .add(buildConditionFnLambda(endpointBddModel.getConditions().get(cI)));
-            if (cI < endpointBddModel.getConditions().size() - 1) {
-                arrayInit.add(", ");
-            }
+            CodeBlock.Builder builder = CodeBlock.builder();
+            parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap));
+            conditionFns.add(MethodSpec.methodBuilder("c" + cI)
+                                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                 .returns(boolean.class)
+                                 .addParameter(registersType, "registers")
+                                 .addCode(builder.build())
+                                 .build());
         }
-        arrayInit.unindent().add("\n}");
-
-        TypeName conditionFnArrayType = ArrayTypeName.of(conditionFnType);
-        return FieldSpec.builder(conditionFnArrayType, "CONDITION_FNS",
-                                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer(arrayInit.build())
-                        .build();
-    }
-
-    private CodeBlock buildConditionFnLambda(ConditionModel c) {
-        // hack for now to work around ExpressionParser
-        RuleModel synthetic = new RuleModel();
-        synthetic.setType("error");
-        synthetic.setError("synthetic");
-        synthetic.setConditions(Collections.singletonList(c));
-        RuleExpression parsedSynthetic = ExpressionParser
-            .parseRuleSetExpression(synthetic)
-            .accept(new PrepareForCodegenVisitor());
-
-        CodeBlock.Builder builder = CodeBlock.builder();
-        builder.beginControlFlow("(registers) -> ");
-        parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(builder, typeMirror, registerInfoMap));
-        builder.endControlFlow();
-        return builder.build();
+        return conditionFns;
     }
 
     // generate the RESULT_FNS array with functions for every result
-    private FieldSpec resultFns() {
-        List<CodeBlock> lambdaBlocks = endpointBddModel.getResults().stream()
-                                                       .map(this::buildResultFnLambda)
-                                                       .collect(Collectors.toList());
-        CodeBlock arrayInit = CodeBlock.builder()
-                                       .add("{\n")
-                                       .indent()
-                                       .add(CodeBlock.join(lambdaBlocks, ",\n"))
-                                       .unindent()
-                                       .add("\n}")
-                                       .build();
+    private List<MethodSpec> resultFns() {
+        List<MethodSpec> resultFns = new ArrayList<>();
+        for(int rI = 0; rI < endpointBddModel.getResults().size(); rI++) {
+            RuleModel resultRuleModel = endpointBddModel.getResults().get(rI);
+            RuleExpression parsedSynthetic = ExpressionParser
+                .parseRuleSetExpression(resultRuleModel)
+                .accept(new PrepareForCodegenVisitor());
 
-        TypeName resultFnArrayType = ArrayTypeName.of(resultFnType);
-        return FieldSpec.builder(resultFnArrayType, "RESULT_FNS",
-                                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .initializer(arrayInit)
-                        .build();
-    }
-
-    private CodeBlock buildResultFnLambda(RuleModel resultRuleModel) {
-        RuleExpression parsedSynthetic = ExpressionParser
-            .parseRuleSetExpression(resultRuleModel)
-            .accept(new PrepareForCodegenVisitor());
-
-        CodeBlock.Builder builder = CodeBlock.builder();
-        builder.beginControlFlow("(registers) -> ");
-        parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
-            builder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointCaching));
-        builder.endControlFlow();
-        return builder.build();
+            CodeBlock.Builder builder = CodeBlock.builder();
+            parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
+                builder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointCaching));
+            resultFns.add(MethodSpec.methodBuilder("r" + rI)
+                                    .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                    .returns(typeMirror.rulesResult().type())
+                                    .addParameter(registersType, "registers")
+                                    .addCode(builder.build())
+                              .build());
+        }
+        return resultFns;
     }
 
     private MethodSpec resolveEndpointMethod() {
@@ -260,7 +277,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
             .beginControlFlow("while (nodeRef != 1 && nodeRef != -1 && nodeRef < 100000000)")
             .addStatement("boolean complemented = nodeRef < 0")
             .addStatement("int nodeI = $L.abs(nodeRef) - 1", ClassName.get(Math.class))
-            .addStatement("boolean conditionResult = CONDITION_FNS[BDD_DEFINITION[nodeI*3]].test(registers)")
+            .addStatement("boolean conditionResult = (boolean)CONDITION_FNS[BDD_DEFINITION[nodeI*3]].invokeExact(registers)")
             .beginControlFlow("if (complemented == conditionResult)")
             .addStatement("nodeRef = BDD_DEFINITION[nodeI*3+2]") // follow highRef
             .nextControlFlow("else")
@@ -272,7 +289,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
                                                                               + "endpoint result")
                .nextControlFlow("else")
-               .addStatement("RuleResult result = RESULT_FNS[nodeRef-100000001].apply(registers)")
+               .addStatement("RuleResult result = (RuleResult)RESULT_FNS[nodeRef-100000001].invokeExact(registers)")
                .beginControlFlow("if (result.isError())")
                .addStatement("String errorMsg = result.error()")
                .beginControlFlow("if (errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
@@ -286,7 +303,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                .endControlFlow();
 
         builder
-            .nextControlFlow("catch ($T error)", Exception.class)
+            .nextControlFlow("catch ($T error)", Throwable.class)
             .addStatement("return $T.failedFuture(error)", CompletableFutureUtils.class)
             .endControlFlow();
         return builder.build();
@@ -331,7 +348,8 @@ public class BddEndpointProviderSpec implements ClassSpec  {
 
         // first add an entry for every parameter
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
-            registryInfo.put(entry.getKey(), new RegistryInfo(entry.getKey(), index, fromParameterModel(entry.getValue())));
+            String name = intermediateModel.getNamingStrategy().getVariableName(entry.getKey());
+            registryInfo.put(entry.getKey(), new RegistryInfo(name, index, fromParameterModel(entry.getValue())));
             index += 1;
         }
 
@@ -344,9 +362,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 synthetic.setType("error");
                 synthetic.setError("synthetic");
                 synthetic.setConditions(Collections.singletonList(conditionModel));
+                String name = intermediateModel.getNamingStrategy().getVariableName(conditionModel.getAssign());
                 registryInfo.put(
                     conditionModel.getAssign(),
-                    new RegistryInfo(conditionModel.getAssign(), index, ExpressionParser.parseRuleSetExpression(synthetic)));
+                    new RegistryInfo(name, index, ExpressionParser.parseRuleSetExpression(synthetic)));
                 index += 1;
             }
         }
