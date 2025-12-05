@@ -85,24 +85,12 @@ public class AsyncRequestBodyFlexibleChecksumInTrailerTest {
                                                            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                                                            .region(Region.US_EAST_1)
                                                            .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                           .overrideConfiguration(
-                                                               // TODO(sra-identity-and-auth): we should remove these
-                                                               //  overrides once we set up codegen to set chunk-encoding to true
-                                                               //  for requests that are streaming and checksum-enabled
-                                                               o -> o.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, true)
-                                                                     .putExecutionAttribute(ENABLE_PAYLOAD_SIGNING, false))
                                                            .build();
 
         asyncClient = ProtocolRestJsonAsyncClient.builder()
                                                  .credentialsProvider(AnonymousCredentialsProvider.create())
                                                  .region(Region.US_EAST_1)
                                                  .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                                 .overrideConfiguration(
-                                                     // TODO(sra-identity-and-auth): we should remove these
-                                                     //  overrides once we set up codegen to set chunk-encoding to true
-                                                     //  for requests that are streaming and checksum-enabled
-                                                     o -> o.putExecutionAttribute(ENABLE_CHUNKED_ENCODING, true)
-                                                           .putExecutionAttribute(ENABLE_PAYLOAD_SIGNING, false))
                                                  .build();
     }
 

@@ -467,7 +467,6 @@ public class SdkPluginTest {
 
     @ParameterizedTest
     @MethodSource("testCases")
-    @Disabled("Request-level values are currently higher-priority than plugin settings.") // TODO(sra-identity-auth)
     public <T> void requestPluginSeesCustomerRequestConfiguredValue(TestCase<T> testCase) {
         if (testCase.requestSetter == null) {
             System.out.println("No request setting available.");
@@ -480,7 +479,11 @@ public class SdkPluginTest {
         SdkPlugin plugin = config -> {
             ProtocolRestJsonServiceClientConfiguration.Builder conf =
                 (ProtocolRestJsonServiceClientConfiguration.Builder) config;
-            testCase.pluginValidator.accept(conf, testCase.nonDefaultValue);
+            // Request-level values are currently higher-priority than plugin settings.
+            // This is not the intended behavior and is inconsistent with client-level plugin.
+            // However, we can't fix it directly due to backwards compatibility. See
+            // JAVA-8671 for more details.
+            testCase.pluginValidator.accept(conf, testCase.defaultValue);
             timesCalled.incrementAndGet();
         };
 
@@ -570,8 +573,11 @@ public class SdkPluginTest {
             AwsRequestOverrideConfiguration.builder()
                                            .addPlugin(plugin)
                                            .applyMutation(c -> {
-                                               // TODO(sra-identity-auth): request-level plugins should override request-level
-                                               // configuration
+                                               // testCase.requestSetter is not applied here because request-level values are
+                                               // currently higher-priority than plugin settings.
+                                               // This is not the intended behavior and is inconsistent with client-level plugin.
+                                               // However, we can't fix it directly due to backwards compatibility. See
+                                               // JAVA-8671 for more details.
                                                // if (testCase.requestSetter != null) {
                                                //     testCase.requestSetter.accept(c, testCase.defaultValue);
                                                // }
