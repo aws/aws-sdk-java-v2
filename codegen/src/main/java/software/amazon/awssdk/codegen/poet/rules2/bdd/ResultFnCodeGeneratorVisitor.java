@@ -164,7 +164,7 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
         String registerName = registerInfoMap.get(e.variableName()).getName();
-        builder.add("registers.$L", registerName);
+        builder.add("$L", registerName);
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 
@@ -233,13 +233,12 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
             isFirst = false;
         }
         builder.add(")");
-        // TODO: this could potentially be another type
         return RuleRuntimeTypeMirror.LIST_OF_STRING;
     }
 
     @Override
     public RuleType visitEndpointExpression(EndpointExpression e) {
-        builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
+        builder.add("result = $T.endpoint(", typeMirror.rulesResult().type());
         if (endpointCaching) {
             builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
         } else {
@@ -285,7 +284,7 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
 
     @Override
     public RuleType visitErrorExpression(ErrorExpression e) {
-        builder.add("return $T.error(", typeMirror.rulesResult().type());
+        builder.add("result = $T.error(", typeMirror.rulesResult().type());
         e.error().accept(this);
         builder.addStatement(")");
         return null;
