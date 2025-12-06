@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
@@ -66,8 +67,36 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
+
+        if (hasUserAgentInAdditionalHeaders() || hasUserAgentInRequestConfig(context)) {
+            return request;
+        }
         String headerValue = finalizeUserAgent(context);
         return request.putHeader(HEADER_USER_AGENT, headerValue);
+    }
+
+    /**
+     * Checks if User-Agent header is present in ADDITIONAL_HTTP_HEADERS configuration.
+     * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header in additional header of client
+     */
+    private boolean hasUserAgentInAdditionalHeaders() {
+        Map<String, List<String>> additionalHeaders = clientConfig.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
+        if (additionalHeaders == null) {
+            return false;
+        }
+        return additionalHeaders.containsKey(HEADER_USER_AGENT);
+    }
+
+    /**
+     * Checks if User-Agent header is present in request override configs.
+     * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header at request level
+     */
+    private boolean hasUserAgentInRequestConfig(RequestExecutionContext context) {
+        Map<String, List<String>> requestHeaders = context.requestConfig().headers();
+        if (requestHeaders == null) {
+            return false;
+        }
+        return requestHeaders.containsKey(HEADER_USER_AGENT);
     }
 
     /**
