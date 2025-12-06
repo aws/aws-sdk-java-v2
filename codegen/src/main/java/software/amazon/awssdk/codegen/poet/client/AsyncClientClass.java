@@ -25,7 +25,6 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
@@ -54,7 +53,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
@@ -68,11 +66,9 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
-import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -104,7 +100,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
-    private final boolean useSraAuth;
     private boolean hasScheduledExecutor;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
@@ -114,7 +109,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
-        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
     }
 
@@ -173,12 +167,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod());
 
-        if (!useSraAuth) {
-            if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
-                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-                type.addMethod(isSignerOverriddenOnClientMethod());
-            }
-        }
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
         type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
                                                           model));
@@ -366,14 +354,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  Void.class,
                                  "endOfStreamFuture",
                                  "pair");
-        }
-
-        if (!useSraAuth) {
-            if (shouldUseAsyncWithBodySigner(opModel)) {
-                builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
-            } else {
-                builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
-            }
         }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));
@@ -592,46 +572,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
         methodBuilder.addStatement("return $N", publishersName);
 
         return methodBuilder.build();
-    }
-
-    private boolean shouldUseAsyncWithBodySigner(OperationModel opModel) {
-        if (opModel.getInputShape().getRequestSignerClassFqcn() != null) {
-            return false;
-        }
-
-        AuthType authTypeForOperation = opModel.getAuthType();
-
-        if (authTypeForOperation == null) {
-            authTypeForOperation = model.getMetadata().getAuthType();
-        }
-
-        return authTypeForOperation == AuthType.V4 && opModel.hasStreamingInput();
-    }
-
-    private CodeBlock applyAsyncWithBodyV4SignerOverride(OperationModel opModel) {
-        return CodeBlock.builder()
-                .beginControlFlow("if (!isSignerOverridden($N))", "clientConfiguration")
-                .addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                        opModel.getInput().getVariableName(), AsyncAws4Signer.class)
-                .endControlFlow()
-                .build();
-    }
-
-    private MethodSpec isSignerOverriddenOnClientMethod() {
-        String clientConfigurationName = "clientConfiguration";
-
-        return MethodSpec.methodBuilder("isSignerOverridden")
-                .returns(boolean.class)
-                .addModifiers(PRIVATE, STATIC)
-                .addParameter(SdkClientConfiguration.class, clientConfigurationName)
-                .addStatement("return $T.TRUE.equals($N.option($T.$N))", Boolean.class, clientConfigurationName,
-                        SdkClientOption.class, "SIGNER_OVERRIDDEN")
-                .build();
-    }
-
-    private boolean hasStreamingV4AuthOperations() {
-        return model.getOperations().values().stream()
-                .anyMatch(this::shouldUseAsyncWithBodySigner);
     }
 
     private void addScheduledExecutorIfNeeded(Builder classBuilder) {

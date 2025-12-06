@@ -175,7 +175,11 @@ public class S3MultipartClientGetObjectWiremockTest {
 
         // Skip the lazy transformer since the error won't surface unless the content is consumed
         AsyncResponseTransformer<GetObjectResponse, T> transformer = supplier.transformer();
-        if (transformer instanceof InputStreamResponseTransformer || transformer instanceof PublisherAsyncResponseTransformer) {
+        if (transformer instanceof InputStreamResponseTransformer
+            || transformer instanceof PublisherAsyncResponseTransformer
+            // FileAsyncResponseTransformer will be used with ParallelMultipartDownloaderSubscriber for which this test logic
+            // doesn't work
+            || transformer instanceof FileAsyncResponseTransformer) {
             return;
         }
 
@@ -218,7 +222,8 @@ public class S3MultipartClientGetObjectWiremockTest {
                     .hasMessageContaining("Connection reset")
             );
 
-        verify(1, getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
+        verify(moreThan(0), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
+        verify(lessThanOrExactly(2), getRequestedFor(urlEqualTo(String.format("/%s/%s?partNumber=1", BUCKET, KEY))));
     }
 
     @ParameterizedTest
@@ -290,20 +295,21 @@ public class S3MultipartClientGetObjectWiremockTest {
     }
 
 
+
+
     /**
      * Testing response transformers that are not retryable when
      * {@link AsyncResponseTransformer#split(SplittingTransformerConfiguration)} is invoked and used with
-     * {@link SplittingTransformer} - {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}, and
-     * {@link FileAsyncResponseTransformer}
+     * {@link SplittingTransformer} - {@link PublisherAsyncResponseTransformer}, {@link InputStreamResponseTransformer}
      * <p>
      *
-     * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}, tested in
-     * {@link S3MultipartClientGetObjectRetryBehaviorWiremockTest}.
+     * Retry for multipart download is supported for {@link ByteArrayAsyncResponseTransformer}
+     * and {@link FileAsyncResponseTransformer}, tested in {@link S3MultipartClientGetObjectRetryBehaviorWiremockTest} and
+     * {@link S3MultipartFileDownloadWiremockTest} respectively.
      */
     private static Stream<AsyncResponseTransformerTestSupplier<?>> nonRetryableResponseTransformers() {
         return Stream.of(new AsyncResponseTransformerTestSupplier.InputStreamArtSupplier(),
-                         new AsyncResponseTransformerTestSupplier.PublisherArtSupplier(),
-                         new AsyncResponseTransformerTestSupplier.FileArtSupplier());
+                         new AsyncResponseTransformerTestSupplier.PublisherArtSupplier());
     }
 
     private CompletableFuture<?> mock200Response(S3AsyncClient s3Client, int runNumber,

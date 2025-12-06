@@ -3958,7 +3958,6 @@
     "KeySchema":{
       "type":"list",
       "member":{"shape":"KeySchemaElement"},
-      "max":2,
       "min":1
     },
     "KeySchemaAttributeName":{

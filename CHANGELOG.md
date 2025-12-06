@@ -1,221 +1,145 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.35.8__ __2025-10-15__
-## __AWS SDK for Java v2__
+# __2.40.3__ __2025-12-05__
+## __AWS Identity and Access Management__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - Adding the ExpirationTime attribute to the delegation request resource.
 
-  - ### Bugfixes
-    - Set the RESOLVED_ACCOUNT_ID (T) user-agent metric only when accountID is actually resolved from credentials.
-
-## __Amazon Bedrock__
+## __AWS SDK for Java v2 Codegen__
   - ### Features
-    - Amazon Bedrock Automated Reasoning Policy now offers enhanced AWS KMS integration. The CreateAutomatedReasoningPolicy API includes a new kmsKeyId field, allowing customers to specify their preferred KMS key for encryption, improving control and compliance with AWS encryption mandates.
+    - Automatically enable `AwsV4HttpSigner.CHUNK_ENCODING_ENABLED` signer property for input streaming operations that support checksums in generated auth scheme provider class
 
-## __Amazon DocumentDB with MongoDB compatibility__
+## __Amazon EC2 Container Service__
   - ### Features
-    - Add support for NetworkType field in CreateDbCluster, ModifyDbCluster, RestoreDbClusterFromSnapshot and RestoreDbClusterToPointInTime for DocumentDB.
+    - Updating stop-task API to encapsulate containers with custom stop signal
 
-## __Amazon Elastic Compute Cloud__
+## __Amazon Simple Email Service__
   - ### Features
-    - Introducing EC2 Capacity Manager for monitoring and analyzing capacity usage across On-Demand Instances, Spot Instances, and Capacity Reservations.
+    - Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2
 
-## __Amazon GuardDuty__
+## __Inspector2__
   - ### Features
-    - Added default pagination value for ListMalwareProtectionPlans API and updated UpdateFindingsFeedback API
+    - This release adds a new ScanStatus called "Unsupported Code Artifacts". This ScanStatus will be returned when a Lambda function was not code scanned because it has unsupported code artifacts.
 
-## __Amazon Lightsail__
+## __Partner Central Account API__
   - ### Features
-    - Add support for manage Lightsail Bucket CORS configuration
+    - Adding Verification API's to Partner Central Account SDK.
 
-## __Elastic Load Balancing__
-  - ### Features
-    - This release expands Listener Rule Conditions to support RegexValues and adds support for a new Transforms field in Listener Rules.
-
-## __Timestream InfluxDB__
-  - ### Features
-    - This release adds support for creating and managing InfluxDB 3 Core and Enterprise DbClusters.
-
-# __2.35.7__ __2025-10-14__
-## __AWS Backup__
-  - ### Features
-    - The AWS Backup job attribute extension enhancement helps customers better understand the plan that initiated each job, and the properties of the resource each job creates.
-
-## __AWS Transfer Family__
-  - ### Features
-    - SFTP connectors now support routing connections via customers' VPC. This enables connections to remote servers that are only accessible in a customer's VPC environment, and to servers that are accessible over the internet but need connections coming from an IP address in a customer VPC's CIDR range.
-
-## __Amazon AppStream__
-  - ### Features
-    - This release introduces support for Microsoft license included applications streaming.
-
-## __Amazon Connect Service__
-  - ### Features
-    - SDK release for TaskTemplateInfo in Contact for DescribeContact response.
-
-## __Amazon DataZone__
-  - ### Features
-    - Support creating scoped and trustedIdentityPropagation enabled connections.
-
-## __Amazon Elastic Compute Cloud__
-  - ### Features
-    - This release adds support for creating instant, point-in-time copies of EBS volumes within the same Availability Zone
-
-## __Amazon Transcribe Service__
-  - ### Features
-    - Move UntagResource API body member to query parameter
-
-# __2.35.6__ __2025-10-13__
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
-  - ### Features
-    - Updated http status code in control plane apis of agentcore runtime, tools and identity. Additional included provider types for AgentCore Identity
-
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
-  - ### Features
-    - Updated InvokeAgentRuntime API to accept account id optionally and added CompleteResourceTokenAuth API.
-
-## __Amazon Elastic Compute Cloud__
-  - ### Features
-    - Release Amazon EC2 c8i, c8i-flex, m8a, and r8gb
-
-## __CloudWatch Observability Admin Service__
-  - ### Features
-    - CloudWatch Observability Admin adds the ability to enable Resource tags for telemetry in a customer account. The release introduces new APIs to enable, disable and describe the status of Resource tags for telemetry feature. This new capability simplifies monitoring AWS resources using tags.
-
-# __2.35.5__ __2025-10-10__
-## __AWS Glue__
-  - ### Features
-    - Addition of AuditContext in GetTable/GetTables Request
-
+# __2.40.2__ __2025-12-04__
 ## __AWS Lambda__
   - ### Features
-    - Add InvokedViaFunctionUrl context key to limit invocations to only FURL invokes.
+    - Add DisallowedByVpcEncryptionControl to the LastUpdateStatusReasonCode and StateReasonCode enums to represent failures caused by VPC Encryption Controls.
 
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
+## __Apache 5 HTTP Client (Preview)__
+  - ### Bugfixes
+    - Ignore negative values set `connectionTimeToLive`. There is no behavior change on the client as negative values have no meaning for Apache 5.
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+# __2.40.1__ __2025-12-03__
+## __Amazon Bedrock__
   - ### Features
-    - Bedrock AgentCore release for Gateway, and Memory including Self-Managed Strategies support for Memory.
-
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
-  - ### Features
-    - Bedrock AgentCore release for Runtime, and Memory.
-
-## __Amazon CloudFront__
-  - ### Features
-    - Added new viewer security policy, TLSv1.2_2025, for CloudFront.
-
-## __Amazon Relational Database Service__
-  - ### Features
-    - Updated the text in the Important section of the ModifyDBClusterParameterGroup page.
-
-## __odb__
-  - ### Features
-    - This release adds APIs that allow you to specify CIDR ranges in your ODB peering connection.
-
-# __2.35.4__ __2025-10-09__
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS WAFV2__
-  - ### Features
-    - This release adds the ability to throw WafLimitsExceededException when the maximum number of Application Load Balancer (ALB) associations per AWS WAF v2 WebACL is exceeded.
-
-## __Amazon QuickSight__
-  - ### Features
-    - This release adds support for ActionConnector and Flow, which are new resources associated with Amazon Quick Suite. Additional updates include expanded Data Source options, further branding customization, and new capabilities that can be restricted by Admins.
+    - Adding support in Amazon Bedrock to customize models with reinforcement fine-tuning (RFT) and support for updating the existing Custom Model Deployments.
 
 ## __Amazon S3__
   - ### Bugfixes
-    - Skip Expect: 100-continue header for PutObject and UploadPart requests with zero content length
+    - Fix NPE issue thrown when using multipart S3 client to upload an object containing empty content without supplying a content length. See [#6464](https://github.com/aws/aws-sdk-java-v2/issues/6464)
 
-# __2.35.3__ __2025-10-08__
-## __AWS License Manager User Subscriptions__
+## __Amazon SageMaker Service__
   - ### Features
-    - Released support for IPv6 and dual-stack active directories
+    - Introduces Serverless training: A fully managed compute infrastructure that abstracts away all infrastructure complexity, allowing you to focus purely on model development. Added AI model customization assets used to train, refine, and evaluate custom models during the model customization process.
 
-## __AWS Outposts__
+# __2.40.0__ __2025-12-02__
+## __AWS Cost Explorer Service__
   - ### Features
-    - This release adds the new StartOutpostDecommission API, which starts the decommission process to return Outposts racks or servers.
+    - This release updates existing Savings Plans Purchase Analyzer and Recommendations APIs to support Database Savings Plans.
 
-## __AWS SDK for Java v2__
+## __AWS Lambda__
   - ### Features
-    - Updated endpoint and partition metadata.
+    - Launching Lambda durable functions - a new feature to build reliable multi-step applications and AI workflows natively within the Lambda developer experience.
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+## __AWS S3 Control__
   - ### Features
-    - Adding support for authorizer type AWS_IAM to AgentCore Control Gateway.
-
-## __Service Quotas__
-  - ### Features
-    - introduces Service Quotas Automatic Management. Users can opt-in to monitoring and managing service quotas, receive notifications when quota usage reaches thresholds, configure notification channels, subscribe to EventBridge events for automation, and view notifications in the AWS Health dashboard.
-
-# __2.35.2__ __2025-10-07__
-## __AWS Proton__
-  - ### Features
-    - Deprecating APIs in AWS Proton namespace.
+    - Add support for S3 Storage Lens Advanced Performance Metrics, Expanded Prefixes metrics report, and export to S3 Tables.
 
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-# __2.35.1__ __2025-10-06__
-## __AWS Backup__
+## __AWS Savings Plans__
   - ### Features
-    - Adds optional MaxScheduledRunsPreview input to GetBackupPlan API to provide a preview of up to 10 next scheduled backup plan runs in the GetBackupPlan response.
+    - Added support for Amazon Database Savings Plans
 
-## __AWS Glue__
+## __AWS SecurityHub__
   - ### Features
-    - Adds labeling for DataQualityRuleResult for GetDataQualityResult and PublishDataQualityResult APIs
+    - ITSM enhancements: DRYRUN mode for testing ticket creation, ServiceNow now uses AWS Secrets Manager for credentials, ConnectorRegistrationsV2 renamed to RegisterConnectorV2, added ServiceQuotaExceededException error, and ConnectorStatus visibility in CreateConnectorV2.
 
-## __AWS MediaConnect__
+## __Amazon Bedrock__
   - ### Features
-    - Enabling Tag-on-Create for AWS Elemental MediaConnect flow-based resource types
+    - Adds the audioDataDeliveryEnabled boolean field to the Model Invocation Logging Configuration.
 
-## __AWS Resource Explorer__
+## __Amazon Bedrock AgentCore__
   - ### Features
-    - Add new AWS Resource Explorer APIs
+    - Support for AgentCore Evaluations and Episodic memory strategy for AgentCore Memory.
 
-## __Amazon Bedrock Agent Core Control Plane Fronting Layer__
+## __Amazon Bedrock AgentCore Control__
   - ### Features
-    - Add support for VM lifecycle configuration parameters and A2A protocol
+    - Supports AgentCore Evaluations, Policy, Episodic Memory Strategy, Resource Based Policy for Runtime and Gateway APIs, API Gateway Rest API Targets and enhances JWT authorizer.
 
-## __Amazon Bedrock AgentCore Data Plane Fronting Layer__
+## __Amazon Bedrock Runtime__
   - ### Features
-    - Add support for batch memory management, agent card retrieval and session termination
+    - Adds support for Audio Blocks and Streaming Image Output plus new Stop Reasons of malformed_model_output and malformed_tool_use.
 
-## __Amazon MemoryDB__
+## __Amazon CloudWatch Logs__
   - ### Features
-    - Support for DescribeMultiRegionParameterGroups and DescribeMultiRegionParameters API.
+    - CloudWatch Logs adds managed S3 Tables integration to access logs using other analytical tools, as well as facets and field indexing to simplify log analytics in CloudWatch Logs Insights.
 
-## __Amazon QuickSight__
+## __Amazon DataZone__
   - ### Features
-    - Documentation improvements for QuickSight API documentation to clarify that delete operation APIs are global.
+    - Amazon DataZone now supports exporting Catalog datasets as Amazon S3 tables, and provides automatic business glossary term suggestions for data assets.
+
+## __Amazon FSx__
+  - ### Features
+    - S3 Access Points support for FSx for NetApp ONTAP
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for extended threat detection for Amazon EC2 and Amazon ECS. Adding support for wild card suppression rules.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - GPU-acceleration helps you build large-scale vector databases faster and more efficiently. You can enable this feature on new OpenSearch domains and OpenSearch Serverless collections. This feature uses GPU-acceleration to reduce the time needed to index data into vector indexes.
 
 ## __Amazon Relational Database Service__
   - ### Features
-    - Documentation updates to the CreateDBClusterMessage$PubliclyAccessible and CreateDBInstanceMessage$PubliclyAccessible properties.
+    - RDS Oracle and SQL Server: Add support for adding, modifying, and removing additional storage volumes, offering up to 256TiB storage; RDS SQL Server: Support Developer Edition via custom engine versions for development and testing purposes; M7i/R7i instances with Optimize CPU for cost savings.
 
-# __2.35.0__ __2025-10-03__
-## __AWS Clean Rooms Service__
+## __Amazon S3 Tables__
   - ### Features
-    - Added support for reading data sources across regions, and results delivery to allowedlisted regions.
+    - Add storage class, replication, and table record expiration features to S3 Tables.
 
-## __AWS Elemental MediaLive__
+## __Amazon S3 Vectors__
   - ### Features
-    - AWS Elemental MediaLive enables Mediapackage V2 users to configure ID3, KLV, Nielsen ID3, and Segment Length related parameters through the Mediapackage output group.
+    - Amazon S3 Vectors provides cost-effective, elastic, and durable vector storage for queries based on semantic meaning and similarity.
 
-## __AWS SDK for Java v2__
+## __Amazon SageMaker Service__
   - ### Features
-    - Adds business metrics tracking for credential providers.
+    - Added support for serverless MLflow Apps. Added support for new HubContentTypes (DataSet and JsonDoc) in Private Hub for AI model customization assets, enabling tracking and management of training datasets and evaluators (reward functions/prompts) throughout the ML lifecycle.
 
-## __Amazon Q Connect__
+## __Amazon Simple Storage Service__
   - ### Features
-    - Updated Amazon Q in Connect APIs to support Email Contact Recommendations.
+    - New S3 Storage Class FSX_ONTAP
 
-## __Payment Cryptography Data Plane__
+## __CloudWatch Observability Admin Service__
   - ### Features
-    - Added a new API - translateKeyMaterial; allows keys wrapped by ECDH derived keys to be rewrapped under a static AES keyblock without first importing the key into the service.
+    - CloudWatch Observability Admin adds pipelines configuration for third party log ingestion and transformation of all logs ingested, integration of CloudWatch logs with S3 Tables, and AWS account or organization level enablement for 7 AWS services.
+
+## __Nova Act Service__
+  - ### Features
+    - Initial release of Nova Act SDK. The Nova Act service enables customers to build and manage fleets of agents for automating production UI workflows with high reliability, fastest time-to-value, and ease of implementation at scale.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - GPU-acceleration helps you build large-scale vector databases faster and more efficiently. You can enable this feature on new OpenSearch domains and OpenSearch Serverless collections. This feature uses GPU-acceleration to reduce the time needed to index data into vector indexes.
+
+## __S3__
+  - ### Features
+    - Add support for parallel download for individual part-get for multipart GetObject in s3 async client and Transfer Manager
 

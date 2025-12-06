@@ -27,8 +27,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Temporarily used for buffering all data into memory. TODO(sra-identity-auth): Remove this by supporting chunked encoding. We
- * should not buffer everything into memory.
+ * Temporarily used for buffering all data into memory.
  */
 @SdkInternalApi
 public class InMemoryPublisher implements Publisher<ByteBuffer> {

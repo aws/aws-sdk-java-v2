@@ -31,14 +31,18 @@ import static software.amazon.awssdk.http.auth.aws.internal.signer.util.Checksum
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.ChecksumUtil.useChunkEncoding;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.isAnonymous;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.CredentialUtils.sanitizeCredentials;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
-import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerConstant.X_AMZ_TRAILER;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.PRESIGN_URL_MAX_EXPIRATION_DURATION;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_DECODED_CONTENT_LENGTH;
+import static software.amazon.awssdk.http.auth.aws.signer.SignerConstant.X_AMZ_TRAILER;
 import static software.amazon.awssdk.http.auth.spi.signer.SdkInternalHttpSignerProperty.CHECKSUM_STORE;
 
+import java.nio.ByteBuffer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.auth.signing.AwsSigner;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
@@ -60,6 +64,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.OptionalUtils;
 
 /**
  * An implementation of a {@link AwsV4aHttpSigner} that uses properties to compose v4a-signers in order to delegate signing of a
@@ -82,8 +87,11 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
 
     @Override
     public CompletableFuture<AsyncSignedRequest> signAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request) {
-        // There isn't currently a concept of async for crt signers
-        throw new UnsupportedOperationException();
+        Checksummer checksummer = checksummer(request, null, checksumStore(request));
+        V4aProperties v4aProperties = v4aProperties(request);
+        AwsSigningConfig signingConfig = signingConfig(request, v4aProperties);
+        V4aPayloadSigner payloadSigner = v4aPayloadSigner(request, v4aProperties);
+        return doSignAsync(request, checksummer, signingConfig, payloadSigner);
     }
 
     private static V4aProperties v4aProperties(BaseSignRequest<?, ? extends AwsCredentialsIdentity> request) {
@@ -107,7 +115,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
     }
 
     private static V4aPayloadSigner v4aPayloadSigner(
-        SignRequest<? extends AwsCredentialsIdentity> request,
+        BaseSignRequest<?, ? extends AwsCredentialsIdentity> request,
         V4aProperties v4aProperties) {
 
         boolean isPayloadSigning = isPayloadSigning(request);
@@ -242,11 +250,63 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
                             .build();
     }
 
+    private static CompletableFuture<AsyncSignedRequest> doSignAsync(AsyncSignRequest<? extends AwsCredentialsIdentity> request,
+                                                                     Checksummer checksummer,
+                                                                     AwsSigningConfig signingConfig,
+                                                                     V4aPayloadSigner payloadSigner) {
+
+        SdkHttpRequest.Builder requestBuilder = request.request().toBuilder();
+        Publisher<ByteBuffer> requestPayload = request.payload().orElse(null);
+
+        return checksummer.checksum(requestPayload, requestBuilder)
+                          .thenCompose(checksummedPayload ->
+                                           payloadSigner.beforeSigningAsync(requestBuilder, checksummedPayload,
+                                                                            signingConfig.getSignedBodyValue()))
+                          .thenApply(p -> {
+                              SdkHttpRequest requestToSign = p.left().build();
+                              Publisher<ByteBuffer> payloadToSign = p.right().orElse(null);
+
+                              // We disallow unknown content length on the async path
+                              long contentLength = getDecodedContentLengthOrThrow(requestToSign);
+
+                              HttpRequest crtRequest = toCrtRequest(requestToSign, requestPayload, contentLength);
+
+                              V4aRequestSigningResult requestSigningResult = sign(requestToSign, crtRequest, signingConfig);
+
+                              Publisher<ByteBuffer> signedPayload = null;
+                              if (payloadToSign != null) {
+                                  signedPayload = payloadSigner.signAsync(payloadToSign, requestSigningResult);
+                              }
+                              return AsyncSignedRequest.builder()
+                                                       .request(requestSigningResult.getSignedRequest().build())
+                                                       .payload(signedPayload)
+                                                       .build();
+                          });
+    }
+
     private static HttpRequest toCrtRequest(SdkHttpRequest sdkHttpRequest, ContentStreamProvider contentStreamProvider) {
         SdkHttpRequest sanitizedRequest = sanitizeRequest(sdkHttpRequest);
 
         HttpRequest crtRequest = toRequest(sanitizedRequest, contentStreamProvider);
         return crtRequest;
+    }
+
+    private static HttpRequest toCrtRequest(SdkHttpRequest sdkHttpRequest, Publisher<ByteBuffer> publisher, long contentLength) {
+        SdkHttpRequest sanitizedRequest = sanitizeRequest(sdkHttpRequest);
+
+        HttpRequest crtRequest = toRequest(sanitizedRequest, publisher, contentLength);
+        return crtRequest;
+    }
+
+    private static long getDecodedContentLengthOrThrow(SdkHttpRequest sdkHttpRequest) {
+        Optional<String> contentLength = OptionalUtils.firstPresent(
+            sdkHttpRequest.firstMatchingHeader(X_AMZ_DECODED_CONTENT_LENGTH),
+            () -> sdkHttpRequest.firstMatchingHeader("Content-Length")
+        );
+        return contentLength.map(Long::parseLong)
+                            .orElseThrow(() -> new UnsupportedOperationException(
+                                String.format("Either %s or %s header must be present",
+                                               X_AMZ_DECODED_CONTENT_LENGTH, "Content-Length")));
     }
 
     private static V4aRequestSigningResult sign(SdkHttpRequest request, HttpRequest crtRequest, AwsSigningConfig signingConfig) {
@@ -257,7 +317,7 @@ public final class DefaultAwsCrtV4aHttpSigner implements AwsV4aHttpSigner {
             signingConfig);
     }
 
-    private static PayloadChecksumStore checksumStore(SignRequest<? extends AwsCredentialsIdentity> request) {
+    private static PayloadChecksumStore checksumStore(BaseSignRequest<?, ?> request) {
         PayloadChecksumStore cache = request.property(CHECKSUM_STORE);
         if (cache == null) {
             return NoOpPayloadChecksumStore.create();

@@ -31,6 +31,28 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 
+/**
+ * Generates an auth scheme provider implementation based on the service model's authentication configuration.
+ * <p>
+ * This class creates a provider that resolves authentication schemes for SDK operations. It supports both
+ * service-level default auth schemes and per-operation auth scheme overrides. When operations have different
+ * auth requirements, it generates a switch statement to return the appropriate schemes based on the operation name.
+ * <p>
+ * The generated provider implements the auth scheme provider interface and returns an ordered list of
+ * {@link AuthSchemeOption} instances that the SDK will attempt in sequence during authentication.
+ * <p>
+ * <b>Usage Scenarios:</b>
+ * <ul>
+ * <li><b>Services without endpoint-based auth:</b> The generated class serves as the default auth scheme provider,
+ * directly implementing all auth scheme resolution logic based on the service model.</li>
+ *
+ * <li><b>Services with endpoint-based auth</b>(enabled through enableEndpointAuthSchemeParams customization config): The
+ * generated class is named with a "Fallback" prefix and works
+ * alongside the endpoint-based provider. It acts as a fallback when endpoint rules don't specify auth schemes, which could
+ * happen if the endpoint provider is overridden by users. The auth schemes are derived from hardcoded
+ * {@link AuthTypeToSigV4Default}</li>
+ * </ul>
+ */
 public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     private final AuthSchemeSpecUtils authSchemeSpecUtils;
     private final AuthSchemeCodegenKnowledgeIndex knowledgeIndex;
@@ -43,7 +65,7 @@ public class ModelBasedAuthSchemeProviderSpec implements ClassSpec {
     @Override
     public ClassName className() {
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
-            return authSchemeSpecUtils.modeledAuthSchemeProviderName();
+            return authSchemeSpecUtils.fallbackAuthSchemeProviderName();
         }
         return authSchemeSpecUtils.defaultAuthSchemeProviderName();
     }

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.annotations;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
@@ -27,6 +28,7 @@ import java.lang.annotation.Target;
  * TODO: Write a linter that makes sure only test code depends on methods or constructors annotated
  * with this method
  */
+@Documented
 @Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD, ElementType.TYPE})
 @SdkProtectedApi
 public @interface SdkTestInternalApi {

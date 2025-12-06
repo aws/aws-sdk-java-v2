@@ -40,13 +40,15 @@ public class UploadConfig {
                 for (UploadStreamingRegressionTesting.ContentSize cs :
                     UploadStreamingRegressionTesting.ContentSize.values()) {
                     for (boolean ps : payloadSign) {
-                        UploadConfig testConfig = new UploadConfig();
-                        testConfig.setRequestChecksumValidation(checksumValidation);
-                        testConfig.setBodyType(bodType);
-                        testConfig.setContentSize(cs);
-                        testConfig.setPayloadSigning(ps);
-                        testConfig.setBucketType(BucketType.STANDARD_BUCKET);
-                        configs.add(testConfig);
+                        for (BucketType bucketType : BucketType.values()) {
+                            UploadConfig testConfig = new UploadConfig();
+                            testConfig.setRequestChecksumValidation(checksumValidation);
+                            testConfig.setBodyType(bodType);
+                            testConfig.setContentSize(cs);
+                            testConfig.setPayloadSigning(ps);
+                            testConfig.setBucketType(bucketType);
+                            configs.add(testConfig);
+                        }
                     }
                 }
             }
@@ -104,7 +106,7 @@ public class UploadConfig {
 
     @Override
     public String toString() {
-        return ToString.builder("FlattenUploadConfig")
+        return ToString.builder("UploadConfig")
                        .add("bucketType", bucketType)
                        .add("forcePathStyle", forcePathStyle)
                        .add("requestChecksumValidation", requestChecksumValidation)

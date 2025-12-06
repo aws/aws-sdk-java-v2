@@ -28,7 +28,9 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * A subscriber that takes a collection of checksums, and updates each checksum when it receives data.
+ * A subscriber that takes a collection of checksums, and updates each checksum when it receives data. It buffers the entire data
+ * in memory. This should only be used by non-streaming operations. Use {@link UnbufferedChecksumSubscriber} instead to avoid
+ * buffering.
  */
 @SdkInternalApi
 public final class ChecksumSubscriber implements Subscriber<ByteBuffer> {

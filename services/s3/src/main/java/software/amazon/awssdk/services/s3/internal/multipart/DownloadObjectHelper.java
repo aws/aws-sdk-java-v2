@@ -32,10 +32,12 @@ public class DownloadObjectHelper {
 
     private final S3AsyncClient s3AsyncClient;
     private final long bufferSizeInBytes;
+    private final int maxInFlightParts;
 
-    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes) {
+    public DownloadObjectHelper(S3AsyncClient s3AsyncClient, long bufferSizeInBytes, int maxInFlightParts) {
         this.s3AsyncClient = s3AsyncClient;
         this.bufferSizeInBytes = bufferSizeInBytes;
+        this.maxInFlightParts = maxInFlightParts;
     }
 
     public <T> CompletableFuture<T> downloadObject(
@@ -48,6 +50,26 @@ public class DownloadObjectHelper {
             asyncResponseTransformer.split(SplittingTransformerConfiguration.builder()
                                                                             .bufferSizeInBytes(bufferSizeInBytes)
                                                                             .build());
+        if (!split.parallelSplitSupported()) {
+            return downloadPartsSerially(getObjectRequest, split);
+        }
+
+        return downloadPartsNonSerially(getObjectRequest, split, maxInFlightParts);
+
+    }
+
+    private <T> CompletableFuture<T> downloadPartsNonSerially(
+        GetObjectRequest getObjectRequest,
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split,
+        int maxInFlight) {
+        ParallelMultipartDownloaderSubscriber subscriber = new ParallelMultipartDownloaderSubscriber(
+            s3AsyncClient, getObjectRequest, (CompletableFuture<GetObjectResponse>) split.resultFuture(), maxInFlight);
+        split.publisher().subscribe(subscriber);
+        return split.resultFuture();
+    }
+
+    private <T> CompletableFuture<T> downloadPartsSerially(GetObjectRequest getObjectRequest,
+                                                           AsyncResponseTransformer.SplitResult<GetObjectResponse, T> split) {
         MultipartDownloaderSubscriber subscriber = subscriber(getObjectRequest);
         split.publisher().subscribe(subscriber);
         CompletableFuture<T> splitFuture = split.resultFuture();

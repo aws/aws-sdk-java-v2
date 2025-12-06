@@ -31,7 +31,6 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apache4.Apache4Benchmark;
 import software.amazon.awssdk.benchmark.apache5.Apache5Benchmark;
-import software.amazon.awssdk.benchmark.apache5.Apache5VirtualBenchmark;
 import software.amazon.awssdk.benchmark.core.BenchmarkResult;
 import software.amazon.awssdk.benchmark.metrics.CloudWatchMetricsPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -76,7 +75,7 @@ public final class UnifiedBenchmarkRunner {
             // Only run virtual threads benchmark if Java 21+
             if (isJava21OrHigher()) {
                 logger.info(() -> "Running Apache5 with virtual threads...");
-                allResults.addAll(runBenchmark("Apache5-Virtual", Apache5VirtualBenchmark.class));
+                allResults.addAll(runBenchmark("Apache5-Virtual", VirtualThreadBenchmark.class));
             } else {
                 logger.info(() -> "Skipping virtual threads benchmark - requires Java 21 or higher (current: " +
                                   JavaSystemSetting.JAVA_VERSION.getStringValueOrThrow() + ")");
