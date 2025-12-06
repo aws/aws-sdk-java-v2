@@ -68,7 +68,7 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
 
-        if (hasUserAgentInAdditionalHeaders() || hasUserAgentInRequestHeaders(context)) {
+        if (hasUserAgentInAdditionalHeaders() || hasUserAgentInRequestConfig(context)) {
             return request;
         }
         String headerValue = finalizeUserAgent(context);
@@ -88,10 +88,10 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     }
 
     /**
-     * Checks if User-Agent header is present in request-level headers.
+     * Checks if User-Agent header is present in request override configs.
      * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header at request level
      */
-    private boolean hasUserAgentInRequestHeaders(RequestExecutionContext context) {
+    private boolean hasUserAgentInRequestConfig(RequestExecutionContext context) {
         Map<String, List<String>> requestHeaders = context.requestConfig().headers();
         if (requestHeaders == null) {
             return false;

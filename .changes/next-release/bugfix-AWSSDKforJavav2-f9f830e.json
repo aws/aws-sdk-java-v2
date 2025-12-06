@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Skip User-Agent header modification in ApplyUserAgentStage when custom User-Agent is already provided."
+    "description": "ApplyUserAgentStage will not overwrite the custom User-Agent"
 }
