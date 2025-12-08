@@ -1,4 +1,69 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.4__ __2025-12-08__
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Add support for Cost Category resource associations including filtering by resource type on ListCostCategoryDefinitions and new ListCostCategoryResourceAssociations API.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - ApplyUserAgentStage will not overwrite the custom User-Agent
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Updating AWS Identity Store APIs to support Attribute Extensions capability, with the first release adding Enterprise Attributes. This launch aligns Identity Store APIs with SCIM for enterprise attributes, reducing cases when customers are forced to use SCIM due to lack of SigV4 API support.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 P6-B300 instances provide 8x NVIDIA Blackwell Ultra GPUs with 2.1 TB high bandwidth GPU memory, 6.4 Tbps EFA networking, 300 Gbps dedicated ENA throughput, and 4 TB of system memory. Amazon EC2 C8a instances are powered by 5th Gen AMD EPYC processors with a maximum frequency of 4.5 GHz.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for tagging RDS Instance/Cluster Automated Backups
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Update Mail Manager Archive ARN validation
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Increases certificate string length for trust anchor source data to support ML-DSA certificates.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Deal Sizing Service for AI-based deal size estimation with AWS service-level breakdown, supporting Expansion and Migration deals across Technology, and Reseller partner cohorts, including Pricing Calculator AddOn for MAP deals and funding incentives.
+
+## __Redshift Serverless__
+  - ### Features
+    - Added GetIdentityCenterAuthToken API to retrieve encrypted authentication tokens for Identity Center integrated serverless workgroups. This API enables programmatic access to secure Identity Center tokens with proper error handling and parameter validation across supported SDK languages.
+
+# __2.40.3__ __2025-12-05__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Adding the ExpirationTime attribute to the delegation request resource.
+
+## __AWS SDK for Java v2 Codegen__
+  - ### Features
+    - Automatically enable `AwsV4HttpSigner.CHUNK_ENCODING_ENABLED` signer property for input streaming operations that support checksums in generated auth scheme provider class
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Updating stop-task API to encapsulate containers with custom stop signal
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2
+
+## __Inspector2__
+  - ### Features
+    - This release adds a new ScanStatus called "Unsupported Code Artifacts". This ScanStatus will be returned when a Lambda function was not code scanned because it has unsupported code artifacts.
+
+## __Partner Central Account API__
+  - ### Features
+    - Adding Verification API's to Partner Central Account SDK.
+
 # __2.40.2__ __2025-12-04__
 ## __AWS Lambda__
   - ### Features
