@@ -222,7 +222,7 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
                 VariableReferenceExpression varRef = (VariableReferenceExpression) condition;
                 RegistryInfo registryInfo = registerInfoMap.get(varRef.variableName());
                 // special case optimization: do not auto-box booleanEquals!
-                if (registryInfo.isNullable() && RuleRuntimeTypeMirror.BOOLEAN.equals(varRef.type())) {
+                if (registryInfo.isNullable() && RuleRuntimeTypeMirror.BOOLEAN.equals(registryInfo.getRuleType())) {
                     builder.add("Boolean.FALSE != registers.$L", registryInfo.getName());
                     builder.addStatement(")");
                     return RuleRuntimeTypeMirror.BOOLEAN;
