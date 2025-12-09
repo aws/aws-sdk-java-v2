@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.5__ __2025-12-09__
+## __AWS Account__
+  - ### Features
+    - This release adds a new API (GetGovCloudAccountInformation) used to retrieve information about a linked GovCloud account from the standard AWS partition.
+
+## __AWS AppSync__
+  - ### Features
+    - Update Event API to require EventConfig parameter in creation and update requests.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for Ec2LaunchTemplate Version field
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Token Exchange introduces seamless token exchange capabilities for IVS RTX, enabling customers to upgrade or downgrade token capabilities and update token attributes within the IVS client SDK without forcing clients to disconnect and reconnect.
+
+## __Amazon Route 53__
+  - ### Features
+    - Amazon Route 53 now supports the EU (Germany) Region (eusc-de-east-1) for latency records, geoproximity records, and private DNS for Amazon VPCs in that region
+
+## __Application Migration Service__
+  - ### Features
+    - Added parameters encryption, IPv4/IPv6 protocol configuration, and enhanced tagging support for replication operations.
+
 # __2.40.4__ __2025-12-08__
 ## __AWS Cost Explorer Service__
   - ### Features
