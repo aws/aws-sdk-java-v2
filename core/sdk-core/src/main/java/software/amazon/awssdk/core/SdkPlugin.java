@@ -104,6 +104,10 @@ import software.amazon.awssdk.utils.SdkAutoCloseable;
  *   <li>Global SDK defaults</li>
  * </ol>
  *
+ * <p><b>Note:</b> Request-level plugins have different precedence behavior. Request-level override configuration
+ * takes precedence over request-level plugin settings, meaning direct request configuration will override plugin
+ * settings for that request.
+ *
  * @see software.amazon.awssdk.core.client.builder.SdkClientBuilder#addPlugin(SdkPlugin)
  * @see software.amazon.awssdk.core.RequestOverrideConfiguration.Builder#addPlugin(SdkPlugin)
  */
