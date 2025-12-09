@@ -151,8 +151,8 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
 
     @Override
     public RuleType visitVariableReferenceExpression(VariableReferenceExpression e) {
-        String registerName = registerInfoMap.get(e.variableName()).getName();
-        builder.add("registers.$L", registerName);
+        RegistryInfo registryInfo = registerInfoMap.get(e.variableName());
+        builder.add("registers.$L", registryInfo.getName());
         return registerInfoMap.get(e.variableName()).getRuleType();
     }
 
@@ -218,6 +218,17 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             condition.accept(this); //lets are self contained
         } else {
             builder.add("return (");
+            if (RuleExpression.RuleExpressionKind.VARIABLE_REFERENCE == condition.kind()) {
+                VariableReferenceExpression varRef = (VariableReferenceExpression) condition;
+                RegistryInfo registryInfo = registerInfoMap.get(varRef.variableName());
+                // special case optimization: do not auto-box booleanEquals!
+                if (registryInfo.isNullable() && RuleRuntimeTypeMirror.BOOLEAN.equals(varRef.type())) {
+                    builder.add("Boolean.FALSE != registers.$L", registryInfo.getName());
+                    builder.addStatement(")");
+                    return RuleRuntimeTypeMirror.BOOLEAN;
+                }
+
+            }
             RuleType type = condition.accept(this);
             if (type != null && !RuleRuntimeTypeMirror.BOOLEAN.equals(type)) {
                 log.warn("Expected boolean, got {}.  Rewriting condition with a != null. Condition: `{}`", type, condition);

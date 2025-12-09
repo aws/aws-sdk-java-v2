@@ -31,24 +31,30 @@ public class RulesFunctions {
 
     public static String substring(String input, int start, int stop, boolean reverse) {
         int len = input.length();
-        if (start >= stop || len < stop) {
-            return null;
-        }
+
+        if (start >= stop || stop > len) return null;
+
         int realStart = start;
         int realStop = stop;
+
         if (reverse) {
             realStart = len - stop;
             realStop = len - start;
+            if (realStart < 0 || realStop > len) return null;
         }
-        StringBuilder result = new StringBuilder(realStop - realStart);
-        for (int idx = realStart; idx < realStop; idx++) {
-            char ch = input.charAt(idx);
-            if (ch > 0x7F) {
-                return null;
-            }
-            result.append(ch);
+
+        int outLen = realStop - realStart;
+
+        char[] src = input.toCharArray();
+        char[] dst = new char[outLen];
+
+        for (int i = 0; i < outLen; i++) {
+            char ch = src[realStart + i];
+            if ((ch & 0xFF80) != 0) return null;
+            dst[i] = ch;
         }
-        return result.toString();
+
+        return new String(dst);
     }
 
     // URI related functions

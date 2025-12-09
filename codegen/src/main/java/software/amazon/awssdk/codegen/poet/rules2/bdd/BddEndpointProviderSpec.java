@@ -123,9 +123,14 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         TypeSpec.Builder builder = TypeSpec.classBuilder(registersType)
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
         registerInfoMap.forEach((k,r) -> {
+            TypeName type = r.getRuleType().type();
+            if (type.isPrimitive() && r.isNullable()) {
+                type = type.box();
+            }
+
             builder.addField(
                 FieldSpec
-                    .builder(r.getRuleType().type().box(), r.getName())
+                    .builder(type, r.getName())
                     .build()
             );
         });
@@ -232,7 +237,6 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                                                .addAnnotation(Override.class)
                                                .addParameter(endpointRulesSpecUtils.parametersClassName(), "params");
 
-        builder.beginControlFlow("try");
         builder.addCode(validateRequiredParams());
 
         builder.addStatement("$T registers = new $T()", registersType, registersType);
@@ -255,22 +259,19 @@ public class BddEndpointProviderSpec implements ClassSpec  {
             }
         }
 
+        builder.addStatement("final $T bdd = BDD_DEFINITION", int[].class);
         builder.addStatement("int nodeRef = $L", endpointBddModel.getRoot());
         builder
-            .beginControlFlow("while (nodeRef != 1 && nodeRef != -1 && nodeRef < 100000000)")
-            .addStatement("boolean complemented = nodeRef < 0")
-            .addStatement("int nodeI = $L.abs(nodeRef) - 1", ClassName.get(Math.class))
-            .addStatement("boolean conditionResult = CONDITION_FNS[BDD_DEFINITION[nodeI*3]].test(registers)")
-            .beginControlFlow("if (complemented == conditionResult)")
-            .addStatement("nodeRef = BDD_DEFINITION[nodeI*3+2]") // follow highRef
-            .nextControlFlow("else")
-            .addStatement("nodeRef = BDD_DEFINITION[nodeI*3+1]") // follow lowRef
-            .endControlFlow()
+            .beginControlFlow("while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000)")
+            .addStatement("int base  = (Math.abs(nodeRef) - 1) * 3")
+            .addStatement("int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0")
+            .addStatement("int conditionResult = CONDITION_FNS[bdd[base]].test(registers) ? 1 : 0")
+            .addStatement("nodeRef = bdd[base + 2 - (complemented ^ conditionResult)]")
             .endControlFlow();
 
         builder.beginControlFlow("if (nodeRef == -1 || nodeRef == 1)")
-               .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
-                                                                              + "endpoint result")
+               .addStatement("return $T.failedFuture($T.create($S))", CompletableFutureUtils.class,
+                             SdkClientException.class, "Rule engine did not reach an error or endpoint result")
                .nextControlFlow("else")
                .addStatement("RuleResult result = RESULT_FNS[nodeRef-100000001].apply(registers)")
                .beginControlFlow("if (result.isError())")
@@ -279,16 +280,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                .addStatement("errorMsg += $S", ". Use the bucket name instead of simple bucket ARNs in "
                                                + "GetBucketLocationRequest.")
                .endControlFlow()
-               .addStatement("throw $T.create(errorMsg)", SdkClientException.class)
+               .addStatement("return $T.failedFuture($T.create(errorMsg))", CompletableFutureUtils.class, SdkClientException.class)
                .endControlFlow()
                .addStatement("return $T.completedFuture(result.endpoint())", CompletableFuture.class)
-
                .endControlFlow();
-
-        builder
-            .nextControlFlow("catch ($T error)", Exception.class)
-            .addStatement("return $T.failedFuture(error)", CompletableFutureUtils.class)
-            .endControlFlow();
         return builder.build();
     }
 
@@ -313,7 +308,7 @@ public class BddEndpointProviderSpec implements ClassSpec  {
         CodeBlock.Builder b = CodeBlock.builder();
         Map<String, ParameterModel> parameters = endpointBddModel.getParameters();
         parameters.entrySet().stream()
-                  .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()))
+                  .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()) && e.getValue().getDefault() == null)
                   .forEach(e -> {
                       b.addStatement("$T.notNull($N.$N(), $S)",
                                      Validate.class,
@@ -331,7 +326,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
 
         // first add an entry for every parameter
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
-            registryInfo.put(entry.getKey(), new RegistryInfo(entry.getKey(), index, fromParameterModel(entry.getValue())));
+            String name = intermediateModel.getNamingStrategy().getVariableName(entry.getKey());
+            boolean nullable = entry.getValue().getDefault() == null;
+            registryInfo.put(entry.getKey(),
+                             new RegistryInfo(name, index, fromParameterModel(entry.getValue()), null, nullable));
             index += 1;
         }
 
@@ -344,9 +342,10 @@ public class BddEndpointProviderSpec implements ClassSpec  {
                 synthetic.setType("error");
                 synthetic.setError("synthetic");
                 synthetic.setConditions(Collections.singletonList(conditionModel));
+                String name = intermediateModel.getNamingStrategy().getVariableName(conditionModel.getAssign());
                 registryInfo.put(
                     conditionModel.getAssign(),
-                    new RegistryInfo(conditionModel.getAssign(), index, ExpressionParser.parseRuleSetExpression(synthetic)));
+                    new RegistryInfo(name, index, ExpressionParser.parseRuleSetExpression(synthetic)));
                 index += 1;
             }
         }

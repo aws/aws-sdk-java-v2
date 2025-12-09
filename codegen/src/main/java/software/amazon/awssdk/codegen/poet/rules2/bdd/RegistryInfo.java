@@ -25,20 +25,23 @@ public class RegistryInfo {
     private RuleType ruleType;
     // set only when this value is assigned from a condition, NOT set for parameters
     private final RuleSetExpression ruleSetExpression;
+    // defaults to true, set to false only when we guarantee that the value cannot be null.
+    private boolean nullable;
 
-    public RegistryInfo(String name, int index, RuleType ruleType, RuleSetExpression ruleSetExpression) {
+    public RegistryInfo(String name, int index, RuleType ruleType, RuleSetExpression ruleSetExpression, boolean nullable) {
         this.name = name;
         this.index = index;
         this.ruleType = ruleType;
         this.ruleSetExpression = ruleSetExpression;
+        this.nullable = nullable;
     }
 
     public RegistryInfo(String name, int index, RuleType ruleType) {
-        this(name, index, ruleType, null);
+        this(name, index, ruleType, null, true);
     }
 
     public RegistryInfo(String name, int index, RuleSetExpression ruleSetExpression) {
-        this(name, index, null, ruleSetExpression);
+        this(name, index, null, ruleSetExpression, true);
     }
 
     public String getName() {
@@ -59,5 +62,9 @@ public class RegistryInfo {
 
     public RuleSetExpression getRuleSetExpression() {
         return ruleSetExpression;
+    }
+
+    public boolean isNullable() {
+        return nullable;
     }
 }

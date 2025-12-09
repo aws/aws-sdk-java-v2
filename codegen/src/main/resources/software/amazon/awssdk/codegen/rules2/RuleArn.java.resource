@@ -21,8 +21,17 @@ public final class RuleArn {
     }
 
     public static RuleArn parse(String arn) {
-        String[] base = arn.split(":", 6);
-        if (base.length != 6) {
+        String[] base = new String[6];
+        int part = 0;
+        int start = 0;
+        for (int i = 0; i < arn.length() && part < 5; i++) {
+            if (arn.charAt(i) == ':') {
+                base[part++] = arn.substring(start, i);
+                start = i + 1;
+            }
+        }
+        base[part] = arn.substring(start);
+        if (part != 5) {
             return null;
         }
         // service, resource and `arn` may not be null
