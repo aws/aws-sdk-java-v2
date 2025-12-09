@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS AppSync",
+    "contributor": "",
+    "description": "Update Event API to require EventConfig parameter in creation and update requests."
+}
