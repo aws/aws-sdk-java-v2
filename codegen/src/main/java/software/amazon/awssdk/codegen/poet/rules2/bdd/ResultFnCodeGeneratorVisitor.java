@@ -189,14 +189,13 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
 
     @Override
     public RuleType visitStringConcatExpression(StringConcatExpression e) {
-        boolean isFirst = true;
+        builder.add("new $T(64)", StringBuilder.class);
         for (RuleExpression expr : e.expressions()) {
-            if (!isFirst) {
-                builder.add(" + ");
-            }
+            builder.add(".append(", expr);
             expr.accept(this);
-            isFirst = false;
+            builder.add(")");
         }
+        builder.add(".toString()");
         return RuleRuntimeTypeMirror.STRING;
     }
 
@@ -243,9 +242,52 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
         if (endpointCaching) {
             builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
         } else {
-            builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+            // optimize common cases
+            if (e.url() instanceof StringConcatExpression) {
+                StringConcatExpression url = (StringConcatExpression) e.url();
+
+                // schema from variable, eg: {url#scheme}://<rest>
+                if (url.expressions().size() >= 3 &&
+                    url.expressions().get(0).kind() == RuleExpression.RuleExpressionKind.MEMBER_ACCESS &&
+                    url.expressions().get(1).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE &&
+                    "://".equals(((LiteralStringExpression)url.expressions().get(1)).value()))
+                {
+                    // use schema and drop the ://
+                    builder.add("$T.builder().url(RulesFunctions.createURI(", Endpoint.class);
+                    url.expressions().get(0).accept(this);
+                    builder.add(",");
+                    StringConcatExpression ssp =
+                        StringConcatExpression
+                            .builder()
+                            .addExpression(new LiteralStringExpression("//"))
+                            .addExpressions(url.expressions().subList(2, url.expressions().size()))
+                            .build();
+                    ssp.accept(this);
+                } else if (url.expressions().size() >= 2 &&
+                           url.expressions().get(0).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE &&
+                           ((LiteralStringExpression)url.expressions().get(0)).value().startsWith("https://")) {
+                    // starts with a hard coded https://.  May be https://{part1} or https://prefix.{part1}
+                    // hard code schema and drop the ://
+                    builder.add("$T.builder().url(RulesFunctions.createURI(\"https\",", Endpoint.class);
+                    String prefixValue = ((LiteralStringExpression)url.expressions().get(0)).value();
+                    StringConcatExpression.Builder sspBuilder = StringConcatExpression.builder();
+                    if (prefixValue.length() > 8) { // more than just https://
+                        sspBuilder.addExpression(new LiteralStringExpression(prefixValue.substring(6))); //drop the https:
+                    } else {
+                        sspBuilder.addExpression(new LiteralStringExpression("//"));
+                    }
+                    sspBuilder.addExpressions(url.expressions().subList(1, url.expressions().size()));
+                    sspBuilder.build().accept(this);
+                }
+                else {
+                    builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+                    e.url().accept(this);
+                }
+            } else {
+                builder.add("$T.builder().url($T.create(", Endpoint.class, URI.class);
+                e.url().accept(this);
+            }
         }
-        e.url().accept(this);
         builder.add("))");
         e.headers().accept(this);
         e.properties().accept(this);

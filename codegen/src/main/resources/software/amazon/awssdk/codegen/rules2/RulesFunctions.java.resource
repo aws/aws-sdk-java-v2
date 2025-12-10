@@ -1,5 +1,7 @@
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -155,6 +157,15 @@ public class RulesFunctions {
 
         // All preceding arguments empty, return last argument (even if empty)
         return args[args.length - 1];
+    }
+
+    // utility functions
+    public static URI createURI(String schema, String ssp) {
+        try {
+            return new URI(schema, ssp, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
     private static PartitionData loadPartitionData() {
