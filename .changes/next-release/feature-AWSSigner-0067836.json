@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Signer",
+    "contributor": "",
+    "description": "Adds support for Signer GetRevocationStatus with updated endpoints"
+}
