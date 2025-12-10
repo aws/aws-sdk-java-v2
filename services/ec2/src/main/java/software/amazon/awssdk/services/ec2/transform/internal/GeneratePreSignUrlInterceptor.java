@@ -146,7 +146,6 @@ public final class GeneratePreSignUrlInterceptor implements ExecutionInterceptor
                                   .build();
     }
 
-    // TODO(sra-identity-and-auth): add test case for SELECTED_AUTH_SCHEME case
     private AwsCredentials resolveCredentials(ExecutionAttributes attributes) {
         return attributes.getOptionalAttribute(SELECTED_AUTH_SCHEME)
                          .map(selectedAuthScheme -> selectedAuthScheme.identity())
