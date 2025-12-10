@@ -1,0 +1,6 @@
+{
+    "category": "AWS SDK for Java v2", 
+    "contributor": "sugmanue", 
+    "type": "bugfix", 
+    "description": "Update the `ToBuilderIsCorrect.java` class to skip `toBuilder` methods that are abstract."
+}
