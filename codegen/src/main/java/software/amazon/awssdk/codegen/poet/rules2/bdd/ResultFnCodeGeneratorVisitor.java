@@ -189,13 +189,14 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
 
     @Override
     public RuleType visitStringConcatExpression(StringConcatExpression e) {
-        builder.add("new $T(64)", StringBuilder.class);
+        boolean isFirst = true;
         for (RuleExpression expr : e.expressions()) {
-            builder.add(".append(", expr);
+            if (!isFirst) {
+                builder.add(" + ");
+            }
             expr.accept(this);
-            builder.add(")");
+            isFirst = false;
         }
-        builder.add(".toString()");
         return RuleRuntimeTypeMirror.STRING;
     }
 
@@ -243,6 +244,7 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
             builder.add("$T.builder().url($T.getInstance().create(", Endpoint.class, SdkUri.class);
         } else {
             // optimize common cases
+            // TODO: Validate we do not have userinfo, port, query or fragment!
             if (e.url() instanceof StringConcatExpression) {
                 StringConcatExpression url = (StringConcatExpression) e.url();
 
@@ -259,7 +261,6 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
                     StringConcatExpression ssp =
                         StringConcatExpression
                             .builder()
-                            .addExpression(new LiteralStringExpression("//"))
                             .addExpressions(url.expressions().subList(2, url.expressions().size()))
                             .build();
                     ssp.accept(this);
@@ -272,9 +273,7 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
                     String prefixValue = ((LiteralStringExpression)url.expressions().get(0)).value();
                     StringConcatExpression.Builder sspBuilder = StringConcatExpression.builder();
                     if (prefixValue.length() > 8) { // more than just https://
-                        sspBuilder.addExpression(new LiteralStringExpression(prefixValue.substring(6))); //drop the https:
-                    } else {
-                        sspBuilder.addExpression(new LiteralStringExpression("//"));
+                        sspBuilder.addExpression(new LiteralStringExpression(prefixValue.substring(8))); //drop the https://
                     }
                     sspBuilder.addExpressions(url.expressions().subList(1, url.expressions().size()));
                     sspBuilder.build().accept(this);

@@ -160,9 +160,18 @@ public class RulesFunctions {
     }
 
     // utility functions
-    public static URI createURI(String schema, String ssp) {
+    // this is valid ONLY when userInfo, port, query and fragment are known to be nil
+    // skips much of the validation required by URI.create for this special case
+    public static URI createURI(String schema, String hostAndPath) {
         try {
-            return new URI(schema, ssp, null);
+            int slash = hostAndPath.indexOf('/');
+            if (slash < 0) {
+                return new URI("https", null, hostAndPath, -1, null, null, null);
+            }
+            String path = (slash + 1 < hostAndPath.length())
+                    ? hostAndPath.substring(slash + 1)
+                    : "";
+            return new URI("https", null, hostAndPath.substring(0, slash), -1, path, null, null);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e.getMessage(), e);
         }
