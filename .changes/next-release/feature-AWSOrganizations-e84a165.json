@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Organizations",
+    "contributor": "",
+    "description": "Add support for policy operations on the NETWORK SECURITY DIRECTOR POLICY policy type."
+}
