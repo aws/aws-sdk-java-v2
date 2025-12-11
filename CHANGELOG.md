@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.7__ __2025-12-11__
+## __AWS Lambda__
+  - ### Features
+    - Add Dotnet 10 (dotnet10) support to AWS Lambda.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the NETWORK SECURITY DIRECTOR POLICY policy type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Secrets Manager__
+  - ### Features
+    - Add SortBy parameter to ListSecrets
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds new GetIdentityContext API, Dashboard customization options for tables and pivot tables, Visual styling options- borders and decals, map GeocodingPreferences, KeyPairCredentials for DataSourceCredentials. Snapshot APIs now support registered users. Parameters limit increased to 400
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Update GetEmailIdentity and CreateEmailIdentity response to include SigningHostedZone in DkimAttributes. Updated PutEmailIdentityDkimSigningAttributes Response to include SigningHostedZone.
+
 # __2.40.6__ __2025-12-10__
 ## __AWS Signer__
   - ### Features

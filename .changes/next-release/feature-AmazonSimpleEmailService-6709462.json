@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Email Service",
-    "contributor": "",
-    "description": "Update GetEmailIdentity and CreateEmailIdentity response to include SigningHostedZone in DkimAttributes. Updated PutEmailIdentityDkimSigningAttributes Response to include SigningHostedZone."
-}
