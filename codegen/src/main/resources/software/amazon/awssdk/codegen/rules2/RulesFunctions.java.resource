@@ -242,7 +242,7 @@ public class RulesFunctions {
     }
 
     private static boolean isValidBucketSegmentChar(char c) {
-        return isAlphanumeric(c) || c == '-';
+        return isLowerCaseAlphanumeric(c) || c == '-';
     }
 
     public static boolean isIpAddr(String host) {
