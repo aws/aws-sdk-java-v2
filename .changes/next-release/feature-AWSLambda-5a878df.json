@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lambda",
+    "contributor": "",
+    "description": "Add Dotnet 10 (dotnet10) support to AWS Lambda."
+}
