@@ -65,12 +65,6 @@ public class SyncHttpChecksumInTrailerTest {
                                        .credentialsProvider(AnonymousCredentialsProvider.create())
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
-                                       // TODO(sra-identity-and-auth): we should remove these
-                                       //  overrides once we set up codegen to set chunk-encoding to true
-                                       //  for requests that are streaming and checksum-enabled
-                                       .overrideConfiguration(c -> c.putExecutionAttribute(
-                                           ENABLE_CHUNKED_ENCODING, true
-                                       ))
                                        .build();
     }
 

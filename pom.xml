@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.39.5-SNAPSHOT</version>
+    <version>2.40.9-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -103,8 +103,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.39.4</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.39.3</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.40.8</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.40.7</awsjavasdk.previous-previous.version>
         <jackson.version>2.19.4</jackson.version>
         <jackson.databind.version>2.19.4</jackson.databind.version>
         <jacksonjr.version>2.19.4</jacksonjr.version>
@@ -129,7 +129,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.39.4</awscrt.version>
+        <awscrt.version>0.40.3</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.0</junit5.version>
@@ -542,17 +542,8 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:aws-sdk-java</ignoredUnusedDeclaredDependency>
                         <!-- Declared by the codegen maven plugins (lite and normal). Not used directly but used to override a transitive dependecy -->
                         <ignoredUnusedDeclaredDependency>org.codehaus.plexus:plexus-utils</ignoredUnusedDeclaredDependency>
-
-                        <!-- TODO(post-sra-identity-auth): Once everything is switched to useSraAuth=true, remove this-->
-                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
-
-			<!-- TODO(post-sra-identity-auth): With move to SRA Identity & Auth, most clients won't need a
-                             dependency on auth module. But cannot remove it from services/pom.xml until all services
-                             have switched. Some service modules may still need it, because they have tests that use the
-                             old interfaces, but that should become a test scoped dependency in modules where needed.
-                             And the line below removed. -->
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:auth</ignoredUnusedDeclaredDependency>
-
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:http-auth</ignoredUnusedDeclaredDependency>
                         <!-- Ignoring any unused declared dependency warnings for access grants plugin across the bundle -->
                         <ignoredUnusedDeclaredDependency>software.amazon.s3.accessgrants:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
@@ -687,13 +678,8 @@
                         </includeModules>
                         <excludes>
                             <exclude>*.internal.*</exclude>
-                            <!-- TODO remove after release -->
-                            <exclude>software.amazon.awssdk.annotations.ReviewBeforeRelease</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.regions.*</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey</exclude>
-                            <exclude>software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>

@@ -1,0 +1,320 @@
+From a1c8a16ce264cee063db88040b4a10ea657ed30a Mon Sep 17 00:00:00 2001
+From: Dongie Agnir <dongie@amazon.com>
+Date: Wed, 3 Dec 2025 14:06:14 -0800
+Subject: [PATCH] Replace Apache 4.x with 5.x
+
+---
+ .../CloudFrontUtilitiesIntegrationTest.java   | 26 +++++++++----------
+ .../dynamodb/SignersIntegrationTest.java      |  6 ++---
+ .../MediaStoreDataIntegrationTestBase.java    |  5 ----
+ ...stCompressionStreamingIntegrationTest.java |  2 --
+ ...ransferEncodingChunkedIntegrationTest.java |  4 +--
+ services/pom.xml                              |  4 +--
+ services/s3/pom.xml                           |  6 +++++
+ .../S3AccessPointsIntegrationTest.java        |  4 +--
+ .../S3MrapIntegrationTest.java                |  4 +--
+ 9 files changed, 30 insertions(+), 31 deletions(-)
+
+diff --git a/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java b/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
+index a446417b658..91cb54ea284 100644
+--- a/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
++++ b/services/cloudfront/src/test/java/software/amazon/awssdk/services/cloudfront/CloudFrontUtilitiesIntegrationTest.java
+@@ -44,7 +44,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
+ import software.amazon.awssdk.http.SdkHttpClient;
+ import software.amazon.awssdk.http.SdkHttpMethod;
+ import software.amazon.awssdk.http.SdkHttpRequest;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
++import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+ import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
+ import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
+ import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+@@ -101,7 +101,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+ 
+     @Test
+     void unsignedUrl_shouldReturn403Response() throws Exception {
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response =
+             client.prepareRequest(HttpExecuteRequest.builder()
+                                                     .request(SdkHttpRequest.builder()
+@@ -125,7 +125,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                          .keyPairId(keyPairId)
+                                                          .expirationDate(expirationDate).build();
+         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(signedUrl.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -143,7 +143,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                       .privateKey(privateKey)
+                                                                                       .keyPairId(keyPairId)
+                                                                                       .expirationDate(expirationDate));
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(signedUrl.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -163,7 +163,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                          .expirationDate(expirationDate)
+                                                          .activeDate(activeDate).build();
+         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(signedUrl.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -183,7 +183,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                       .keyPairId(keyPairId)
+                                                                                       .expirationDate(expirationDate)
+                                                                                       .activeDate(activeDate));
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(signedUrl.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -200,7 +200,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                              .keyPairId(keyPairId)
+                                                                                              .expirationDate(expirationDate));
+ 
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(cookies.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -221,7 +221,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                          .expirationDate(expirationDate).build();
+         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
+ 
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(cookies.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -240,7 +240,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                                                              .expirationDate(expirationDate)
+                                                                                              .activeDate(activeDate));
+ 
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(cookies.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -263,7 +263,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+                                                          .activeDate(activeDate).build();
+         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+ 
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(cookies.createHttpGetRequest())
+                                                                                .build()).call();
+@@ -296,7 +296,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+         URI modifiedUri = URI.create(urlWithDynamicParam);
+ 
+ 
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(SdkHttpRequest.builder()
+                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+@@ -332,7 +332,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+ 
+ 
+         URI modifiedUri = URI.create(signedUrl.url().replace("/specific-file","/other-file"));
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(SdkHttpRequest.builder()
+                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+@@ -367,7 +367,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
+ 
+ 
+         URI modifiedUri = URI.create(signedUrl.url().replace("/s3ObjectKey","/foo/other-file"));
+-        SdkHttpClient client = ApacheHttpClient.create();
++        SdkHttpClient client = Apache5HttpClient.create();
+         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
+                                                                                .request(SdkHttpRequest.builder()
+                                                                                                       .encodedPath(modifiedUri.getRawPath() + "?" + modifiedUri.getRawQuery())
+diff --git a/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/SignersIntegrationTest.java b/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/SignersIntegrationTest.java
+index e933e6b4f30..758027150e3 100644
+--- a/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/SignersIntegrationTest.java
++++ b/services/dynamodb/src/it/java/software/amazon/awssdk/services/dynamodb/SignersIntegrationTest.java
+@@ -37,7 +37,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
+ import software.amazon.awssdk.http.SdkHttpClient;
+ import software.amazon.awssdk.http.SdkHttpFullRequest;
+ import software.amazon.awssdk.http.SdkHttpMethod;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
++import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+ import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+ import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+@@ -132,7 +132,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
+         // sign the request
+         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructExecutionAttributes());
+ 
+-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
++        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
+ 
+         HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                        .request(signedRequest)
+@@ -156,7 +156,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
+         // sign the request
+         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructSignerParams());
+ 
+-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
++        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
+ 
+         HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                        .request(signedRequest)
+diff --git a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/MediaStoreDataIntegrationTestBase.java b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/MediaStoreDataIntegrationTestBase.java
+index feafd9c18bf..dfe2bb201de 100644
+--- a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/MediaStoreDataIntegrationTestBase.java
++++ b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/MediaStoreDataIntegrationTestBase.java
+@@ -37,8 +37,6 @@ import software.amazon.awssdk.core.interceptor.Context;
+ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+ import software.amazon.awssdk.http.ContentStreamProvider;
+-import software.amazon.awssdk.http.SdkHttpClient;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
+ import software.amazon.awssdk.identity.spi.IdentityProvider;
+ import software.amazon.awssdk.regions.Region;
+@@ -61,15 +59,12 @@ public class MediaStoreDataIntegrationTestBase extends AwsIntegrationTestBase {
+     @BeforeAll
+     public static void init() {
+         credentialsProvider = getCredentialsProvider();
+-        SdkHttpClient sdkHttpClient = ApacheHttpClient.builder().build();
+         mediaStoreClient = MediaStoreClient.builder()
+                                            .credentialsProvider(credentialsProvider)
+-                                           .httpClient(sdkHttpClient)
+                                            .build();
+         StsClient stsClient = StsClient.builder()
+                                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                        .region(Region.US_WEST_2)
+-                                       .httpClient(sdkHttpClient)
+                                        .build();
+         String accountId = stsClient.getCallerIdentity().account();
+         String containerName = "do-not-delete-mediastoredata-tests-container-" + accountId;
+diff --git a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/RequestCompressionStreamingIntegrationTest.java b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/RequestCompressionStreamingIntegrationTest.java
+index e20cddb44f6..34d45b96081 100644
+--- a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/RequestCompressionStreamingIntegrationTest.java
++++ b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/RequestCompressionStreamingIntegrationTest.java
+@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.internal.compression.Compressor;
+ import software.amazon.awssdk.core.internal.compression.GzipCompressor;
+ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+ import software.amazon.awssdk.core.sync.RequestBody;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+ import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
+ import software.amazon.awssdk.services.mediastoredata.model.GetObjectRequest;
+@@ -71,7 +70,6 @@ public class RequestCompressionStreamingIntegrationTest extends MediaStoreDataIn
+         syncClient = MediaStoreDataClient.builder()
+                                          .endpointOverride(uri)
+                                          .credentialsProvider(credentialsProvider)
+-                                         .httpClient(ApacheHttpClient.builder().build())
+                                          .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor())
+                                                                       .addExecutionInterceptor(new CaptureContentEncodingHeaderInterceptor())
+                                                                       .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+diff --git a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/TransferEncodingChunkedIntegrationTest.java b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/TransferEncodingChunkedIntegrationTest.java
+index 421a031a12b..f4f4322eb57 100644
+--- a/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/TransferEncodingChunkedIntegrationTest.java
++++ b/services/mediastoredata/src/it/java/software/amazon/awssdk/services/mediastoredata/TransferEncodingChunkedIntegrationTest.java
+@@ -23,7 +23,7 @@ import org.junit.jupiter.api.AfterAll;
+ import org.junit.jupiter.api.BeforeAll;
+ import org.junit.jupiter.api.Test;
+ import software.amazon.awssdk.core.sync.RequestBody;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
++import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
+ import software.amazon.awssdk.services.mediastoredata.model.DeleteObjectRequest;
+@@ -44,7 +44,7 @@ public class TransferEncodingChunkedIntegrationTest extends MediaStoreDataIntegr
+         syncClientWithApache = MediaStoreDataClient.builder()
+                                                    .endpointOverride(uri)
+                                                    .credentialsProvider(credentialsProvider)
+-                                                   .httpClient(ApacheHttpClient.builder().build())
++                                                   .httpClient(Apache5HttpClient.builder().build())
+                                                    .overrideConfiguration(o -> o.addExecutionInterceptor(new CaptureTransferEncodingHeaderInterceptor()))
+                                                    .build();
+ 
+diff --git a/services/pom.xml b/services/pom.xml
+index 2f0fbb22fc3..23044600d67 100644
+--- a/services/pom.xml
++++ b/services/pom.xml
+@@ -522,9 +522,9 @@
+             <version>${awsjavasdk.version}</version>
+         </dependency>
+         <dependency>
+-            <artifactId>apache-client</artifactId>
++            <artifactId>apache5-client</artifactId>
+             <groupId>software.amazon.awssdk</groupId>
+-            <version>${awsjavasdk.version}</version>
++            <version>${awsjavasdk.version}-PREVIEW</version>
+             <scope>runtime</scope>
+         </dependency>
+         <dependency>
+diff --git a/services/s3/pom.xml b/services/s3/pom.xml
+index 9d55ab2030a..e605ca89305 100644
+--- a/services/s3/pom.xml
++++ b/services/s3/pom.xml
+@@ -197,6 +197,12 @@
+             <version>${awsjavasdk.version}</version>
+             <scope>test</scope>
+         </dependency>
++        <dependency>
++            <groupId>software.amazon.awssdk</groupId>
++            <artifactId>apache-client</artifactId>
++            <version>${awsjavasdk.version}</version>
++            <scope>test</scope>
++        </dependency>
+         <dependency>
+             <groupId>io.netty</groupId>
+             <artifactId>netty-transport</artifactId>
+diff --git a/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3AccessPointsIntegrationTest.java b/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3AccessPointsIntegrationTest.java
+index ef5feb77f8f..039f6b1eacd 100644
+--- a/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3AccessPointsIntegrationTest.java
++++ b/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3AccessPointsIntegrationTest.java
+@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
+ import software.amazon.awssdk.http.HttpExecuteResponse;
+ import software.amazon.awssdk.http.SdkHttpClient;
+ import software.amazon.awssdk.http.SdkHttpRequest;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
++import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+ import software.amazon.awssdk.regions.Region;
+ import software.amazon.awssdk.services.s3.S3Client;
+ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+@@ -144,7 +144,7 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase
+                                                                                                    .key(key)))
+                                                .httpRequest();
+ 
+-        try (SdkHttpClient client = ApacheHttpClient.create()) {
++        try (SdkHttpClient client = Apache5HttpClient.create()) {
+             client.prepareRequest(HttpExecuteRequest.builder()
+                                                     .request(presignedPut)
+                                                     .contentStreamProvider(() -> new StringInputStream(data))
+diff --git a/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3MrapIntegrationTest.java b/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3MrapIntegrationTest.java
+index 3fac572e29d..1d38b036fdf 100644
+--- a/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3MrapIntegrationTest.java
++++ b/services/s3control/src/it/java/software.amazon.awssdk.services.s3control/S3MrapIntegrationTest.java
+@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+ import software.amazon.awssdk.http.HttpExecuteRequest;
+ import software.amazon.awssdk.http.HttpExecuteResponse;
+ import software.amazon.awssdk.http.SdkHttpRequest;
+-import software.amazon.awssdk.http.apache.ApacheHttpClient;
++import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+ import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
+ import software.amazon.awssdk.regions.Region;
+ import software.amazon.awssdk.services.s3.S3AsyncClient;
+@@ -314,7 +314,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
+                 builder.contentStreamProvider(() -> new StringInputStream(content));
+             }
+             HttpExecuteRequest request = builder.build();
+-            HttpExecuteResponse response = ApacheHttpClient.create().prepareRequest(request).call();
++            HttpExecuteResponse response = Apache5HttpClient.create().prepareRequest(request).call();
+             return response.responseBody()
+                            .map(stream -> invokeSafely(() -> IoUtils.toUtf8String(stream)))
+                            .orElseThrow(() -> new IOException("No input stream"));
+-- 
+2.50.1 (Apple Git-155)
+

@@ -196,9 +196,9 @@ public final class AuthSchemeCodegenMetadataExt {
         return properties;
     }
 
-    private static SignerPropertyValueProvider from(String name,
-                                                    Supplier<Object> valueSupplier,
-                                                    Class<? extends AwsV4FamilyHttpSigner> containingClass) {
+    static SignerPropertyValueProvider from(String name,
+                                            Supplier<Object> valueSupplier,
+                                            Class<? extends AwsV4FamilyHttpSigner> containingClass) {
         return SignerPropertyValueProvider.builder()
                                           .containingClass(containingClass)
                                           .fieldName(name)

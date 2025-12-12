@@ -53,6 +53,23 @@
       ],
       "documentation":"<p>Grants a <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html#Principal_specifying\">principal</a> permission to use a function. You can apply the policy at the function level, or specify a qualifier to restrict access to a single version or alias. If you use a qualifier, the invoker must use the full Amazon Resource Name (ARN) of that version or alias to invoke the function. Note: Lambda does not support adding policies to version $LATEST.</p> <p>To grant permission to another account, specify the account ID as the <code>Principal</code>. To grant permission to an organization defined in Organizations, specify the organization ID as the <code>PrincipalOrgID</code>. For Amazon Web Services services, the principal is a domain-style identifier that the service defines, such as <code>s3.amazonaws.com</code> or <code>sns.amazonaws.com</code>. For Amazon Web Services services, you can also specify the ARN of the associated resource as the <code>SourceArn</code>. If you grant permission to a service principal without specifying the source, other accounts could potentially configure resources in their account to invoke your Lambda function.</p> <p>This operation adds a statement to a resource-based permissions policy for the function. For more information about function policies, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html\">Using resource-based policies for Lambda</a>.</p>"
     },
+    "CheckpointDurableExecution":{
+      "name":"CheckpointDurableExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/checkpoint",
+        "responseCode":200
+      },
+      "input":{"shape":"CheckpointDurableExecutionRequest"},
+      "output":{"shape":"CheckpointDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"}
+      ],
+      "documentation":"<p>Saves the progress of a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable function</a> execution during runtime. This API is used by the Lambda durable functions SDK to checkpoint completed steps and schedule asynchronous operations. You typically don't need to call this API directly as the SDK handles checkpointing automatically.</p> <p>Each checkpoint operation consumes the current checkpoint token and returns a new one for the next checkpoint. This ensures that checkpoints are applied in the correct order and prevents duplicate or out-of-order state updates.</p>",
+      "idempotent":true
+    },
     "CreateAlias":{
       "name":"CreateAlias",
       "http":{
@@ -70,6 +87,25 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Creates an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a> for a Lambda function version. Use aliases to provide clients with a function identifier that you can update to invoke a different version.</p> <p>You can also map an alias to split invocation requests between two versions. Use the <code>RoutingConfig</code> parameter to specify a second version and the percentage of invocation requests that it receives.</p>",
+      "idempotent":true
+    },
+    "CreateCapacityProvider":{
+      "name":"CreateCapacityProvider",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-11-30/capacity-providers",
+        "responseCode":202
+      },
+      "input":{"shape":"CreateCapacityProviderRequest"},
+      "output":{"shape":"CreateCapacityProviderResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"CapacityProviderLimitExceededException"}
+      ],
+      "documentation":"<p>Creates a capacity provider that manages compute resources for Lambda functions</p>",
       "idempotent":true
     },
     "CreateCodeSigningConfig":{
@@ -123,7 +159,8 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"CodeVerificationFailedException"},
         {"shape":"CodeSigningConfigNotFoundException"},
-        {"shape":"CodeStorageExceededException"}
+        {"shape":"CodeStorageExceededException"},
+        {"shape":"FunctionVersionsPerCapacityProviderLimitExceededException"}
       ],
       "documentation":"<p>Creates a Lambda function. To create a function, you need a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html\">deployment package</a> and an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/intro-permission-model.html#lambda-intro-execution-role\">execution role</a>. The deployment package is a .zip file archive or container image that contains your function code. The execution role grants the function permission to use Amazon Web Services services, such as Amazon CloudWatch Logs for log streaming and X-Ray for request tracing.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-images.html\">container image</a>, then you set the package type to <code>Image</code>. For a container image, the code property must include the URI of a container image in the Amazon ECR registry. You do not need to specify the handler and runtime properties.</p> <p>If the deployment package is a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-package.html#gettingstarted-package-zip\">.zip file archive</a>, then you set the package type to <code>Zip</code>. For a .zip file archive, the code property specifies the location of the .zip file. You must also specify the handler and runtime properties. The code in the deployment package must be compatible with the target instruction set architecture of the function (<code>x86-64</code> or <code>arm64</code>). If you do not specify the architecture, then the default value is <code>x86-64</code>.</p> <p>When you create a function, Lambda provisions an instance of the function and its supporting resources. If your function connects to a VPC, this process can take a minute or so. During this time, you can't invoke or modify the function. The <code>State</code>, <code>StateReason</code>, and <code>StateReasonCode</code> fields in the response from <a>GetFunctionConfiguration</a> indicate when the function is ready to invoke. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/functions-states.html\">Lambda function states</a>.</p> <p>A function has an unpublished version, and can have published versions and aliases. The unpublished version changes when you update your function's code and configuration. A published version is a snapshot of your function code and configuration that can't be changed. An alias is a named resource that maps to a version, and can be changed to map to a different version. Use the <code>Publish</code> parameter to create version <code>1</code> of your function from its initial configuration.</p> <p>The other parameters let you configure version-specific and function-level settings. You can modify version-specific settings later with <a>UpdateFunctionConfiguration</a>. Function-level settings apply to both the unpublished and published versions of the function, and include tags (<a>TagResource</a>) and per-function concurrency limits (<a>PutFunctionConcurrency</a>).</p> <p>You can use code signing if your deployment package is a .zip file archive. To enable code signing for this function, specify the ARN of a code-signing configuration. When a user attempts to deploy a code package with <a>UpdateFunctionCode</a>, Lambda checks that the code package has a valid signature from a trusted publisher. The code-signing configuration includes set of signing profiles, which define the trusted publishers for this function.</p> <p>If another Amazon Web Services account or an Amazon Web Services service invokes your function, use <a>AddPermission</a> to grant permission by creating a resource-based Identity and Access Management (IAM) policy. You can grant permissions at the function level, on a version, or on an alias.</p> <p>To invoke your function directly, use <a>Invoke</a>. To invoke your function in response to events in other Amazon Web Services services, create an event source mapping (<a>CreateEventSourceMapping</a>), or configure a function trigger in the other service. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/lambda-invocation.html\">Invoking Lambda functions</a>.</p>",
       "idempotent":true
@@ -161,6 +198,25 @@
         {"shape":"TooManyRequestsException"}
       ],
       "documentation":"<p>Deletes a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
+      "idempotent":true
+    },
+    "DeleteCapacityProvider":{
+      "name":"DeleteCapacityProvider",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2025-11-30/capacity-providers/{CapacityProviderName}",
+        "responseCode":202
+      },
+      "input":{"shape":"DeleteCapacityProviderRequest"},
+      "output":{"shape":"DeleteCapacityProviderResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Deletes a capacity provider. You cannot delete a capacity provider that is currently being used by Lambda functions.</p>",
       "idempotent":true
     },
     "DeleteCodeSigningConfig":{
@@ -206,9 +262,10 @@
       "http":{
         "method":"DELETE",
         "requestUri":"/2015-03-31/functions/{FunctionName}",
-        "responseCode":204
+        "responseCode":200
       },
       "input":{"shape":"DeleteFunctionRequest"},
+      "output":{"shape":"DeleteFunctionResponse"},
       "errors":[
         {"shape":"InvalidParameterValueException"},
         {"shape":"ResourceConflictException"},
@@ -354,6 +411,24 @@
       "documentation":"<p>Returns details about a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>",
       "readonly":true
     },
+    "GetCapacityProvider":{
+      "name":"GetCapacityProvider",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-11-30/capacity-providers/{CapacityProviderName}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetCapacityProviderRequest"},
+      "output":{"shape":"GetCapacityProviderResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves information about a specific capacity provider, including its configuration, state, and associated resources.</p>",
+      "readonly":true
+    },
     "GetCodeSigningConfig":{
       "name":"GetCodeSigningConfig",
       "http":{
@@ -369,6 +444,59 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Returns information about the specified code signing configuration.</p>",
+      "readonly":true
+    },
+    "GetDurableExecution":{
+      "name":"GetDurableExecution",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDurableExecutionRequest"},
+      "output":{"shape":"GetDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves detailed information about a specific <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>, including its current status, input payload, result or error information, and execution metadata such as start time and usage statistics.</p>",
+      "readonly":true
+    },
+    "GetDurableExecutionHistory":{
+      "name":"GetDurableExecutionHistory",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/history",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDurableExecutionHistoryRequest"},
+      "output":{"shape":"GetDurableExecutionHistoryResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves the execution history for a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>, showing all the steps, callbacks, and events that occurred during the execution. This provides a detailed audit trail of the execution's progress over time.</p> <p>The history is available while the execution is running and for a retention period after it completes (1-90 days, default 30 days). You can control whether to include execution data such as step results and callback payloads.</p>",
+      "readonly":true
+    },
+    "GetDurableExecutionState":{
+      "name":"GetDurableExecutionState",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/state",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDurableExecutionStateRequest"},
+      "output":{"shape":"GetDurableExecutionStateResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"}
+      ],
+      "documentation":"<p>Retrieves the current execution state required for the replay process during <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable function</a> execution. This API is used by the Lambda durable functions SDK to get state information needed for replay. You typically don't need to call this API directly as the SDK handles state management automatically.</p> <p>The response contains operations ordered by start sequence number in ascending order. Completed operations with children don't include child operation details since they don't need to be replayed.</p>",
       "readonly":true
     },
     "GetEventSourceMapping":{
@@ -495,6 +623,24 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Returns your function's <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html\">recursive loop detection</a> configuration. </p>",
+      "readonly":true
+    },
+    "GetFunctionScalingConfig":{
+      "name":"GetFunctionScalingConfig",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-11-30/functions/{FunctionName}/function-scaling-config",
+        "responseCode":200
+      },
+      "input":{"shape":"GetFunctionScalingConfigRequest"},
+      "output":{"shape":"GetFunctionScalingConfigResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves the scaling configuration for a Lambda Managed Instances function.</p>",
       "readonly":true
     },
     "GetFunctionUrlConfig":{
@@ -647,6 +793,7 @@
         {"shape":"UnsupportedMediaTypeException"},
         {"shape":"SerializedRequestEntityTooLargeException"},
         {"shape":"InvalidRuntimeException"},
+        {"shape":"NoPublishedVersionException"},
         {"shape":"EC2UnexpectedException"},
         {"shape":"InvalidSubnetIDException"},
         {"shape":"KMSNotFoundException"},
@@ -663,6 +810,7 @@
         {"shape":"EFSMountTimeoutException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidRequestContentException"},
+        {"shape":"DurableExecutionAlreadyStartedException"},
         {"shape":"InvalidZipFileException"},
         {"shape":"EFSMountFailureException"}
       ],
@@ -710,6 +858,7 @@
         {"shape":"UnsupportedMediaTypeException"},
         {"shape":"SerializedRequestEntityTooLargeException"},
         {"shape":"InvalidRuntimeException"},
+        {"shape":"NoPublishedVersionException"},
         {"shape":"EC2UnexpectedException"},
         {"shape":"InvalidSubnetIDException"},
         {"shape":"KMSNotFoundException"},
@@ -749,6 +898,23 @@
       "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">aliases</a> for a Lambda function.</p>",
       "readonly":true
     },
+    "ListCapacityProviders":{
+      "name":"ListCapacityProviders",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-11-30/capacity-providers",
+        "responseCode":200
+      },
+      "input":{"shape":"ListCapacityProvidersRequest"},
+      "output":{"shape":"ListCapacityProvidersResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"}
+      ],
+      "documentation":"<p>Returns a list of capacity providers in your account.</p>",
+      "readonly":true
+    },
     "ListCodeSigningConfigs":{
       "name":"ListCodeSigningConfigs",
       "http":{
@@ -763,6 +929,24 @@
         {"shape":"ServiceException"}
       ],
       "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuring-codesigning.html\">code signing configurations</a>. A request returns up to 10,000 configurations per call. You can use the <code>MaxItems</code> parameter to return fewer configurations per call. </p>",
+      "readonly":true
+    },
+    "ListDurableExecutionsByFunction":{
+      "name":"ListDurableExecutionsByFunction",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-12-01/functions/{FunctionName}/durable-executions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListDurableExecutionsByFunctionRequest"},
+      "output":{"shape":"ListDurableExecutionsByFunctionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns a list of <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable executions</a> for a specified Lambda function. You can filter the results by execution name, status, and start time range. This API supports pagination for large result sets.</p>",
       "readonly":true
     },
     "ListEventSourceMappings":{
@@ -817,6 +1001,24 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Returns a list of Lambda function URLs for the specified function.</p>",
+      "readonly":true
+    },
+    "ListFunctionVersionsByCapacityProvider":{
+      "name":"ListFunctionVersionsByCapacityProvider",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-11-30/capacity-providers/{CapacityProviderName}/function-versions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListFunctionVersionsByCapacityProviderRequest"},
+      "output":{"shape":"ListFunctionVersionsByCapacityProviderResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns a list of function versions that are configured to use a specific capacity provider.</p>",
       "readonly":true
     },
     "ListFunctions":{
@@ -976,7 +1178,8 @@
         {"shape":"TooManyRequestsException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"CodeStorageExceededException"},
-        {"shape":"PreconditionFailedException"}
+        {"shape":"PreconditionFailedException"},
+        {"shape":"FunctionVersionsPerCapacityProviderLimitExceededException"}
       ],
       "documentation":"<p>Creates a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/versioning-aliases.html\">version</a> from the current code and configuration of a function. Use versions to create a snapshot of your function code and configuration that doesn't change.</p> <p>Lambda doesn't publish a version if the function's configuration and code haven't changed since the last version. Use <a>UpdateFunctionCode</a> or <a>UpdateFunctionConfiguration</a> to update the function before publishing a version.</p> <p>Clients can invoke versions directly or with an alias. To create an alias, use <a>CreateAlias</a>.</p>"
     },
@@ -1053,6 +1256,24 @@
       ],
       "documentation":"<p>Sets your function's <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-recursion.html\">recursive loop detection</a> configuration.</p> <p>When you configure a Lambda function to output to the same service or resource that invokes the function, it's possible to create an infinite recursive loop. For example, a Lambda function might write a message to an Amazon Simple Queue Service (Amazon SQS) queue, which then invokes the same function. This invocation causes the function to write another message to the queue, which in turn invokes the function again.</p> <p>Lambda can detect certain types of recursive loops shortly after they occur. When Lambda detects a recursive loop and your function's recursive loop detection configuration is set to <code>Terminate</code>, it stops your function being invoked and notifies you.</p>"
     },
+    "PutFunctionScalingConfig":{
+      "name":"PutFunctionScalingConfig",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2025-11-30/functions/{FunctionName}/function-scaling-config",
+        "responseCode":202
+      },
+      "input":{"shape":"PutFunctionScalingConfigRequest"},
+      "output":{"shape":"PutFunctionScalingConfigResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Sets the scaling configuration for a Lambda Managed Instances function. The scaling configuration defines the minimum and maximum number of execution environments that can be provisioned for the function, allowing you to control scaling behavior and resource allocation.</p>"
+    },
     "PutProvisionedConcurrencyConfig":{
       "name":"PutProvisionedConcurrencyConfig",
       "http":{
@@ -1124,6 +1345,74 @@
       ],
       "documentation":"<p>Revokes function-use permission from an Amazon Web Services service or another Amazon Web Services account. You can get the ID of the statement from the output of <a>GetPolicy</a>.</p>"
     },
+    "SendDurableExecutionCallbackFailure":{
+      "name":"SendDurableExecutionCallbackFailure",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-execution-callbacks/{CallbackId}/fail",
+        "responseCode":200
+      },
+      "input":{"shape":"SendDurableExecutionCallbackFailureRequest"},
+      "output":{"shape":"SendDurableExecutionCallbackFailureResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"CallbackTimeoutException"}
+      ],
+      "documentation":"<p>Sends a failure response for a callback operation in a durable execution. Use this API when an external system cannot complete a callback operation successfully.</p>"
+    },
+    "SendDurableExecutionCallbackHeartbeat":{
+      "name":"SendDurableExecutionCallbackHeartbeat",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-execution-callbacks/{CallbackId}/heartbeat",
+        "responseCode":200
+      },
+      "input":{"shape":"SendDurableExecutionCallbackHeartbeatRequest"},
+      "output":{"shape":"SendDurableExecutionCallbackHeartbeatResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"CallbackTimeoutException"}
+      ],
+      "documentation":"<p>Sends a heartbeat signal for a long-running callback operation to prevent timeout. Use this API to extend the callback timeout period while the external operation is still in progress.</p>"
+    },
+    "SendDurableExecutionCallbackSuccess":{
+      "name":"SendDurableExecutionCallbackSuccess",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-execution-callbacks/{CallbackId}/succeed",
+        "responseCode":200
+      },
+      "input":{"shape":"SendDurableExecutionCallbackSuccessRequest"},
+      "output":{"shape":"SendDurableExecutionCallbackSuccessResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"CallbackTimeoutException"}
+      ],
+      "documentation":"<p>Sends a successful completion response for a callback operation in a durable execution. Use this API when an external system has successfully completed a callback operation.</p>"
+    },
+    "StopDurableExecution":{
+      "name":"StopDurableExecution",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2025-12-01/durable-executions/{DurableExecutionArn}/stop",
+        "responseCode":200
+      },
+      "input":{"shape":"StopDurableExecutionRequest"},
+      "output":{"shape":"StopDurableExecutionResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ServiceException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Stops a running <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>. The execution transitions to STOPPED status and cannot be resumed. Any in-progress operations are terminated.</p>"
+    },
     "TagResource":{
       "name":"TagResource",
       "http":{
@@ -1176,6 +1465,24 @@
         {"shape":"PreconditionFailedException"}
       ],
       "documentation":"<p>Updates the configuration of a Lambda function <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html\">alias</a>.</p>"
+    },
+    "UpdateCapacityProvider":{
+      "name":"UpdateCapacityProvider",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2025-11-30/capacity-providers/{CapacityProviderName}",
+        "responseCode":202
+      },
+      "input":{"shape":"UpdateCapacityProviderRequest"},
+      "output":{"shape":"UpdateCapacityProviderResponse"},
+      "errors":[
+        {"shape":"InvalidParameterValueException"},
+        {"shape":"ResourceConflictException"},
+        {"shape":"ServiceException"},
+        {"shape":"TooManyRequestsException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Updates the configuration of an existing capacity provider.</p>"
     },
     "UpdateCodeSigningConfig":{
       "name":"UpdateCodeSigningConfig",
@@ -1408,7 +1715,7 @@
       ],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -1438,7 +1745,7 @@
           "documentation":"<p>For Alexa Smart Home functions, a token that the invoker must supply.</p>"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to add permissions to a published version of the function.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -1457,7 +1764,7 @@
         },
         "InvokedViaFunctionUrl":{
           "shape":"InvokedViaFunctionUrl",
-          "documentation":"<p>Restricts the <code>lambda:InvokeFunction</code> action to function URL calls. When specified, this option prevents the principal from invoking the function by any means other than the function URL. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html\">Control access to Lambda function URLs</a>.</p>"
+          "documentation":"<p>Indicates whether the permission applies when the function is invoked through a function URL. </p>"
         }
       }
     },
@@ -1600,11 +1907,21 @@
       "type":"string",
       "pattern":"arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\\-])+:([a-z]{2}(-gov)?-[a-z]+-\\d{1})?:(\\d{12})?:(.*)"
     },
+    "AttemptCount":{
+      "type":"integer",
+      "min":0
+    },
     "BatchSize":{
       "type":"integer",
       "box":true,
       "max":10000,
       "min":1
+    },
+    "BinaryOperationPayload":{
+      "type":"blob",
+      "max":262144,
+      "min":0,
+      "sensitive":true
     },
     "BisectBatchOnFunctionError":{
       "type":"boolean",
@@ -1619,6 +1936,461 @@
       "streaming":true
     },
     "Boolean":{"type":"boolean"},
+    "CallbackDetails":{
+      "type":"structure",
+      "members":{
+        "CallbackId":{
+          "shape":"CallbackId",
+          "documentation":"<p>The callback ID. Callback IDs are generated by the <code>DurableContext</code> when a durable function calls <code>ctx.waitForCallback</code>.</p>"
+        },
+        "Result":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The response payload from the callback operation as a string.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>An error object that contains details about the failure.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a callback operation in a durable execution, including the callback token and timeout configuration.</p>"
+    },
+    "CallbackFailedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>An error object that contains details about the failure.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a failed callback operation, including error information and the reason for failure.</p>"
+    },
+    "CallbackId":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"[A-Za-z0-9+/]+={0,2}"
+    },
+    "CallbackOptions":{
+      "type":"structure",
+      "members":{
+        "TimeoutSeconds":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The timeout for the callback operation in seconds. If not specified or set to 0, the callback has no timeout.</p>"
+        },
+        "HeartbeatTimeoutSeconds":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The heartbeat timeout for the callback operation, in seconds. If not specified or set to 0, heartbeat timeout is disabled.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for callback operations in durable executions, including timeout settings and retry behavior.</p>"
+    },
+    "CallbackStartedDetails":{
+      "type":"structure",
+      "required":["CallbackId"],
+      "members":{
+        "CallbackId":{
+          "shape":"CallbackId",
+          "documentation":"<p>The callback ID. Callback IDs are generated by the <code>DurableContext</code> when a durable function calls <code>ctx.waitForCallback</code>.</p>"
+        },
+        "HeartbeatTimeout":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The heartbeat timeout value, in seconds.</p>"
+        },
+        "Timeout":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The timeout value, in seconds.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a callback operation that has started, including timing information and callback metadata.</p>"
+    },
+    "CallbackSucceededDetails":{
+      "type":"structure",
+      "required":["Result"],
+      "members":{
+        "Result":{
+          "shape":"EventResult",
+          "documentation":"<p>The response payload from the successful operation.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a successfully completed callback operation, including the result data and completion timestamp.</p>"
+    },
+    "CallbackTimedOutDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the callback timeout.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a callback operation that timed out, including timeout duration and any partial results.</p>"
+    },
+    "CallbackTimeoutException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The exception type.</p>"
+        },
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The callback ID token has either expired or the callback associated with the token has already been closed.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "CapacityProvider":{
+      "type":"structure",
+      "required":[
+        "CapacityProviderArn",
+        "State",
+        "VpcConfig",
+        "PermissionsConfig"
+      ],
+      "members":{
+        "CapacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider.</p>"
+        },
+        "State":{
+          "shape":"CapacityProviderState",
+          "documentation":"<p>The current state of the capacity provider.</p>"
+        },
+        "VpcConfig":{
+          "shape":"CapacityProviderVpcConfig",
+          "documentation":"<p>The VPC configuration for the capacity provider.</p>"
+        },
+        "PermissionsConfig":{
+          "shape":"CapacityProviderPermissionsConfig",
+          "documentation":"<p>The permissions configuration for the capacity provider.</p>"
+        },
+        "InstanceRequirements":{
+          "shape":"InstanceRequirements",
+          "documentation":"<p>The instance requirements for compute resources managed by the capacity provider.</p>"
+        },
+        "CapacityProviderScalingConfig":{
+          "shape":"CapacityProviderScalingConfig",
+          "documentation":"<p>The scaling configuration for the capacity provider.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KMSKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt the capacity provider's resources.</p>"
+        },
+        "LastModified":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time when the capacity provider was last modified.</p>"
+        }
+      },
+      "documentation":"<p>A capacity provider manages compute resources for Lambda functions.</p>"
+    },
+    "CapacityProviderArn":{
+      "type":"string",
+      "max":140,
+      "min":1,
+      "pattern":"arn:aws[a-zA-Z-]*:lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:capacity-provider:[a-zA-Z0-9-_]+"
+    },
+    "CapacityProviderConfig":{
+      "type":"structure",
+      "required":["LambdaManagedInstancesCapacityProviderConfig"],
+      "members":{
+        "LambdaManagedInstancesCapacityProviderConfig":{
+          "shape":"LambdaManagedInstancesCapacityProviderConfig",
+          "documentation":"<p>Configuration for Lambda-managed instances used by the capacity provider.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for the capacity provider that manages compute resources for Lambda functions.</p>"
+    },
+    "CapacityProviderLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The exception type.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The maximum number of capacity providers for your account has been exceeded. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html\">Lambda quotas</a> </p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "CapacityProviderMaxVCpuCount":{
+      "type":"integer",
+      "box":true,
+      "max":15000,
+      "min":2
+    },
+    "CapacityProviderName":{
+      "type":"string",
+      "max":140,
+      "min":1,
+      "pattern":"(arn:aws[a-zA-Z-]*:lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:capacity-provider:[a-zA-Z0-9-_]+)|[a-zA-Z0-9-_]+"
+    },
+    "CapacityProviderPermissionsConfig":{
+      "type":"structure",
+      "required":["CapacityProviderOperatorRoleArn"],
+      "members":{
+        "CapacityProviderOperatorRoleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the IAM role that the capacity provider uses to manage compute instances and other Amazon Web Services resources.</p>"
+        }
+      },
+      "documentation":"<p>Configuration that specifies the permissions required for the capacity provider to manage compute resources.</p>"
+    },
+    "CapacityProviderPredefinedMetricType":{
+      "type":"string",
+      "enum":["LambdaCapacityProviderAverageCPUUtilization"]
+    },
+    "CapacityProviderScalingConfig":{
+      "type":"structure",
+      "members":{
+        "MaxVCpuCount":{
+          "shape":"CapacityProviderMaxVCpuCount",
+          "documentation":"<p>The maximum number of vCPUs that the capacity provider can provision across all compute instances.</p>"
+        },
+        "ScalingMode":{
+          "shape":"CapacityProviderScalingMode",
+          "documentation":"<p>The scaling mode that determines how the capacity provider responds to changes in demand.</p>"
+        },
+        "ScalingPolicies":{
+          "shape":"CapacityProviderScalingPoliciesList",
+          "documentation":"<p>A list of scaling policies that define how the capacity provider scales compute instances based on metrics and thresholds.</p>"
+        }
+      },
+      "documentation":"<p>Configuration that defines how the capacity provider scales compute instances based on demand and policies.</p>"
+    },
+    "CapacityProviderScalingMode":{
+      "type":"string",
+      "enum":[
+        "Auto",
+        "Manual"
+      ]
+    },
+    "CapacityProviderScalingPoliciesList":{
+      "type":"list",
+      "member":{"shape":"TargetTrackingScalingPolicy"},
+      "max":10,
+      "min":1
+    },
+    "CapacityProviderSecurityGroupIds":{
+      "type":"list",
+      "member":{"shape":"SecurityGroupId"},
+      "max":5,
+      "min":0
+    },
+    "CapacityProviderState":{
+      "type":"string",
+      "enum":[
+        "Pending",
+        "Active",
+        "Failed",
+        "Deleting"
+      ]
+    },
+    "CapacityProviderSubnetIds":{
+      "type":"list",
+      "member":{"shape":"SubnetId"},
+      "max":16,
+      "min":1
+    },
+    "CapacityProviderVpcConfig":{
+      "type":"structure",
+      "required":[
+        "SubnetIds",
+        "SecurityGroupIds"
+      ],
+      "members":{
+        "SubnetIds":{
+          "shape":"CapacityProviderSubnetIds",
+          "documentation":"<p>A list of subnet IDs where the capacity provider launches compute instances.</p>"
+        },
+        "SecurityGroupIds":{
+          "shape":"CapacityProviderSecurityGroupIds",
+          "documentation":"<p>A list of security group IDs that control network access for compute instances managed by the capacity provider.</p>"
+        }
+      },
+      "documentation":"<p>VPC configuration that specifies the network settings for compute instances managed by the capacity provider.</p>"
+    },
+    "CapacityProvidersList":{
+      "type":"list",
+      "member":{"shape":"CapacityProvider"},
+      "max":50,
+      "min":0
+    },
+    "ChainedInvokeDetails":{
+      "type":"structure",
+      "members":{
+        "Result":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The response payload from the chained invocation.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Details about the chained invocation failure.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a chained function invocation in a durable execution, including the target function and invocation parameters.</p>"
+    },
+    "ChainedInvokeFailedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the chained invocation failure.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a failed chained function invocation, including error information and failure reason.</p>"
+    },
+    "ChainedInvokeOptions":{
+      "type":"structure",
+      "required":["FunctionName"],
+      "members":{
+        "FunctionName":{
+          "shape":"NamespacedFunctionName",
+          "documentation":"<p>The name or ARN of the Lambda function to invoke.</p>"
+        },
+        "TenantId":{
+          "shape":"TenantId",
+          "documentation":"<p>The tenant identifier for the chained invocation.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for chained function invocations in durable executions, including retry settings and timeout configuration.</p>"
+    },
+    "ChainedInvokeStartedDetails":{
+      "type":"structure",
+      "required":["FunctionName"],
+      "members":{
+        "FunctionName":{
+          "shape":"NamespacedFunctionName",
+          "documentation":"<p>The name or ARN of the Lambda function being invoked.</p>"
+        },
+        "TenantId":{
+          "shape":"TenantId",
+          "documentation":"<p>The tenant identifier for the chained invocation.</p>"
+        },
+        "Input":{
+          "shape":"EventInput",
+          "documentation":"<p>The JSON input payload provided to the chained invocation.</p>"
+        },
+        "ExecutedVersion":{
+          "shape":"VersionWithLatestPublished",
+          "documentation":"<p>The version of the function that was executed.</p>"
+        },
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) that identifies the durable execution.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about a chained function invocation that has started execution, including start time and execution context.</p>"
+    },
+    "ChainedInvokeStoppedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about why the chained invocation stopped.</p>"
+        }
+      },
+      "documentation":"<p>Details about a chained invocation that was stopped.</p>"
+    },
+    "ChainedInvokeSucceededDetails":{
+      "type":"structure",
+      "required":["Result"],
+      "members":{
+        "Result":{
+          "shape":"EventResult",
+          "documentation":"<p>The response payload from the successful operation.</p>"
+        }
+      },
+      "documentation":"<p>Details about a chained invocation that succeeded.</p>"
+    },
+    "ChainedInvokeTimedOutDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the chained invocation timeout.</p>"
+        }
+      },
+      "documentation":"<p>Details about a chained invocation that timed out.</p>"
+    },
+    "CheckpointDurableExecutionRequest":{
+      "type":"structure",
+      "required":[
+        "DurableExecutionArn",
+        "CheckpointToken"
+      ],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "CheckpointToken":{
+          "shape":"CheckpointToken",
+          "documentation":"<p>A unique token that identifies the current checkpoint state. This token is provided by the Lambda runtime and must be used to ensure checkpoints are applied in the correct order. Each checkpoint operation consumes this token and returns a new one.</p>"
+        },
+        "Updates":{
+          "shape":"OperationUpdates",
+          "documentation":"<p>An array of state updates to apply during this checkpoint. Each update represents a change to the execution state, such as completing a step, starting a callback, or scheduling a timer. Updates are applied atomically as part of the checkpoint operation.</p>"
+        },
+        "ClientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>An optional idempotency token to ensure that duplicate checkpoint requests are handled correctly. If provided, Lambda uses this token to detect and handle duplicate requests within a 15-minute window.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CheckpointDurableExecutionResponse":{
+      "type":"structure",
+      "required":["NewExecutionState"],
+      "members":{
+        "CheckpointToken":{
+          "shape":"CheckpointToken",
+          "documentation":"<p>A new checkpoint token to use for the next checkpoint operation. This token replaces the one provided in the request and must be used for subsequent checkpoints to maintain proper ordering.</p>"
+        },
+        "NewExecutionState":{
+          "shape":"CheckpointUpdatedExecutionState",
+          "documentation":"<p>Updated execution state information that includes any changes that occurred since the last checkpoint, such as completed callbacks or expired timers. This allows the SDK to update its internal state during replay.</p>"
+        }
+      },
+      "documentation":"<p>The response from the CheckpointDurableExecution operation.</p>"
+    },
+    "CheckpointToken":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"[A-Za-z0-9+/]+={0,2}"
+    },
+    "CheckpointUpdatedExecutionState":{
+      "type":"structure",
+      "members":{
+        "Operations":{
+          "shape":"Operations",
+          "documentation":"<p>A list of operations that have been updated since the last checkpoint.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>Indicates that more results are available. Use this value in a subsequent call to retrieve the next page of results.</p>"
+        }
+      },
+      "documentation":"<p>Contains operations that have been updated since the last checkpoint, such as completed asynchronous work like timers or callbacks.</p>"
+    },
+    "ClientToken":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[\\x21-\\x7E]+"
+    },
     "CodeSigningConfig":{
       "type":"structure",
       "required":[
@@ -1756,6 +2528,61 @@
         }
       }
     },
+    "ContextDetails":{
+      "type":"structure",
+      "members":{
+        "ReplayChildren":{
+          "shape":"ReplayChildren",
+          "documentation":"<p>Whether the state data of child operations of this completed context should be included in the invoke payload and <code>GetDurableExecutionState</code> response.</p>"
+        },
+        "Result":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The response payload from the context.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Details about the context failure.</p>"
+        }
+      },
+      "documentation":"<p>Details about a durable execution context.</p>"
+    },
+    "ContextFailedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the context failure.</p>"
+        }
+      },
+      "documentation":"<p>Details about a context that failed.</p>"
+    },
+    "ContextOptions":{
+      "type":"structure",
+      "members":{
+        "ReplayChildren":{
+          "shape":"ReplayChildren",
+          "documentation":"<p>Whether the state data of children of the completed context should be included in the invoke payload and <code>GetDurableExecutionState</code> response.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for a durable execution context.</p>"
+    },
+    "ContextStartedDetails":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Details about a context that has started.</p>"
+    },
+    "ContextSucceededDetails":{
+      "type":"structure",
+      "required":["Result"],
+      "members":{
+        "Result":{
+          "shape":"EventResult",
+          "documentation":"<p>The JSON response payload from the successful context.</p>"
+        }
+      },
+      "documentation":"<p>Details about a context that succeeded.</p>"
+    },
     "Cors":{
       "type":"structure",
       "members":{
@@ -1805,7 +2632,7 @@
           "documentation":"<p>The name of the alias.</p>"
         },
         "FunctionVersion":{
-          "shape":"Version",
+          "shape":"VersionWithLatestPublished",
           "documentation":"<p>The function version that the alias invokes.</p>"
         },
         "Description":{
@@ -1815,6 +2642,54 @@
         "RoutingConfig":{
           "shape":"AliasRoutingConfiguration",
           "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-aliases.html#configuring-alias-routing\">routing configuration</a> of the alias.</p>"
+        }
+      }
+    },
+    "CreateCapacityProviderRequest":{
+      "type":"structure",
+      "required":[
+        "CapacityProviderName",
+        "VpcConfig",
+        "PermissionsConfig"
+      ],
+      "members":{
+        "CapacityProviderName":{
+          "shape":"CapacityProviderName",
+          "documentation":"<p>The name of the capacity provider. </p>"
+        },
+        "VpcConfig":{
+          "shape":"CapacityProviderVpcConfig",
+          "documentation":"<p>The VPC configuration for the capacity provider, including subnet IDs and security group IDs where compute instances will be launched.</p>"
+        },
+        "PermissionsConfig":{
+          "shape":"CapacityProviderPermissionsConfig",
+          "documentation":"<p>The permissions configuration that specifies the IAM role ARN used by the capacity provider to manage compute resources.</p>"
+        },
+        "InstanceRequirements":{
+          "shape":"InstanceRequirements",
+          "documentation":"<p>The instance requirements that specify the compute instance characteristics, including architectures and allowed or excluded instance types.</p>"
+        },
+        "CapacityProviderScalingConfig":{
+          "shape":"CapacityProviderScalingConfig",
+          "documentation":"<p>The scaling configuration that defines how the capacity provider scales compute instances, including maximum vCPU count and scaling policies.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KMSKeyArnNonEmpty",
+          "documentation":"<p>The ARN of the KMS key used to encrypt data associated with the capacity provider.</p>"
+        },
+        "Tags":{
+          "shape":"Tags",
+          "documentation":"<p>A list of tags to associate with the capacity provider.</p>"
+        }
+      }
+    },
+    "CreateCapacityProviderResponse":{
+      "type":"structure",
+      "required":["CapacityProvider"],
+      "members":{
+        "CapacityProvider":{
+          "shape":"CapacityProvider",
+          "documentation":"<p>Information about the capacity provider that was created.</p>"
         }
       }
     },
@@ -1859,7 +2734,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the event source.</p> <ul> <li> <p> <b>Amazon Kinesis</b> – The ARN of the data stream or a stream consumer.</p> </li> <li> <p> <b>Amazon DynamoDB Streams</b> – The ARN of the stream.</p> </li> <li> <p> <b>Amazon Simple Queue Service</b> – The ARN of the queue.</p> </li> <li> <p> <b>Amazon Managed Streaming for Apache Kafka</b> – The ARN of the cluster or the ARN of the VPC connection (for <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/with-msk.html#msk-multi-vpc\">cross-account event source mappings</a>).</p> </li> <li> <p> <b>Amazon MQ</b> – The ARN of the broker.</p> </li> <li> <p> <b>Amazon DocumentDB</b> – The ARN of the DocumentDB change stream.</p> </li> </ul>"
         },
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Version or Alias ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction:PROD</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it's limited to 64 characters in length.</p>"
         },
         "Enabled":{
@@ -2068,6 +2943,18 @@
           "shape":"LoggingConfig",
           "documentation":"<p>The function's Amazon CloudWatch Logs configuration settings.</p>"
         },
+        "CapacityProviderConfig":{
+          "shape":"CapacityProviderConfig",
+          "documentation":"<p>Configuration for the capacity provider that manages compute resources for Lambda functions.</p>"
+        },
+        "PublishTo":{
+          "shape":"FunctionVersionLatestPublished",
+          "documentation":"<p>Specifies where to publish the function version or configuration.</p>"
+        },
+        "DurableConfig":{
+          "shape":"DurableConfig",
+          "documentation":"<p>Configuration settings for durable functions. Enables creating functions with durability that can remember their state and continue execution even after interruptions.</p>"
+        },
         "TenancyConfig":{
           "shape":"TenancyConfig",
           "documentation":"<p>Configuration for multi-tenant applications that use Lambda functions. Defines tenant isolation settings and resource allocations. Required for functions supporting multiple tenants.</p>"
@@ -2180,6 +3067,28 @@
         }
       }
     },
+    "DeleteCapacityProviderRequest":{
+      "type":"structure",
+      "required":["CapacityProviderName"],
+      "members":{
+        "CapacityProviderName":{
+          "shape":"CapacityProviderName",
+          "documentation":"<p>The name of the capacity provider to delete.</p>",
+          "location":"uri",
+          "locationName":"CapacityProviderName"
+        }
+      }
+    },
+    "DeleteCapacityProviderResponse":{
+      "type":"structure",
+      "required":["CapacityProvider"],
+      "members":{
+        "CapacityProvider":{
+          "shape":"CapacityProvider",
+          "documentation":"<p>Information about the deleted capacity provider.</p>"
+        }
+      }
+    },
     "DeleteCodeSigningConfigRequest":{
       "type":"structure",
       "required":["CodeSigningConfigArn"],
@@ -2213,7 +3122,7 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -2237,13 +3146,13 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>A version number or alias name.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -2255,16 +3164,26 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function or version.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>my-function</code> (name-only), <code>my-function:1</code> (with version).</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version to delete. You can't delete a version that an alias references.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
+        }
+      }
+    },
+    "DeleteFunctionResponse":{
+      "type":"structure",
+      "members":{
+        "StatusCode":{
+          "shape":"Integer",
+          "documentation":"<p>The HTTP status code returned by the operation.</p>",
+          "location":"statusCode"
         }
       }
     },
@@ -2337,7 +3256,7 @@
       "type":"string",
       "max":350,
       "min":0,
-      "pattern":"$|kafka://([^.]([a-zA-Z0-9\\-_.]{0,248}))|arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\\-])+:((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1})?:(\\d{12})?:(.*)"
+      "pattern":"$|kafka://([^.]([a-zA-Z0-9\\-_.]{0,248}))|arn:(aws[a-zA-Z0-9-]*):([a-zA-Z0-9\\-])+:([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1})?:(\\d{12})?:(.*)"
     },
     "DestinationConfig":{
       "type":"structure",
@@ -2370,6 +3289,57 @@
         }
       },
       "documentation":"<p> Specific configuration settings for a DocumentDB event source. </p>"
+    },
+    "DurableConfig":{
+      "type":"structure",
+      "members":{
+        "RetentionPeriodInDays":{
+          "shape":"RetentionPeriodInDays",
+          "documentation":"<p>The number of days to retain execution history after a durable execution completes. After this period, execution history is no longer available through the GetDurableExecutionHistory API.</p>"
+        },
+        "ExecutionTimeout":{
+          "shape":"ExecutionTimeout",
+          "documentation":"<p>The maximum time (in seconds) that a durable execution can run before timing out. This timeout applies to the entire durable execution, not individual function invocations.</p>"
+        }
+      },
+      "documentation":"<p>Configuration settings for <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable functions</a>, including execution timeout and retention period for execution history.</p>"
+    },
+    "DurableExecutionAlreadyStartedException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The exception type.</p>"
+        },
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The durable execution with the specified name has already been started. Each durable execution name must be unique within the function. Use a different name or check the status of the existing execution.</p>",
+      "error":{
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "DurableExecutionArn":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"arn:([a-zA-Z0-9-]+):lambda:([a-zA-Z0-9-]+):(\\d{12}):function:([a-zA-Z0-9_-]+):(\\$LATEST(?:\\.PUBLISHED)?|[0-9]+)/durable-execution/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_-]+)"
+    },
+    "DurableExecutionName":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9-_]+"
+    },
+    "DurableExecutions":{
+      "type":"list",
+      "member":{"shape":"Execution"}
+    },
+    "DurationSeconds":{
+      "type":"integer",
+      "box":true,
+      "min":0
     },
     "EC2AccessDeniedException":{
       "type":"structure",
@@ -2565,6 +3535,199 @@
       "max":10240,
       "min":512
     },
+    "ErrorData":{
+      "type":"string",
+      "sensitive":true
+    },
+    "ErrorMessage":{
+      "type":"string",
+      "sensitive":true
+    },
+    "ErrorObject":{
+      "type":"structure",
+      "members":{
+        "ErrorMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>A human-readable error message.</p>"
+        },
+        "ErrorType":{
+          "shape":"ErrorType",
+          "documentation":"<p>The error type.</p>"
+        },
+        "ErrorData":{
+          "shape":"ErrorData",
+          "documentation":"<p>Machine-readable error data.</p>"
+        },
+        "StackTrace":{
+          "shape":"StackTraceEntries",
+          "documentation":"<p>Stack trace information for the error.</p>"
+        }
+      },
+      "documentation":"<p>An object that contains error information.</p>"
+    },
+    "ErrorType":{
+      "type":"string",
+      "sensitive":true
+    },
+    "Event":{
+      "type":"structure",
+      "members":{
+        "EventType":{
+          "shape":"EventType",
+          "documentation":"<p>The type of event that occurred.</p>"
+        },
+        "SubType":{
+          "shape":"OperationSubType",
+          "documentation":"<p>The subtype of the event, providing additional categorization.</p>"
+        },
+        "EventId":{
+          "shape":"EventId",
+          "documentation":"<p>The unique identifier for this event. Event IDs increment sequentially.</p>"
+        },
+        "Id":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier for this operation.</p>"
+        },
+        "Name":{
+          "shape":"OperationName",
+          "documentation":"<p>The customer-provided name for this operation.</p>"
+        },
+        "EventTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when this event occurred, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "ParentId":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier of the parent operation, if this operation is running within a child context.</p>"
+        },
+        "ExecutionStartedDetails":{
+          "shape":"ExecutionStartedDetails",
+          "documentation":"<p>Details about an execution that started.</p>"
+        },
+        "ExecutionSucceededDetails":{
+          "shape":"ExecutionSucceededDetails",
+          "documentation":"<p>Details about an execution that succeeded.</p>"
+        },
+        "ExecutionFailedDetails":{
+          "shape":"ExecutionFailedDetails",
+          "documentation":"<p>Details about an execution that failed.</p>"
+        },
+        "ExecutionTimedOutDetails":{
+          "shape":"ExecutionTimedOutDetails",
+          "documentation":"<p>Details about an execution that timed out.</p>"
+        },
+        "ExecutionStoppedDetails":{
+          "shape":"ExecutionStoppedDetails",
+          "documentation":"<p>Details about an execution that was stopped.</p>"
+        },
+        "ContextStartedDetails":{
+          "shape":"ContextStartedDetails",
+          "documentation":"<p>Details about a context that started.</p>"
+        },
+        "ContextSucceededDetails":{
+          "shape":"ContextSucceededDetails",
+          "documentation":"<p>Details about a context that succeeded.</p>"
+        },
+        "ContextFailedDetails":{
+          "shape":"ContextFailedDetails",
+          "documentation":"<p>Details about a context that failed.</p>"
+        },
+        "WaitStartedDetails":{
+          "shape":"WaitStartedDetails",
+          "documentation":"<p>Details about a wait operation that started.</p>"
+        },
+        "WaitSucceededDetails":{
+          "shape":"WaitSucceededDetails",
+          "documentation":"<p>Details about a wait operation that succeeded.</p>"
+        },
+        "WaitCancelledDetails":{
+          "shape":"WaitCancelledDetails",
+          "documentation":"<p>Details about a wait operation that was cancelled.</p>"
+        },
+        "StepStartedDetails":{
+          "shape":"StepStartedDetails",
+          "documentation":"<p>Details about a step that started.</p>"
+        },
+        "StepSucceededDetails":{
+          "shape":"StepSucceededDetails",
+          "documentation":"<p>Details about a step that succeeded.</p>"
+        },
+        "StepFailedDetails":{
+          "shape":"StepFailedDetails",
+          "documentation":"<p>Details about a step that failed.</p>"
+        },
+        "ChainedInvokeStartedDetails":{"shape":"ChainedInvokeStartedDetails"},
+        "ChainedInvokeSucceededDetails":{
+          "shape":"ChainedInvokeSucceededDetails",
+          "documentation":"<p>Details about a chained invocation that succeeded.</p>"
+        },
+        "ChainedInvokeFailedDetails":{"shape":"ChainedInvokeFailedDetails"},
+        "ChainedInvokeTimedOutDetails":{
+          "shape":"ChainedInvokeTimedOutDetails",
+          "documentation":"<p>Details about a chained invocation that timed out.</p>"
+        },
+        "ChainedInvokeStoppedDetails":{
+          "shape":"ChainedInvokeStoppedDetails",
+          "documentation":"<p>Details about a chained invocation that was stopped.</p>"
+        },
+        "CallbackStartedDetails":{"shape":"CallbackStartedDetails"},
+        "CallbackSucceededDetails":{"shape":"CallbackSucceededDetails"},
+        "CallbackFailedDetails":{"shape":"CallbackFailedDetails"},
+        "CallbackTimedOutDetails":{"shape":"CallbackTimedOutDetails"},
+        "InvocationCompletedDetails":{
+          "shape":"InvocationCompletedDetails",
+          "documentation":"<p>Details about a function invocation that completed.</p>"
+        }
+      },
+      "documentation":"<p>An event that occurred during the execution of a durable function.</p>"
+    },
+    "EventError":{
+      "type":"structure",
+      "members":{
+        "Payload":{
+          "shape":"ErrorObject",
+          "documentation":"<p>The error payload.</p>"
+        },
+        "Truncated":{
+          "shape":"Truncated",
+          "documentation":"<p>Indicates if the error payload was truncated due to size limits.</p>"
+        }
+      },
+      "documentation":"<p>Error information for an event.</p>"
+    },
+    "EventId":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
+    "EventInput":{
+      "type":"structure",
+      "members":{
+        "Payload":{
+          "shape":"InputPayload",
+          "documentation":"<p>The input payload.</p>"
+        },
+        "Truncated":{
+          "shape":"Truncated",
+          "documentation":"<p>Indicates if the error payload was truncated due to size limits.</p>"
+        }
+      },
+      "documentation":"<p>Input information for an event.</p>"
+    },
+    "EventResult":{
+      "type":"structure",
+      "members":{
+        "Payload":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The result payload.</p>"
+        },
+        "Truncated":{
+          "shape":"Truncated",
+          "documentation":"<p>Indicates if the error payload was truncated due to size limits.</p>"
+        }
+      },
+      "documentation":"<p>Result information for an event.</p>"
+    },
     "EventSourceMappingArn":{
       "type":"string",
       "max":120,
@@ -2743,6 +3906,176 @@
       "min":0,
       "pattern":"[a-zA-Z0-9._\\-]+"
     },
+    "EventType":{
+      "type":"string",
+      "enum":[
+        "ExecutionStarted",
+        "ExecutionSucceeded",
+        "ExecutionFailed",
+        "ExecutionTimedOut",
+        "ExecutionStopped",
+        "ContextStarted",
+        "ContextSucceeded",
+        "ContextFailed",
+        "WaitStarted",
+        "WaitSucceeded",
+        "WaitCancelled",
+        "StepStarted",
+        "StepSucceeded",
+        "StepFailed",
+        "ChainedInvokeStarted",
+        "ChainedInvokeSucceeded",
+        "ChainedInvokeFailed",
+        "ChainedInvokeTimedOut",
+        "ChainedInvokeStopped",
+        "CallbackStarted",
+        "CallbackSucceeded",
+        "CallbackFailed",
+        "CallbackTimedOut",
+        "InvocationCompleted"
+      ]
+    },
+    "Events":{
+      "type":"list",
+      "member":{"shape":"Event"}
+    },
+    "Execution":{
+      "type":"structure",
+      "required":[
+        "DurableExecutionArn",
+        "DurableExecutionName",
+        "FunctionArn",
+        "Status",
+        "StartTimestamp"
+      ],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution, if this execution is a durable execution.</p>"
+        },
+        "DurableExecutionName":{
+          "shape":"DurableExecutionName",
+          "documentation":"<p>The unique name of the durable execution, if one was provided when the execution was started.</p>"
+        },
+        "FunctionArn":{
+          "shape":"NameSpacedFunctionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function.</p>"
+        },
+        "Status":{
+          "shape":"ExecutionStatus",
+          "documentation":"<p>The current status of the durable execution.</p>"
+        },
+        "StartTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the durable execution started, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "EndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the durable execution ended, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        }
+      },
+      "documentation":"<p>Information about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>.</p>"
+    },
+    "ExecutionDetails":{
+      "type":"structure",
+      "members":{
+        "InputPayload":{
+          "shape":"InputPayload",
+          "documentation":"<p>The original input payload provided for the durable execution.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>.</p>"
+    },
+    "ExecutionEnvironmentMemoryGiBPerVCpu":{
+      "type":"double",
+      "box":true,
+      "max":8.0,
+      "min":2.0
+    },
+    "ExecutionFailedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the execution failure.</p>"
+        }
+      },
+      "documentation":"<p>Details about a failed <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a>.</p>"
+    },
+    "ExecutionStartedDetails":{
+      "type":"structure",
+      "required":[
+        "Input",
+        "ExecutionTimeout"
+      ],
+      "members":{
+        "Input":{
+          "shape":"EventInput",
+          "documentation":"<p>The input payload provided for the durable execution.</p>"
+        },
+        "ExecutionTimeout":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The maximum amount of time that the durable execution is allowed to run, in seconds.</p>"
+        }
+      },
+      "documentation":"<p>Details about a durable execution that started.</p>"
+    },
+    "ExecutionStatus":{
+      "type":"string",
+      "enum":[
+        "RUNNING",
+        "SUCCEEDED",
+        "FAILED",
+        "TIMED_OUT",
+        "STOPPED"
+      ]
+    },
+    "ExecutionStatusList":{
+      "type":"list",
+      "member":{"shape":"ExecutionStatus"},
+      "max":10,
+      "min":1
+    },
+    "ExecutionStoppedDetails":{
+      "type":"structure",
+      "required":["Error"],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about why the execution stopped.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that stopped.</p>"
+    },
+    "ExecutionSucceededDetails":{
+      "type":"structure",
+      "required":["Result"],
+      "members":{
+        "Result":{
+          "shape":"EventResult",
+          "documentation":"<p>The response payload from the successful operation.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that succeeded.</p>"
+    },
+    "ExecutionTimedOutDetails":{
+      "type":"structure",
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the execution timeout.</p>"
+        }
+      },
+      "documentation":"<p>Details about a <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/durable-functions.html\">durable execution</a> that timed out.</p>"
+    },
+    "ExecutionTimeout":{
+      "type":"integer",
+      "box":true,
+      "max":31622400,
+      "min":1
+    },
+    "ExecutionTimestamp":{"type":"timestamp"},
     "FileSystemArn":{
       "type":"string",
       "max":200,
@@ -2832,7 +4165,9 @@
     },
     "FunctionArn":{
       "type":"string",
-      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}(-gov)?-[a-z]+-\\d{1}:\\d{12}:function:[a-zA-Z0-9-_]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+      "max":10000,
+      "min":0,
+      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:function:[a-zA-Z0-9-_]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
     },
     "FunctionArnList":{
       "type":"list",
@@ -3041,6 +4376,18 @@
           "shape":"LoggingConfig",
           "documentation":"<p>The function's Amazon CloudWatch Logs configuration settings.</p>"
         },
+        "CapacityProviderConfig":{
+          "shape":"CapacityProviderConfig",
+          "documentation":"<p>Configuration for the capacity provider that manages compute resources for Lambda functions.</p>"
+        },
+        "ConfigSha256":{
+          "shape":"String",
+          "documentation":"<p>The SHA256 hash of the function configuration.</p>"
+        },
+        "DurableConfig":{
+          "shape":"DurableConfig",
+          "documentation":"<p>The function's durable execution configuration settings, if the function is configured for durability.</p>"
+        },
         "TenancyConfig":{
           "shape":"TenancyConfig",
           "documentation":"<p>The function's tenant isolation configuration settings. Determines whether the Lambda function runs on a shared or dedicated infrastructure per unique tenant.</p>"
@@ -3085,7 +4432,7 @@
       "type":"string",
       "max":140,
       "min":1,
-      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
     },
     "FunctionResponseType":{
       "type":"string",
@@ -3095,6 +4442,26 @@
       "type":"list",
       "member":{"shape":"FunctionResponseType"},
       "max":1,
+      "min":0
+    },
+    "FunctionScalingConfig":{
+      "type":"structure",
+      "members":{
+        "MinExecutionEnvironments":{
+          "shape":"FunctionScalingConfigExecutionEnvironments",
+          "documentation":"<p>The minimum number of execution environments to maintain for the function.</p>"
+        },
+        "MaxExecutionEnvironments":{
+          "shape":"FunctionScalingConfigExecutionEnvironments",
+          "documentation":"<p>The maximum number of execution environments that can be provisioned for the function.</p>"
+        }
+      },
+      "documentation":"<p>Configuration that defines the scaling behavior for a Lambda Managed Instances function, including the minimum and maximum number of execution environments that can be provisioned.</p>"
+    },
+    "FunctionScalingConfigExecutionEnvironments":{
+      "type":"integer",
+      "box":true,
+      "max":15000,
       "min":0
     },
     "FunctionUrl":{
@@ -3158,11 +4525,55 @@
       "type":"string",
       "max":128,
       "min":1,
-      "pattern":"(^\\$LATEST$)|((?!^[0-9]+$)([a-zA-Z0-9-_]+))"
+      "pattern":"((?!^\\d+$)^[0-9a-zA-Z-_]+$)"
     },
     "FunctionVersion":{
       "type":"string",
       "enum":["ALL"]
+    },
+    "FunctionVersionLatestPublished":{
+      "type":"string",
+      "enum":["LATEST_PUBLISHED"]
+    },
+    "FunctionVersionsByCapacityProviderList":{
+      "type":"list",
+      "member":{"shape":"FunctionVersionsByCapacityProviderListItem"},
+      "max":50,
+      "min":0
+    },
+    "FunctionVersionsByCapacityProviderListItem":{
+      "type":"structure",
+      "required":[
+        "FunctionArn",
+        "State"
+      ],
+      "members":{
+        "FunctionArn":{
+          "shape":"NameSpacedFunctionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the function version.</p>"
+        },
+        "State":{
+          "shape":"State",
+          "documentation":"<p>The current state of the function version.</p>"
+        }
+      },
+      "documentation":"<p>Information about a function version that uses a specific capacity provider, including its ARN and current state.</p>"
+    },
+    "FunctionVersionsPerCapacityProviderLimitExceededException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The exception type.</p>"
+        },
+        "message":{"shape":"String"}
+      },
+      "documentation":"<p>The maximum number of function versions that can be associated with a single capacity provider has been exceeded. For more information, see <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html\">Lambda quotas</a>.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "GetAccountSettingsRequest":{
       "type":"structure",
@@ -3202,6 +4613,28 @@
         }
       }
     },
+    "GetCapacityProviderRequest":{
+      "type":"structure",
+      "required":["CapacityProviderName"],
+      "members":{
+        "CapacityProviderName":{
+          "shape":"CapacityProviderName",
+          "documentation":"<p>The name of the capacity provider to retrieve.</p>",
+          "location":"uri",
+          "locationName":"CapacityProviderName"
+        }
+      }
+    },
+    "GetCapacityProviderResponse":{
+      "type":"structure",
+      "required":["CapacityProvider"],
+      "members":{
+        "CapacityProvider":{
+          "shape":"CapacityProvider",
+          "documentation":"<p>Information about the capacity provider, including its configuration and current state.</p>"
+        }
+      }
+    },
     "GetCodeSigningConfigRequest":{
       "type":"structure",
       "required":["CodeSigningConfigArn"],
@@ -3224,6 +4657,174 @@
         }
       }
     },
+    "GetDurableExecutionHistoryRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "IncludeExecutionData":{
+          "shape":"IncludeExecutionData",
+          "documentation":"<p>Specifies whether to include execution data such as step results and callback payloads in the history events. Set to <code>true</code> to include data, or <code>false</code> to exclude it for a more compact response. The default is <code>true</code>.</p>",
+          "location":"querystring",
+          "locationName":"IncludeExecutionData"
+        },
+        "MaxItems":{
+          "shape":"ItemCount",
+          "documentation":"<p>The maximum number of history events to return per call. You can use <code>Marker</code> to retrieve additional pages of results. The default is 100 and the maximum allowed is 1000. A value of 0 uses the default.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>If <code>NextMarker</code> was returned from a previous request, use this value to retrieve the next page of results. Each pagination token expires after 24 hours.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "ReverseOrder":{
+          "shape":"ReverseOrder",
+          "documentation":"<p>When set to <code>true</code>, returns the history events in reverse chronological order (newest first). By default, events are returned in chronological order (oldest first).</p>",
+          "location":"querystring",
+          "locationName":"ReverseOrder"
+        }
+      }
+    },
+    "GetDurableExecutionHistoryResponse":{
+      "type":"structure",
+      "required":["Events"],
+      "members":{
+        "Events":{
+          "shape":"Events",
+          "documentation":"<p>An array of execution history events, ordered chronologically unless <code>ReverseOrder</code> is set to <code>true</code>. Each event represents a significant occurrence during the execution, such as step completion or callback resolution.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>If present, indicates that more history events are available. Use this value as the <code>Marker</code> parameter in a subsequent request to retrieve the next page of results.</p>"
+        }
+      },
+      "documentation":"<p>The response from the GetDurableExecutionHistory operation, containing the execution history and events.</p>"
+    },
+    "GetDurableExecutionRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        }
+      }
+    },
+    "GetDurableExecutionResponse":{
+      "type":"structure",
+      "required":[
+        "DurableExecutionArn",
+        "DurableExecutionName",
+        "FunctionArn",
+        "StartTimestamp",
+        "Status"
+      ],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>"
+        },
+        "DurableExecutionName":{
+          "shape":"DurableExecutionName",
+          "documentation":"<p>The name of the durable execution. This is either the name you provided when invoking the function, or a system-generated unique identifier if no name was provided.</p>"
+        },
+        "FunctionArn":{
+          "shape":"NameSpacedFunctionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Lambda function that was invoked to start this durable execution.</p>"
+        },
+        "InputPayload":{
+          "shape":"InputPayload",
+          "documentation":"<p>The JSON input payload that was provided when the durable execution was started. For asynchronous invocations, this is limited to 256 KB. For synchronous invocations, this can be up to 6 MB.</p>"
+        },
+        "Result":{
+          "shape":"OutputPayload",
+          "documentation":"<p>The JSON result returned by the durable execution if it completed successfully. This field is only present when the execution status is <code>SUCCEEDED</code>. The result is limited to 256 KB.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Error information if the durable execution failed. This field is only present when the execution status is <code>FAILED</code>, <code>TIMED_OUT</code>, or <code>STOPPED</code>. The combined size of all error fields is limited to 256 KB.</p>"
+        },
+        "StartTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the durable execution started, in Unix timestamp format.</p>"
+        },
+        "Status":{
+          "shape":"ExecutionStatus",
+          "documentation":"<p>The current status of the durable execution. Valid values are <code>RUNNING</code>, <code>SUCCEEDED</code>, <code>FAILED</code>, <code>TIMED_OUT</code>, and <code>STOPPED</code>.</p>"
+        },
+        "EndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the durable execution ended, in Unix timestamp format. This field is only present if the execution has completed (status is <code>SUCCEEDED</code>, <code>FAILED</code>, <code>TIMED_OUT</code>, or <code>STOPPED</code>).</p>"
+        },
+        "Version":{
+          "shape":"VersionWithLatestPublished",
+          "documentation":"<p>The version of the Lambda function that was invoked for this durable execution. This ensures that all replays during the execution use the same function version.</p>"
+        },
+        "TraceHeader":{
+          "shape":"TraceHeader",
+          "documentation":"<p>The trace headers associated with the durable execution.</p>"
+        }
+      },
+      "documentation":"<p>The response from the GetDurableExecution operation, containing detailed information about the durable execution.</p>"
+    },
+    "GetDurableExecutionStateRequest":{
+      "type":"structure",
+      "required":[
+        "DurableExecutionArn",
+        "CheckpointToken"
+      ],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "CheckpointToken":{
+          "shape":"CheckpointToken",
+          "documentation":"<p>A checkpoint token that identifies the current state of the execution. This token is provided by the Lambda runtime and ensures that state retrieval is consistent with the current execution context.</p>",
+          "location":"querystring",
+          "locationName":"CheckpointToken"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>If <code>NextMarker</code> was returned from a previous request, use this value to retrieve the next page of operations. Each pagination token expires after 24 hours.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"ItemCount",
+          "documentation":"<p>The maximum number of operations to return per call. You can use <code>Marker</code> to retrieve additional pages of results. The default is 100 and the maximum allowed is 1000. A value of 0 uses the default.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "GetDurableExecutionStateResponse":{
+      "type":"structure",
+      "required":["Operations"],
+      "members":{
+        "Operations":{
+          "shape":"Operations",
+          "documentation":"<p>An array of operations that represent the current state of the durable execution. Operations are ordered by their start sequence number in ascending order and include information needed for replay processing.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>If present, indicates that more operations are available. Use this value as the <code>Marker</code> parameter in a subsequent request to retrieve the next page of results.</p>"
+        }
+      },
+      "documentation":"<p>The response from the GetDurableExecutionState operation, containing the current execution state for replay.</p>"
+    },
     "GetEventSourceMappingRequest":{
       "type":"structure",
       "required":["UUID"],
@@ -3241,7 +4842,7 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -3297,7 +4898,7 @@
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to get details about a published version of the function.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3309,13 +4910,13 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>A version number or alias name.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3328,7 +4929,7 @@
       "members":{
         "FunctionName":{
           "shape":"UnqualifiedFunctionName",
-          "documentation":"<p/>",
+          "documentation":"<p>The name of the function.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         }
@@ -3354,7 +4955,7 @@
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to get details about a published version of the function.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3383,6 +4984,44 @@
         "Concurrency":{
           "shape":"Concurrency",
           "documentation":"<p>The function's <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/concurrent-executions.html\">reserved concurrency</a>.</p>"
+        }
+      }
+    },
+    "GetFunctionScalingConfigRequest":{
+      "type":"structure",
+      "required":[
+        "FunctionName",
+        "Qualifier"
+      ],
+      "members":{
+        "FunctionName":{
+          "shape":"UnqualifiedFunctionName",
+          "documentation":"<p>The name or ARN of the Lambda function.</p>",
+          "location":"uri",
+          "locationName":"FunctionName"
+        },
+        "Qualifier":{
+          "shape":"PublishedFunctionQualifier",
+          "documentation":"<p>Specify a version or alias to get the scaling configuration for a published version of the function.</p>",
+          "location":"querystring",
+          "locationName":"Qualifier"
+        }
+      }
+    },
+    "GetFunctionScalingConfigResponse":{
+      "type":"structure",
+      "members":{
+        "FunctionArn":{
+          "shape":"FunctionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the function.</p>"
+        },
+        "AppliedFunctionScalingConfig":{
+          "shape":"FunctionScalingConfig",
+          "documentation":"<p>The scaling configuration that is currently applied to the function. This represents the actual scaling settings in effect.</p>"
+        },
+        "RequestedFunctionScalingConfig":{
+          "shape":"FunctionScalingConfig",
+          "documentation":"<p>The scaling configuration that was requested for the function.</p>"
         }
       }
     },
@@ -3563,7 +5202,7 @@
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to get the policy for that resource.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3644,7 +5283,7 @@
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version of the function. This can be <code>$LATEST</code> or a published version number. If no value is specified, the configuration for the <code>$LATEST</code> version is returned.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3732,6 +5371,46 @@
         }
       },
       "documentation":"<p>Response to a <code>GetFunctionConfiguration</code> request.</p>"
+    },
+    "IncludeExecutionData":{
+      "type":"boolean",
+      "box":true
+    },
+    "InputPayload":{
+      "type":"string",
+      "max":6291456,
+      "min":0,
+      "sensitive":true
+    },
+    "InstanceRequirements":{
+      "type":"structure",
+      "members":{
+        "Architectures":{
+          "shape":"ArchitecturesList",
+          "documentation":"<p>A list of supported CPU architectures for compute instances. Valid values include <code>x86_64</code> and <code>arm64</code>.</p>"
+        },
+        "AllowedInstanceTypes":{
+          "shape":"InstanceTypeSet",
+          "documentation":"<p>A list of EC2 instance types that the capacity provider is allowed to use. If not specified, all compatible instance types are allowed.</p>"
+        },
+        "ExcludedInstanceTypes":{
+          "shape":"InstanceTypeSet",
+          "documentation":"<p>A list of EC2 instance types that the capacity provider should not use, even if they meet other requirements.</p>"
+        }
+      },
+      "documentation":"<p>Specifications that define the characteristics and constraints for compute instances used by the capacity provider.</p>"
+    },
+    "InstanceType":{
+      "type":"string",
+      "max":30,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\.\\-]+"
+    },
+    "InstanceTypeSet":{
+      "type":"list",
+      "member":{"shape":"InstanceType"},
+      "max":400,
+      "min":0
     },
     "Integer":{"type":"integer"},
     "InvalidCodeSignatureException":{
@@ -3829,6 +5508,33 @@
       "exception":true,
       "fault":true
     },
+    "InvocationCompletedDetails":{
+      "type":"structure",
+      "required":[
+        "StartTimestamp",
+        "EndTimestamp",
+        "RequestId"
+      ],
+      "members":{
+        "StartTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the invocation started, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "EndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the invocation ended, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "RequestId":{
+          "shape":"String",
+          "documentation":"<p>The request ID for the invocation.</p>"
+        },
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the invocation failure.</p>"
+        }
+      },
+      "documentation":"<p>Details about a function invocation that completed.</p>"
+    },
     "InvocationRequest":{
       "type":"structure",
       "required":["FunctionName"],
@@ -3857,12 +5563,18 @@
           "location":"header",
           "locationName":"X-Amz-Client-Context"
         },
+        "DurableExecutionName":{
+          "shape":"DurableExecutionName",
+          "documentation":"<p>Optional unique name for the durable execution. When you start your special function, you can give it a unique name to identify this specific execution. It's like giving a nickname to a task.</p>",
+          "location":"header",
+          "locationName":"X-Amz-Durable-Execution-Name"
+        },
         "Payload":{
           "shape":"Blob",
           "documentation":"<p>The JSON that you want to provide to your Lambda function as input. The maximum payload size is 6 MB for synchronous invocations and 1 MB for asynchronous invocations.</p> <p>You can enter the JSON directly. For example, <code>--payload '{ \"key\": \"value\" }'</code>. You can also specify a file path. For example, <code>--payload file://payload.json</code>.</p>"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to invoke a published version of the function.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -3905,6 +5617,12 @@
           "documentation":"<p>The version of the function that executed. When you invoke a function with an alias, this indicates which version the alias resolved to.</p>",
           "location":"header",
           "locationName":"X-Amz-Executed-Version"
+        },
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The ARN of the durable execution that was started. This is returned when invoking a durable function and provides a unique identifier for tracking the execution.</p>",
+          "location":"header",
+          "locationName":"X-Amz-Durable-Execution-Arn"
         }
       },
       "payload":"Payload"
@@ -4017,7 +5735,7 @@
           "locationName":"X-Amz-Client-Context"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>The alias name.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -4081,6 +5799,11 @@
       "type":"boolean",
       "box":true
     },
+    "ItemCount":{
+      "type":"integer",
+      "max":1000,
+      "min":0
+    },
     "KMSAccessDeniedException":{
       "type":"structure",
       "members":{
@@ -4117,6 +5840,12 @@
     "KMSKeyArn":{
       "type":"string",
       "pattern":"(arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*)|()"
+    },
+    "KMSKeyArnNonEmpty":{
+      "type":"string",
+      "max":10000,
+      "min":0,
+      "pattern":"arn:(aws[a-zA-Z-]*)?:[a-z0-9-.]+:.*"
     },
     "KMSNotFoundException":{
       "type":"structure",
@@ -4198,6 +5927,25 @@
       "type":"list",
       "member":{"shape":"KafkaSchemaValidationConfig"}
     },
+    "LambdaManagedInstancesCapacityProviderConfig":{
+      "type":"structure",
+      "required":["CapacityProviderArn"],
+      "members":{
+        "CapacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider.</p>"
+        },
+        "PerExecutionEnvironmentMaxConcurrency":{
+          "shape":"PerExecutionEnvironmentMaxConcurrency",
+          "documentation":"<p>The maximum number of concurrent execution environments that can run on each compute instance.</p>"
+        },
+        "ExecutionEnvironmentMemoryGiBPerVCpu":{
+          "shape":"ExecutionEnvironmentMemoryGiBPerVCpu",
+          "documentation":"<p>The amount of memory in GiB allocated per vCPU for execution environments.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for Lambda-managed instances used by the capacity provider.</p>"
+    },
     "LastUpdateStatus":{
       "type":"string",
       "enum":[
@@ -4230,7 +5978,20 @@
         "EFSMountTimeout",
         "InvalidRuntime",
         "InvalidZipFileException",
-        "FunctionError"
+        "FunctionError",
+        "VcpuLimitExceeded",
+        "CapacityProviderScalingLimitExceeded",
+        "InsufficientCapacity",
+        "EC2RequestLimitExceeded",
+        "FunctionError.InitTimeout",
+        "FunctionError.RuntimeInitError",
+        "FunctionError.ExtensionInitError",
+        "FunctionError.InvalidEntryPoint",
+        "FunctionError.InvalidWorkingDirectory",
+        "FunctionError.PermissionDenied",
+        "FunctionError.TooManyExtensions",
+        "FunctionError.InitResourceExhausted",
+        "DisallowedByVpcEncryptionControl"
       ]
     },
     "Layer":{
@@ -4416,7 +6177,7 @@
           "locationName":"FunctionName"
         },
         "FunctionVersion":{
-          "shape":"Version",
+          "shape":"VersionWithLatestPublished",
           "documentation":"<p>Specify a function version to only list aliases that invoke that version.</p>",
           "location":"querystring",
           "locationName":"FunctionVersion"
@@ -4445,6 +6206,43 @@
         "Aliases":{
           "shape":"AliasList",
           "documentation":"<p>A list of aliases.</p>"
+        }
+      }
+    },
+    "ListCapacityProvidersRequest":{
+      "type":"structure",
+      "members":{
+        "State":{
+          "shape":"CapacityProviderState",
+          "documentation":"<p>Filter capacity providers by their current state.</p>",
+          "location":"querystring",
+          "locationName":"State"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>Specify the pagination token that's returned by a previous request to retrieve the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"MaxFiftyListItems",
+          "documentation":"<p>The maximum number of capacity providers to return.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListCapacityProvidersResponse":{
+      "type":"structure",
+      "required":["CapacityProviders"],
+      "members":{
+        "CapacityProviders":{
+          "shape":"CapacityProvidersList",
+          "documentation":"<p>A list of capacity providers in your account.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>The pagination token that's included if more results are available.</p>"
         }
       }
     },
@@ -4478,6 +6276,80 @@
         }
       }
     },
+    "ListDurableExecutionsByFunctionRequest":{
+      "type":"structure",
+      "required":["FunctionName"],
+      "members":{
+        "FunctionName":{
+          "shape":"NamespacedFunctionName",
+          "documentation":"<p>The name or ARN of the Lambda function. You can specify a function name, a partial ARN, or a full ARN.</p>",
+          "location":"uri",
+          "locationName":"FunctionName"
+        },
+        "Qualifier":{
+          "shape":"NumericLatestPublishedOrAliasQualifier",
+          "documentation":"<p>The function version or alias. If not specified, lists executions for the $LATEST version.</p>",
+          "location":"querystring",
+          "locationName":"Qualifier"
+        },
+        "DurableExecutionName":{
+          "shape":"DurableExecutionName",
+          "documentation":"<p>Filter executions by name. Only executions with names that contain this string are returned.</p>",
+          "location":"querystring",
+          "locationName":"DurableExecutionName"
+        },
+        "Statuses":{
+          "shape":"ExecutionStatusList",
+          "documentation":"<p>Filter executions by status. Valid values: RUNNING, SUCCEEDED, FAILED, TIMED_OUT, STOPPED.</p>",
+          "location":"querystring",
+          "locationName":"Statuses"
+        },
+        "StartedAfter":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>Filter executions that started after this timestamp (ISO 8601 format).</p>",
+          "location":"querystring",
+          "locationName":"StartedAfter"
+        },
+        "StartedBefore":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>Filter executions that started before this timestamp (ISO 8601 format).</p>",
+          "location":"querystring",
+          "locationName":"StartedBefore"
+        },
+        "ReverseOrder":{
+          "shape":"ReverseOrder",
+          "documentation":"<p>Set to true to return results in reverse chronological order (newest first). Default is false.</p>",
+          "location":"querystring",
+          "locationName":"ReverseOrder"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>Pagination token from a previous request to continue retrieving results.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"ItemCount",
+          "documentation":"<p>Maximum number of executions to return (1-1000). Default is 100.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListDurableExecutionsByFunctionResponse":{
+      "type":"structure",
+      "members":{
+        "DurableExecutions":{
+          "shape":"DurableExecutions",
+          "documentation":"<p>List of durable execution summaries matching the filter criteria.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>Pagination token for retrieving additional results. Present only if there are more results available.</p>"
+        }
+      },
+      "documentation":"<p>The response from the ListDurableExecutionsByFunction operation, containing a list of durable executions and pagination information.</p>"
+    },
     "ListEventSourceMappingsRequest":{
       "type":"structure",
       "members":{
@@ -4488,7 +6360,7 @@
           "locationName":"EventSourceArn"
         },
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Version or Alias ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction:PROD</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it's limited to 64 characters in length.</p>",
           "location":"querystring",
           "locationName":"FunctionName"
@@ -4525,7 +6397,7 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>my-function</code>.</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -4588,6 +6460,51 @@
         "FunctionUrlConfigs":{
           "shape":"FunctionUrlConfigList",
           "documentation":"<p>A list of function URL configurations.</p>"
+        },
+        "NextMarker":{
+          "shape":"String",
+          "documentation":"<p>The pagination token that's included if more results are available.</p>"
+        }
+      }
+    },
+    "ListFunctionVersionsByCapacityProviderRequest":{
+      "type":"structure",
+      "required":["CapacityProviderName"],
+      "members":{
+        "CapacityProviderName":{
+          "shape":"CapacityProviderName",
+          "documentation":"<p>The name of the capacity provider to list function versions for.</p>",
+          "location":"uri",
+          "locationName":"CapacityProviderName"
+        },
+        "Marker":{
+          "shape":"String",
+          "documentation":"<p>Specify the pagination token that's returned by a previous request to retrieve the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"Marker"
+        },
+        "MaxItems":{
+          "shape":"MaxFiftyListItems",
+          "documentation":"<p>The maximum number of function versions to return in the response.</p>",
+          "location":"querystring",
+          "locationName":"MaxItems"
+        }
+      }
+    },
+    "ListFunctionVersionsByCapacityProviderResponse":{
+      "type":"structure",
+      "required":[
+        "CapacityProviderArn",
+        "FunctionVersions"
+      ],
+      "members":{
+        "CapacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider.</p>"
+        },
+        "FunctionVersions":{
+          "shape":"FunctionVersionsByCapacityProviderList",
+          "documentation":"<p>A list of function versions that use the specified capacity provider.</p>"
         },
         "NextMarker":{
           "shape":"String",
@@ -4920,6 +6837,12 @@
       "max":86400,
       "min":0
     },
+    "MaxFiftyListItems":{
+      "type":"integer",
+      "box":true,
+      "max":50,
+      "min":1
+    },
     "MaxFunctionEventInvokeConfigListItems":{
       "type":"integer",
       "box":true,
@@ -4995,7 +6918,7 @@
     "MemorySize":{
       "type":"integer",
       "box":true,
-      "max":10240,
+      "max":32768,
       "min":128
     },
     "Method":{
@@ -5003,6 +6926,12 @@
       "max":6,
       "min":0,
       "pattern":".*"
+    },
+    "MetricTargetValue":{
+      "type":"double",
+      "box":true,
+      "max":100.0,
+      "min":0.0
     },
     "MinimumNumberOfPollers":{
       "type":"integer",
@@ -5012,19 +6941,37 @@
     },
     "NameSpacedFunctionArn":{
       "type":"string",
-      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}(-gov)?-[a-z]+-\\d{1}:\\d{12}:function:[a-zA-Z0-9-_\\.]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+      "max":10000,
+      "min":0,
+      "pattern":"arn:(aws[a-zA-Z-]*)?:lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:function:[a-zA-Z0-9-_\\.]+(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?"
     },
     "NamespacedFunctionName":{
       "type":"string",
-      "max":170,
+      "max":256,
       "min":1,
-      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}(-gov)?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_\\.]+)(:(\\$LATEST|[a-zA-Z0-9-_]+))?"
+      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:)?([a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_\\.]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?"
     },
     "NamespacedStatementId":{
       "type":"string",
       "max":100,
       "min":1,
       "pattern":"([a-zA-Z0-9-_.]+)"
+    },
+    "NoPublishedVersionException":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The exception type.</p>"
+        },
+        "Message":{"shape":"String"}
+      },
+      "documentation":"<p>The function has no published versions available.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
     },
     "NonNegativeInteger":{
       "type":"integer",
@@ -5034,6 +6981,12 @@
     "NullableBoolean":{
       "type":"boolean",
       "box":true
+    },
+    "NumericLatestPublishedOrAliasQualifier":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"\\$(LATEST(\\.PUBLISHED)?)|[a-zA-Z0-9-_$]+"
     },
     "OnFailure":{
       "type":"structure",
@@ -5055,6 +7008,191 @@
       },
       "documentation":"<p>A destination for events that were processed successfully.</p> <p>To retain records of successful <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-async.html#invocation-async-destinations\">asynchronous invocations</a>, you can configure an Amazon SNS topic, Amazon SQS queue, Lambda function, or Amazon EventBridge event bus as the destination.</p> <note> <p> <code>OnSuccess</code> is not supported in <code>CreateEventSourceMapping</code> or <code>UpdateEventSourceMapping</code> requests.</p> </note>"
     },
+    "Operation":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Type",
+        "StartTimestamp",
+        "Status"
+      ],
+      "members":{
+        "Id":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier for this operation.</p>"
+        },
+        "ParentId":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier of the parent operation, if this operation is running within a child context.</p>"
+        },
+        "Name":{
+          "shape":"OperationName",
+          "documentation":"<p>The customer-provided name for this operation.</p>"
+        },
+        "Type":{
+          "shape":"OperationType",
+          "documentation":"<p>The type of operation.</p>"
+        },
+        "SubType":{
+          "shape":"OperationSubType",
+          "documentation":"<p>The subtype of the operation, providing additional categorization.</p>"
+        },
+        "StartTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the operation started, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "EndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the operation ended, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        },
+        "Status":{
+          "shape":"OperationStatus",
+          "documentation":"<p>The current status of the operation.</p>"
+        },
+        "ExecutionDetails":{
+          "shape":"ExecutionDetails",
+          "documentation":"<p>Details about the execution, if this operation represents an execution.</p>"
+        },
+        "ContextDetails":{
+          "shape":"ContextDetails",
+          "documentation":"<p>Details about the context, if this operation represents a context.</p>"
+        },
+        "StepDetails":{
+          "shape":"StepDetails",
+          "documentation":"<p>Details about the step, if this operation represents a step.</p>"
+        },
+        "WaitDetails":{
+          "shape":"WaitDetails",
+          "documentation":"<p>Details about the wait operation, if this operation represents a wait.</p>"
+        },
+        "CallbackDetails":{"shape":"CallbackDetails"},
+        "ChainedInvokeDetails":{"shape":"ChainedInvokeDetails"}
+      },
+      "documentation":"<p>Information about an operation within a durable execution.</p>"
+    },
+    "OperationAction":{
+      "type":"string",
+      "enum":[
+        "START",
+        "SUCCEED",
+        "FAIL",
+        "RETRY",
+        "CANCEL"
+      ]
+    },
+    "OperationId":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9-_]+"
+    },
+    "OperationName":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[\\x20-\\x7E]+"
+    },
+    "OperationPayload":{
+      "type":"string",
+      "max":6291456,
+      "min":0,
+      "sensitive":true
+    },
+    "OperationStatus":{
+      "type":"string",
+      "enum":[
+        "STARTED",
+        "PENDING",
+        "READY",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELLED",
+        "TIMED_OUT",
+        "STOPPED"
+      ]
+    },
+    "OperationSubType":{
+      "type":"string",
+      "max":32,
+      "min":1,
+      "pattern":"[a-zA-Z0-9-_]+"
+    },
+    "OperationType":{
+      "type":"string",
+      "enum":[
+        "EXECUTION",
+        "CONTEXT",
+        "STEP",
+        "WAIT",
+        "CALLBACK",
+        "CHAINED_INVOKE"
+      ]
+    },
+    "OperationUpdate":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "Type",
+        "Action"
+      ],
+      "members":{
+        "Id":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier for this operation.</p>"
+        },
+        "ParentId":{
+          "shape":"OperationId",
+          "documentation":"<p>The unique identifier of the parent operation, if this operation is running within a child context.</p>"
+        },
+        "Name":{
+          "shape":"OperationName",
+          "documentation":"<p>The customer-provided name for this operation.</p>"
+        },
+        "Type":{
+          "shape":"OperationType",
+          "documentation":"<p>The type of operation to update.</p>"
+        },
+        "SubType":{
+          "shape":"OperationSubType",
+          "documentation":"<p>The subtype of the operation, providing additional categorization.</p>"
+        },
+        "Action":{
+          "shape":"OperationAction",
+          "documentation":"<p>The action to take on the operation.</p>"
+        },
+        "Payload":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The payload for successful operations.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>The error information for failed operations.</p>"
+        },
+        "ContextOptions":{
+          "shape":"ContextOptions",
+          "documentation":"<p>Options for context operations.</p>"
+        },
+        "StepOptions":{
+          "shape":"StepOptions",
+          "documentation":"<p>Options for step operations.</p>"
+        },
+        "WaitOptions":{
+          "shape":"WaitOptions",
+          "documentation":"<p>Options for wait operations.</p>"
+        },
+        "CallbackOptions":{"shape":"CallbackOptions"},
+        "ChainedInvokeOptions":{"shape":"ChainedInvokeOptions"}
+      },
+      "documentation":"<p>An update to be applied to an operation during checkpointing.</p>"
+    },
+    "OperationUpdates":{
+      "type":"list",
+      "member":{"shape":"OperationUpdate"}
+    },
+    "Operations":{
+      "type":"list",
+      "member":{"shape":"Operation"}
+    },
     "OrganizationId":{
       "type":"string",
       "max":34,
@@ -5066,6 +7204,12 @@
       "max":253,
       "min":1,
       "pattern":".*"
+    },
+    "OutputPayload":{
+      "type":"string",
+      "max":6291456,
+      "min":0,
+      "sensitive":true
     },
     "PackageType":{
       "type":"string",
@@ -5085,6 +7229,12 @@
       "max":4096,
       "min":0,
       "pattern":".*"
+    },
+    "PerExecutionEnvironmentMaxConcurrency":{
+      "type":"integer",
+      "box":true,
+      "max":1600,
+      "min":1
     },
     "PolicyLengthExceededException":{
       "type":"structure",
@@ -5205,7 +7355,7 @@
         },
         "PollerGroupName":{
           "shape":"ProvisionedPollerGroupName",
-          "documentation":"<p>(Amazon MSK and self-managed Apache Kafka) The name of the provisioned poller group. Use this option to group multiple ESMs within the VPC to share Event Poller Unit (EPU) capacity. This option is used to optimize Provisioned mode costs for your ESMs. You can group up to 100 ESMs per poller group and aggregate maximum pollers across all ESMs in a group cannot exceed 2000.</p>"
+          "documentation":"<p>(Amazon MSK and self-managed Apache Kafka) The name of the provisioned poller group. Use this option to group multiple ESMs within the event source's VPC to share Event Poller Unit (EPU) capacity. You can use this option to optimize Provisioned mode costs for your ESMs. You can group up to 100 ESMs per poller group and aggregate maximum pollers across all ESMs in a group cannot exceed 2000.</p>"
         }
       },
       "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/invocation-eventsourcemapping.html#invocation-eventsourcemapping-provisioned-mode\"> provisioned mode</a> configuration for the event source. Use Provisioned Mode to customize the minimum and maximum number of event pollers for your event source.</p>"
@@ -5313,8 +7463,18 @@
         "RevisionId":{
           "shape":"String",
           "documentation":"<p>Only update the function if the revision ID matches the ID that's specified. Use this option to avoid publishing a version if the function configuration has changed since you last updated it.</p>"
+        },
+        "PublishTo":{
+          "shape":"FunctionVersionLatestPublished",
+          "documentation":"<p>Specifies where to publish the function version or configuration.</p>"
         }
       }
+    },
+    "PublishedFunctionQualifier":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"(\\$LATEST\\.PUBLISHED|[0-9]+)"
     },
     "PutFunctionCodeSigningConfigRequest":{
       "type":"structure",
@@ -5328,7 +7488,7 @@
           "documentation":"<p>The The Amazon Resource Name (ARN) of the code signing configuration.</p>"
         },
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -5376,13 +7536,13 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>A version number or alias name.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -5426,6 +7586,40 @@
         "RecursiveLoop":{
           "shape":"RecursiveLoop",
           "documentation":"<p>The status of your function's recursive loop detection configuration.</p> <p>When this value is set to <code>Allow</code>and Lambda detects your function being invoked as part of a recursive loop, it doesn't take any action.</p> <p>When this value is set to <code>Terminate</code> and Lambda detects your function being invoked as part of a recursive loop, it stops your function being invoked and notifies you. </p>"
+        }
+      }
+    },
+    "PutFunctionScalingConfigRequest":{
+      "type":"structure",
+      "required":[
+        "FunctionName",
+        "Qualifier"
+      ],
+      "members":{
+        "FunctionName":{
+          "shape":"UnqualifiedFunctionName",
+          "documentation":"<p>The name or ARN of the Lambda function.</p>",
+          "location":"uri",
+          "locationName":"FunctionName"
+        },
+        "Qualifier":{
+          "shape":"PublishedFunctionQualifier",
+          "documentation":"<p>Specify a version or alias to set the scaling configuration for a published version of the function.</p>",
+          "location":"querystring",
+          "locationName":"Qualifier"
+        },
+        "FunctionScalingConfig":{
+          "shape":"FunctionScalingConfig",
+          "documentation":"<p>The scaling configuration to apply to the function, including minimum and maximum execution environment limits.</p>"
+        }
+      }
+    },
+    "PutFunctionScalingConfigResponse":{
+      "type":"structure",
+      "members":{
+        "FunctionState":{
+          "shape":"State",
+          "documentation":"<p>The current state of the function after applying the scaling configuration.</p>"
         }
       }
     },
@@ -5492,13 +7686,13 @@
       ],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>my-function</code>.</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version of the function. This can be <code>$LATEST</code> or a published version number. If no value is specified, the configuration for the <code>$LATEST</code> version is returned.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -5620,7 +7814,7 @@
       ],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
@@ -5632,7 +7826,7 @@
           "locationName":"StatementId"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>Specify a version or alias to remove permissions from a published version of the function.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -5644,6 +7838,10 @@
           "locationName":"RevisionId"
         }
       }
+    },
+    "ReplayChildren":{
+      "type":"boolean",
+      "box":true
     },
     "RequestTooLargeException":{
       "type":"structure",
@@ -5736,6 +7934,30 @@
         "DryRun"
       ]
     },
+    "RetentionPeriodInDays":{
+      "type":"integer",
+      "box":true,
+      "max":90,
+      "min":1
+    },
+    "RetryDetails":{
+      "type":"structure",
+      "members":{
+        "CurrentAttempt":{
+          "shape":"AttemptCount",
+          "documentation":"<p>The current attempt number for this operation.</p>"
+        },
+        "NextAttemptDelaySeconds":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The delay before the next retry attempt, in seconds.</p>"
+        }
+      },
+      "documentation":"<p>Information about retry attempts for an operation.</p>"
+    },
+    "ReverseOrder":{
+      "type":"boolean",
+      "box":true
+    },
     "RoleArn":{
       "type":"string",
       "pattern":"arn:(aws[a-zA-Z-]*)?:iam::\\d{12}:role/?[a-zA-Z_0-9+=,.@\\-_/]+"
@@ -5786,7 +8008,8 @@
         "nodejs22.x",
         "nodejs24.x",
         "python3.14",
-        "java25"
+        "java25",
+        "dotnet10"
       ]
     },
     "RuntimeVersionArn":{
@@ -5893,6 +8116,64 @@
       },
       "documentation":"<p>Specific configuration settings for a self-managed Apache Kafka event source.</p>"
     },
+    "SendDurableExecutionCallbackFailureRequest":{
+      "type":"structure",
+      "required":["CallbackId"],
+      "members":{
+        "CallbackId":{
+          "shape":"CallbackId",
+          "documentation":"<p>The unique identifier for the callback operation.</p>",
+          "location":"uri",
+          "locationName":"CallbackId"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Error details describing why the callback operation failed.</p>"
+        }
+      },
+      "payload":"Error"
+    },
+    "SendDurableExecutionCallbackFailureResponse":{
+      "type":"structure",
+      "members":{}
+    },
+    "SendDurableExecutionCallbackHeartbeatRequest":{
+      "type":"structure",
+      "required":["CallbackId"],
+      "members":{
+        "CallbackId":{
+          "shape":"CallbackId",
+          "documentation":"<p>The unique identifier for the callback operation.</p>",
+          "location":"uri",
+          "locationName":"CallbackId"
+        }
+      }
+    },
+    "SendDurableExecutionCallbackHeartbeatResponse":{
+      "type":"structure",
+      "members":{}
+    },
+    "SendDurableExecutionCallbackSuccessRequest":{
+      "type":"structure",
+      "required":["CallbackId"],
+      "members":{
+        "CallbackId":{
+          "shape":"CallbackId",
+          "documentation":"<p>The unique identifier for the callback operation.</p>",
+          "location":"uri",
+          "locationName":"CallbackId"
+        },
+        "Result":{
+          "shape":"BinaryOperationPayload",
+          "documentation":"<p>The result data from the successful callback operation. Maximum size is 256 KB.</p>"
+        }
+      },
+      "payload":"Result"
+    },
+    "SendDurableExecutionCallbackSuccessResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "SensitiveString":{
       "type":"string",
       "sensitive":true
@@ -5906,7 +8187,7 @@
         },
         "message":{"shape":"String"}
       },
-      "documentation":"<p>The processed request payload exceeded the <code>Invoke</code> request body size limit for asynchronous invocations. While the event payload may be under 1 MB, the size after internal serialization exceeds the maximum allowed size for asynchronous invocations.</p>",
+      "documentation":"<p>The request payload exceeded the maximum allowed size for serialized request entities.</p>",
       "error":{
         "httpStatusCode":413,
         "senderFault":true
@@ -6046,13 +8327,25 @@
       "min":0,
       "pattern":"\\d{12}"
     },
+    "StackTraceEntries":{
+      "type":"list",
+      "member":{"shape":"StackTraceEntry"}
+    },
+    "StackTraceEntry":{
+      "type":"string",
+      "sensitive":true
+    },
     "State":{
       "type":"string",
       "enum":[
         "Pending",
         "Active",
         "Inactive",
-        "Failed"
+        "Failed",
+        "Deactivating",
+        "Deactivated",
+        "ActiveNonInvocable",
+        "Deleting"
       ]
     },
     "StateReason":{"type":"string"},
@@ -6082,7 +8375,21 @@
         "EFSMountTimeout",
         "InvalidRuntime",
         "InvalidZipFileException",
-        "FunctionError"
+        "FunctionError",
+        "DrainingDurableExecutions",
+        "VcpuLimitExceeded",
+        "CapacityProviderScalingLimitExceeded",
+        "InsufficientCapacity",
+        "EC2RequestLimitExceeded",
+        "FunctionError.InitTimeout",
+        "FunctionError.RuntimeInitError",
+        "FunctionError.ExtensionInitError",
+        "FunctionError.InvalidEntryPoint",
+        "FunctionError.InvalidWorkingDirectory",
+        "FunctionError.PermissionDenied",
+        "FunctionError.TooManyExtensions",
+        "FunctionError.InitResourceExhausted",
+        "DisallowedByVpcEncryptionControl"
       ]
     },
     "StatementId":{
@@ -6090,6 +8397,112 @@
       "max":100,
       "min":1,
       "pattern":"([a-zA-Z0-9-_]+)"
+    },
+    "StepDetails":{
+      "type":"structure",
+      "members":{
+        "Attempt":{
+          "shape":"AttemptCount",
+          "documentation":"<p>The current attempt number for this step.</p>"
+        },
+        "NextAttemptTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the next attempt is scheduled, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD). Only populated when the step is in a pending state.</p>"
+        },
+        "Result":{
+          "shape":"OperationPayload",
+          "documentation":"<p>The JSON response payload from the step operation.</p>"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Details about the step failure.</p>"
+        }
+      },
+      "documentation":"<p>Details about a step operation.</p>"
+    },
+    "StepFailedDetails":{
+      "type":"structure",
+      "required":[
+        "Error",
+        "RetryDetails"
+      ],
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about the step failure.</p>"
+        },
+        "RetryDetails":{
+          "shape":"RetryDetails",
+          "documentation":"<p>Information about retry attempts for this step operation.</p>"
+        }
+      },
+      "documentation":"<p>Details about a step that failed.</p>"
+    },
+    "StepOptions":{
+      "type":"structure",
+      "members":{
+        "NextAttemptDelaySeconds":{
+          "shape":"StepOptionsNextAttemptDelaySecondsInteger",
+          "documentation":"<p>The delay in seconds before the next retry attempt.</p>"
+        }
+      },
+      "documentation":"<p>Configuration options for a step operation.</p>"
+    },
+    "StepOptionsNextAttemptDelaySecondsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":31622400,
+      "min":1
+    },
+    "StepStartedDetails":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Details about a step that has started.</p>"
+    },
+    "StepSucceededDetails":{
+      "type":"structure",
+      "required":[
+        "Result",
+        "RetryDetails"
+      ],
+      "members":{
+        "Result":{
+          "shape":"EventResult",
+          "documentation":"<p>The response payload from the successful operation.</p>"
+        },
+        "RetryDetails":{
+          "shape":"RetryDetails",
+          "documentation":"<p>Information about retry attempts for this step operation.</p>"
+        }
+      },
+      "documentation":"<p>Details about a step that succeeded.</p>"
+    },
+    "StopDurableExecutionRequest":{
+      "type":"structure",
+      "required":["DurableExecutionArn"],
+      "members":{
+        "DurableExecutionArn":{
+          "shape":"DurableExecutionArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the durable execution.</p>",
+          "location":"uri",
+          "locationName":"DurableExecutionArn"
+        },
+        "Error":{
+          "shape":"ErrorObject",
+          "documentation":"<p>Optional error details explaining why the execution is being stopped.</p>"
+        }
+      },
+      "payload":"Error"
+    },
+    "StopDurableExecutionResponse":{
+      "type":"structure",
+      "required":["StopTimestamp"],
+      "members":{
+        "StopTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The timestamp when the execution was stopped (ISO 8601 format).</p>"
+        }
+      }
     },
     "String":{"type":"string"},
     "StringList":{
@@ -6153,7 +8566,7 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"arn:(aws[a-zA-Z-]*):lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:(function:[a-zA-Z0-9-_]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?|code-signing-config:csc-[a-z0-9]{17}|event-source-mapping:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
+      "pattern":"arn:(aws[a-zA-Z-]*):lambda:[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:(function:[a-zA-Z0-9-_]+(:(\\$LATEST|[a-zA-Z0-9-_]+))?|code-signing-config:csc-[a-z0-9]{17}|event-source-mapping:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|capacity-provider:[a-zA-Z0-9-_]+)"
     },
     "Tags":{
       "type":"map",
@@ -6189,6 +8602,24 @@
       "max":1000,
       "min":84,
       "pattern":".*"
+    },
+    "TargetTrackingScalingPolicy":{
+      "type":"structure",
+      "required":[
+        "PredefinedMetricType",
+        "TargetValue"
+      ],
+      "members":{
+        "PredefinedMetricType":{
+          "shape":"CapacityProviderPredefinedMetricType",
+          "documentation":"<p>The predefined metric type to track for scaling decisions.</p>"
+        },
+        "TargetValue":{
+          "shape":"MetricTargetValue",
+          "documentation":"<p>The target value for the metric that the scaling policy attempts to maintain through scaling actions.</p>"
+        }
+      },
+      "documentation":"<p>A scaling policy for the capacity provider that automatically adjusts capacity to maintain a target value for a specific metric.</p>"
     },
     "TenancyConfig":{
       "type":"structure",
@@ -6260,6 +8691,16 @@
       "max":1,
       "min":1
     },
+    "TraceHeader":{
+      "type":"structure",
+      "members":{
+        "XAmznTraceId":{
+          "shape":"XAmznTraceId",
+          "documentation":"<p>The X-Ray trace header associated with the durable execution.</p>"
+        }
+      },
+      "documentation":"<p>Contains trace headers for the Lambda durable execution.</p>"
+    },
     "TracingConfig":{
       "type":"structure",
       "members":{
@@ -6286,6 +8727,10 @@
         "Active",
         "PassThrough"
       ]
+    },
+    "Truncated":{
+      "type":"boolean",
+      "box":true
     },
     "TumblingWindowInSeconds":{
       "type":"integer",
@@ -6364,7 +8809,7 @@
           "locationName":"Name"
         },
         "FunctionVersion":{
-          "shape":"Version",
+          "shape":"VersionWithLatestPublished",
           "documentation":"<p>The function version that the alias invokes.</p>"
         },
         "Description":{
@@ -6378,6 +8823,32 @@
         "RevisionId":{
           "shape":"String",
           "documentation":"<p>Only update the alias if the revision ID matches the ID that's specified. Use this option to avoid modifying an alias that has changed since you last read it.</p>"
+        }
+      }
+    },
+    "UpdateCapacityProviderRequest":{
+      "type":"structure",
+      "required":["CapacityProviderName"],
+      "members":{
+        "CapacityProviderName":{
+          "shape":"CapacityProviderName",
+          "documentation":"<p>The name of the capacity provider to update.</p>",
+          "location":"uri",
+          "locationName":"CapacityProviderName"
+        },
+        "CapacityProviderScalingConfig":{
+          "shape":"CapacityProviderScalingConfig",
+          "documentation":"<p>The updated scaling configuration for the capacity provider.</p>"
+        }
+      }
+    },
+    "UpdateCapacityProviderResponse":{
+      "type":"structure",
+      "required":["CapacityProvider"],
+      "members":{
+        "CapacityProvider":{
+          "shape":"CapacityProvider",
+          "documentation":"<p>Information about the updated capacity provider.</p>"
         }
       }
     },
@@ -6426,7 +8897,7 @@
           "locationName":"UUID"
         },
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> – <code>MyFunction</code>.</p> </li> <li> <p> <b>Function ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction</code>.</p> </li> <li> <p> <b>Version or Alias ARN</b> – <code>arn:aws:lambda:us-west-2:123456789012:function:MyFunction:PROD</code>.</p> </li> <li> <p> <b>Partial ARN</b> – <code>123456789012:function:MyFunction</code>.</p> </li> </ul> <p>The length constraint applies only to the full ARN. If you specify only the function name, it's limited to 64 characters in length.</p>"
         },
         "Enabled":{
@@ -6550,6 +9021,10 @@
         "SourceKMSKeyArn":{
           "shape":"KMSKeyArn",
           "documentation":"<p>The ARN of the Key Management Service (KMS) customer managed key that's used to encrypt your function's .zip deployment package. If you don't provide a customer managed key, Lambda uses an Amazon Web Services managed key.</p>"
+        },
+        "PublishTo":{
+          "shape":"FunctionVersionLatestPublished",
+          "documentation":"<p>Specifies where to publish the function version or configuration.</p>"
         }
       }
     },
@@ -6634,6 +9109,14 @@
         "LoggingConfig":{
           "shape":"LoggingConfig",
           "documentation":"<p>The function's Amazon CloudWatch Logs configuration settings.</p>"
+        },
+        "CapacityProviderConfig":{
+          "shape":"CapacityProviderConfig",
+          "documentation":"<p>Configuration for the capacity provider that manages compute resources for Lambda functions.</p>"
+        },
+        "DurableConfig":{
+          "shape":"DurableConfig",
+          "documentation":"<p>Configuration settings for durable functions. Allows updating execution timeout and retention period for functions with durability enabled.</p>"
         }
       }
     },
@@ -6642,13 +9125,13 @@
       "required":["FunctionName"],
       "members":{
         "FunctionName":{
-          "shape":"FunctionName",
+          "shape":"NamespacedFunctionName",
           "documentation":"<p>The name or ARN of the Lambda function, version, or alias.</p> <p class=\"title\"> <b>Name formats</b> </p> <ul> <li> <p> <b>Function name</b> - <code>my-function</code> (name-only), <code>my-function:v1</code> (with alias).</p> </li> <li> <p> <b>Function ARN</b> - <code>arn:aws:lambda:us-west-2:123456789012:function:my-function</code>.</p> </li> <li> <p> <b>Partial ARN</b> - <code>123456789012:function:my-function</code>.</p> </li> </ul> <p>You can append a version number or alias to any of the formats. The length constraint applies only to the full ARN. If you specify only the function name, it is limited to 64 characters in length.</p>",
           "location":"uri",
           "locationName":"FunctionName"
         },
         "Qualifier":{
-          "shape":"Qualifier",
+          "shape":"NumericLatestPublishedOrAliasQualifier",
           "documentation":"<p>A version number or alias name.</p>",
           "location":"querystring",
           "locationName":"Qualifier"
@@ -6751,6 +9234,12 @@
       "min":1,
       "pattern":"(\\$LATEST|[0-9]+)"
     },
+    "VersionWithLatestPublished":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"(\\$LATEST(\\.PUBLISHED)?|[0-9]+)"
+    },
     "VpcConfig":{
       "type":"structure",
       "members":{
@@ -6792,6 +9281,70 @@
       "documentation":"<p>The VPC security groups and subnets that are attached to a Lambda function.</p>"
     },
     "VpcId":{"type":"string"},
+    "WaitCancelledDetails":{
+      "type":"structure",
+      "members":{
+        "Error":{
+          "shape":"EventError",
+          "documentation":"<p>Details about why the wait operation was cancelled.</p>"
+        }
+      },
+      "documentation":"<p>Details about a wait operation that was cancelled.</p>"
+    },
+    "WaitDetails":{
+      "type":"structure",
+      "members":{
+        "ScheduledEndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the wait operation is scheduled to complete, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        }
+      },
+      "documentation":"<p>Details about a wait operation.</p>"
+    },
+    "WaitOptions":{
+      "type":"structure",
+      "members":{
+        "WaitSeconds":{
+          "shape":"WaitOptionsWaitSecondsInteger",
+          "documentation":"<p>The duration to wait, in seconds.</p>"
+        }
+      },
+      "documentation":"<p>Specifies how long to pause the durable execution.</p>"
+    },
+    "WaitOptionsWaitSecondsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":31622400,
+      "min":1
+    },
+    "WaitStartedDetails":{
+      "type":"structure",
+      "required":[
+        "Duration",
+        "ScheduledEndTimestamp"
+      ],
+      "members":{
+        "Duration":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The duration to wait, in seconds.</p>"
+        },
+        "ScheduledEndTimestamp":{
+          "shape":"ExecutionTimestamp",
+          "documentation":"<p>The date and time when the wait operation is scheduled to complete, in <a href=\"https://www.w3.org/TR/NOTE-datetime\">ISO-8601 format</a> (YYYY-MM-DDThh:mm:ss.sTZD).</p>"
+        }
+      },
+      "documentation":"<p>Details about a wait operation that has started.</p>"
+    },
+    "WaitSucceededDetails":{
+      "type":"structure",
+      "members":{
+        "Duration":{
+          "shape":"DurationSeconds",
+          "documentation":"<p>The wait duration, in seconds.</p>"
+        }
+      },
+      "documentation":"<p>Details about a wait operation that succeeded.</p>"
+    },
     "Weight":{
       "type":"double",
       "max":1.0,
@@ -6800,6 +9353,11 @@
     "WorkingDirectory":{
       "type":"string",
       "max":1000,
+      "min":0
+    },
+    "XAmznTraceId":{
+      "type":"string",
+      "max":8192,
       "min":0
     }
   },

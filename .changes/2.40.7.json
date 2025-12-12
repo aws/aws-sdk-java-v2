@@ -1,0 +1,42 @@
+{
+    "version": "2.40.7",
+    "date": "2025-12-11",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Dotnet 10 (dotnet10) support to AWS Lambda."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Organizations",
+            "contributor": "",
+            "description": "Add support for policy operations on the NETWORK SECURITY DIRECTOR POLICY policy type."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Secrets Manager",
+            "contributor": "",
+            "description": "Add SortBy parameter to ListSecrets"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release adds new GetIdentityContext API, Dashboard customization options for tables and pivot tables, Visual styling options- borders and decals, map GeocodingPreferences, KeyPairCredentials for DataSourceCredentials. Snapshot APIs now support registered users. Parameters limit increased to 400"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Update GetEmailIdentity and CreateEmailIdentity response to include SigningHostedZone in DkimAttributes. Updated PutEmailIdentityDkimSigningAttributes Response to include SigningHostedZone."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}
