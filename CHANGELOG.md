@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.8__ __2025-12-12__
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - Added new freetier action types to RecommendedAction.type.
+
+## __AWS DataSync__
+  - ### Features
+    - Adds Enhanced mode support for NFS and SMB locations. SMB credentials are now managed via Secrets Manager, and may be encrypted with service or customer managed keys. Increases AgentArns maximum count to 8 (max 4 per TaskMode). Adds folder counters to DescribeTaskExecution for Enhanced mode tasks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now offers automated post-chat surveys triggered when customers end conversations. This captures timely feedback while experience is fresh, using either a no-code form builder or Amazon Lex-powered interactive surveys.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Adds support for portal branding customization, enabling administrators to personalize end-user portals with custom assets.
+
 # __2.40.7__ __2025-12-11__
 ## __AWS Lambda__
   - ### Features
