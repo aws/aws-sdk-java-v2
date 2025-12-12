@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Billing and Cost Management Recommended Actions",
+    "contributor": "",
+    "description": "Added new freetier action types to RecommendedAction.type."
+}
