@@ -21,6 +21,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteCompleteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.DescribeTableEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
@@ -173,6 +174,39 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
      * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
      */
     default CompletableFuture<T> deleteItem(DeleteItemEnhancedRequest request) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Deletes a single item from the mapped table using a supplied primary {@link Key}, while also providing the full item for
+     * use in conditional expressions such as optimistic locking.
+     * <p>
+     * This method is typically used when a versioned record extension or other condition-based delete workflow requires both the
+     * key and the original item to enforce constraints (e.g., ensuring that the item has not been modified since it was read).
+     * <p>
+     * The additional configuration parameters that the enhanced client supports are defined in the
+     * {@link DeleteCompleteItemEnhancedRequest}.
+     * <p>
+     * This operation calls the low-level DynamoDB API DeleteItem operation. Consult the DeleteItem documentation for further
+     * details and constraints.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     *
+     * MyItem previouslyPersistedItem = mappedTable.delete(
+     *     DeleteItemEnhancedRequestWithItem.builder(MyItem.class)
+     *         .item(itemReadEarlier)
+     *         .build()
+     * ).join();
+     * }
+     * </pre>
+     *
+     * @param request A {@link DeleteCompleteItemEnhancedRequest} with key, item, and optional directives for deleting an item
+     *                from the table.
+     * @return a {@link CompletableFuture} of the item that was persisted in the database before it was deleted.
+     */
+    default CompletableFuture<T> deleteItem(DeleteCompleteItemEnhancedRequest<T> request) {
         throw new UnsupportedOperationException();
     }
 

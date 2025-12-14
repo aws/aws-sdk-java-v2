@@ -32,6 +32,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
+import software.amazon.awssdk.enhanced.dynamodb.internal.operations.OperationName;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -143,6 +144,17 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return WriteModification.builder().build();
         }
 
+        // Handle DELETE operations with optimistic locking
+        if (context.operationName() == OperationName.DELETE_ITEM) {
+            return handleOptimisticDelete(context, versionAttributeKey.get());
+        }
+
+        // For non-delete operations, skip version handling if it's a delete
+        if (context.operationName() == OperationName.DELETE_ITEM) {
+            return WriteModification.builder().build();
+        }
+
+        // Existing logic for other operations
         Map<String, AttributeValue> itemToTransform = new HashMap<>(context.items());
 
         String attributeKeyRef = keyRef(versionAttributeKey.get());
@@ -204,6 +216,30 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .transformedItem(Collections.unmodifiableMap(itemToTransform))
                                 .additionalConditionalExpression(condition)
                                 .build();
+    }
+
+    private WriteModification handleOptimisticDelete(DynamoDbExtensionContext.BeforeWrite context, String versionAttributeKey) {
+        // Look for version in the items map
+        AttributeValue versionValue = context.items().get(versionAttributeKey);
+
+        if (versionValue != null && versionValue.n() != null) {
+            // Build condition for the specific version
+            String attributeKeyRef = keyRef(versionAttributeKey);
+            String valueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey);
+
+            Expression condition = Expression.builder()
+                                             .expression(String.format("%s = %s", attributeKeyRef, valueKey))
+                                             .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey))
+                                             .expressionValues(Collections.singletonMap(valueKey, versionValue))
+                                             .build();
+
+            return WriteModification.builder()
+                                    .additionalConditionalExpression(condition)
+                                    .build();
+        }
+
+        // If no version value is provided, don't add any condition (backward compatible)
+        return WriteModification.builder().build();
     }
 
     private boolean isInitialVersion(AttributeValue existingVersionValue, Long versionStartAtFromAnnotation) {

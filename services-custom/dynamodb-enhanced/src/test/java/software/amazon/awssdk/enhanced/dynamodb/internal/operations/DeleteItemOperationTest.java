@@ -23,9 +23,9 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
@@ -46,6 +46,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.ReadModification;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.WriteModification;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
@@ -419,7 +420,6 @@ public class DeleteItemOperationTest {
                                                                         mockDynamoDbEnhancedClientExtension);
 
         assertThat(request.key(), is(keyMap));
-        verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
     @Test
@@ -555,5 +555,99 @@ public class DeleteItemOperationTest {
                                                             .build();
         assertThat(actualResult, is(expectedResult));
         verify(deleteItemOperation).generateRequest(FakeItem.getTableSchema(), context, mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void generateTransactWriteItem_withVersionedRecordExtension_givenReturnedCondition_setsConditionOnRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                    .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                    .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        String conditionExpression = "#AMZN_MAPPED_version = :old_version_value";
+        Map<String, String> attributeNames = Collections.singletonMap("#AMZN_MAPPED_version", "version");
+        Map<String, AttributeValue> attributeValues = Collections.singletonMap(":old_version_value", stringValue("7"));
+
+        Expression expression =
+            Expression.builder()
+                      .expression("#AMZN_MAPPED_version = :old_version_value")
+                      .expressionNames(Collections.singletonMap("#AMZN_MAPPED_version", "version"))
+                      .expressionValues(Collections.singletonMap(":old_version_value", AttributeValue.fromS("7")))
+                      .build();
+        WriteModification writeModification = WriteModification.builder().additionalConditionalExpression(expression).build();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DefaultDynamoDbExtensionContext.class))).thenReturn(writeModification);
+
+        TransactWriteItem actualResult = deleteItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .delete(Delete.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .conditionExpression(conditionExpression)
+                                                                          .expressionAttributeNames(attributeNames)
+                                                                          .expressionAttributeValues(attributeValues)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(any(DefaultDynamoDbExtensionContext.class));
+    }
+
+    @Test
+    public void generateTransactWriteItem_withVersionedRecordExtension_givenNoReturnedCondition_doesNotSetConditionOnRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                    .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                    .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        Expression emptyExpression = Expression.builder().build();
+        WriteModification writeModification =
+            WriteModification.builder().additionalConditionalExpression(emptyExpression).build();
+        when(mockDynamoDbEnhancedClientExtension.beforeWrite(any(DefaultDynamoDbExtensionContext.class)))
+            .thenReturn(writeModification);
+
+        TransactWriteItem actualResult = deleteItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       mockDynamoDbEnhancedClientExtension);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .delete(Delete.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verify(mockDynamoDbEnhancedClientExtension).beforeWrite(any(DefaultDynamoDbExtensionContext.class));
+    }
+
+    @Test
+    public void generateTransactWriteItem_withoutVersionedRecordExtension_doesNotSetConditionOnRequest() {
+        FakeItem fakeItem = createUniqueFakeItem();
+        Map<String, AttributeValue> fakeItemMap = FakeItem.getTableSchema().itemToMap(fakeItem, true);
+        DeleteItemOperation<FakeItem> deleteItemOperation =
+            spy(DeleteItemOperation.create(DeleteItemEnhancedRequest.builder()
+                                                                    .key(k -> k.partitionValue(fakeItem.getId()))
+                                                                    .build()));
+        OperationContext context = DefaultOperationContext.create(TABLE_NAME, TableMetadata.primaryIndexName());
+
+        TransactWriteItem actualResult = deleteItemOperation.generateTransactWriteItem(FakeItem.getTableSchema(),
+                                                                                       context,
+                                                                                       null);
+
+        TransactWriteItem expectedResult = TransactWriteItem.builder()
+                                                            .delete(Delete.builder()
+                                                                          .key(fakeItemMap)
+                                                                          .tableName(TABLE_NAME)
+                                                                          .build())
+                                                            .build();
+        assertThat(actualResult, is(expectedResult));
+        verifyNoInteractions(mockDynamoDbEnhancedClientExtension);
     }
 }

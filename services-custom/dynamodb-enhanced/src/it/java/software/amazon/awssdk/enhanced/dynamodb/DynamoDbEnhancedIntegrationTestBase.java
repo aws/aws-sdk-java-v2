@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb;
 
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.secondaryPartitionKey;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Record;
+import software.amazon.awssdk.enhanced.dynamodb.model.VersionedRecord;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
@@ -73,6 +75,37 @@ public abstract class DynamoDbEnhancedIntegrationTestBase extends AwsIntegration
                          .addAttribute(String.class, a -> a.name("stringAttribute")
                                                            .getter(Record::getStringAttribute)
                                                            .setter(Record::setStringAttribute))
+                         .build();
+
+    protected static final TableSchema<VersionedRecord> VERSIONED_RECORD_TABLE_SCHEMA =
+        StaticTableSchema.builder(VersionedRecord.class)
+                         .newItemSupplier(VersionedRecord::new)
+                         .addAttribute(String.class, a -> a.name("id")
+                                                           .getter(VersionedRecord::getId)
+                                                           .setter(VersionedRecord::setId)
+                                                           .tags(primaryPartitionKey(), secondaryPartitionKey("index1")))
+                         .addAttribute(Integer.class, a -> a.name("sort")
+                                                            .getter(VersionedRecord::getSort)
+                                                            .setter(VersionedRecord::setSort)
+                                                            .tags(primarySortKey(), secondarySortKey("index1")))
+                         .addAttribute(Integer.class, a -> a.name("value")
+                                                            .getter(VersionedRecord::getValue)
+                                                            .setter(VersionedRecord::setValue))
+                         .addAttribute(String.class, a -> a.name("gsi_id")
+                                                           .getter(VersionedRecord::getGsiId)
+                                                           .setter(VersionedRecord::setGsiId)
+                                                           .tags(secondaryPartitionKey("gsi_keys_only")))
+                         .addAttribute(Integer.class, a -> a.name("gsi_sort")
+                                                            .getter(VersionedRecord::getGsiSort)
+                                                            .setter(VersionedRecord::setGsiSort)
+                                                            .tags(secondarySortKey("gsi_keys_only")))
+                         .addAttribute(String.class, a -> a.name("stringAttribute")
+                                                           .getter(VersionedRecord::getStringAttribute)
+                                                           .setter(VersionedRecord::setStringAttribute))
+                         .addAttribute(Integer.class, a -> a.name("version")
+                                                            .getter(VersionedRecord::getVersion)
+                                                            .setter(VersionedRecord::setVersion)
+                                                            .tags(versionAttribute()))
                          .build();
 
 
