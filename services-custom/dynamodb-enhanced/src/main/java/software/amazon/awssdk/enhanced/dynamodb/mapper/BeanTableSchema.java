@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.extensions.annotations.DynamoDbTimeToLiveAttribute;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeSetter;
@@ -250,6 +252,7 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         builder.attributeConverterProviders(createConverterProvidersFromAnnotation(beanClass, lookup, dynamoDbBean));
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
+        AtomicInteger ttlAttributesCount = new AtomicInteger();
 
         mappableProperties.forEach(propertyDescriptor -> {
             DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
@@ -283,9 +286,20 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                 addTagsToAttribute(attributeBuilder, propertyDescriptor);
                 attributes.add(attributeBuilder.build());
             }
+
+            DynamoDbTimeToLiveAttribute ttlAnnotation = getPropertyAnnotation(propertyDescriptor,
+                                                                              DynamoDbTimeToLiveAttribute.class);
+            if (ttlAnnotation != null) {
+                ttlAttributesCount.getAndIncrement();
+            }
         });
 
         builder.attributes(attributes);
+
+        if (ttlAttributesCount.intValue() > 1) {
+            throw new IllegalArgumentException(
+                "A @DynamoDbBean class could have maximum one @DynamoDbTimeToLiveAttribute.");
+        }
 
         return builder.build(context);
     }
