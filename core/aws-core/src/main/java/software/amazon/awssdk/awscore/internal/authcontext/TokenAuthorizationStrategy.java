@@ -87,7 +87,7 @@ public final class TokenAuthorizationStrategy implements AuthorizationStrategy {
                                               MetricCollector metricCollector) {
         Validate.notNull(tokenProvider, "No token provider exists to resolve a token from.");
 
-        // TODO(sra-identity-and-auth): internal issue SMITHY-1677. avoid join for async clients.
+        // TODO(technical-debt-reduction): internal issue JAVA-7739. avoid join for async clients.
         Pair<TokenIdentity, Duration> measured =
             MetricUtils.measureDuration(() -> CompletableFutureUtils.joinLikeSync(tokenProvider.resolveIdentity()));
         metricCollector.reportMetric(CoreMetric.TOKEN_FETCH_DURATION, measured.right());

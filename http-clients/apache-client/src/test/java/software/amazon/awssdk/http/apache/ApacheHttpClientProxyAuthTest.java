@@ -19,13 +19,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.net.URI;
+import java.util.Base64;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,13 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * the Proxy-Authorization header is sent with the first request to the proxy.
  */
 public class ApacheHttpClientProxyAuthTest {
+    private static final String USERNAME = "testuser";
+    private static final String PASSWORD = "testpass";
+
+    // Header value is "Basic " + base64(<username> + ':' + <password>)
+    // https://datatracker.ietf.org/doc/html/rfc7617#section-2
+    private static final String BASIC_PROXY_AUTH_HEADER =
+        "Basic " + Base64.getEncoder().encodeToString((USERNAME + ":" + PASSWORD).getBytes());
 
     private WireMockServer mockProxy;
     private SdkHttpClient httpClient;
@@ -65,7 +73,7 @@ public class ApacheHttpClientProxyAuthTest {
     @Test
     public void proxyAuthentication_whenPreemptiveAuthEnabled_shouldSendProxyAuthorizationHeader() throws Exception {
         mockProxy.stubFor(any(anyUrl())
-                .withHeader("Proxy-Authorization", matching("Basic .+"))
+                .withHeader("Proxy-Authorization", equalTo(BASIC_PROXY_AUTH_HEADER))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("Success")));
@@ -74,8 +82,8 @@ public class ApacheHttpClientProxyAuthTest {
         httpClient = ApacheHttpClient.builder()
                 .proxyConfiguration(ProxyConfiguration.builder()
                         .endpoint(URI.create("http://localhost:" + mockProxy.port()))
-                        .username("testuser")
-                        .password("testpass")
+                        .username(USERNAME)
+                        .password(PASSWORD)
                         .preemptiveBasicAuthenticationEnabled(true)
                         .build())
                 .build();
@@ -96,7 +104,7 @@ public class ApacheHttpClientProxyAuthTest {
 
         mockProxy.verify(1, anyRequestedFor(anyUrl()));
         mockProxy.verify(WireMock.getRequestedFor(anyUrl())
-                .withHeader("Proxy-Authorization", matching("Basic .+")));
+                .withHeader("Proxy-Authorization", equalTo(BASIC_PROXY_AUTH_HEADER)));
     }
 
     @Test
@@ -109,7 +117,7 @@ public class ApacheHttpClientProxyAuthTest {
 
         // Second request with auth header should succeed
         mockProxy.stubFor(any(anyUrl())
-                .withHeader("Proxy-Authorization", matching("Basic .+"))
+                .withHeader("Proxy-Authorization", equalTo(BASIC_PROXY_AUTH_HEADER))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("Success")));
@@ -118,8 +126,8 @@ public class ApacheHttpClientProxyAuthTest {
         httpClient = ApacheHttpClient.builder()
                 .proxyConfiguration(ProxyConfiguration.builder()
                         .endpoint(URI.create("http://localhost:" + mockProxy.port()))
-                        .username("testuser")
-                        .password("testpass")
+                        .username(USERNAME)
+                        .password(PASSWORD)
                         .preemptiveBasicAuthenticationEnabled(false)
                         .build())
                 .build();
@@ -143,6 +151,6 @@ public class ApacheHttpClientProxyAuthTest {
         // First request without auth header
         mockProxy.verify(1, anyRequestedFor(anyUrl()).withoutHeader("Proxy-Authorization"));
         // Second request with auth header
-        mockProxy.verify(1, anyRequestedFor(anyUrl()).withHeader("Proxy-Authorization", matching("Basic .+")));
+        mockProxy.verify(1, anyRequestedFor(anyUrl()).withHeader("Proxy-Authorization", equalTo(BASIC_PROXY_AUTH_HEADER)));
     }
 }

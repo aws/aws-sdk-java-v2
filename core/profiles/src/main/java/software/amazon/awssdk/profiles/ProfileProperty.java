@@ -201,6 +201,11 @@ public final class ProfileProperty {
      */
     public static final String SIGV4A_SIGNING_REGION_SET = "sigv4a_signing_region_set";
 
+    /**
+     * Property  name for login session used with AWS Login/Sign-In Credentials.
+     */
+    public static final String LOGIN_SESSION = "login_session";
+
     private ProfileProperty() {
     }
 }
