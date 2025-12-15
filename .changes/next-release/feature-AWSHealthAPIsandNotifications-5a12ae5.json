@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Health APIs and Notifications",
+    "contributor": "",
+    "description": "Updating Health API endpoint generation for dualstack only regions"
+}
