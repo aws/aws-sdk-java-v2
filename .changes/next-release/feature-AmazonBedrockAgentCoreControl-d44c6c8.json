@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore Control",
+    "contributor": "",
+    "description": "This release updates broken links for AgentCore Policy APIs in the AWS CLI and SDK resources."
+}
