@@ -156,8 +156,7 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
     protected DefaultJsonAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
-                                                      .option(SdkClientOption.API_METADATA,
-                                                              "Json_Service" + "#" + ServiceVersionInfo.VERSION).build();
+                                                      .option(SdkClientOption.API_METADATA, "Json_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(AwsJsonProtocolFactory.builder()).build();
         this.executor = clientConfiguration.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.executorService = clientConfiguration.option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
@@ -1249,6 +1248,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                             .builder()
                             .requestChecksumRequired(false)
                             .isRequestStreaming(true)
+                            .requestAlgorithm(putOperationWithChecksumRequest.checksumAlgorithmAsString())
+                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm")
                             .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
                             .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
                                                   DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,

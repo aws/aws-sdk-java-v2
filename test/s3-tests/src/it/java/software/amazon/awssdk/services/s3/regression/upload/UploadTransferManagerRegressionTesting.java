@@ -56,13 +56,6 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
         Assumptions.assumeFalse(config.getBodyType() == BodyType.CONTENT_PROVIDER_WITH_LENGTH,
                                 "No way to create AsyncRequestBody by giving both an Publisher and the content length");
 
-        // Payload signing doesn't work correctly for async java based
-        // TODO(sra-identity-auth) remove when chunked encoding support is added in async code path
-        // MRAP requires body signing
-        Assumptions.assumeFalse(
-            config.isPayloadSigning() || config.getBucketType() == BucketType.MRAP,
-            "Async payload signing doesn't work with Java based clients");
-
         LOG.info(() -> "Running putObject with config: " + config);
 
         BucketType bucketType = config.getBucketType();
