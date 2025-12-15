@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Simple Storage Service",
-    "contributor": "",
-    "description": "This release adds support for the new optional field 'LifecycleExpirationDate' in S3 Inventory configurations."
-}

@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.9__ __2025-12-15__
+## __AWS EntityResolution__
+  - ### Features
+    - Support Customer Profiles Integration for AWS Entity Resolution
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Updating Health API endpoint generation for dualstack only regions
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for Ad Decision Server Configuration enabling HTTP POST requests with custom bodies, headers, GZIP compression, and dynamic variables. No changes required for existing GET request configurations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - This release updates broken links for AgentCore Policy APIs in the AWS CLI and SDK resources.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release allows you to import your historical CloudTrail Lake data into CloudWatch with a few steps, enabling you to easily consolidate operational, security, and compliance data in one place.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now supports outbound WhatsApp contacts via the Send message block or StartOutboundChatContact API. Send proactive messages for surveys, reminders, and updates. Offer customers the option to switch to WhatsApp while in queue, eliminating hold time.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Capacity Manager now supports SpotTotalCount, SpotTotalInterruptions and SpotInterruptionRate metrics for both vCPU and instance units.
+
+## __Amazon Glacier__
+  - ### Features
+    - Documentation updates for Amazon Glacier's maintenance mode
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adds support for enabling detailed metrics on Route 53 Resolver endpoints using RniEnhancedMetricsEnabled and TargetNameServerMetricsEnabled in the CreateResolverEndpoint and UpdateResolverEndpoint APIs, providing enhanced visibility into Resolver endpoint and target name server performance.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds support for the new optional field 'LifecycleExpirationDate' in S3 Inventory configurations.
+
+## __Service Quotas__
+  - ### Features
+    - Add support for SQ Dashboard Api
+
 # __2.40.8__ __2025-12-12__
 ## __AWS Billing and Cost Management Recommended Actions__
   - ### Features
