@@ -20,12 +20,20 @@ import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Model;
 import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Request;
 import static software.amazon.awssdk.codegen.model.intermediate.ShapeType.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.utils.Logger;
 
 public final class DocumentationUtils {
 
@@ -54,6 +62,9 @@ public final class DocumentationUtils {
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
     private static final Pattern COMMENT_DELIMITER = Pattern.compile("\\*\\/");
+    
+    private static final Logger log = Logger.loggerFor(DocumentationUtils.class);
+    private static Map<String, String> exampleUrlMap;
 
     private DocumentationUtils() {
     }
@@ -140,6 +151,32 @@ public final class DocumentationUtils {
                                                     : "";
     }
 
+    /**
+     * Create a link to a code example for the given operation.
+     *
+     * @param metadata the service metadata containing service name information
+     * @param operationName the name of the operation to find an example for
+     * @return a '@see also' HTML link to the code example, or empty string if no example found
+     */
+    public static String createLinkToCodeExample(Metadata metadata, String operationName) {
+        try {
+            String serviceKey = mapServiceNameToExampleKey(metadata.getServiceName());
+            String targetExampleId = serviceKey + "_" + operationName;
+
+            Map<String, String> urlMap = getExampleUrlMap();
+            String url = urlMap.get(targetExampleId);
+
+            if (url != null) {
+                return String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url);
+            }
+
+            return "";
+        } catch (Exception e) {
+            log.debug(() -> "Failed to create code example link for " + metadata.getServiceName() + "." + operationName, e);
+            return "";
+        }
+    }
+
     public static String removeFromEnd(String string, String stringToRemove) {
         return string.endsWith(stringToRemove) ? string.substring(0, string.length() - stringToRemove.length()) : string;
     }
@@ -176,5 +213,74 @@ public final class DocumentationUtils {
 
     public static String defaultExistenceCheck() {
         return DEFAULT_EXISTENCE_CHECK;
+    }
+
+    /**
+     * Maps service names from codegen format (e.g., "AutoScaling") to example-meta.json keys (e.g., "auto-scaling").
+     */
+    private static String mapServiceNameToExampleKey(String serviceName) {
+        if (serviceName == null) {
+            return "";
+        }
+
+        return serviceName
+            .replaceAll("([a-z0-9])([A-Z])", "$1-$2")
+            .toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Gets the cached example URL map for fast operation ID -> URL lookups.
+     */
+    private static Map<String, String> getExampleUrlMap() {
+        if (exampleUrlMap == null) {
+            exampleUrlMap = buildExampleUrlMap();
+        }
+        return exampleUrlMap;
+    }
+
+    /**
+     * Builds a flat lookup map from example-meta.json: operation ID -> URL
+     */
+    private static Map<String, String> buildExampleUrlMap() {
+        Map<String, String> urlMap = new HashMap<>();
+        
+        try (InputStream inputStream = DocumentationUtils.class.getClassLoader()
+                .getResourceAsStream("software/amazon/awssdk/codegen/example-meta.json")) {
+            
+            if (inputStream == null) {
+                log.debug(() -> "example-meta.json not found in classpath");
+                return urlMap;
+            }
+            
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode root = objectMapper.readTree(inputStream);
+            
+            JsonNode servicesNode = root.get("services");
+            if (servicesNode != null) {
+                for (JsonNode serviceNode : servicesNode) {
+                    JsonNode examplesNode = serviceNode.get("examples");
+                    if (examplesNode != null && examplesNode.isArray()) {
+                        for (JsonNode example : examplesNode) {
+                            JsonNode idNode = example.get("id");
+                            JsonNode urlNode = example.get("url");
+                            
+                            if (idNode != null && urlNode != null) {
+                                String id = idNode.asText();
+                                String url = urlNode.asText();
+                                if (!id.isEmpty() && !url.isEmpty()) {
+                                    urlMap.put(id, url);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return urlMap;
+            
+        } catch (IOException e) {
+            log.warn(() -> "Failed to load example-meta.json", e);
+            return urlMap;
+        }
     }
 }

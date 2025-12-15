@@ -22,6 +22,7 @@ import com.squareup.javapoet.ClassName;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.codegen.internal.DocumentationUtils;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -85,6 +86,11 @@ abstract class OperationDocProvider {
         String crosslink = createLinkToServiceDocumentation(model.getMetadata(), opModel.getOperationName());
         if (!crosslink.isEmpty()) {
             docBuilder.see(crosslink);
+        }
+
+        String codeExampleLink = DocumentationUtils.createLinkToCodeExample(model.getMetadata(), opModel.getOperationName());
+        if (!codeExampleLink.isEmpty()) {
+            docBuilder.see(codeExampleLink);
         }
         return docBuilder.build().replace("$", "&#36");
     }
