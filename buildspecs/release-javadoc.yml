@@ -23,6 +23,7 @@ phases:
     - MODULES_TO_SKIP_FORMATTED=$(echo $MODULES_TO_SKIP | sed 's/,/,!:/g' | sed 's/^/!:/')
     - mvn clean install javadoc:aggregate -B -Ppublic-javadoc -Dcheckstyle.skip -Dspotbugs.skip -DskipTests -Ddoclint=none -pl $MODULES_TO_SKIP_FORMATTED
     - RELEASE_VERSION=`mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec`
+    - python3 ./scripts/code_examples/inject_examples.py --exampleMetadata ./codegen/src/main/resources/software/amazon/awssdk/codegen/example-meta.json --docsPath ./target/site/apidocs/
     -
     - aws s3 sync target/site/apidocs/ $DOC_PATH/$RELEASE_VERSION/ --acl="public-read"
     - aws s3 cp ./scripts/crosslink_redirect.html $DOC_PATH/$RELEASE_VERSION/ --acl="public-read"
