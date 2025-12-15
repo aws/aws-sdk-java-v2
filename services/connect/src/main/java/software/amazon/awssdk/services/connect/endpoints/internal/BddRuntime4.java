@@ -1,0 +1,194 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
+ * the License. A copy of the License is located at
+ *
+ * http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+package software.amazon.awssdk.services.connect.endpoints.internal;
+
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointParams;
+import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+
+@Generated("software.amazon.awssdk:codegen")
+@SdkInternalApi
+// sifted/reversed BDD.  optimized booleans/bdd loop.  Method references instead of lambdas.
+public final class BddRuntime4 implements ConnectEndpointProvider {
+    private static final int[] BDD_DEFINITION = { -1, 1, -1, 0, 13, 3, 1, 4, 100000012, 2, 5, 100000012, 3, 8, 6, 5, 7,
+                                                  100000011, 7, 100000009, 100000010, 4, 10, 9, 5, 100000005, 100000008, 5, 12, 11, 6, 100000006, 100000007, 7,
+                                                  100000004, 100000005, 3, 100000001, 14, 5, 100000002, 100000003 };
+
+    private static final ConditionFn[] CONDITION_FNS = { BddRuntime4::cond0,
+                                                         BddRuntime4::cond1, BddRuntime4::cond2, BddRuntime4::cond3,
+                                                         BddRuntime4::cond4, BddRuntime4::cond5, BddRuntime4::cond6,
+                                                         BddRuntime4::cond7
+
+    };
+
+    private static final ResultFn[] RESULT_FNS = { BddRuntime4::result0,
+                                                   BddRuntime4::result1, BddRuntime4::result2,
+                                                   BddRuntime4::result3, BddRuntime4::result4,
+                                                   BddRuntime4::result5, BddRuntime4::result6,
+                                                   BddRuntime4::result7, BddRuntime4::result8,
+                                                   BddRuntime4::result9, BddRuntime4::result10,
+                                                   BddRuntime4::result11
+
+    };
+
+    private static boolean cond0(Registers registers) {
+        return (registers.endpoint != null);
+    }
+
+    private static boolean cond1(Registers registers) {
+        return (registers.region != null);
+    }
+
+    private static boolean cond2(Registers registers) {
+        registers.partitionResult = RulesFunctions.awsPartition(registers.region);
+        return registers.partitionResult != null;
+    }
+
+    private static boolean cond3(Registers registers) {
+        return (registers.useFIPS);
+    }
+
+    private static boolean cond4(Registers registers) {
+        return (registers.partitionResult.supportsFIPS());
+    }
+
+    private static boolean cond5(Registers registers) {
+        return (registers.useDualStack);
+    }
+
+    private static boolean cond6(Registers registers) {
+        return ("aws-us-gov".equals(registers.partitionResult.name()));
+    }
+
+    private static boolean cond7(Registers registers) {
+        return (registers.partitionResult.supportsDualStack());
+    }
+
+    private static RuleResult result0(Registers registers) {
+        return RuleResult.error("Invalid Configuration: FIPS and custom endpoint are not supported");
+    }
+
+    private static RuleResult result1(Registers registers) {
+        return RuleResult.error("Invalid Configuration: Dualstack and custom endpoint are not supported");
+    }
+
+    private static RuleResult result2(Registers registers) {
+        return RuleResult.endpoint(Endpoint.builder().url(URI.create(registers.endpoint)).build());
+    }
+
+    private static RuleResult result3(Registers registers) {
+        return RuleResult
+            .endpoint(Endpoint
+                          .builder()
+                          .url(URI.create("https://connect-fips." + registers.region + "."
+                                          + registers.partitionResult.dualStackDnsSuffix())).build());
+    }
+
+    private static RuleResult result4(Registers registers) {
+        return RuleResult.error("FIPS and DualStack are enabled, but this partition does not support one or both");
+    }
+
+    private static RuleResult result5(Registers registers) {
+        return RuleResult.endpoint(Endpoint.builder().url(URI.create("https://connect." + registers.region + ".amazonaws.com"))
+                                           .build());
+    }
+
+    private static RuleResult result6(Registers registers) {
+        return RuleResult.endpoint(Endpoint.builder()
+                                           .url(URI.create("https://connect-fips." + registers.region + "." + registers.partitionResult.dnsSuffix()))
+                                           .build());
+    }
+
+    private static RuleResult result7(Registers registers) {
+        return RuleResult.error("FIPS is enabled but this partition does not support FIPS");
+    }
+
+    private static RuleResult result8(Registers registers) {
+        return RuleResult.endpoint(Endpoint.builder()
+                                           .url(URI.create("https://connect." + registers.region + "." + registers.partitionResult.dualStackDnsSuffix()))
+                                           .build());
+    }
+
+    private static RuleResult result9(Registers registers) {
+        return RuleResult.error("DualStack is enabled but this partition does not support DualStack");
+    }
+
+    private static RuleResult result10(Registers registers) {
+        return RuleResult.endpoint(Endpoint.builder()
+                                           .url(URI.create("https://connect." + registers.region + "." + registers.partitionResult.dnsSuffix())).build());
+    }
+
+    private static RuleResult result11(Registers registers) {
+        return RuleResult.error("Invalid Configuration: Missing Region");
+    }
+
+    @Override
+    public CompletableFuture<Endpoint> resolveEndpoint(ConnectEndpointParams params) {
+        Registers registers = new Registers();
+        registers.region = params.region() == null ? null : params.region().id();
+        registers.useDualStack = params.useDualStack();
+        registers.useFIPS = params.useFips();
+        registers.endpoint = params.endpoint();
+        final int[] bdd = BDD_DEFINITION;
+        int nodeRef = 2;
+        while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000) {
+            int base = (Math.abs(nodeRef) - 1) * 3;
+            int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0;
+            int conditionResult = CONDITION_FNS[bdd[base]].test(registers) ? 1 : 0;
+            nodeRef = bdd[base + 2 - (complemented ^ conditionResult)];
+        }
+        if (nodeRef == -1 || nodeRef == 1) {
+            return CompletableFutureUtils.failedFuture(SdkClientException
+                                                           .create("Rule engine did not reach an error or endpoint result"));
+        } else {
+            RuleResult result = RESULT_FNS[nodeRef - 100000001].apply(registers);
+            if (result.isError()) {
+                String errorMsg = result.error();
+                if (errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+                    errorMsg += ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.";
+                }
+                return CompletableFutureUtils.failedFuture(SdkClientException.create(errorMsg));
+            }
+            return CompletableFuture.completedFuture(result.endpoint());
+        }
+    }
+
+    private static class Registers {
+        String region;
+
+        boolean useDualStack;
+
+        boolean useFIPS;
+
+        String endpoint;
+
+        RulePartition partitionResult;
+    }
+
+    @FunctionalInterface
+    interface ConditionFn {
+        boolean test(Registers registers);
+    }
+
+    @FunctionalInterface
+    interface ResultFn {
+        RuleResult apply(Registers registers);
+    }
+}

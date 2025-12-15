@@ -232,6 +232,16 @@
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>connect</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
