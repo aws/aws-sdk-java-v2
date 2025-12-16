@@ -20,6 +20,9 @@ public class RulesFunctions {
     private static final LazyValue<Partition> AWS_PARTITION = LazyValue.<Partition> builder()
             .initializer(RulesFunctions::findAwsPartition).build();
 
+    private static final int MAX_HOST_LABEL_SIZE = 63;
+    private static final int MIN_BUCKET_SIZE = 3;
+
     public static String substring(String value, int startIndex, int stopIndex, boolean reverse) {
         if (value == null) {
             return null;
@@ -31,6 +34,7 @@ public class RulesFunctions {
         }
 
         for (int i = 0; i < len; i++) {
+            // non-ascii characters (values outside of the 7bit ASCII range)
             if (value.charAt(i) > 127) {
                 return null;
             }
@@ -83,7 +87,7 @@ public class RulesFunctions {
             if (i == len || hostLabel.charAt(i) == '.') {
                 // chunk is hostLabel[start..i)
                 int chunkLen = i - start;
-                if (chunkLen < 1 || chunkLen > 63) {
+                if (chunkLen < 1 || chunkLen > MAX_HOST_LABEL_SIZE) {
                     return false;
                 } else if (!isValidSingleLabel(hostLabel, start, i)) {
                     return false;
@@ -97,7 +101,7 @@ public class RulesFunctions {
     // Validates a single label in s[start..end): ^[A-Za-z0-9][A-Za-z0-9\-]{0,62}$
     private static boolean isValidSingleLabel(String s, int start, int end) {
         int length = end - start;
-        if (length < 1 || length > 63) {
+        if (length < 1 || length > MAX_HOST_LABEL_SIZE) {
             return false;
         }
 
@@ -175,7 +179,7 @@ public class RulesFunctions {
     public static boolean awsIsVirtualHostableS3Bucket(String hostLabel, boolean allowDots) {
         // Bucket names must be between 3 (min) and 63 (max) characters long.
         int bucketLength = hostLabel == null ? 0 : hostLabel.length();
-        if (bucketLength < 3 || bucketLength > 63) {
+        if (bucketLength < MIN_BUCKET_SIZE || bucketLength > MAX_HOST_LABEL_SIZE) {
             return false;
         }
 

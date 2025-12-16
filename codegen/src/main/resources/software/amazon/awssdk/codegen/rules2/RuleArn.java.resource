@@ -13,6 +13,9 @@ public final class RuleArn {
     private final String accountId;
     private final List<String> resourceId;
 
+    private static final int ARN_MIN_LENGTH = 8;
+    private static final int ARN_PREFIX_LENGTH = 3;
+
     RuleArn(String partition, String service, String region, String accountId, List<String> resourceId) {
         this.partition = partition;
         this.service = service;
@@ -22,12 +25,12 @@ public final class RuleArn {
     }
 
     public static RuleArn parse(String arn) {
-        if (arn == null || arn.length() < 8 || !arn.startsWith("arn:")) {
+        if (arn == null || arn.length() < ARN_MIN_LENGTH || !arn.startsWith("arn:")) {
             return null;
         }
 
         // find each of the first five ':' positions
-        int p0 = 3; // after "arn"
+        int p0 = ARN_PREFIX_LENGTH; // after "arn"
         int p1 = arn.indexOf(':', p0 + 1);
         if (p1 < 0) {
             return null;
