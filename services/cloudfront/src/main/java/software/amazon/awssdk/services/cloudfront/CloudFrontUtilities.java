@@ -490,7 +490,7 @@ public final class CloudFrontUtilities {
                 return SigningUtils.signWithSha1Rsa(policyToSign, privateKey);
             case "EC":
             case "ECDSA":
-                    return SigningUtils.signWithSha1ECDSA(policyToSign, privateKey);
+                return SigningUtils.signWithSha1ECDSA(policyToSign, privateKey);
             default:
                 // do not attempt to use a generic Signer based on the privateKey algorithm:
                 // future supported key types likely require different hash algorithms (eg, SHA256 or higher instead of SHA1)

@@ -238,7 +238,8 @@ public final class SigningUtils {
     /**
      * We don't have a way to determine which algorithm to use, so we try to load as RSA and EC
      */
-    private static PrivateKey tryKeyLoadFromSpec(EncodedKeySpec privateKeySpec) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private static PrivateKey tryKeyLoadFromSpec(EncodedKeySpec privateKeySpec)
+            throws NoSuchAlgorithmException, InvalidKeySpecException {
         try {
             return KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
         } catch (InvalidKeySpecException rsaFail) {
