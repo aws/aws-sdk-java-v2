@@ -204,6 +204,9 @@ public class S3MultipartClientPutObjectWiremockTest {
             .hasMessageContaining("Multiple subscribers detected.");
 
         verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(lessThanOrExactly(2), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+
+        verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
         verify(lessThanOrExactly(2), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
 
