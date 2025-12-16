@@ -43,6 +43,8 @@ public class S3Streaming {
             .build());
         s3Object.close();
 
+        String cacheControl = s3Object.response().cacheControl();
+
         GetObjectResponse objectMetadata = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(key)
                 .build(), file.toPath());
     }
