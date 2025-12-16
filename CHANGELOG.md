@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.10__ __2025-12-16__
+## __AWS IoT__
+  - ### Features
+    - Add support for dynamic payloads in IoT Device Management Commands
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release adds support for rebooting InfluxDB DbInstances and DbClusters
+
 # __2.40.9__ __2025-12-15__
 ## __AWS EntityResolution__
   - ### Features

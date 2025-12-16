@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS IoT",
-    "contributor": "",
-    "description": "Add support for dynamic payloads in IoT Device Management Commands"
-}
