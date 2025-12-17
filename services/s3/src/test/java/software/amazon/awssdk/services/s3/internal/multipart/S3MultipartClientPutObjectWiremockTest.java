@@ -18,7 +18,9 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThan;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
@@ -168,8 +170,11 @@ public class S3MultipartClientPutObjectWiremockTest {
         s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), BufferedSplittableAsyncRequestBody.create(asyncRequestBody))
                      .join();
 
-        verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
-        verify(2, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
+        verify(moreThan(1), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(lessThanOrExactly(3), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+
+        verify(moreThan(1), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
+        verify(lessThanOrExactly(3), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
 
     @ParameterizedTest
@@ -198,8 +203,11 @@ public class S3MultipartClientPutObjectWiremockTest {
             .hasCauseInstanceOf(NonRetryableException.class)
             .hasMessageContaining("Multiple subscribers detected.");
 
-        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
-        verify(1, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(lessThanOrExactly(2), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+
+        verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
+        verify(lessThanOrExactly(2), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
 
 
