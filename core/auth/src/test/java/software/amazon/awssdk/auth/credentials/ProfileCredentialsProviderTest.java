@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
@@ -240,6 +241,33 @@ public class ProfileCredentialsProviderTest {
             assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
             assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
             assertThat(credentials.accountId()).isPresent();
+        });
+    }
+
+    @Test
+    void resolveCredentials_defaultProfileFileSupplier_refreshesCredentials() throws InterruptedException {
+        Path credentialsFile = generateTestCredentialsFile("defaultAccessKey", "defaultSecretAccessKey");
+
+        ProfileCredentialsProvider provider =  new ProfileCredentialsProvider
+            .BuilderImpl()
+            .defaultProfileFileLoader(ProfileFileSupplier.reloadWhenModified(credentialsFile, ProfileFile.Type.CREDENTIALS))
+                                      .profileName("default")
+                                      .build();
+
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
+            assertThat(credentials.accessKeyId()).isEqualTo("defaultAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("defaultSecretAccessKey");
+        });
+
+        // modify the file
+        generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
+
+        // ProfileFileRefresher has a stale time of 1000 ms.
+        Thread.sleep(1000);
+
+        assertThat(provider.resolveCredentials()).satisfies(credentials -> {
+            assertThat(credentials.accessKeyId()).isEqualTo("updatedAccessKey");
+            assertThat(credentials.secretAccessKey()).isEqualTo("updatedSecretAccessKey");
         });
     }
 

@@ -44,8 +44,13 @@ import com.google.common.collect.ImmutableSet;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +64,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -81,6 +88,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -99,6 +107,9 @@ public class DefaultClientBuilderTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
     private static final URI ENDPOINT = URI.create("https://example.com");
     private static final NoOpSigner TEST_SIGNER = new NoOpSigner();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private SdkHttpClient.Builder defaultHttpClientFactory;
@@ -419,6 +430,39 @@ public class DefaultClientBuilderTest {
         assertThat(secondGet).isSameAs(firstGet);
     }
 
+    @Test
+    public void defaultProfileFileSupplier_refreshesWhenFileModified() {
+        EnvironmentVariableHelper.run(env -> {
+            try {
+                File credentialFile = tempFolder.newFile();
+                writeTestCredentialsFile(credentialFile, "akid1", "sak");
+                env.set("AWS_SHARED_CREDENTIALS_FILE", credentialFile.getPath());
+                SdkClientConfiguration config =
+                    testClientBuilder().build().clientConfiguration;
+
+                Supplier<ProfileFile> defaultProfileFileSupplier = config.option(PROFILE_FILE_SUPPLIER);
+                ProfileFile firstGet = defaultProfileFileSupplier.get();
+
+                writeTestCredentialsFile(credentialFile, "updatedAkid", "updatedSak");
+                Thread.sleep(1000);
+                ProfileFile secondGet = defaultProfileFileSupplier.get();
+
+                assertThat(secondGet).isNotSameAs(firstGet);
+                assertThat(secondGet.profile("default")).isPresent();
+                assertThat(secondGet.profile("default").get()).satisfies(profile -> {
+                    assertThat(profile.property("aws_access_key_id"))
+                        .isEqualTo(Optional.of("updatedAkid"));
+                    assertThat(profile.property("aws_secret_access_key"))
+                        .isEqualTo(Optional.of("updatedSak"));
+                });
+
+            }
+            catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
                 ClientOverrideConfiguration.builder()
@@ -435,6 +479,13 @@ public class DefaultClientBuilderTest {
                                            .build();
 
         return new TestAsyncClientBuilder().overrideConfiguration(overrideConfig);
+    }
+
+    private void writeTestCredentialsFile(File file, String accessKeyId, String secretAccessKey)
+            throws IOException {
+        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
+                                        accessKeyId, secretAccessKey);
+        Files.write(file.toPath(), contents.getBytes(StandardCharsets.UTF_8));
     }
 
     private static class TestClient {
