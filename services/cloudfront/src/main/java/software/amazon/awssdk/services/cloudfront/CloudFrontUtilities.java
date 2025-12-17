@@ -495,7 +495,7 @@ public final class CloudFrontUtilities {
                 // do not attempt to use a generic Signer based on the privateKey algorithm:
                 // future supported key types likely require different hash algorithms (eg, SHA256 or higher instead of SHA1)
                 throw new IllegalArgumentException(
-                    "Unsupported key algorithm for for CloudFront signed URL: " + privateKey.getAlgorithm());
+                    "Unsupported key algorithm for CloudFront signed URL: " + privateKey.getAlgorithm());
         }
     }
 

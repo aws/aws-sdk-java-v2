@@ -226,12 +226,14 @@ public final class SigningUtils {
     /**
      * Attempt to load a private key from PKCS8 DER
      */
-    public static PrivateKey privateKeyFromPkcs8(byte[] derBytes) throws InvalidKeySpecException {
+    public static PrivateKey privateKeyFromPkcs8(byte[] derBytes) {
         EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(derBytes);
         try {
             return tryKeyLoadFromSpec(privateKeySpec);
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalArgumentException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new IllegalArgumentException("Invalid private key, unable to load as either RSA or ECDSA", e);
         }
     }
 
