@@ -175,6 +175,24 @@ class IamPolicyReaderTest {
     }
 
     @Test
+    public void readPolicyWithIntegerAccountsWorks() {
+        IamPolicy p = READER.read("{\n"
+                                  + "  \"Version\" : \"Version\",\n"
+                                  + "  \"Statement\" : {\n"
+                                  + "    \"Effect\" : \"Allow\",\n"
+                                  + "    \"Condition\" : {\n"
+                                  + "      \"StringNotEquals\": {\n"
+                                  + "          \"aws:PrincipalAccount\": [\n"
+                                  + "              00012345679\n"
+                                  + "          ]\n"
+                                  + "      }\n"
+                                  + "    }\n"
+                                  + "  }\n"
+                                  + "}");
+        System.out.println(p);
+    }
+
+    @Test
     public void readCompoundPrincipalsWorks() {
         assertThat(READER.read("{\n" +
                            "    \"Version\": \"Version\",\n" +
