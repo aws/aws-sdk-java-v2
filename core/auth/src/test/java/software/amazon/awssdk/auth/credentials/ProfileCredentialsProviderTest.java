@@ -262,7 +262,7 @@ public class ProfileCredentialsProviderTest {
         generateTestCredentialsFile("updatedAccessKey", "updatedSecretAccessKey");
 
         // ProfileFileRefresher has a stale time of 1000 ms.
-        Thread.sleep(1000);
+        Thread.sleep(1100);
 
         assertThat(provider.resolveCredentials()).satisfies(credentials -> {
             assertThat(credentials.accessKeyId()).isEqualTo("updatedAccessKey");
