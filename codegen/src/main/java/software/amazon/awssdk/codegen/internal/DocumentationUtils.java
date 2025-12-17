@@ -62,9 +62,11 @@ public final class DocumentationUtils {
             "iot", "data.iot", "machinelearning", "rekognition", "s3", "sdb", "swf"
                                                                                                        ));
     private static final Pattern COMMENT_DELIMITER = Pattern.compile("\\*\\/");
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
     private static final Logger log = Logger.loggerFor(DocumentationUtils.class);
     private static Map<String, String> exampleUrlMap;
+    private static Map<String, String> normalizedServiceKeyMap;
 
     private DocumentationUtils() {
     }
@@ -160,14 +162,20 @@ public final class DocumentationUtils {
      */
     public static String createLinkToCodeExample(Metadata metadata, String operationName) {
         try {
-            String serviceKey = mapServiceNameToExampleKey(metadata.getServiceName());
-            String targetExampleId = serviceKey + "_" + operationName;
+            String normalizedServiceName = metadata.getServiceName().toLowerCase(Locale.ROOT);
 
-            Map<String, String> urlMap = getExampleUrlMap();
-            String url = urlMap.get(targetExampleId);
-
-            if (url != null) {
-                return String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url);
+            Map<String, String> normalizedMap = getNormalizedServiceKeyMap();
+            String actualServiceKey = normalizedMap.get(normalizedServiceName);
+            
+            if (actualServiceKey != null) {
+                String targetExampleId = actualServiceKey + "_" + operationName;
+                
+                Map<String, String> urlMap = getExampleUrlMap();
+                String url = urlMap.get(targetExampleId);
+                
+                if (url != null) {
+                    return String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url);
+                }
             }
 
             return "";
@@ -215,72 +223,90 @@ public final class DocumentationUtils {
         return DEFAULT_EXISTENCE_CHECK;
     }
 
-    /**
-     * Maps service names from codegen format (e.g., "AutoScaling") to example-meta.json keys (e.g., "auto-scaling").
-     */
-    private static String mapServiceNameToExampleKey(String serviceName) {
-        if (serviceName == null) {
-            return "";
-        }
-
-        return serviceName
-            .replaceAll("([a-z0-9])([A-Z])", "$1-$2")
-            .toLowerCase(Locale.ROOT);
-    }
 
     /**
      * Gets the cached example URL map for fast operation ID -> URL lookups.
      */
     private static Map<String, String> getExampleUrlMap() {
         if (exampleUrlMap == null) {
-            exampleUrlMap = buildExampleUrlMap();
+            buildExampleMaps();
         }
         return exampleUrlMap;
     }
 
     /**
-     * Builds a flat lookup map from example-meta.json: operation ID -> URL
+     * Gets the cached normalized service key map for service name matching.
      */
-    private static Map<String, String> buildExampleUrlMap() {
+    private static Map<String, String> getNormalizedServiceKeyMap() {
+        if (normalizedServiceKeyMap == null) {
+            buildExampleMaps();
+        }
+        return normalizedServiceKeyMap;
+    }
+
+    /**
+     * Builds both the URL lookup map and normalized service key mapping from example-meta.json.
+     */
+    private static void buildExampleMaps() {
         Map<String, String> urlMap = new HashMap<>();
+        Map<String, String> normalizedMap = new HashMap<>();
         
         try (InputStream inputStream = DocumentationUtils.class.getClassLoader()
                 .getResourceAsStream("software/amazon/awssdk/codegen/example-meta.json")) {
             
             if (inputStream == null) {
                 log.debug(() -> "example-meta.json not found in classpath");
-                return urlMap;
+                exampleUrlMap = urlMap;
+                normalizedServiceKeyMap = normalizedMap;
+                return;
             }
             
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode root = objectMapper.readTree(inputStream);
-            
+            JsonNode root = OBJECT_MAPPER.readTree(inputStream);
             JsonNode servicesNode = root.get("services");
+            
             if (servicesNode != null) {
-                for (JsonNode serviceNode : servicesNode) {
-                    JsonNode examplesNode = serviceNode.get("examples");
-                    if (examplesNode != null && examplesNode.isArray()) {
-                        for (JsonNode example : examplesNode) {
-                            JsonNode idNode = example.get("id");
-                            JsonNode urlNode = example.get("url");
-                            
-                            if (idNode != null && urlNode != null) {
-                                String id = idNode.asText();
-                                String url = urlNode.asText();
-                                if (!id.isEmpty() && !url.isEmpty()) {
-                                    urlMap.put(id, url);
-                                }
-                            }
-                        }
-                    }
-                }
+                servicesNode.fieldNames().forEachRemaining(serviceKey -> {
+                    buildNormalizedMapping(serviceKey, normalizedMap);
+                    buildUrlMappingForService(servicesNode.get(serviceKey), urlMap);
+                });
             }
 
-            return urlMap;
+            exampleUrlMap = urlMap;
+            normalizedServiceKeyMap = normalizedMap;
             
         } catch (IOException e) {
             log.warn(() -> "Failed to load example-meta.json", e);
-            return urlMap;
+            exampleUrlMap = urlMap;
+            normalizedServiceKeyMap = normalizedMap;
+        }
+    }
+
+    /**
+     * Builds normalized mapping for a service key (e.g., "medical-imaging" -> "medicalimaging").
+     */
+    private static void buildNormalizedMapping(String serviceKey, Map<String, String> normalizedMap) {
+        String normalizedKey = serviceKey.replace("-", "").toLowerCase(Locale.ROOT);
+        normalizedMap.put(normalizedKey, serviceKey);
+    }
+
+    /**
+     * Builds URL mappings for all examples in a service.
+     */
+    private static void buildUrlMappingForService(JsonNode serviceNode, Map<String, String> urlMap) {
+        JsonNode examplesNode = serviceNode.get("examples");
+        if (examplesNode != null && examplesNode.isArray()) {
+            for (JsonNode example : examplesNode) {
+                JsonNode idNode = example.get("id");
+                JsonNode urlNode = example.get("url");
+                
+                if (idNode != null && urlNode != null) {
+                    String id = idNode.asText();
+                    String url = urlNode.asText();
+                    if (!id.isEmpty() && !url.isEmpty()) {
+                        urlMap.put(id, url);
+                    }
+                }
+            }
         }
     }
 }
