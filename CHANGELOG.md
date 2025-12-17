@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.11__ __2025-12-17__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for tile encoding in HEVC and audio for video overlays.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for SPEKE V2 content key encryption in MediaPackage v2 Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Add support for S3Object getObjectMetadata transform
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for ECDSA signed URLs.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new stream group operation parameters for scale-on-demand capacity with automatic prewarming. Added new Gen6 stream classes based on the EC2 G6 instance family. Added new StartStreamSession parameter for exposure of real-time performance stats to clients.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for dbiResourceId in finding.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding the newly launched p6-b300.48xlarge ec2 instance support in Sagemaker(Hyperpod,Training and Sceptor)
+
+## __Inspector Scan__
+  - ### Features
+    - Adds an additional OutputFormat
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support dual-stack network connectivity for connectors via NetworkType field.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Support for AS2805 standard. Modifications to import-key and export-key to support AS2805 variants.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Support for AS2805 standard. New API GenerateAs2805KekValidation and changes to translate pin, GenerateMac and VerifyMac to support AS2805 key variants.
+
 # __2.40.10__ __2025-12-16__
 ## __AWS IoT__
   - ### Features
