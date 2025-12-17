@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudFront",
+    "contributor": "",
+    "description": "Add support for ECDSA signed URLs."
+}
