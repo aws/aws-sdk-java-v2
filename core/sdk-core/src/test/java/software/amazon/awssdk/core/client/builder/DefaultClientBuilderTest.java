@@ -50,7 +50,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -444,7 +443,7 @@ public class DefaultClientBuilderTest {
                 ProfileFile firstGet = defaultProfileFileSupplier.get();
 
                 writeTestCredentialsFile(credentialFile, "updatedAkid", "updatedSak");
-                Thread.sleep(1000);
+                Thread.sleep(1100);
                 ProfileFile secondGet = defaultProfileFileSupplier.get();
 
                 assertThat(secondGet).isNotSameAs(firstGet);

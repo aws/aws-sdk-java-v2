@@ -17,15 +17,9 @@ package software.amazon.awssdk.auth.credentials;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.google.common.jimfs.Jimfs;
-import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
