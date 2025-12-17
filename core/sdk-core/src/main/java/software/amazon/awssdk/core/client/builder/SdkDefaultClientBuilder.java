@@ -112,7 +112,6 @@ import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.AttributeMap.LazyValueSource;
 import software.amazon.awssdk.utils.Either;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
