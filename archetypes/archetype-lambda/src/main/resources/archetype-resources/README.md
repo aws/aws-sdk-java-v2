@@ -3,14 +3,14 @@
 This project contains an AWS Lambda maven application with [AWS Java SDK 2.x](https://github.com/aws/aws-sdk-java-v2) dependencies.
 
 #[[##]]# Prerequisites
-- Java 1.8+
+- Java 25+
 - Apache Maven
 - [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
 - Docker
 
 #[[##]]# Development
 
-The generated function handler class just returns the input. The configured AWS Java SDK client is created in `DependencyFactory` class and you can 
+The generated function handler class just returns empty string. The configured AWS Java SDK client is created in `DependencyFactory` class and you can 
 add the code to interact with the SDK client based on your use case.
 
 #[[####]]# Building the project
