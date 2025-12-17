@@ -256,29 +256,24 @@ public final class DocumentationUtils {
             
             if (inputStream == null) {
                 log.debug(() -> "example-meta.json not found in classpath");
-                exampleUrlMap = urlMap;
-                normalizedServiceKeyMap = normalizedMap;
-                return;
+            } else {
+                JsonNode root = OBJECT_MAPPER.readTree(inputStream);
+                JsonNode servicesNode = root.get("services");
+                
+                if (servicesNode != null) {
+                    servicesNode.fieldNames().forEachRemaining(serviceKey -> {
+                        buildNormalizedMapping(serviceKey, normalizedMap);
+                        buildUrlMappingForService(servicesNode.get(serviceKey), urlMap);
+                    });
+                }
             }
-            
-            JsonNode root = OBJECT_MAPPER.readTree(inputStream);
-            JsonNode servicesNode = root.get("services");
-            
-            if (servicesNode != null) {
-                servicesNode.fieldNames().forEachRemaining(serviceKey -> {
-                    buildNormalizedMapping(serviceKey, normalizedMap);
-                    buildUrlMappingForService(servicesNode.get(serviceKey), urlMap);
-                });
-            }
-
-            exampleUrlMap = urlMap;
-            normalizedServiceKeyMap = normalizedMap;
             
         } catch (IOException e) {
             log.warn(() -> "Failed to load example-meta.json", e);
-            exampleUrlMap = urlMap;
-            normalizedServiceKeyMap = normalizedMap;
         }
+
+        exampleUrlMap = urlMap;
+        normalizedServiceKeyMap = normalizedMap;
     }
 
     /**
