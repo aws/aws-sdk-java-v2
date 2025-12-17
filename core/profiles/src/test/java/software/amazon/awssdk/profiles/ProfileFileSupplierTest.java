@@ -593,8 +593,9 @@ class ProfileFileSupplierTest {
     }
 
     @Test
-    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() {
+    public void reloadWhenModified_noCredentialsFiles_returnsEmptyProvider_andRefreshes() throws IOException {
         Path credentialsFilePath = getTestCredentialsFilePath();
+        Files.deleteIfExists(credentialsFilePath);
 
         AdjustableClock clock = new AdjustableClock();
         ProfileFileSupplier supplier = builderWithClock(clock)
