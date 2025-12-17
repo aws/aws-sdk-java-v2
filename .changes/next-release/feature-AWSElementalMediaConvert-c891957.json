@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Elemental MediaConvert",
-    "contributor": "",
-    "description": "Adds support for tile encoding in HEVC and audio for video overlays."
-}
