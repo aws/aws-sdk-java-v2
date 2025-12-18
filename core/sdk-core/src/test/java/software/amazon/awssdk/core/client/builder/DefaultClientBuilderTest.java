@@ -88,6 +88,7 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -430,12 +431,13 @@ public class DefaultClientBuilderTest {
     }
 
     @Test
-    public void defaultProfileFileSupplier_refreshesWhenFileModified() {
+    public void defaultProfileFileSupplier_isRefreshing() {
         EnvironmentVariableHelper.run(env -> {
             try {
                 File credentialFile = tempFolder.newFile();
                 writeTestCredentialsFile(credentialFile, "akid1", "sak");
                 env.set("AWS_SHARED_CREDENTIALS_FILE", credentialFile.getPath());
+                env.set("AWS_CONFIG_FILE", tempFolder.getRoot().toPath().resolve("does-not-exist").toString());
                 SdkClientConfiguration config =
                     testClientBuilder().build().clientConfiguration;
 
@@ -443,8 +445,10 @@ public class DefaultClientBuilderTest {
                 ProfileFile firstGet = defaultProfileFileSupplier.get();
 
                 writeTestCredentialsFile(credentialFile, "updatedAkid", "updatedSak");
-                Thread.sleep(1100);
-                ProfileFile secondGet = defaultProfileFileSupplier.get();
+
+                ProfileFile secondGet = Waiter.run(() -> defaultProfileFileSupplier.get())
+                                              .until((p) -> !p.equals(firstGet))
+                                              .orFailAfter(Duration.ofSeconds(10));
 
                 assertThat(secondGet).isNotSameAs(firstGet);
                 assertThat(secondGet.profile("default")).isPresent();
@@ -456,7 +460,7 @@ public class DefaultClientBuilderTest {
                 });
 
             }
-            catch (IOException | InterruptedException e) {
+            catch (IOException e) {
                 throw new RuntimeException(e);
             }
         });
