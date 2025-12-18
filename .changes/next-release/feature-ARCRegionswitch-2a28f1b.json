@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "ARC - Region switch",
+    "contributor": "",
+    "description": "New API to list Route 53 health checks created by ARC region switch for a plan in a specific AWS Region using the Region switch Regional data plane."
+}
