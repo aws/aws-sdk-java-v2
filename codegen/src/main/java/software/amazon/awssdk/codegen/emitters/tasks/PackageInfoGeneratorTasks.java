@@ -45,15 +45,13 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
 
         String codeExamples = getCodeExamples(metadata);
         
-        String packageInfoContents =
-            String.format("/**%n"
-                          + " * %s%n"
-                          + (codeExamples.isEmpty() ? "" : " *%n * %s%n")
-                          + "*/%n"
-                          + "package %s;",
-                          baseDocumentation,
-                          codeExamples,
-                          metadata.getFullClientPackageName());
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("/**%n * %s%n", baseDocumentation));
+        if (!codeExamples.isEmpty()) {
+            sb.append(String.format(" *%n * %s%n", codeExamples));
+        }
+        sb.append(String.format("*/%npackage %s;", metadata.getFullClientPackageName()));
+        String packageInfoContents = sb.toString();
         return Collections.singletonList(new SimpleGeneratorTask(baseDirectory,
                                                                  "package-info.java",
                                                                  model.getFileHeader(),
