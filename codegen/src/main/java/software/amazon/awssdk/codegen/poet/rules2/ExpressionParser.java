@@ -301,7 +301,7 @@ public final class ExpressionParser {
         }
         TreeNode argv0 = argv.get(0);
         TreeNode argv1 = argv.get(1);
-        RuleExpression variable = getReference(argv0);
+        RuleExpression variable = parseExpressionFrom(argv0);
         TreeNode nameNode = argv1;
         if (!(nameNode instanceof JrsString)) {
             throw new IllegalArgumentException("expecting node to be string, got instead starting token: " + nameNode.asToken());

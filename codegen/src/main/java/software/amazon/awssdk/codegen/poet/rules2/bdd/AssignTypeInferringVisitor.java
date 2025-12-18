@@ -112,6 +112,9 @@ public class AssignTypeInferringVisitor implements RuleExpressionVisitor<RuleTyp
     @Override
     public RuleType visitMemberAccessExpression(MemberAccessExpression e) {
         RuleType sourceType = e.source().accept(this);
+        if (e.directIndex() && e.name() == null) {
+            return sourceType;
+        }
         return sourceType.property(e.name());
     }
 
