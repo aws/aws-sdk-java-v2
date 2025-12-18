@@ -88,7 +88,10 @@ abstract class OperationDocProvider {
             docBuilder.see(crosslink);
         }
 
-        String codeExampleLink = DocumentationUtils.createLinkToCodeExample(model.getMetadata(), opModel.getOperationName());
+        String exampleMetaPath = "software/amazon/awssdk/codegen/example-meta.json";
+        String codeExampleLink = DocumentationUtils.createLinkToCodeExample(model.getMetadata(), 
+                                                                             opModel.getOperationName(), 
+                                                                             exampleMetaPath);
         if (!codeExampleLink.isEmpty()) {
             docBuilder.see(codeExampleLink);
         }

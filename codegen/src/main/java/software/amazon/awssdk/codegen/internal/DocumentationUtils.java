@@ -24,9 +24,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +67,7 @@ public final class DocumentationUtils {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
     private static final Logger log = Logger.loggerFor(DocumentationUtils.class);
-    private static Map<String, String> exampleUrlMap;
+    private static Map<String, JsonNode> serviceNodeCache;
     private static Map<String, String> normalizedServiceKeyMap;
 
     private DocumentationUtils() {
@@ -158,23 +160,24 @@ public final class DocumentationUtils {
      *
      * @param metadata the service metadata containing service name information
      * @param operationName the name of the operation to find an example for
+     * @param exampleMetaPath the path to the example metadata JSON file
      * @return a '@see also' HTML link to the code example, or empty string if no example found
      */
-    public static String createLinkToCodeExample(Metadata metadata, String operationName) {
+    public static String createLinkToCodeExample(Metadata metadata, String operationName, String exampleMetaPath) {
         try {
             String normalizedServiceName = metadata.getServiceName().toLowerCase(Locale.ROOT);
-
-            Map<String, String> normalizedMap = getNormalizedServiceKeyMap();
+            Map<String, String> normalizedMap = getNormalizedServiceKeyMap(exampleMetaPath);
             String actualServiceKey = normalizedMap.get(normalizedServiceName);
             
             if (actualServiceKey != null) {
                 String targetExampleId = actualServiceKey + "_" + operationName;
+                JsonNode serviceNode = getServiceNode(actualServiceKey, exampleMetaPath);
                 
-                Map<String, String> urlMap = getExampleUrlMap();
-                String url = urlMap.get(targetExampleId);
-                
-                if (url != null) {
-                    return String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url);
+                if (serviceNode != null) {
+                    String url = findOperationUrl(serviceNode, targetExampleId);
+                    if (url != null) {
+                        return String.format("<a href=\"%s\" target=\"_top\">Code Example</a>", url);
+                    }
                 }
             }
 
@@ -225,37 +228,37 @@ public final class DocumentationUtils {
 
 
     /**
-     * Gets the cached example URL map for fast operation ID -> URL lookups.
+     * Gets the cached service node
      */
-    private static Map<String, String> getExampleUrlMap() {
-        if (exampleUrlMap == null) {
-            buildExampleMaps();
+    private static JsonNode getServiceNode(String serviceKey, String exampleMetaPath) {
+        if (serviceNodeCache == null) {
+            buildServiceCache(exampleMetaPath);
         }
-        return exampleUrlMap;
+        return serviceNodeCache.get(serviceKey);
     }
 
     /**
      * Gets the cached normalized service key map for service name matching.
      */
-    private static Map<String, String> getNormalizedServiceKeyMap() {
+    private static Map<String, String> getNormalizedServiceKeyMap(String exampleMetaPath) {
         if (normalizedServiceKeyMap == null) {
-            buildExampleMaps();
+            buildServiceCache(exampleMetaPath);
         }
         return normalizedServiceKeyMap;
     }
 
     /**
-     * Builds both the URL lookup map and normalized service key mapping from example-meta.json.
+     * Builds the service node cache and normalized service key mapping from the specified example metadata file.
      */
-    private static void buildExampleMaps() {
-        Map<String, String> urlMap = new HashMap<>();
+    private static void buildServiceCache(String exampleMetaPath) {
+        Map<String, JsonNode> nodeCache = new HashMap<>();
         Map<String, String> normalizedMap = new HashMap<>();
         
         try (InputStream inputStream = DocumentationUtils.class.getClassLoader()
-                .getResourceAsStream("software/amazon/awssdk/codegen/example-meta.json")) {
-            
+                .getResourceAsStream(exampleMetaPath)) {
+
             if (inputStream == null) {
-                log.debug(() -> "example-meta.json not found in classpath");
+                log.debug(() -> exampleMetaPath + " not found in classpath");
             } else {
                 JsonNode root = OBJECT_MAPPER.readTree(inputStream);
                 JsonNode servicesNode = root.get("services");
@@ -263,16 +266,16 @@ public final class DocumentationUtils {
                 if (servicesNode != null) {
                     servicesNode.fieldNames().forEachRemaining(serviceKey -> {
                         buildNormalizedMapping(serviceKey, normalizedMap);
-                        buildUrlMappingForService(servicesNode.get(serviceKey), urlMap);
+                        nodeCache.put(serviceKey, servicesNode.get(serviceKey));
                     });
                 }
             }
             
         } catch (IOException e) {
-            log.warn(() -> "Failed to load example-meta.json", e);
+            log.warn(() -> "Failed to load " + exampleMetaPath, e);
         }
 
-        exampleUrlMap = urlMap;
+        serviceNodeCache = nodeCache;
         normalizedServiceKeyMap = normalizedMap;
     }
 
@@ -285,9 +288,9 @@ public final class DocumentationUtils {
     }
 
     /**
-     * Builds URL mappings for all examples in a service.
+     * Finds the URL for a specific operation ID within a service node.
      */
-    private static void buildUrlMappingForService(JsonNode serviceNode, Map<String, String> urlMap) {
+    private static String findOperationUrl(JsonNode serviceNode, String targetExampleId) {
         JsonNode examplesNode = serviceNode.get("examples");
         if (examplesNode != null && examplesNode.isArray()) {
             for (JsonNode example : examplesNode) {
@@ -296,12 +299,100 @@ public final class DocumentationUtils {
                 
                 if (idNode != null && urlNode != null) {
                     String id = idNode.asText();
-                    String url = urlNode.asText();
-                    if (!id.isEmpty() && !url.isEmpty()) {
-                        urlMap.put(id, url);
+                    if (targetExampleId.equals(id)) {
+                        return urlNode.asText();
                     }
                 }
             }
+        }
+        return null;
+    }
+
+    /**
+     * Gets all code examples for a specific service.
+     *
+     * @param metadata the service metadata containing service name information
+     * @param exampleMetaPath the path to the example metadata JSON file
+     * @return a list of examples for the service
+     */
+    public static List<ExampleData> getServiceCodeExamples(Metadata metadata, String exampleMetaPath) {
+        List<ExampleData> examples = new ArrayList<>();
+
+        try {
+            String normalizedServiceName = metadata.getServiceName().toLowerCase(Locale.ROOT);
+            Map<String, String> normalizedMap = getNormalizedServiceKeyMap(exampleMetaPath);
+            String actualServiceKey = normalizedMap.get(normalizedServiceName);
+
+            if (actualServiceKey != null) {
+                JsonNode serviceNode = getServiceNode(actualServiceKey, exampleMetaPath);
+                if (serviceNode != null) {
+                    examples = parseServiceExamples(serviceNode);
+                }
+            }
+        } catch (Exception e) {
+            log.debug(() -> "Failed to load examples for " + metadata.getServiceName(), e);
+        }
+
+        return examples;
+    }
+    
+    /**
+     * Parses examples from a service node in the JSON.
+     */
+    private static List<ExampleData> parseServiceExamples(JsonNode serviceNode) {
+        List<ExampleData> examples = new ArrayList<>();
+        JsonNode examplesNode = serviceNode.get("examples");
+        
+        if (examplesNode != null && examplesNode.isArray()) {
+            for (JsonNode example : examplesNode) {
+                JsonNode idNode = example.get("id");
+                JsonNode titleNode = example.get("title");
+                JsonNode categoryNode = example.get("category");
+                JsonNode urlNode = example.get("url");
+                
+                if (idNode != null && titleNode != null && urlNode != null) {
+                    String id = idNode.asText();
+                    String title = titleNode.asText();
+                    String category = categoryNode != null ? categoryNode.asText() : "Api";
+                    String url = urlNode.asText();
+                    
+                    if (!id.isEmpty() && !title.isEmpty() && !url.isEmpty()) {
+                        examples.add(new ExampleData(id, title, category, url));
+                    }
+                }
+            }
+        }
+        
+        return examples;
+    }
+
+    public static final class ExampleData {
+        private final String id;
+        private final String title;
+        private final String category;
+        private final String url;
+
+        public ExampleData(String id, String title, String category, String url) {
+            this.id = id;
+            this.title = title;
+            this.category = category;
+            this.url = url;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getCategory() {
+            return category;
+        }
+
+        public String getUrl() {
+            return url;
         }
     }
 }
