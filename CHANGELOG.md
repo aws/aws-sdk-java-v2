@@ -1,4 +1,61 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.12__ __2025-12-18__
+## __ARC - Region switch__
+  - ### Features
+    - New API to list Route 53 health checks created by ARC region switch for a plan in a specific AWS Region using the Region switch Regional data plane.
+
+## __AWS Artifact__
+  - ### Features
+    - Add support for ListReportVersions API for the calling AWS account.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adding support for collaboration change requests requiring an approval workflow. Adding support for change requests that grant or revoke results receiver ability and modifying auto approved change types in an existing collaboration.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds message batching for the IoT Rules Engine HTTP action.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added "Stopping" for the HANA Database Status.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for new operating systems (1) Ubuntu 24.04 Pro LTS on Elastic fleets, and (2) Microsoft Server 2025 on Always-On and On-Demand fleets
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Feature to support header exchanges between Bedrock AgentCore Gateway Targets and client, along with propagating query parameter to the configured targets.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding support for Event Windows via a new ECS account setting "fargateEventWindows". When enabled, ECS Fargate will use the configured event window for patching tasks. Introducing "CapacityOptionType" for CreateCapacityProvider API, allowing support for Spot capacity for ECS Managed Instances.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateFleet, ModifyFleet, DescribeFleets, RequestSpotFleet, ModifySpotFleetRequests and DescribeSpotFleetRequests APIs.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for ECR Create On Push
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds support for warm nodes, enabling new multi-tier architecture.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Amazon SES introduces Email Validation feature which checks email addresses for syntax errors, domain validity, and risky addresses to help maintain deliverability and protect sender reputation. SES also adds resource tagging and ABAC support for EmailTemplates and CustomVerificationEmailTemplates.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Blueprint Optimization (BPO) is a new Amazon Bedrock Data Automation (BDA) capability that improves blueprint inference accuracy using example content assets and ground truth data. BPO works by generating better instructions for fields in the Blueprint using provided data.
+
 # __2.40.11__ __2025-12-17__
 ## __AWS Elemental MediaConvert__
   - ### Features
