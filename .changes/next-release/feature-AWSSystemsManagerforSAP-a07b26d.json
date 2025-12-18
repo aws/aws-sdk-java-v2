@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Systems Manager for SAP",
+    "contributor": "",
+    "description": "Added \"Stopping\" for the HANA Database Status."
+}
