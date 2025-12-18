@@ -617,15 +617,16 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                         .ifMatch(keyGroupResp.eTag())
                         .keyGroupConfig(KeyGroupConfig.builder().name(keyGroupName).items(rsaKeyPairId, ecKeyPairId).build());
                 });
-                // there is no waiter for keyGroup updates, but it may take up to 1 minute for the updates to propagate
-                try {
-                    System.out.println("Waiting 1 minute for keygroup updates to propagate in distribution...");
-                    Thread.sleep(Duration.ofMinutes(1).toMillis());
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
 
+                // KeyGroups update quickly, but it takes up to 1 minute to propagate to the cache
+                System.out.println("Waiting for key group update to propagate.");
+                Instant expectedPropagationTime = Instant.now().plusSeconds(60);
+                Waiter.run(Instant::now)
+                      .until((t) -> t.isAfter(expectedPropagationTime))
+                      .orFailAfter(Duration.ofMinutes(1));
+
+                System.out.println("Waited for: " + expectedPropagationTime.compareTo(Instant.now()) + " seconds");
+            }
             return keyGroupSummary.get().keyGroup().id();
         }
 
