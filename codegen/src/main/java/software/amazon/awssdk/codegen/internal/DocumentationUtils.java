@@ -234,7 +234,7 @@ public final class DocumentationUtils {
         if (serviceNodeCache == null) {
             buildServiceCache(exampleMetaPath);
         }
-        return serviceNodeCache.get(serviceKey);
+        return serviceNodeCache != null ? serviceNodeCache.get(serviceKey) : null;
     }
 
     /**
@@ -244,7 +244,7 @@ public final class DocumentationUtils {
         if (normalizedServiceKeyMap == null) {
             buildServiceCache(exampleMetaPath);
         }
-        return normalizedServiceKeyMap;
+        return normalizedServiceKeyMap != null ? normalizedServiceKeyMap : new HashMap<>();
     }
 
     /**

@@ -91,14 +91,14 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
         }
         
         StringBuilder javadoc = new StringBuilder();
-        javadoc.append("<h3>Code Examples</h3>").append("\n");
+        javadoc.append("<h2>Code Examples</h2>").append("\n");
         javadoc.append("<p>The following code examples show how to use this service with the AWS SDK for Java v2:</p>")
                .append("\n");
         
         Map<String, String> categoryMapping = new java.util.LinkedHashMap<>();
         categoryMapping.put("Hello", "Getting Started");
-        categoryMapping.put("Api", "API Actions");
         categoryMapping.put("Basics", "Basics");
+        categoryMapping.put("Api", "API Actions");
         categoryMapping.put("Scenarios", "Scenarios");
         categoryMapping.put("Serverless examples", "Serverless Examples");
         
@@ -126,7 +126,7 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
 
     private void appendCategorySection(StringBuilder javadoc, String displayName,
                                        List<DocumentationUtils.ExampleData> categoryExamples) {
-        javadoc.append("<h4>").append(displayName).append("</h4>").append("\n");
+        javadoc.append("<h3>").append(displayName).append("</h3>").append("\n");
         javadoc.append("<ul>").append("\n");
         
         for (DocumentationUtils.ExampleData example : categoryExamples) {
