@@ -34,7 +34,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -63,6 +65,9 @@ import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.DistributionSummary;
+import software.amazon.awssdk.services.cloudfront.model.GetKeyGroupResponse;
+import software.amazon.awssdk.services.cloudfront.model.KeyGroup;
+import software.amazon.awssdk.services.cloudfront.model.KeyGroupConfig;
 import software.amazon.awssdk.services.cloudfront.model.KeyGroupSummary;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.PriceClass;
@@ -589,7 +594,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static String getOrCreateKeyGroup() {
         String keyGroupName = RESOURCE_PREFIX + "key-group";
 
-        Optional<KeyGroupSummary> keyGroup =
+        Optional<KeyGroupSummary> keyGroupSummary =
             cloudFrontClient.listKeyGroups(r -> {})
                             .keyGroupList()
                             .items()
@@ -599,8 +604,29 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                                 .name()))
                             .findAny();
 
-        if (keyGroup.isPresent()) {
-            return keyGroup.get().keyGroup().id();
+        if (keyGroupSummary.isPresent()) {
+            // ensure that both keys are present in the keyGroup
+            List<String> keysInGroup = keyGroupSummary.get().keyGroup().keyGroupConfig().items();
+            List<String> expectedKeys = Arrays.asList(rsaKeyPairId, ecKeyPairId);
+            if (!keysInGroup.containsAll(expectedKeys)) {
+                System.out.println("Updating key group to include all keys");
+                GetKeyGroupResponse keyGroupResp = cloudFrontClient.getKeyGroup(r -> r.id(keyGroupSummary.get().keyGroup().id()));
+                cloudFrontClient.updateKeyGroup(r -> {
+                    r
+                        .id(keyGroupResp.keyGroup().id())
+                        .ifMatch(keyGroupResp.eTag())
+                        .keyGroupConfig(KeyGroupConfig.builder().name(keyGroupName).items(rsaKeyPairId, ecKeyPairId).build());
+                });
+                // there is no waiter for keyGroup updates, but it may take up to 1 minute for the updates to propagate
+                try {
+                    System.out.println("Waiting 1 minute for keygroup updates to propagate in distribution...");
+                    Thread.sleep(Duration.ofMinutes(1).toMillis());
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return keyGroupSummary.get().keyGroup().id();
         }
 
         System.out.println("Creating key group.");
