@@ -25,11 +25,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.spec.ECGenParameterSpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -37,11 +35,8 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.HttpExecuteRequest;
@@ -90,17 +85,11 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     private static String bucket;
     private static String domainName;
     private static String resourceUrl;
-    private static String rsaKeyPairId;
-    private static PrivateKey rsaPrivateKey;
-    private static File rsaKeyFile;
-    private static Path rsaKeyFilePath;
+    private static String keyPairId;
+    private static PrivateKey privateKey;
+    private static File keyFile;
+    private static Path keyFilePath;
     private static String keyGroupId;
-
-    private static String ecKeyPairId;
-    private static PrivateKey ecPrivateKey;
-    private static File ecKeyFile;
-    private static Path ecKeyFilePath;
-
     private static String originAccessId;
     private static String distributionId;
 
@@ -109,33 +98,6 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         IntegrationTestBase.setUp();
         initStaticFields();
     }
-
-    private static class KeyTestCase {
-        final String name;
-        final String keyPairId;
-        final PrivateKey privateKey;
-        final Path keyFilePath;
-
-        KeyTestCase(String name, String keyPairId, PrivateKey privateKey, Path keyFilePath) {
-            this.name = name;
-            this.keyPairId = keyPairId;
-            this.privateKey = privateKey;
-            this.keyFilePath = keyFilePath;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-    }
-
-    static Stream<KeyTestCase> keyCases() throws Exception {
-        return Stream.of(
-            new KeyTestCase("RSA", rsaKeyPairId, rsaPrivateKey, rsaKeyFilePath),
-            new KeyTestCase("ECDSA", ecKeyPairId, ecPrivateKey, ecKeyFilePath)
-        );
-    }
-
 
     @Test
     void unsignedUrl_shouldReturn403Response() throws Exception {
@@ -153,15 +115,14 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCannedPolicy_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCannedPolicy_producesValidUrl() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(request);
         SdkHttpClient client = ApacheHttpClient.create();
@@ -175,13 +136,12 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(retrievedBucketContent).hasSameContentAs(originalBucketContent);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCannedPolicy_withExpiredDate_shouldReturn403Response() throws Exception {
         Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                      .privateKey(testCase.privateKey)
-                                                                                      .keyPairId(testCase.keyPairId)
+                                                                                      .privateKey(privateKey)
+                                                                                      .keyPairId(keyPairId)
                                                                                       .expirationDate(expirationDate));
         SdkHttpClient client = ApacheHttpClient.create();
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
@@ -191,16 +151,15 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCustomPolicy_producesValidUrl() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate).build();
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(request);
@@ -220,8 +179,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         Instant activeDate = LocalDate.of(2040, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                      .privateKey(rsaPrivateKey)
-                                                                                      .keyPairId(rsaKeyPairId)
+                                                                                      .privateKey(privateKey)
+                                                                                      .keyPairId(keyPairId)
                                                                                       .expirationDate(expirationDate)
                                                                                       .activeDate(activeDate));
         SdkHttpClient client = ApacheHttpClient.create();
@@ -232,14 +191,13 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCannedPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @Test
+    void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                             .privateKey(testCase.privateKey)
-                                                                                             .keyPairId(testCase.keyPairId)
+                                                                                             .privateKey(privateKey)
+                                                                                             .keyPairId(keyPairId)
                                                                                              .expirationDate(expirationDate));
 
         SdkHttpClient client = ApacheHttpClient.create();
@@ -258,8 +216,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         Instant expirationDate = LocalDate.of(2020, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(rsaKeyFilePath)
-                                                         .keyPairId(rsaKeyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate).build();
         CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
 
@@ -271,15 +229,14 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @Test
+    void getCookiesForCustomPolicy_producesValidCookies() throws Exception {
         InputStream originalBucketContent = s3Client.getObject(r -> r.bucket(bucket).key(S3_OBJECT_KEY));
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(r -> r.resourceUrl(resourceUrl)
-                                                                                             .privateKey(testCase.privateKey)
-                                                                                             .keyPairId(testCase.keyPairId)
+                                                                                             .privateKey(privateKey)
+                                                                                             .keyPairId(keyPairId)
                                                                                              .expirationDate(expirationDate)
                                                                                              .activeDate(activeDate));
 
@@ -300,8 +257,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         Instant expirationDate = LocalDate.of(2050, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(rsaKeyFilePath)
-                                                         .keyPairId(rsaKeyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate).build();
         CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
@@ -314,9 +271,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(expectedStatus);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCustomPolicy_shouldAllowQueryParametersWhenUsingWildcard() throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -327,8 +283,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .resourceUrlPattern(resourceUrl + "*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
@@ -352,9 +308,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_wildCardPath(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCustomPolicy_wildCardPath() throws Exception {
         String resourceUri = "https://" + domainName;
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
@@ -366,8 +321,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUri + "/foo/specific-file")
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .resourceUrlPattern(resourceUri + "/foo/*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
@@ -389,9 +344,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         assertThat(response.httpResponse().statusCode()).isEqualTo(200);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedUrlWithCustomPolicy_wildCardPolicyResource_allowsAnyPath() throws Exception {
         Instant expirationDate = LocalDate.of(2050, 1, 1)
                                           .atStartOfDay()
                                           .toInstant(ZoneOffset.of("Z"));
@@ -402,8 +356,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(resourceUrl)
-                                                         .privateKey(testCase.keyFilePath)
-                                                         .keyPairId(testCase.keyPairId)
+                                                         .privateKey(keyFilePath)
+                                                         .keyPairId(keyPairId)
                                                          .resourceUrlPattern("*")
                                                          .activeDate(activeDate)
                                                          .expirationDate(expirationDate)
@@ -426,8 +380,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
     }
 
     private static void initStaticFields() throws Exception {
-        initializeRsaKeyFileAndPair();
-        initializeEcKeyFileAndPair();
+        initializeKeyFileAndPair();
         originAccessId = getOrCreateOriginAccessIdentity();
         keyGroupId = getOrCreateKeyGroup();
         bucket = getOrCreateBucket();
@@ -439,16 +392,16 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         distributionId = distribution.id;
     }
 
-    private static void initializeRsaKeyFileAndPair() throws Exception {
-        rsaKeyFile = new RandomTempFile(UUID.randomUUID() + "-key.pem", 0);
-        rsaKeyFile.deleteOnExit();
-        rsaKeyFilePath = rsaKeyFile.toPath();
+    private static void initializeKeyFileAndPair() throws Exception {
+        keyFile = new RandomTempFile(UUID.randomUUID() + "-key.pem", 0);
+        keyFile.deleteOnExit();
+        keyFilePath = keyFile.toPath();
 
         String privateKeyName = RESOURCE_PREFIX + "private-key";
         String publicKeyName = RESOURCE_PREFIX + "public-key";
         try {
             GetSecretValueResponse getSecretResponse = secretsManagerClient.getSecretValue(r -> r.secretId(privateKeyName));
-            Files.write(rsaKeyFile.toPath(), getSecretResponse.secretBinary().asByteArray(), StandardOpenOption.TRUNCATE_EXISTING);
+            Files.write(keyFile.toPath(), getSecretResponse.secretBinary().asByteArray(), StandardOpenOption.TRUNCATE_EXISTING);
 
             Optional<PublicKeySummary> key = cloudFrontClient.listPublicKeys()
                                                              .publicKeyList()
@@ -457,8 +410,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                                                              .filter(k -> publicKeyName.equals(k.name()))
                                                              .findAny();
             if (key.isPresent()) {
-                rsaPrivateKey = SigningUtils.loadPrivateKey(rsaKeyFilePath);
-                rsaKeyPairId = key.get().id();
+                privateKey = SigningUtils.loadPrivateKey(keyFilePath);
+                keyPairId = key.get().id();
                 return;
             }
         } catch (ResourceNotFoundException e) {
@@ -472,13 +425,13 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         kpg.initialize(2048);
         KeyPair keyPair = kpg.generateKeyPair();
 
-        FileWriter writer = new FileWriter(rsaKeyFile);
+        FileWriter writer = new FileWriter(keyFile);
         writer.write("-----BEGIN PRIVATE KEY-----\n");
         writer.write(ENCODER.encodeToString(keyPair.getPrivate().getEncoded()));
         writer.write("\n-----END PRIVATE KEY-----\n");
         writer.close();
 
-        SdkBytes keyFileBytes = SdkBytes.fromByteArray(Files.readAllBytes(rsaKeyFilePath));
+        SdkBytes keyFileBytes = SdkBytes.fromByteArray(Files.readAllBytes(keyFilePath));
         try {
             secretsManagerClient.createSecret(r -> r.name(privateKeyName)
                                                     .secretBinary(keyFileBytes));
@@ -496,71 +449,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
             cloudFrontClient.createPublicKey(r -> r.publicKeyConfig(k -> k.callerReference(CALLER_REFERENCE)
                                                                           .name(publicKeyName)
                                                                           .encodedKey(encodedKey)));
-        rsaPrivateKey = keyPair.getPrivate();
-        rsaKeyPairId = publicKeyResponse.publicKey().id();
-    }
-
-    private static void initializeEcKeyFileAndPair() throws Exception {
-        ecKeyFile = new RandomTempFile(UUID.randomUUID() + "-key.pem", 0);
-        ecKeyFile.deleteOnExit();
-        ecKeyFilePath = ecKeyFile.toPath();
-
-        String privateKeyName = RESOURCE_PREFIX + "private-key-ecdsa";
-        String publicKeyName = RESOURCE_PREFIX + "public-key-ecdsa";
-
-        try {
-            GetSecretValueResponse getSecretResponse = secretsManagerClient.getSecretValue(r -> r.secretId(privateKeyName));
-            Files.write(ecKeyFile.toPath(), getSecretResponse.secretBinary().asByteArray(),
-                        StandardOpenOption.TRUNCATE_EXISTING);
-
-            Optional<PublicKeySummary> key = cloudFrontClient.listPublicKeys()
-                                                             .publicKeyList()
-                                                             .items()
-                                                             .stream()
-                                                             .filter(k -> publicKeyName.equals(k.name()))
-                                                             .findAny();
-            if (key.isPresent()) {
-                ecPrivateKey = SigningUtils.loadPrivateKey(ecKeyFilePath);
-                ecKeyPairId = key.get().id();
-                return;
-            }
-        } catch (ResourceNotFoundException e) {
-            // No private key, don't bother checking for a public one.
-        }
-
-        System.out.println("Creating keys.");
-
-        // We were missing a private or public key. Initialize them both.
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
-        kpg.initialize(new ECGenParameterSpec("secp256r1"));
-        KeyPair keyPair = kpg.generateKeyPair();
-
-        FileWriter writer = new FileWriter(ecKeyFile);
-        writer.write("-----BEGIN PRIVATE KEY-----\n");
-        writer.write(ENCODER.encodeToString(keyPair.getPrivate().getEncoded()));
-        writer.write("\n-----END PRIVATE KEY-----\n");
-        writer.close();
-
-        SdkBytes keyFileBytes = SdkBytes.fromByteArray(Files.readAllBytes(ecKeyFilePath));
-        try {
-            secretsManagerClient.createSecret(r -> r.name(privateKeyName)
-                                                    .secretBinary(keyFileBytes));
-        } catch (ResourceExistsException e) {
-            secretsManagerClient.putSecretValue(r -> r.secretId(privateKeyName)
-                                                      .secretBinary(keyFileBytes));
-        }
-
-        String encodedKey = "-----BEGIN PUBLIC KEY-----\n"
-                            + ENCODER.encodeToString(keyPair.getPublic().getEncoded())
-                            + "\n-----END PUBLIC KEY-----\n";
-
-
-        CreatePublicKeyResponse publicKeyResponse =
-            cloudFrontClient.createPublicKey(r -> r.publicKeyConfig(k -> k.callerReference(CALLER_REFERENCE)
-                                                                          .name(publicKeyName)
-                                                                          .encodedKey(encodedKey)));
-        ecPrivateKey = keyPair.getPrivate();
-        ecKeyPairId = publicKeyResponse.publicKey().id();
+        privateKey = keyPair.getPrivate();
+        keyPairId = publicKeyResponse.publicKey().id();
     }
 
     private static String getOrCreateOriginAccessIdentity() {
@@ -606,7 +496,7 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
         System.out.println("Creating key group.");
 
         return cloudFrontClient.createKeyGroup(r -> r.keyGroupConfig(c -> c.name(keyGroupName)
-                                                                           .items(rsaKeyPairId, ecKeyPairId)))
+                                                                           .items(keyPairId)))
                                .keyGroup()
                                .id();
     }
