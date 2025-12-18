@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Artifact",
-    "contributor": "",
-    "description": "Add support for ListReportVersions API for the calling AWS account."
-}
