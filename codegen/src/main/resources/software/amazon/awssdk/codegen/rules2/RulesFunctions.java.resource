@@ -38,6 +38,42 @@ public class RulesFunctions {
         return args[args.length - 1];
     }
 
+    public static List<String> split(String value, String delimiter, int limit) {
+            if (limit == 1) {
+                return List.of(value);
+            }
+
+            if (value.isEmpty()) {
+                return List.of("");
+            }
+
+            final int delimLen = delimiter.length();
+            // Unlimited split if limit == 0
+            final int maxSplits = (limit == 0) ? Integer.MAX_VALUE : limit - 1;
+
+            // Heuristic initial capacity (avoids resizing)
+            List<String> result = new ArrayList<>(Math.min(limit, 8));
+
+            int fromIndex = 0;
+            int splits = 0;
+
+            while (splits < maxSplits) {
+                int index = value.indexOf(delimiter, fromIndex);
+                if (index < 0) {
+                    break;
+                }
+
+                result.add(value.substring(fromIndex, index));
+                fromIndex = index + delimLen;
+                splits++;
+            }
+
+            // Remainder (always added)
+            result.add(value.substring(fromIndex));
+
+            return result;
+        }
+
     public static String substring(String input, int start, int stop, boolean reverse) {
         int len = input.length();
 

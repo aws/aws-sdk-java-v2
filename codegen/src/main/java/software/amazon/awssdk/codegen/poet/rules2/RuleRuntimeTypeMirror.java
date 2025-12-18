@@ -197,6 +197,14 @@ public final class RuleRuntimeTypeMirror {
                 .addArgument("index", INTEGER)
                 .containingType(containingType)
                 .build(),
+            RuleFunctionMirror
+                .builder("split")
+                .returns(LIST_OF_STRING)
+                .addArgument("value", STRING)
+                .addArgument("delimiter", STRING)
+                .addArgument("limit", INTEGER)
+                .containingType(containingType)
+                .build(),
             // coalesce is variadic and generic (return type mirrors type of arguments)
             RuleFunctionMirror
                 .builder("coalesce")
