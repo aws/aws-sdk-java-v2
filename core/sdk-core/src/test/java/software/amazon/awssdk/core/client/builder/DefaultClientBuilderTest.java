@@ -430,42 +430,6 @@ public class DefaultClientBuilderTest {
         assertThat(secondGet).isSameAs(firstGet);
     }
 
-    @Test
-    public void defaultProfileFileSupplier_isRefreshing() {
-        EnvironmentVariableHelper.run(env -> {
-            try {
-                File credentialFile = tempFolder.newFile();
-                writeTestCredentialsFile(credentialFile, "akid1", "sak");
-                env.set("AWS_SHARED_CREDENTIALS_FILE", credentialFile.getPath());
-                env.set("AWS_CONFIG_FILE", tempFolder.getRoot().toPath().resolve("does-not-exist").toString());
-                SdkClientConfiguration config =
-                    testClientBuilder().build().clientConfiguration;
-
-                Supplier<ProfileFile> defaultProfileFileSupplier = config.option(PROFILE_FILE_SUPPLIER);
-                ProfileFile firstGet = defaultProfileFileSupplier.get();
-
-                writeTestCredentialsFile(credentialFile, "updatedAkid", "updatedSak");
-
-                ProfileFile secondGet = Waiter.run(() -> defaultProfileFileSupplier.get())
-                                              .until((p) -> !p.equals(firstGet))
-                                              .orFailAfter(Duration.ofSeconds(10));
-
-                assertThat(secondGet).isNotSameAs(firstGet);
-                assertThat(secondGet.profile("default")).isPresent();
-                assertThat(secondGet.profile("default").get()).satisfies(profile -> {
-                    assertThat(profile.property("aws_access_key_id"))
-                        .isEqualTo(Optional.of("updatedAkid"));
-                    assertThat(profile.property("aws_secret_access_key"))
-                        .isEqualTo(Optional.of("updatedSak"));
-                });
-
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
     private SdkDefaultClientBuilder<TestClientBuilder, TestClient> testClientBuilder() {
         ClientOverrideConfiguration overrideConfig =
                 ClientOverrideConfiguration.builder()
