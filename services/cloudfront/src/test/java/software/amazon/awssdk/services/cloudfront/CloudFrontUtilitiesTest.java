@@ -22,35 +22,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Signature;
-import java.security.spec.ECGenParameterSpec;
 import java.time.LocalDate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.StringJoiner;
 import java.util.stream.Stream;
-import junit.framework.TestCase;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCannedPolicy;
 import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
-import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
@@ -59,82 +48,45 @@ import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 class CloudFrontUtilitiesTest {
     private static final String RESOURCE_URL = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey";
     private static final String RESOURCE_URL_WITH_PORT = "https://d1npcfkc2mojrf.cloudfront.net:65535/s3ObjectKey";
+    private static KeyPairGenerator kpg;
+    private static KeyPair keyPair;
+    private static File keyFile;
+    private static Path keyFilePath;
     private static CloudFrontUtilities cloudFrontUtilities;
-
-    @TempDir
-    static Path tempDir;
-
-    private static class KeyTestCase {
-        final String name;
-        final KeyPair keyPair;
-        final Path keyFilePath;
-
-        KeyTestCase(String name, KeyPair keyPair, Path keyFilePath) {
-            this.name = name;
-            this.keyPair = keyPair;
-            this.keyFilePath = keyFilePath;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        static KeyTestCase createRsaTestCase() {
-            try {
-                KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-                kpg.initialize(2048);
-                KeyPair keyPair = kpg.generateKeyPair();
-                return new KeyTestCase("RSA", keyPair, writeKeyToFile("rsa", keyPair));
-            } catch(NoSuchAlgorithmException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        static KeyTestCase createECDSATestCase() {
-            try {
-                KeyPairGenerator kpg = KeyPairGenerator.getInstance("EC");
-                kpg.initialize(new ECGenParameterSpec("secp256r1"));
-                KeyPair keyPair = kpg.generateKeyPair();
-                return new KeyTestCase("ECDSA", keyPair, writeKeyToFile("ec", keyPair));
-            } catch(NoSuchAlgorithmException | IOException | InvalidAlgorithmParameterException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private static Path writeKeyToFile(String name, KeyPair keyPair) throws IOException {
-            Path keyFilePath = tempDir.resolve(name + "_key.pem");
-            try (Writer writer = Files.newBufferedWriter(keyFilePath)) {
-                writer.write("-----BEGIN PRIVATE KEY-----\n");
-                writer.write(Base64.getEncoder()
-                                   .encodeToString(keyPair.getPrivate().getEncoded()));
-                writer.write("\n-----END PRIVATE KEY-----\n");
-            }
-            return keyFilePath;
-        }
-
-    }
-
-    static Stream<KeyTestCase> keyCases() throws Exception {
-        return Stream.of(
-            KeyTestCase.createRsaTestCase(),
-            KeyTestCase.createECDSATestCase()
-        );
-    }
 
     @BeforeAll
     static void setUp() throws Exception {
+        initKeys();
         cloudFrontUtilities = CloudFrontUtilities.create();
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCannedPolicy_producesValidUrl(KeyTestCase testCase) {
+    @AfterAll
+    static void tearDown() {
+        keyFile.deleteOnExit();
+    }
+
+    static void initKeys() throws Exception {
+        kpg = KeyPairGenerator.getInstance("RSA");
+        kpg.initialize(2048);
+        keyPair = kpg.generateKeyPair();
+
+        Base64.Encoder encoder = Base64.getEncoder();
+        keyFile = new File("key.pem");
+        FileWriter writer = new FileWriter(keyFile);
+        writer.write("-----BEGIN PRIVATE KEY-----\n");
+        writer.write(encoder.encodeToString(keyPair.getPrivate().getEncoded()));
+        writer.write("\n-----END PRIVATE KEY-----\n");
+        writer.close();
+        keyFilePath = keyFile.toPath();
+    }
+
+    @Test
+    void getSignedURLWithCannedPolicy_producesValidUrl() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
                 .resourceUrl(RESOURCE_URL)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
         String url = signedUrl.url();
@@ -145,15 +97,14 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCannedPolicy_withQueryParams_producesValidUrl(KeyTestCase testCase) {
+    @Test
+    void getSignedURLWithCannedPolicy_withQueryParams_producesValidUrl() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String resourceUrlWithQueryParams = "https://d1npcfkc2mojrf.cloudfront.net/s3ObjectKey?a=b&c=d";
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
                 .resourceUrl(resourceUrlWithQueryParams)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
         String url = signedUrl.url();
@@ -165,16 +116,15 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> {
             try {
                 r.resourceUrl(RESOURCE_URL)
-                 .privateKey(testCase.keyFilePath)
+                 .privateKey(keyFilePath)
                  .keyPairId("keyPairId")
                  .expirationDate(expirationDate)
                  .activeDate(activeDate)
@@ -193,9 +143,8 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withQueryParams_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withQueryParams_producesValidUrl() {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
@@ -203,7 +152,7 @@ class CloudFrontUtilitiesTest {
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
                 .resourceUrl(resourceUrlWithQueryParams)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate)
                 .activeDate(activeDate)
@@ -218,14 +167,13 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withIpRangeOmitted_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withIpRangeOmitted_producesValidUrl() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(RESOURCE_URL)
-                                                         .privateKey(testCase.keyFilePath)
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate)
@@ -241,14 +189,13 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withActiveDateOmitted_producesValidUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withActiveDateOmitted_producesValidUrl() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(RESOURCE_URL)
-                                                         .privateKey(testCase.keyFilePath)
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .ipRange(ipRange)
@@ -264,27 +211,25 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withMissingExpirationDate_shouldThrowException() {
         NullPointerException exception = assertThrows(NullPointerException.class, () ->
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
                 .resourceUrl(RESOURCE_URL)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId"))
         );
         assertThat(exception.getMessage().contains("Expiration date must be provided to sign CloudFront URLs"));
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCannedPolicy_withEncodedUrl_doesNotDecodeUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCannedPolicy_withEncodedUrl_doesNotDecodeUrl() {
         String encodedUrl = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
                 .resourceUrl(encodedUrl)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
         String url = signedUrl.url();
@@ -295,9 +240,8 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withEncodedUrl_doesNotDecodeUrl(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withEncodedUrl_doesNotDecodeUrl() {
         String encodedUrl = "https://distributionDomain/s3ObjectKey/%40blob?v=1n1dm%2F01n1dm0";
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
@@ -305,7 +249,7 @@ class CloudFrontUtilitiesTest {
         SignedUrl signedUrl = cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> {
             try {
                 r.resourceUrl(encodedUrl)
-                 .privateKey(testCase.keyFilePath)
+                 .privateKey(keyFilePath)
                  .keyPairId("keyPairId")
                  .expirationDate(expirationDate)
                  .activeDate(activeDate)
@@ -324,39 +268,36 @@ class CloudFrontUtilitiesTest {
         assertThat(expected).isEqualTo(url);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCannedPolicy_withPortNumber_returnsPortNumber(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCannedPolicy_withPortNumber_returnsPortNumber() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
                 .resourceUrl(RESOURCE_URL_WITH_PORT)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
         assertThat(signedUrl.url()).contains("65535");
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getSignedURLWithCustomPolicy_withPortNumber_returnsPortNumber(KeyTestCase testCase) throws Exception {
+    @Test
+    void getSignedURLWithCustomPolicy_withPortNumber_returnsPortNumber() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         SignedUrl signedUrl =
             cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
                 .resourceUrl(RESOURCE_URL_WITH_PORT)
-                .privateKey(testCase.keyPair.getPrivate())
+                .privateKey(keyPair.getPrivate())
                 .keyPairId("keyPairId")
                 .expirationDate(expirationDate));
         assertThat(signedUrl.url()).contains("65535");
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCannedPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @Test
+    void getCookiesForCannedPolicy_producesValidCookies() throws Exception {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CannedSignerRequest request = CannedSignerRequest.builder()
                                                          .resourceUrl(RESOURCE_URL)
-                                                         .privateKey(testCase.keyFilePath)
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -365,15 +306,14 @@ class CloudFrontUtilitiesTest {
         assertThat(cookiesForCannedPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @Test
+    void getCookiesForCustomPolicy_producesValidCookies() throws Exception {
         Instant activeDate = LocalDate.of(2022, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         String ipRange = "1.2.3.4";
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(RESOURCE_URL)
-                                                         .privateKey(testCase.keyFilePath)
+                                                         .privateKey(keyFilePath)
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .activeDate(activeDate)
@@ -384,13 +324,12 @@ class CloudFrontUtilitiesTest {
         assertThat(cookiesForCustomPolicy.keyPairIdHeaderValue()).isEqualTo("CloudFront-Key-Pair-Id=keyPairId");
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("keyCases")
-    void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_producesValidCookies(KeyTestCase testCase) throws Exception {
+    @Test
+    void getCookiesForCustomPolicy_withActiveDateAndIpRangeOmitted_producesValidCookies() {
         Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(RESOURCE_URL)
-                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .privateKey(keyPair.getPrivate())
                                                          .keyPairId("keyPairId")
                                                          .expirationDate(expirationDate)
                                                          .build();
@@ -403,12 +342,11 @@ class CloudFrontUtilitiesTest {
     @MethodSource("provideUrlPatternsAndExpectedResources")
     void getSignedURLWithCustomPolicy_policyResourceUrlShouldHandleVariousPatterns(
         String resourceUrlPattern, String expectedResource) {
-        KeyTestCase testCase = KeyTestCase.createRsaTestCase();
         String baseUrl = "https://d1234.cloudfront.net/images/photo.jpg";
         Instant expiration = Instant.now().plusSeconds(3600);
         CustomSignerRequest request = CustomSignerRequest.builder()
                                                          .resourceUrl(baseUrl)
-                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .privateKey(keyPair.getPrivate())
                                                          .keyPairId("keyPairId")
                                                          .resourceUrlPattern(resourceUrlPattern)
                                                          .expirationDate(expiration)

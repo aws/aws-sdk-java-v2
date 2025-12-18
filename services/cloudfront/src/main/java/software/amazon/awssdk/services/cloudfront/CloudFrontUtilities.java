@@ -19,7 +19,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.URI;
 import java.security.InvalidKeyException;
-import java.security.PrivateKey;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -141,7 +140,7 @@ public final class CloudFrontUtilities {
         try {
             String resourceUrl = request.resourceUrl();
             String cannedPolicy = SigningUtils.buildCannedPolicy(resourceUrl, request.expirationDate());
-            byte[] signatureBytes = signPolicy(cannedPolicy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
             String protocol = uri.getScheme();
@@ -267,7 +266,7 @@ public final class CloudFrontUtilities {
                                                                        request.expirationDate(),
                                                                        request.ipRange());
 
-            byte[] signatureBytes = signPolicy(policy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             URI uri = URI.create(resourceUrl);
@@ -369,7 +368,7 @@ public final class CloudFrontUtilities {
     public CookiesForCannedPolicy getCookiesForCannedPolicy(CannedSignerRequest request) {
         try {
             String cannedPolicy = SigningUtils.buildCannedPolicy(request.resourceUrl(), request.expirationDate());
-            byte[] signatureBytes = signPolicy(cannedPolicy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(cannedPolicy.getBytes(UTF_8), request.privateKey());
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             String expiry = String.valueOf(request.expirationDate().getEpochSecond());
             return DefaultCookiesForCannedPolicy.builder()
@@ -470,7 +469,7 @@ public final class CloudFrontUtilities {
         try {
             String policy = SigningUtils.buildCustomPolicy(request.resourceUrl(), request.activeDate(), request.expirationDate(),
                                                            request.ipRange());
-            byte[] signatureBytes = signPolicy(policy.getBytes(UTF_8), request.privateKey());
+            byte[] signatureBytes = SigningUtils.signWithSha1Rsa(policy.getBytes(UTF_8), request.privateKey());
             String urlSafePolicy = SigningUtils.makeStringUrlSafe(policy);
             String urlSafeSignature = SigningUtils.makeBytesUrlSafe(signatureBytes);
             return DefaultCookiesForCustomPolicy.builder()
@@ -480,22 +479,6 @@ public final class CloudFrontUtilities {
                                                 .policyHeaderValue(POLICY_KEY + "=" + urlSafePolicy).build();
         } catch (InvalidKeyException e) {
             throw SdkClientException.create("Could not sign custom policy cookie", e);
-        }
-    }
-
-    private static byte[] signPolicy(byte[] policyToSign, PrivateKey privateKey) throws InvalidKeyException {
-        // all CloudFront signed urls currently require the SHA1 and currently only support RSA and EC
-        switch (privateKey.getAlgorithm()) {
-            case "RSA":
-                return SigningUtils.signWithSha1Rsa(policyToSign, privateKey);
-            case "EC":
-            case "ECDSA":
-                return SigningUtils.signWithSha1ECDSA(policyToSign, privateKey);
-            default:
-                // do not attempt to use a generic Signer based on the privateKey algorithm:
-                // future supported key types likely require different hash algorithms (eg, SHA256 or higher instead of SHA1)
-                throw new IllegalArgumentException(
-                    "Unsupported key algorithm for CloudFront signed URL: " + privateKey.getAlgorithm());
         }
     }
 
