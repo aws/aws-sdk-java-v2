@@ -619,13 +619,12 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
                 });
 
                 // KeyGroups update quickly, but it takes up to 1 minute to propagate to the cache
+                // and there is not any other state we can easily query to wait on.
                 System.out.println("Waiting for key group update to propagate.");
                 Instant expectedPropagationTime = Instant.now().plusSeconds(60);
                 Waiter.run(Instant::now)
                       .until((t) -> t.isAfter(expectedPropagationTime))
                       .orFailAfter(Duration.ofMinutes(1));
-
-                System.out.println("Waited for: " + expectedPropagationTime.compareTo(Instant.now()) + " seconds");
             }
             return keyGroupSummary.get().keyGroup().id();
         }
