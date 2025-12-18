@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon OpenSearch Service",
+    "contributor": "",
+    "description": "Amazon OpenSearch Service adds support for warm nodes, enabling new multi-tier architecture."
+}
