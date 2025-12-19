@@ -1,4 +1,46 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.13__ __2025-12-19__
+## __ARC - Region switch__
+  - ### Features
+    - Automatic Plan Execution Reports allow customers to maintain a concise record of their Region switch Plan executions. This enables customer SREs and leadership to have a clear view of their recovery posture based on the generated reports for their Plan executions.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds event-based logging feature that enables granular event logging controls for AWS IoT logs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix credential reloading in defaults when shared credential/config files are modified.
+    - Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified.
+    - Optimize endpoint rule standard functions
+
+## __AWS Wickr Admin API__
+  - ### Features
+    - AWS Wickr now provides a suite of admin APIs to allow you to programmatically manage secure communication for Wickr networks at scale. These APIs enable you to automate administrative workflows including user lifecycle management, network configuration, and security group administration.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for ECDSA signed URLs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adding support for Custom Metrics and Pre-Defined Attributes to GetCurrentMetricData API.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Add support for WebAuthn under user settings.
+
+## __EMR Serverless__
+  - ### Features
+    - Added JobLevelCostAllocationConfiguration field to enable cost allocation reporting at the job level, providing more granular visibility into EMR Serverless charges
+
+## __QBusiness__
+  - ### Features
+    - It is a internal bug fix for region expansion
+
 # __2.40.12__ __2025-12-18__
 ## __ARC - Region switch__
   - ### Features
