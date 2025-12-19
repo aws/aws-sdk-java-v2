@@ -24,6 +24,7 @@ import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getArgumentName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.getSelectName;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.inputStreamBufferingWarningComment;
+import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataGetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isObjectMetadataSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPayloadSetter;
 import static software.amazon.awssdk.v2migration.internal.utils.S3TransformUtils.isPutObjectRequestBuilderSetter;
@@ -94,6 +95,11 @@ public class S3PutObjectRequestToV2 extends Recipe {
         public J visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
             if (isObjectMetadataSetter(method)) {
                 return saveMetadataValueAndRemoveStatement(method);
+            }
+            if (isObjectMetadataGetter(method)) {
+                if (method.getSelect() != null) {
+                    return method.getSelect().withPrefix(method.getPrefix());
+                }
             }
 
             if (isPutObjectRequestBuilderSetter(method)) {

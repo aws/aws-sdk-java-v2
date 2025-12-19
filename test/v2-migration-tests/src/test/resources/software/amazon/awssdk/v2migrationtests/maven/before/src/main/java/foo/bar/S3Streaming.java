@@ -40,6 +40,8 @@ public class S3Streaming {
         S3Object s3Object = s3.getObject(bucket, key);
         s3Object.getObjectContent().close();
 
+        String cacheControl = s3Object.getObjectMetadata().getCacheControl();
+
         ObjectMetadata objectMetadata = s3.getObject(new GetObjectRequest(bucket, key), file);
     }
 

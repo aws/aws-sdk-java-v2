@@ -1,0 +1,72 @@
+{
+    "version": "2.40.9",
+    "date": "2025-12-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Support Customer Profiles Integration for AWS Entity Resolution"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Updating Health API endpoint generation for dualstack only regions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Added support for Ad Decision Server Configuration enabling HTTP POST requests with custom bodies, headers, GZIP compression, and dynamic variables. No changes required for existing GET request configurations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "This release updates broken links for AgentCore Policy APIs in the AWS CLI and SDK resources."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "This release allows you to import your historical CloudTrail Lake data into CloudWatch with a few steps, enabling you to easily consolidate operational, security, and compliance data in one place."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect now supports outbound WhatsApp contacts via the Send message block or StartOutboundChatContact API. Send proactive messages for surveys, reminders, and updates. Offer customers the option to switch to WhatsApp while in queue, eliminating hold time."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "EC2 Capacity Manager now supports SpotTotalCount, SpotTotalInterruptions and SpotInterruptionRate metrics for both vCPU and instance units."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Glacier",
+            "contributor": "",
+            "description": "Documentation updates for Amazon Glacier's maintenance mode"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Resolver",
+            "contributor": "",
+            "description": "Adds support for enabling detailed metrics on Route 53 Resolver endpoints using RniEnhancedMetricsEnabled and TargetNameServerMetricsEnabled in the CreateResolverEndpoint and UpdateResolverEndpoint APIs, providing enhanced visibility into Resolver endpoint and target name server performance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "This release adds support for the new optional field 'LifecycleExpirationDate' in S3 Inventory configurations."
+        },
+        {
+            "type": "feature",
+            "category": "Service Quotas",
+            "contributor": "",
+            "description": "Add support for SQ Dashboard Api"
+        }
+    ]
+}
