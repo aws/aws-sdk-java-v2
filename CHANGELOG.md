@@ -1,4 +1,189 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.12__ __2025-12-18__
+## __ARC - Region switch__
+  - ### Features
+    - New API to list Route 53 health checks created by ARC region switch for a plan in a specific AWS Region using the Region switch Regional data plane.
+
+## __AWS Artifact__
+  - ### Features
+    - Add support for ListReportVersions API for the calling AWS account.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adding support for collaboration change requests requiring an approval workflow. Adding support for change requests that grant or revoke results receiver ability and modifying auto approved change types in an existing collaboration.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds message batching for the IoT Rules Engine HTTP action.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added "Stopping" for the HANA Database Status.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for new operating systems (1) Ubuntu 24.04 Pro LTS on Elastic fleets, and (2) Microsoft Server 2025 on Always-On and On-Demand fleets
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Feature to support header exchanges between Bedrock AgentCore Gateway Targets and client, along with propagating query parameter to the configured targets.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding support for Event Windows via a new ECS account setting "fargateEventWindows". When enabled, ECS Fargate will use the configured event window for patching tasks. Introducing "CapacityOptionType" for CreateCapacityProvider API, allowing support for Spot capacity for ECS Managed Instances.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateFleet, ModifyFleet, DescribeFleets, RequestSpotFleet, ModifySpotFleetRequests and DescribeSpotFleetRequests APIs.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for ECR Create On Push
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds support for warm nodes, enabling new multi-tier architecture.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Amazon SES introduces Email Validation feature which checks email addresses for syntax errors, domain validity, and risky addresses to help maintain deliverability and protect sender reputation. SES also adds resource tagging and ABAC support for EmailTemplates and CustomVerificationEmailTemplates.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Blueprint Optimization (BPO) is a new Amazon Bedrock Data Automation (BDA) capability that improves blueprint inference accuracy using example content assets and ground truth data. BPO works by generating better instructions for fields in the Blueprint using provided data.
+
+# __2.40.11__ __2025-12-17__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for tile encoding in HEVC and audio for video overlays.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for SPEKE V2 content key encryption in MediaPackage v2 Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Add support for S3Object getObjectMetadata transform
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for ECDSA signed URLs.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new stream group operation parameters for scale-on-demand capacity with automatic prewarming. Added new Gen6 stream classes based on the EC2 G6 instance family. Added new StartStreamSession parameter for exposure of real-time performance stats to clients.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for dbiResourceId in finding.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding the newly launched p6-b300.48xlarge ec2 instance support in Sagemaker(Hyperpod,Training and Sceptor)
+
+## __Inspector Scan__
+  - ### Features
+    - Adds an additional OutputFormat
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support dual-stack network connectivity for connectors via NetworkType field.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Support for AS2805 standard. Modifications to import-key and export-key to support AS2805 variants.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Support for AS2805 standard. New API GenerateAs2805KekValidation and changes to translate pin, GenerateMac and VerifyMac to support AS2805 key variants.
+
+# __2.40.10__ __2025-12-16__
+## __AWS IoT__
+  - ### Features
+    - Add support for dynamic payloads in IoT Device Management Commands
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release adds support for rebooting InfluxDB DbInstances and DbClusters
+
+# __2.40.9__ __2025-12-15__
+## __AWS EntityResolution__
+  - ### Features
+    - Support Customer Profiles Integration for AWS Entity Resolution
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Updating Health API endpoint generation for dualstack only regions
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for Ad Decision Server Configuration enabling HTTP POST requests with custom bodies, headers, GZIP compression, and dynamic variables. No changes required for existing GET request configurations.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - This release updates broken links for AgentCore Policy APIs in the AWS CLI and SDK resources.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release allows you to import your historical CloudTrail Lake data into CloudWatch with a few steps, enabling you to easily consolidate operational, security, and compliance data in one place.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now supports outbound WhatsApp contacts via the Send message block or StartOutboundChatContact API. Send proactive messages for surveys, reminders, and updates. Offer customers the option to switch to WhatsApp while in queue, eliminating hold time.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 Capacity Manager now supports SpotTotalCount, SpotTotalInterruptions and SpotInterruptionRate metrics for both vCPU and instance units.
+
+## __Amazon Glacier__
+  - ### Features
+    - Documentation updates for Amazon Glacier's maintenance mode
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Adds support for enabling detailed metrics on Route 53 Resolver endpoints using RniEnhancedMetricsEnabled and TargetNameServerMetricsEnabled in the CreateResolverEndpoint and UpdateResolverEndpoint APIs, providing enhanced visibility into Resolver endpoint and target name server performance.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - This release adds support for the new optional field 'LifecycleExpirationDate' in S3 Inventory configurations.
+
+## __Service Quotas__
+  - ### Features
+    - Add support for SQ Dashboard Api
+
+# __2.40.8__ __2025-12-12__
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - Added new freetier action types to RecommendedAction.type.
+
+## __AWS DataSync__
+  - ### Features
+    - Adds Enhanced mode support for NFS and SMB locations. SMB credentials are now managed via Secrets Manager, and may be encrypted with service or customer managed keys. Increases AgentArns maximum count to 8 (max 4 per TaskMode). Adds folder counters to DescribeTaskExecution for Enhanced mode tasks.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect now offers automated post-chat surveys triggered when customers end conversations. This captures timely feedback while experience is fresh, using either a no-code form builder or Amazon Lex-powered interactive surveys.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Adds support for portal branding customization, enabling administrators to personalize end-user portals with custom assets.
+
 # __2.40.7__ __2025-12-11__
 ## __AWS Lambda__
   - ### Features
