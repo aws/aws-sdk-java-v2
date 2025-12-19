@@ -16,6 +16,7 @@
     - Fix credential reloading in defaults when shared credential/config files are modified.
     - Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified.
     - Optimize endpoint rule standard functions
+    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
 
 ## __AWS Wickr Admin API__
   - ### Features
