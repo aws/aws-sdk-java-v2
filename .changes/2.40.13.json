@@ -6,6 +6,12 @@
             "type": "bugfix",
             "category": "AWS SDK for Java v2",
             "contributor": "",
+            "description": "Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
             "description": "Fix credential reloading in defaults when shared credential/config files are modified."
         },
         {
