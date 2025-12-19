@@ -104,7 +104,17 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             if (!contentRangeOpt.isPresent()) {
                 contentRangeOpt = response.sdkHttpResponse().firstMatchingHeader("content-range");
                 if (!contentRangeOpt.isPresent()) {
-                    // Bad state! This is intended to cancel everything
+
+                    if (transformerCount.get() == 0) {
+                        this.delegate = getDelegateTransformer(0L);
+                        CompletableFuture<T> delegateFuture = delegate.prepare();
+                        CompletableFutureUtils.forwardResultTo(delegateFuture, future);
+                        CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
+                        transformerCount.incrementAndGet();
+                        delegate.onResponse(response);
+                        return;
+                    }
+
                     if (subscriber != null) {
                         subscriber.onError(new IllegalStateException("Content range header is missing"));
                     }
