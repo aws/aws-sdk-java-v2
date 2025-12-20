@@ -55,6 +55,7 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
     private static final int MIB = 1024 * 1024;
     private static final String TEST_BUCKET = temporaryBucketName(S3MultipartClientFileDownloadIntegrationTest.class);
     private static final String TEST_KEY = "testfile.dat";
+    private static final String ZERO_BYTE_KEY = "zero.dat";
     private static final int OBJ_SIZE = 100 * MIB;
     private static final long PART_SIZE = 5 * MIB;
 
@@ -107,6 +108,22 @@ public class S3MultipartClientFileDownloadIntegrationTest extends S3IntegrationT
         assertThat(interceptor.parts).hasSameElementsAs(IntStream.range(1, totalParts +1).boxed().collect(Collectors.toList()));
         path.toFile().delete();
     }
+
+    @Test
+    void download_emptyFile_shouldSucceed() throws Exception {
+        Path path = tmpPath().resolve(UUID.randomUUID().toString());
+        s3Client.putObject(b -> b.bucket(TEST_BUCKET).key(ZERO_BYTE_KEY), AsyncRequestBody.empty()).join();
+        CompletableFuture<GetObjectResponse> future = s3Client.getObject(
+            req -> req.bucket(TEST_BUCKET).key(ZERO_BYTE_KEY),
+            AsyncResponseTransformer.toFile(path, FileTransformerConfiguration.defaultCreateNew()));
+        future.join();
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] downloadedHash = md.digest(Files.readAllBytes(path));
+        md.reset();
+        byte[] originalHash = md.digest(new byte[0]);
+        assertThat(downloadedHash).isEqualTo(originalHash);
+    }
+
 
     private Path tmpPath() {
         return Paths.get(JavaSystemSetting.TEMP_DIRECTORY.getStringValueOrThrow());
