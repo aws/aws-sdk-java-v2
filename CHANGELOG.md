@@ -16,6 +16,10 @@
   - ### Features
     - Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior.
 
+## __Amazon S3__
+- ### Bugfixes
+    - Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw.
+
 # __2.40.13__ __2025-12-19__
 ## __ARC - Region switch__
   - ### Features
