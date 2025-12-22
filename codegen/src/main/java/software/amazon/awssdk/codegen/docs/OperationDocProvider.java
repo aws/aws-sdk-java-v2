@@ -30,7 +30,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
-import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -38,9 +37,6 @@ import software.amazon.awssdk.utils.StringUtils;
  * Base class for providers of documentation for operation methods.
  */
 abstract class OperationDocProvider {
-
-    private static final Lazy<ExampleMetadataProvider> EXAMPLE_PROVIDER = 
-        new Lazy<>(() -> ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH));
 
     /**
      * Doc string for {@link java.nio.file.Path} parameter in simple method overload for streaming input operations.
@@ -57,6 +53,9 @@ abstract class OperationDocProvider {
             "{@link Path} to file that response contents will be written to. The file must not exist or " +
             "this method will throw an exception. If the file is not writable by the current user then " +
             "an exception will be thrown. ";
+
+    private static final ExampleMetadataProvider EXAMPLE_PROVIDER =
+        ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH);
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;
@@ -94,7 +93,7 @@ abstract class OperationDocProvider {
             docBuilder.see(crosslink);
         }
 
-        Optional<String> codeExampleLink = EXAMPLE_PROVIDER.getValue()
+        Optional<String> codeExampleLink = EXAMPLE_PROVIDER
             .createLinkToCodeExample(model.getMetadata(), opModel.getOperationName());
         codeExampleLink.ifPresent(docBuilder::see);
         return docBuilder.build().replace("$", "&#36");

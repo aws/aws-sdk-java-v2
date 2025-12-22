@@ -172,7 +172,7 @@ public final class ExampleMetadataProvider {
                     });
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             log.warn(() -> "Failed to load " + exampleMetaPath, e);
         }
         
