@@ -489,21 +489,43 @@ public abstract class RequestOverrideConfiguration {
          * @param plugins The list of plugins for this request.
          * @return This object for method chaining.
          */
-        @SdkPreviewApi
         B plugins(List<SdkPlugin> plugins);
 
         /**
-         * Add a plugin used to update the configuration used by this request.
+         * Adds a plugin that will modify the configuration used by this specific request.
          *
-         * @param plugin The plugin to add.
+         * <p>Request-level plugins are applied at request execution time. Multiple plugins can be added and
+         * are executed in the order they were added.
+         *
+         * <p><b>Note:</b> Request-level override configuration (e.g., {@link #apiCallTimeout(Duration)}) takes
+         * precedence over request-level plugin settings. This means if you set a value directly on the request
+         * override configuration and also set it via a plugin, the direct configuration value will be used.
+         *
+         * <p>Example:
+         * {@snippet :
+         *   SdkPlugin highTimeoutPlugin = config -> {
+         *       config.overrideConfiguration(c -> c.apiCallTimeout(Duration.ofMinutes(5)));
+         *   };
+         *
+         *   GetObjectResponse response = s3Client.getObject(
+         *       GetObjectRequest.builder()
+         *           .bucket("my-bucket")
+         *           .key("large-file")
+         *           .overrideConfiguration(c -> c.addPlugin(highTimeoutPlugin))
+         *           .build(),
+         *       ResponseTransformer.toBytes()
+         *   );
+         * }
+         *
+         * @param plugin the plugin to add
+         * @return this builder for method chaining
+         * @see SdkPlugin
          */
-        @SdkPreviewApi
         B addPlugin(SdkPlugin plugin);
 
         /**
          * Returns the list of registered plugins
          */
-        @SdkPreviewApi
         List<SdkPlugin> plugins();
 
         /**
