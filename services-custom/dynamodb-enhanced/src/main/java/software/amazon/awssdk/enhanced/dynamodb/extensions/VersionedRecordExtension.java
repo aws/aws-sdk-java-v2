@@ -167,8 +167,9 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .build();
         } else {
-            // User set a version
+            // Existing record, increment version
             if (existingVersionValue.n() == null) {
+                // In this case a non-null version attribute is present, but it's not an N
                 throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
             }
 
@@ -176,6 +177,10 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
             long increment = versionIncrementByFromAnnotation;
 
+            /*
+            Since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
+            to happen in a real life scenario, we should add overflow protection.
+            */
             if (existingVersion > Long.MAX_VALUE - increment) {
                 throw new IllegalStateException(
                     String.format("Version overflow detected. Current version %d + increment %d would exceed Long.MAX_VALUE",
