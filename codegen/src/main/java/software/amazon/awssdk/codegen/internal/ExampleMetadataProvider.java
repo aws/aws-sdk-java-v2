@@ -64,6 +64,13 @@ public final class ExampleMetadataProvider {
         }
         return INSTANCE_CACHE.computeIfAbsent(exampleMetaPath, ExampleMetadataProvider::new);
     }
+    
+    /**
+     * Clears the instance cache.
+     */
+    public static void clearCache() {
+        INSTANCE_CACHE.clear();
+    }
 
     /**
      * Creates a link to a code example for the given operation.

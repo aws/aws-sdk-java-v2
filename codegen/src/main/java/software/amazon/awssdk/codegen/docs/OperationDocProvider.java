@@ -30,6 +30,7 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
+import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -37,6 +38,9 @@ import software.amazon.awssdk.utils.StringUtils;
  * Base class for providers of documentation for operation methods.
  */
 abstract class OperationDocProvider {
+
+    private static final Lazy<ExampleMetadataProvider> EXAMPLE_PROVIDER = 
+        new Lazy<>(() -> ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH));
 
     /**
      * Doc string for {@link java.nio.file.Path} parameter in simple method overload for streaming input operations.
@@ -90,9 +94,8 @@ abstract class OperationDocProvider {
             docBuilder.see(crosslink);
         }
 
-        ExampleMetadataProvider exampleProvider = ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH);
-        Optional<String> codeExampleLink = exampleProvider.createLinkToCodeExample(model.getMetadata(), 
-                                                                                    opModel.getOperationName());
+        Optional<String> codeExampleLink = EXAMPLE_PROVIDER.getValue()
+            .createLinkToCodeExample(model.getMetadata(), opModel.getOperationName());
         codeExampleLink.ifPresent(docBuilder::see);
         return docBuilder.build().replace("$", "&#36");
     }

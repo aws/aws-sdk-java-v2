@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServi
 import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
@@ -30,6 +31,11 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 public class PackageInfoGeneratorTasksTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
+
+    @AfterEach
+    void cleanupCache() {
+        ExampleMetadataProvider.clearCache();
+    }
 
     @Test
     public void exampleMetadataService_withExamples_returnsCorrectExamples() {

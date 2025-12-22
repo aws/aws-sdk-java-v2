@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
@@ -26,6 +27,11 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 public class OperationDocProviderTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
+
+    @AfterEach
+    void cleanupCache() {
+        ExampleMetadataProvider.clearCache();
+    }
 
     @Test
     public void exampleMetadataService_createLinkToCodeExample_withValidExample_returnsCorrectLink() {
