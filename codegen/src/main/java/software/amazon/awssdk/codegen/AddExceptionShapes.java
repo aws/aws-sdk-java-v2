@@ -88,7 +88,8 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
     }
 
     // JSON (ie non-rest) and smithy-rpc-v2-cbor should ignore the AwsQueryError trait
-    // error code on the deserialized exceptions that resepect
+    // error code on the deserialized exceptions is parsed based on the awsQueryCompatible trait in:
+    // AwsJsonProtocolErrorUnmarshaller#getEffectiveErrorCode
     private boolean protocolSupportsErrorCodeOverride() {
         return !getProtocol().equals("json") && !getProtocol().equals("smithy-rpc-v2-cbor");
     }
