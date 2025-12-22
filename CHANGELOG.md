@@ -1,4 +1,166 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.13__ __2025-12-19__
+## __ARC - Region switch__
+  - ### Features
+    - Automatic Plan Execution Reports allow customers to maintain a concise record of their Region switch Plan executions. This enables customer SREs and leadership to have a clear view of their recovery posture based on the generated reports for their Plan executions.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds event-based logging feature that enables granular event logging controls for AWS IoT logs.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fix credential reloading in defaults when shared credential/config files are modified.
+    - Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified.
+    - Optimize endpoint rule standard functions
+    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
+
+## __AWS Wickr Admin API__
+  - ### Features
+    - AWS Wickr now provides a suite of admin APIs to allow you to programmatically manage secure communication for Wickr networks at scale. These APIs enable you to automate administrative workflows including user lifecycle management, network configuration, and security group administration.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for ECDSA signed URLs.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adding support for Custom Metrics and Pre-Defined Attributes to GetCurrentMetricData API.
+
+## __Amazon WorkSpaces Web__
+  - ### Features
+    - Add support for WebAuthn under user settings.
+
+## __EMR Serverless__
+  - ### Features
+    - Added JobLevelCostAllocationConfiguration field to enable cost allocation reporting at the job level, providing more granular visibility into EMR Serverless charges
+
+## __QBusiness__
+  - ### Features
+    - It is a internal bug fix for region expansion
+
+# __2.40.12__ __2025-12-18__
+## __ARC - Region switch__
+  - ### Features
+    - New API to list Route 53 health checks created by ARC region switch for a plan in a specific AWS Region using the Region switch Regional data plane.
+
+## __AWS Artifact__
+  - ### Features
+    - Add support for ListReportVersions API for the calling AWS account.
+
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adding support for collaboration change requests requiring an approval workflow. Adding support for change requests that grant or revoke results receiver ability and modifying auto approved change types in an existing collaboration.
+
+## __AWS IoT__
+  - ### Features
+    - This release adds message batching for the IoT Rules Engine HTTP action.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Systems Manager for SAP__
+  - ### Features
+    - Added "Stopping" for the HANA Database Status.
+
+## __Amazon AppStream__
+  - ### Features
+    - Added support for new operating systems (1) Ubuntu 24.04 Pro LTS on Elastic fleets, and (2) Microsoft Server 2025 on Always-On and On-Demand fleets
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Feature to support header exchanges between Bedrock AgentCore Gateway Targets and client, along with propagating query parameter to the configured targets.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adding support for Event Windows via a new ECS account setting "fargateEventWindows". When enabled, ECS Fargate will use the configured event window for patching tasks. Introducing "CapacityOptionType" for CreateCapacityProvider API, allowing support for Spot capacity for ECS Managed Instances.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds AvailabilityZoneId support for CreateFleet, ModifyFleet, DescribeFleets, RequestSpotFleet, ModifySpotFleetRequests and DescribeSpotFleetRequests APIs.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Adds support for ECR Create On Push
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service adds support for warm nodes, enabling new multi-tier architecture.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Amazon SES introduces Email Validation feature which checks email addresses for syntax errors, domain validity, and risky addresses to help maintain deliverability and protect sender reputation. SES also adds resource tagging and ABAC support for EmailTemplates and CustomVerificationEmailTemplates.
+
+## __Data Automation for Amazon Bedrock__
+  - ### Features
+    - Blueprint Optimization (BPO) is a new Amazon Bedrock Data Automation (BDA) capability that improves blueprint inference accuracy using example content assets and ground truth data. BPO works by generating better instructions for fields in the Blueprint using provided data.
+
+# __2.40.11__ __2025-12-17__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for tile encoding in HEVC and audio for video overlays.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for SPEKE V2 content key encryption in MediaPackage v2 Origin Endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SDK for Java v2 Migration Tool__
+  - ### Bugfixes
+    - Add support for S3Object getObjectMetadata transform
+
+## __Amazon CloudFront__
+  - ### Features
+    - Add support for ECDSA signed URLs.
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - Added new stream group operation parameters for scale-on-demand capacity with automatic prewarming. Added new Gen6 stream classes based on the EC2 G6 instance family. Added new StartStreamSession parameter for exposure of real-time performance stats to clients.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Add support for dbiResourceId in finding.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adding the newly launched p6-b300.48xlarge ec2 instance support in Sagemaker(Hyperpod,Training and Sceptor)
+
+## __Inspector Scan__
+  - ### Features
+    - Adds an additional OutputFormat
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Support dual-stack network connectivity for connectors via NetworkType field.
+
+## __Payment Cryptography Control Plane__
+  - ### Features
+    - Support for AS2805 standard. Modifications to import-key and export-key to support AS2805 variants.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Support for AS2805 standard. New API GenerateAs2805KekValidation and changes to translate pin, GenerateMac and VerifyMac to support AS2805 key variants.
+
+# __2.40.10__ __2025-12-16__
+## __AWS IoT__
+  - ### Features
+    - Add support for dynamic payloads in IoT Device Management Commands
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release adds support for rebooting InfluxDB DbInstances and DbClusters
+
 # __2.40.9__ __2025-12-15__
 ## __AWS EntityResolution__
   - ### Features

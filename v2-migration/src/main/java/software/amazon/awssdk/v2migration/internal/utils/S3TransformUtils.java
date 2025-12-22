@@ -207,6 +207,20 @@ public final class S3TransformUtils {
         return isSetterForClassType(method, V2_S3_MODEL_PKG + "HeadObjectResponse");
     }
 
+    public static boolean isObjectMetadataGetter(J.MethodInvocation method) {
+        if (!"objectMetadata".equals(method.getSimpleName()) || hasArguments(method)) {
+            return false;
+        }
+
+        Expression select = method.getSelect();
+        if (!(select instanceof J.MethodInvocation)) {
+            return false;
+        }
+
+        J.MethodInvocation receiverMethod = (J.MethodInvocation) select;
+        return "response".equals(receiverMethod.getSimpleName());
+    }
+
     /** Field set during POJO instantiation, e.g.,
      * PutObjectRequest request = new PutObjectRequest("bucket" "key", "redirectLocation").withFile(file);
      */
@@ -236,7 +250,7 @@ public final class S3TransformUtils {
     }
 
     public static boolean hasArguments(J.MethodInvocation method) {
-        return !method.getArguments().isEmpty();
+        return method.getArguments().stream().anyMatch(arg -> !(arg instanceof J.Empty));
     }
 
     public static boolean isPayloadSetter(J.MethodInvocation method) {
