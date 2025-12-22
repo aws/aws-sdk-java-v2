@@ -25,6 +25,12 @@
             "category": "Amazon GuardDuty",
             "contributor": "",
             "description": "Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw."
         }
     ]
 }
