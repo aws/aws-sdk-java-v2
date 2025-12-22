@@ -1,4 +1,21 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.14__ __2025-12-22__
+## __AWS Config__
+  - ### Features
+    - Added supported resourceTypes for Config from July to November 2025
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Change API Reference Documentation for default Mode in Accounting and SlurmRest
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for linkedGroupId on the CreatePlacementGroup and DescribePlacementGroups APIs. The linkedGroupId parameter is reserved for future use.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior.
+
 # __2.40.13__ __2025-12-19__
 ## __ARC - Region switch__
   - ### Features
@@ -13,10 +30,10 @@
     - Updated endpoint and partition metadata.
 
   - ### Bugfixes
+    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
     - Fix credential reloading in defaults when shared credential/config files are modified.
     - Gracefully handle missing file in ProfileFileSupplier.reloadWhenModified.
     - Optimize endpoint rule standard functions
-    - Downgrade Jackson and Jackson JR to 2.18.5 to address parsing errors in large strings.
 
 ## __AWS Wickr Admin API__
   - ### Features
