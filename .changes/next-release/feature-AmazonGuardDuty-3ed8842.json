@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior."
-}

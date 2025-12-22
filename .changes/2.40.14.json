@@ -1,0 +1,30 @@
+{
+    "version": "2.40.14",
+    "date": "2025-12-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "Added supported resourceTypes for Config from July to November 2025"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Change API Reference Documentation for default Mode in Accounting and SlurmRest"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for linkedGroupId on the CreatePlacementGroup and DescribePlacementGroups APIs. The linkedGroupId parameter is reserved for future use."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior."
+        }
+    ]
+}
