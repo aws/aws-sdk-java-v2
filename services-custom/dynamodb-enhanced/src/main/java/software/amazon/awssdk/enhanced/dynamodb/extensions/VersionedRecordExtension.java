@@ -158,7 +158,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                                    .orElse(this.incrementBy);
 
 
-        if (isInitialVersion(existingVersionValue, versionStartAtFromAnnotation)) {
+        if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
             newVersionValue = AttributeValue.builder()
                                             .n(Long.toString(versionStartAtFromAnnotation + versionIncrementByFromAnnotation))
                                             .build();
@@ -167,21 +167,15 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                   .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
                                   .build();
         } else {
-            // Existing record, increment version
+            // User set a version
             if (existingVersionValue.n() == null) {
-                // In this case a non-null version attribute is present, but it's not an N
                 throw new IllegalArgumentException("Version attribute appears to be the wrong type. N is required.");
             }
 
             long existingVersion = Long.parseLong(existingVersionValue.n());
             String existingVersionValueKey = VERSIONED_RECORD_EXPRESSION_VALUE_KEY_MAPPER.apply(versionAttributeKey.get());
-
             long increment = versionIncrementByFromAnnotation;
 
-            /*
-            Since the new incrementBy and StartAt functionality can now accept any positive number, though unlikely
-            to happen in a real life scenario, we should add overflow protection.
-            */
             if (existingVersion > Long.MAX_VALUE - increment) {
                 throw new IllegalStateException(
                     String.format("Version overflow detected. Current version %d + increment %d would exceed Long.MAX_VALUE",
@@ -190,12 +184,25 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
 
             newVersionValue = AttributeValue.builder().n(Long.toString(existingVersion + increment)).build();
 
-            condition = Expression.builder()
-                                  .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
-                                  .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
-                                  .expressionValues(Collections.singletonMap(existingVersionValueKey,
-                                                                             existingVersionValue))
-                                  .build();
+            // When version equals startAt, we can't distinguish between new and existing records
+            // Use OR condition to handle both cases
+            if (existingVersion == versionStartAtFromAnnotation) {
+                condition = Expression.builder()
+                                      .expression(String.format("attribute_not_exists(%s) OR %s = %s",
+                                                              attributeKeyRef, attributeKeyRef, existingVersionValueKey))
+                                      .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
+                                      .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                                 existingVersionValue))
+                                      .build();
+            } else {
+                // Normal case - version doesn't equal startAt, must be existing record
+                condition = Expression.builder()
+                                      .expression(String.format("%s = %s", attributeKeyRef, existingVersionValueKey))
+                                      .expressionNames(Collections.singletonMap(attributeKeyRef, versionAttributeKey.get()))
+                                      .expressionValues(Collections.singletonMap(existingVersionValueKey,
+                                                                                 existingVersionValue))
+                                      .build();
+            }
         }
 
         itemToTransform.put(versionAttributeKey.get(), newVersionValue);
@@ -204,21 +211,6 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
                                 .transformedItem(Collections.unmodifiableMap(itemToTransform))
                                 .additionalConditionalExpression(condition)
                                 .build();
-    }
-
-    private boolean isInitialVersion(AttributeValue existingVersionValue, Long versionStartAtFromAnnotation) {
-        if (existingVersionValue == null || isNullAttributeValue(existingVersionValue)) {
-            return true;
-        }
-
-        if (existingVersionValue.n() != null) {
-            long currentVersion = Long.parseLong(existingVersionValue.n());
-            // If annotation value is present, use it, otherwise fall back to the extension's value
-            Long effectiveStartAt = versionStartAtFromAnnotation != null ? versionStartAtFromAnnotation : this.startAt;
-            return currentVersion == effectiveStartAt;
-        }
-
-        return false;
     }
 
     @NotThreadSafe

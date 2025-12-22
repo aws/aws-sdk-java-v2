@@ -17,10 +17,13 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
@@ -406,5 +410,174 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
                                                                             .setVersion(8L)));
 
         assertThat(updated.getVersion(), is(11L));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionZero_defaultStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-zero"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("version-zero")));
+        assertThat(retrieved.getVersion(), is(0));
+
+        Record updated = mappedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(1));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionEqualToBuilderStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-ten"));
+        item.put("version", AttributeValue.builder().n("10").build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record retrieved = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("version-ten")));
+        assertThat(retrieved.getVersion(), is(10));
+
+        Record updated = mappedCustomVersionedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(12));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionEqualToAnnotationStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("version-five"));
+        item.put("version", AttributeValue.builder().n("5").build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("version-five")));
+        assertThat(retrieved.getVersion(), is(5L));
+
+        AnnotatedRecord updated = annotatedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(8L));
+    }
+
+    @Test
+    public void putItem_existingRecordWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("put-version-ten"));
+        item.put("version", AttributeValue.builder().n("10").build());
+        
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record overwrite = new Record().setId("put-version-ten").setVersion(10);
+        mappedCustomVersionedTable.putItem(overwrite);
+
+        Record retrieved = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("put-version-ten")));
+        assertThat(retrieved.getVersion(), is(12));
+    }
+
+    @Test
+    public void putItem_newRecordWithVersionEqualToStartAt_shouldSucceed() {
+        Record newRecord = new Record().setId("explicit-zero").setAttribute("test").setVersion(0);
+        mappedTable.putItem(newRecord);
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("explicit-zero")));
+        assertThat(retrieved.getVersion(), is(1));
+    }
+
+    @Test
+    public void sdkV1MigrationFlow_createRetrieveUpdate_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("v1-record"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record retrieved = mappedTable.getItem(r -> r.key(k -> k.partitionValue("v1-record")));
+        assertThat(retrieved.getVersion(), is(0));
+
+        retrieved.setAttribute("updated");
+        Record updated = mappedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(1));
+        assertThat(updated.getAttribute(), is("updated"));
+    }
+
+    @Test
+    public void deleteItem_existingRecordWithVersionZero_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-test"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n("0").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name")).item(item));
+
+        Record toDelete = mappedTable.getItem(r -> r.key(k -> k.partitionValue("delete-test")));
+        assertThat(toDelete.getVersion(), is(0));
+
+        mappedTable.deleteItem(toDelete);
+
+        Record shouldBeNull = mappedTable.getItem(r -> r.key(k -> k.partitionValue("delete-test")));
+        assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void updateItem_bothBuilderAndAnnotationWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("both-config"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n("5").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("both-config")));
+        assertThat(retrieved.getVersion(), is(5L));
+
+        retrieved.setAttribute("updated");
+        AnnotatedRecord updated = annotatedTable.updateItem(retrieved);
+        assertThat(updated.getVersion(), is(8L));
+    }
+
+    @Test
+    public void putItem_annotationConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("annotation-put"));
+        item.put("attribute", stringValue("initial"));
+        item.put("version", AttributeValue.builder().n("5").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord overwrite = new AnnotatedRecord().setId("annotation-put").setAttribute("overwritten").setVersion(5L);
+        annotatedTable.putItem(overwrite);
+
+        AnnotatedRecord retrieved = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("annotation-put")));
+        assertThat(retrieved.getAttribute(), is("overwritten"));
+        assertThat(retrieved.getVersion(), is(8L));
+    }
+
+    @Test
+    public void deleteItem_builderConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-builder"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n("10").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("table-name2")).item(item));
+
+        Record toDelete = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("delete-builder")));
+        assertThat(toDelete.getVersion(), is(10));
+
+        mappedCustomVersionedTable.deleteItem(toDelete);
+
+        Record shouldBeNull = mappedCustomVersionedTable.getItem(r -> r.key(k -> k.partitionValue("delete-builder")));
+        assertThat(shouldBeNull, is(nullValue()));
+    }
+
+    @Test
+    public void deleteItem_annotationConfigWithVersionEqualToStartAt_shouldSucceed() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("id", stringValue("delete-annotation"));
+        item.put("attribute", stringValue("test"));
+        item.put("version", AttributeValue.builder().n("5").build());
+        getDynamoDbClient().putItem(r -> r.tableName(getConcreteTableName("annotated-table")).item(item));
+
+        AnnotatedRecord toDelete = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
+        assertThat(toDelete.getVersion(), is(5L));
+
+        annotatedTable.deleteItem(toDelete);
+
+        AnnotatedRecord shouldBeNull = annotatedTable.getItem(r -> r.key(k -> k.partitionValue("delete-annotation")));
+        assertThat(shouldBeNull, is(nullValue()));
     }
 }

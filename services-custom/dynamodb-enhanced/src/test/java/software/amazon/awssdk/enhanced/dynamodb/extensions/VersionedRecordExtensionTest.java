@@ -212,7 +212,7 @@ public class VersionedRecordExtensionTest {
                                             .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.additionalConditionalExpression().expression(),
-                   is("attribute_not_exists(#AMZN_MAPPED_version)"));
+                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
     }
 
     @ParameterizedTest
@@ -321,7 +321,7 @@ public class VersionedRecordExtensionTest {
                                             .operationContext(PRIMARY_CONTEXT).build());
 
         assertThat(result.additionalConditionalExpression().expression(),
-                   is("attribute_not_exists(#AMZN_MAPPED_version)"));
+                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
     }
 
 
@@ -617,6 +617,30 @@ public class VersionedRecordExtensionTest {
         item.setId(UUID.randomUUID().toString());
 
         item.setVersion(5L);
+
+        TableSchema<FakeVersionedThroughAnnotationItem> schema =
+            TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
+
+        Map<String, AttributeValue> inputMap = new HashMap<>(schema.itemToMap(item, true));
+
+        WriteModification result =
+            recordExtension.beforeWrite(DefaultDynamoDbExtensionContext
+                                            .builder()
+                                            .items(inputMap)
+                                            .tableMetadata(schema.tableMetadata())
+                                            .operationContext(PRIMARY_CONTEXT).build());
+
+        assertThat(result.additionalConditionalExpression().expression(),
+                   is("#AMZN_MAPPED_version = :old_version_value"));
+    }
+
+    @Test
+    public void updateItem_existingRecordWithVersionEqualToStartAt_shouldSucceed() {
+        VersionedRecordExtension recordExtension = VersionedRecordExtension.builder().build();
+        FakeVersionedThroughAnnotationItem item = new FakeVersionedThroughAnnotationItem();
+        item.setId(UUID.randomUUID().toString());
+
+        item.setVersion(0L);
 
         TableSchema<FakeVersionedThroughAnnotationItem> schema =
             TableSchema.fromBean(FakeVersionedThroughAnnotationItem.class);
