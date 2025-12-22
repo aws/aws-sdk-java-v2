@@ -15,14 +15,16 @@
 
 package software.amazon.awssdk.codegen.docs;
 
+import static software.amazon.awssdk.codegen.internal.Constant.EXAMPLE_META_PATH;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.createLinkToServiceDocumentation;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 
 import com.squareup.javapoet.ClassName;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-import software.amazon.awssdk.codegen.internal.DocumentationUtils;
+import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -88,13 +90,10 @@ abstract class OperationDocProvider {
             docBuilder.see(crosslink);
         }
 
-        String exampleMetaPath = "software/amazon/awssdk/codegen/example-meta.json";
-        String codeExampleLink = DocumentationUtils.createLinkToCodeExample(model.getMetadata(), 
-                                                                             opModel.getOperationName(), 
-                                                                             exampleMetaPath);
-        if (!codeExampleLink.isEmpty()) {
-            docBuilder.see(codeExampleLink);
-        }
+        ExampleMetadataProvider exampleProvider = ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH);
+        Optional<String> codeExampleLink = exampleProvider.createLinkToCodeExample(model.getMetadata(), 
+                                                                                    opModel.getOperationName());
+        codeExampleLink.ifPresent(docBuilder::see);
         return docBuilder.build().replace("$", "&#36");
     }
 
