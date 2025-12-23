@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Location Service Places V2",
+    "contributor": "",
+    "description": "Adds support for InferredSecondaryAddress place type, Designator in SecondaryAddressComponent and Heading in ReverseGeocode."
+}
