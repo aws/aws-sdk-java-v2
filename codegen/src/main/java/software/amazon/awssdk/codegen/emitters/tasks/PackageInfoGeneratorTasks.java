@@ -109,7 +109,7 @@ public final class PackageInfoGeneratorTasks extends BaseGeneratorTasks {
      * Gets code examples using a custom example metadata path.
      */
     private String getCodeExamplesWithPath(Metadata metadata, String exampleMetaPath) {
-        ExampleMetadataProvider exampleProvider = ExampleMetadataProvider.getInstance(exampleMetaPath);
+        ExampleMetadataProvider exampleProvider = new ExampleMetadataProvider(exampleMetaPath);
         List<ExampleMetadataProvider.ExampleData> examples = exampleProvider.getServiceCodeExamples(metadata);
         
         if (examples.isEmpty()) {

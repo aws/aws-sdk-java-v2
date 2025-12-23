@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -35,17 +34,12 @@ public class PackageInfoGeneratorTasksTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
 
-    @AfterAll
-    static void cleanupCache() {
-        ExampleMetadataProvider.clearCache();
-    }
-
     @ParameterizedTest
     @MethodSource("getServiceCodeExamplesTestCases")
     public void exampleMetadataService_getServiceCodeExamples_returnsExpectedResult(
             String metadataPath, String serviceName,
             Integer expectedSize, String expectedFirstTitle, String expectedFirstCategory, String expectedFirstUrl) {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(metadataPath);
+        ExampleMetadataProvider provider = new ExampleMetadataProvider(metadataPath);
 
         List<ExampleMetadataProvider.ExampleData> result = provider.getServiceCodeExamples(createTestMetadata(serviceName));
 

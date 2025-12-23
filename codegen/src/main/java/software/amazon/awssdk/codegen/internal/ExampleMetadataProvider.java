@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
@@ -38,38 +36,24 @@ public final class ExampleMetadataProvider {
 
     private static final Logger log = Logger.loggerFor(ExampleMetadataProvider.class);
 
-    private static final ConcurrentMap<String, ExampleMetadataProvider> INSTANCE_CACHE = new ConcurrentHashMap<>();
-
     private final String exampleMetaPath;
     private final JsonNodeParser jsonParser;
     private final Lazy<Map<String, JsonNode>> serviceNodeCache;
     private final Lazy<Map<String, String>> normalizedServiceKeyMap;
 
-    private ExampleMetadataProvider(String exampleMetaPath) {
-        this.exampleMetaPath = exampleMetaPath;
-        this.jsonParser = JsonNodeParser.create();
-        this.serviceNodeCache = new Lazy<>(this::buildServiceNodeCache);
-        this.normalizedServiceKeyMap = new Lazy<>(this::buildNormalizedServiceKeyMap);
-    }
-
     /**
      * Creates an ExampleMetadataProvider instance for the given JSON file path.
      *
      * @param exampleMetaPath path to the example metadata JSON file
-     * @return ExampleMetadataProvider instance for this path
      */
-    public static ExampleMetadataProvider getInstance(String exampleMetaPath) {
+    public ExampleMetadataProvider(String exampleMetaPath) {
         if (exampleMetaPath == null) {
             throw new IllegalArgumentException("exampleMetaPath cannot be null");
         }
-        return INSTANCE_CACHE.computeIfAbsent(exampleMetaPath, ExampleMetadataProvider::new);
-    }
-    
-    /**
-     * Clears the instance cache.
-     */
-    public static void clearCache() {
-        INSTANCE_CACHE.clear();
+        this.exampleMetaPath = exampleMetaPath;
+        this.jsonParser = JsonNodeParser.create();
+        this.serviceNodeCache = new Lazy<>(this::buildServiceNodeCache);
+        this.normalizedServiceKeyMap = new Lazy<>(this::buildNormalizedServiceKeyMap);
     }
 
     /**

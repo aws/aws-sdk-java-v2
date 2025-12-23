@@ -55,7 +55,7 @@ abstract class OperationDocProvider {
             "an exception will be thrown. ";
 
     private static final ExampleMetadataProvider EXAMPLE_PROVIDER =
-        ExampleMetadataProvider.getInstance(EXAMPLE_META_PATH);
+        new ExampleMetadataProvider(EXAMPLE_META_PATH);
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;

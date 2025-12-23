@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,16 +31,11 @@ public class OperationDocProviderTest {
 
     private static final String TEST_EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/test-example-meta.json";
 
-    @AfterAll
-    static void cleanupCache() {
-        ExampleMetadataProvider.clearCache();
-    }
-
     @ParameterizedTest
     @MethodSource("createLinkToCodeExampleTestCases")
     public void exampleMetadataService_createLinkToCodeExample_returnsExpectedResult(
             String serviceName, String operationName, String expectedUrl) {
-        ExampleMetadataProvider provider = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
+        ExampleMetadataProvider provider = new ExampleMetadataProvider(TEST_EXAMPLE_META_PATH);
 
         Optional<String> result = provider.createLinkToCodeExample(createTestMetadata(serviceName), operationName);
 
@@ -65,20 +59,8 @@ public class OperationDocProviderTest {
     }
 
     @Test
-    public void registryPattern_withMultiplePaths_maintainsSeparateInstances() {
-        ExampleMetadataProvider provider1 = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-        ExampleMetadataProvider provider2 = ExampleMetadataProvider.getInstance("nonexistent/path.json");
-
-        assertThat(provider1).isNotSameAs(provider2);
-
-        ExampleMetadataProvider provider1Again = ExampleMetadataProvider.getInstance(TEST_EXAMPLE_META_PATH);
-        assertThat(provider1).isSameAs(provider1Again);
-    }
-
-    @Test
-    public void registryPattern_threadSafety_handlesNullPath() {
-        assertThatThrownBy(() -> ExampleMetadataProvider.getInstance(null))
-            .as("getInstance should reject null paths")
+    public void constructor_withNullPath_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> new ExampleMetadataProvider(null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("exampleMetaPath cannot be null");
     }
