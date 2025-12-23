@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,11 +45,11 @@ public class RulesFunctions {
 
     public static List<String> split(String value, String delimiter, int limit) {
         if (limit == 1) {
-            return List.of(value);
+            return Collections.singletonList(value);
         }
 
         if (value.isEmpty()) {
-            return List.of("");
+            return Collections.singletonList("");
         }
 
         final int delimLen = delimiter.length();
@@ -82,12 +83,15 @@ public class RulesFunctions {
         return condition ? ifTrue : ifFalse;
     }
 
-    public static String substring(String input, int start, int stop, boolean reverse) {
-        int len = input.length();
-
-        if (start >= stop || stop > len)
+    public static String substring(String value, int startIndex, int stopIndex, boolean reverse) {
+        if (value == null) {
             return null;
+        }
 
+        int len = value.length();
+        if (startIndex >= stopIndex || len < stopIndex) {
+            return null;
+        }
 
         for (int i = 0; i < len; i++) {
             // non-ascii characters (values outside of the 7bit ASCII range)
@@ -95,6 +99,7 @@ public class RulesFunctions {
                 return null;
             }
         }
+
         if (reverse) {
             int revStart = len - stopIndex;
             int revStop = len - startIndex;

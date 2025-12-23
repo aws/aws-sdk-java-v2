@@ -58,16 +58,18 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
     private static final Logger log = LoggerFactory.getLogger(RuleExpressionVisitor.class);
 
     private final CodeBlock.Builder builder;
+    private final ClassName dynamicAuthBuilderType;
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
     private final boolean endpointCaching;
 
     public ResultFnCodeGeneratorVisitor(
-        CodeBlock.Builder builder, RuleRuntimeTypeMirror typeMirror,
+        CodeBlock.Builder builder, ClassName dynamicAuthBuilderType, RuleRuntimeTypeMirror typeMirror,
         Map<String, RegistryInfo> registerInfoMap,
         Map<String, KeyTypePair> knownEndpointAttributes, boolean endpointCaching) {
         this.builder = builder;
+        this.dynamicAuthBuilderType = dynamicAuthBuilderType;
         this.typeMirror = typeMirror;
         this.registerInfoMap = registerInfoMap;
         this.knownEndpointAttributes = knownEndpointAttributes;
@@ -312,16 +314,24 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
             throw new RuntimeException("Expecting properties, got: " + e);
         }
         PropertiesExpression expr = (PropertiesExpression) e;
-        String name = stringValueOf(expr.properties().get("name"));
-        builder.add("$T.builder()", authSchemeClass(name));
-        expr.properties().forEach((k, v) -> {
-            if (!"name".equals(k)) {
-                builder.add(".$L(", k);
-                v.accept(this);
-                builder.add(")");
-            }
-        });
-        builder.add(".build()");
+        // use static/codegen classes to build authscheme
+        if (expr.properties().get("name").kind() == RuleExpression.RuleExpressionKind.STRING_VALUE) {
+            String name = stringValueOf(expr.properties().get("name"));
+            builder.add("$T.builder()", authSchemeClass(name));
+            expr.properties().forEach((k, v) -> {
+                if (!"name".equals(k)) {
+                    builder.add(".$L(", k);
+                    v.accept(this);
+                    builder.add(")");
+                }
+            });
+            builder.add(".build()");
+        } else {
+            // dynamic case, we need to evaluate the name expression and use a dynamic builder for the endpoint auth scheme
+            builder.add("$T.builder().name(", dynamicAuthBuilderType);
+            expr.properties().get("name").accept(this);
+            builder.add(").build()");
+        }
     }
 
     private String stringValueOf(RuleExpression e) {
