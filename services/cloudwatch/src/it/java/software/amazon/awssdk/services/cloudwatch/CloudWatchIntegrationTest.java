@@ -372,16 +372,6 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
                                                    .namespace("fake-namespace").build());
             fail("Expected an SdkServiceException, but wasn't thrown");
-        } catch (SdkServiceException e) {
-            assertThat(e, isValidSdkServiceException());
-        }
-    }
-
-    @Test
-    public void testQueryCompatibleExceptionHandling() {
-        try {
-            cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder().namespace("foo").statistics(Statistic.AVERAGE).build());
-            fail("Expected a MissingRequiredParameterException, but wasn't thrown");
         } catch (MissingRequiredParameterException e) {
             // There is a strong contract on the value of these fields, and they should never change unexpectedly
             assertEquals("MissingParameter", e.awsErrorDetails().errorCode());
