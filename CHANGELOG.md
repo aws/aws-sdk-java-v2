@@ -1,4 +1,26 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.40.15__ __2025-12-23__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Remove `elastictranscoder`.
+
+## __Amazon Location Service Places V2__
+  - ### Features
+    - Adds support for InferredSecondaryAddress place type, Designator in SecondaryAddressComponent and Heading in ReverseGeocode.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This release adds support for the Registration Reviewer feature, which provides generative AI feedback on a phone number or sender ID registration to ensure completeness before sending to downstream (carrier) review.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Add additional validation to Outpost bucket names.
+
 # __2.40.14__ __2025-12-22__
 ## __AWS Config__
   - ### Features
@@ -17,7 +39,7 @@
     - Make accountIds a required field in GetRemainingFreeTrialDays API to reflect service behavior.
 
 ## __Amazon S3__
-- ### Bugfixes
+  - ### Bugfixes
     - Fixed the issue where S3 multipart client failed to download zero-byte file, causing `Content range header is missing` exception to throw.
 
 # __2.40.13__ __2025-12-19__
