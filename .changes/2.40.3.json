@@ -1,0 +1,42 @@
+{
+    "version": "2.40.3",
+    "date": "2025-12-05",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Adding the ExpirationTime attribute to the delegation request resource."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2 Codegen",
+            "contributor": "",
+            "description": "Automatically enable `AwsV4HttpSigner.CHUNK_ENCODING_ENABLED` signer property for input streaming operations that support checksums in generated auth scheme provider class"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Updating stop-task API to encapsulate containers with custom stop signal"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Email Service",
+            "contributor": "",
+            "description": "Updating the desired url for `PutEmailIdentityDkimSigningAttributes` from v1 to v2"
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "This release adds a new ScanStatus called \"Unsupported Code Artifacts\". This ScanStatus will be returned when a Lambda function was not code scanned because it has unsupported code artifacts."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Account API",
+            "contributor": "",
+            "description": "Adding Verification API's to Partner Central Account SDK."
+        }
+    ]
+}

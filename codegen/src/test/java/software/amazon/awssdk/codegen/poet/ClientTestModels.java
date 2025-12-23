@@ -484,16 +484,39 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
-    public static IntermediateModel serviceMiniS3() {
+    public static IntermediateModel serviceS3() {
         File serviceModel =
-            new File(ClientTestModels.class.getResource("client/c2j/mini-s3/service-2.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/s3-test/service-2.json").getFile());
         File customizationModel =
-            new File(ClientTestModels.class.getResource("client/c2j/mini-s3/customization.config")
+            new File(ClientTestModels.class.getResource("client/c2j/s3-test/customization.config")
                                            .getFile());
+        File endpointRuleSet = new File(ClientTestModels.class.getResource("client/c2j/s3-test"
+                                                                + "/endpoint-rule-set.json")
+                                                   .getFile());
         C2jModels models = C2jModels
             .builder()
             .serviceModel(getServiceModel(serviceModel))
             .customizationConfig(getCustomizationConfig(customizationModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSet))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    public static IntermediateModel serviceS3Control() {
+        File serviceModel =
+            new File(ClientTestModels.class.getResource("client/c2j/s3control-test/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/s3control-test/customization.config")
+                                           .getFile());
+        File endpointRuleSet = new File(ClientTestModels.class.getResource("client/c2j/s3control-test"
+                                                                           + "/endpoint-rule-set.json")
+                                                              .getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSet))
             .build();
 
         return new IntermediateModelBuilder(models).build();

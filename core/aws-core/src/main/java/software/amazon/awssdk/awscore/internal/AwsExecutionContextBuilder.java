@@ -263,14 +263,14 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO(sra-identity-and-auth): When request-level auth scheme provider is added, use the request-level auth scheme
-        //  provider if the customer specified an override, otherwise fall back to the one on the client.
+        // TODO(request-override auth scheme feature): When request-level auth scheme provider is added, use the request-level
+        //  auth scheme provider if the customer specified an override, otherwise fall back to the one on the client.
         AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
 
         // Use auth schemes that the user specified at the request level with
         // preference over those on the client.
-        // TODO(sra-identity-and-auth): The request level schemes should be "merged" with client level, with request preferred
-        //  over client.
+        // TODO(request-override auth scheme feature): The request level schemes should be "merged" with client level, with
+        //  request preferred over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
