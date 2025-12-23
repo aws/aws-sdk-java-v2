@@ -580,11 +580,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>elastictranscoder</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>emr</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
